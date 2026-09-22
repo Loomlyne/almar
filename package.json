@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "host:cloudflare": "node scripts/assemble-cloudflare.mjs && wrangler deploy"
   },
   "dependencies": {
     "next": "14.2.35",
