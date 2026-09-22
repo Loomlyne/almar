@@ -1,0 +1,258 @@
+{
+  "phase": "1",
+  "phase_name": "Design system",
+  "timestamp": "2026-09-22T20:20:11Z",
+  "status": "in_progress",
+  "areas_completed": ["Token model", "Type + color rules"],
+  "areas_remaining": [
+    "Component kit (partial — 4 of N answered)",
+    "/design gate before auth",
+    "Guest stepper",
+    "Modal vs drawer",
+    "Toasts",
+    "Input labels",
+    "Select / checkbox / radio",
+    "Stay card / add-on row / price",
+    "Nav / footer",
+    "Font loading",
+    "Empty / error / loading patterns"
+  ],
+  "picker_rule": "Every clarify question MUST include a choices array (2–4 options, recommended first). Other is always available to type. Never send type-only questions.",
+  "decisions": {
+    "Token model": [
+      {
+        "question": "How should tokens be named?",
+        "answer": "Semantic + brand primitives (fg, accent, plus teal/gold as raw)",
+        "options_presented": [
+          "Semantic + brand primitives (—fg, —accent, plus teal/gold as raw)",
+          "Brand names only (teal, gold, ivory, charcoal)",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Spacing scale?",
+        "answer": "4px grid, snapped from live Framer measure",
+        "options_presented": [
+          "4px grid, snapped from live Framer measure",
+          "Use Framer values as-is (even if uneven)",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Public vs ops density?",
+        "answer": "One token set + compact density on ops",
+        "options_presented": [
+          "One token set + compact density on ops",
+          "Two full token sets (public and ops)",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Radius and shadow?",
+        "answer": "Concentric radius + shadow scale from Framer measure",
+        "options_presented": [
+          "Concentric radius + shadow scale from Framer measure",
+          "Simple sm / md / lg only",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Motion tokens?",
+        "answer": "Short luxury (150 / 250 / 400ms) + reduced-motion",
+        "options_presented": [
+          "Short luxury (150 / 250 / 400ms) + reduced-motion",
+          "Match Framer / Lenis feel as closely as possible",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Breakpoints?",
+        "answer": "Tailwind defaults",
+        "options_presented": ["Tailwind defaults", "Measure Framer breakpoints and use those", "You decide"]
+      },
+      {
+        "question": "Where do tokens live?",
+        "answer": "CSS variables wired through Tailwind @theme",
+        "options_presented": [
+          "CSS variables wired through Tailwind @theme",
+          ":root CSS only (no Tailwind theme map)",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Focus ring?",
+        "answer": "You decide → teal 2px offset ring",
+        "options_presented": ["Teal 2px offset ring", "Gold 2px offset ring", "You decide"],
+        "claude_discretion": true
+      }
+    ],
+    "Type + color rules": [
+      {
+        "question": "Questa vs Lato — who does what?",
+        "answer": "Questa display/headings, Lato body/UI/forms",
+        "options_presented": [
+          "Questa display/headings, Lato body/UI/forms",
+          "Questa almost everywhere, Lato only small UI",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Type sizes?",
+        "answer": "You pick best fit → brand book for display, Framer-measured for UI",
+        "options_presented": [
+          "Brand book for display, Framer-measured for UI",
+          "Follow Brand Guideline.pdf scale only",
+          "Follow live Framer sizes only",
+          "You decide"
+        ],
+        "claude_discretion": true
+      },
+      {
+        "question": "Where does gold show up?",
+        "answer": "CTAs, rules, icons, focus — never body text",
+        "options_presented": [
+          "CTAs, rules, icons, focus — never body text",
+          "Headings can be gold too",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Surfaces (backgrounds)?",
+        "answer": "Ivory page, white cards/inputs, teal ink",
+        "options_presented": [
+          "Ivory page, white cards/inputs, teal ink",
+          "Ivory everywhere (cards included)",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Primary ink (headings / body)?",
+        "answer": "Teal headings, charcoal body",
+        "options_presented": [
+          "Teal headings, charcoal body",
+          "Teal for both headings and body",
+          "Charcoal for both, teal only on accents",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Link color?",
+        "answer": "Teal, gold on hover",
+        "options_presented": [
+          "Teal, gold on hover",
+          "Gold links, teal on hover",
+          "Same as body, underline only",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Status colors (error / success / warning)?",
+        "answer": "Separate semantic red / green / amber (not gold)",
+        "options_presented": [
+          "Separate semantic red / green / amber (not gold)",
+          "Tint brand teal/gold only — no extra palette",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Disabled look?",
+        "answer": "Lower opacity, no pointer, text still readable",
+        "options_presented": [
+          "Lower opacity, no pointer, text still readable",
+          "Grey fill + grey text",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Arabic type (used only when language is AR)?",
+        "answer": "Noto Naskh headings + Noto Sans Arabic for UI",
+        "notes": "Questa/Lato have no Arabic glyphs. AR locale only.",
+        "options_presented": [
+          "Noto Naskh headings + Noto Sans Arabic for UI",
+          "IBM Plex Sans Arabic for both headings and UI",
+          "Cairo / Tajawal (common GCC UI)",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Primary button?",
+        "answer": "Gold fill, teal label",
+        "options_presented": [
+          "Gold fill, teal label",
+          "Teal fill, ivory label",
+          "Gold outline, teal label",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Secondary and ghost buttons?",
+        "answer": "Secondary = teal outline; ghost = text only",
+        "options_presented": [
+          "Secondary = teal outline; ghost = text only",
+          "Secondary = white fill + teal border; ghost = text only",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Default control size (inputs, buttons)?",
+        "answer": "44px min hit; ops uses compact density",
+        "options_presented": [
+          "44px min hit; ops uses compact density",
+          "48px luxury everywhere",
+          "40px public, 36px ops",
+          "You decide"
+        ]
+      }
+    ],
+    "Component kit": [
+      {
+        "question": "Component internals?",
+        "answer": "You decide → custom visuals; Radix only for a11y primitives (dialog, listbox, focus trap). Not shadcn.",
+        "options_presented": [
+          "Custom React + tokens (no Radix/shadcn)",
+          "Headless Radix, restyled with tokens",
+          "You decide"
+        ],
+        "claude_discretion": true
+      },
+      {
+        "question": "/design page layout?",
+        "answer": "One long page, jump links per component",
+        "options_presented": [
+          "One long page, jump links per component",
+          "Sidebar nav, one component per section",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Icons (from brand/Icons)?",
+        "answer": "Trace brand-book icons to SVG components, token color",
+        "options_presented": [
+          "Trace brand-book icons to SVG components, token color",
+          "Use brand JPGs as-is",
+          "You decide"
+        ]
+      },
+      {
+        "question": "Date range picker look?",
+        "answer": "Luxury overlay calendar, week starts Monday",
+        "options_presented": [
+          "Luxury overlay calendar, week starts Monday",
+          "Inline calendar in the form",
+          "You decide"
+        ]
+      }
+    ]
+  },
+  "deferred_ideas": [],
+  "canonical_refs": [
+    ".planning/PROJECT.md",
+    ".planning/REQUIREMENTS.md",
+    ".planning/ROADMAP.md",
+    ".planning/research/SUMMARY.md",
+    "brand/Brand Guideline.pdf",
+    "brand/Font/",
+    "brand/Icons/",
+    "brand/Colors/"
+  ]
+}
