@@ -183,16 +183,120 @@ Deferred. Not in the current roadmap.
 
 ## Traceability
 
-Filled during roadmap creation.
+Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| | | Pending |
+| DSGN-01 | Phase 1 | Pending |
+| DSGN-02 | Phase 1 | Pending |
+| DSGN-03 | Phase 1 | Pending |
+| DSGN-04 | Phase 5 | Pending |
+| DSGN-05 | Phase 1 | Pending |
+| DSGN-06 | Phase 1 | Pending |
+| DSGN-07 | Phase 1 | Pending |
+| BOOK-01 | Phase 4 | Pending |
+| BOOK-02 | Phase 4 | Pending |
+| BOOK-03 | Phase 4 | Pending |
+| BOOK-04 | Phase 4 | Pending |
+| BOOK-05 | Phase 6 | Pending |
+| BOOK-06 | Phase 6 | Pending |
+| BOOK-07 | Phase 6 | Pending |
+| BOOK-08 | Phase 4 | Pending |
+| STAY-01 | Phase 4 | Pending |
+| STAY-02 | Phase 4 | Pending |
+| STAY-03 | Phase 3 | Pending |
+| STAY-04 | Phase 3 | Pending |
+| STAY-05 | Phase 3 | Pending |
+| STAY-06 | Phase 3 | Pending |
+| STAY-07 | Phase 3 | Pending |
+| STAY-08 | Phase 5 | Pending |
+| JOUR-01 | Phase 4 | Pending |
+| JOUR-02 | Phase 4 | Pending |
+| JOUR-03 | Phase 4 | Pending |
+| JOUR-04 | Phase 4 | Pending |
+| JOUR-05 | Phase 3 | Pending |
+| JOUR-06 | Phase 5 | Pending |
+| JOUR-07 | Phase 5 | Pending |
+| ADDN-01 | Phase 4 | Pending |
+| ADDN-02 | Phase 5 | Pending |
+| ADDN-03 | Phase 6 | Pending |
+| IDEN-01 | Phase 4 | Pending |
+| IDEN-02 | Phase 4 | Pending |
+| IDEN-03 | Phase 5 | Pending |
+| PAY-01 | Phase 4 | Pending |
+| PAY-02 | Phase 4 | Pending |
+| PAY-03 | Phase 4 | Pending |
+| PAY-04 | Phase 5 | Pending |
+| PAY-05 | Phase 4 | Pending |
+| PAY-06 | Phase 4 | Pending |
+| PAY-07 | Phase 4 | Pending |
+| PAY-08 | Phase 4 | Pending |
+| PAY-09 | Phase 4 | Pending |
+| PAY-10 | Phase 4 | Pending |
+| PAY-11 | Phase 5 | Pending |
+| PAY-12 | Phase 5 | Pending |
+| PAY-13 | Phase 4 | Pending |
+| PAY-14 | Phase 4 | Pending |
+| PAY-15 | Phase 4 | Pending |
+| PAY-16 | Phase 3 | Pending |
+| PAY-17 | Phase 4 | Pending |
+| AUTH-01 | Phase 4 | Pending |
+| AUTH-02 | Phase 2 | Pending |
+| AUTH-03 | Phase 5 | Pending |
+| AUTH-04 | Phase 5 | Pending |
+| AUTH-05 | Phase 2 | Pending |
+| AUTH-06 | Phase 2 | Pending |
+| AUTH-07 | Phase 2 | Pending |
+| I18N-01 | Phase 2 | Pending |
+| I18N-02 | Phase 2 | Pending |
+| I18N-03 | Phase 2 | Pending |
+| I18N-04 | Phase 6 | Pending |
+| SITE-01 | Phase 6 | Pending |
+| SITE-02 | Phase 6 | Pending |
+| SITE-03 | Phase 6 | Pending |
+| SITE-04 | Phase 6 | Pending |
+| SITE-05 | Phase 6 | Pending |
+| SITE-06 | Phase 6 | Pending |
+| SITE-07 | Phase 6 | Pending |
+| SITE-08 | Phase 6 | Pending |
+| SITE-09 | Phase 6 | Pending |
+| SITE-10 | Phase 6 | Pending |
+| SITE-11 | Phase 6 | Pending |
+| SITE-12 | Phase 6 | Pending |
+| SITE-13 | Phase 6 | Pending |
+| OPS-01 | Phase 2 | Pending |
+| OPS-02 | Phase 5 | Pending |
+| OPS-03 | Phase 5 | Pending |
+| OPS-04 | Phase 5 | Pending |
+| OPS-05 | Phase 5 | Pending |
+| OPS-06 | Phase 5 | Pending |
+| OPS-07 | Phase 5 | Pending |
+| OPS-08 | Phase 5 | Pending |
+| OPS-09 | Phase 3 | Pending |
+| OPS-10 | Phase 4 | Pending |
+| OPS-11 | Phase 5 | Pending |
+| OPS-12 | Phase 6 | Pending |
+| OPS-13 | Phase 4 | Pending |
+| CMS-01 | Phase 3 | Pending |
+| CMS-02 | Phase 3 | Pending |
+| CMS-03 | Phase 6 | Pending |
+| CMS-04 | Phase 3 | Pending |
+| CMS-05 | Phase 3 | Pending |
+| CMS-06 | Phase 3 | Pending |
+| CMS-07 | Phase 6 | Pending |
+| CMS-08 | Phase 6 | Pending |
+| CMS-09 | Phase 6 | Pending |
+| PLAT-01 | Phase 2 | Pending |
+| PLAT-02 | Phase 2 | Pending |
+| PLAT-03 | Phase 6 | Pending |
+| PLAT-04 | Phase 2 | Pending |
+| PLAT-05 | Phase 1 | Pending |
 
 **Coverage:**
-- v1 requirements: 104 total (including I18N-01–04)
-- Mapped to phases: 0
-- Unmapped: 104 ⚠️ (roadmap next)
+- v1 requirements: 104 total
+- Mapped to phases: 104
+- Unmapped: 0 ✓
+
 
 ---
 *Requirements defined: 2026-09-22*
