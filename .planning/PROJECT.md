@@ -167,7 +167,7 @@ A guest can complete a real trip booking (stay + add-ons + pay) and ops can run 
 - Origin: founder from Colombia; UAE clients want to visit but fear safety; product is 24/7 private, accompanied luxury.
 - Brief (Notion) + July 2026 decisions: UAE/GCC-based guests; domain almarprivatejourney.com later; Cartagena & Medellín were the launch freeze — this project seeds five destinations in CMS instead.
 - Current codebase: Next.js 14.2.35 App Router, 27 `route.ts` HTML dumps, no DB/auth/payments. Map in `.planning/codebase/`.
-- Brand book: `/Users/koss/Downloads/Almar-BrandBook` (Guideline PDF, Questa, Lato, logos, icons, colors). Copy into the repo under `brand/` so it is not Downloads-only.
+- Brand book in-repo: `brand/` (Guideline PDF, Questa, Lato, logos, icons, colors). Copied from Downloads 2026-09-22.
 - Team public: Maria Del Mar Valdes (founder), María Francis (co-founder).
 - Competitors (brief): Galavanta, Amakuna, Magical Colombia, Cielo Travel. ALMAR differentiator: security + 24/7 bilingual ops + bespoke, not canned itineraries.
 - Framer leftover risks: legal links 404, stub blog/services, JSON-LD still framer.website, Pexels/catbox, koussay.com hrefs — strip as we rebuild.
