@@ -6,7 +6,7 @@ const STATES = ["Hover", "Focus", "Disabled", "Loading", "Error", "Empty"] as co
 test("core controls and their state rows are on /design", async ({ page }) => {
   await page.goto("/design");
 
-  await expect(page.getByRole("link", { name: "Back", exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Link", exact: true }).getByRole("link", { name: "Back", exact: true })).toBeVisible();
   await expect(
     page.getByRole("region", { name: "Button", exact: true }).getByRole("button", { name: "Continue", exact: true }),
   ).toBeVisible();
@@ -14,13 +14,13 @@ test("core controls and their state rows are on /design", async ({ page }) => {
     page.getByRole("region", { name: "Input", exact: true }).getByRole("textbox", { name: "Email", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /^(Show|Hide) password$/ }),
+    page.getByRole("region", { name: "Password", exact: true }).getByRole("button", { name: /^(Show|Hide) password$/ }),
   ).toBeVisible();
   await expect(
     page.getByRole("checkbox", { name: "Remember me", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("radio", { name: "Deposit", exact: true }),
+    page.getByRole("region", { name: "Radio", exact: true }).getByRole("radio", { name: "Deposit", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("switch", { name: "Email updates on", exact: true }),
@@ -219,4 +219,98 @@ test("01-04 task 2 frames", async ({ page }) => {
     await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   }
   await expect(page.getByText("These dates are too late to book today.", { exact: true })).toBeVisible();
+});
+
+const INVENTORY = [
+  "Hero",
+  "Booking steps",
+  "Package",
+  "Story",
+  "Destination",
+  "Team",
+  "Cookie",
+  "Video",
+  "Map",
+  "Maintenance",
+  "FAQ",
+  "Legal",
+  "Sign-in",
+  "Ops sign-in",
+  "Account menu",
+  "Account",
+  "Address",
+  "Guest names",
+  "Booker not staying",
+  "Booking terms",
+  "Marketing emails",
+  "Review",
+  "Saved card",
+  "Stripe",
+  "Pay success",
+  "Payment failed",
+  "Hold expired",
+  "Session expired",
+  "Check your email",
+  "Forgot password",
+  "Reset password",
+  "Share",
+  "Heart",
+  "Photos",
+  "Booking list",
+  "Booking header",
+  "Print",
+  "Download",
+  "Second city",
+  "WhatsApp",
+  "Experiences",
+  "Inclusions",
+  "Pets",
+  "Access",
+  "Ops table",
+  "Empty rooms",
+  "Language",
+  "Currency",
+  "Sort",
+  "File upload",
+  "Coupon",
+  "Phone price bar",
+  "Hold countdown",
+  "Damage hold",
+  "Deposit",
+  "UAE airport",
+  "Too late",
+  "Newsletter",
+  "List with us",
+  "Plan with us",
+  "Contact",
+  "Change email",
+  "Change phone",
+  "Delete account",
+  "Cancel booking",
+  "Sign out",
+  "Create an account later",
+  "Return address",
+  "Currency on pay",
+  "Pay the remainder",
+  "Pay the difference",
+  "Package add-on",
+  "Airport meet",
+  "Home pickup",
+  "Driver assigned",
+  "Flights booked",
+  "Unsigned heart",
+] as const;
+
+test("01-04 inventory", async ({ page }) => {
+  await page.goto("/design");
+  for (const name of INVENTORY) {
+    await expect(page.getByRole("heading", { name, exact: true }).first()).toBeVisible();
+  }
+  await expect(page.getByRole("heading", { name: "No stays for these dates", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Change dates", exact: true })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Pay", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Try again", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "EN", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "AR", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "ES", exact: true }).first()).toBeVisible();
 });

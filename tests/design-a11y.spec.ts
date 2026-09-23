@@ -8,7 +8,7 @@ test("tab reaches the eye, a button, and a checkbox with a visible focus ring", 
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
 
   const targets = {
-    eye: page.getByRole("button", { name: /^(Show|Hide) password$/ }),
+    eye: page.getByRole("region", { name: "Password", exact: true }).getByRole("button", { name: /^(Show|Hide) password$/ }),
     button: page.getByRole("region", { name: "Button", exact: true }).getByRole("button", { name: "Continue", exact: true }),
     checkbox: page.getByRole("checkbox", { name: "Remember me", exact: true }),
   };
@@ -83,4 +83,15 @@ test("tab reaches the modal trigger and an icon uses currentColor", async ({ pag
   for (const src of sources) {
     expect(src.endsWith(".jpg") && src.includes("Icons-")).toBe(false);
   }
+});
+
+test("stay alt stays English", async ({ page }) => {
+  await page.goto("/design");
+  const stay = page.getByRole("img", { name: "Sample stay in Cartagena" });
+  await expect(stay.first()).toHaveAttribute("alt", "Sample stay in Cartagena");
+  await page.getByRole("button", { name: "AR", exact: true }).first().click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "ar");
+  await expect(stay.first()).toHaveAttribute("alt", "Sample stay in Cartagena");
+  await expect(page.getByRole("button", { name: /^(Play|Pause) video$/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Save this stay", exact: true })).toBeVisible();
 });
