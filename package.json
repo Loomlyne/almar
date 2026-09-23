@@ -6,14 +6,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "host:cloudflare": "node scripts/assemble-cloudflare.mjs && wrangler deploy"
+    "host:cloudflare": "node scripts/assemble-cloudflare.mjs && wrangler deploy",
+    "test": "node --test tests/design-tokens.test.mjs && playwright test"
   },
   "dependencies": {
+    "@internationalized/date": "3.12.4",
+    "@tailwindcss/postcss": "4.3.3",
     "next": "14.2.35",
+    "postcss": "8.5.28",
+    "radix-ui": "1.6.7",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tailwindcss": "4.3.3"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@types/node": "^20",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
