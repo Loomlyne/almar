@@ -6,7 +6,7 @@ test("Arabic preview sets html dir and keeps the eye on the inline end", async (
   await page.goto("/design");
 
   const html = page.locator("html");
-  const field = page.getByRole("textbox", { name: "Password" });
+  const field = page.getByRole("textbox", { name: "Password", exact: true });
   const eye = page.getByRole("button", { name: /^(Show|Hide) password$/ });
 
   await expect(eye).toHaveAccessibleName(/^(Show|Hide) password$/);
@@ -19,7 +19,7 @@ test("Arabic preview sets html dir and keeps the eye on the inline end", async (
     fieldLtr!.x + fieldLtr!.width / 2,
   );
 
-  await page.getByRole("button", { name: "AR" }).click();
+  await page.getByRole("button", { name: "AR", exact: true }).click();
   await expect(html).toHaveAttribute("dir", "rtl");
   await expect(html).toHaveAttribute("lang", "ar");
 
@@ -31,11 +31,11 @@ test("Arabic preview sets html dir and keeps the eye on the inline end", async (
     fieldRtl!.x + fieldRtl!.width / 2,
   );
 
-  await page.getByRole("button", { name: "EN" }).click();
+  await page.getByRole("button", { name: "EN", exact: true }).click();
   await expect(html).toHaveAttribute("dir", "ltr");
   await expect(html).toHaveAttribute("lang", "en");
 
-  await page.getByRole("button", { name: "ES" }).click();
+  await page.getByRole("button", { name: "ES", exact: true }).click();
   await expect(html).toHaveAttribute("dir", "ltr");
   await expect(html).toHaveAttribute("lang", "es");
 });
