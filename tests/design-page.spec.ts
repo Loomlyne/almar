@@ -118,3 +118,58 @@ test("specimen state rows", async ({ page }) => {
   const outline = await breakdown.evaluate((node) => getComputedStyle(node).outlineStyle);
   expect(outline).not.toBe("none");
 });
+
+const TASK_ONE = [
+  "Sign-in",
+  "Ops sign-in",
+  "Account menu",
+  "Account",
+  "Change email",
+  "Change phone",
+  "Reset password",
+  "Forgot password",
+  "Check your email",
+  "Sign out",
+  "Delete account",
+  "Cancel booking",
+  "Session expired",
+  "Booking terms",
+  "Marketing emails",
+  "Booker not staying",
+  "Guest names",
+  "Passport",
+  "UAE airport",
+  "Saved card",
+  "Stripe",
+  "Pay success",
+  "Hold expired",
+  "Create an account later",
+  "Pay the difference",
+  "Pay the remainder",
+  "Currency on pay",
+  "Status",
+  "Booking header",
+  "Booking list",
+] as const;
+
+test("01-04 task 1 frames", async ({ page }) => {
+  await page.goto("/design");
+  for (const name of TASK_ONE) {
+    await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+  }
+  await expect(page.getByText("Your trip is confirmed.", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(
+      "Sign out of this account? You will need to sign in again to open bookings.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+
+  const stripe = page.getByRole("region", { name: "Stripe", exact: true });
+  const posts: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST") posts.push(request.url());
+  });
+  await stripe.getByRole("button", { name: "Pay", exact: true }).click();
+  expect(posts).toEqual([]);
+});
