@@ -2,11 +2,11 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { renderStaticNotFound } from "../lib/not-found-document.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const appDir = path.join(root, ".next/server/app");
 const outDir = path.join(root, "out");
-const notFoundRoute = path.join(root, "app/[...not_found]/route.ts");
 
 execSync("npm run build", { cwd: root, stdio: "inherit" });
 
@@ -42,12 +42,7 @@ for (const body of bodies) {
   fs.copyFileSync(body, dest);
 }
 
-const source = fs.readFileSync(notFoundRoute, "utf8");
-const match = source.match(/const HTML = `([\s\S]*)`;\r?\n\r?\nexport function GET/);
-if (!match) {
-  throw new Error("could not extract branded 404 HTML");
-}
-fs.writeFileSync(path.join(outDir, "404.html"), match[1]);
+fs.writeFileSync(path.join(outDir, "404.html"), renderStaticNotFound());
 
 const headers = path.join(root, "_headers");
 if (fs.existsSync(headers)) {
