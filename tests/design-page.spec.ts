@@ -173,3 +173,50 @@ test("01-04 task 1 frames", async ({ page }) => {
   await stripe.getByRole("button", { name: "Pay", exact: true }).click();
   expect(posts).toEqual([]);
 });
+
+const TASK_TWO = [
+  "Team",
+  "Package",
+  "Story",
+  "Destination",
+  "Legal",
+  "FAQ",
+  "Maintenance",
+  "Cookie",
+  "Map",
+  "File upload",
+  "Ops table",
+  "Currency",
+  "Language",
+  "Sort",
+  "Filter",
+  "Consultation",
+  "Booking steps",
+  "Share",
+  "Heart",
+  "Photos",
+  "Print",
+  "Contact",
+  "Plan with us",
+  "Special requests",
+  "Address",
+  "Return address",
+  "Second city",
+  "WhatsApp trip",
+  "Inclusions",
+  "Package add-on",
+  "Pets",
+  "Access",
+  "Too late",
+  "Nights",
+  "Back",
+  "Experiences",
+] as const;
+
+test("01-04 task 2 frames", async ({ page }) => {
+  await page.goto("/design");
+  for (const name of TASK_TWO) {
+    await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+  }
+  await expect(page.getByText("These dates are too late to book today.", { exact: true })).toBeVisible();
+});
