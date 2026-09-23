@@ -15,6 +15,8 @@ import { SiteFooter } from "../../components/ui/footer";
 import { SiteNav } from "../../components/ui/nav";
 import { WhatsAppLink } from "../../components/ui/whatsapp";
 import { AccountFrames } from "../../components/specimens/account-frames";
+import { CatalogFrames } from "../../components/specimens/catalog-frames";
+import { TeamSpecimen } from "../../components/specimens/team";
 import { AddOnRow } from "../../components/specimens/add-on";
 import { HeroBooker } from "../../components/specimens/hero-booker";
 import { EmptyStays, StayRow } from "../../components/specimens/stay-row";
@@ -553,6 +555,8 @@ export function DesignKit() {
         <WhatsAppLink />
       </section>
       <AccountFrames />
+      <TeamSpecimen />
+      <CatalogFrames />
       <section className="kit-section" id="footer" aria-label="Footer">
         <h2>Footer</h2>
         <SiteFooter />

@@ -29,6 +29,38 @@ export function DestinationSelect() {
   );
 }
 
+export function OptionSelect({
+  label,
+  options,
+  value,
+}: {
+  label: string;
+  options: readonly string[];
+  value?: string;
+}) {
+  return (
+    <Select.Root defaultValue={value ?? options[0]}>
+      <Select.Trigger className="ui-select" aria-label={label}>
+        <Select.Value />
+        <Select.Icon className="ui-select-icon">
+          <ChevronIcon size={16} />
+        </Select.Icon>
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Content className="overlay-panel" position="popper">
+          <Select.Viewport>
+            {options.map((name) => (
+              <Select.Item key={name} value={name} className="ui-select-item">
+                <Select.ItemText>{name}</Select.ItemText>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
+  );
+}
+
 export function EmptySelect() {
   return (
     <div className="empty-select">

@@ -4,6 +4,7 @@ import { useState } from "react";
 import wordmark from "../../brand/Logo Typography/Poly_Black.svg";
 import monogram from "../../brand/Logo Monogram/Curves_black.svg";
 import { CloseIcon } from "../icons/icons";
+import { OptionSelect } from "./select";
 
 const LINKS = [
   ["Destinations", "#destinations"],
@@ -52,7 +53,9 @@ export function SiteNav({
           <CloseIcon size={20} />
         </button>
       </nav>
-      <div className="locale-switch" role="group" aria-label="Language">
+      <div className="nav-tools">
+        <OptionSelect label="Currency" options={["AED", "USD", "EUR"]} value="AED" />
+        <div className="locale-switch" role="group" aria-label="Language">
         {(["en", "ar", "es"] as const).map((code) => (
           <button
             key={code}
@@ -64,6 +67,7 @@ export function SiteNav({
             {code.toUpperCase()}
           </button>
         ))}
+        </div>
       </div>
     </header>
   );

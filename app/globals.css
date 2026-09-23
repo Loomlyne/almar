@@ -1036,3 +1036,200 @@ html[lang="ar"] :where(h1, h2, h3) {
 .kit-section + .kit-section {
   border-block-start: 1px solid var(--color-accent);
 }
+
+.nav-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-inline-start: auto;
+}
+
+.ui-chip.is-muted {
+  color: var(--color-muted-fg);
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.team-portrait {
+  display: block;
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+  border-radius: 0;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+}
+
+.team-name,
+.display-name,
+.faq-question {
+  font-family: var(--font-display);
+  text-wrap: balance;
+}
+
+.media-16x9 {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+}
+
+.package-row {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.destination-card {
+  position: relative;
+  min-block-size: 12rem;
+}
+
+.destination-card img {
+  display: block;
+  width: 100%;
+  block-size: 12rem;
+  object-fit: cover;
+}
+
+.destination-card p {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  margin: 0;
+  padding: var(--spacing-md);
+  background: var(--color-fg);
+  color: var(--color-bg);
+}
+
+.legal-copy {
+  max-inline-size: 65ch;
+  margin-inline: auto;
+  border-block-start: 1px solid var(--color-accent);
+  padding-block-start: var(--spacing-md);
+}
+
+.maintenance-bar {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  padding: var(--spacing-md);
+}
+
+.cookie-bar,
+.nights-row,
+.share-sheet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.map-panel {
+  min-block-size: 12rem;
+  background: var(--color-bg);
+  display: grid;
+  place-items: center;
+  color: var(--color-fg);
+}
+
+.map-pin {
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: 50%;
+  background: var(--color-heading);
+}
+
+.upload-drop {
+  border: 1px dashed var(--color-bg);
+  background: var(--color-surface);
+  padding: var(--spacing-lg);
+  outline: 1px dashed var(--color-fg);
+}
+
+.ops-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+}
+
+.ops-table th,
+.ops-table td {
+  border-block-end: 1px solid var(--color-border);
+  text-align: start;
+  padding: var(--spacing-sm);
+}
+
+.ops-table th {
+  font-weight: 400;
+}
+
+.ops-table tr:hover td {
+  background: var(--color-bg);
+}
+
+.guest-time,
+.access-line {
+  color: var(--color-muted-fg);
+  font-family: var(--font-body);
+}
+
+.booking-steps {
+  display: flex;
+  gap: var(--spacing-md);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.booking-steps li {
+  color: var(--color-muted-fg);
+}
+
+.booking-steps .is-done {
+  color: var(--color-heading);
+}
+
+.booking-steps .is-current {
+  color: var(--color-fg);
+  border-block-end: 2px solid var(--color-accent);
+}
+
+.heart-saved {
+  color: var(--color-accent);
+  min-block-size: 44px;
+  background: transparent;
+  border: 0;
+}
+
+.heart-unsigned {
+  color: var(--color-heading);
+  min-block-size: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.photo-viewer {
+  background: var(--color-bg);
+  padding: var(--spacing-md);
+}
+
+.nights-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-fg);
+  font-family: var(--font-body);
+}
+
+.inclusion-list {
+  font-family: var(--font-body);
+}
+
+.faq-question {
+  min-block-size: 44px;
+  background: transparent;
+  border: 0;
+  color: var(--color-fg);
+  padding: 0;
+}
