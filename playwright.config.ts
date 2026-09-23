@@ -1,5 +1,8 @@
 import { defineConfig } from "@playwright/test";
 
+const port = 3010;
+const baseURL = `http://127.0.0.1:${port}`;
+
 export default defineConfig({
   testDir: "tests",
   projects: [
@@ -9,11 +12,11 @@ export default defineConfig({
     },
   ],
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL,
   },
   webServer: {
-    command: "npm run dev",
-    url: "http://127.0.0.1:3000",
+    command: `npm run dev -- -H 127.0.0.1 -p ${port}`,
+    url: baseURL,
     reuseExistingServer: false,
   },
 });

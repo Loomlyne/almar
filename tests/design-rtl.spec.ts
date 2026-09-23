@@ -6,7 +6,7 @@ test("Arabic preview sets html dir and keeps the eye on the inline end", async (
   await page.goto("/design");
 
   const html = page.locator("html");
-  const field = page.getByLabel("Password");
+  const field = page.getByRole("textbox", { name: "Password" });
   const eye = page.getByRole("button", { name: /^(Show|Hide) password$/ });
 
   await expect(eye).toHaveAccessibleName(/^(Show|Hide) password$/);
