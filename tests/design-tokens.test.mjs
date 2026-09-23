@@ -94,3 +94,48 @@ test("design tokens are declared without banned strings", () => {
   ].sort();
   assert.deepEqual(declared, [...ALLOWED_TYPE_TOKENS].sort());
 });
+
+function classTokens(source) {
+  const tokens = [];
+  const patterns = [
+    /className="([^"]*)"/g,
+    /className='([^']*)'/g,
+    /className=\{`([^`]*)`\}/g,
+    /className=\{"([^"]*)"\}/g,
+  ];
+  for (const pattern of patterns) {
+    for (const match of source.matchAll(pattern)) {
+      tokens.push(...match[1].split(/\s+/).filter(Boolean));
+    }
+  }
+  return tokens;
+}
+
+function isPhysicalClass(token) {
+  const bare = token.replace(/^(?:[a-z0-9-]+:)+/, "");
+  return (
+    /^(?:ml|mr|pl|pr|left|right)-/.test(bare) ||
+    /^text-(?:left|right)$/.test(bare)
+  );
+}
+
+test("components avoid physical utilities and raw html injection", () => {
+  if (!existsSync("components")) return;
+  const files = [];
+  collectFiles("components", files);
+  for (const file of files.filter((path) => path.endsWith(".tsx"))) {
+    const text = stripComments(readFileSync(file, "utf8"));
+    assert.equal(
+      text.includes("dangerouslySetInnerHTML"),
+      false,
+      `${file} contains dangerouslySetInnerHTML`,
+    );
+    for (const token of classTokens(text)) {
+      assert.equal(
+        isPhysicalClass(token),
+        false,
+        `${file} contains physical class ${token}`,
+      );
+    }
+  }
+});
