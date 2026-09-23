@@ -76,3 +76,45 @@ test("01-06 controls", async ({ page }) => {
   await expect(dates.getByText("N/A", { exact: true }).first()).toBeVisible();
   await expect(dates.getByText("no range yet", { exact: true })).toBeVisible();
 });
+
+test("footer state rows", async ({ page }) => {
+  await page.goto("/design");
+
+  const footer = page.getByRole("contentinfo");
+  await expect(footer.getByText("Enter an email as name@example.com.", { exact: true })).toBeVisible();
+  await expect(footer.getByLabel("Email", { exact: true })).toHaveValue("");
+  await expect(footer.getByPlaceholder("name@example.com")).toHaveValue("");
+
+  const nav = page.getByRole("region", { name: "Nav", exact: true });
+  for (const state of ["Disabled", "Loading", "Error", "Empty"]) {
+    await expect(nav.getByText(state, { exact: true })).toBeVisible();
+  }
+  await expect(nav.getByText("N/A", { exact: true }).first()).toBeVisible();
+  await expect(nav.getByText("link hover", { exact: true })).toBeVisible();
+});
+
+test("specimen state rows", async ({ page }) => {
+  await page.goto("/design");
+
+  const empty = page.getByRole("region", { name: "Empty stays", exact: true });
+  await expect(empty.getByRole("heading", { name: "No stays for these dates", exact: true })).toBeVisible();
+  await expect(empty.getByRole("button", { name: "Change dates", exact: true })).toHaveCount(1);
+
+  const review = page.getByRole("region", { name: "Review", exact: true });
+  await expect(review.getByRole("button", { name: "Pay", exact: true })).toBeVisible();
+  await expect(review.getByRole("button", { name: "Try again", exact: true })).toHaveCount(0);
+
+  const failed = page.getByRole("region", { name: "Payment failed", exact: true });
+  await expect(failed.getByText("The payment did not go through.", { exact: true })).toBeVisible();
+  await expect(failed.getByRole("button", { name: "Try again", exact: true })).toBeVisible();
+  await expect(failed.getByRole("button", { name: "Pay", exact: true })).toHaveCount(0);
+
+  await expect(page.getByText("Stay card skeleton", { exact: true })).toBeVisible();
+  await expect(page.getByText("Add-on skeleton", { exact: true })).toBeVisible();
+  await expect(page.getByText("Price skeleton lines", { exact: true })).toBeVisible();
+
+  const breakdown = page.getByRole("button", { name: "Show breakdown", exact: true });
+  await breakdown.focus();
+  const outline = await breakdown.evaluate((node) => getComputedStyle(node).outlineStyle);
+  expect(outline).not.toBe("none");
+});
