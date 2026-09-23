@@ -11,7 +11,7 @@ Rebuild the Framer HTML export into a live booking OS. Tokens and components fir
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Design system** - Tokens, core components, RTL states, owner `/design`
+- [x] **Phase 1: Design system** - Tokens, core components, RTL states, owner `/design` (completed 2026-09-23)
 - [ ] **Phase 2: Platform spine** - Supabase auth, host gate, locale/currency, no ops leak
 - [ ] **Phase 3: Catalog and calendar** - Destinations, stays, rates, hard-block nights
 - [ ] **Phase 4: Book and pay** - Hero → `/booking/trip` → Stripe TEST deposit or full
@@ -34,7 +34,7 @@ Rebuild the Framer HTML export into a live booking OS. Tokens and components fir
   3. Arabic preview sets `dir=rtl` on `<html>` and flips layout with logical CSS; password eye stays on inline-end
   4. 404 uses Questa/Lato (no Bricolage); keyboard and visible focus work on every control
 
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 **Wave 1**
@@ -56,7 +56,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 01-04-PLAN.md — Remaining locked specimen frames, including the date-range error cell (wave 5)
+- [x] 01-04-PLAN.md — Remaining locked specimen frames, including the date-range error cell (wave 5)
 
 ### Phase 2: Platform spine
 
@@ -166,7 +166,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Design system | 5/6 | In Progress|  |
+| 1. Design system | 6/6 | Complete   | 2026-09-23 |
 | 2. Platform spine | 0/2 | Not started | - |
 | 3. Catalog and calendar | 0/2 | Not started | - |
 | 4. Book and pay | 0/3 | Not started | - |
