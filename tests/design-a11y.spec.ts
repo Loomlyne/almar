@@ -53,3 +53,34 @@ test("date field error sits under the label", async ({ page }) => {
   expect(errorBox).not.toBeNull();
   expect(errorBox!.y).toBeGreaterThan(labelBox!.y);
 });
+
+test("tab reaches the modal trigger and an icon uses currentColor", async ({ page }) => {
+  await page.goto("/design");
+  const trigger = page.getByRole("button", { name: "Open modal", exact: true });
+  await expect(trigger).toHaveCount(1);
+
+  for (let step = 0; step < 60; step += 1) {
+    await page.keyboard.press("Tab");
+    const focused = await trigger.evaluate((el) => el === document.activeElement);
+    if (!focused) continue;
+    const outlineStyle = await trigger.evaluate((el) => getComputedStyle(el).outlineStyle);
+    expect(outlineStyle).not.toBe("none");
+    break;
+  }
+  await expect(trigger).toBeFocused();
+
+  const usesCurrentColor = await page.locator("svg").evaluateAll((nodes) =>
+    nodes.some((node) => {
+      const markup = node.outerHTML;
+      return markup.includes("currentColor");
+    }),
+  );
+  expect(usesCurrentColor).toBe(true);
+
+  const sources = await page.locator("img").evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute("src") ?? ""),
+  );
+  for (const src of sources) {
+    expect(src.endsWith(".jpg") && src.includes("Icons-")).toBe(false);
+  }
+});
