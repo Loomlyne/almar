@@ -124,19 +124,19 @@ Do not convert the brand hex palette to oklch. The only oklch value is the image
 |---------|------|
 | Primary CTA | Return home |
 | Empty state heading | No stays for these dates |
-| Empty state body | Change the dates to see stays that can be booked. |
+| Empty state action | Change dates |
 | Error state | Enter a date as DD/MM/YYYY. |
 | Destructive confirmation | Sign out of this account? You will need to sign in again to open bookings. |
 
 Primary CTA is the only guest-facing action this phase ships (the 404 link). It is a real `<a href="/">`. Sentence case. One link. No second link.
 
-Empty-state action label is the locked string `Change dates`. The heading is the one line. The body is the next step.
+Empty state is one line and one action (D-37, D-154). Heading: `No stays for these dates`. Action: `Change dates`. No body sentence.
 
 Error state is the field-error pattern: under the label, says how to fix, no oops, no exclamation. Page-level toast line, when a specimen needs one: `This page did not load. Try again.`
 
 Destructive confirmation above is the sign-out specimen. Danger button label is the locked string `Sign out`. Other locked confirmation patterns are in [Locked labels](#locked-labels). Do not rename them.
 
-Voice: calm, plain, no humor on errors. Address the reader as “you” only where a locked string already does. Sentence case for contract copy. Locked strings keep their locked case.
+Voice: calm, plain, no humor on errors. Address the reader as “you” only where a locked string already does. New contract copy is verb-first and sentence case. Headings may be noun phrases. Locked strings stay as written.
 
 ---
 
@@ -153,8 +153,8 @@ No third-party registry. No shadcn blocks. Vetting gate not applicable.
 
 ## Checker Sign-Off
 
-- [x] Dimension 1 Copywriting: FLAG
-- [x] Dimension 2 Visuals: FLAG
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
 - [x] Dimension 3 Color: PASS
 - [x] Dimension 4 Typography: PASS
 - [x] Dimension 5 Spacing: PASS
@@ -162,10 +162,7 @@ No third-party registry. No shadcn blocks. Vetting gate not applicable.
 
 **Approval:** approved 2026-09-23
 
-Non-blocking flags (do not block planning):
-
-- Copywriting: declare verb-first for new contract copy. Keep locked strings. Empty state is heading `No stays for these dates` plus action `Change dates` — drop the extra body sentence.
-- Visuals: payment-failed specimen shows gold `Try again` only. Default review specimen shows gold `Pay` only. Never both gold fills in one frame.
+Flags fixed 2026-09-23: verb-first declared; empty state is heading plus `Change dates` only; payment-failed is a separate review-layout frame with gold `Try again` only; default review keeps gold `Pay` only. Conflicts 26 and 27 record the muted-token and compact-density locks.
 
 ---
 
@@ -242,6 +239,8 @@ Skills yield to CONTEXT.md. Later CONTEXT locks win over earlier ones only where
 | 23 | D-85 one When field vs D-131 two date inputs | Both. Hero When is one field. The two-input pair is a separate specimen. Both open the same calendar overlay. |
 | 24 | D-91 quiet steps vs D-152 step colors | Both. Gold rule under the current step. Current text charcoal, done teal, upcoming muted. No numbered circles. |
 | 25 | White glyph on official WhatsApp green is 1.98:1 | Fill stays `#25D366` (D-53). Glyph is charcoal, 7.63:1. Green is not recolored to teal or gold. |
+| 26 | D-16 disabled text uses lower opacity vs muted token | Keep `--color-muted-fg` (5.93:1 on ivory). Do not restore opacity. 0.56 opacity falls to 3.64:1. |
+| 27 | D-62 compact density tightens type vs the four-size cap | Padding drops one spacing step. Type stays on the four sizes. Do not add a fifth size. Hit target stays 44px. |
 
 ---
 
@@ -584,11 +583,11 @@ Render each of these on `/design`. They are not routes.
 | Booker not staying | Checkbox on the booker row. Off by default. Label: `I am not staying` (D-172). |
 | Terms | Checkbox. Label is the sentence, with a link, plus the required asterisk (D-130). Sentence: `I accept the booking terms.` Link text: `booking terms`. |
 | Marketing emails | Separate checkbox. Off by default. Not the terms box (D-163). Label: `Send marketing emails`. |
-| Review | Stacked sections. Each has text `Edit`. Gold `Pay` only at the end (D-133). |
+| Review | Default state only. Stacked sections. Each has text `Edit`. Gold `Pay` only at the end (D-133). No failed line. No `Try again`. |
 | Saved card | Last four and brand. Text `Change`. No card art (D-136). Fixture: `Visa · 4242`. |
 | Stripe frame | Same input chrome. No Element mounted. No Stripe.js. Gold `Pay` under it does not submit (D-182). |
 | Pay success | Ivory. Questa confirmation line: `Your trip is confirmed.` Ref in Lato tabular. No second pay button (D-151). |
-| Payment failed | Inline on the review specimen. Charcoal: `The payment did not go through. Try again.` Gold `Try again`. Card stays (D-153). |
+| Payment failed | Separate frame of the review layout, so it is not shown with the default Review frame. Inline on that frame (D-153). Charcoal: `The payment did not go through.` Gold `Try again` is the only gold fill. `Pay` is not shown in this state. Card stays. |
 | Hold expired | Modal. Charcoal: `This hold has ended. Choose a stay to start again.` Gold `Choose a stay` (D-183). |
 | Session expired | Modal. Charcoal: `This session has ended.` Gold `Sign in`. Form stays underneath (D-156). |
 | Check your email | Ivory. Questa line: `Check your email.` No link on screen. Text `Resend` (D-185). |
