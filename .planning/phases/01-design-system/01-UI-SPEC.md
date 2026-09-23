@@ -5,7 +5,7 @@ status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-09-23
-reviewed_at: 2026-09-23T14:20:41+0400
+reviewed_at: 2026-09-23T14:34:34+0400
 ---
 
 # Phase 1 — UI Design Contract
@@ -67,7 +67,7 @@ Exactly four sizes. Exactly two weights: 400 and 700.
 - 700 is Lato only. The only use is the grand-total amount, at the heading size (32px) so “larger” does not add a fifth size.
 - Italic is a style of Lato 400, not a third weight. Load Lato Regular, Lato Italic, and Lato Bold only. Do not load Hairline, Thin, Light, Medium, Semibold, Heavy, or Black.
 - Display and heading tracking: `-0.02em`. Body and label tracking: `0`.
-- Input text is the body size (16px) at every viewport so iOS does not zoom.
+- Inputs are the label size (14px) from `md` up and the body size (16px) below `md`, so iOS does not zoom. Other UI text stays at the label size on desktop.
 
 ---
 
@@ -110,7 +110,7 @@ Measured pairs (this session, sRGB relative luminance):
 | `#d4ba8a` on `#fffaf0` | 1.80:1 | Never text. Never a thin gold glyph as the only mark. |
 | `#8f2d2d` on `#fffaf0` | 7.82:1 | Field-error text |
 | `#1e6b45` on `#fffaf0` | 6.22:1 | Success icon |
-| `#8a5a12` on `#fffaf0` | 5.68:1 | Warning icon |
+| `#8a3b12` on `#fffaf0` | 7.43:1 | Warning icon. 18.4° from gold, 20.5° from error. |
 | `#ffffff` on `#25D366` | 1.98:1 | Do not use a white WhatsApp glyph. |
 | `#262626` on `#25D366` | 7.63:1 | WhatsApp glyph |
 
@@ -153,14 +153,19 @@ No third-party registry. No shadcn blocks. Vetting gate not applicable.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: FLAG
+- [x] Dimension 2 Visuals: FLAG
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-09-23
+
+Non-blocking flags (do not block planning):
+
+- Copywriting: declare verb-first for new contract copy. Keep locked strings. Empty state is heading `No stays for these dates` plus action `Change dates` — drop the extra body sentence.
+- Visuals: payment-failed specimen shows gold `Try again` only. Default review specimen shows gold `Pay` only. Never both gold fills in one frame.
 
 ---
 
@@ -227,7 +232,7 @@ Skills yield to CONTEXT.md. Later CONTEXT locks win over earlier ones only where
 | 13 | D-68 red only for field errors vs D-46 danger red outline | Both kept. Red is not used on chips, holds, reasons, disabled controls, or maintenance. |
 | 14 | D-140 “gold only for confirmed” vs gold text on ivory at 1.80:1 | Confirmed gold is the chip hairline. Label stays charcoal. |
 | 15 | D-92 semantic chip color vs D-140 charcoal chip text | D-140 wins for chips. Green and amber remain icon colors beside text, not chip fills. |
-| 16 | D-27 toasts dismiss at 4 seconds vs error toasts that must stay until dismissed | Error toasts stay until dismissed. Other toasts use 4 seconds and pause on hover. |
+| 16 | D-27 toasts dismiss at 4 seconds vs error toasts that must stay until dismissed | D-27 wins. Every toast dismisses at 4 seconds and pauses on hover or focus. A dismiss control is still present. |
 | 17 | Skill kills autoplay under reduced motion vs DSGN-07 motion is kept | Video stays, muted, pauses off-screen. Pause control stays visible. Reduced motion does not remove the video. |
 | 18 | Skill 40px desktop hit target vs D-20 / D-62 44px everywhere | 44px, including compact density. |
 | 19 | Skill inset buttons vs D-95 full-width drawer | Drawer is full width. Other controls stay inside the column inset. |
@@ -255,7 +260,7 @@ Primitives (hue or brand name):
 | `--color-white` | `#ffffff` |
 | `--color-error` | `#8f2d2d` |
 | `--color-success` | `#1e6b45` |
-| `--color-warning` | `#8a5a12` |
+| `--color-warning` | `#8a3b12` |
 | `--color-muted` | `#63615f` |
 | `--color-accent-hover` | `#c6ae82` |
 | `--color-accent-press` | `#b8a27a` |
@@ -346,7 +351,7 @@ Busy button: spinner at inline-start, label stays, button `disabled` (D-74). Spi
 - 200% zoom and 320px width reflow with no horizontal scroll. No `maximum-scale` in the viewport meta. Text containers use `min-height`, not a fixed height.
 - `lang` and `dir` live on `<html>`, not on a wrapper. Default `lang="en"` `dir="ltr"`.
 - Color is never the only status cue. Pair it with text or an icon.
-- Toasts: `role="status"` for non-urgent lines. `role="alert"` for errors. Error toasts stay until dismissed. A stable empty status region exists before its text updates.
+- Toasts: `role="status"` for non-urgent lines. `role="alert"` for errors. Every toast dismisses at 4 seconds and pauses on hover or focus (D-27). A dismiss control is still present. A stable empty status region exists before its text updates.
 - Dialogs: Radix focus trap, `inert` on the background, focus moves inside on open, returns to the trigger on close, `overscroll-behavior: contain`.
 - Select listbox: Radix. Arrow keys, typeahead, and active descendant stay Radix. Visuals stay custom. Empty list is one charcoal line: `No options to show`. No fake options (D-98).
 - Calendar math: `@internationalized/date`. Do not mount a React Aria calendar UI. Week starts Monday. Days outside the month are hidden. Empty cells pad the grid (D-78).
@@ -431,7 +436,7 @@ Busy: spinner at inline-start, label unchanged, `disabled`.
 
 ### Field
 
-White fill, 1px charcoal border, 40px radius, label above, body-size text, min-height 44px (D-56). Focus ring, not a second border color.
+White fill, 1px charcoal border, 40px radius, label above, min-height 44px (D-56). Input text is 14px from `md` up and 16px below `md`. Focus ring, not a second border color.
 
 Placeholder examples, never labels: `name@example.com`, `+971 00 000 0000`, `DD/MM/YYYY`.
 
@@ -497,7 +502,7 @@ Scrim click closes pickers. Confirm, pay, hold-expired, and session-expired do n
 
 ### Toast
 
-Bottom center. Icon plus one line. No title and body (D-55). Max 3. Non-error: 4 seconds, pause on hover (D-27). Error: stays until dismissed. Surface white, elevation shadow, charcoal text. Success icon green. Warning icon amber. Error icon is not a red toast fill; the line is charcoal unless it is a field error.
+Bottom center. Icon plus one line. No title and body (D-55). Max 3. Every toast, including errors, dismisses at 4 seconds and pauses on hover or focus (D-27). A dismiss control is still present. Surface white, elevation shadow, charcoal text. Success icon green. Warning icon amber. Error icon is not a red toast fill; the line is charcoal unless it is a field error.
 
 ### Nav
 
@@ -623,7 +628,7 @@ Render each of these on `/design`. They are not routes.
 | Stepper | darken circle | teal ring | minus at floor | N/A | N/A | N/A (adults start at 1) |
 | Card | image outline only | N/A unless the card is a control | N/A | skeleton | N/A | missing-image monogram |
 | Modal | N/A | focus trapped | N/A | N/A | N/A | N/A |
-| Toast | pause timer | dismiss control ring | N/A | N/A | stays until dismissed | N/A |
+| Toast | pause timer | dismiss control ring | N/A | N/A | 4 seconds, then dismiss | N/A |
 | Nav | link hover | teal ring | N/A | N/A | N/A | N/A |
 | Footer | link hover | teal ring | N/A | N/A | newsletter field error | empty email |
 | Stay card | slight darken | teal ring on the action | muted action | skeleton | N/A | reason line, card stays |
@@ -672,23 +677,12 @@ Server error (`app/error.tsx`) uses the same layout (D-158):
 - Chevron, close, drawer edge, dialog actions, stay image, and sign-in split follow inline-start / inline-end.
 - Do not mirror the wordmark or the monogram.
 - Numerals stay Western.
-- Alt text differs by preview language. Fixture, on the stay image:
+- English is the only copy in this contract. Do not write Arabic or Spanish strings here. Those are generated in a later phase.
+- The Arabic preview still sets `lang="ar"` and `dir="rtl"`, and it uses the Arabic faces. The specimen strings stay the English source strings, wrapped in `<bdi>` where a Latin value sits in RTL flow.
+- Stay-image alt, in every preview language: `Sample stay in Cartagena`.
+- Eye names, in every preview language: `Show password` and `Hide password`.
 
-| Language | Alt |
-|----------|-----|
-| EN | Sample stay in Cartagena |
-| AR | إقامة تجريبية في كارتاخينا |
-| ES | Estancia de muestra en Cartagena |
-
-Eye names:
-
-| Language | Show | Hide |
-|----------|------|------|
-| EN | Show password | Hide password |
-| AR | إظهار كلمة المرور | إخفاء كلمة المرور |
-| ES | Mostrar contraseña | Ocultar contraseña |
-
-next-intl is Phase 2. These three locales are fixtures on `/design`, not a translation pipeline.
+next-intl is Phase 2. The three locale previews on `/design` prove direction and type. They are not a translation pipeline.
 
 ---
 
