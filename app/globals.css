@@ -565,3 +565,17 @@ html[lang="ar"] :where(h1, h2, h3) {
   align-items: center;
   margin-top: var(--spacing-md);
 }
+
+.status-page {
+  max-width: 40rem;
+  margin-inline: auto;
+  padding-block: var(--spacing-3xl);
+  padding-inline: var(--spacing-md);
+}
+
+.status-mark {
+  display: block;
+  width: 8rem;
+  height: auto;
+  margin-bottom: var(--spacing-lg);
+}
