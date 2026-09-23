@@ -4,10 +4,39 @@ import { useState } from "react";
 import { notoNaskh, notoSans } from "../../lib/fonts";
 import { Button } from "../../components/ui/button";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Chip } from "../../components/ui/chip";
+import { DateRangeField } from "../../components/ui/calendar";
+import { KitDialog } from "../../components/ui/dialog";
+import { DestinationSelect, EmptySelect } from "../../components/ui/select";
+import { GuestSteppers } from "../../components/ui/stepper";
+import { ShowToast, ToastProvider } from "../../components/ui/toast";
 import { Field } from "../../components/ui/field";
 import { Link } from "../../components/ui/link";
 import { Radio } from "../../components/ui/radio";
 import { Switch } from "../../components/ui/switch";
+import {
+  CameraIcon,
+  CarIcon,
+  CheersIcon,
+  ChevronIcon,
+  CloseIcon,
+  EyeIcon,
+  GuestIcon,
+  HeadsetIcon,
+  HeartIcon,
+  LockIcon,
+  LotusIcon,
+  LuggageIcon,
+  PalmIcon,
+  PinIcon,
+  PlaneIcon,
+  ShieldIcon,
+  SpinnerIcon,
+  StayIcon,
+  VipIcon,
+  YachtIcon,
+} from "../../components/icons/icons";
+import monogram from "../../brand/Logo Monogram/Curves_black.svg";
 
 const SWATCHES = [
   { name: "Ivory", token: "var(--color-bg)" },
@@ -16,7 +45,23 @@ const SWATCHES = [
   { name: "Charcoal", token: "var(--color-fg)" },
 ] as const;
 
-const JUMPS = ["Link", "Button", "Input", "Password", "Checkbox", "Radio", "Switch"] as const;
+const JUMPS = [
+  ["Link", "link"],
+  ["Button", "button"],
+  ["Input", "input"],
+  ["Password", "password"],
+  ["Checkbox", "checkbox"],
+  ["Radio", "radio"],
+  ["Switch", "switch"],
+  ["Select", "select"],
+  ["Date range", "date-range"],
+  ["Stepper", "stepper"],
+  ["Modal", "modal"],
+  ["Toast", "toast"],
+  ["Card", "card"],
+  ["Icons", "icons"],
+  ["Chip", "chip"],
+] as const;
 
 const NOTO_CLASSES = `${notoNaskh.variable} ${notoSans.variable}`.split(" ");
 
@@ -70,6 +115,7 @@ export function DesignKit() {
   }
 
   return (
+    <ToastProvider>
     <main className="kit" id="content">
       <header className="kit-bar">
         <h1>
@@ -107,8 +153,8 @@ export function DesignKit() {
       </section>
 
       <nav className="kit-jumps" aria-label="On this page">
-        {JUMPS.map((name) => (
-          <a key={name} href={`#${name.toLowerCase()}`}>
+        {JUMPS.map(([name, id]) => (
+          <a key={id} href={`#${id}`}>
             {name}
           </a>
         ))}
@@ -283,6 +329,153 @@ export function DesignKit() {
           ]}
         />
       </section>
+
+      <section className="kit-section" id="select" aria-label="Select">
+        <h2>Select</h2>
+        <DestinationSelect />
+        <EmptySelect />
+        <p className="field-error">Choose a destination.</p>
+        <States
+          rows={[
+            ["Hover", "same as input"],
+            ["Focus", "same as input"],
+            ["Disabled", "muted"],
+            ["Loading", "N/A"],
+            ["Error", "red hint replacement"],
+            ["Empty", "No options to show"],
+          ]}
+        />
+      </section>
+
+      <section className="kit-section" id="date-range" aria-label="Date range">
+        <h2>Date range</h2>
+        <DateRangeField />
+        <States
+          rows={[
+            ["Hover", "day darkens"],
+            ["Focus", "teal ring on the day"],
+            ["Disabled", "unpickable muted"],
+            ["Loading", "N/A"],
+            ["Empty", "no range yet"],
+          ]}
+        />
+      </section>
+
+      <section className="kit-section" id="stepper" aria-label="Stepper">
+        <h2>Stepper</h2>
+        <GuestSteppers />
+        <States
+          rows={[
+            ["Hover", "darken circle"],
+            ["Focus", "teal ring"],
+            ["Disabled", "minus at floor"],
+            ["Loading", "N/A"],
+            ["Error", "N/A"],
+            ["Empty", "N/A"],
+          ]}
+        />
+      </section>
+
+      <section className="kit-section" id="modal" aria-label="Modal">
+        <h2>Modal</h2>
+        <div className="specimen-row">
+          <KitDialog trigger="Open modal" title="Choose a stay" />
+          <KitDialog trigger="Confirm booking" title="Confirm this booking" dismiss="confirm" />
+        </div>
+        <States
+          rows={[
+            ["Hover", "N/A"],
+            ["Focus", "focus trapped"],
+            ["Disabled", "N/A"],
+            ["Loading", "N/A"],
+            ["Error", "N/A"],
+            ["Empty", "N/A"],
+          ]}
+        />
+      </section>
+
+      <section className="kit-section" id="toast" aria-label="Toast">
+        <h2>Toast</h2>
+        <ShowToast />
+        <States
+          rows={[
+            ["Hover", "pause timer"],
+            ["Focus", "dismiss control ring"],
+            ["Disabled", "N/A"],
+            ["Loading", "N/A"],
+            ["Error", "4 seconds, then dismiss"],
+            ["Empty", "N/A"],
+          ]}
+        />
+      </section>
+
+      <section className="kit-section" id="card" aria-label="Card">
+        <h2>Card</h2>
+        <div className="card-specimen">
+          <div className="card-image" />
+          <div className="card-pulse" />
+          <img
+            className="card-monogram"
+            alt=""
+            src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(monogram)}`}
+          />
+        </div>
+        <States
+          rows={[
+            ["Hover", "image outline only"],
+            ["Focus", "N/A"],
+            ["Disabled", "N/A"],
+            ["Loading", "skeleton"],
+            ["Error", "N/A"],
+            ["Empty", "missing-image monogram"],
+          ]}
+        />
+      </section>
+
+      <section className="kit-section" id="icons" aria-label="Icons">
+        <h2>Icons</h2>
+        <div className="icon-row">
+          <CameraIcon title="Mark" />
+          <LuggageIcon />
+          <VipIcon />
+          <YachtIcon />
+          <CheersIcon />
+          <PalmIcon />
+          <GuestIcon />
+          <PlaneIcon />
+          <StayIcon />
+          <PinIcon />
+          <CarIcon />
+          <ShieldIcon />
+          <LotusIcon />
+          <HeadsetIcon />
+          <EyeIcon />
+          <ChevronIcon />
+          <CloseIcon />
+          <LockIcon />
+          <HeartIcon />
+          <SpinnerIcon />
+        </div>
+        <States
+          rows={[
+            ["Hover", "inherit"],
+            ["Focus", "N/A"],
+            ["Disabled", "inherit muted"],
+            ["Loading", "spinner glyph"],
+            ["Error", "N/A"],
+            ["Empty", "N/A"],
+          ]}
+        />
+      </section>
+
+      <section className="kit-section" id="chip" aria-label="Chip">
+        <h2>Chip</h2>
+        <div className="specimen-row">
+          <Chip>Chip</Chip>
+          <Chip on>On</Chip>
+        </div>
+      </section>
     </main>
+    </ToastProvider>
   );
 }

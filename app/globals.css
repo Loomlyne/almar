@@ -321,7 +321,8 @@ html[lang="ar"] :where(h1, h2, h3) {
   .eye,
   .eye-icon,
   .ui-button,
-  .ui-spinner {
+  .ui-spinner,
+  .card-pulse {
     transition-property: opacity;
     transition-duration: 150ms;
     animation: none;
@@ -578,4 +579,232 @@ html[lang="ar"] :where(h1, h2, h3) {
   width: 8rem;
   height: auto;
   margin-bottom: var(--spacing-lg);
+}
+
+.ui-select,
+.ui-select-item {
+  color: var(--color-fg);
+  background: var(--color-surface);
+}
+
+.ui-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding-inline: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  text-align: start;
+}
+
+.overlay-panel {
+  z-index: 70;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-overlay);
+  padding: var(--spacing-sm);
+}
+
+.ui-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: color-mix(in srgb, var(--color-charcoal) 40%, transparent);
+}
+
+.ui-dialog {
+  position: fixed;
+  z-index: 70;
+  background: var(--color-surface);
+  color: var(--color-fg);
+  box-shadow: var(--shadow-overlay);
+  inset-inline-end: 0;
+  inset-block: 0;
+  inline-size: 100%;
+  padding: var(--spacing-lg);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+@media (min-width: 48rem) {
+  .ui-dialog {
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    transform: translate(-50%, -50%);
+    inline-size: min(480px, calc(100% - 2rem));
+    block-size: auto;
+    max-block-size: 90vh;
+  }
+
+  .ui-dialog-wide {
+    inline-size: min(1240px, calc(100% - 2rem));
+  }
+}
+
+.dialog-head,
+.ui-dialog-bar,
+.ui-dialog-actions,
+.stepper-row,
+.toast,
+.icon-row,
+.date-pair {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.dialog-head,
+.ui-dialog-bar {
+  justify-content: space-between;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--color-fg);
+}
+
+.toast-stack {
+  position: fixed;
+  z-index: 50;
+  inset-inline: 0;
+  bottom: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  background: var(--color-surface);
+  color: var(--color-fg);
+  box-shadow: var(--shadow-overlay);
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.toast-success {
+  color: var(--color-success);
+}
+
+.toast-warning {
+  color: var(--color-warning);
+}
+
+.calendar-grid,
+.calendar-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(44px, 1fr));
+}
+
+.calendar-day {
+  min-block-size: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--color-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.calendar-day:hover:not(:disabled) {
+  background: var(--color-bg);
+}
+
+.calendar-day:focus-visible {
+  outline: 2px solid var(--color-heading);
+  outline-offset: 2px;
+}
+
+.calendar-day:disabled {
+  color: var(--color-muted-fg);
+}
+
+.calendar-day.is-range,
+.calendar-day.is-preview {
+  background: var(--color-heading);
+  color: var(--color-bg);
+}
+
+.calendar-day.is-end {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+.calendar-day.is-today {
+  box-shadow: inset 0 -3px 0 var(--color-fg);
+}
+
+.calendar-month {
+  font-family: var(--font-display);
+  color: var(--color-heading);
+}
+
+.stepper-btn {
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--color-accent);
+  background: transparent;
+  color: var(--color-heading);
+}
+
+.stepper-count {
+  font-variant-numeric: tabular-nums;
+  min-inline-size: 1.5rem;
+  text-align: center;
+}
+
+.ui-chip {
+  min-block-size: 44px;
+  padding-inline: var(--spacing-md);
+  border: 1px solid transparent;
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+.ui-chip.is-on {
+  border-color: var(--color-heading);
+}
+
+.card-specimen {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-md);
+}
+
+.card-image {
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  min-block-size: 6rem;
+  background: var(--color-bg);
+}
+
+.card-pulse {
+  min-block-size: 1rem;
+  margin-block: var(--spacing-sm);
+  background: var(--color-bg);
+  animation: ivory-pulse 1.2s var(--ease-standard) infinite;
+}
+
+.card-monogram {
+  inline-size: 3rem;
+  block-size: auto;
+}
+
+.icon-forward {
+  display: inline-flex;
+}
+
+[dir="rtl"] .icon-forward {
+  transform: scaleX(-1);
+}
+
+@keyframes ivory-pulse {
+  50% {
+    opacity: 0.45;
+  }
 }
