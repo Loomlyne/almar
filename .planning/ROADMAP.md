@@ -34,7 +34,7 @@ Rebuild the Framer HTML export into a live booking OS. Tokens and components fir
   3. Arabic preview sets `dir=rtl` on `<html>` and flips layout with logical CSS; password eye stays on inline-end
   4. 404 uses Questa/Lato (no Bricolage); keyboard and visible focus work on every control
 
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 
 Plans:
 **Wave 1**
@@ -44,7 +44,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 01-02-PLAN.md — Button, link, field, checkbox, radio, switch, and their state rows (wave 2)
-- [ ] 01-05-PLAN.md — Branded 404 and assemble script (wave 2)
+- [x] 01-05-PLAN.md — Branded 404 and assemble script (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -166,7 +166,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Design system | 2/6 | In Progress|  |
+| 1. Design system | 3/6 | In Progress|  |
 | 2. Platform spine | 0/2 | Not started | - |
 | 3. Catalog and calendar | 0/2 | Not started | - |
 | 4. Book and pay | 0/3 | Not started | - |
