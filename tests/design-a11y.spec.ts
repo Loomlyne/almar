@@ -9,7 +9,7 @@ test("tab reaches the eye, a button, and a checkbox with a visible focus ring", 
 
   const targets = {
     eye: page.getByRole("button", { name: /^(Show|Hide) password$/ }),
-    button: page.getByRole("button", { name: "Continue", exact: true }),
+    button: page.getByRole("region", { name: "Button", exact: true }).getByRole("button", { name: "Continue", exact: true }),
     checkbox: page.getByRole("checkbox", { name: "Remember me", exact: true }),
   };
   const seen = new Set<string>();

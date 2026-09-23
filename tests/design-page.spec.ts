@@ -8,10 +8,10 @@ test("core controls and their state rows are on /design", async ({ page }) => {
 
   await expect(page.getByRole("link", { name: "Back", exact: true })).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Continue", exact: true }),
+    page.getByRole("region", { name: "Button", exact: true }).getByRole("button", { name: "Continue", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("textbox", { name: "Email", exact: true }),
+    page.getByRole("region", { name: "Input", exact: true }).getByRole("textbox", { name: "Email", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: /^(Show|Hide) password$/ }),
@@ -46,10 +46,10 @@ test("core controls and their state rows are on /design", async ({ page }) => {
 test("01-06 controls", async ({ page }) => {
   await page.goto("/design");
 
-  await expect(page.getByRole("combobox", { name: "Where", exact: true })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Where", exact: true }).first()).toBeVisible();
   await expect(page.getByText("No options to show", { exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Date range", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "When", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "When", exact: true }).first()).toBeVisible();
   await expect(page.getByText("Adults", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Children", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Infants", { exact: true }).first()).toBeVisible();

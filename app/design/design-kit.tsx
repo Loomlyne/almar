@@ -11,6 +11,14 @@ import { DestinationSelect, EmptySelect } from "../../components/ui/select";
 import { GuestSteppers } from "../../components/ui/stepper";
 import { ShowToast, ToastProvider } from "../../components/ui/toast";
 import { Field } from "../../components/ui/field";
+import { SiteFooter } from "../../components/ui/footer";
+import { SiteNav } from "../../components/ui/nav";
+import { WhatsAppLink } from "../../components/ui/whatsapp";
+import { AddOnRow } from "../../components/specimens/add-on";
+import { HeroBooker } from "../../components/specimens/hero-booker";
+import { EmptyStays, StayRow } from "../../components/specimens/stay-row";
+import { PaymentFailed, PriceBlock, ReviewFrame } from "../../components/specimens/price";
+import { VideoSpecimen } from "../../components/specimens/video";
 import { Link } from "../../components/ui/link";
 import { Radio } from "../../components/ui/radio";
 import { Switch } from "../../components/ui/switch";
@@ -61,6 +69,17 @@ const JUMPS = [
   ["Card", "card"],
   ["Icons", "icons"],
   ["Chip", "chip"],
+] as const;
+
+const SPECIMEN_JUMPS = [
+  ["Nav", "nav"],
+  ["Footer", "footer"],
+  ["Hero", "hero"],
+  ["Stay", "stay"],
+  ["Add-on", "add-on"],
+  ["Price", "price"],
+  ["Video", "video"],
+  ["WhatsApp", "whatsapp"],
 ] as const;
 
 const NOTO_CLASSES = `${notoNaskh.variable} ${notoSans.variable}`.split(" ");
@@ -475,6 +494,73 @@ export function DesignKit() {
           <Chip on>On</Chip>
         </div>
       </section>
+      <nav className="kit-jumps" aria-label="Specimens">
+        {SPECIMEN_JUMPS.map(([name, id]) => (
+          <a key={id} href={`#${id}`}>
+            {name}
+          </a>
+        ))}
+      </nav>
+      <section className="kit-section" id="nav" aria-label="Nav">
+        <h2>Nav</h2>
+        <SiteNav locale={locale} onLocale={chooseLocale} />
+        <States
+          rows={[
+            ["Hover", "link hover"],
+            ["Focus", "teal focus ring"],
+            ["Disabled", "N/A"],
+            ["Loading", "N/A"],
+            ["Error", "N/A"],
+            ["Empty", "N/A"],
+          ]}
+        />
+      </section>
+      <section className="kit-section" id="hero" aria-label="Hero">
+        <h2>Hero</h2>
+        <HeroBooker />
+      </section>
+      <section className="kit-section" id="stay" aria-label="Stay">
+        <h2>Stay</h2>
+        <StayRow />
+      </section>
+      <section className="kit-section" id="empty-stays" aria-label="Empty stays">
+        <h2>Empty stays</h2>
+        <EmptyStays />
+      </section>
+      <section className="kit-section" id="add-on" aria-label="Add-on">
+        <h2>Add-on</h2>
+        <AddOnRow />
+      </section>
+      <section className="kit-section" id="price" aria-label="Price">
+        <h2>Price</h2>
+        <PriceBlock />
+      </section>
+      <section className="kit-section" id="review" aria-label="Review">
+        <h2>Review</h2>
+        <ReviewFrame />
+      </section>
+      <section className="kit-section" id="payment-failed" aria-label="Payment failed">
+        <h2>Payment failed</h2>
+        <PaymentFailed />
+      </section>
+      <section className="kit-section" id="video" aria-label="Video">
+        <h2>Video</h2>
+        <VideoSpecimen />
+      </section>
+      <section className="kit-section" id="whatsapp" aria-label="WhatsApp">
+        <h2>WhatsApp</h2>
+        <WhatsAppLink />
+      </section>
+      <section className="kit-section" id="footer" aria-label="Footer">
+        <h2>Footer</h2>
+        <SiteFooter />
+      </section>
+      <div id="destinations" />
+      <div id="experiences" />
+      <div id="about" />
+      <div id="contact" />
+      <div id="log-in" />
+      <div id="list-with-us" />
     </main>
     </ToastProvider>
   );
