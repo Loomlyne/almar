@@ -71,12 +71,37 @@ Plans:
   3. Guest hitting `/ops` or ops APIs gets 404 / denied; dashboard host (when gated) does not serve marketing
   4. Same URLs for EN/AR/ES; header language + currency; AR is `dir=rtl`; dates DD/MM/YYYY, week Monday, Western numerals
 
-**Plans:** TBD
+**Plans:** 7 plans
 
 Plans:
 
-- [ ] 02-01: Supabase clients, RLS, owner + guest auth
-- [ ] 02-02: Middleware host gate + next-intl cookie + wrangler stub (no live CF create)
+**Wave 1**
+
+- [ ] 02-01: Package-legitimacy gates, then the owner creates one Supabase project (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 02-02: Magic-link account, confirm, and signed-in home menu (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 02-03: Auth, account, and 404 in EN/AR/ES, with dates and Western numerals (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 02-04: Ops host sign-in, guest rejection, touchword handoff, logout-all (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 02-05: Same-URL language and currency on the live header (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 02-06: Settings save, contrast gate, and maintenance page (wave 6)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 02-07: Owner adds the ops host route, then wait (wave 7)
 
 ### Phase 3: Catalog and calendar
 
