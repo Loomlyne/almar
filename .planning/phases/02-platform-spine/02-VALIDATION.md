@@ -38,14 +38,11 @@ created: 2026-09-25
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 02-01-01 | 01 | 0 | AUTH-02 | T-02-01 | No password field. Unknown email does not create a user | unit | `node --test tests/auth-magic-link.test.mjs` | ❌ W0 | ⬜ pending |
-| 02-01-02 | 01 | 1 | AUTH-05 | T-02-02 | Owner seed is email only. Logout-all ends both hosts | unit | `node --test tests/auth-owner.test.mjs` | ❌ W0 | ⬜ pending |
-| 02-01-03 | 01 | 1 | AUTH-06 | T-02-03 | Guest email rejected. Marketing HTML not served on ops host | unit | `node --test tests/host-gate.test.mjs` | ❌ W0 | ⬜ pending |
-| 02-01-04 | 01 | 1 | OPS-01 | T-02-04 | Public render does not say dashboard | unit | `node --test tests/host-gate.test.mjs` | ❌ W0 | ⬜ pending |
-| 02-02-01 | 02 | 1 | I18N-01 | — | Same URL. Default EN. Arabic dir=rtl | unit | `node --test tests/locale.test.mjs` | ❌ W0 | ⬜ pending |
-| 02-02-02 | 02 | 1 | I18N-02 | — | Currency converts. URL unchanged | unit | `node --test tests/fx.test.mjs` | ❌ W0 | ⬜ pending |
-| 02-02-03 | 02 | 1 | AUTH-07 | — | Auth pages EN/AR/ES | e2e | `npx playwright test tests/auth-i18n.spec.ts` | ❌ W0 | ⬜ pending |
-| 02-02-04 | 02 | 1 | PLAT-01 | T-02-05 | No storage client. Service role not in the bundle | unit | `node --test tests/secrets.test.mjs` | ❌ W0 | ⬜ pending |
+| 02-01-01 | 01 | 1 | PLAT-01 | — | Checkout unchanged before the human gate | unit | `node -e` reads package.json and wrangler.toml | ✅ exists | ⬜ pending |
+| 02-08-01 | 08 | 2 | PLAT-01 | — | Server runtime config, no deploy | unit | `node --test tests/host-config.test.mjs` | ❌ W0 | ⬜ pending |
+| 02-02-01 | 02 | 3 | AUTH-02 | T-02-01 | Magic link, no password | unit | `node --test tests/auth-magic-link.test.mjs` | ❌ W0 | ⬜ pending |
+| 02-09-01 | 09 | 6 | I18N-03 | — | Full string map, one middleware boundary | unit | `node --test tests/framer-inject.test.mjs` | ❌ W0 | ⬜ pending |
+| 02-10-01 | 10 | 8 | I18N-02 | — | $ is USD. Written AED stays AED | unit | `node --test tests/fx.test.mjs` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
