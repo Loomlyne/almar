@@ -1,0 +1,185 @@
+{
+  "phase": "2",
+  "phase_name": "Platform spine",
+  "timestamp": "2026-09-24T14:12:00Z",
+  "areas_completed": [],
+  "areas_remaining": [
+    "Guest sign-up now",
+    "Ops door until DNS",
+    "Language on the live site",
+    "Confirm email and Supabase"
+  ],
+  "decisions": {
+    "Guest sign-up now": [
+      {
+        "question": "Guest sign-up: should a public email form exist this phase?",
+        "answer": "Live now — email form, account inactive until they confirm",
+        "options_presented": ["Live now — email form, account inactive until they confirm", "Not yet — owner login only until a booking exists", "You decide"]
+      },
+      {
+        "question": "How long does a guest stay signed in?",
+        "answer": "30 days, same as the owner",
+        "options_presented": ["30 days, same as the owner", "Until they close the browser", "You decide"]
+      },
+      {
+        "question": "What does the signed-in guest menu show this phase?",
+        "answer": "Bookings, Account, and Sign out, even if the pages are empty",
+        "options_presented": ["Sign out only — Bookings and Account wait until those pages work", "Bookings, Account, and Sign out, even if the pages are empty", "You decide"]
+      },
+      {
+        "question": "After the confirm link, what happens to the optional password?",
+        "answer": "Skippable set-password on that screen. Two fields, both with an eye.",
+        "options_presented": ["Skippable set-password on that screen. Two fields, both with an eye.", "Magic link only this phase. Password waits.", "You decide"]
+      },
+      {
+        "question": "If someone uses the owner email on the public sign-up, what happens?",
+        "answer": "the owner can have with teh same email a ashbaord access and ogin to the frontsite like a user",
+        "options_presented": ["No account created. Same check-your-email page. She signs in only on the dashboard host.", "The public form sends her to the dashboard sign-in.", "You decide"]
+      },
+      {
+        "question": "On the public site, signed in with the owner email, what does she see?",
+        "answer": "Guest menu plus a way to open the dashboard.",
+        "options_presented": ["The same guest menu as any user. No dashboard link.", "Guest menu plus a way to open the dashboard.", "You decide"]
+      }
+    ],
+    "Ops door until DNS": [
+      {
+        "question": "Until dashboard DNS is gated, who can open /ops?",
+        "answer": "we will do it now so we cna open it we will get it gates and teh fashbaord will not be https://almarprivatejourney.com/ops it will be https://dashboard.almarprivatejourney.com/",
+        "options_presented": ["Localhost is the owner sign-in. The public site 404s /ops. No public link.", "/ops sign-in is on the public site too, just not in the nav.", "You decide"]
+      },
+      {
+        "question": "Where does the owner press logout-all?",
+        "answer": "On the dashboard, next to Sign out. Not on the public site.",
+        "options_presented": ["On the dashboard, next to Sign out. Not on the public site.", "Only from your terminal. No button this phase.", "You decide"]
+      }
+    ],
+    "Language on the live site": [
+      {
+        "question": "Where do language and currency switch this phase?",
+        "answer": "On the live Framer header now, same URLs.",
+        "options_presented": ["New pages only. Framer pages stay English until they are replaced.", "On the live Framer header now, same URLs.", "You decide"]
+      },
+      {
+        "question": "On a Framer page, what does Arabic do this phase?",
+        "answer": "Remembers Arabic, flips RTL, and translates the header labels. Body stays English until Phase 6.",
+        "options_presented": ["Remembers Arabic, flips RTL, and translates the header labels. Body stays English until Phase 6.", "Remembers Arabic and flips RTL. Header and body stay English until Phase 6.", "You decide"]
+      },
+      {
+        "question": "What does the currency switch do on a Framer page this phase?",
+        "answer": "Converts the prices written on those pages now.",
+        "options_presented": ["Remembers AED, USD, or EUR. Prices on those pages stay as written until real rates exist.", "Converts the prices written on those pages now.", "You decide"]
+      },
+      {
+        "question": "Home has both $20,000 and AED 120,000. What is the base when converting?",
+        "answer": "$ amounts are USD. AED amounts stay AED. Convert each from what is written.",
+        "options_presented": ["$ amounts are USD. AED amounts stay AED. Convert each from what is written.", "Treat every number as AED.", "You decide"]
+      },
+      {
+        "question": "If the rate cannot be fetched, what does the price show?",
+        "answer": "fiund the problem amke it convert and let it work",
+        "options_presented": ["The written price, plus a charcoal line that it could not convert.", "Hide the price until the rate works.", "You decide"]
+      }
+    ],
+    "Confirm email and Supabase": [
+      {
+        "question": "Who sends the branded confirm email?",
+        "answer": "Resend, from inquiries@almarprivatejourney.com. You gate that domain when we build it.",
+        "options_presented": ["Resend, from inquiries@almarprivatejourney.com. You gate that domain when we build it.", "Supabase sends it now. The from-address is Supabase until Resend is gated.", "You decide"]
+      },
+      {
+        "question": "Where does auth data live when we build this?",
+        "answer": "Cloud Supabase. One numbered step for you, then wait.",
+        "options_presented": ["Cloud Supabase. One numbered step for you, then wait.", "Local Docker until you say create the cloud project.", "You decide"]
+      }
+    ],
+    "Later rounds": [
+      {
+        "question": "Who sees the way to open the dashboard?",
+        "answer": "Only her signed-in menu. Other guests do not see it. Not in the public nav.",
+        "options_presented": ["Only her signed-in menu. Other guests do not see it. Not in the public nav.", "A public nav item for everyone.", "You decide"]
+      },
+      {
+        "question": "What does Spanish do to the Framer header this phase?",
+        "answer": "Same as Arabic: header labels translate. No RTL. Body stays English until Phase 6.",
+        "options_presented": ["Same as Arabic: header labels translate. No RTL. Body stays English until Phase 6.", "Header stays English in Spanish until Phase 6.", "You decide"]
+      },
+      {
+        "question": "What is the public sign-in path?",
+        "answer": "/login for the form. /account for Bookings and Account.",
+        "options_presented": ["/login for the form. /account for Bookings and Account.", "One path, /account, for the form and the pages.", "You decide"]
+      },
+      {
+        "question": "What do the empty Bookings and Account pages do this phase?",
+        "answer": "One line each. No Save until those edits exist. Bookings links home.",
+        "options_presented": ["One line each. No Save until those edits exist. Bookings links home.", "Account has name, email, password, and Gold Save now.", "You decide"]
+      },
+      {
+        "question": "If she skips the password, is she signed in?",
+        "answer": "Yes. The confirm link already proved the email.",
+        "options_presented": ["Yes. The confirm link already proved the email.", "No. She must request a magic link after.", "You decide"]
+      },
+      {
+        "question": "Does language follow her to another device?",
+        "answer": "Yes, once she is signed in. This browser only when she is not.",
+        "options_presented": ["Yes, once she is signed in. This browser only when she is not.", "This browser only, even when signed in.", "You decide"]
+      },
+      {
+        "question": "Does currency follow her to another device, like language?",
+        "answer": "Yes, once she is signed in. This browser only when she is not.",
+        "options_presented": ["Yes, once she is signed in. This browser only when she is not.", "This browser only, even when signed in.", "You decide"]
+      },
+      {
+        "question": "How long is a magic link good for?",
+        "answer": "Whatever supabase is allowed",
+        "options_presented": ["1 hour", "24 hours", "15 minutes", "You decide"]
+      },
+      {
+        "question": "What is the minimum on the set-password screen?",
+        "answer": "Whatever supabase is allowed",
+        "options_presented": ["8 characters", "12 characters", "You decide"]
+      },
+      {
+        "question": "Does logout-all also sign her out of the public site?",
+        "answer": "Yes. Dashboard and the public site.",
+        "options_presented": ["Yes. Dashboard and the public site.", "Dashboard only. The public site stays signed in.", "You decide"]
+      },
+      {
+        "question": "What does Sign out on the public site end?",
+        "answer": "This site only. Logout-all is the one that ends every session.",
+        "options_presented": ["This site only. Logout-all is the one that ends every session.", "Every session, including the dashboard.", "You decide"]
+      },
+      {
+        "question": "Who writes the Arabic and Spanish header labels?",
+        "answer": "I use standard translations. You can correct them at UAT.",
+        "options_presented": ["I use standard translations. You can correct them at UAT.", "You supply the words before we build.", "You decide"]
+      },
+      {
+        "question": "When she opens the dashboard from her menu, is she already signed in?",
+        "answer": "Yes. The menu opens it with no second password.",
+        "options_presented": ["No. She signs in there with email and password.", "Yes. The menu opens it with no second password.", "You decide"]
+      },
+      {
+        "question": "What name does the confirm email show as the sender?",
+        "answer": "ALMAR Private Journey",
+        "options_presented": ["ALMAR Private Journeys", "ALMAR", "You decide"]
+      },
+      {
+        "question": "When she is signed in, what replaces Login in the Framer header?",
+        "answer": "Her menu: Bookings, Account, Sign out, and Dashboard.",
+        "options_presented": ["Her menu: Bookings, Account, Sign out, and Dashboard.", "Login stays. The menu is only on /account.", "You decide"]
+      }
+    ]
+  },
+  "deferred_ideas": [],
+  "canonical_refs": [
+    ".planning/ROADMAP.md",
+    ".planning/REQUIREMENTS.md",
+    ".planning/PROJECT.md",
+    ".planning/phases/01-design-system/01-CONTEXT.md",
+    ".planning/codebase/STACK.md",
+    ".planning/codebase/ARCHITECTURE.md",
+    ".planning/codebase/INTEGRATIONS.md",
+    ".planning/codebase/CONCERNS.md"
+  ]
+}
