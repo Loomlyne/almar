@@ -71,7 +71,7 @@ Plans:
   3. Guest hitting `/ops` or ops APIs gets 404 / denied; dashboard host (when gated) does not serve marketing
   4. Same URLs for EN/AR/ES; header language + currency; AR is `dir=rtl`; dates DD/MM/YYYY, week Monday, Western numerals
 
-**Plans:** 7 plans
+**Plans:** 10 plans
 
 Plans:
 
@@ -81,27 +81,39 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02: Magic-link account, confirm, and signed-in home menu (wave 2)
+- [ ] 02-08: Server runtime on Worker almar, no deploy (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03: Auth, account, and 404 in EN/AR/ES, with dates and Western numerals (wave 3)
+- [ ] 02-02: Magic-link account, confirm, and account page (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 02-04: Ops host sign-in, guest rejection, touchword handoff, logout-all (wave 4)
+- [ ] 02-03: Auth, account, and 404 in EN/AR/ES, with dates and Western numerals (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 02-05: Same-URL language and currency on the live header (wave 5)
+- [ ] 02-04: Ops host sign-in, guest rejection, touchword handoff, logout-all (wave 5)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 02-06: Settings save, contrast gate, and maintenance page (wave 6)
+- [ ] 02-09: Same-URL string map on every Framer page (wave 6)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 02-07: Owner adds the ops host route, then wait (wave 7)
+- [ ] 02-05: Language and currency follow a signed-in account (wave 7)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 02-10: Convert written prices on every priced page (wave 8)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 02-06: Settings save, contrast gate, and maintenance page (wave 9)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 02-07: Owner applies the runtime and the ops host route, then wait (wave 10)
 
 ### Phase 3: Catalog and calendar
 

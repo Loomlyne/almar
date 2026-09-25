@@ -59,7 +59,7 @@ created: 2026-09-25
 - [ ] `tests/locale.test.mjs` — I18N-01
 - [ ] `tests/fx.test.mjs` — I18N-02
 - [ ] `tests/auth-i18n.spec.ts` — AUTH-07
-- [ ] `tests/secrets.test.mjs` — PLAT-01, PLAT-02
+- [ ] `tests/phase-02-gates.test.mjs` — repo guard for Plan 02-01 and Plan 02-07. Human gates stay manual.
 
 ---
 
@@ -67,8 +67,8 @@ created: 2026-09-25
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Branded email arrives from inquiries@almarprivatejourney.com | AUTH-02 | Resend domain is owner-gated | After the domain gate, request a link and read the From line |
-| Ops host opens | OPS-01 | DNS is owner-gated | After the DNS gate, open the host logged out and confirm the title is Sign in |
+| Package identity and Supabase create | PLAT-01 | Human gate. The repo guard only proves the checkout did not change | `node --test tests/phase-02-gates.test.mjs` then wait for approved |
+| Ops host, runtime apply, and R2 | OPS-01, PLAT-02 | DNS and bucket create are owner-gated. skipped is not done | After the gate, open the host logged out and confirm the title is Sign in |
 
 ---
 

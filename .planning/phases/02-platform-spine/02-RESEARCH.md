@@ -251,22 +251,11 @@ Do not invent the wait. If Supabase returns a rate-limit error, show a countdown
 
 **Not assumed:** Magic-link default expiry is 1 hour and the default resend gap is 60 seconds. Those are cited defaults. Do not encode them as product settings. Do not set a custom expiry.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which server runtime on the existing Worker**
-   - What we know: Production is static assets. Auth needs a server. Creating a Worker is owner-gated.
-   - What's unclear: Whether the gated step is a second Worker or a change to `almar`.
-   - Recommendation: Plan the code. Put the create/DNS step as one numbered owner command. Do not run it.
-
-2. **FX feed**
-   - What we know: Six literals. `$` is USD. AED stays AED. Failure means fix the fetch.
-   - What's unclear: Which feed.
-   - Recommendation: One server fetch, cached, with a retry. No guest-facing error. Name the feed in the plan after a docs check.
-
-3. **Translating the Framer HTML string**
-   - What we know: Every string, same URL, Arabic RTL.
-   - What's unclear: Whether the header island plus a string map covers the Framer body, or the body needs a serve-time swap.
-   - Recommendation: A string map keyed by the English source, applied without a URL change. Do not leave body copy in English.
+1. **Which server runtime on the existing Worker** — RESOLVED. Plan 02-08 specifies `@opennextjs/cloudflare` on Worker `almar` only after the Plan 02-01 human gate. Plan 02-07 applies it. No second Worker. No deploy from the agent.
+2. **FX feed** — RESOLVED. Plan 02-10 fetches `https://latest.currency-api.pages.dev/v1/currencies/usd.json`. `$` is USD. Written AED stays AED. No guest-facing error.
+3. **Translating the Framer HTML string** — RESOLVED. Plan 02-09 applies a same-URL string map, including alt text, on every Framer GET.
 
 ## Environment Availability
 
