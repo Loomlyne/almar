@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Plan 02-01 closed. Time-box deferred until Pro.
-last_updated: "2026-09-26T18:21:07.821Z"
+stopped_at: Phase 3 context gathered
+last_updated: "2026-09-26T23:18:31.276Z"
 last_activity: 2026-09-26
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 16
   completed_plans: 7
-  percent: 44
+  percent: 17
 ---
 
 # Project State
@@ -72,7 +72,11 @@ Recent decisions affecting current work:
 - Next 14.2.35 + OpenNext 1.15.x; Stripe TEST Payment Element; R2 not Supabase storage
 - [Phase 01]: Playwright dev server uses port 3010 — 127.0.0.1:3000 is held by Twenty CRM, not this repo
 - [Phase 02]: email-verification-api is rejected. The confirm email is Resend. — That package is not Resend. The magic link is the email.
-- [Phase 02]: Session time-box stays unset until the Supabase plan is Pro. — Free plan rejects time-boxed sessions. Owner approved closing 02-01 and will set 30 days after Pro.
+- [Phase 02]: Session time-box stays unset until the Supabase plan is Pro. — Free plan rejects time-boxed sessions. Owner approved closing 02-01 and will set 30 days after going Pro.
+
+### Roadmap Evolution
+
+- Phase 3 edited: title and goal. Public site and dashboard screens come before catalogue, connections, and calculations.
 
 ### Pending Todos
 
@@ -94,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-26T18:20:54.258Z
-Stopped at: Plan 02-01 closed. Time-box deferred until Pro.
-Resume file: .planning/phases/02-platform-spine/02-08-PLAN.md
+Last session: 2026-09-26T23:18:31.273Z
+Stopped at: Phase 3 context gathered
+Resume file: .planning/phases/03-public-site-and-dashboard/03-CONTEXT.md
