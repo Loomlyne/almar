@@ -71,13 +71,13 @@ Plans:
   3. Guest hitting `/ops` or ops APIs gets 404 / denied; dashboard host (when gated) does not serve marketing
   4. Same URLs for EN/AR/ES; header language + currency; AR is `dir=rtl`; dates DD/MM/YYYY, week Monday, Western numerals
 
-**Plans:** 10 plans
+**Plans:** 1/10 plans executed
 
 Plans:
 
 **Wave 1**
 
-- [ ] 02-01: Package-legitimacy gates, then the owner creates one Supabase project (wave 1)
+- [x] 02-01: Package-legitimacy gates, then the owner creates one Supabase project (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -204,7 +204,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design system | 6/6 | Complete   | 2026-09-23 |
-| 2. Platform spine | 0/2 | Not started | - |
+| 2. Platform spine | 1/10 | In Progress|  |
 | 3. Catalog and calendar | 0/2 | Not started | - |
 | 4. Book and pay | 0/3 | Not started | - |
 | 5. Ops OS | 0/2 | Not started | - |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 plans ready
-last_updated: "2026-09-26T15:01:17.837Z"
-last_activity: 2026-09-26 -- Phase 2 planning complete
+stopped_at: Plan 02-01 closed. Time-box deferred until Pro.
+last_updated: "2026-09-26T18:21:07.821Z"
+last_activity: 2026-09-26
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 16
-  completed_plans: 6
-  percent: 17
+  completed_plans: 7
+  percent: 44
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 ## Current Position
 
 Phase: 02 (platform-spine) — PLANNED
-Plan: 0 of 7
-Last activity: 2026-09-26 -- Phase 2 planning complete
+Plan: 1 of 7
+Last activity: 2026-09-26
 Status: Ready to execute
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████░░░░░░] 44%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P06 | 25min | 2 tasks | 11 files |
 | Phase 01 P03 | 13min | 3 tasks | 16 files |
 | Phase 01 P04 | 28min | 3 tasks | 10 files |
+| Phase 02 P01 | 197min | 3 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,8 @@ Recent decisions affecting current work:
 - Design system first, then booking, then ops, then site cutover
 - Next 14.2.35 + OpenNext 1.15.x; Stripe TEST Payment Element; R2 not Supabase storage
 - [Phase 01]: Playwright dev server uses port 3010 — 127.0.0.1:3000 is held by Twenty CRM, not this repo
+- [Phase 02]: email-verification-api is rejected. The confirm email is Resend. — That package is not Resend. The magic link is the email.
+- [Phase 02]: Session time-box stays unset until the Supabase plan is Pro. — Free plan rejects time-boxed sessions. Owner approved closing 02-01 and will set 30 days after Pro.
 
 ### Pending Todos
 
@@ -80,6 +83,7 @@ None yet.
 - Cloudflare / Supabase / Stripe live / Resend domain are owner-gated — one numbered step, then wait
 - Owner password is never stored from chat; set in owner terminal when auth is gated
 - OpenNext 1.20.x / vinext need a gated Next bump
+- Session time-box stays unset until the Supabase plan is Pro.
 
 ## Deferred Items
 
@@ -90,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-25T10:51:08.774Z
-Stopped at: Phase 2 plans ready
-Resume file: .planning/phases/02-platform-spine/02-01-PLAN.md
+Last session: 2026-09-26T18:20:54.258Z
+Stopped at: Plan 02-01 closed. Time-box deferred until Pro.
+Resume file: .planning/phases/02-platform-spine/02-08-PLAN.md
