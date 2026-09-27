@@ -50,7 +50,33 @@ test("sign-in entry does not contain the text dashboard", () => {
   if (!existsSync(ENTRY)) return;
   const text = readFileSync(ENTRY, "utf8");
   assert.equal(/dashboard/i.test(text), false);
+  assert.equal(text.includes("use client"), false);
   assert.match(text, /title:\s*"Sign in"/);
+  assert.match(text, /<h1>Sign in<\/h1>/);
   assert.match(text, /NODE_ENV/);
   assert.match(text, /notFound\(\)/);
+});
+
+test("ops rail lists the eight labels and the interior mark", () => {
+  const layout = "app/dashboard/(ops)/layout.tsx";
+  if (!existsSync(layout)) return;
+  const text = readFileSync(layout, "utf8");
+  for (const label of ["Home", "Bookings", "Customers", "Calendar", "Catalog", "Content", "Settings", "Profile", "DASHBOARD"]) {
+    assert.equal(text.includes(label), true, label);
+  }
+  assert.equal(text.includes("Sign out"), false);
+  assert.equal(text.includes("Logout-all"), false);
+  assert.equal(text.includes("maria@"), false);
+  assert.equal(/<tr[\s>]/.test(text), false);
+  assert.match(text, /from ["'].*sidebar["']/);
+});
+
+test("sidebar close control is Close and docks to the end side", () => {
+  const sidebar = "components/ui/sidebar.tsx";
+  if (!existsSync(sidebar)) return;
+  const text = readFileSync(sidebar, "utf8");
+  assert.match(text, /Close/);
+  assert.match(text, /inset-inline-end/);
+  assert.equal(text.includes("innerHTML"), false);
+  assert.equal(text.includes("KitDialog"), false);
 });
