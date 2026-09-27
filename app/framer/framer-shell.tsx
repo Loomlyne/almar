@@ -6,6 +6,7 @@ import { WhatsApp } from "../../components/ui/whatsapp";
 import { HOME_COPY } from "../../lib/home-copy";
 import { notoNaskh, notoSans } from "../../lib/fonts";
 import { isDocumentLocale, setDocumentLocale, type DocumentLocale } from "../../lib/set-document-locale";
+import { ToastProvider, useToast } from "../../components/ui/toast";
 import styles from "./framer-shell.module.css";
 
 type Currency = "AED" | "USD" | "EUR";
@@ -26,6 +27,15 @@ function readCurrency(): Currency | null {
 }
 
 export function FramerShell() {
+  return (
+    <ToastProvider>
+      <FramerShellInner />
+    </ToastProvider>
+  );
+}
+
+function FramerShellInner() {
+  const { push } = useToast();
   const [locale, setLocale] = useState<DocumentLocale>("en");
   const [currency, setCurrency] = useState<Currency>("AED");
   const [rates, setRates] = useState<{ aed: number; eur: number } | null>(null);
@@ -66,6 +76,23 @@ export function FramerShell() {
     setCurrency(next);
     document.cookie = `${CURRENCY_COOKIE}=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
   }
+
+  // D-66. Toast "Subscribed." only on this exact message path: the iframe's
+  // newsletter script posts { newsletter: "ok" } after Resend returns a
+  // contact id. No other path pushes this line.
+  useEffect(() => {
+    function onMessage(event: MessageEvent) {
+      if (event.origin !== window.location.origin) return;
+      const frame = document.getElementById("content");
+      if (!(frame instanceof HTMLIFrameElement) || event.source !== frame.contentWindow) return;
+      const data = event.data;
+      if (data && typeof data === "object" && data.newsletter === "ok") {
+        push("Subscribed.");
+      }
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [push]);
 
   useEffect(() => {
     const frame = document.getElementById("content");

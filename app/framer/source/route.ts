@@ -12,6 +12,52 @@ const HIDE_FRAMER_NAV =
 
 const NOTO_CLASS_NAMES = `${notoNaskh.variable} ${notoSans.variable}`.split(" ");
 
+/**
+ * Retargets the existing footer newsletter form (class framer-8a2tsb) at
+ * POST /newsletter. Reads FormData, never touches the response body with
+ * innerHTML, and only postMessages { newsletter: "ok" } when the JSON body
+ * carries a non-empty id.
+ */
+function newsletterScript() {
+  return `(function () {
+  var forms = document.querySelectorAll("form.framer-8a2tsb");
+  for (var i = 0; i < forms.length; i++) {
+    (function (form) {
+      var notice = document.createElement("p");
+      notice.setAttribute("role", "status");
+      notice.setAttribute("aria-live", "polite");
+      notice.style.position = "absolute";
+      notice.style.transform = "scale(0)";
+      form.appendChild(notice);
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var data = new FormData(form);
+        var email = String(data.get("Email") || "").trim();
+        if (!email) {
+          notice.textContent = "";
+          window.setTimeout(function () {
+            notice.textContent = "Enter an email address.";
+          }, 0);
+          return;
+        }
+        fetch("/newsletter", { method: "POST", body: data })
+          .then(function (response) {
+            return response.json().catch(function () {
+              return null;
+            });
+          })
+          .then(function (body) {
+            if (body && typeof body.id === "string" && body.id.length > 0) {
+              window.parent.postMessage({ newsletter: "ok" }, window.location.origin);
+            }
+          })
+          .catch(function () {});
+      });
+    })(forms[i]);
+  }
+})();`;
+}
+
 /** Accepts only en, ar, or es. Writes textContent from the repo table. Never innerHTML. */
 function localeScript() {
   const table = JSON.stringify({
@@ -120,14 +166,23 @@ export async function GET() {
     : HIDE_FRAMER_NAV + html;
   // Comment 7. Real HeroBooker replaces the hero button. Header stays in FramerShell.
   const withBooker = injectHeroBooker(withNavHidden);
+  // D-66. Retarget the existing footer form (class framer-8a2tsb) at
+  // POST /newsletter and relabel its submit text. Do not add a second form.
+  const withNewsletterAction = withBooker
+    .split('<form class="framer-8a2tsb">')
+    .join('<form class="framer-8a2tsb" action="/newsletter" method="post">');
+  const withSubscribeLabel = withNewsletterAction
+    .split(">Join the List</p>")
+    .join(">Subscribe</p>");
   const priceScript = `<script id="almar-fx-prices">${homePriceScript()}</script>`;
   const localeTag = `<script id="almar-locale">${localeScript()}</script>`;
-  const injected = `${priceScript}${localeTag}`;
-  const withPrices = withBooker.includes('id="almar-fx-prices"')
-    ? withBooker
-    : withBooker.includes("</body>")
-      ? withBooker.replace("</body>", `${injected}</body>`)
-      : `${withBooker}${injected}`;
+  const newsletterTag = `<script id="almar-newsletter">${newsletterScript()}</script>`;
+  const injected = `${priceScript}${localeTag}${newsletterTag}`;
+  const withPrices = withSubscribeLabel.includes('id="almar-fx-prices"')
+    ? withSubscribeLabel
+    : withSubscribeLabel.includes("</body>")
+      ? withSubscribeLabel.replace("</body>", `${injected}</body>`)
+      : `${withSubscribeLabel}${injected}`;
 
   return new Response(withPrices, {
     status: response.status,
