@@ -105,6 +105,7 @@ export function TripScreen() {
         onLocale={setLocale}
         labels={HOME_COPY[locale].nav}
         markCurrent={false}
+        loginHref="/login"
       />
       <main
         id="content"

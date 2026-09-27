@@ -13,6 +13,9 @@ const DEFAULT_LABELS = {
   login: "Login",
   menu: "Menu",
   close: "Close menu",
+  bookings: "Bookings",
+  account: "Account",
+  signOut: "Sign out",
 } as const;
 
 export type NavLabels = { [K in keyof typeof DEFAULT_LABELS]: string };
@@ -41,7 +44,7 @@ type NavOption<T extends string> = { value: T; label: string };
 const WORDMARK_SRC = "https://framerusercontent.com/images/RX7lhKpzXFpv2KTvbxNSm3UZz8.svg";
 const MONOGRAM_SRC = "https://framerusercontent.com/images/prMcX1bT4P2ZzVsjpoFmR4T5nA.svg";
 
-function NavDrop<T extends string>({
+export function NavDrop<T extends string>({
   label,
   value,
   options,
@@ -171,6 +174,8 @@ export function SiteNav({
   markCurrent = true,
   currency: currencyProp,
   onCurrency,
+  signedIn = false,
+  onSignOut,
 }: {
   locale: Locale;
   onLocale: (next: Locale) => void;
@@ -179,6 +184,9 @@ export function SiteNav({
   markCurrent?: boolean;
   currency?: Currency;
   onCurrency?: (next: Currency) => void;
+  /** No session exists this phase. Default false. Do not pass true from a call site. */
+  signedIn?: boolean;
+  onSignOut?: () => void;
 }) {
   const text: NavLabels = { ...DEFAULT_LABELS, ...labels };
   const links = [
@@ -309,15 +317,48 @@ export function SiteNav({
             onChange={onLocale}
             className="nav-drop locale-switch"
           />
-          <a
-            className="nav-login"
-            href={loginHref}
-            onClick={() => {
-              if (open) closeMenu();
-            }}
-          >
-            {text.login}
-          </a>
+          {signedIn ? (
+            <>
+              <a
+                className="nav-login"
+                href="/bookings"
+                onClick={() => {
+                  if (open) closeMenu();
+                }}
+              >
+                {text.bookings}
+              </a>
+              <a
+                className="nav-login"
+                href="/account"
+                onClick={() => {
+                  if (open) closeMenu();
+                }}
+              >
+                {text.account}
+              </a>
+              <button
+                type="button"
+                className="nav-login"
+                onClick={() => {
+                  if (open) closeMenu();
+                  onSignOut?.();
+                }}
+              >
+                {text.signOut}
+              </button>
+            </>
+          ) : (
+            <a
+              className="nav-login"
+              href={loginHref}
+              onClick={() => {
+                if (open) closeMenu();
+              }}
+            >
+              {text.login}
+            </a>
+          )}
         </div>
       </div>
     </header>

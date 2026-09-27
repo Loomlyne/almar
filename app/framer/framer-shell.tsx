@@ -156,6 +156,7 @@ export function FramerShell() {
         labels={HOME_COPY[locale].nav}
         currency={currency}
         onCurrency={chooseCurrency}
+        loginHref="/login"
       />
       <iframe id="content" className={styles.frame} title="ALMAR" src="/framer/source" />
     </div>
