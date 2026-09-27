@@ -1,5 +1,6 @@
 "use client";
 
+import { BOOKER_COPY, type HomeLocale } from "../../lib/home-copy";
 import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { CalendarDate, getLocalTimeZone } from "@internationalized/date";
@@ -49,52 +50,6 @@ type BookerLabels = {
   nightSelected: string;
   nightsSelected: string;
   datesCleared: string;
-};
-
-const EN_BOOKER: BookerLabels = {
-  form: "Find a stay",
-  destination: "Destination",
-  choosePlace: "Choose a place",
-  dates: "Dates",
-  chooseDates: "Choose dates",
-  checkIn: "Check-in",
-  checkOut: "Check-out",
-  addDate: "Add date",
-  guests: "Guests",
-  search: "Search",
-  done: "Done",
-  clearSearch: "Clear search",
-  clearDates: "Clear dates",
-  noMatch: "No destinations match that name.",
-  placeholder: "Cartagena",
-  night: "1 night",
-  nights: "{count} nights",
-  guest: "1 guest",
-  guestsWord: "{count} guests",
-  infant: "1 infant",
-  infants: "{count} infants",
-  adults: "Adults",
-  children: "Children",
-  infantsLabel: "Infants",
-  adultHint: "13+",
-  childHint: "3–12",
-  infantHint: "0–2",
-  addAdult: "Add adult",
-  removeAdult: "Remove adult",
-  addChild: "Add child",
-  removeChild: "Remove child",
-  addInfant: "Add infant",
-  removeInfant: "Remove infant",
-  floorNote: "At least 1 adult",
-  needBoth: "Choose a destination and dates to search.",
-  needWhere: "Choose a destination to search.",
-  needWhen: "Choose check-in and checkout to search.",
-  preview: "Search is a preview on this page.",
-  selected: "{name} selected.",
-  checkInSet: "Check-in set. Choose a checkout date.",
-  nightSelected: "1 night selected.",
-  nightsSelected: "{count} nights selected.",
-  datesCleared: "Dates cleared.",
 };
 
 function fill(template: string, values: Record<string, string | number>) {
@@ -206,14 +161,16 @@ export type HeroBookQuery = {
 
 export function HeroBooker({
   labels,
+  locale = "en",
   dateLocale = "en-GB",
   onBook,
 }: {
   labels?: BookerLabels;
+  locale?: HomeLocale;
   dateLocale?: string;
   onBook?: (query: HeroBookQuery) => void;
 } = {}) {
-  const t = labels ?? EN_BOOKER;
+  const t = labels ?? BOOKER_COPY[locale];
   const baseId = useId();
   const whereId = `${baseId}-where`;
   const whenId = `${baseId}-when`;

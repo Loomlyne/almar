@@ -2,13 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { SiteNav } from "../../components/ui/nav";
+import { HOME_COPY } from "../../lib/home-copy";
+import { notoNaskh, notoSans } from "../../lib/fonts";
+import { isDocumentLocale, setDocumentLocale, type DocumentLocale } from "../../lib/set-document-locale";
 import styles from "./framer-shell.module.css";
 
-type Locale = "en" | "ar" | "es";
 type Currency = "AED" | "USD" | "EUR";
 
 const HERO = '[data-framer-name="Hero Section"]';
 const CURRENCY_COOKIE = "almar-currency";
+const LOCALE_COOKIE = "almar-locale";
+const NOTO_CLASS_NAMES = `${notoNaskh.variable} ${notoSans.variable}`.split(" ");
+
+function readLocale(): DocumentLocale {
+  const match = document.cookie.match(/(?:^|; )almar-locale=(en|ar|es)(?:;|$)/);
+  return match && isDocumentLocale(match[1]) ? match[1] : "en";
+}
 
 function readCurrency(): Currency | null {
   const match = document.cookie.match(/(?:^|; )almar-currency=(AED|USD|EUR)(?:;|$)/);
@@ -16,15 +25,24 @@ function readCurrency(): Currency | null {
 }
 
 export function FramerShell() {
-  const [locale, setLocale] = useState<Locale>("en");
+  const [locale, setLocale] = useState<DocumentLocale>("en");
   const [currency, setCurrency] = useState<Currency>("AED");
   const [rates, setRates] = useState<{ aed: number; eur: number } | null>(null);
   const [overHero, setOverHero] = useState(true);
 
   useEffect(() => {
-    const saved = readCurrency();
-    if (saved) setCurrency(saved);
+    const savedCurrency = readCurrency();
+    if (savedCurrency) setCurrency(savedCurrency);
+    const savedLocale = readLocale();
+    setLocale(savedLocale);
+    setDocumentLocale(savedLocale);
   }, []);
+
+  function chooseLocale(next: DocumentLocale) {
+    setLocale(next);
+    setDocumentLocale(next);
+    document.cookie = `${LOCALE_COOKIE}=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
+  }
 
   useEffect(() => {
     let gone = false;
@@ -58,6 +76,7 @@ export function FramerShell() {
           aed: rates?.aed ?? null,
           eur: rates?.eur ?? null,
           locale,
+          noto: NOTO_CLASS_NAMES,
         },
         window.location.origin,
       );
@@ -133,7 +152,8 @@ export function FramerShell() {
     <div className={shellClass}>
       <SiteNav
         locale={locale}
-        onLocale={setLocale}
+        onLocale={chooseLocale}
+        labels={HOME_COPY[locale].nav}
         currency={currency}
         onCurrency={chooseCurrency}
       />
