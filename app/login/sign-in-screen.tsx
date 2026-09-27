@@ -3,6 +3,7 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { SiteNav } from "../../components/ui/nav";
 import { Field } from "../../components/ui/field";
+import { WhatsApp } from "../../components/ui/whatsapp";
 import { HOME_COPY } from "../../lib/home-copy";
 import { setDocumentLocale, type DocumentLocale } from "../../lib/set-document-locale";
 
@@ -91,6 +92,7 @@ export function SignInScreen() {
           </button>
         </form>
       </main>
+      <WhatsApp />
     </>
   );
 }

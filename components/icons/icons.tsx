@@ -198,6 +198,19 @@ export function HeartIcon(props: IconProps) {
   );
 }
 
+export function WhatsAppIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path d="M12 4.5a7.5 7.5 0 0 0-6.5 11.2L4.5 19.5l3.9-1A7.5 7.5 0 1 0 12 4.5z" />
+      <path
+        fill="currentColor"
+        stroke="none"
+        d="M9 9.3c0-.4.4-.7.8-.7h.6c.3 0 .6.2.7.5l.5 1.3c.1.3 0 .6-.2.8l-.6.6c.4 1 1.2 1.8 2.2 2.2l.6-.6c.2-.2.5-.3.8-.2l1.3.5c.3.1.5.4.5.7v.6c0 .4-.3.8-.7.8-3 .2-6-2.8-5.8-5.8z"
+      />
+    </Icon>
+  );
+}
+
 export function SpinnerIcon(props: IconProps) {
   return (
     <Icon fill="none" stroke="currentColor" strokeWidth={1.5} className="ui-spinner" {...props}>

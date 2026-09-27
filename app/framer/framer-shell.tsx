@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SiteNav } from "../../components/ui/nav";
+import { WhatsApp } from "../../components/ui/whatsapp";
 import { HOME_COPY } from "../../lib/home-copy";
 import { notoNaskh, notoSans } from "../../lib/fonts";
 import { isDocumentLocale, setDocumentLocale, type DocumentLocale } from "../../lib/set-document-locale";
@@ -159,6 +160,7 @@ export function FramerShell() {
         loginHref="/login"
       />
       <iframe id="content" className={styles.frame} title="ALMAR" src="/framer/source" />
+      <WhatsApp />
     </div>
   );
 }

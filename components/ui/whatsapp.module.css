@@ -1,0 +1,20 @@
+.whatsapp {
+  position: fixed;
+  inset-inline-end: 16px;
+  inset-block-end: 16px;
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 0;
+  background: #25d366;
+  color: var(--color-fg);
+  text-decoration: none;
+}
+
+.whatsapp:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
