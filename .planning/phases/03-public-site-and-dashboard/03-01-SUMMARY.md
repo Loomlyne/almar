@@ -71,7 +71,7 @@ Each task was committed atomically:
 1. **Task 1: Write the FX and / handler tests** - `c57201e` (test)
 2. **Task 2: Fetch two numbers and rewrite the six home amounts** - `2a7bf06` (feat)
 
-**Plan metadata:** pending docs commit
+**Plan metadata:** `7348a97` (docs: complete FX home amounts plan)
 
 ## Files Created/Modified
 
