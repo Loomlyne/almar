@@ -13,7 +13,7 @@ Rebuild the Framer HTML export into a live booking OS. Tokens and components fir
 
 - [x] **Phase 1: Design system** - Tokens, core components, RTL states, owner `/design` (completed 2026-09-23)
 - [ ] **Phase 2: Platform spine** - Supabase auth, host gate, locale/currency, no ops leak
-- [ ] **Phase 3: Catalog and calendar** - Destinations, stays, rates, hard-block nights
+- [ ] **Phase 3: Public site and dashboard** - Public site and dashboard screens first; catalogue, connections, and calculations after
 - [ ] **Phase 4: Book and pay** - Hero → `/booking/trip` → Stripe TEST deposit or full
 - [ ] **Phase 5: Ops OS** - `/ops` runs bookings, customers, money, brand publish
 - [ ] **Phase 6: Site and rest of CMS** - Replace Framer pages; packages, consult, i18n publish
@@ -115,9 +115,9 @@ Plans:
 
 - [ ] 02-07: Owner applies the runtime and the ops host route, then wait (wave 10)
 
-### Phase 3: Catalog and calendar
+### Phase 3: Public site and dashboard
 
-**Goal:** Ops can publish real stays with rates; overlapping nights cannot be booked.
+**Goal:** Build the public site and the dashboard as real screens first. Catalogue, connections, and calculations come after. Every component, button, and text is named so a later plan can connect it.
 **Mode:** mvp
 **Depends on:** Phase 2
 **Requirements:** STAY-03, STAY-04, STAY-05, STAY-06, STAY-07, JOUR-05, PAY-16, OPS-09, CMS-01, CMS-02, CMS-04, CMS-05, CMS-06
@@ -128,12 +128,23 @@ Plans:
   3. Deposit-paid / Confirmed nights hard-block; unpaid draft holds 30 minutes; maintenance blocks; overlap is an error
   4. Experiences & Services catalog + inclusions kit on/off per destination and per stay; media is https URLs only (R2, not Supabase storage)
 
-**Plans:** TBD
+**Plans:** 13 plans
 
 Plans:
 
-- [ ] 03-01: Schema, destinations, stays, rates, occupancy uniqueness
-- [ ] 03-02: Experiences & Services, inclusions, Draft → Publish, SEO required
+- [ ] 03-01-PLAN.md — Connect FX on /framer for the six written amounts. PAY-16 stays deferred.
+- [ ] 03-02-PLAN.md — Draw the /dashboard shell, rail, and overlay sidebar.
+- [ ] 03-03-PLAN.md — Connect language so copy and dir change on /framer.
+- [ ] 03-04-PLAN.md — Hero Search opens an empty /booking/trip. CMS-04 stays deferred.
+- [ ] 03-05-PLAN.md — Draw Sign in, Bookings, and Account. Sign in does not send.
+- [ ] 03-06-PLAN.md — Connect WhatsApp on /framer and the later public pages.
+- [ ] 03-07-PLAN.md — Connect the existing footer form. Success only after a Resend contact id.
+- [ ] 03-08-PLAN.md — Draw dashboard Home with empty slots.
+- [ ] 03-09-PLAN.md — Draw empty Bookings and Customers tables and sidebars.
+- [ ] 03-10-PLAN.md — Draw the empty calendar. OPS-09, STAY-04, and STAY-07 stay deferred.
+- [ ] 03-11-PLAN.md — Draw empty catalog editors. Catalogue requirements stay deferred.
+- [ ] 03-12-PLAN.md — Draw empty content editors. Publish does not publish.
+- [ ] 03-13-PLAN.md — Draw Settings and Profile. Nothing saves.
 
 ### Phase 4: Book and pay
 
