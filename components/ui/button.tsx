@@ -10,7 +10,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const VARIANT_CLASS: Record<Variant, string> = {
   primary:
-    "ui-button-primary bg-[var(--color-accent)] text-[var(--color-heading)] border-transparent hover:bg-[var(--color-accent-hover)] active:bg-[var(--color-accent-press)]",
+    "ui-button-primary bg-[var(--color-bg)] text-[var(--color-heading)] border-[var(--color-accent)] hover:bg-[var(--color-heading)] hover:text-[var(--color-bg)]",
   secondary:
     "bg-transparent text-[var(--color-link)] border-[var(--color-heading)]",
   ghost:
@@ -53,20 +53,7 @@ function Spinner() {
       aria-hidden="true"
       fill="none"
     >
-      <circle
-        cx="10"
-        cy="10"
-        r="7"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        opacity="0.35"
-      />
-      <path
-        d="M10 3a7 7 0 0 1 7 7"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+      <rect x="3" y="3" width="14" height="14" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 }

@@ -5,6 +5,7 @@ import { formatAmount } from "../../lib/format";
 import monogram from "../../brand/Logo Monogram/Curves_black.svg";
 
 const ALT = "Sample stay in Cartagena";
+const PHOTO = "/assets/img/caedcb84dd0d35bb.webp";
 
 function Mark() {
   return (
@@ -20,28 +21,30 @@ export function StayRow() {
   return (
     <div className="stay-list">
       <article className="stay-row is-selected">
-        <img className="stay-photo" alt={ALT} src="/assets/img/caedcb84dd0d35bb.webp" />
-        <div>
+        <img className="stay-photo" alt={ALT} src={PHOTO} />
+        <div className="stay-copy">
           <h3 className="stay-name">Casa San Diego</h3>
           <p className="amount">{formatAmount("AED", 1050)}</p>
-          <Button variant="secondary">Choose a stay</Button>
         </div>
+        <Button variant="primary" className="ui-button-inline stay-action">
+          Choose a stay
+        </Button>
       </article>
       <article className="stay-row is-booked">
-        <img className="stay-photo" alt={ALT} src="/assets/img/caedcb84dd0d35bb.webp" />
-        <div>
+        <img className="stay-photo" alt={ALT} src={PHOTO} />
+        <div className="stay-copy">
           <h3 className="stay-name">A long stay name that wraps onto a second line before it ends</h3>
           <p>These dates are booked.</p>
-          <Button variant="ghost" disabled>
-            Choose a stay
-          </Button>
         </div>
+        <Button variant="ghost" className="ui-button-inline stay-action" disabled>
+          Choose a stay
+        </Button>
       </article>
       <article className="stay-row">
         <div className="stay-missing">
           <Mark />
         </div>
-        <div>
+        <div className="stay-copy">
           <h3 className="stay-name">Missing photo</h3>
           <p className="amount">{formatAmount("AED", 0)}</p>
         </div>

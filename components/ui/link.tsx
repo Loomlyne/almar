@@ -9,7 +9,7 @@ export function Link({ className = "", children, href, ...rest }: LinkProps) {
   return (
     <a
       href={href}
-      className={`ui-link text-[var(--color-link)] no-underline hover:text-[var(--color-link-hover)] ${className}`}
+      className={`ui-link text-[var(--color-link)] underline decoration-from-font underline-offset-2 hover:text-[var(--color-link-hover)] ${className}`}
       {...rest}
     >
       {children}

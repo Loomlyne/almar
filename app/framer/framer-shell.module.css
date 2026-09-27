@@ -1,0 +1,62 @@
+.shell {
+  position: relative;
+  block-size: 100dvh;
+  background: #fffaf0;
+}
+
+/* Nav overlays the iframe so a transparent bar shows the hero.
+   Scoped to this shell — /design keeps the ivory .site-nav. */
+.shell :global(header.site-nav) {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 40;
+}
+
+.shell:not(.isSolid) :global(header.site-nav:not(.is-menu)) {
+  background-color: transparent;
+  border-block-end-color: transparent;
+}
+
+.shell.isSolid :global(header.site-nav) {
+  background-color: rgb(255, 250, 240);
+  border-block-end-color: var(--color-border);
+}
+
+/* Open menu is a full-screen panel. Keep it ivory and fixed. */
+.shell :global(header.site-nav.is-menu) {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: rgb(255, 250, 240);
+  border-block-end-color: var(--color-border);
+}
+
+/* Hero video sits under a 40% black overlay. Dark type disappears.
+   Light treatment only while the bar is transparent. Dropdowns keep
+   their own surfaces. */
+.shell:not(.isSolid) :global(header.site-nav:not(.is-menu) .site-links a),
+.shell:not(.isSolid) :global(header.site-nav:not(.is-menu) .nav-login) {
+  color: #fffaf0;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.55);
+}
+
+.shell:not(.isSolid) :global(header.site-nav:not(.is-menu) .wordmark img) {
+  filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgb(0 0 0 / 0.45));
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  border: 0;
+  background: #fffaf0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shell :global(header.site-nav) {
+    transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1), border-color 150ms cubic-bezier(0.2, 0, 0, 1);
+  }
+}

@@ -6,5 +6,5 @@ export default function DesignPage() {
     notFound();
   }
 
-  return <DesignKit />;
+  return <DesignKit hasMapbox={Boolean(process.env.MAPBOX_ACCESS_TOKEN?.trim())} />;
 }

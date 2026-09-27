@@ -12,7 +12,6 @@
   --color-muted: #63615f;
   --color-accent-hover: #c6ae82;
   --color-accent-press: #b8a27a;
-  --color-whatsapp: #25d366;
 
   --color-bg: var(--color-ivory);
   --color-surface: var(--color-white);
@@ -40,8 +39,8 @@
   --spacing-3xl: 64px;
 
   --width-column: 1240px;
-  --radius-control: 40px;
-  --radius-overlay: 64px;
+  --radius-control: 0;
+  --radius-overlay: 0;
   --shadow-overlay: 0 16px 40px rgb(38 38 38 / 0.12);
 
   --duration-fast: 150ms;
@@ -121,6 +120,20 @@ html[lang="ar"] :where(h1, h2, h3) {
   }
 }
 
+/* A field already has a border. The focus outline was a second border on click. */
+.field-control input:focus-visible,
+.field-control textarea:focus-visible,
+.ui-input:focus-visible,
+.date-pair input:focus-visible,
+.newsletter-row input:focus-visible,
+.newsletter-error input:focus-visible,
+.hero-search-field input:focus-visible,
+.nights-field input:focus-visible,
+.choice-input:focus-visible {
+  outline: none;
+  border-color: var(--color-heading);
+}
+
 :disabled,
 [aria-disabled="true"] {
   color: var(--color-muted-fg);
@@ -158,10 +171,120 @@ html[lang="ar"] :where(h1, h2, h3) {
 
 .kit {
   box-sizing: border-box;
-  max-width: var(--width-column);
+  max-width: 1680px;
   margin-inline: auto;
   padding-block: var(--spacing-xl);
   padding-inline: var(--spacing-md);
+}
+
+.kit-shell {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: var(--spacing-2xl);
+  align-items: start;
+}
+
+.kit-side {
+  position: sticky;
+  top: var(--spacing-md);
+  display: grid;
+  gap: var(--spacing-lg);
+  max-height: calc(100vh - var(--spacing-xl));
+  overflow: auto;
+  padding-block-end: var(--spacing-xl);
+}
+
+.kit-side-group {
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.kit-side-label {
+  color: var(--color-heading);
+  font-family: var(--font-questa), Georgia, serif;
+  font-size: var(--text-label);
+  text-decoration: none;
+}
+
+.kit-side a {
+  color: var(--color-fg);
+  padding-block: 4px;
+  padding-inline: var(--spacing-sm);
+  border-inline-start: 2px solid transparent;
+  text-decoration: none;
+}
+
+.kit-side a:hover {
+  color: var(--color-heading);
+  border-inline-start-color: var(--color-accent);
+}
+
+.kit-side a:focus-visible {
+  outline: 2px solid var(--color-heading);
+  outline-offset: 2px;
+}
+
+.kit-main {
+  min-width: 0;
+  max-width: var(--width-column);
+}
+
+.kit-head,
+.kit-chapter {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.kit-chapter {
+  margin-top: var(--spacing-3xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid #d1dfe0;
+  scroll-margin-top: 4.5rem;
+}
+
+.kit-sub {
+  margin: 0;
+  max-width: 36rem;
+  color: var(--color-muted-fg);
+}
+
+.kit-bar h1,
+.kit-head h2,
+.kit-chapter h2,
+.stay-name,
+.team-name {
+  font-family: var(--font-questa), Georgia, serif;
+  font-weight: 400;
+  color: var(--color-heading);
+  text-wrap: balance;
+}
+
+.kit-bar h1 {
+  margin: 0;
+  font-size: 64px;
+  line-height: 1.1;
+}
+
+.kit-head h2,
+.kit-chapter h2 {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+@media (max-width: 48rem) {
+  .kit-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .kit-side {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    max-height: 12rem;
+    background: var(--color-bg);
+    border-block-end: 1px solid var(--color-accent);
+  }
 }
 
 .kit-bar {
@@ -179,7 +302,9 @@ html[lang="ar"] :where(h1, h2, h3) {
 }
 
 .kit-section {
-  margin-top: var(--spacing-xl);
+  display: grid;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-3xl);
 }
 
 .kit-control,
@@ -274,6 +399,8 @@ html[lang="ar"] :where(h1, h2, h3) {
   width: 44px;
   height: 44px;
   padding: 0;
+  border: none;
+  background: transparent;
   color: var(--color-fg);
 }
 
@@ -295,8 +422,13 @@ html[lang="ar"] :where(h1, h2, h3) {
   .field-control textarea {
     font-size: var(--text-label);
   }
+  /* Comment 20 overlap: this 48rem block is earlier than
+     .ui-button-primary at equal specificity, so the later rule
+     wins. Both are max-content. width: auto here would stretch again
+     if this block were moved below the base rule. */
   .ui-button-primary {
-    width: auto;
+    width: max-content;
+    max-width: 100%;
   }
 }
 
@@ -310,8 +442,7 @@ html[lang="ar"] :where(h1, h2, h3) {
 }
 
 @media (hover: hover) {
-  .kit-control:hover,
-  .eye:hover {
+  .kit-control:hover {
     background: var(--color-bg);
   }
 }
@@ -347,9 +478,13 @@ html[lang="ar"] :where(h1, h2, h3) {
   justify-content: center;
   gap: var(--spacing-sm);
   min-height: 44px;
-  padding-block: var(--control-pad-block);
-  padding-inline: 24px;
-  border-width: 1px;
+  width: max-content;
+  max-width: 100%;
+  flex: 0 0 auto;
+  justify-self: start;
+  padding-block: 14px;
+  padding-inline: 28px;
+  border-width: 0.5px;
   border-style: solid;
   border-radius: var(--radius-control);
   font-family: inherit;
@@ -361,13 +496,41 @@ html[lang="ar"] :where(h1, h2, h3) {
   transition-timing-function: var(--ease-standard);
 }
 
+/* Comment 20. Every button fits the label plus padding, not the column.
+   Overlap: .ui-button { width: max-content } and this rule beat
+   @media (min-width: 48rem) .ui-button-primary { width: max-content }
+   at equal specificity because they come later. Values agree,
+   so the media query cannot restore a full-width primary.
+   Overlap: .ui-button-inline follows and must stay max-content.
+   width: auto there re-enables .kit-section grid stretch (Show toast).
+   Overlap: .newsletter-row .ui-button { inline-size } is more
+   specific than .ui-button. It is max-content too.
+   Overlap: .stay-row .stay-action { width: auto; justify-self } is more
+   specific and is not edited. Its 48rem justify-self: end still wins.
+   Overlap: the Comment 13 pay/continue block is more specific and agrees.
+   .kit-section is not edited. justify-self: start cancels that grid
+   stretch. --radius-control and --radius-overlay stay 0. */
 .ui-button-primary {
-  width: 100%;
+  width: max-content;
+  max-width: 100%;
+  justify-self: start;
 }
 
 .ui-button-inline {
-  width: auto;
+  width: max-content;
+  max-width: 100%;
   flex: 0 0 auto;
+  justify-self: start;
+}
+
+/* Comment 20. A select that is the section's own child was filling the
+   column. Overlap: .ui-select { inline-size: 100% } (Comment 6) is less
+   specific. Boxed selects inside .ui-select-specimen stay 100% of that
+   22rem field. Nav triggers are not direct children and are not edited. */
+.kit-section > .ui-select {
+  inline-size: max-content;
+  max-inline-size: 100%;
+  justify-self: start;
 }
 
 .ui-spinner {
@@ -430,15 +593,149 @@ html[lang="ar"] :where(h1, h2, h3) {
   color: var(--color-fg);
 }
 
+/* Comment 14. The coupon input and Apply share one height on one row.
+   Measured: input border box 44px, Apply 49.59px from
+   .ui-button { padding-block: 14px; min-height: 44px; line-height: 1.4 }.
+   Overlap: .ui-button and .ui-button-inline are less specific than
+   .field-coupon > .ui-button, so padding-block: 0 and height: 44px win.
+   Apply stays width: max-content (label width). Only its height changes.
+   Overlap: .field { max-width: 24rem } already stops a full-page row.
+   max-width: 24rem and justify-self: start repeat that cap so a stretched
+   kit-section grid item cannot widen this row to the column or the page.
+   flex-wrap: nowrap keeps the pair on one row. align-items: stretch
+   lines up the tops and bottoms. border-radius: 0. --radius-control stays 0. */
 .field-coupon {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-wrap: nowrap;
+  align-items: stretch;
   gap: var(--spacing-sm);
+  width: 100%;
+  max-width: 24rem;
+  justify-self: start;
+  border-radius: 0;
 }
 
 .field-coupon .field-control {
   flex: 1 1 12rem;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.field-coupon .field-control input,
+.field-coupon > .ui-button {
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  border-radius: 0;
+}
+
+.field-coupon > .ui-button {
+  width: max-content;
+  max-width: 100%;
+  flex: 0 0 auto;
+  align-self: stretch;
+  padding-block: 0;
+  white-space: nowrap;
+}
+
+.date-check {
+  display: grid;
+  gap: var(--spacing-sm);
+  max-width: 24rem;
+}
+
+.date-check-control {
+  display: flex;
+  align-items: stretch;
+  box-sizing: border-box;
+  min-height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+
+.date-check-control.is-invalid {
+  border-color: var(--color-danger);
+}
+
+.date-check-input,
+.date-check-action {
+  box-sizing: border-box;
+  margin: 0;
+  border-radius: var(--radius-control);
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+.date-check-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding-block: var(--control-pad-block);
+  padding-inline: var(--spacing-md);
+  border: 0;
+  background: transparent;
+  color: var(--color-fg);
+  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
+  appearance: none;
+}
+
+.date-check-action {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding-block: var(--control-pad-block);
+  padding-inline: var(--spacing-md);
+  border: 0;
+  border-inline-start: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-link);
+  font-size: var(--text-label);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.date-check-control.is-invalid .date-check-action {
+  border-inline-start-color: var(--color-danger);
+}
+
+.date-check-control:has(:focus-visible) {
+  outline: none;
+  border-color: var(--color-heading);
+}
+
+.date-check-input:focus-visible,
+.date-check-action:focus-visible {
+  outline: none;
+}
+
+.date-check-action:focus-visible {
+  background: var(--color-bg);
+}
+
+@media (forced-colors: active) {
+  .date-check-control:has(:focus-visible) {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
+}
+
+@media (min-width: 48rem) {
+  .date-check-input {
+    font-size: var(--text-label);
+  }
+}
+
+@media (hover: hover) {
+  .date-check-action:hover {
+    background: var(--color-bg);
+  }
 }
 
 .state-grid {
@@ -482,7 +779,7 @@ html[lang="ar"] :where(h1, h2, h3) {
   height: 20px;
   margin: 0;
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: 0;
   background: var(--color-surface);
   accent-color: var(--color-heading);
 }
@@ -494,18 +791,10 @@ html[lang="ar"] :where(h1, h2, h3) {
 .choice-input:checked {
   background-color: var(--color-heading);
   border-color: var(--color-heading);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5 8.2 14 15 6.5' fill='none' stroke='%23fffaf0' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5 8.2 14 15 6.5' fill='none' stroke='%23fffaf0' stroke-width='1.5' stroke-linecap='square'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center;
   background-size: 16px;
-}
-
-.choice-input[type="radio"]:checked {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='4' fill='%23fffaf0'/%3E%3C/svg%3E");
-}
-
-.choice-input[type="radio"] {
-  border-radius: 50%;
 }
 
 .choice:has(:disabled) {
@@ -546,12 +835,20 @@ html[lang="ar"] :where(h1, h2, h3) {
   inset-inline-start: 2px;
   width: 18px;
   height: 18px;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--color-surface);
 }
 
 .switch[aria-checked="true"] .switch-thumb {
   inset-inline-start: 22px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .switch-thumb {
+    transition-property: inset-inline-start;
+    transition-duration: var(--duration-fast);
+    transition-timing-function: var(--ease-standard);
+  }
 }
 
 .switch:disabled {
@@ -581,6 +878,12 @@ html[lang="ar"] :where(h1, h2, h3) {
   margin-bottom: var(--spacing-lg);
 }
 
+/* Comment 6 square dropdown.
+   Shared .ui-select rules also paint the nav currency trigger (Comment 10):
+   font, cursor, focus border, and placeholder color only.
+   The chevron well, down-chevron, and 22rem cap live under .ui-select-boxed
+   and .ui-select-specimen so the nav trigger is not restyled.
+   .overlay-panel.ui-select-menu overlaps .overlay-panel padding and radius. */
 .ui-select,
 .ui-select-item {
   color: var(--color-fg);
@@ -588,6 +891,7 @@ html[lang="ar"] :where(h1, h2, h3) {
 }
 
 .ui-select {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -595,7 +899,210 @@ html[lang="ar"] :where(h1, h2, h3) {
   min-block-size: 44px;
   padding-inline: var(--spacing-md);
   border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-fg);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: var(--text-body);
+  line-height: 1.4;
   text-align: start;
+  cursor: pointer;
+}
+
+.ui-select[data-placeholder] {
+  color: var(--color-muted-fg);
+}
+
+.ui-select:focus-visible {
+  outline: none;
+  border-color: var(--color-heading);
+}
+
+.ui-select:disabled {
+  color: var(--color-muted-fg);
+  background: var(--color-bg);
+  cursor: default;
+}
+
+.ui-select[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.ui-select-specimen {
+  display: grid;
+  gap: var(--spacing-lg);
+  inline-size: min(22rem, 100%);
+  margin-top: var(--spacing-md);
+}
+
+.ui-select-field {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.ui-select-stack {
+  display: grid;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+}
+
+/* Comment 34. Where field only. The chevron well and the preview's own
+   border made two boxes. Overlap: .ui-select-boxed, .ui-select-preview,
+   and .ui-select:focus-visible (Comment 6) still style the Choose field
+   and nav triggers (Comment 10). Those rules are not edited. This stack
+   overrides them so the value and chevron share one square, the list
+   shares that edge, and focus is that one edge — not a second border. */
+.ui-select-stack .ui-select {
+  border: 0;
+  border-radius: 0;
+  border-block-end: 1px solid var(--color-border);
+  background: transparent;
+}
+
+.ui-select-stack .ui-select-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  align-self: center;
+  inline-size: auto;
+  border: 0;
+  background: transparent;
+  color: var(--color-fg);
+}
+
+.ui-select-stack .ui-select:focus-visible {
+  outline: none;
+  border-color: var(--color-border);
+}
+
+.ui-select-stack:has(.ui-select:focus-visible) {
+  border-color: var(--color-heading);
+  box-shadow: inset 0 0 0 1px var(--color-heading);
+}
+
+@media (forced-colors: active) {
+  .ui-select-stack:has(.ui-select:focus-visible) {
+    border-color: Highlight;
+    box-shadow: none;
+  }
+}
+
+.ui-select-stack .ui-select-preview {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ui-select-stack:has(.ui-select[data-state="open"]) .ui-select-preview {
+  visibility: hidden;
+}
+
+.ui-select-boxed {
+  padding-inline-end: 0;
+}
+
+.ui-select-boxed .ui-select-icon {
+  display: grid;
+  flex: 0 0 44px;
+  place-items: center;
+  align-self: stretch;
+  inline-size: 44px;
+  border-inline-start: 1px solid var(--color-border);
+  background: var(--color-ivory);
+  color: var(--color-teal);
+}
+
+.ui-select-boxed[aria-invalid="true"] .ui-select-icon {
+  border-inline-start-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.ui-select-boxed .ui-select-icon svg {
+  display: block;
+  transform: rotate(90deg);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.ui-select-stack .ui-select-icon svg {
+  transform: rotate(-90deg);
+}
+
+.ui-select-error {
+  color: var(--color-danger);
+}
+
+.overlay-panel.ui-select-menu,
+.ui-select-preview {
+  box-sizing: border-box;
+  min-inline-size: var(--radix-select-trigger-width);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  box-shadow: none;
+}
+
+.ui-select-preview {
+  border-block-start: 0;
+}
+
+/* Comment 34 open list. Overlap: .overlay-panel.ui-select-menu keeps its
+   border for other menus. This class is only the Where select's menu. */
+.overlay-panel.ui-select-menu.ui-select-attached {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: var(--color-surface);
+  box-shadow: none;
+}
+
+.ui-select-item {
+  display: flex;
+  align-items: center;
+  min-block-size: 44px;
+  padding-inline: var(--spacing-md);
+  border-radius: 0;
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: var(--text-body);
+  line-height: 1.4;
+  cursor: pointer;
+  outline: none;
+}
+
+.ui-select-item[data-highlighted] {
+  background: var(--color-ivory);
+  color: var(--color-teal);
+}
+
+.ui-select-item[data-state="checked"],
+.ui-select-item.is-current {
+  box-shadow: inset 3px 0 0 var(--color-gold);
+  color: var(--color-teal);
+}
+
+.ui-select-preview .ui-select-item {
+  cursor: default;
+}
+
+.ui-select-item + .ui-select-item {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-charcoal) 12%, transparent);
+}
+
+.ui-select-item.is-current + .ui-select-item,
+.ui-select-item[data-state="checked"] + .ui-select-item {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-charcoal) 12%, transparent);
+}
+
+.ui-select-empty {
+  margin: 0;
+  padding: var(--spacing-md);
+  color: var(--color-muted-fg);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: var(--text-label);
+  line-height: 1.4;
 }
 
 .overlay-panel {
@@ -603,6 +1110,7 @@ html[lang="ar"] :where(h1, h2, h3) {
   background: var(--color-surface);
   box-shadow: var(--shadow-overlay);
   padding: var(--spacing-sm);
+  border-radius: calc(var(--radius-control) + var(--spacing-sm));
 }
 
 .ui-scrim {
@@ -624,6 +1132,7 @@ html[lang="ar"] :where(h1, h2, h3) {
   padding: var(--spacing-lg);
   overflow: auto;
   overscroll-behavior: contain;
+  border-radius: var(--radius-overlay);
 }
 
 @media (min-width: 48rem) {
@@ -666,6 +1175,7 @@ html[lang="ar"] :where(h1, h2, h3) {
   inline-size: 44px;
   block-size: 44px;
   border: 0;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--color-fg);
 }
@@ -688,6 +1198,7 @@ html[lang="ar"] :where(h1, h2, h3) {
   color: var(--color-fg);
   box-shadow: var(--shadow-overlay);
   padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-control);
 }
 
 .toast-success {
@@ -698,22 +1209,73 @@ html[lang="ar"] :where(h1, h2, h3) {
   color: var(--color-warning);
 }
 
+.calendar-bar {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  min-block-size: 44px;
+}
+
+.calendar-bar > .icon-button {
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border-radius: 0;
+}
+
+.calendar-title {
+  margin: 0;
+  text-align: center;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  color: var(--color-heading);
+}
+
 .calendar-grid,
 .calendar-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(44px, 1fr));
 }
 
-.calendar-day {
-  min-block-size: 44px;
-  border: 0;
-  background: transparent;
-  color: var(--color-fg);
-  font-variant-numeric: tabular-nums;
+.calendar-grid {
+  container-type: inline-size;
+  container-name: calendar;
 }
 
-.calendar-day:hover:not(:disabled) {
-  background: var(--color-bg);
+.calendar-week > span {
+  text-align: center;
+}
+
+/* Comment 1. Each day is a 44px square in its column, not a stretched cell.
+   A range fill on a stretched cell painted one slab across the row.
+   Comment 25. Selected start and end are that square: teal fill, gold edge.
+   Middle days are one light band across the column, inside the row, not a button.
+   Hover is a gold square, only when the pointer can hover, and not the page background.
+   Overlap: .icon-button is shared with .nav-close, dialog close, and toast
+   dismiss. Not edited. .site-nav, .wordmark, and .site-links are not edited.
+   Overlap: :focus-visible and :disabled in this file also apply. These rules
+   restate the 2px outline and do not remove it. */
+.calendar-day {
+  position: relative;
+  isolation: isolate;
+  justify-self: center;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: 44px;
+  block-size: 44px;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  appearance: none;
+  background: transparent;
+  color: var(--color-heading);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
 }
 
 .calendar-day:focus-visible {
@@ -721,22 +1283,929 @@ html[lang="ar"] :where(h1, h2, h3) {
   outline-offset: 2px;
 }
 
-.calendar-day:disabled {
-  color: var(--color-muted-fg);
+.calendar-day.is-range,
+.calendar-day.is-preview:not(.is-end):not(.is-start) {
+  background: transparent;
+  color: var(--color-heading);
+  box-shadow: none;
 }
 
-.calendar-day.is-range,
-.calendar-day.is-preview {
+.calendar-day.is-range::before,
+.calendar-day.is-preview:not(.is-end):not(.is-start)::before,
+.calendar-day.is-start::before,
+.calendar-day.is-end::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  top: 8px;
+  bottom: 8px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--color-heading) 18%, var(--color-surface));
+  pointer-events: none;
+}
+
+.calendar-day.is-range::before,
+.calendar-day.is-preview:not(.is-end):not(.is-start)::before {
+  left: 50%;
+  width: calc(100cqw / 7 + 1px);
+  transform: translateX(-50%);
+}
+
+.calendar-day.is-start::before {
+  left: 50%;
+  width: calc(100cqw / 14 + 1px);
+}
+
+.calendar-day.is-end::before {
+  right: 50%;
+  width: calc(100cqw / 14 + 1px);
+}
+
+.calendar-day.is-start,
+.calendar-day.is-end,
+.calendar-day.is-single {
+  background: transparent;
+  color: var(--color-bg);
+  box-shadow: none;
+}
+
+.calendar-day.is-start::after,
+.calendar-day.is-end::after,
+.calendar-day.is-single::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  box-sizing: border-box;
+  border: 2px solid var(--color-accent);
+  border-radius: 0;
   background: var(--color-heading);
+  pointer-events: none;
+}
+
+.calendar-day.is-today:not(.is-end):not(.is-start):not(.is-single) {
+  box-shadow: inset 0 -3px 0 var(--color-heading);
+}
+
+.calendar-day.is-start.is-today::after,
+.calendar-day.is-end.is-today::after,
+.calendar-day.is-single.is-today::after {
+  box-shadow: inset 0 -3px 0 var(--color-bg);
+}
+
+.calendar-day:disabled,
+.calendar-day.is-range:disabled,
+.calendar-day.is-start:disabled,
+.calendar-day.is-end:disabled,
+.calendar-day.is-preview:disabled,
+.calendar-day.is-single:disabled,
+.calendar-day.is-today:disabled {
+  background: transparent;
+  color: var(--color-muted-fg);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* Past days that are not in the selection stay plain. A disabled start,
+   end, or middle day keeps its square or band — the nights specimen
+   start can already be in the past, and stripping it hid the selected
+   element Comment 25 asked for. */
+.calendar-day:disabled:not(.is-start):not(.is-end):not(.is-single):not(.is-range):not(.is-preview)::before,
+.calendar-day:disabled:not(.is-start):not(.is-end):not(.is-single):not(.is-range):not(.is-preview)::after {
+  content: none;
+}
+
+.calendar-day.is-start:disabled,
+.calendar-day.is-end:disabled,
+.calendar-day.is-single:disabled {
   color: var(--color-bg);
 }
 
-.calendar-day.is-end {
+.calendar-day.is-range:disabled,
+.calendar-day.is-preview:disabled:not(.is-end):not(.is-start) {
+  color: var(--color-heading);
+}
+
+@media (hover: hover) {
+  .calendar-day:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single) {
+    color: var(--color-heading);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .calendar-day:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single)::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    box-sizing: border-box;
+    border: 2px solid var(--color-accent);
+    border-radius: 0;
+    background: var(--color-accent);
+    pointer-events: none;
+  }
+
+  .calendar-day.is-start:hover:not(:disabled)::after,
+  .calendar-day.is-end:hover:not(:disabled)::after,
+  .calendar-day.is-single:hover:not(:disabled)::after {
+    background: color-mix(in srgb, var(--color-heading) 78%, black);
+    border-color: var(--color-accent);
+  }
+
+  .calendar-day.is-today:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single) {
+    box-shadow: inset 0 -3px 0 var(--color-heading);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .calendar-day,
+  .calendar-day::after {
+    transition-property: background-color, color, box-shadow, border-color;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-standard);
+  }
+}
+
+@media (forced-colors: active) {
+  .calendar-day.is-range::before,
+  .calendar-day.is-preview:not(.is-end):not(.is-start)::before,
+  .calendar-day.is-start::before,
+  .calendar-day.is-end::before {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+
+  .calendar-day.is-start,
+  .calendar-day.is-end,
+  .calendar-day.is-single {
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+
+  .calendar-day.is-start::after,
+  .calendar-day.is-end::after,
+  .calendar-day.is-single::after {
+    background: Highlight;
+    border: 2px solid HighlightText;
+    forced-color-adjust: none;
+  }
+
+  .calendar-day.is-today:not(.is-end):not(.is-start):not(.is-single) {
+    box-shadow: inset 0 -3px 0 CanvasText;
+    forced-color-adjust: none;
+  }
+
+  .calendar-day.is-start.is-today::after,
+  .calendar-day.is-end.is-today::after,
+  .calendar-day.is-single.is-today::after {
+    box-shadow: inset 0 -3px 0 CanvasText;
+    forced-color-adjust: none;
+  }
+
+  .calendar-day:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .calendar-day:disabled,
+  .calendar-day.is-range:disabled,
+  .calendar-day.is-start:disabled,
+  .calendar-day.is-end:disabled,
+  .calendar-day.is-today:disabled {
+    background: transparent;
+    color: GrayText;
+    box-shadow: none;
+    forced-color-adjust: none;
+  }
+
+  .calendar-day:disabled::before,
+  .calendar-day:disabled::after {
+    content: none;
+  }
+}
+
+@media (forced-colors: active) and (hover: hover) {
+  .calendar-day:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single) {
+    color: CanvasText;
+    forced-color-adjust: none;
+  }
+
+  .calendar-day:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single)::after {
+    background: Canvas;
+    border: 2px solid Highlight;
+    forced-color-adjust: none;
+  }
+
+  .calendar-day.is-start:hover:not(:disabled)::after,
+  .calendar-day.is-end:hover:not(:disabled)::after,
+  .calendar-day.is-single:hover:not(:disabled)::after {
+    background: Highlight;
+    border-color: HighlightText;
+    forced-color-adjust: none;
+  }
+}
+
+/* Comment 31. Date range is a compact month, not a row slab.
+   Scoped to #date-range so #specimen-nights, the hero booker, and the
+   date-field popup keep the shared calendar. Square. No radius.
+   Gold is an inset edge on the teal selected square only (6.37:1 on teal).
+   Comment 32. The range band is the full cell and meets the squares. No border.
+   Hover and keyboard focus are the same teal edge, including while choosing the end date. */
+#date-range .range-picker {
+  box-sizing: border-box;
+  justify-self: start;
+  display: grid;
+  gap: 24px;
+  inline-size: min(100%, calc(7 * 44px + 32px));
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-fg);
+}
+
+#date-range .range-picker-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px 16px;
+  min-inline-size: 0;
+}
+
+#date-range .range-picker-field {
+  display: grid;
+  gap: 4px;
+  min-inline-size: 0;
+}
+
+#date-range .range-picker-field span {
+  color: var(--color-heading);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+#date-range .range-picker-field input {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: 44px;
+  margin: 0;
+  padding-block: 8px;
+  padding-inline: 0;
+  border: 0;
+  border-block-end: 1px solid var(--color-border);
+  border-radius: 0;
+  appearance: none;
+  background: transparent;
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+#date-range .range-picker-field input::placeholder {
+  color: var(--color-muted-fg);
+  opacity: 1;
+}
+
+#date-range .range-picker-field.is-next input {
+  border-block-end-color: var(--color-heading);
+}
+
+#date-range .range-picker-field input:focus-visible {
+  outline: none;
+  border-block-end-width: 2px;
+  border-block-end-color: var(--color-heading);
+  box-shadow: none;
+}
+
+#date-range .range-picker-status-row {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-block-size: 44px;
+}
+
+#date-range .range-picker-status {
+  margin: 0;
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  text-wrap: pretty;
+}
+
+#date-range .range-picker-status.is-empty {
+  color: var(--color-muted-fg);
+}
+
+#date-range .range-picker-clear {
+  flex: 0 0 auto;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  margin: 0;
+  padding-block: 8px;
+  padding-inline: 0;
+  border: 0;
+  border-radius: 0;
+  appearance: none;
+  background: transparent;
+  color: var(--color-heading);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-position: from-font;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+#date-range .range-picker-clear:focus-visible {
+  outline: 2px solid var(--color-heading);
+  outline-offset: 2px;
+}
+
+#date-range .range-picker .calendar {
+  inline-size: 100%;
+  max-inline-size: calc(7 * 44px);
+  overflow: visible;
+}
+
+#date-range .range-picker .calendar-bar,
+#date-range .range-picker .calendar-week,
+#date-range .range-picker .calendar-grid {
+  inline-size: calc(7 * 44px);
+  max-inline-size: none;
+}
+
+#date-range .range-picker .calendar-bar {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+}
+
+#date-range .range-picker .calendar-bar > .icon-button {
+  border: 0;
+  border-radius: 0;
+  color: var(--color-heading);
+}
+
+#date-range .range-picker .calendar-bar > .icon-button:focus-visible {
+  outline: 2px solid var(--color-heading);
+  outline-offset: 2px;
+}
+
+#date-range .range-picker .calendar-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-heading);
+  text-wrap: balance;
+}
+
+#date-range .range-picker .calendar-week,
+#date-range .range-picker .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 44px);
+  gap: 0;
+  justify-content: start;
+}
+
+#date-range .range-picker .calendar-week {
+  margin-block-end: 4px;
+}
+
+#date-range .range-picker .calendar-week > span {
+  display: grid;
+  place-items: center;
+  min-block-size: 28px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  color: var(--color-muted-fg);
+}
+
+#date-range .range-picker .calendar-day {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-heading);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+#date-range .range-picker .calendar-day,
+#date-range .range-picker .calendar-day::before,
+#date-range .range-picker .calendar-day::after {
+  transition: none;
+}
+
+#date-range .range-picker .calendar-day::before,
+#date-range .range-picker .calendar-day::after,
+#date-range .range-picker .calendar-day:hover::after,
+#date-range .range-picker .calendar-day:focus-visible::after,
+#date-range .range-picker .calendar-day.is-hot::after,
+#date-range .range-picker .calendar-day.is-start::after,
+#date-range .range-picker .calendar-day.is-end::after,
+#date-range .range-picker .calendar-day.is-single::after,
+#date-range .range-picker .calendar-day.is-today::after {
+  content: none;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  inset: auto;
+  left: auto;
+  right: auto;
+  top: auto;
+  bottom: auto;
+  width: auto;
+  height: auto;
+  transform: none;
+}
+
+#date-range .range-picker .calendar-day:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-heading);
+}
+
+#date-range .range-picker .calendar-day.is-today {
+  font-weight: 700;
+  box-shadow: none;
+}
+
+#date-range .range-picker .calendar-day.is-range::before,
+#date-range .range-picker .calendar-day.is-preview:not(.is-end):not(.is-start)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  transform: none;
+  border: 0;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--color-heading) 14%, var(--color-bg));
+  pointer-events: none;
+}
+
+#date-range .range-picker .calendar-day.is-preview-end,
+#date-range .range-picker .calendar-day.is-hot:not(:disabled):not(.is-start):not(.is-end):not(.is-single),
+#date-range .range-picker .calendar-day:focus-visible:not(:disabled):not(.is-start):not(.is-end):not(.is-single) {
+  background: transparent;
+  color: var(--color-heading);
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-heading);
+}
+
+#date-range .range-picker .calendar-day.is-start,
+#date-range .range-picker .calendar-day.is-end:not(.is-preview-end),
+#date-range .range-picker .calendar-day.is-single {
+  background: var(--color-heading);
+  color: var(--color-bg);
   box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
-.calendar-day.is-today {
-  box-shadow: inset 0 -3px 0 var(--color-fg);
+#date-range .range-picker .calendar-day.is-start:focus-visible,
+#date-range .range-picker .calendar-day.is-end:not(.is-preview-end):focus-visible,
+#date-range .range-picker .calendar-day.is-single:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-bg);
+}
+
+#date-range .range-picker .calendar-day:disabled {
+  background: transparent;
+  color: var(--color-muted-fg);
+  box-shadow: none;
+  cursor: default;
+}
+
+#date-range .range-picker .calendar-day:disabled::before,
+#date-range .range-picker .calendar-day:disabled::after {
+  content: none;
+}
+
+@media (hover: hover) {
+  #date-range .range-picker .calendar-bar > .icon-button:hover {
+    background: color-mix(in srgb, var(--color-heading) 8%, var(--color-surface));
+  }
+
+  #date-range .range-picker-clear:hover {
+    color: var(--color-fg);
+  }
+
+  #date-range .range-picker .calendar-day:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single),
+  #date-range .range-picker .calendar-day.is-hot:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single) {
+    background: transparent;
+    color: var(--color-heading);
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--color-heading);
+    font-weight: 400;
+  }
+
+  #date-range .range-picker .calendar-day.is-today:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single) {
+    font-weight: 700;
+  }
+
+  #date-range .range-picker .calendar-day:hover:not(:disabled):not(.is-today)::after {
+    content: none;
+    border: 0;
+    background: none;
+  }
+
+  #date-range .range-picker .calendar-day.is-start:hover:not(:disabled),
+  #date-range .range-picker .calendar-day.is-end:hover:not(:disabled):not(.is-preview-end),
+  #date-range .range-picker .calendar-day.is-single:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-heading) 82%, black);
+    color: var(--color-bg);
+    box-shadow: inset 0 0 0 2px var(--color-accent);
+  }
+
+  #date-range .range-picker .calendar-day.is-start:hover:not(:disabled)::after,
+  #date-range .range-picker .calendar-day.is-end:hover:not(:disabled):not(.is-preview-end)::after,
+  #date-range .range-picker .calendar-day.is-single:hover:not(:disabled)::after {
+    content: none;
+    border: 0;
+    background: none;
+  }
+}
+
+@media (forced-colors: active) {
+  #date-range .range-picker {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    forced-color-adjust: none;
+  }
+
+  #date-range .range-picker-field input,
+  #date-range .range-picker-field.is-next input,
+  #date-range .range-picker-field input:focus-visible {
+    border-block-end: 1px solid CanvasText;
+    box-shadow: none;
+    background: Canvas;
+    color: CanvasText;
+    forced-color-adjust: none;
+  }
+
+  #date-range .range-picker .calendar-day.is-range::before,
+  #date-range .range-picker .calendar-day.is-preview:not(.is-end):not(.is-start)::before,
+  #date-range .range-picker .calendar-day.is-preview-end::before {
+    background: Highlight;
+    border-block-color: HighlightText;
+    forced-color-adjust: none;
+  }
+
+  #date-range .range-picker .calendar-day.is-start,
+  #date-range .range-picker .calendar-day.is-end:not(.is-preview-end),
+  #date-range .range-picker .calendar-day.is-single {
+    background: Highlight;
+    color: HighlightText;
+    box-shadow: none;
+    forced-color-adjust: none;
+  }
+
+  #date-range .range-picker .calendar-day.is-start:focus-visible,
+  #date-range .range-picker .calendar-day.is-end:not(.is-preview-end):focus-visible,
+  #date-range .range-picker .calendar-day.is-single:focus-visible,
+  #date-range .range-picker .calendar-day:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
+
+  #date-range .range-picker .calendar-day:disabled {
+    color: GrayText;
+    background: Canvas;
+    forced-color-adjust: none;
+  }
+}
+
+@media (forced-colors: active) and (hover: hover) {
+  #date-range .range-picker .calendar-day:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single) {
+    color: LinkText;
+    background: Canvas;
+    box-shadow: none;
+    forced-color-adjust: none;
+  }
+}
+
+/* Comment 33. Copy the compact #date-range day treatment onto the other
+   date pickers on /design. #date-range .range-picker is not edited.
+   Overlap: shared .calendar-day (the stretched column band, gold hover
+   square, and today bar), global :focus-visible, and :disabled. This
+   block wins only under .kit-section:not(#date-range) .calendar, so
+   nights, the hero booker, the date-field popup, and any other
+   CalendarPanel on this page match. .icon-button outside the month nav
+   is not edited. Square. Radius 0. No pills.
+   Start and end are 44px teal squares with one gold inset edge.
+   Middle days are one full-cell band that meets those squares.
+   Hover and keyboard focus are the same 2px teal inset, not a bar and
+   not a second outline. Selected focus is one ivory inset, not both.
+   outline:none on a day is replaced by that inset; forced-colors
+   restores a 2px CanvasText outline. */
+:is(.kit-section:not(#date-range)) .calendar,
+:is(.kit-section:not(#date-range)) .calendar-bar,
+:is(.kit-section:not(#date-range)) .calendar-week,
+:is(.kit-section:not(#date-range)) .calendar-grid {
+  inline-size: calc(7 * 44px);
+  max-inline-size: none;
+  border-radius: 0;
+}
+
+:is(.kit-section:not(#date-range)) .calendar {
+  justify-self: start;
+  overflow: visible;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-bar {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-bar > .icon-button {
+  border: 0;
+  border-radius: 0;
+  color: var(--color-heading);
+}
+
+:is(.kit-section:not(#date-range)) .calendar-bar > .icon-button:focus-visible {
+  outline: 2px solid var(--color-heading);
+  outline-offset: 2px;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-heading);
+  text-wrap: balance;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-week,
+:is(.kit-section:not(#date-range)) .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 44px);
+  gap: 0;
+  justify-content: start;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-week {
+  margin-block-end: 4px;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-week > span {
+  display: grid;
+  place-items: center;
+  min-block-size: 28px;
+  border-radius: 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  color: var(--color-muted-fg);
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day {
+  position: relative;
+  isolation: isolate;
+  justify-self: center;
+  align-self: center;
+  box-sizing: border-box;
+  inline-size: 44px;
+  block-size: 44px;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-heading);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day,
+:is(.kit-section:not(#date-range)) .calendar-day::before,
+:is(.kit-section:not(#date-range)) .calendar-day::after {
+  transition: none;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day::before,
+:is(.kit-section:not(#date-range)) .calendar-day::after,
+:is(.kit-section:not(#date-range)) .calendar-day:hover::after,
+:is(.kit-section:not(#date-range)) .calendar-day:focus-visible::after,
+:is(.kit-section:not(#date-range)) .calendar-day.is-hot::after,
+:is(.kit-section:not(#date-range)) .calendar-day.is-start::after,
+:is(.kit-section:not(#date-range)) .calendar-day.is-end::after,
+:is(.kit-section:not(#date-range)) .calendar-day.is-single::after,
+:is(.kit-section:not(#date-range)) .calendar-day.is-today::after {
+  content: none;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  inset: auto;
+  left: auto;
+  right: auto;
+  top: auto;
+  bottom: auto;
+  width: auto;
+  height: auto;
+  transform: none;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-heading);
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day.is-today {
+  font-weight: 700;
+  box-shadow: none;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day.is-range::before,
+:is(.kit-section:not(#date-range)) .calendar-day.is-preview:not(.is-end):not(.is-start)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  transform: none;
+  border: 0;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--color-heading) 14%, var(--color-bg));
+  box-shadow: none;
+  pointer-events: none;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day.is-preview-end,
+:is(.kit-section:not(#date-range)) .calendar-day.is-hot:not(:disabled):not(.is-start):not(.is-end):not(.is-single),
+:is(.kit-section:not(#date-range)) .calendar-day:focus-visible:not(:disabled):not(.is-start):not(.is-end):not(.is-single) {
+  background: transparent;
+  color: var(--color-heading);
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-heading);
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day.is-start,
+:is(.kit-section:not(#date-range)) .calendar-day.is-end:not(.is-preview-end),
+:is(.kit-section:not(#date-range)) .calendar-day.is-single {
+  background: var(--color-heading);
+  color: var(--color-bg);
+  border: 0;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day.is-start:focus-visible,
+:is(.kit-section:not(#date-range)) .calendar-day.is-end:not(.is-preview-end):focus-visible,
+:is(.kit-section:not(#date-range)) .calendar-day.is-single:focus-visible {
+  outline: none;
+  background: var(--color-heading);
+  color: var(--color-bg);
+  box-shadow: inset 0 0 0 2px var(--color-bg);
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day:disabled:not(.is-start):not(.is-end):not(.is-single) {
+  background: transparent;
+  color: var(--color-muted-fg);
+  box-shadow: none;
+  cursor: default;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day.is-start:disabled,
+:is(.kit-section:not(#date-range)) .calendar-day.is-end:not(.is-preview-end):disabled,
+:is(.kit-section:not(#date-range)) .calendar-day.is-single:disabled {
+  background: var(--color-heading);
+  color: var(--color-bg);
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+  cursor: default;
+}
+
+:is(.kit-section:not(#date-range)) .calendar-day:disabled:not(.is-start):not(.is-end):not(.is-single):not(.is-range):not(.is-preview)::before,
+:is(.kit-section:not(#date-range)) .calendar-day:disabled:not(.is-start):not(.is-end):not(.is-single):not(.is-range):not(.is-preview)::after {
+  content: none;
+}
+
+@media (hover: hover) {
+  :is(.kit-section:not(#date-range)) .calendar-day:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single),
+  :is(.kit-section:not(#date-range)) .calendar-day.is-hot:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single) {
+    background: transparent;
+    color: var(--color-heading);
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--color-heading);
+    font-weight: 400;
+  }
+
+  :is(.kit-section:not(#date-range)) .calendar-day.is-today:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single) {
+    font-weight: 700;
+    box-shadow: inset 0 0 0 2px var(--color-heading);
+  }
+
+  :is(.kit-section:not(#date-range)) .calendar-day:hover:not(:disabled)::after,
+  :is(.kit-section:not(#date-range)) .calendar-day.is-start:hover:not(:disabled)::after,
+  :is(.kit-section:not(#date-range)) .calendar-day.is-end:hover:not(:disabled)::after,
+  :is(.kit-section:not(#date-range)) .calendar-day.is-single:hover:not(:disabled)::after {
+    content: none;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  :is(.kit-section:not(#date-range)) .calendar-day.is-start:hover:not(:disabled),
+  :is(.kit-section:not(#date-range)) .calendar-day.is-end:hover:not(:disabled):not(.is-preview-end),
+  :is(.kit-section:not(#date-range)) .calendar-day.is-single:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-heading) 82%, black);
+    color: var(--color-bg);
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--color-accent);
+  }
+
+  :is(.kit-section:not(#date-range)) .calendar-day.is-start:hover:focus-visible:not(:disabled),
+  :is(.kit-section:not(#date-range)) .calendar-day.is-end:not(.is-preview-end):hover:focus-visible:not(:disabled),
+  :is(.kit-section:not(#date-range)) .calendar-day.is-single:hover:focus-visible:not(:disabled) {
+    background: var(--color-heading);
+    color: var(--color-bg);
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--color-bg);
+  }
+}
+
+@media (forced-colors: active) {
+  :is(.kit-section:not(#date-range)) .calendar-day.is-range::before,
+  :is(.kit-section:not(#date-range)) .calendar-day.is-preview:not(.is-end):not(.is-start)::before {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+
+  :is(.kit-section:not(#date-range)) .calendar-day.is-start,
+  :is(.kit-section:not(#date-range)) .calendar-day.is-end:not(.is-preview-end),
+  :is(.kit-section:not(#date-range)) .calendar-day.is-single {
+    background: Highlight;
+    color: HighlightText;
+    box-shadow: none;
+    forced-color-adjust: none;
+  }
+
+  :is(.kit-section:not(#date-range)) .calendar-day:focus-visible:not(:disabled):not(.is-start):not(.is-end):not(.is-single),
+  :is(.kit-section:not(#date-range)) .calendar-day.is-start:focus-visible,
+  :is(.kit-section:not(#date-range)) .calendar-day.is-end:not(.is-preview-end):focus-visible,
+  :is(.kit-section:not(#date-range)) .calendar-day.is-single:focus-visible,
+  :is(.kit-section:not(#date-range)) .calendar-day.is-start:hover:focus-visible:not(:disabled),
+  :is(.kit-section:not(#date-range)) .calendar-day.is-end:not(.is-preview-end):hover:focus-visible:not(:disabled),
+  :is(.kit-section:not(#date-range)) .calendar-day.is-single:hover:focus-visible:not(:disabled) {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+
+  :is(.kit-section:not(#date-range)) .calendar-day:disabled:not(.is-start):not(.is-end):not(.is-single) {
+    color: GrayText;
+    background: Canvas;
+    forced-color-adjust: none;
+  }
+}
+
+@media (forced-colors: active) and (hover: hover) {
+  :is(.kit-section:not(#date-range)) .calendar-day:hover:not(:disabled):not(.is-start):not(.is-end):not(.is-single) {
+    color: LinkText;
+    background: Canvas;
+    box-shadow: none;
+    forced-color-adjust: none;
+  }
 }
 
 .calendar-month {
@@ -744,25 +2213,50 @@ html[lang="ar"] :where(h1, h2, h3) {
   color: var(--color-heading);
 }
 
+.stepper-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  inline-size: fit-content;
+  max-inline-size: 100%;
+}
+
 .stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  box-sizing: border-box;
   inline-size: 44px;
   block-size: 44px;
-  border-radius: 50%;
+  padding: 0;
+  border-radius: 0;
   border: 1px solid var(--color-accent);
   background: transparent;
   color: var(--color-heading);
+  line-height: 1;
 }
 
 .stepper-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
   font-variant-numeric: tabular-nums;
   min-inline-size: 1.5rem;
   text-align: center;
+  line-height: 1;
 }
 
 .ui-chip {
   min-block-size: 44px;
+  width: max-content;
+  max-width: 100%;
+  flex: 0 0 auto;
+  justify-self: start;
   padding-inline: var(--spacing-md);
   border: 1px solid transparent;
+  border-radius: var(--radius-control);
   background: var(--color-bg);
   color: var(--color-fg);
 }
@@ -775,12 +2269,14 @@ html[lang="ar"] :where(h1, h2, h3) {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   padding: var(--spacing-md);
+  border-radius: calc(var(--radius-control) + var(--spacing-md));
 }
 
 .card-image {
   outline: 1px solid oklch(0 0 0 / 0.1);
   min-block-size: 6rem;
   background: var(--color-bg);
+  border-radius: var(--radius-control);
 }
 
 .card-pulse {
@@ -795,12 +2291,21 @@ html[lang="ar"] :where(h1, h2, h3) {
   block-size: auto;
 }
 
+.icon-back,
 .icon-forward {
   display: inline-flex;
 }
 
+.icon-back {
+  transform: scaleX(-1);
+}
+
 [dir="rtl"] .icon-forward {
   transform: scaleX(-1);
+}
+
+[dir="rtl"] .icon-back {
+  transform: none;
 }
 
 @keyframes ivory-pulse {
@@ -809,96 +2314,291 @@ html[lang="ar"] :where(h1, h2, h3) {
   }
 }
 
+/* Comment 4. Wordmark leads at 140×70. Titles sit beside it. Currency,
+   language, and Login trail. Below 1088px the bar is logo + Menu so
+   320px and 768px do not overflow. Not a centered logo.
+   Container queries style descendants only — .site-nav cannot query itself. */
+
 .site-nav {
+  container: site-nav / inline-size;
+  box-sizing: border-box;
   position: sticky;
-  top: 0;
+  inset-block-start: 0;
   z-index: 40;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: var(--spacing-md);
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  min-block-size: 86px;
+  padding-block: var(--spacing-sm);
+  padding-inline: 12px;
   background: var(--color-bg);
   border-block-end: 1px solid var(--color-border);
-  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--color-heading);
+}
+
+.nav-menu {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  inline-size: max-content;
+  max-inline-size: 100%;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  padding-block: 0;
+  padding-inline: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-heading);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: var(--text-label);
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 0 1 auto;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  max-inline-size: calc(100% - 7rem);
+  color: var(--color-heading);
+  text-decoration: none;
 }
 
 .wordmark-full {
-  display: none;
-  block-size: 28px;
-  inline-size: auto;
+  display: block;
+  inline-size: 140px;
+  max-inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 2 / 1;
+  object-fit: contain;
+  object-position: center start;
 }
 
 .wordmark-mark {
-  display: block;
-  inline-size: 32px;
-  block-size: auto;
-}
-
-.site-links {
   display: none;
 }
 
-.site-links.is-open {
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  background: var(--color-bg);
-  padding: var(--spacing-xl);
-  gap: var(--spacing-md);
+.nav-panel {
+  display: none;
+}
+
+.site-links a,
+.nav-login {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  inline-size: max-content;
+  max-inline-size: 100%;
+  min-block-size: 44px;
+  padding-inline: 12px;
+  border-radius: 0;
+  color: var(--color-heading);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .site-links a.is-active {
   color: var(--color-heading);
-  box-shadow: inset 0 -2px 0 var(--color-accent);
+  text-decoration: underline;
+  text-decoration-color: var(--color-gold);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: auto;
 }
 
 .nav-close {
+  display: none;
   color: var(--color-heading);
+  border-radius: 0;
 }
 
-.locale-switch button.is-active {
-  color: var(--color-fg);
+.site-nav.is-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  min-block-size: 100%;
+  padding: 12px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--color-bg);
 }
 
-.locale-switch button:not(.is-active) {
-  color: var(--color-muted-fg);
+.site-nav.is-menu .nav-menu {
+  display: none;
 }
 
-@media (min-width: 48rem) {
-  .wordmark-full {
-    display: block;
+.site-nav.is-menu .nav-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.site-nav.is-menu .wordmark {
+  margin-inline-end: 56px;
+  max-inline-size: calc(100% - 56px);
+}
+
+.site-nav.is-menu .site-links,
+.site-nav.is-menu .site-links.is-open {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  inline-size: auto;
+  max-inline-size: 100%;
+  padding: 0;
+  background: transparent;
+}
+
+.site-nav.is-menu .nav-close {
+  display: inline-flex;
+  position: absolute;
+  inset-inline-end: 12px;
+  inset-block-start: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+}
+
+.site-nav.is-menu .nav-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-inline-start: 0;
+  margin-block-start: 0;
+}
+
+.site-nav.is-menu .nav-login {
+  margin-inline-start: 0;
+}
+
+/* Wide enough for the 140px wordmark, four titles, both dropdowns, and Login. */
+@container site-nav (min-width: 1088px) {
+  .site-nav,
+  .site-nav.is-menu {
+    position: sticky;
+    inset: auto;
+    inset-block-start: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 32px;
+    min-block-size: 86px;
+    padding-block: var(--spacing-sm);
+    padding-inline: var(--spacing-lg);
+    overflow: visible;
+    background: var(--color-bg);
   }
 
-  .wordmark-mark,
   .nav-menu,
-  .nav-close {
+  .nav-close,
+  .site-nav.is-menu .nav-close,
+  .site-nav.is-menu .nav-menu {
     display: none;
   }
 
-  .site-links,
-  .site-links.is-open {
+  .nav-panel,
+  .site-nav.is-menu .nav-panel {
     display: flex;
-    position: static;
+    flex: 1 1 auto;
     flex-direction: row;
+    align-items: center;
+    gap: 32px;
+    inline-size: auto;
+    min-inline-size: 0;
+  }
+
+  .site-links,
+  .site-links.is-open,
+  .site-nav.is-menu .site-links,
+  .site-nav.is-menu .site-links.is-open {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
     padding: 0;
     background: transparent;
+  }
+
+  .wordmark,
+  .site-nav.is-menu .wordmark {
+    flex: 0 0 auto;
+    margin-inline-end: 0;
+    max-inline-size: none;
+  }
+
+  .wordmark-full {
+    inline-size: 140px;
+    block-size: 70px;
+    aspect-ratio: auto;
+  }
+
+  .nav-tools,
+  .site-nav.is-menu .nav-tools {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    align-self: center;
     gap: var(--spacing-md);
+    margin-block-start: 0;
+    margin-inline-start: auto;
+  }
+
+  .nav-login,
+  .site-nav.is-menu .nav-login {
+    margin-inline-start: var(--spacing-sm);
   }
 }
 
 .site-footer {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
   padding-block: var(--spacing-xl);
+  border-top: 1px solid #d1dfe0;
 }
 
-.newsletter-row {
+.footer-col {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  align-items: flex-start;
+  gap: 8px;
 }
+
+/* Newsletter layout is the block after the shared 48rem rule. */
 
 @media (min-width: 48rem) {
   .site-footer,
@@ -907,6 +2607,185 @@ html[lang="ar"] :where(h1, h2, h3) {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: end;
+  }
+}
+
+/* Overlap: the 48rem rule above sets .newsletter-row together with
+   .site-footer and .hero-booker (flex-direction: row; align-items: end).
+   That shared rule smashed the Email label into the placeholder and
+   parked Subscribe in the same 44px row. Do not edit it. These rules
+   override only the newsletter row.
+   Comment 24: the field and Subscribe sit below the newsletter copy
+   (the error row is the previous flex item). Own line, inline-end,
+   so they do not cover Newsletter or Email. Label is its own grid row. */
+.newsletter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: max-content auto;
+  align-items: start;
+  justify-items: stretch;
+  align-self: start;
+  align-content: start;
+  gap: var(--spacing-sm);
+  flex: 0 1 auto;
+  inline-size: min(100%, 36rem);
+  max-inline-size: 36rem;
+  min-inline-size: 0;
+  block-size: auto;
+  margin: 0;
+  overflow: visible;
+  border-radius: 0;
+  container-type: inline-size;
+  container-name: newsletter;
+}
+
+.newsletter-row .newsletter-label {
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  color: var(--color-fg);
+  font-size: var(--text-label);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-align: start;
+  text-overflow: clip;
+  white-space: nowrap;
+  min-inline-size: max-content;
+  max-inline-size: 100%;
+}
+
+.newsletter-row .newsletter-controls {
+  display: flex;
+  grid-column: 1;
+  grid-row: 2;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: var(--spacing-sm);
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.newsletter-row input {
+  box-sizing: border-box;
+  display: block;
+  flex: 1 1 auto;
+  inline-size: 100%;
+  width: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  block-size: 44px;
+  height: 44px;
+  min-block-size: 44px;
+  max-block-size: 44px;
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-fg);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.newsletter-row input::placeholder {
+  color: var(--color-muted-fg);
+  opacity: 1;
+}
+
+.newsletter-row .ui-button {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  justify-self: start;
+  inline-size: max-content;
+  width: max-content;
+  max-inline-size: 100%;
+  min-inline-size: 44px;
+  block-size: 44px;
+  height: 44px;
+  min-block-size: 44px;
+  max-block-size: 44px;
+  padding-block: 0;
+  border-radius: 0;
+  white-space: nowrap;
+}
+
+@container newsletter (min-width: 22rem) {
+  .newsletter-row .newsletter-controls {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .newsletter-row input {
+    flex: 1 1 12rem;
+    inline-size: auto;
+    width: auto;
+    min-inline-size: 12rem;
+    max-inline-size: 100%;
+    block-size: 44px;
+    height: 44px;
+    max-block-size: 44px;
+  }
+
+  /* Comment 20 overlap: more specific than .ui-button. max-content
+     agrees with the base newsletter rule; auto would not fill a row,
+     but it must not disagree with the column case.
+     Comment 24: height stays 44px. Do not let this row fill the page. */
+  .newsletter-row .ui-button {
+    flex: 0 0 auto;
+    inline-size: max-content;
+    width: max-content;
+    max-inline-size: 100%;
+    block-size: 44px;
+    height: 44px;
+    max-block-size: 44px;
+    padding-block: 0;
+    border-radius: 0;
+  }
+}
+
+@media (min-width: 48rem) {
+  .newsletter-row {
+    /* Own line under the newsletter copy, aligned to that column's
+       inline end. Do not set flex-basis below 48rem — the footer is a
+       column there, and a 100% basis stretches this row over the next
+       section. margin-inline-start: auto does not apply below 48rem. */
+    flex-basis: 100%;
+    flex-grow: 0;
+    flex-shrink: 1;
+    inline-size: min(100%, 36rem);
+    max-inline-size: 36rem;
+    margin-inline-start: auto;
+    margin-inline-end: 0;
+    justify-self: end;
+  }
+
+  .newsletter-row input {
+    font-size: var(--text-label);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .newsletter-row .ui-button {
+    transition-property: background-color, color, border-color, scale;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-standard);
+  }
+
+  .newsletter-row .ui-button:active {
+    scale: 0.96;
   }
 }
 
@@ -925,7 +2804,6 @@ html[lang="ar"] :where(h1, h2, h3) {
   align-items: start;
 }
 
-.stay-row.is-selected,
 .addon.is-on {
   border: 1px solid var(--color-heading);
 }
@@ -934,11 +2812,16 @@ html[lang="ar"] :where(h1, h2, h3) {
 .addon-photo {
   outline: 1px solid oklch(0 0 0 / 0.1);
   object-fit: cover;
+  border-radius: var(--radius-control);
 }
 
 .stay-photo {
-  inline-size: 8rem;
-  aspect-ratio: 4 / 3;
+  display: block;
+  inline-size: 7.5rem;
+  block-size: 7.5rem;
+  aspect-ratio: 1;
+  object-position: center 42%;
+  border-radius: 0;
 }
 
 .addon-photo {
@@ -959,6 +2842,130 @@ html[lang="ar"] :where(h1, h2, h3) {
   background: var(--color-bg);
   display: grid;
   place-items: center;
+  border-radius: var(--radius-control);
+}
+
+/* Stay-row only. Does not edit the shared .stay-row/.addon flex,
+   .addon.is-on border, or .stay-photo/.addon-photo outline.
+   Selected stay cards do not take that border or a surface fill. */
+.stay-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "photo"
+    "copy"
+    "action";
+  align-items: start;
+  justify-items: start;
+  row-gap: 8px;
+  max-inline-size: 22rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding-inline-end: 0;
+}
+
+.stay-row + .stay-row {
+  margin-block-start: var(--spacing-md);
+}
+
+.stay-row .stay-photo,
+.stay-row .stay-missing {
+  grid-area: photo;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 730 / 600;
+  border-radius: 0;
+  justify-self: stretch;
+}
+
+.stay-row .stay-copy {
+  grid-area: copy;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+  padding-block: var(--spacing-sm);
+}
+
+.stay-row .stay-name {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.stay-row .stay-copy p {
+  margin: 0;
+  color: var(--color-fg);
+  text-wrap: pretty;
+}
+
+.stay-row .amount {
+  white-space: nowrap;
+}
+
+.stay-row .stay-action {
+  grid-area: action;
+  justify-self: start;
+  align-self: center;
+  width: auto;
+  max-inline-size: max-content;
+  flex: 0 0 auto;
+  margin: 0 0 var(--spacing-md);
+}
+
+.stay-row.is-booked .stay-action {
+  width: auto;
+  max-inline-size: max-content;
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-muted-fg);
+}
+
+@media (min-width: 48rem) {
+  .stay-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    align-items: start;
+  }
+
+  .stay-row {
+    max-inline-size: none;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "photo"
+      "copy"
+      "action";
+    column-gap: 0;
+    row-gap: 8px;
+  }
+
+  .stay-row + .stay-row {
+    margin-block-start: 0;
+  }
+
+  .stay-row .stay-photo,
+  .stay-row .stay-missing {
+    inline-size: 100%;
+    block-size: auto;
+    aspect-ratio: 730 / 600;
+  }
+
+  .stay-row .stay-copy {
+    padding-block: 0;
+  }
+
+  .stay-row .stay-name {
+    font-size: 22px;
+  }
+
+  .stay-row .stay-action {
+    justify-self: start;
+    margin: 0;
+  }
 }
 
 .amount,
@@ -967,15 +2974,94 @@ html[lang="ar"] :where(h1, h2, h3) {
   font-variant-numeric: tabular-nums;
 }
 
+/* Comment 17 status chips.
+   Overlap: these rules also color .status-chip in catalog-frames.tsx
+   (Driver assigned, Flights booked) and the is-confirmed chips in
+   Booking header and Booking list. Destination and FAQ sections are
+   not edited. .kit-section is not edited — chips opt out of that grid
+   stretch with justify-self. No new hex: fills are ivory, gold, teal,
+   charcoal, plus existing --color-success, --color-danger,
+   --color-warning, and --color-muted. */
 .status-chip {
   display: inline-flex;
-  color: var(--color-fg);
-  border: 1px solid var(--color-heading);
+  align-items: center;
+  justify-self: start;
+  box-sizing: border-box;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  white-space: nowrap;
+  border: 1px solid var(--color-charcoal);
+  border-radius: var(--radius-control);
+  padding-block: var(--spacing-xs);
   padding-inline: var(--spacing-sm);
+  background: var(--color-ivory);
+  color: var(--color-charcoal);
+  font-size: var(--text-label);
+  font-weight: 400;
+  line-height: 1.4;
 }
+
+.status-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.status-chip.is-draft {
+  background: var(--color-ivory);
+  color: var(--color-charcoal);
+  border-color: var(--color-charcoal);
+}
+
+.status-chip.is-deposit-paid {
+  background: var(--color-gold);
+  color: var(--color-teal);
+  border-color: var(--color-teal);
+}
+
 .status-chip.is-confirmed {
-  color: var(--color-fg);
-  border-color: var(--color-accent);
+  background: var(--color-teal);
+  color: var(--color-ivory);
+  border-color: var(--color-teal);
+}
+
+.status-chip.is-in-trip {
+  background: var(--color-charcoal);
+  color: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
+.status-chip.is-completed {
+  background: var(--color-success);
+  color: var(--color-ivory);
+  border-color: var(--color-success);
+}
+
+.status-chip.is-cancelled {
+  background: var(--color-danger);
+  color: var(--color-ivory);
+  border-color: var(--color-danger);
+}
+
+.status-chip.is-driver-assigned {
+  background: var(--color-warning);
+  color: var(--color-ivory);
+  border-color: var(--color-warning);
+}
+
+.status-chip.is-flights-booked {
+  background: var(--color-muted);
+  color: var(--color-ivory);
+  border-color: var(--color-muted);
+}
+
+@media (forced-colors: active) {
+  .status-chip {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
 }
 
 .price-total {
@@ -988,6 +3074,15 @@ html[lang="ar"] :where(h1, h2, h3) {
   display: flex;
   justify-content: space-between;
   border-block-end: 1px solid var(--color-border);
+}
+
+/* Comment 6: space between Deposit and Pay in full. Not #specimen-deposit. */
+.pay-cards {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--spacing-lg);
+  row-gap: var(--spacing-lg);
 }
 
 .phone-bar {
@@ -1003,6 +3098,8 @@ html[lang="ar"] :where(h1, h2, h3) {
 
 .video-frame {
   position: relative;
+  border-radius: var(--radius-control);
+  overflow: hidden;
 }
 
 .video-frame video {
@@ -1018,49 +3115,346 @@ html[lang="ar"] :where(h1, h2, h3) {
   min-block-size: 44px;
 }
 
-.whatsapp {
-  position: fixed;
-  z-index: 60;
-  inset-inline-end: calc(16px + env(safe-area-inset-inline-end));
-  bottom: calc(16px + env(safe-area-inset-bottom));
-  inline-size: 44px;
-  block-size: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: var(--color-whatsapp);
-  color: var(--color-fg);
-}
-
 .kit-section + .kit-section {
-  border-block-start: 1px solid var(--color-accent);
+  border-block-start: 0;
 }
 
+.kit-section h2 {
+  margin: 0;
+}
+
+/* Comment 10 nav currency + language dropdowns.
+   Overlap avoided: .ui-select, .ui-select-boxed, .overlay-panel, .ui-select-menu
+   (Comment 6 / select.tsx — not edited). .nav-menu desktop hide in the 48rem
+   group is not edited. Replaces the three-button .locale-switch color rules. */
 .nav-tools {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  flex: 0 0 auto;
+  gap: var(--spacing-md);
   margin-inline-start: auto;
+}
+
+.nav-tools .nav-drop {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.nav-tools .nav-drop-trigger {
+  display: inline-flex;
+  align-items: stretch;
+  min-block-size: 44px;
+  padding: 0;
+  padding-inline-start: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-fg);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.nav-tools .nav-drop-name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.nav-tools .nav-drop-value {
+  display: flex;
+  align-items: center;
+  padding-inline-end: var(--spacing-sm);
+}
+
+.nav-tools .nav-drop-icon {
+  display: grid;
+  flex: 0 0 44px;
+  place-items: center;
+  inline-size: 44px;
+  border-inline-start: 1px solid var(--color-border);
+  background: var(--color-ivory);
+  color: var(--color-teal);
+}
+
+.nav-tools .nav-drop-icon svg {
+  display: block;
+  transform: rotate(90deg);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.nav-tools .nav-drop-trigger[aria-expanded="true"] {
+  border-color: var(--color-heading);
+}
+
+.nav-tools .nav-drop-trigger[aria-expanded="true"] .nav-drop-icon {
+  border-inline-start-color: var(--color-heading);
+  background: var(--color-accent);
+  color: var(--color-heading);
+}
+
+.nav-tools .nav-drop-panel {
+  position: absolute;
+  z-index: 5;
+  inset-inline-start: 0;
+  inset-block-start: calc(100% + 4px);
+  inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: none;
+  transform-origin: top center;
+  transition-property: opacity, visibility;
+  transition-duration: var(--duration-fast), 0s;
+  transition-timing-function: var(--ease-standard), linear;
+  transition-delay: 0s, var(--duration-fast);
+}
+
+.nav-tools .nav-drop-panel.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s, 0s;
+}
+
+.nav-tools .nav-drop-option {
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding-inline: var(--spacing-md);
+  border: 0;
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-fg);
+  font-family: inherit;
+  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  text-align: start;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.nav-tools .nav-drop-option[aria-selected="true"] {
+  background: var(--color-ivory);
+  color: var(--color-teal);
+  box-shadow: inset 3px 0 0 var(--color-gold);
+}
+
+[dir="rtl"] .nav-tools .nav-drop-option[aria-selected="true"] {
+  box-shadow: inset -3px 0 0 var(--color-gold);
+}
+
+@media (hover: hover) {
+  .nav-tools .nav-drop-trigger:hover {
+    border-color: var(--color-heading);
+  }
+
+  .nav-tools .nav-drop-option:hover {
+    background: var(--color-ivory);
+    color: var(--color-teal);
+  }
+}
+
+.nav-tools .nav-drop-option:focus-visible {
+  background: var(--color-ivory);
+  color: var(--color-teal);
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+/* Currency open: 150ms, existing ease. Language shares it so the pair matches. */
+@media (prefers-reduced-motion: no-preference) {
+  .nav-tools .nav-drop-panel {
+    transform: translateY(-4px);
+    transition-property: opacity, transform, visibility;
+    transition-duration: var(--duration-fast), var(--duration-fast), 0s;
+    transition-timing-function: var(--ease-standard), var(--ease-standard), linear;
+    transition-delay: 0s, 0s, var(--duration-fast);
+  }
+
+  .nav-tools .nav-drop-panel.is-open {
+    transform: translateY(0);
+    transition-delay: 0s, 0s, 0s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-tools .nav-drop-panel,
+  .nav-tools .nav-drop-icon svg {
+    transform: none;
+    transition-property: opacity;
+    transition-duration: var(--duration-fast);
+    transition-timing-function: var(--ease-standard);
+    transition-delay: 0s;
+    animation: none;
+  }
+
+  .nav-tools .nav-drop-icon svg {
+    transform: rotate(90deg);
+  }
+}
+
+@media (max-width: 23.99rem) {
+  .nav-tools {
+    gap: var(--spacing-xs);
+  }
+
+  .nav-tools .nav-drop-trigger {
+    padding-inline-start: var(--spacing-sm);
+  }
+
+  .nav-tools .nav-drop-icon {
+    flex-basis: 32px;
+    inline-size: 32px;
+  }
 }
 
 .ui-chip.is-muted {
   color: var(--color-muted-fg);
 }
 
+/* Comment 15 team cards. Live about profile: portrait, name, uppercase role, links under the title.
+   Overlap avoided: .team-name is grouped with .display-name and .faq-question below — that shared rule is not edited. */
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 392px));
+  justify-content: start;
   gap: 32px;
+}
+
+.team-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+  max-width: 392px;
+  margin: 0;
+  border-radius: 0;
 }
 
 .team-portrait {
   display: block;
   width: 100%;
-  height: 420px;
+  aspect-ratio: 392 / 420;
+  height: auto;
   object-fit: cover;
+  object-position: center;
   border-radius: 0;
   outline: 1px solid oklch(0 0 0 / 0.1);
+}
+
+.team-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+}
+
+.team-card .team-name {
+  margin: 0;
+  color: var(--color-heading);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.team-role {
+  margin: 0;
+  color: var(--color-heading);
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.team-socials {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--spacing-lg);
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.team-socials li {
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.team-social {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-heading);
+  text-decoration: none;
+}
+
+.team-social svg {
+  flex: none;
+  display: block;
+  border-radius: 0;
+}
+
+@media (hover: hover) {
+  .team-social:hover {
+    color: var(--color-muted-fg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .team-social {
+    transition-property: color;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-standard);
+  }
+}
+
+@media (forced-colors: active) {
+  .team-social {
+    border: 0;
+    background: transparent;
+    color: LinkText;
+  }
+
+  .team-portrait {
+    outline-color: CanvasText;
+  }
 }
 
 .team-name,
@@ -1076,33 +3470,221 @@ html[lang="ar"] :where(h1, h2, h3) {
   aspect-ratio: 16 / 9;
   object-fit: cover;
   outline: 1px solid oklch(0 0 0 / 0.1);
+  border-radius: var(--radius-control);
 }
 
 .package-row {
   display: grid;
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17.5rem), 1fr));
+  gap: 24px;
 }
 
-.destination-card {
-  position: relative;
-  min-block-size: 12rem;
-}
-
-.destination-card img {
-  display: block;
-  width: 100%;
-  block-size: 12rem;
-  object-fit: cover;
-}
-
-.destination-card p {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-end: 0;
+/* Comment 8 package card. Overlap: catalog-frames.tsx Package frame only.
+   Story and Destination frames in that file are not edited. .kit-section,
+   .ui-button, and .media-16x9 are not edited. Square. No gold border. */
+.package-card {
+  display: flex;
+  flex-flow: column;
+  align-items: stretch;
+  min-inline-size: 0;
+  inline-size: 100%;
   margin: 0;
-  padding: var(--spacing-md);
-  background: var(--color-fg);
-  color: var(--color-bg);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-surface);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.package-card-photo {
+  display: block;
+  flex: none;
+  inline-size: 100%;
+  block-size: 280px;
+  object-fit: cover;
+  object-position: center;
+  border: 0;
+  border-radius: 0;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+}
+
+.package-card-body {
+  display: flex;
+  flex-flow: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding-block: 24px 28px;
+  padding-inline: 24px;
+}
+
+.package-card-copy {
+  display: flex;
+  flex-flow: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.package-card-name {
+  margin: 0;
+  color: var(--color-heading);
+  font-family: var(--font-questa), Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+html[lang="ar"] .package-card-name {
+  font-family: var(--font-noto-naskh), var(--font-questa), Georgia, serif;
+}
+
+.package-card-line,
+.package-card-price {
+  margin: 0;
+  color: var(--color-fg);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.package-card-line {
+  max-inline-size: 36ch;
+  text-wrap: pretty;
+}
+
+.package-card-price {
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.package-card .package-card-action {
+  align-self: flex-start;
+  justify-self: start;
+  flex: 0 0 auto;
+  inline-size: max-content;
+  width: max-content;
+  max-inline-size: 100%;
+  border-radius: 0;
+}
+
+/* Comment 18 destination card. Overlap: catalog-frames.tsx Destination
+   frame only. FAQ frame in that file is not edited. */
+.destination-card {
+  display: flex;
+  flex-flow: row;
+  align-items: stretch;
+  inline-size: 100%;
+  block-size: 800px;
+  overflow: hidden;
+  border-radius: 0;
+  background: #ecf2f2;
+}
+
+.destination-card > img {
+  display: block;
+  flex: 1 1 0;
+  min-inline-size: 0;
+  inline-size: 1px;
+  block-size: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0;
+}
+
+.destination-card-panel {
+  display: flex;
+  flex: 1 1 0;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  min-inline-size: 0;
+  inline-size: 1px;
+  block-size: 100%;
+  padding: 0;
+  background: #ecf2f2;
+}
+
+.destination-card-panel h3 {
+  inline-size: 100%;
+  max-inline-size: 240px;
+  margin: 0;
+  font-size: var(--text-heading);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  text-align: center;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.destination-card-panel img {
+  display: block;
+  flex: none;
+  inline-size: 200px;
+  block-size: 220px;
+  max-inline-size: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0;
+}
+
+.destination-card-line,
+.destination-card-nights {
+  margin: 0;
+  font-size: var(--text-label);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.destination-card-line {
+  max-inline-size: 300px;
+  color: var(--color-heading);
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+
+.destination-card-nights {
+  max-inline-size: 400px;
+  color: #8c672b;
+  white-space: nowrap;
+}
+
+@media (max-width: 1439px) and (min-width: 810px) {
+  .destination-card-panel h3 {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 809px) {
+  .destination-card {
+    flex-direction: column;
+    block-size: auto;
+  }
+
+  .destination-card > img {
+    flex: none;
+    inline-size: 100%;
+    block-size: 400px;
+  }
+
+  .destination-card-panel {
+    flex: none;
+    inline-size: 100%;
+    block-size: auto;
+    gap: 20px;
+    padding: 20px;
+    background: var(--color-bg);
+  }
+
+  .destination-card-panel h3 {
+    max-inline-size: none;
+    font-size: 24px;
+  }
 }
 
 .legal-copy {
@@ -1128,25 +3710,52 @@ html[lang="ar"] :where(h1, h2, h3) {
 }
 
 .map-panel {
-  min-block-size: 12rem;
-  background: var(--color-bg);
   display: grid;
-  place-items: center;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-self: start;
+  inline-size: min(100%, 448px);
+  max-inline-size: 448px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--color-bg);
   color: var(--color-fg);
+  border-radius: 0;
 }
 
-.map-pin {
-  inline-size: 12px;
-  block-size: 12px;
-  border-radius: 50%;
-  background: var(--color-heading);
+.map-panel img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  min-block-size: 0;
+  border: 0;
+  border-radius: 0;
+  object-fit: contain;
+  object-position: center;
 }
 
+.map-panel p {
+  grid-row: 2;
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+}
+
+/* Comment 29. Fit the label and the button, not the section column.
+   Overlap: .kit-section is display:grid, so a block child stretches.
+   justify-self: start and inline-size: fit-content cancel that stretch.
+   The button is not edited. It stays label-width, square, and not
+   gold-filled. Do not set it to 100% of this box or the column.
+   border-radius: 0. --radius-control stays 0. */
 .upload-drop {
-  border: 1px dashed var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-self: start;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  border: 1px dashed var(--color-heading);
   background: var(--color-surface);
   padding: var(--spacing-lg);
-  outline: 1px dashed var(--color-fg);
+  border-radius: 0;
 }
 
 .ops-table {
@@ -1200,6 +3809,9 @@ html[lang="ar"] :where(h1, h2, h3) {
 .heart-saved {
   color: var(--color-accent);
   min-block-size: 44px;
+  width: max-content;
+  max-width: 100%;
+  justify-self: start;
   background: transparent;
   border: 0;
 }
@@ -1209,27 +3821,2363 @@ html[lang="ar"] :where(h1, h2, h3) {
   min-block-size: 44px;
   display: inline-flex;
   align-items: center;
+  width: max-content;
+  max-width: 100%;
+  justify-self: start;
 }
 
+/* Comment 38. The pale bar is gone. Previous and next sit on the side edges
+   of the stay photo; close sits in its lower trailing corner. Square,
+   radius 0. One inset focus edge, no border.
+   Overlap: replaces the Comment 11 .photo-viewer block in app/globals.css.
+   Other workers may edit this file. .media-16x9, .ui-button, .icon-button,
+   .icon-back, .icon-forward, and the global :focus-visible rule are not
+   edited. Selectors stay under .photo-viewer. */
 .photo-viewer {
-  background: var(--color-bg);
-  padding: var(--spacing-md);
+  position: relative;
+  display: block;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.photo-viewer-controls {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  pointer-events: none;
+}
+
+.photo-viewer-control {
+  pointer-events: auto;
+  position: absolute;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  appearance: none;
+  background: var(--color-surface);
+  color: var(--color-heading);
+  line-height: 0;
+  cursor: pointer;
+}
+
+.photo-viewer-prev {
+  inset-inline-start: 0;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+}
+
+.photo-viewer-next {
+  inset-inline-end: 0;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+}
+
+.photo-viewer-close {
+  inset-inline-end: 0;
+  inset-block-end: 0;
+  margin: 0;
+}
+
+.photo-viewer-control svg {
+  display: block;
+  pointer-events: none;
+}
+
+.photo-viewer-control:focus-visible {
+  background: var(--color-surface);
+  color: var(--color-heading);
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+@media (hover: hover) {
+  .photo-viewer-control:hover {
+    background: var(--color-accent);
+    color: var(--color-heading);
+  }
+
+  .photo-viewer-control:hover:focus-visible {
+    background: var(--color-surface);
+    color: var(--color-heading);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .photo-viewer-control {
+    transition-property: scale, background-color, color;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .photo-viewer-control:active {
+    scale: 0.96;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-viewer-control {
+    transition-property: opacity;
+    transition-duration: 150ms;
+  }
+
+  .photo-viewer-control:active {
+    opacity: 0.85;
+  }
+}
+
+@media (forced-colors: active) {
+  .photo-viewer-control {
+    forced-color-adjust: none;
+    border: 0;
+    background: ButtonFace;
+    color: ButtonText;
+  }
+
+  .photo-viewer-control:focus-visible,
+  .photo-viewer-control:hover:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: -2px;
+    background: ButtonFace;
+    color: ButtonText;
+  }
 }
 
 .nights-count {
+  display: inline-flex;
+  align-items: center;
+  align-self: end;
+  min-block-size: 44px;
+  font-family: var(--font-body);
+  font-size: 16px;
   font-variant-numeric: tabular-nums;
   color: var(--color-fg);
-  font-family: var(--font-body);
+  white-space: nowrap;
+}
+
+/* Comment 12. Arrive, the night count, and Leave sit above CalendarPanel,
+   the same branded picker the hero booker uses. Square inputs, 16px text.
+   Does not restyle .calendar-day. */
+.nights-row {
+  align-items: start;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.nights-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px 16px;
+  max-inline-size: 100%;
+}
+
+.nights-field {
+  display: grid;
+  gap: 4px;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.nights-field span {
+  color: var(--color-heading);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.nights-field input {
+  box-sizing: border-box;
+  inline-size: 11rem;
+  max-inline-size: 100%;
+  min-block-size: 44px;
+  padding-inline: 12px;
+  border: 1px solid var(--color-heading);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-fg);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  appearance: none;
+}
+
+.nights-calendar {
+  flex: 1 1 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  overscroll-behavior: contain;
 }
 
 .inclusion-list {
   font-family: var(--font-body);
 }
 
+/* Comment 9 FAQ. Framer Stays/Policy Accordion on /private-stays/:Private Stays.
+   Hairline is Teal 200. Plus is Phosphor Regular, rotated 45deg when open.
+   Shared .team-name, .display-name, .faq-question font rule is not edited;
+   this later rule sets Body LG (Lato) for the question only. */
+.faq-list {
+  border-block-start: 1px solid #d1dfe0;
+  border-radius: 0;
+}
+
+.faq-list > .faq-item {
+  border-block-end: 1px solid #d1dfe0;
+  border-radius: 0;
+}
+
+.faq-list h3 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
 .faq-question {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  inline-size: 100%;
+  max-inline-size: 100%;
   min-block-size: 44px;
-  background: transparent;
+  margin: 0;
+  padding: 20px 20px 20px 0;
   border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-heading);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.25px;
+  line-height: 1.4;
+  text-align: start;
+  cursor: pointer;
+}
+
+.faq-question:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.faq-question > span:first-child {
+  min-inline-size: 0;
+  text-wrap: balance;
+}
+
+.faq-answer {
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+  padding: 20px 20px 20px 0;
+  border-radius: 0;
+}
+
+.faq-answer[hidden] {
+  display: none;
+}
+
+.faq-rule {
+  flex: 0 0 1px;
+  inline-size: 1px;
+  background: #d1dfe0;
+  border-radius: 0;
+}
+
+.faq-list p {
+  max-inline-size: 65ch;
+  margin: 0;
+  padding: 0;
+  color: var(--color-heading);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+  text-align: start;
+  text-wrap: pretty;
+}
+
+.faq-question .faq-cue {
+  display: grid;
+  flex: 0 0 20px;
+  place-items: center;
+  inline-size: 20px;
+  block-size: 20px;
+  border: 0;
+  border-radius: 0;
+  color: var(--color-heading);
+}
+
+.faq-question .faq-cue svg {
+  display: block;
+  inline-size: 20px;
+  block-size: 20px;
+  fill: currentColor;
+  stroke: none;
+}
+
+.faq-question[aria-expanded="true"] .faq-cue {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .faq-question .faq-cue {
+    transition-property: transform;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+}
+
+@media (hover: hover) {
+  .faq-question:hover {
+    background: transparent;
+  }
+}
+
+@media (forced-colors: active) {
+  .faq-list,
+  .faq-list > .faq-item {
+    border-color: CanvasText;
+  }
+
+  .faq-rule {
+    background: CanvasText;
+  }
+
+  .faq-question:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
+}
+
+/* hero-search: comment 11 search bar. Append-only. Do not fold into .hero-booker. */
+.hero-booker.hero-search,
+.hero-booker.hero-search *,
+.hero-booker.hero-search *::before,
+.hero-booker.hero-search *::after {
+  box-sizing: border-box;
+}
+
+.hero-booker.hero-search {
+  display: block;
+  position: relative;
+  z-index: 20;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  max-inline-size: 100%;
+  background: transparent;
+  border-radius: 0;
   color: var(--color-fg);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.hero-search-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border: 1px solid var(--color-heading);
+  border-radius: 0;
+  background: var(--color-surface);
+}
+
+.hero-search-slot {
+  min-inline-size: 0;
+}
+
+.hero-search-slot + .hero-search-slot,
+.hero-search-submit {
+  border-block-start: 1px solid color-mix(in srgb, var(--color-heading) 18%, transparent);
+}
+
+.hero-search-segment,
+.hero-search-submit,
+.hero-search-option,
+.hero-search-step,
+.hero-search-textbtn,
+.hero-search-field input {
+  font: inherit;
+  border-radius: 0;
+}
+
+.hero-search-segment {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+  gap: 2px;
+  inline-size: 100%;
+  min-block-size: 64px;
+  padding-block: 10px;
+  padding-inline: 16px;
+  border: 0;
+  background: transparent;
+  color: var(--color-fg);
+  text-align: start;
+  cursor: pointer;
+}
+
+.hero-search-segment[aria-expanded="true"] {
+  background: var(--color-bg);
+  box-shadow: inset 0 -2px 0 var(--color-heading);
+}
+
+.hero-search-label,
+.hero-search-kicker {
+  color: var(--color-heading);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.hero-search-kicker,
+.hero-search-date,
+.hero-search-nights,
+.hero-search-guest-label,
+.hero-search-guest-hint,
+.hero-search-guest-note,
+.hero-search-empty p {
+  margin: 0;
+}
+
+.hero-search-value,
+.hero-search-date {
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.hero-search-value.is-empty,
+.hero-search-date.is-empty {
+  color: var(--color-muted-fg);
+}
+
+.hero-search-submit {
+  min-block-size: 48px;
+  padding-block: 12px;
+  padding-inline: 24px;
+  border: 0;
+  background: var(--color-accent);
+  color: var(--color-heading);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.hero-search-submit:active {
+  background: var(--color-accent-press);
+}
+
+.hero-search-panel {
+  margin: 0;
+  padding: 16px;
+  border: 0;
+  border-block-start: 1px solid color-mix(in srgb, var(--color-heading) 18%, transparent);
+  border-radius: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  box-shadow: none;
+}
+
+.hero-search-field {
+  display: grid;
+  gap: 4px;
+  margin-block-end: 12px;
+}
+
+.hero-search-field span {
+  color: var(--color-heading);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.hero-search-field input {
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding-inline: 12px;
+  border: 1px solid var(--color-heading);
+  background: var(--color-surface);
+  color: var(--color-fg);
+  font-size: 16px;
+}
+
+.hero-search-options {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-search-option {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+  gap: 2px;
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding-block: 8px;
+  padding-inline: 12px;
+  border: 0;
+  background: transparent;
+  color: var(--color-fg);
+  font-size: 16px;
+  line-height: 1.4;
+  text-align: start;
+  cursor: pointer;
+}
+
+.hero-search-option[aria-pressed="true"] {
+  background: var(--color-surface);
+  border-inline-start: 3px solid var(--color-accent);
+  padding-inline-start: 9px;
+}
+
+.hero-search-region,
+.hero-search-guest-hint,
+.hero-search-guest-note {
+  color: var(--color-muted-fg);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.hero-search-empty {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.hero-search-empty p {
+  text-wrap: pretty;
+}
+
+.hero-search-range {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  margin-block-end: 12px;
+}
+
+.hero-search-nights,
+.hero-search-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-search-nights {
+  margin-block-end: 8px;
+}
+
+.hero-search-dates {
+  max-inline-size: 100%;
+  overflow-x: auto;
+  overscroll-behavior: contain;
+}
+
+.hero-search-guests {
+  display: grid;
+  gap: 8px;
+}
+
+.hero-search-guest {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 16px;
+  row-gap: 2px;
+  align-items: center;
+  padding-block: 4px;
+}
+
+.hero-search-guest-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.hero-search-guest-label {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.hero-search-steps {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.hero-search-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  padding: 0;
+  border: 1px solid var(--color-heading);
+  background: transparent;
+  color: var(--color-heading);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hero-search-step:disabled {
+  border-color: color-mix(in srgb, var(--color-heading) 28%, transparent);
+  color: var(--color-muted-fg);
+  cursor: default;
+}
+
+.hero-search-count {
+  min-inline-size: 1.5rem;
+  text-align: center;
+  line-height: 1;
+}
+
+.hero-search-guest-note {
+  grid-column: 1 / -1;
+}
+
+.hero-search-panel-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 12px;
+  margin-block-start: 16px;
+}
+
+.hero-search-textbtn {
+  min-block-size: 44px;
+  padding-inline: 16px;
+  border: 1px solid var(--color-heading);
+  background: transparent;
+  color: var(--color-heading);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.hero-search-textbtn:disabled {
+  border-color: color-mix(in srgb, var(--color-heading) 28%, transparent);
+  color: var(--color-muted-fg);
+  cursor: default;
+}
+
+.hero-search-live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.hero-search-notice {
+  margin: 8px 0 0;
+  color: var(--color-fg);
+  font-size: 14px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.hero-search-notice:empty {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 48rem) {
+  .hero-search-bar {
+    flex-direction: row;
+    align-items: stretch;
+    padding-inline-end: 8px;
+  }
+
+  .hero-search-slot {
+    position: relative;
+    flex: 1 1 0;
+  }
+
+  .hero-search-slot + .hero-search-slot {
+    border-block-start: 0;
+    border-inline-start: 1px solid color-mix(in srgb, var(--color-heading) 18%, transparent);
+  }
+
+  .hero-search-submit {
+    align-self: center;
+    flex: 0 0 auto;
+    min-inline-size: 7rem;
+    margin-block: 8px;
+    margin-inline-start: 8px;
+    border-block-start: 0;
+  }
+
+  .hero-search-panel {
+    position: absolute;
+    z-index: 2;
+    inset-block-start: calc(100% + 8px);
+    border: 1px solid var(--color-heading);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-overlay);
+  }
+
+  .hero-search-slot[data-slot="where"] .hero-search-panel {
+    inset-inline-start: 0;
+    inline-size: min(22rem, 70vw);
+  }
+
+  .hero-search-slot[data-slot="when"] .hero-search-panel {
+    inset-inline-start: 0;
+    inline-size: min(28rem, calc(100vw - 2rem));
+  }
+
+  .hero-search-slot[data-slot="guests"] .hero-search-panel {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    inline-size: min(22rem, 70vw);
+  }
+}
+
+@media (hover: hover) {
+  .hero-search-segment:hover,
+  .hero-search-option:hover,
+  .hero-search-textbtn:hover:not(:disabled),
+  .hero-search-step:hover:not(:disabled) {
+    background: var(--color-bg);
+  }
+
+  .hero-search-submit:hover {
+    background: var(--color-accent-hover);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .hero-search-segment,
+  .hero-search-option,
+  .hero-search-step,
+  .hero-search-textbtn {
+    transition-property: background-color, color, border-color;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .hero-search-submit {
+    transition-property: scale, background-color;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .hero-search-submit:active {
+    scale: 0.96;
+  }
+}
+
+@media (forced-colors: active) {
+  .hero-search-bar,
+  .hero-search-panel,
+  .hero-search-field input,
+  .hero-search-step,
+  .hero-search-textbtn,
+  .hero-search-submit {
+    border: 1px solid ButtonText;
+  }
+
+  .hero-search-submit {
+    background: ButtonFace;
+    color: ButtonText;
+  }
+}
+
+/* Add-on only (comment 14). Overlaps, not edited:
+   .stay-row/.addon flex, .addon.is-on border,
+   .stay-photo/.addon-photo outline + object-fit + radius token,
+   .addon-photo { inline-size: 100%; aspect-ratio: 16/9 },
+   .card-pulse min-block-size, global h3 size, .choice label layout.
+   Stay-row and other specimens keep those shared rules. */
+.addon-list {
+  container-type: inline-size;
+  container-name: addon;
+  display: grid;
+  gap: var(--spacing-xl);
+}
+
+.addon-choices {
+  display: grid;
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-heading) 22%, var(--color-ivory));
+  border-radius: 0;
+}
+
+.addon {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--spacing-md);
+  min-inline-size: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding-inline-end: var(--spacing-md);
+}
+
+.addon + .addon {
+  border-block-start: 1px solid color-mix(in srgb, var(--color-heading) 18%, var(--color-ivory));
+}
+
+.addon.is-on {
+  position: relative;
+  border: 0;
+  border-block-start: 0;
+  background: color-mix(in srgb, var(--color-gold) 8%, var(--color-surface));
+}
+
+.addon.is-on + .addon {
+  border-block-start: 1px solid color-mix(in srgb, var(--color-heading) 18%, var(--color-ivory));
+}
+
+.addon.is-on::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 4px;
+  background: var(--color-heading);
+  pointer-events: none;
+}
+
+.addon-photo {
+  display: block;
+  flex: 0 0 4.5rem;
+  inline-size: 4.5rem;
+  block-size: 4.5rem;
+  max-inline-size: 4.5rem;
+  max-block-size: 4.5rem;
+  min-inline-size: 0;
+  min-block-size: 0;
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: center 42%;
+  border-radius: 0;
+  align-self: center;
+}
+
+.addon-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(6.5rem, max-content) auto;
+  align-items: center;
+  column-gap: var(--spacing-md);
+  min-inline-size: 0;
+  padding-block: var(--spacing-sm);
+}
+
+.addon-title {
+  margin: 0;
+  min-inline-size: 0;
+  color: var(--color-heading);
+  font-family: var(--font-questa), Georgia, serif;
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+.addon-price {
+  margin: 0;
+  justify-self: end;
+  min-inline-size: 6.5rem;
+  color: var(--color-fg);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: end;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.addon-choice {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  min-inline-size: 4.25rem;
+}
+
+.addon-lock {
+  flex: 0 0 auto;
+  color: var(--color-heading);
+}
+
+.addon .choice {
+  justify-content: center;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+}
+
+.addon .choice > span:last-child {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.addon-skeleton-label {
+  margin: 0;
+  color: var(--color-fg);
+  font-size: var(--text-label);
+  font-weight: 400;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.addon-list .skeleton-row {
+  display: block;
+  max-inline-size: 100%;
+  border: 1px solid color-mix(in srgb, var(--color-heading) 22%, var(--color-ivory));
+  border-radius: 0;
+  background: var(--color-surface);
+}
+
+.addon-list .card-pulse {
+  min-block-size: 4.5rem;
+  max-block-size: 4.5rem;
+  margin: 0;
+}
+
+@container addon (max-width: 36rem) {
+  .addon,
+  .addon-main {
+    column-gap: var(--spacing-sm);
+  }
+
+  .addon {
+    padding-inline-end: var(--spacing-sm);
+  }
+
+  .addon-photo {
+    flex-basis: 3.5rem;
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
+    max-inline-size: 3.5rem;
+    max-block-size: 3.5rem;
+  }
+
+  .addon-title {
+    font-size: 1.125rem;
+  }
+
+  .addon-price {
+    min-inline-size: 0;
+  }
+
+  .addon-choice {
+    min-inline-size: 44px;
+  }
+}
+
+@media (hover: hover) {
+  .addon:not(.is-on):hover {
+    background: var(--color-bg);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .addon {
+    transition-property: background-color;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+}
+
+@media (forced-colors: active) {
+  .addon-choices,
+  .addon + .addon,
+  .addon-list .skeleton-row {
+    border-color: CanvasText;
+  }
+
+  .addon.is-on::after {
+    background: Highlight;
+  }
+}
+
+/* Comment 13. Pay and continue buttons fit the label, not the column.
+   Overlap: Comment 20 sets .ui-button and .ui-button-primary to
+   width: max-content. This block is more specific and agrees — it does
+   not restore width: 100%. Sign in, Save, Send, Search, Edit, and every
+   other .ui-button size the same way. justify-self still cancels
+   .kit-section grid stretch. The disabled Save in #button is no longer
+   left full width; the base rule sizes it. */
+.phone-bar > .ui-button-primary,
+.review-frame > .ui-button-primary,
+#stripe > .ui-button-primary,
+#pay-the-difference > .ui-button-primary,
+#pay-the-remainder > .ui-button-primary,
+#button .specimen-row > .ui-button-primary:first-child,
+#button .specimen-row > .ui-button-primary:last-child {
+  width: max-content;
+  max-width: 100%;
+  flex: 0 0 auto;
+  justify-self: start;
+  min-inline-size: 44px;
+  white-space: nowrap;
+}
+
+.frk {
+  background: #fffaf0;
+  color: #1f3b40;
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.frk-skip {
+  position: absolute;
+  left: 16px;
+  top: 8px;
+  transform: translateY(-120%);
+}
+
+.frk-skip:focus {
+  transform: none;
+  z-index: 5;
+}
+
+.frk-shell {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 32px;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.frk-side {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.frk-side-title,
+.frk-kicker {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.frk-side ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.frk-side a {
+  color: #1f3b40;
+  text-decoration: none;
+}
+
+.frk-side a:focus-visible,
+.frk a:focus-visible,
+.frk button:focus-visible {
+  outline: 2px solid #1f3b40;
+  outline-offset: 2px;
+}
+
+.frk-main {
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+  min-width: 0;
+  max-width: 1120px;
+}
+
+.frk-page-head h1,
+.frk-section h2,
+.frk-display,
+.frk-h4,
+.frk-name {
+  font-family: var(--font-questa), Georgia, serif;
+  font-weight: 400;
+  color: #1f3b40;
+  text-wrap: balance;
+}
+
+.frk-page-head h1 {
+  margin: 8px 0 0;
+  font-size: 64px;
+  line-height: 1.1;
+}
+
+.frk-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+}
+
+.frk-section h2 {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+.frk-sub,
+.frk-type p,
+.frk-dest p,
+.frk-role {
+  margin: 0;
+  max-width: 65ch;
+  text-wrap: pretty;
+}
+
+.frk-logos,
+.frk-stays,
+.frk-team,
+.frk-socials {
+  list-style: none;
+  margin: 0;
   padding: 0;
 }
+
+.frk-logos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.frk-logos li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 168px;
+  padding: 12px;
+  background: #fffaf0;
+  border: 1px solid #d1dfe0;
+}
+
+.frk-logos li.is-dark {
+  background: #1f3b40;
+  color: #fffaf0;
+}
+
+.frk-logos span {
+  font-size: 14px;
+}
+
+.frk-logo {
+  width: 140px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.frk-hero {
+  position: relative;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #fffaf0;
+}
+
+.frk-hero > img,
+.frk-stays img,
+.frk-dest > img,
+.frk-team img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  outline: 1px solid rgb(0 0 0 / 0.1);
+}
+
+.frk-hero > img {
+  position: absolute;
+  inset: 0;
+}
+
+.frk-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.1) 60%, transparent);
+}
+
+.frk-header,
+.frk-hero-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.frk-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 44px;
+}
+
+.frk-header nav {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.frk-header a {
+  color: #fffaf0;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.frk-hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 48px 44px;
+}
+
+.frk-hero-copy p {
+  margin: 0;
+}
+
+.frk-display {
+  font-size: 64px;
+  line-height: 1.1;
+  color: #fffaf0;
+}
+
+.frk-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.frk-btn,
+.frk-form,
+.frk-link,
+.frk-icon {
+  width: max-content;
+  max-width: 100%;
+  border-radius: 0;
+  text-decoration: none;
+}
+
+.frk-btn,
+.frk-form {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 14px 28px;
+  border: 0.5px solid #d4ba8a;
+  background: #fffaf0;
+  color: #1f3b40;
+  font: inherit;
+  cursor: pointer;
+}
+
+.frk-btn:hover,
+.frk-form:hover {
+  background: #1f3b40;
+  color: #fffaf0;
+}
+
+.frk-form {
+  width: 240px;
+  height: 48px;
+  padding: 0 16px;
+  background: #d4ba8a;
+  border-color: #d4ba8a;
+}
+
+.frk-form.is-loading,
+.frk-form.is-ok,
+.frk-form:disabled {
+  background: #1f3b40;
+  color: #fffaf0;
+  border-color: #1f3b40;
+}
+
+.frk-form:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.frk-form.is-err {
+  background: rgb(130, 40, 48);
+  border-color: rgb(130, 40, 48);
+  color: #fffaf0;
+}
+
+.frk-link {
+  color: #1f3b40;
+  border-bottom: 1px solid #1f3b40;
+  padding-bottom: 2px;
+}
+
+.frk-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #1f3b40;
+  color: #fffaf0;
+}
+
+.frk-h4 {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+.frk-stays,
+.frk-team {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.frk-stays a,
+.frk-team li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.frk-stays img {
+  aspect-ratio: 730 / 600;
+}
+
+.frk-team img {
+  width: 100%;
+  height: 420px;
+}
+
+.frk-name {
+  margin: 8px 0 0;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.frk-role {
+  font-size: 14px;
+}
+
+.frk-dest {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+}
+
+.frk-dest img {
+  aspect-ratio: 600 / 400;
+}
+
+.frk-dest div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.frk-socials {
+  display: flex;
+  gap: 24px;
+}
+
+.frk-socials a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: #1f3b40;
+}
+
+.frk-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #d1dfe0;
+}
+
+.frk-footer div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.frk-footer a {
+  color: #1f3b40;
+}
+
+@media (max-width: 47.99rem) {
+  .frk-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .frk-side {
+    position: static;
+  }
+
+  .frk-header,
+  .frk-hero-copy {
+    padding-inline: 20px;
+  }
+
+  .frk-display,
+  .frk-page-head h1 {
+    font-size: 40px;
+  }
+
+  .frk-stays,
+  .frk-team,
+  .frk-dest {
+    grid-template-columns: 1fr;
+  }
+
+  .frk-team img {
+    height: 320px;
+  }
+}
+
+/* Comment 3 reflow. Layout only: stack, wrap, contain. Does not restyle
+   .calendar-day. Does not change wordmark image sources. */
+
+.icon-row {
+  flex-wrap: wrap;
+  max-inline-size: 100%;
+}
+
+.kit-section,
+.kit-chapter,
+.kit-head,
+.date-range,
+.calendar {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.calendar {
+  overflow-x: auto;
+}
+
+@media (max-width: 47.99rem) {
+  .site-nav:not(.is-menu) .nav-tools {
+    display: none;
+  }
+
+  .date-pair {
+    flex-direction: column;
+    align-items: stretch;
+    max-inline-size: 100%;
+  }
+
+  .date-pair label,
+  .date-pair input {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    inline-size: 100%;
+  }
+
+  .date-pair input {
+    min-block-size: 44px;
+    font-size: 16px;
+  }
+
+  .date-range > button,
+  .date-range .ui-button {
+    align-self: start;
+    inline-size: max-content;
+    max-inline-size: 100%;
+  }
+
+  .site-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer-col,
+  .newsletter-error,
+  .newsletter-row {
+    max-inline-size: 100%;
+    min-inline-size: 0;
+  }
+
+  .footer-col a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .kit-bar h1 {
+    font-size: 40px;
+  }
+
+  .field-control input,
+  .field-control textarea,
+  .date-pair input,
+  .date-check-input,
+  .newsletter-row input,
+  .hero-search-field input {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 74.99rem) {
+  .field-control input,
+  .field-control textarea,
+  .date-pair input,
+  .date-check-input,
+  .newsletter-row input,
+  .hero-search-field input {
+    font-size: 16px;
+  }
+
+  .kit-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kit-side {
+    position: static;
+    z-index: 4;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 8px;
+    max-block-size: none;
+    max-height: none;
+    max-inline-size: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    padding-block: 0;
+    border-block-end: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+
+  .kit-side-group {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+  }
+
+  .kit-side a,
+  .kit-side-label {
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    min-block-size: 44px;
+    padding-inline: 12px;
+    border-radius: 0;
+    white-space: nowrap;
+  }
+
+  .hero-search-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-search-slot + .hero-search-slot {
+    border-inline-start: 0;
+  }
+
+  .hero-search-submit {
+    align-self: start;
+    inline-size: max-content;
+    max-inline-size: 100%;
+    margin: 8px;
+  }
+
+  .stay-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 48rem) and (max-width: 74.99rem) {
+  .stay-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .site-footer {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+}
+
+/* Comment 7. Sign out and Cancel sit together, same width, square.
+   Overlap: .kit-section is display:grid with gap spacing-lg, so the two
+   buttons were separate rows and each sized to its own label.
+   Overlap: .ui-button { width: max-content; justify-self: start } is less
+   specific than #sign-out .sign-out-actions > .ui-button. The row is
+   max-content, so the pair does not fill the section column.
+   1fr 1fr on that shrink-wrapped row equals the longer label.
+   Delete account and Cancel booking are not this frame and are not edited.
+   --radius-control stays 0. This pair sets border-radius: 0 anyway. */
+#sign-out .sign-out-actions {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+  justify-self: start;
+  align-items: stretch;
+  width: max-content;
+  max-width: 100%;
+  border-radius: 0;
+}
+
+#sign-out .sign-out-actions > .ui-button {
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
+  border-radius: 0;
+  white-space: nowrap;
+}
+
+/* Comment 16. #specimen-deposit is a tab, not priced checkboxes.
+   Overlap: .pay-cards is not edited. Price stays on the price frame.
+   Overlap: .ui-button and .kit-control are not edited. These rules are
+   more specific than :focus-visible only by repeating the same ring.
+   --radius-control stays 0. These controls set border-radius: 0 anyway. */
+#specimen-deposit .deposit-tabs {
+  display: grid;
+  gap: var(--spacing-md);
+  justify-self: start;
+  inline-size: min(28rem, 100%);
+  border-radius: 0;
+}
+
+#specimen-deposit .deposit-tablist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  border-radius: 0;
+}
+
+#specimen-deposit .deposit-tab {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  padding-block: var(--spacing-sm);
+  padding-inline: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-heading);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: var(--text-label);
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+  text-wrap: balance;
+  cursor: pointer;
+}
+
+#specimen-deposit .deposit-tab[aria-selected="true"] {
+  background: var(--color-heading);
+  border-color: var(--color-heading);
+  color: var(--color-ivory);
+  font-weight: 700;
+}
+
+#specimen-deposit .deposit-tab:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+#specimen-deposit .deposit-panel {
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  padding: var(--spacing-md);
+}
+
+#specimen-deposit .deposit-panel[hidden] {
+  display: none;
+}
+
+#specimen-deposit .deposit-panel p {
+  margin: 0;
+  max-inline-size: 65ch;
+  color: var(--color-fg);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  #specimen-deposit .deposit-tab {
+    transition-property: background-color, color, border-color;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-standard);
+  }
+}
+
+@media (hover: hover) {
+  #specimen-deposit .deposit-tab:hover {
+    background: var(--color-bg);
+    border-color: var(--color-heading);
+  }
+
+  #specimen-deposit .deposit-tab[aria-selected="true"]:hover {
+    background: var(--color-heading);
+    color: var(--color-ivory);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #specimen-deposit .deposit-tab {
+    transition-property: opacity;
+    transition-duration: 150ms;
+  }
+}
+
+@media (forced-colors: active) {
+  #specimen-deposit .deposit-tab {
+    background: ButtonFace;
+    color: ButtonText;
+    border-color: ButtonText;
+  }
+
+  #specimen-deposit .deposit-tab[aria-selected="true"] {
+    background: Highlight;
+    color: HighlightText;
+    border-color: Highlight;
+    font-weight: 700;
+  }
+
+  #specimen-deposit .deposit-tab:focus-visible {
+    outline: 2px solid CanvasText;
+  }
+
+  #specimen-deposit .deposit-panel {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
+}
+
+/* Comment 13. #specimen-experiences is a result list, not Search + Boat + Airport transfer.
+   Other catalog frames are not edited. Square. No gold border. */
+#specimen-experiences .experience-results {
+  display: grid;
+  gap: 24px;
+  justify-self: start;
+  inline-size: min(100%, 40rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#specimen-experiences .experience-result {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#specimen-experiences .experience-result img {
+  display: block;
+  inline-size: 7.5rem;
+  block-size: 7.5rem;
+  object-fit: cover;
+  border: 0;
+  border-radius: 0;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+}
+
+#specimen-experiences .experience-result-copy {
+  display: grid;
+  gap: 4px;
+  min-inline-size: 0;
+  padding-block-start: 4px;
+}
+
+#specimen-experiences .experience-result h3 {
+  margin: 0;
+  font-family: var(--font-questa), Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+#specimen-experiences .experience-result h3 a {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-block-size: 44px;
+  color: var(--color-heading);
+  text-decoration: none;
+  border-radius: 0;
+}
+
+#specimen-experiences .experience-result p {
+  margin: 0;
+  color: var(--color-fg);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+#specimen-experiences .experience-result-time {
+  color: var(--color-muted-fg);
+}
+
+/* Comment 21. "No stays for these dates" sits flush on Change dates.
+   Overlap: h1, h2, h3 { margin: 0 } removes the heading margin, so the
+   gap is set only on this wrapper. .ui-button width, justify-self, and
+   border-radius are not edited — the button stays label-width and square.
+   Other sections are not edited. */
+#empty-stays > div {
+  display: grid;
+  justify-items: start;
+  gap: 24px;
+}
+
+/* Comment 22. Payment failed stacks the message, the card line, and Try again
+   with no gap. Stay in the review frame sits flush on Edit.
+   Section headings already clear the first element by 24px
+   (.kit-section { gap: var(--spacing-lg) }). This block does not edit
+   .kit-section or .kit-head, so that gap is not doubled.
+   Not edited: calendar day states, stay-card borders, team icons,
+   newsletter row, #empty-stays (Comment 21), experience-result-copy,
+   and .review-frame > .ui-button-primary width / justify-self (Comment 13).
+   Sibling margin only — display stays block, so Edit and Pay stay one row.
+   .kit scopes this to the design page. */
+.kit #payment-failed > .review-frame > * + * {
+  margin-block-start: 16px;
+}
+
+.kit #review > .review-frame > h3 {
+  margin-block-end: 16px;
+}
+
+/* Comment 36. Account menu is a stacked panel, not loose paragraphs.
+   Bookings and Account are links. Sign out stays a button, label-width.
+   Overlap: .kit-section is display:grid, so a block child stretches to the
+   column. This panel is justify-self: start and 16rem, so it does not fill
+   the section. .kit-section is not edited.
+   Overlap: .ui-button { width: max-content; justify-self: start } is less
+   specific than #account-menu .account-menu-sign-out. Both are max-content.
+   The ghost variant's transparent border is a Tailwind utility; this
+   unlayered rule paints a square border so Sign out reads as a control
+   without stretching to the column or the menu panel.
+   Overlap: .overlay-panel radius is calc(--radius-control + spacing-sm).
+   This menu does not use that class. border-radius: 0. --radius-control
+   is not edited.
+   Not edited: #sign-out, other account frames, nav, select menus. */
+#account-menu .account-menu {
+  display: grid;
+  justify-items: start;
+  justify-self: start;
+  align-content: start;
+  gap: 0;
+  box-sizing: border-box;
+  inline-size: min(16rem, 100%);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-overlay);
+  padding: 0;
+}
+
+#account-menu .account-menu ul {
+  display: grid;
+  inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 0;
+}
+
+#account-menu .account-menu li {
+  display: grid;
+  inline-size: 100%;
+  border-radius: 0;
+}
+
+#account-menu .account-menu li + li {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-charcoal) 12%, transparent);
+}
+
+#account-menu .account-menu a {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  padding-inline: 16px;
+  border-radius: 0;
+  color: var(--color-heading);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+#account-menu .account-menu-sign-out {
+  width: max-content;
+  max-width: calc(100% - 16px);
+  justify-self: start;
+  align-self: start;
+  flex: 0 0 auto;
+  margin-block: 8px;
+  margin-inline: 8px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-border);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-link);
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  #account-menu .account-menu a,
+  #account-menu .account-menu-sign-out {
+    transition-property: background-color, color, border-color;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+}
+
+@media (hover: hover) {
+  #account-menu .account-menu a:hover,
+  #account-menu .account-menu-sign-out:hover {
+    background: var(--color-bg);
+    color: var(--color-heading);
+  }
+
+  #account-menu .account-menu-sign-out:hover {
+    border-color: var(--color-heading);
+  }
+}
+
+#account-menu .account-menu a:active,
+#account-menu .account-menu-sign-out:active {
+  background: color-mix(in srgb, var(--color-charcoal) 8%, var(--color-bg));
+}
+
+/* Comment 35. One footer: mast, then pages, contact, and the newsletter
+   specimen in one band. The form does not send.
+   Overlap: .site-footer flex rules (display, align-items: end, border-top)
+   and the 48rem group that also sets .newsletter-row and .hero-booker.
+   That group is not edited — .hero-booker must keep flex-direction: row.
+   Overlap: max-width 47.99rem .site-footer { flex-direction: column } and
+   the 48–74.99rem .site-footer row rule. Not edited.
+   Overlap: .newsletter-row, .newsletter-error, and .footer-col rules are
+   not edited. This markup does not use those classes, so Comment 20/24
+   button widths stay as written.
+   Overlap: :focus-visible is teal. On this teal band that ring disappears,
+   so this block sets an ivory ring. The shared outline:none field rule is
+   not edited.
+   #footer > footer.site-footer beats those .site-footer rules. */
+#footer > footer.site-footer {
+  box-sizing: border-box;
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  margin: 0;
+  padding-block: 48px;
+  padding-inline: 32px;
+  padding-block-end: calc(48px + env(safe-area-inset-bottom));
+  border: 0;
+  border-block-start: 1px solid var(--color-ivory);
+  border-radius: 0;
+  background: var(--color-heading);
+  color: var(--color-ivory);
+  overflow: visible;
+  container-type: inline-size;
+  container-name: site-footer;
+}
+
+#footer > footer.site-footer .footer-mast {
+  margin: 0;
+  margin-block-end: 32px;
+  padding: 0;
+  padding-block-end: 24px;
+  border: 0;
+  border-block-end: 1px solid var(--color-ivory);
+  border-radius: 0;
+}
+
+#footer > footer.site-footer .wordmark-text {
+  margin: 0;
+  overflow: visible;
+  color: var(--color-ivory);
+  font-family: var(--font-questa), Georgia, serif;
+  font-size: var(--text-heading);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: 0.14em;
+  text-align: start;
+  text-wrap: balance;
+  white-space: nowrap;
+}
+
+#footer > footer.site-footer .footer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  justify-items: stretch;
+  gap: 32px;
+  min-inline-size: 0;
+  border-radius: 0;
+}
+
+#footer > footer.site-footer .footer-nav,
+#footer > footer.site-footer .footer-contact,
+#footer > footer.site-footer .footer-newsletter {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 0;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  margin: 0;
+  border-radius: 0;
+  font-style: normal;
+}
+
+#footer > footer.site-footer .footer-kicker {
+  display: block;
+  box-sizing: border-box;
+  min-block-size: 0;
+  margin: 0;
+  margin-block-end: 8px;
+  overflow: visible;
+  color: var(--color-ivory);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-align: start;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+#footer > footer.site-footer .footer-nav a,
+#footer > footer.site-footer .footer-contact a {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  box-sizing: border-box;
+  min-block-size: 44px;
+  max-inline-size: 100%;
+  color: var(--color-ivory);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: start;
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+  text-underline-position: from-font;
+  text-underline-offset: 0.12em;
+  text-decoration-skip-ink: auto;
+  overflow-wrap: anywhere;
+  border-radius: 0;
+}
+
+#footer > footer.site-footer .footer-contact a[href^="tel:"] {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#footer > footer.site-footer .footer-new-tab {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+#footer > footer.site-footer .footer-newsletter {
+  gap: 8px;
+  max-inline-size: 28rem;
+}
+
+#footer > footer.site-footer .footer-email {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: max-content max-content;
+  align-items: start;
+  justify-items: stretch;
+  gap: 8px;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow: visible;
+  border-radius: 0;
+  container-type: inline-size;
+  container-name: footer-email;
+}
+
+#footer > footer.site-footer .footer-email-label {
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  color: var(--color-ivory);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: var(--text-label);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-align: start;
+  text-overflow: clip;
+  white-space: nowrap;
+  min-inline-size: max-content;
+  max-inline-size: none;
+  border-radius: 0;
+}
+
+#footer > footer.site-footer .footer-email-controls {
+  display: flex;
+  grid-column: 1;
+  grid-row: 2;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow: visible;
+  border-radius: 0;
+}
+
+#footer > footer.site-footer .footer-email-controls input {
+  box-sizing: border-box;
+  display: block;
+  flex: 1 1 auto;
+  inline-size: auto;
+  width: auto;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  block-size: 44px;
+  height: 44px;
+  min-block-size: 44px;
+  margin: 0;
+  padding-block: 0;
+  padding-inline: 16px;
+  border: 1px solid var(--color-ivory);
+  border-radius: 0;
+  appearance: none;
+  background: var(--color-surface);
+  color: var(--color-fg);
+  font-family: var(--font-lato), Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+#footer > footer.site-footer .footer-email-controls input::placeholder {
+  color: var(--color-muted-fg);
+  opacity: 1;
+}
+
+#footer > footer.site-footer .footer-email-controls .ui-button {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  align-self: center;
+  justify-self: start;
+  inline-size: max-content;
+  width: max-content;
+  max-inline-size: 100%;
+  min-inline-size: 44px;
+  block-size: 44px;
+  height: 44px;
+  min-block-size: 44px;
+  max-block-size: 44px;
+  padding-block: 0;
+  border-radius: 0;
+  white-space: nowrap;
+}
+
+#footer > footer.site-footer .footer-email-error {
+  grid-column: 1;
+  margin: 0;
+  color: var(--color-ivory);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+#footer > footer.site-footer a:focus-visible,
+#footer > footer.site-footer input:focus-visible,
+#footer > footer.site-footer .ui-button:focus-visible {
+  outline: 2px solid var(--color-ivory);
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  #footer > footer.site-footer a:focus-visible,
+  #footer > footer.site-footer input:focus-visible,
+  #footer > footer.site-footer .ui-button:focus-visible {
+    outline: 2px solid CanvasText;
+  }
+}
+
+@media (hover: hover) {
+  #footer > footer.site-footer .footer-nav a:hover,
+  #footer > footer.site-footer .footer-contact a:hover {
+    color: var(--color-accent);
+  }
+
+  #footer > footer.site-footer .footer-email-controls .ui-button:hover {
+    background: var(--color-accent);
+    color: var(--color-heading);
+    border-color: var(--color-accent);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #footer > footer.site-footer .footer-email-controls .ui-button {
+    transition-property: background-color, color, border-color, scale;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-standard);
+  }
+
+  #footer > footer.site-footer .footer-email-controls .ui-button:active {
+    scale: 0.96;
+  }
+}
+
+@container site-footer (min-width: 40rem) {
+  #footer > footer.site-footer .footer-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px 40px;
+  }
+
+  #footer > footer.site-footer .footer-newsletter {
+    grid-column: 1 / -1;
+  }
+}
+
+@container footer-email (max-width: 19.99rem) {
+  #footer > footer.site-footer .footer-email-controls {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+  }
+
+  #footer > footer.site-footer .footer-email-controls input,
+  #footer > footer.site-footer .footer-email-controls .ui-button {
+    flex: 1 1 auto;
+    inline-size: 100%;
+    width: 100%;
+  }
+}
+
+@container site-footer (min-width: 56rem) {
+  #footer > footer.site-footer .footer-grid {
+    grid-template-columns: minmax(0, 0.7fr) minmax(12rem, 1.05fr) minmax(22rem, 1.25fr);
+  }
+
+  #footer > footer.site-footer .footer-newsletter {
+    grid-column: auto;
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  #footer > footer.site-footer {
+    padding-block: 32px;
+    padding-inline: 20px;
+    padding-block-end: calc(32px + env(safe-area-inset-bottom));
+  }
+}
+

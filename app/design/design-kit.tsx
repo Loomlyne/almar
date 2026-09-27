@@ -7,13 +7,13 @@ import { Checkbox } from "../../components/ui/checkbox";
 import { Chip } from "../../components/ui/chip";
 import { DateRangeField } from "../../components/ui/calendar";
 import { KitDialog } from "../../components/ui/dialog";
-import { DestinationSelect, EmptySelect } from "../../components/ui/select";
+import { SelectSpecimen } from "../../components/ui/select";
 import { GuestSteppers } from "../../components/ui/stepper";
 import { ShowToast, ToastProvider } from "../../components/ui/toast";
 import { Field } from "../../components/ui/field";
+import { DateField } from "../../components/ui/date-field";
 import { SiteFooter } from "../../components/ui/footer";
 import { SiteNav } from "../../components/ui/nav";
-import { WhatsAppLink } from "../../components/ui/whatsapp";
 import { AccountFrames } from "../../components/specimens/account-frames";
 import { CatalogFrames } from "../../components/specimens/catalog-frames";
 import { TeamSpecimen } from "../../components/specimens/team";
@@ -23,7 +23,6 @@ import { EmptyStays, StayRow } from "../../components/specimens/stay-row";
 import { PaymentFailed, PriceBlock, ReviewFrame } from "../../components/specimens/price";
 import { VideoSpecimen } from "../../components/specimens/video";
 import { Link } from "../../components/ui/link";
-import { Radio } from "../../components/ui/radio";
 import { Switch } from "../../components/ui/switch";
 import {
   CameraIcon,
@@ -47,6 +46,11 @@ import {
   VipIcon,
   YachtIcon,
 } from "../../components/icons/icons";
+import { ProjectUpdate } from "./framer-kit";
+import { HomeCardsSection } from "../../components/specimens/home-cards";
+import { PrivateStaySection } from "../../components/specimens/private-stay-card";
+import { ProjectFooterSection } from "../../components/specimens/project-footer";
+import { TeamMemberSection } from "../../components/specimens/team-member-card";
 import monogram from "../../brand/Logo Monogram/Curves_black.svg";
 
 const SWATCHES = [
@@ -56,34 +60,198 @@ const SWATCHES = [
   { name: "Charcoal", token: "var(--color-fg)" },
 ] as const;
 
-const JUMPS = [
-  ["Link", "link"],
-  ["Button", "button"],
-  ["Input", "input"],
-  ["Password", "password"],
-  ["Checkbox", "checkbox"],
-  ["Radio", "radio"],
-  ["Switch", "switch"],
-  ["Select", "select"],
-  ["Date range", "date-range"],
-  ["Stepper", "stepper"],
-  ["Modal", "modal"],
-  ["Toast", "toast"],
-  ["Card", "card"],
-  ["Icons", "icons"],
-  ["Chip", "chip"],
+const NOTES: Record<string, string> = {
+  Color: "Ivory, teal, gold, and charcoal.",
+  Link: "Back to the top of the page.",
+  Button: "Continue, search, edit, and pay.",
+  Input: "Dates, notes, and the fields a guest fills.",
+  Password: "Show and hide. The eye has no box.",
+  Checkbox: "A square mark. Not a radio.",
+  Switch: "On and off, with a short slide.",
+  Select: "A destination, in a square menu.",
+  "Date range": "Check-in, then check-out.",
+  Stepper: "Adults, children, and infants.",
+  Modal: "Confirm before the booking changes.",
+  Toast: "A short note, then it goes.",
+  Card: "The stay, with its photo.",
+  Icons: "The marks used on the journey.",
+  Chip: "A status, in words and in color.",
+  Nav: "Destinations, currency, and language.",
+  Hero: "Destination, dates, and who is travelling.",
+  Stay: "The house, the price, and the choice.",
+  "Empty stays": "No house for these dates.",
+  "Add-on": "What can be added to the journey.",
+  Price: "The total, the deposit, and what is held.",
+  Review: "The stay, before payment.",
+  "Payment failed": "What to do when a payment does not go through.",
+  Video: "A film of the place.",
+  Footer: "How to reach ALMAR.",
+  Team: "The people who plan the journey.",
+};
+
+const CHAPTERS = [
+  {
+    id: "chapter-brand",
+    title: "Brand",
+    note: "Ivory, teal, gold, and charcoal.",
+    items: [
+      ["Color", "color"],
+      ["Wordmark", "wordmark"],
+      ["Site header", "site-header"],
+      ["Project stays", "project-stays"],
+    ] as const,
+  },
+  {
+    id: "chapter-controls",
+    title: "Controls",
+    note: "The parts a booking is made of.",
+    items: [
+      ["Link", "link"],
+      ["Button", "button"],
+      ["Input", "input"],
+      ["Password", "password"],
+      ["Checkbox", "checkbox"],
+      ["Switch", "switch"],
+      ["Select", "select"],
+      ["Date range", "date-range"],
+      ["Stepper", "stepper"],
+      ["Modal", "modal"],
+      ["Toast", "toast"],
+      ["Card", "card"],
+      ["Icons", "icons"],
+      ["Chip", "chip"],
+    ] as const,
+  },
+  {
+    id: "chapter-journey",
+    title: "The journey",
+    note: "The stay, the dates, and the price.",
+    items: [
+      ["Nav", "nav"],
+      ["Hero", "hero"],
+      ["Stay", "stay"],
+      ["Empty stays", "empty-stays"],
+      ["Add-on", "add-on"],
+      ["Price", "price"],
+      ["Review", "review"],
+      ["Payment failed", "payment-failed"],
+      ["Video", "video"],
+      ["Team", "specimen-team"],
+      ["Footer", "footer"],
+    ] as const,
+  },
+  {
+    id: "chapter-guest",
+    title: "The guest",
+    note: "Sign-in, the booking, and payment.",
+    items: [
+      "Sign-in",
+      "Ops sign-in",
+      "Account menu",
+      "Account",
+      "Change email",
+      "Change phone",
+      "Reset password",
+      "Forgot password",
+      "Check your email",
+      "Sign out",
+      "Delete account",
+      "Cancel booking",
+      "Session expired",
+      "Booking terms",
+      "Marketing emails",
+      "Booker not staying",
+      "Guest names",
+      "Passport",
+      "UAE airport",
+      "Saved card",
+      "Stripe",
+      "Pay success",
+      "Hold expired",
+      "Create an account later",
+      "Pay the difference",
+      "Pay the remainder",
+      "Currency on pay",
+      "Status",
+      "Booking header",
+      "Booking list",
+    ].map((title) => [title, title.toLowerCase().replaceAll(" ", "-")] as const),
+  },
+  {
+    id: "chapter-catalog",
+    title: "The catalog",
+    note: "Packages, contact, and the rest of the journey.",
+    items: [
+      "Package",
+      "Story",
+      "Destination",
+      "Legal",
+      "FAQ",
+      "Maintenance",
+      "Cookie",
+      "Map",
+      "File upload",
+      "Ops table",
+      "Currency",
+      "Language",
+      "Sort",
+      "Filter",
+      "Consultation",
+      "Booking steps",
+      "Share",
+      "Heart",
+      "Unsigned heart",
+      "Photos",
+      "Print",
+      "Download",
+      "Contact",
+      "Plan with us",
+      "List with us",
+      "Special requests",
+      "Address",
+      "Return address",
+      "Second city",
+      "WhatsApp trip",
+      "Inclusions",
+      "Package add-on",
+      "Pets",
+      "Access",
+      "Too late",
+      "Nights",
+      "Back",
+      "Experiences",
+      "Empty rooms",
+      "Coupon",
+      "Phone price bar",
+      "Hold countdown",
+      "Damage hold",
+      "Deposit",
+      "Newsletter",
+      "Airport meet",
+      "Home pickup",
+      "Driver assigned",
+      "Flights booked",
+    ].map((title) => [title, `specimen-${title.toLowerCase().replaceAll(" ", "-")}`] as const),
+  },
 ] as const;
 
-const SPECIMEN_JUMPS = [
-  ["Nav", "nav"],
-  ["Footer", "footer"],
-  ["Hero", "hero"],
-  ["Stay", "stay"],
-  ["Add-on", "add-on"],
-  ["Price", "price"],
-  ["Video", "video"],
-  ["WhatsApp", "whatsapp"],
-] as const;
+function SectionHead({ title }: { title: string }) {
+  return (
+    <header className="kit-head">
+      <h2>{title}</h2>
+      {NOTES[title] ? <p className="kit-sub">{NOTES[title]}</p> : null}
+    </header>
+  );
+}
+
+function Chapter({ id, title, note }: { id: string; title: string; note: string }) {
+  return (
+    <header className="kit-chapter" id={id}>
+      <h2>{title}</h2>
+      <p className="kit-sub">{note}</p>
+    </header>
+  );
+}
 
 const NOTO_CLASSES = `${notoNaskh.variable} ${notoSans.variable}`.split(" ");
 
@@ -112,7 +280,7 @@ function States({ rows }: { rows: Array<[string, string]> }) {
   );
 }
 
-export function DesignKit() {
+export function DesignKit({ hasMapbox = false }: { hasMapbox?: boolean }) {
   const [locale, setLocaleState] = useState<Locale>("en");
   const [compact, setCompact] = useState(false);
   const [checkIn, setCheckIn] = useState("");
@@ -139,10 +307,29 @@ export function DesignKit() {
   return (
     <ToastProvider>
     <main className="kit" id="content">
+      <div className="kit-shell">
+      <nav className="kit-side" aria-label="On this page">
+        {CHAPTERS.map((chapter) => (
+          <div className="kit-side-group" key={chapter.id}>
+            <a className="kit-side-label" href={`#${chapter.id}`}>
+              {chapter.title}
+            </a>
+            {chapter.items.map(([name, id]) => (
+              <a key={id} href={`#${id}`}>
+                {name}
+              </a>
+            ))}
+          </div>
+        ))}
+      </nav>
+      <div className="kit-main">
       <header className="kit-bar">
-        <h1>
-          <bdi>Design system</bdi>
-        </h1>
+        <div className="kit-head">
+          <h1>
+            <bdi>ALMAR</bdi>
+          </h1>
+          <p className="kit-sub">Private journeys in Colombia.</p>
+        </div>
         <div className="kit-controls">
           <button type="button" className="kit-control" aria-pressed={locale === "en"} onClick={() => chooseLocale("en")}>
             EN
@@ -159,7 +346,9 @@ export function DesignKit() {
         </div>
       </header>
 
-      <section className="kit-section" aria-label="Color">
+      <Chapter id="chapter-brand" title="Brand" note="Ivory, teal, gold, and charcoal." />
+      <section className="kit-section" id="color" aria-label="Color">
+        <SectionHead title="Color" />
         <ul className="swatches">
           {SWATCHES.map((swatch) => (
             <li key={swatch.name}>
@@ -174,16 +363,12 @@ export function DesignKit() {
         </ul>
       </section>
 
-      <nav className="kit-jumps" aria-label="On this page">
-        {JUMPS.map(([name, id]) => (
-          <a key={id} href={`#${id}`}>
-            {name}
-          </a>
-        ))}
-      </nav>
+      <ProjectUpdate />
+
+      <Chapter id="chapter-controls" title="Controls" note="The parts a booking is made of." />
 
       <section className="kit-section" id="link" aria-label="Link">
-        <h2>Link</h2>
+        <SectionHead title="Link" />
         <Link href="#content">Back</Link>
         <States
           rows={[
@@ -198,7 +383,7 @@ export function DesignKit() {
       </section>
 
       <section className="kit-section" id="button" aria-label="Button">
-        <h2>Button</h2>
+        <SectionHead title="Button" />
         <div className="specimen-row">
           <Button variant="primary">Continue</Button>
           <Button variant="secondary">Search</Button>
@@ -224,7 +409,7 @@ export function DesignKit() {
       </section>
 
       <section className="kit-section" id="input" aria-label="Input">
-        <h2>Input</h2>
+        <SectionHead title="Input" />
         <Field
           id="email"
           label="Email"
@@ -237,36 +422,47 @@ export function DesignKit() {
         <Field id="search" label="Search" type="search" search placeholder="Cartagena" />
         <Field id="note" label="Note" multiline optional placeholder="Add a note" />
         <Field id="coupon" label="Coupon" coupon optional placeholder="WELCOME" />
-        <Field
-          id="date"
-          label="Date"
-          placeholder="DD/MM/YYYY"
-          defaultValue="32/13/2026"
-          error={
-            <>
-              Enter a date as <bdi>DD/MM/YYYY</bdi>.
-            </>
-          }
-          required
-        />
-        <Field
-          id="check-in"
-          label="Check-in"
-          placeholder="DD/MM/YYYY"
-          value={checkIn}
-          onChange={(event) => {
-            const next = event.target.value;
-            setCheckIn(next);
-            if (checkInError) {
-              const ok = DATE_PATTERN.test(next);
-              setCheckInError(ok ? "" : "Enter a date as DD/MM/YYYY.");
-            }
-          }}
-          error={checkInError || undefined}
-        />
-        <Button variant="secondary" onClick={() => validateDate()}>
-          Check date
-        </Button>
+        <DateField />
+        <div className="date-check">
+          <label className="field-label" htmlFor="check-in">
+            Check-in
+          </label>
+          <div className={checkInError ? "date-check-control is-invalid" : "date-check-control"}>
+            <input
+              id="check-in"
+              className="date-check-input"
+              placeholder="DD/MM/YYYY"
+              value={checkIn}
+              inputMode="numeric"
+              autoComplete="off"
+              spellCheck={false}
+              aria-invalid={checkInError ? true : undefined}
+              aria-describedby={checkInError ? "check-in-message" : undefined}
+              onChange={(event) => {
+                const next = event.target.value;
+                setCheckIn(next);
+                if (checkInError) {
+                  const ok = DATE_PATTERN.test(next);
+                  setCheckInError(ok ? "" : "Enter a date as DD/MM/YYYY.");
+                }
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  validateDate();
+                }
+              }}
+            />
+            <button type="button" className="date-check-action" onClick={() => validateDate()}>
+              Check date
+            </button>
+          </div>
+          {checkInError ? (
+            <p id="check-in-message" className="field-error text-[var(--color-danger)]">
+              {checkInError}
+            </p>
+          ) : null}
+        </div>
         <States
           rows={[
             ["Hover", "border unchanged"],
@@ -280,7 +476,7 @@ export function DesignKit() {
       </section>
 
       <section className="kit-section" id="password" aria-label="Password">
-        <h2>Password</h2>
+        <SectionHead title="Password" />
         <Field
           id="design-password"
           label="Password"
@@ -301,7 +497,7 @@ export function DesignKit() {
       </section>
 
       <section className="kit-section" id="checkbox" aria-label="Checkbox">
-        <h2>Checkbox</h2>
+        <SectionHead title="Checkbox" />
         <Checkbox label="Remember me" name="remember" />
         <Checkbox label="Newsletter" name="newsletter" disabled />
         <States
@@ -316,24 +512,8 @@ export function DesignKit() {
         />
       </section>
 
-      <section className="kit-section" id="radio" aria-label="Radio">
-        <h2>Radio</h2>
-        <Radio label="Deposit" name="pay-choice" value="deposit" defaultChecked />
-        <Radio label="Pay in full" name="pay-choice" value="full" />
-        <States
-          rows={[
-            ["Hover", "darken"],
-            ["Focus", "teal ring"],
-            ["Disabled", "muted"],
-            ["Loading", "N/A"],
-            ["Error", "red under the group label"],
-            ["Empty", "none selected"],
-          ]}
-        />
-      </section>
-
       <section className="kit-section" id="switch" aria-label="Switch">
-        <h2>Switch</h2>
+        <SectionHead title="Switch" />
         <div className="specimen-row">
           <Switch label="Email updates on" defaultChecked />
           <Switch label="Offers on" />
@@ -353,10 +533,8 @@ export function DesignKit() {
       </section>
 
       <section className="kit-section" id="select" aria-label="Select">
-        <h2>Select</h2>
-        <DestinationSelect />
-        <EmptySelect />
-        <p className="field-error">Choose a destination.</p>
+        <SectionHead title="Select" />
+        <SelectSpecimen />
         <States
           rows={[
             ["Hover", "same as input"],
@@ -370,25 +548,25 @@ export function DesignKit() {
       </section>
 
       <section className="kit-section" id="date-range" aria-label="Date range">
-        <h2>Date range</h2>
+        <SectionHead title="Date range" />
         <DateRangeField />
         <States
           rows={[
-            ["Hover", "day darkens"],
-            ["Focus", "teal ring on the day"],
-            ["Disabled", "unpickable muted"],
+            ["Hover", "teal edge"],
+            ["Focus", "same teal edge"],
+            ["Disabled", "muted, not selectable"],
             ["Loading", "N/A"],
-            ["Empty", "no range yet"],
+            ["Empty", "No range yet"],
           ]}
         />
       </section>
 
       <section className="kit-section" id="stepper" aria-label="Stepper">
-        <h2>Stepper</h2>
+        <SectionHead title="Stepper" />
         <GuestSteppers />
         <States
           rows={[
-            ["Hover", "darken circle"],
+            ["Hover", "darken"],
             ["Focus", "teal ring"],
             ["Disabled", "minus at floor"],
             ["Loading", "N/A"],
@@ -399,7 +577,7 @@ export function DesignKit() {
       </section>
 
       <section className="kit-section" id="modal" aria-label="Modal">
-        <h2>Modal</h2>
+        <SectionHead title="Modal" />
         <div className="specimen-row">
           <KitDialog trigger="Open modal" title="Choose a stay" />
           <KitDialog trigger="Confirm booking" title="Confirm this booking" dismiss="confirm" />
@@ -417,7 +595,7 @@ export function DesignKit() {
       </section>
 
       <section className="kit-section" id="toast" aria-label="Toast">
-        <h2>Toast</h2>
+        <SectionHead title="Toast" />
         <ShowToast />
         <States
           rows={[
@@ -432,7 +610,7 @@ export function DesignKit() {
       </section>
 
       <section className="kit-section" id="card" aria-label="Card">
-        <h2>Card</h2>
+        <SectionHead title="Card" />
         <div className="card-specimen">
           <div className="card-image" />
           <div className="card-pulse" />
@@ -455,7 +633,7 @@ export function DesignKit() {
       </section>
 
       <section className="kit-section" id="icons" aria-label="Icons">
-        <h2>Icons</h2>
+        <SectionHead title="Icons" />
         <div className="icon-row">
           <CameraIcon title="Mark" />
           <LuggageIcon />
@@ -491,21 +669,15 @@ export function DesignKit() {
       </section>
 
       <section className="kit-section" id="chip" aria-label="Chip">
-        <h2>Chip</h2>
+        <SectionHead title="Chip" />
         <div className="specimen-row">
           <Chip>Chip</Chip>
           <Chip on>On</Chip>
         </div>
       </section>
-      <nav className="kit-jumps" aria-label="Specimens">
-        {SPECIMEN_JUMPS.map(([name, id]) => (
-          <a key={id} href={`#${id}`}>
-            {name}
-          </a>
-        ))}
-      </nav>
+      <Chapter id="chapter-journey" title="The journey" note="The stay, the dates, and the price." />
       <section className="kit-section" id="nav" aria-label="Nav">
-        <h2>Nav</h2>
+        <SectionHead title="Nav" />
         <SiteNav locale={locale} onLocale={chooseLocale} />
         <States
           rows={[
@@ -519,54 +691,58 @@ export function DesignKit() {
         />
       </section>
       <section className="kit-section" id="hero" aria-label="Hero">
-        <h2>Hero</h2>
+        <SectionHead title="Hero" />
         <HeroBooker />
       </section>
       <section className="kit-section" id="stay" aria-label="Stay">
-        <h2>Stay</h2>
+        <SectionHead title="Stay" />
         <StayRow />
       </section>
       <section className="kit-section" id="empty-stays" aria-label="Empty stays">
-        <h2>Empty stays</h2>
+        <SectionHead title="Empty stays" />
         <EmptyStays />
       </section>
       <section className="kit-section" id="add-on" aria-label="Add-on">
-        <h2>Add-on</h2>
+        <SectionHead title="Add-on" />
         <AddOnRow />
       </section>
       <section className="kit-section" id="price" aria-label="Price">
-        <h2>Price</h2>
+        <SectionHead title="Price" />
         <PriceBlock />
       </section>
       <section className="kit-section" id="review" aria-label="Review">
-        <h2>Review</h2>
+        <SectionHead title="Review" />
         <ReviewFrame />
       </section>
       <section className="kit-section" id="payment-failed" aria-label="Payment failed">
-        <h2>Payment failed</h2>
+        <SectionHead title="Payment failed" />
         <PaymentFailed />
       </section>
       <section className="kit-section" id="video" aria-label="Video">
-        <h2>Video</h2>
+        <SectionHead title="Video" />
         <VideoSpecimen />
       </section>
-      <section className="kit-section" id="whatsapp" aria-label="WhatsApp">
-        <h2>WhatsApp</h2>
-        <WhatsAppLink />
-      </section>
-      <AccountFrames />
       <TeamSpecimen />
-      <CatalogFrames />
       <section className="kit-section" id="footer" aria-label="Footer">
-        <h2>Footer</h2>
+        <SectionHead title="Footer" />
         <SiteFooter />
       </section>
+      <Chapter id="chapter-guest" title="The guest" note="Sign-in, the booking, and payment." />
+      <AccountFrames />
+      <Chapter id="chapter-catalog" title="The catalog" note="Packages, contact, and the rest of the journey." />
+      <CatalogFrames hasMapbox={hasMapbox} />
+      <ProjectFooterSection locale={locale} />
+      <TeamMemberSection locale={locale} />
+      <PrivateStaySection locale={locale} />
+      <HomeCardsSection locale={locale} />
       <div id="destinations" />
       <div id="experiences" />
       <div id="about" />
       <div id="contact" />
       <div id="log-in" />
       <div id="list-with-us" />
+      </div>
+      </div>
     </main>
     </ToastProvider>
   );

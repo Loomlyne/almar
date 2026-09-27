@@ -4,13 +4,14 @@ import type { ReactNode } from "react";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Field } from "../ui/field";
-import { Radio } from "../ui/radio";
 
 function Frame({ title, children }: { title: string; children: ReactNode }) {
   const id = title.toLowerCase().replaceAll(" ", "-");
   return (
     <section className="kit-section" id={id} aria-label={title}>
-      <h2>{title}</h2>
+      <header className="kit-head">
+        <h2>{title}</h2>
+      </header>
       {children}
     </section>
   );
@@ -32,11 +33,19 @@ export function AccountFrames() {
         </Button>
       </Frame>
       <Frame title="Account menu">
-        <p>Bookings</p>
-        <p>Account</p>
-        <Button variant="ghost" type="button">
-          Sign out
-        </Button>
+        <nav className="account-menu" aria-label="Account">
+          <ul>
+            <li>
+              <a href="#booking-list">Bookings</a>
+            </li>
+            <li>
+              <a href="#account">Account</a>
+            </li>
+          </ul>
+          <Button variant="ghost" type="button" className="account-menu-sign-out">
+            Sign out
+          </Button>
+        </nav>
       </Frame>
       <Frame title="Account">
         <Field id="account-name" label="Name" name="account-name" />
@@ -78,12 +87,14 @@ export function AccountFrames() {
       </Frame>
       <Frame title="Sign out">
         <p>Sign out of this account? You will need to sign in again to open bookings.</p>
-        <Button variant="danger" type="button">
-          Sign out
-        </Button>
-        <Button variant="secondary" type="button">
-          Cancel
-        </Button>
+        <div className="sign-out-actions">
+          <Button variant="danger" type="button">
+            Sign out
+          </Button>
+          <Button variant="secondary" type="button">
+            Cancel
+          </Button>
+        </div>
       </Frame>
       <Frame title="Delete account">
         <Button variant="danger" type="button">
@@ -125,9 +136,9 @@ export function AccountFrames() {
         <p>Upload file</p>
       </Frame>
       <Frame title="UAE airport">
-        <Radio name="airport" label="Dubai" defaultChecked />
-        <Radio name="airport" label="Abu Dhabi" />
-        <Radio name="airport" label="Sharjah" />
+        <Checkbox name="airport" label="Dubai" defaultChecked />
+        <Checkbox name="airport" label="Abu Dhabi" />
+        <Checkbox name="airport" label="Sharjah" />
       </Frame>
       <Frame title="Saved card">
         <p>Visa · 4242</p>
@@ -169,14 +180,16 @@ export function AccountFrames() {
         <p className="amount">AED 1,050</p>
       </Frame>
       <Frame title="Status">
-        <span className="status-chip">Draft</span>
-        <span className="status-chip">Deposit paid</span>
-        <span className="status-chip is-confirmed">Confirmed</span>
-        <span className="status-chip">In trip</span>
-        <span className="status-chip">Completed</span>
-        <span className="status-chip">Cancelled</span>
-        <span className="status-chip">Driver assigned</span>
-        <span className="status-chip">Flights booked</span>
+        <div className="status-chip-list">
+          <span className="status-chip is-draft">Draft</span>
+          <span className="status-chip is-deposit-paid">Deposit paid</span>
+          <span className="status-chip is-confirmed">Confirmed</span>
+          <span className="status-chip is-in-trip">In trip</span>
+          <span className="status-chip is-completed">Completed</span>
+          <span className="status-chip is-cancelled">Cancelled</span>
+          <span className="status-chip is-driver-assigned">Driver assigned</span>
+          <span className="status-chip is-flights-booked">Flights booked</span>
+        </div>
       </Frame>
       <Frame title="Booking header">
         <p>Cartagena, five nights</p>

@@ -176,7 +176,7 @@ export function EyeIcon(props: IconProps) {
   return (
     <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
       <path d="M2.8 12S6 6.8 12 6.8 21.2 12 21.2 12 18 17.2 12 17.2 2.8 12 2.8 12z" />
-      <circle cx="12" cy="12" r="2.2" />
+      <rect x="9.8" y="9.8" width="4.4" height="4.4" />
     </Icon>
   );
 }
@@ -184,7 +184,7 @@ export function EyeIcon(props: IconProps) {
 export function LockIcon(props: IconProps) {
   return (
     <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
-      <rect x="6" y="10.5" width="12" height="8.5" rx="1.5" />
+      <rect x="6" y="10.5" width="12" height="8.5" />
       <path d="M8.5 10.5V8.2a3.5 3.5 0 0 1 7 0v2.3" />
     </Icon>
   );

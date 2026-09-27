@@ -1,0 +1,256 @@
+{
+  "canvas": [
+    {
+      "id": "LZvY6CEgh",
+      "name": "Header"
+    },
+    {
+      "id": "xG30wZjNO",
+      "name": "Menu Item"
+    },
+    {
+      "id": "flHGVNa4h",
+      "name": "Image Gallery"
+    },
+    {
+      "id": "inj6iYYmr",
+      "name": "Stays Header"
+    },
+    {
+      "id": "SI_7rumi2",
+      "name": "Stays Listing"
+    },
+    {
+      "id": "TKAr_ybv7",
+      "name": "Primary Button"
+    },
+    {
+      "id": "QBhn1eaoA",
+      "name": "Stay Card"
+    },
+    {
+      "id": "UDyUHXGBv",
+      "name": "Amenity Item"
+    },
+    {
+      "id": "OCFWQgMPy",
+      "name": "Link Button"
+    },
+    {
+      "id": "jjp_1IXu9",
+      "name": "Icon Button"
+    },
+    {
+      "id": "cT3_hXrlJ",
+      "name": "Service Card"
+    },
+    {
+      "id": "T7IcRmpJ8",
+      "name": "Service Slider"
+    },
+    {
+      "id": "AXub3AXwI",
+      "name": "Destination Card"
+    },
+    {
+      "id": "lgLqDBwRV",
+      "name": "Testimonial Card"
+    },
+    {
+      "id": "BuLrU8ZsJ",
+      "name": "Testimonial Slider"
+    },
+    {
+      "id": "U0wz9mMFp",
+      "name": "Separator"
+    },
+    {
+      "id": "nKRz_fhzd",
+      "name": "Blog Card"
+    },
+    {
+      "id": "H36N9SniK",
+      "name": "Photo Gallery"
+    },
+    {
+      "id": "jOqWmJRt1",
+      "name": "Social Icon"
+    },
+    {
+      "id": "xlz4dDGrD",
+      "name": "Form Button"
+    },
+    {
+      "id": "vMhwtWv2Z",
+      "name": "Site Footer"
+    },
+    {
+      "id": "Jo0YSD6A9",
+      "name": "Back to Top"
+    },
+    {
+      "id": "JeCkmOcxu",
+      "name": "Preloader"
+    },
+    {
+      "id": "eHBcwPee9",
+      "name": "Section Label"
+    },
+    {
+      "id": "GccnVqqMx",
+      "name": "Section Heading"
+    },
+    {
+      "id": "u1i5Ol3BI",
+      "name": "Load More"
+    },
+    {
+      "id": "ohhI_y0Kg",
+      "name": "Page Heading"
+    },
+    {
+      "id": "UrmC2uqvb",
+      "name": "Separator"
+    },
+    {
+      "id": "Ri6uka32p",
+      "name": "Story Card"
+    },
+    {
+      "id": "ZDwL5CH3k",
+      "name": "Value Card"
+    },
+    {
+      "id": "SqkVxFTAI",
+      "name": "Image Gallery"
+    },
+    {
+      "id": "cmQVELmVD",
+      "name": "Tripadvisor Badge"
+    },
+    {
+      "id": "gtMSiUNDR",
+      "name": "Policy Item"
+    },
+    {
+      "id": "IfPYDxlPx",
+      "name": "Policy Accordion"
+    },
+    {
+      "id": "GtJUckIIv",
+      "name": "Background"
+    },
+    {
+      "id": "ijl3vKbRS",
+      "name": "Dot"
+    },
+    {
+      "id": "NUskVDCMr",
+      "name": "Pricing"
+    },
+    {
+      "id": "RbA29IQsP",
+      "name": "Contact"
+    },
+    {
+      "id": "rsIi6zK5_",
+      "name": "Monogram"
+    },
+    {
+      "id": "xnSUKU8f9",
+      "name": "Wordmark"
+    },
+    {
+      "id": "sQuEiIv0o",
+      "name": "Label"
+    },
+    {
+      "id": "UI5EA_dFY",
+      "name": "Logo"
+    },
+    {
+      "id": "aVqerynNK",
+      "name": "Team Profile Card"
+    }
+  ],
+  "code": [
+    {
+      "path": "Workshop/BlockScrollLoader.tsx",
+      "bytes": 4021,
+      "exports": [
+        "BlockScrollLoader"
+      ]
+    },
+    {
+      "path": "NotFoundCompass.tsx",
+      "bytes": 11332,
+      "exports": [
+        "Not Found Compass"
+      ]
+    },
+    {
+      "path": "NotFoundItinerary.tsx",
+      "bytes": 11643,
+      "exports": [
+        "Not Found Itinerary"
+      ]
+    }
+  ],
+  "external": [
+    "Hero",
+    "Video",
+    "Ticker",
+    "Phosphor",
+    "Slideshow",
+    "Carousel",
+    "Layout Jump Preventer",
+    "Lenis",
+    "Load More"
+  ],
+  "additional": [
+    "Cookie Banner",
+    "Search",
+    "Locale Selector",
+    "YouTube",
+    "MP3",
+    "GIF",
+    "Vimeo",
+    "Dot Lottie",
+    "Spotify",
+    "Apple Music",
+    "SoundCloud",
+    "Apple Podcasts",
+    "Simplecast",
+    "Loops",
+    "Kit",
+    "Typeform",
+    "Intercom",
+    "Waitlist",
+    "Mailchimp",
+    "Cal.com",
+    "FormSpark",
+    "Calendly",
+    "Hubspot",
+    "Instagram",
+    "Facebook",
+    "X",
+    "Google Maps",
+    "Trustpilot",
+    "Tagembed",
+    "Lemon Squeezy",
+    "Gumroad",
+    "Download",
+    "Copy Clipboard",
+    "Embed",
+    "OpenTable",
+    "Product Hunt",
+    "The Fork",
+    "Eventbrite",
+    "Contra",
+    "Code Block",
+    "Arc",
+    "Scribbles",
+    "Countdown",
+    "Time & Date"
+  ]
+}

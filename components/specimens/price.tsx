@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Radio } from "../ui/radio";
+import { Checkbox } from "../ui/checkbox";
 import { formatAmount } from "../../lib/format";
 
 const LINES = [
@@ -40,8 +40,8 @@ export function PriceBlock() {
       </p>
       <p className="hold-clock">29:59</p>
       <div className="pay-cards">
-        <Radio name="pay-mode" label={`Deposit ${formatAmount("AED", 315)}`} defaultChecked />
-        <Radio name="pay-mode" label={`Pay in full ${formatAmount("AED", 1050)}`} />
+        <Checkbox name="pay-mode" label={`Deposit ${formatAmount("AED", 315)}`} defaultChecked />
+        <Checkbox name="pay-mode" label={`Pay in full ${formatAmount("AED", 1050)}`} />
       </div>
       <p>Price skeleton lines</p>
       <div className="skeleton-row" aria-hidden="true">

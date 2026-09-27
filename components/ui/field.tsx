@@ -182,7 +182,7 @@ function EyeIcon({ masked }: { masked: boolean }) {
         stroke="currentColor"
         strokeWidth="1.5"
       />
-      <circle cx="10" cy="10" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="7.75" y="7.75" width="4.5" height="4.5" stroke="currentColor" strokeWidth="1.5" />
       {masked ? (
         <path
           d="M4 16 16 4"
@@ -205,7 +205,7 @@ function SearchIcon() {
       aria-hidden="true"
       fill="none"
     >
-      <circle cx="8.5" cy="8.5" r="4.75" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="3.75" y="3.75" width="9.5" height="9.5" stroke="currentColor" strokeWidth="1.5" />
       <path d="M12.5 12.5 17 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );

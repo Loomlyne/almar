@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-09-27T00:41:29.084Z"
-last_activity: 2026-09-27 -- Phase 3 planning complete
+last_updated: "2026-09-27T10:16:38.903Z"
+last_activity: 2026-09-27 -- Phase 3 execution started
 progress:
   total_phases: 6
   completed_phases: 1
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-22)
 
 **Core value:** A guest can complete a real trip booking (stay + add-ons + pay) and ops can run that booking and the public site from one branded system — no fake controls.
-**Current focus:** Phase 02 — platform-spine
+**Current focus:** Phase 3 — public-site-and-dashboard
 
 ## Current Position
 
-Phase: 02 (platform-spine) — PLANNED
-Plan: 1 of 7
-Last activity: 2026-09-27 -- Phase 3 planning complete
-Status: Ready to execute
+Phase: 3 (public-site-and-dashboard) — EXECUTING
+Plan: 1 of 13
+Last activity: 2026-09-27 -- Phase 3 execution started
+Status: Executing Phase 3
 
 Progress: [████░░░░░░] 44%
 

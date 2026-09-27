@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import {
   CalendarDate,
   getDayOfWeek,
   getLocalTimeZone,
   today,
 } from "@internationalized/date";
-import { KitDialog } from "./dialog";
 import { ChevronIcon } from "../icons/icons";
 
 function pad(value: number) {
@@ -24,10 +23,36 @@ function monthLabel(date: CalendarDate) {
   );
 }
 
+function spokenDate(date: CalendarDate) {
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(date.year, date.month - 1, date.day));
+}
+
 function compare(a: CalendarDate, b: CalendarDate) {
   if (a.year !== b.year) return a.year - b.year;
   if (a.month !== b.month) return a.month - b.month;
   return a.day - b.day;
+}
+
+function dateKey(date: CalendarDate) {
+  return `${date.year}-${date.month}-${date.day}`;
+}
+
+function nightsBetween(start: CalendarDate, end: CalendarDate) {
+  const ms = end.toDate(getLocalTimeZone()).getTime() - start.toDate(getLocalTimeZone()).getTime();
+  return Math.max(0, Math.round(ms / 86_400_000));
+}
+
+function rangeStatus(start: CalendarDate | null, end: CalendarDate | null) {
+  if (!start) return "No range yet";
+  if (!end) return "Select check-out";
+  const count = nightsBetween(start, end);
+  if (count === 0) return "Same day";
+  return count === 1 ? "1 night" : `${count} nights`;
 }
 
 export function CalendarPanel({
@@ -36,15 +61,22 @@ export function CalendarPanel({
   hover,
   onPick,
   onHover,
+  describedBy,
 }: {
   start: CalendarDate | null;
   end: CalendarDate | null;
   hover: CalendarDate | null;
   onPick: (date: CalendarDate) => void;
   onHover: (date: CalendarDate | null) => void;
+  describedBy?: string;
 }) {
   const now = today(getLocalTimeZone());
+  const titleId = useId();
+  const gridRef = useRef<HTMLDivElement>(null);
+  const pendingFocus = useRef<string | null>(null);
   const [cursor, setCursor] = useState(() => new CalendarDate(now.year, now.month, 1));
+  const [focused, setFocused] = useState<CalendarDate | null>(null);
+  const [focusTick, setFocusTick] = useState(0);
   const first = new CalendarDate(cursor.year, cursor.month, 1);
   const lead = getDayOfWeek(first, "en-GB");
   const count = first.calendar.getDaysInMonth(first);
@@ -57,6 +89,54 @@ export function CalendarPanel({
   }, [cursor.year, cursor.month, count, lead]);
 
   const previewEnd = end ?? hover;
+  const preferred = focused ?? start ?? now;
+  const tabDay = compare(preferred, now) < 0 ? now : preferred;
+
+  useEffect(() => {
+    const key = pendingFocus.current;
+    if (!key || !gridRef.current) return;
+    const button = gridRef.current.querySelector<HTMLButtonElement>(`[data-date="${key}"]`);
+    if (!button || button.disabled) return;
+    pendingFocus.current = null;
+    button.focus();
+  }, [focusTick, cursor.year, cursor.month]);
+
+  function moveTo(date: CalendarDate) {
+    if (compare(date, now) < 0) return;
+    pendingFocus.current = dateKey(date);
+    setFocused(date);
+    if (date.year !== cursor.year || date.month !== cursor.month) {
+      setCursor(new CalendarDate(date.year, date.month, 1));
+    }
+    setFocusTick((value) => value + 1);
+  }
+
+  function onDayKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, date: CalendarDate) {
+    const key = event.key;
+    if (key === "PageUp" || key === "PageDown") {
+      event.preventDefault();
+      moveTo(date.add({ months: key === "PageUp" ? -1 : 1 }));
+      return;
+    }
+    if (key === "Home" || key === "End") {
+      event.preventDefault();
+      const weekday = getDayOfWeek(date, "en-GB");
+      moveTo(key === "Home" ? date.subtract({ days: weekday }) : date.add({ days: 6 - weekday }));
+      return;
+    }
+    const steps: Record<string, number> = {
+      ArrowLeft: -1,
+      ArrowRight: 1,
+      ArrowUp: -7,
+      ArrowDown: 7,
+    };
+    const step = steps[key];
+    if (step == null) return;
+    event.preventDefault();
+    const rtl = getComputedStyle(event.currentTarget).direction === "rtl";
+    const delta = rtl && (key === "ArrowLeft" || key === "ArrowRight") ? -step : step;
+    moveTo(date.add({ days: delta }));
+  }
 
   return (
     <div className="calendar">
@@ -69,7 +149,9 @@ export function CalendarPanel({
         >
           <ChevronIcon size={20} className="icon-back" />
         </button>
-        <p className="calendar-title">{monthLabel(cursor)}</p>
+        <p className="calendar-title" id={titleId}>
+          {monthLabel(cursor)}
+        </p>
         <button
           type="button"
           className="icon-button"
@@ -84,7 +166,13 @@ export function CalendarPanel({
           <span key={label}>{label}</span>
         ))}
       </div>
-      <div className="calendar-grid" role="grid" aria-label="Date range">
+      <div
+        ref={gridRef}
+        className="calendar-grid"
+        role="grid"
+        aria-labelledby={titleId}
+        aria-describedby={describedBy}
+      >
         {days.map((date, index) => {
           if (!date) return <span key={`pad-${index}`} />;
           const past = compare(date, now) < 0;
@@ -93,29 +181,57 @@ export function CalendarPanel({
           );
           const isStart = Boolean(start && compare(date, start) === 0);
           const isEnd = Boolean(end && compare(date, end) === 0);
+          const isPreviewEnd = Boolean(
+            !end &&
+              hover &&
+              start &&
+              compare(date, hover) === 0 &&
+              compare(hover, start) > 0,
+          );
           const isToday = compare(date, now) === 0;
-          const focusedDay = start ?? now;
-          const tab = compare(date, focusedDay) === 0;
+          const single = Boolean(
+            (isStart && isEnd) ||
+              (isStart && !end && (!hover || (start && compare(hover, start) === 0))),
+          );
+          const rangeEnd = (isEnd || isPreviewEnd) && !single;
+          const rangeStart = isStart && !single;
+          const inMiddle = inRange && !single && !rangeStart && !rangeEnd;
+          const tab = compare(date, tabDay) === 0 && !past;
+          const isHot = Boolean(hover && !past && compare(date, hover) === 0);
+          const role = [isStart ? "check-in" : "", isEnd ? "check-out" : ""].filter(Boolean).join(", ");
           return (
             <button
               key={date.toString()}
               type="button"
               role="gridcell"
+              data-date={dateKey(date)}
               className={[
                 "calendar-day",
-                inRange ? "is-range" : "",
-                isStart || isEnd ? "is-end" : "",
+                inMiddle ? "is-range" : "",
+                rangeStart ? "is-start" : "",
+                rangeEnd ? "is-end" : "",
                 isToday ? "is-today" : "",
-                !end && hover && inRange ? "is-preview" : "",
+                !end && hover && inMiddle ? "is-preview" : "",
+                isPreviewEnd ? "is-preview-end" : "",
+                isHot ? "is-hot" : "",
+                single ? "is-single" : "",
               ]
                 .filter(Boolean)
                 .join(" ")}
               disabled={past}
-              tabIndex={tab && !past ? 0 : -1}
-              aria-label={formatDate(date)}
-              aria-selected={isStart || isEnd || undefined}
+              tabIndex={tab ? 0 : -1}
+              aria-label={role ? `${spokenDate(date)}, ${role}` : spokenDate(date)}
+              aria-selected={isStart || isEnd || (Boolean(end) && inMiddle) || undefined}
+              aria-current={isToday ? "date" : undefined}
               onMouseEnter={() => onHover(date)}
               onMouseLeave={() => onHover(null)}
+              onFocus={() => onHover(date)}
+              onBlur={(event) => {
+                const next = event.relatedTarget;
+                if (next instanceof Node && event.currentTarget.parentElement?.contains(next)) return;
+                onHover(null);
+              }}
+              onKeyDown={(event) => onDayKeyDown(event, date)}
               onClick={() => onPick(date)}
             >
               {date.day}
@@ -128,9 +244,14 @@ export function CalendarPanel({
 }
 
 export function DateRangeField() {
+  const checkInId = useId();
+  const checkOutId = useId();
+  const statusId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
   const [start, setStart] = useState<CalendarDate | null>(null);
   const [end, setEnd] = useState<CalendarDate | null>(null);
   const [hover, setHover] = useState<CalendarDate | null>(null);
+  const pickingOut = Boolean(start && !end);
 
   function pick(date: CalendarDate) {
     if (!start || end) {
@@ -146,23 +267,72 @@ export function DateRangeField() {
     }
   }
 
+  function clear() {
+    setStart(null);
+    setEnd(null);
+    setHover(null);
+  }
+
+  function openCalendar(event: ReactKeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "ArrowDown" && event.key !== "Enter") return;
+    event.preventDefault();
+    rootRef.current?.querySelector<HTMLButtonElement>(".calendar-day[tabindex='0']")?.focus();
+  }
+
   return (
-    <div className="date-range">
-      <KitDialog trigger="When" title="Choose dates">
-        <CalendarPanel start={start} end={end} hover={hover} onPick={pick} onHover={setHover} />
-      </KitDialog>
-      <CalendarPanel start={start} end={end} hover={hover} onPick={pick} onHover={setHover} />
-      <div className="date-pair">
-        <label>
-          Check-in
-          <input readOnly value={start ? formatDate(start) : ""} placeholder="DD/MM/YYYY" />
+    <div className="date-range range-picker" ref={rootRef} role="group" aria-label="Check-in and check-out">
+      <div className="range-picker-fields">
+        <label className={pickingOut ? "range-picker-field" : "range-picker-field is-next"} htmlFor={checkInId}>
+          <span>Check-in</span>
+          <input
+            id={checkInId}
+            name="check-in"
+            readOnly
+            inputMode="none"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="DD/MM/YYYY"
+            value={start ? formatDate(start) : ""}
+            onKeyDown={openCalendar}
+          />
         </label>
-        <span className="date-nights">0 nights</span>
-        <label>
-          Check-out
-          <input readOnly value={end ? formatDate(end) : ""} placeholder="DD/MM/YYYY" />
+        <label className={pickingOut ? "range-picker-field is-next" : "range-picker-field"} htmlFor={checkOutId}>
+          <span>Check-out</span>
+          <input
+            id={checkOutId}
+            name="check-out"
+            readOnly
+            inputMode="none"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="DD/MM/YYYY"
+            value={end ? formatDate(end) : ""}
+            onKeyDown={openCalendar}
+          />
         </label>
+        <div className="range-picker-status-row">
+          <p
+            id={statusId}
+            className={start && end ? "range-picker-status" : "range-picker-status is-empty"}
+            role="status"
+          >
+            {rangeStatus(start, end)}
+          </p>
+          {start ? (
+            <button type="button" className="range-picker-clear" onClick={clear}>
+              Clear dates
+            </button>
+          ) : null}
+        </div>
       </div>
+      <CalendarPanel
+        start={start}
+        end={end}
+        hover={hover}
+        onPick={pick}
+        onHover={setHover}
+        describedBy={statusId}
+      />
     </div>
   );
 }

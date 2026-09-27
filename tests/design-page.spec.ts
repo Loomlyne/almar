@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const MATRIX = ["Link", "Button", "Input", "Password", "Checkbox", "Radio"] as const;
+const MATRIX = ["Link", "Button", "Input", "Password", "Checkbox"] as const;
 const STATES = ["Hover", "Focus", "Disabled", "Loading", "Error", "Empty"] as const;
 
 test("core controls and their state rows are on /design", async ({ page }) => {
@@ -18,9 +18,6 @@ test("core controls and their state rows are on /design", async ({ page }) => {
   ).toBeVisible();
   await expect(
     page.getByRole("checkbox", { name: "Remember me", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "Radio", exact: true }).getByRole("radio", { name: "Deposit", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("switch", { name: "Email updates on", exact: true }),
