@@ -158,12 +158,12 @@ Plans:
 **Source:** design canvas "ALMAR Design System Audit", boards 1–8a (2026-09-28)
 **Success Criteria** (what must be TRUE):
 
-  1. Brand-book palette plus semantic tokens only; `#d1dfe0` is `--color-teal-tint` (backgrounds only); no raw hex or px font sizes outside the token file
-  2. `globals.css` split into one stylesheet per component; the 47 "Comment N" patches folded in; no styles keyed to `/design` ids or to a parent like `.nav-tools`
+  1. Brand-book palette plus semantic tokens only, from one `tokens.json`; `#d1dfe0` is `--color-teal-tint` (backgrounds only); no raw hex or px font sizes outside the token source (failing test)
+  2. Tailwind v4 is the only styling method: `globals.css` and every CSS module converted into component utilities; the 47 "Comment N" patches folded in; no styles keyed to route ids or to a parent like `.nav-tools`
   3. One named type scale (Questa / Lato, Noto for Arabic), 12px floor; gold never as text on ivory or white
-  4. Logos served from `brand/`, one `next.config`, one styling method
-  5. Journey bar (desktop 72px bar, phone one-tap entry + Where → When → Who steps), StepRail, AddOnRow with image and multi-select, InclusionsList, JourneyCart exist in `/design` in every state, EN/AR/ES, RTL
-  6. No stock or invented people anywhere, `/design` included
+  4. Logos served from `brand/`, one `next.config.ts`
+  5. The design-system canvas (claude.ai, 7 pages) is signed off page by page; journey bar (desktop 72px bar, phone one-tap entry + Where → When → Who steps), StepRail, AddOnRow, InclusionsList, JourneyCart are coded and match the canvas in a component-test harness in every state, EN/AR/ES, RTL; `/design` and `/framer` are removed
+  6. No stock or invented people anywhere in React code, copy, or the canvas
 
 **Plans:** TBD
 
