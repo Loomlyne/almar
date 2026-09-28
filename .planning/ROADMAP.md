@@ -14,6 +14,9 @@ Rebuild the Framer HTML export into a live booking OS. Tokens and components fir
 - [x] **Phase 1: Design system** - Tokens, core components, RTL states, owner `/design` (completed 2026-09-23)
 - [ ] **Phase 2: Platform spine** - Supabase auth, host gate, locale/currency, no ops leak
 - [ ] **Phase 3: Public site and dashboard** - Public site and dashboard screens first; catalogue, connections, and calculations after
+- [ ] **Phase 3.1: Design system and journey bar** (INSERTED) - One token set, CSS per component, journey bar and booking components from the design canvas
+- [ ] **Phase 3.2: Real catalog and team** (INSERTED) - Dashboard Catalog and Team save to Supabase, restyled in the dense variant
+- [ ] **Phase 3.3: Booking-path pages** (INSERTED) - Home, Private stays, Stay detail, Destinations, Experiences & Services in React on the same URLs
 - [ ] **Phase 4: Book and pay** - Hero → `/booking/trip` → Stripe TEST deposit or full
 - [ ] **Phase 5: Ops OS** - `/ops` runs bookings, customers, money, brand publish
 - [ ] **Phase 6: Site and rest of CMS** - Replace Framer pages; packages, consult, i18n publish
@@ -97,7 +100,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 02-09: Same-URL string map on every Framer page (wave 6)
+- [ ] 02-09: Same-URL string map on every Framer page (wave 6) — PAUSED 2026-09-28: Framer HTML is not patched further; React pages in 3.3 and 6 carry EN/AR/ES
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
@@ -105,7 +108,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 02-10: Convert written prices on every priced page (wave 8)
+- [ ] 02-10: Convert written prices on every priced page (wave 8) — PAUSED 2026-09-28: prices come from the catalog in 3.2/3.3, not Framer strings
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
@@ -145,6 +148,54 @@ Plans:
 - [ ] 03-11-PLAN.md — Draw empty catalog editors. Catalogue requirements stay deferred.
 - [ ] 03-12-PLAN.md — Draw empty content editors. Publish does not publish.
 - [ ] 03-13-PLAN.md — Draw Settings and Profile. Nothing saves.
+
+### Phase 3.1: Design system and journey bar (INSERTED)
+
+**Goal:** One consolidated design system, then the journey bar and booking components built on it, before any new page.
+**Mode:** mvp
+**Depends on:** Phase 1 (no platform dependency)
+**Requirements:** DSGN-01, DSGN-02, DSGN-03 (confirm at discuss)
+**Source:** design canvas "ALMAR Design System Audit", boards 1–8a (2026-09-28)
+**Success Criteria** (what must be TRUE):
+
+  1. Brand-book palette plus semantic tokens only; `#d1dfe0` is `--color-teal-tint` (backgrounds only); no raw hex or px font sizes outside the token file
+  2. `globals.css` split into one stylesheet per component; the 47 "Comment N" patches folded in; no styles keyed to `/design` ids or to a parent like `.nav-tools`
+  3. One named type scale (Questa / Lato, Noto for Arabic), 12px floor; gold never as text on ivory or white
+  4. Logos served from `brand/`, one `next.config`, one styling method
+  5. Journey bar (desktop 72px bar, phone one-tap entry + Where → When → Who steps), StepRail, AddOnRow with image and multi-select, InclusionsList, JourneyCart exist in `/design` in every state, EN/AR/ES, RTL
+  6. No stock or invented people anywhere, `/design` included
+
+**Plans:** TBD
+
+### Phase 3.2: Real catalog and team (INSERTED)
+
+**Goal:** Ops can create and publish destinations, stays with rates, experiences and services with images, the inclusions kit, and team members; the data lives in Supabase.
+**Mode:** mvp
+**Depends on:** Phase 3.1; Phase 2 plans 02-08 (server runtime) and 02-04 (ops sign-in)
+**Requirements:** CMS-01, CMS-02, STAY-03, STAY-05, STAY-06 (confirm at discuss)
+**Success Criteria** (what must be TRUE):
+
+  1. Dashboard Catalog (Destinations, Stays, Experiences & Services, Packages) and Content › Team save, publish and unpublish through Supabase
+  2. Every experience and service has an image (https, Cloudflare), a type, a unit and a destination link
+  3. The three fake team members are gone; public Team reads only published members
+  4. Catalog and Team screens use the dense dashboard variant of the 3.1 system
+
+**Plans:** TBD
+
+### Phase 3.3: Booking-path pages (INSERTED)
+
+**Goal:** The pages a guest passes through before booking are React on the same URLs, reading the 3.2 catalog.
+**Mode:** mvp
+**Depends on:** Phase 3.2
+**Requirements:** SITE (home, destinations, experiences, private stays) — confirm at discuss
+**Success Criteria** (what must be TRUE):
+
+  1. `/`, `/private-stays`, `/private-stays/*`, `/destinations`, `/experiences` render from React with the Framer look on 3.1 tokens
+  2. Home hero carries the journey bar; Search opens `/booking/trip`
+  3. EN / AR / ES with real RTL on every section; contact stays `inquiries@almarprivatejourney.com` / `+971 56 388 3302`
+  4. Each template cuts over on Cloudflare one at a time (owner gate); the other Framer routes keep serving
+
+**Plans:** TBD
 
 ### Phase 4: Book and pay
 
@@ -189,7 +240,7 @@ Plans:
 
 ### Phase 6: Site and rest of CMS
 
-**Goal:** Public pages are React, not Framer HTML; remaining Active CMS (packages, consult, content) is live.
+**Goal:** The remaining public pages (About, Contact, Services and service detail, Blog and posts) are React, the Framer bridge is removed; remaining Active CMS (packages, consult, content) is live.
 **Mode:** mvp
 **Depends on:** Phase 5
 **Requirements:** BOOK-05, BOOK-06, BOOK-07, ADDN-03, I18N-04, SITE-01, SITE-02, SITE-03, SITE-04, SITE-05, SITE-06, SITE-07, SITE-08, SITE-09, SITE-10, SITE-11, SITE-12, SITE-13, OPS-12, CMS-03, CMS-07, CMS-08, CMS-09, PLAT-03
@@ -210,13 +261,16 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 3.2 → 3.3 → 4 → 5 → 6. Phase 3.1 can start now; 3.2 waits on 02-08 and 02-04.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design system | 6/6 | Complete   | 2026-09-23 |
 | 2. Platform spine | 1/10 | In Progress|  |
 | 3. Catalog and calendar | 0/2 | Not started | - |
+| 3.1 Design system and journey bar | 0/? | Not started | - |
+| 3.2 Real catalog and team | 0/? | Not started | - |
+| 3.3 Booking-path pages | 0/? | Not started | - |
 | 4. Book and pay | 0/3 | Not started | - |
 | 5. Ops OS | 0/2 | Not started | - |
 | 6. Site and rest of CMS | 0/2 | Not started | - |

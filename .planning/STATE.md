@@ -69,6 +69,7 @@ Recent decisions affecting current work:
 
 - Rebuild, don’t patch Framer HTML
 - Design system first, then booking, then ops, then site cutover
+- 2026-09-28 (owner delegated the order): stop patching Framer → consolidate design system + journey bar (3.1) → real catalog and team (3.2) → booking-path pages (3.3) → Book & pay → Ops OS → remaining pages
 - Next 14.2.35 + OpenNext 1.15.x; Stripe TEST Payment Element; R2 not Supabase storage
 - [Phase 01]: Playwright dev server uses port 3010 — 127.0.0.1:3000 is held by Twenty CRM, not this repo
 - [Phase 02]: email-verification-api is rejected. The confirm email is Resend. — That package is not Resend. The magic link is the email.
@@ -77,6 +78,7 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - Phase 3 edited: title and goal. Public site and dashboard screens come before catalogue, connections, and calculations.
+- 2026-09-28: Phases 3.1, 3.2, 3.3 inserted after the design audit. 02-09 and 02-10 paused (no more Framer HTML patching). Phase 6 keeps the remaining pages and removes the Framer bridge.
 
 ### Pending Todos
 
