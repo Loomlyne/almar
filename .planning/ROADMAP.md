@@ -154,7 +154,7 @@ Plans:
 **Goal:** One consolidated design system, then the journey bar and booking components built on it, before any new page.
 **Mode:** mvp
 **Depends on:** Phase 1 (no platform dependency)
-**Requirements:** DSGN-01, DSGN-02, DSGN-03 (confirm at discuss)
+**Requirements:** DSGN-01, DSGN-02, DSGN-03, DSGN-05
 **Source:** design canvas "ALMAR Design System Audit", boards 1–8a (2026-09-28)
 **Success Criteria** (what must be TRUE):
 
