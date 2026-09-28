@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ALMAR audit · Token drift</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400..700&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap">
+<style>
+body{margin:0;background:#FBFAF6;color:#11100D;font-family:'Inter',ui-sans-serif,system-ui,sans-serif}
+a{color:#C63D08}a:hover{color:#BE4B27}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1760px; box-sizing: border-box; padding: 80px 96px; background: #FBFAF6; display: flex; flex-direction: column; gap: 48px; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; color: #11100D;">
+
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 1000px;">
+<div style="font-size: 11px; line-height: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #5E5A54;">Brand book vs code tokens vs live Framer home</div>
+<h1 style="margin: 0; font-family: 'Inter Tight', sans-serif; font-size: 48px; line-height: 50px; font-weight: 600; letter-spacing: -0.03em;">Token drift</h1>
+<p style="margin: 0; font-size: 16px; line-height: 25px; color: #45423D;">The code tokens match the brand book. The live Framer site does not: rebuilding "pixel-exact to Framer" would carry the drift into React. Rebuild the Framer layout, but on the book's values.</p>
+</div>
+
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; overflow: hidden;">
+<div style="display: grid; grid-template-columns: 140px 220px 260px 1fr; gap: 24px; padding: 14px 24px; background: #F6F4F0; font-size: 13px; line-height: 16px; font-weight: 600; color: #45423D; border-bottom: 1px solid #E1DED8;">
+<div>Role</div><div>Brand book</div><div>Code token</div><div>Also on the live Framer home (count)</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 140px 220px 260px 1fr; gap: 24px; padding: 20px 24px; border-bottom: 1px solid #E1DED8; align-items: center; font-size: 13px;">
+<div style="font-size: 14px; font-weight: 600;">Teal</div>
+<div style="display: flex; align-items: center; gap: 10px;"><span style="width: 32px; height: 32px; border-radius: 6px; background: #1f3b40; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#1f3b40</span></div>
+<div style="display: flex; align-items: center; gap: 10px;"><span style="width: 32px; height: 32px; border-radius: 6px; background: #1f3b40; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">--color-teal</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px;">
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #1f3a40; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#1f3a40 ×131</span></div>
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #183e43; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#183e43 ×20</span></div>
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #002a34; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#002a34 ×15</span></div>
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #0f677d; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#0f677d ×10</span></div>
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #182d32; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#182d32 ×2</span></div>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 140px 220px 260px 1fr; gap: 24px; padding: 20px 24px; border-bottom: 1px solid #E1DED8; align-items: center; font-size: 13px;">
+<div style="font-size: 14px; font-weight: 600;">Ivory</div>
+<div style="display: flex; align-items: center; gap: 10px;"><span style="width: 32px; height: 32px; border-radius: 6px; background: #fffaf0; border: 1px solid #CFCCC5; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#fffaf0</span></div>
+<div style="display: flex; align-items: center; gap: 10px;"><span style="width: 32px; height: 32px; border-radius: 6px; background: #fffaf0; border: 1px solid #CFCCC5; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">--color-ivory</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px;">
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #fbf6f5; border: 1px solid #CFCCC5; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#fbf6f5 ×57</span></div>
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #f9f6f3; border: 1px solid #CFCCC5; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#f9f6f3 ×23</span></div>
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #fcfbfa; border: 1px solid #CFCCC5; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#fcfbfa ×3</span></div>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 140px 220px 260px 1fr; gap: 24px; padding: 20px 24px; border-bottom: 1px solid #E1DED8; align-items: center; font-size: 13px;">
+<div style="font-size: 14px; font-weight: 600;">Gold</div>
+<div style="display: flex; align-items: center; gap: 10px;"><span style="width: 32px; height: 32px; border-radius: 6px; background: #d4ba8a; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#d4ba8a</span></div>
+<div style="display: flex; align-items: center; gap: 10px;"><span style="width: 32px; height: 32px; border-radius: 6px; background: #d4ba8a; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">+ hover #c6ae82, press #b8a27a</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px;">
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #a98e58; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#a98e58 ×6</span></div>
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #a1826a; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#a1826a ×2</span></div>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 140px 220px 260px 1fr; gap: 24px; padding: 20px 24px; align-items: center; font-size: 13px;">
+<div style="font-size: 14px; font-weight: 600;">Not in the book</div>
+<div style="color: #5E5A54;">—</div>
+<div style="display: flex; align-items: center; gap: 10px;"><span style="width: 32px; height: 32px; border-radius: 6px; background: #d1dfe0; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#d1dfe0 raw ×7</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #d1dfe0; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#d1dfe0 ×50 (pale teal panels)</span></div>
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #0099ff; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#0099ff ×97 (Framer default link blue)</span></div>
+<div style="display: flex; align-items: center; gap: 8px;"><span style="width: 24px; height: 24px; border-radius: 6px; background: #141929; display: block;"></span><span style="font-family: 'JetBrains Mono', monospace;">#141929 ×63</span></div>
+</div>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px;">
+
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 28px; display: flex; flex-direction: column; gap: 18px;">
+<h2 style="margin: 0; font-family: 'Inter Tight', sans-serif; font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: -0.015em;">Type sizes</h2>
+<div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px; line-height: 21px;">
+<div style="display: grid; grid-template-columns: 150px 1fr; gap: 16px;"><div style="font-weight: 600;">Brand book</div><div style="color: #45423D;">Questa (display), Lato (body). No scale.</div></div>
+<div style="display: grid; grid-template-columns: 150px 1fr; gap: 16px;"><div style="font-weight: 600;">Code tokens</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #45423D;">48 · 32 · 16 · 14</div></div>
+<div style="display: grid; grid-template-columns: 150px 1fr; gap: 16px;"><div style="font-weight: 600;">Code literals</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #45423D;">64 · 40 · 30 · 28 · 22 · 22 (1.375rem) · 20 · 16 · 14 · 12</div></div>
+<div style="display: grid; grid-template-columns: 150px 1fr; gap: 16px;"><div style="font-weight: 600;">Live Framer</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #45423D;">23 sizes, 88 → 10. Sizes 10–13 px used 70 times.</div></div>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">One scale, named, with a 12 px floor. Every literal maps to a step or gets deleted. Arabic keeps its Noto pair on the same steps.</p>
+</div>
+
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 28px; display: flex; flex-direction: column; gap: 18px;">
+<h2 style="margin: 0; font-family: 'Inter Tight', sans-serif; font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: -0.015em;">Contrast of the brand pairs</h2>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
+<div style="display: flex; align-items: center; gap: 12px;"><span style="width: 120px; padding: 6px 10px; background: #fffaf0; color: #1f3b40; border: 1px solid #E1DED8; border-radius: 6px; font-weight: 600;">Teal / ivory</span><span style="font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;">11.48</span><span style="font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: #E8F2E9; color: #005429;">Pass</span></div>
+<div style="display: flex; align-items: center; gap: 12px;"><span style="width: 120px; padding: 6px 10px; background: #d4ba8a; color: #262626; border-radius: 6px; font-weight: 600;">Charcoal / gold</span><span style="font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;">8.06</span><span style="font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: #E8F2E9; color: #005429;">Pass</span></div>
+<div style="display: flex; align-items: center; gap: 12px;"><span style="width: 120px; padding: 6px 10px; background: #1f3b40; color: #d4ba8a; border-radius: 6px; font-weight: 600;">Gold / teal</span><span style="font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;">6.37</span><span style="font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: #E8F2E9; color: #005429;">Pass</span></div>
+<div style="display: flex; align-items: center; gap: 12px;"><span style="width: 120px; padding: 6px 10px; background: #fffaf0; color: #63615f; border: 1px solid #E1DED8; border-radius: 6px; font-weight: 600;">Muted / ivory</span><span style="font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;">5.93</span><span style="font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: #E8F2E9; color: #005429;">Pass</span></div>
+<div style="display: flex; align-items: center; gap: 12px;"><span style="width: 120px; padding: 6px 10px; background: #d4ba8a; color: #ffffff; border-radius: 6px; font-weight: 600;">White / gold</span><span style="font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;">1.88</span><span style="font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: #FDE9E6; color: #860105;">Fail</span></div>
+<div style="display: flex; align-items: center; gap: 12px;"><span style="width: 120px; padding: 6px 10px; background: #fffaf0; color: #d4ba8a; border: 1px solid #E1DED8; border-radius: 6px; font-weight: 600;">Gold / ivory</span><span style="font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;">1.80</span><span style="font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: #FDE9E6; color: #860105;">Fail</span></div>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">--color-link-hover is gold, so every link on ivory fades to 1.80:1 on hover. Rule: gold is a fill or a line, never text on ivory or white.</p>
+</div>
+
+</div>
+
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 28px; display: flex; flex-direction: column; gap: 14px;">
+<h2 style="margin: 0; font-family: 'Inter Tight', sans-serif; font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: -0.015em;">Plumbing that undermines the system</h2>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 32px; font-size: 14px; line-height: 21px; color: #45423D;">
+<div>• Nav, dashboard and footer load the wordmark and monogram from framerusercontent.com. The SVGs are already in brand/. If the Framer project goes, the logo goes.</div>
+<div>• next.config.js and next.config.mjs both exist. Next loads the .js one, so the SVG rule in .mjs never runs.</div>
+<div>• Tailwind v4 is imported but used about 20 times; everything else is global classes plus 1,388 lines of CSS modules. Pick one method.</div>
+<div>• The React shell's nav and the Framer page underneath are two copies of the header. Two sources of truth for every menu, logo and link.</div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1760}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

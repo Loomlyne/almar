@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ALMAR home hero with journey bar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:'Questa';src:url('/_blob/dfb13bed53d3c684b2436f251c533b6f') format('woff');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Lato';src:url('/_blob/77d52f10b0e77b462369bcd47ca1c172') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Lato';src:url('/_blob/32fa77770b678d5e662eb3e29bdb2c6b') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+body{margin:0;background:#fffaf0;color:#262626;font-family:'Lato',Arial,sans-serif}
+a{color:#1f3b40}a:hover{color:#1f3b40;text-decoration:underline}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1100px; position: relative; overflow: hidden; background: #fffaf0; font-family: 'Lato', Arial, sans-serif; color: #262626;">
+
+<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 860px;">
+<img src="/_blob/7d53a3a9f8de9819eabfcc4203ba7d2e" alt="Colonial courtyard with arches around a still pool" style="position: absolute; left: 0; top: 0; width: 1440px; height: 860px; object-fit: cover; display: block;">
+<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 860px; background: linear-gradient(180deg, rgba(20, 25, 28, 0.55) 0%, rgba(20, 25, 28, 0.12) 34%, rgba(20, 25, 28, 0.2) 60%, rgba(20, 25, 28, 0.62) 100%);"></div>
+</div>
+
+<header style="position: absolute; left: 100px; top: 28px; width: 1240px; height: 64px; display: flex; align-items: center; gap: 40px;">
+<a href="#" aria-label="ALMAR Private Journeys home" style="display: block; width: 150px;"><img src="/_blob/8e60641dd12a4b950f06a2bcf35dbf7b" alt="ALMAR Private Journeys" style="width: 150px; height: auto; display: block;"></a>
+<nav aria-label="Main" style="display: flex; gap: 32px; flex-grow: 1;">
+<a href="#" style="color: #fffaf0; text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;">Destinations</a>
+<a href="#" style="color: #fffaf0; text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;">Experiences</a>
+<a href="#" style="color: #fffaf0; text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;">About</a>
+<a href="#" style="color: #fffaf0; text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;">Contact</a>
+</nav>
+<div style="display: flex; align-items: center; gap: 12px;">
+<button type="button" aria-label="Currency: AED" style="height: 40px; padding: 0 14px; background: transparent; border: 1px solid rgba(255, 250, 240, 0.7); color: #fffaf0; font-family: 'Lato', Arial, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px;">AED <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+<button type="button" aria-label="Language: English" style="height: 40px; padding: 0 14px; background: transparent; border: 1px solid rgba(255, 250, 240, 0.7); color: #fffaf0; font-family: 'Lato', Arial, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px;">EN <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+<a href="#" style="color: #fffaf0; text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; padding: 0 4px 0 12px;">Login</a>
+</div>
+</header>
+
+<div style="position: absolute; left: 100px; top: 392px; width: 900px; display: flex; flex-direction: column; gap: 18px;">
+<div style="font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; color: #fffaf0;">Welcome to ALMAR</div>
+<h1 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 96px; line-height: 96px; letter-spacing: -0.02em; color: #ffffff;">Colombia,<br>Privately Yours</h1>
+</div>
+
+<form role="search" aria-label="Plan a journey" style="position: absolute; left: 100px; top: 680px; width: 1240px; height: 72px; display: flex; background: #fffaf0; border-top: 2px solid #d4ba8a; box-shadow: 0 18px 40px -10px rgba(10, 9, 7, 0.3), 0 4px 10px -4px rgba(10, 9, 7, 0.1);">
+<button type="button" onClick="{{openWhere}}" aria-expanded="{{whereOpen}}" style="{{whereStyle}}">
+<span style="font-size: 13px; line-height: 16px; font-weight: 700; color: {{whereLabelColor}};">Destination</span>
+<span style="{{whereValueStyle}}">{{whereValue}}</span>
+</button>
+<span style="width: 1px; height: 36px; align-self: center; background: rgba(38, 38, 38, 0.16);"></span>
+<button type="button" onClick="{{openWhen}}" aria-expanded="{{whenOpen}}" style="{{whenStyle}}">
+<span style="font-size: 13px; line-height: 16px; font-weight: 700; color: {{whenLabelColor}};">Dates</span>
+<span style="{{whenValueStyle}}">{{whenValue}}</span>
+</button>
+<span style="width: 1px; height: 36px; align-self: center; background: rgba(38, 38, 38, 0.16);"></span>
+<button type="button" onClick="{{openWho}}" aria-expanded="{{whoOpen}}" style="{{whoStyle}}">
+<span style="font-size: 13px; line-height: 16px; font-weight: 700; color: #63615f;">Guests</span>
+<span style="font-family: 'Lato', Arial, sans-serif; font-size: 16px; line-height: 22px; color: #262626; white-space: nowrap;">{{whoValue}}</span>
+</button>
+<sc-if value="{{ready}}" hint-placeholder-val="{{false}}">
+<a href="Flow.dc.html" style="width: 200px; height: 72px; flex-shrink: 0; background: #1f3b40; color: #fffaf0; display: flex; align-items: center; justify-content: center; gap: 12px; text-decoration: none; font-size: 14px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Search</a>
+</sc-if>
+<sc-if value="{{notReady}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{trySearch}}" style="width: 200px; height: 72px; flex-shrink: 0; border: 0; background: #1f3b40; color: #fffaf0; display: flex; align-items: center; justify-content: center; gap: 12px; font-family: 'Lato', Arial, sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Search</button>
+</sc-if>
+</form>
+
+<sc-if value="{{showError}}" hint-placeholder-val="{{false}}">
+<div role="alert" style="position: absolute; left: 100px; top: 762px; padding: 12px 16px; background: #ffffff; color: #8f2d2d; font-size: 14px; line-height: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 24px -8px rgba(10, 9, 7, 0.16);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>{{errorText}}</div>
+</sc-if>
+
+<div style="position: absolute; left: 100px; top: 900px; width: 1240px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px; align-items: start;">
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<div style="font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; color: #1f3b40;">Welcome to ALMAR</div>
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 48px; line-height: 52px; letter-spacing: -0.02em; color: #1f3b40;">Where Safety Meets Bespoke Luxury</h2>
+</div>
+<p style="margin: 0; padding-top: 36px; font-size: 17px; line-height: 28px; color: #262626;">ALMAR is built for travellers in the UAE and GCC who want a considered private journey through Colombia, planned around their dates, interests, and preferred pace.</p>
+</div>
+
+<sc-if value="{{whereOpen}}" hint-placeholder-val="{{false}}">
+<div role="dialog" aria-label="Choose a destination" style="position: absolute; left: 100px; top: 762px; width: 440px; background: #ffffff; box-shadow: 0 28px 56px -16px rgba(10, 9, 7, 0.28), 0 10px 20px -10px rgba(10, 9, 7, 0.12); padding: 12px 0; display: flex; flex-direction: column;">
+<div style="padding: 12px 24px 8px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #63615f;">One destination per journey</div>
+<sc-for list="{{destinations}}" as="d" hint-placeholder-count="5">
+<button type="button" onClick="{{d.pick}}" aria-pressed="{{d.selected}}" style="{{d.style}}">
+<span style="display: flex; flex-direction: column; gap: 2px; text-align: start;">
+<span style="font-family: 'Questa', Georgia, serif; font-size: 22px; line-height: 28px; color: #1f3b40;">{{d.name}}</span>
+<span style="font-size: 13px; line-height: 18px; color: #63615f;">{{d.region}}</span>
+</span>
+<sc-if value="{{d.selected}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1f3b40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+</button>
+</sc-for>
+<div style="margin: 8px 24px 4px; padding-top: 14px; border-top: 1px solid rgba(38, 38, 38, 0.12); font-size: 13px; line-height: 19px; color: #63615f;">More than one city in one trip? <a href="#" style="color: #1f3b40; font-weight: 700;">See Packages</a></div>
+</div>
+</sc-if>
+
+<sc-if value="{{whenOpen}}" hint-placeholder-val="{{false}}">
+<div role="dialog" aria-label="Choose dates" style="position: absolute; left: 360px; top: 762px; width: 760px; background: #ffffff; box-shadow: 0 28px 56px -16px rgba(10, 9, 7, 0.28), 0 10px 20px -10px rgba(10, 9, 7, 0.12); padding: 28px 32px 24px; display: flex; flex-direction: column; gap: 20px;">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px;">
+<sc-for list="{{months}}" as="m" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; gap: 12px;">
+<div style="font-family: 'Questa', Georgia, serif; font-size: 22px; line-height: 28px; color: #1f3b40;">{{m.title}}</div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #63615f; text-align: center;">
+<span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px;">
+<sc-for list="{{m.blanks}}" as="b" hint-placeholder-count="3"><span style="height: 44px;"></span></sc-for>
+<sc-for list="{{m.days}}" as="day" hint-placeholder-count="30">
+<button type="button" onClick="{{day.pick}}" aria-label="{{day.label}}" style="{{day.style}}">{{day.n}}</button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; align-items: center; gap: 24px; padding-top: 16px; border-top: 1px solid rgba(38, 38, 38, 0.12);">
+<div style="flex-grow: 1; font-size: 14px; line-height: 20px; color: #262626;">{{rangeLine}}</div>
+<button type="button" onClick="{{clearDates}}" style="height: 44px; padding: 0 8px; border: 0; background: transparent; color: #1f3b40; font-family: 'Lato', Arial, sans-serif; font-size: 14px; font-weight: 700; text-decoration: underline; cursor: pointer;">Clear dates</button>
+<button type="button" onClick="{{done}}" style="height: 44px; padding: 0 24px; border: 1px solid #1f3b40; background: #1f3b40; color: #fffaf0; font-family: 'Lato', Arial, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;">Done</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{whoOpen}}" hint-placeholder-val="{{false}}">
+<div role="dialog" aria-label="Guests" style="position: absolute; left: 700px; top: 762px; width: 420px; background: #ffffff; box-shadow: 0 28px 56px -16px rgba(10, 9, 7, 0.28), 0 10px 20px -10px rgba(10, 9, 7, 0.12); padding: 12px 28px 24px; display: flex; flex-direction: column;">
+<sc-for list="{{guestRows}}" as="g" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid rgba(38, 38, 38, 0.12);">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;">
+<span style="font-family: 'Questa', Georgia, serif; font-size: 20px; line-height: 26px; color: #1f3b40;">{{g.label}}</span>
+<span style="font-size: 13px; line-height: 18px; color: #63615f;">{{g.hint}}</span>
+</div>
+<button type="button" onClick="{{g.dec}}" disabled="{{g.atFloor}}" aria-label="{{g.decLabel}}" style="{{g.decStyle}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+<span style="width: 28px; text-align: center; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums;">{{g.count}}</span>
+<button type="button" onClick="{{g.inc}}" aria-label="{{g.incLabel}}" style="width: 44px; height: 44px; border: 1px solid #1f3b40; background: #ffffff; color: #1f3b40; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></button>
+</div>
+</sc-for>
+<div style="display: flex; align-items: center; gap: 16px; padding-top: 16px;">
+<span style="flex-grow: 1; font-size: 13px; line-height: 18px; color: #63615f;">At least 1 adult</span>
+<button type="button" onClick="{{done}}" style="height: 44px; padding: 0 24px; border: 1px solid #1f3b40; background: #1f3b40; color: #fffaf0; font-family: 'Lato', Arial, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;">Done</button>
+</div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { panel: null, dest: null, start: null, end: null, adults: 1, children: 0, infants: 0, tried: false };
+  }
+  toDate(key) { return new Date(2026, Math.floor(key / 100) - 1, key % 100); }
+  fmt(key) { var d = this.toDate(key); var dd = String(d.getDate()).padStart(2, '0'); var mm = String(d.getMonth() + 1).padStart(2, '0'); return dd + '/' + mm + '/' + d.getFullYear(); }
+  nights() { if (!this.state.start || !this.state.end) return 0; return Math.round((this.toDate(this.state.end) - this.toDate(this.state.start)) / 86400000); }
+  pickDay(key) {
+    var s = this.state;
+    if (!s.start || (s.start && s.end) || key <= s.start) { this.setState({ start: key, end: null }); }
+    else { this.setState({ end: key }); }
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var dests = [
+      { name: 'Cartagena', region: 'Caribbean coast' },
+      { name: 'Medellín', region: 'Andes' },
+      { name: 'Bogotá', region: 'Capital' },
+      { name: 'San Andrés', region: 'Island' },
+      { name: 'Cocora Valley', region: 'Coffee region' }
+    ];
+    var segBase = 'height: 72px; border: 0; padding: 0 24px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; font-family: inherit; text-align: start; cursor: pointer; ';
+    function seg(name, grow, missing) {
+      var active = s.panel === name;
+      var bg = active ? '#ffffff' : 'transparent';
+      var rule = active ? 'box-shadow: inset 0 -3px 0 #1f3b40;' : (missing ? 'box-shadow: inset 0 -3px 0 #8f2d2d;' : 'box-shadow: none;');
+      return segBase + 'flex-grow: ' + grow + '; flex-basis: 0; background: ' + bg + '; ' + rule;
+    }
+    var missWhere = s.tried && s.dest === null;
+    var missWhen = s.tried && !(s.start && s.end);
+    var filledStyle = "font-family: 'Lato', Arial, sans-serif; font-size: 16px; line-height: 22px; color: #262626; white-space: nowrap;";
+    var emptyStyle = "font-family: 'Lato', Arial, sans-serif; font-size: 16px; line-height: 22px; color: #63615f; white-space: nowrap;";
+    var n = this.nights();
+    var whenValue = 'Add dates';
+    if (s.start && s.end) whenValue = this.fmt(s.start) + ' – ' + this.fmt(s.end);
+    else if (s.start) whenValue = this.fmt(s.start) + ' – Add date';
+    var guests = s.adults + s.children;
+    var whoValue = guests === 1 ? '1 guest' : guests + ' guests';
+    if (s.infants === 1) whoValue += ', 1 infant';
+    if (s.infants > 1) whoValue += ', ' + s.infants + ' infants';
+    var months = [10, 11].map(function (m) {
+      var first = new Date(2026, m - 1, 1).getDay();
+      var blanks = [];
+      for (var i = 0; i < (first + 6) % 7; i++) blanks.push(i);
+      var count = new Date(2026, m, 0).getDate();
+      var days = [];
+      for (var d = 1; d <= count; d++) {
+        (function (d) {
+          var key = m * 100 + d;
+          var isEdge = key === s.start || key === s.end;
+          var inRange = s.start && s.end && key > s.start && key < s.end;
+          var base = "height: 44px; border: 0; font-family: 'Lato', Arial, sans-serif; font-size: 14px; font-variant-numeric: tabular-nums; cursor: pointer; ";
+          var st = isEdge ? base + 'background: #1f3b40; color: #fffaf0; font-weight: 700;' : (inRange ? base + 'background: #d1dfe0; color: #262626;' : base + 'background: transparent; color: #262626;');
+          days.push({ n: d, label: String(d).padStart(2, '0') + '/' + String(m).padStart(2, '0') + '/2026', style: st, pick: function () { self.pickDay(key); } });
+        })(d);
+      }
+      return { title: m === 10 ? 'October 2026' : 'November 2026', blanks: blanks, days: days };
+    });
+    var rangeLine = 'Choose your arrival date.';
+    if (s.start && !s.end) rangeLine = 'Arrive ' + this.fmt(s.start) + '. Now choose your departure date.';
+    if (s.start && s.end) rangeLine = 'Arrive ' + this.fmt(s.start) + ' · Leave ' + this.fmt(s.end) + ' · ' + n + (n === 1 ? ' night' : ' nights');
+    function row(key, label, hint, floor, word) {
+      var count = s[key];
+      var atFloor = count <= floor;
+      var decStyle = 'width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: #ffffff; ' + (atFloor ? 'border: 1px solid rgba(38, 38, 38, 0.2); color: rgba(38, 38, 38, 0.35); cursor: not-allowed;' : 'border: 1px solid #1f3b40; color: #1f3b40; cursor: pointer;');
+      return {
+        label: label, hint: hint, count: count, atFloor: atFloor, decStyle: decStyle,
+        decLabel: 'Remove ' + word, incLabel: 'Add ' + word,
+        dec: function () { if (!atFloor) { var o = {}; o[key] = count - 1; self.setState(o); } },
+        inc: function () { var o = {}; o[key] = count + 1; self.setState(o); }
+      };
+    }
+    var ready = s.dest !== null && !!s.start && !!s.end;
+    var errorText = 'Choose a destination and dates to search.';
+    if (s.dest !== null && !(s.start && s.end)) errorText = 'Choose arrival and departure to search.';
+    if (s.dest === null && s.start && s.end) errorText = 'Choose a destination to search.';
+    function open(name) { return function () { self.setState({ panel: s.panel === name ? null : name }); }; }
+    return {
+      openWhere: open('where'), openWhen: open('when'), openWho: open('who'),
+      whereOpen: s.panel === 'where', whenOpen: s.panel === 'when', whoOpen: s.panel === 'who',
+      whereStyle: seg('where', 1.1, missWhere), whenStyle: seg('when', 1.5, missWhen), whoStyle: seg('who', 1.1, false),
+      whereLabelColor: missWhere ? '#8f2d2d' : '#63615f', whenLabelColor: missWhen ? '#8f2d2d' : '#63615f',
+      whereValue: s.dest === null ? 'Where to?' : dests[s.dest].name,
+      whereValueStyle: s.dest === null ? emptyStyle : filledStyle,
+      whenValue: whenValue, whenValueStyle: s.start ? filledStyle : emptyStyle,
+      whoValue: whoValue,
+      destinations: dests.map(function (d, i) {
+        var sel = s.dest === i;
+        return { name: d.name, region: d.region, selected: sel,
+          style: 'width: 100%; min-height: 64px; border: 0; padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; font-family: inherit; cursor: pointer; background: ' + (sel ? '#d1dfe0' : '#ffffff') + ';',
+          pick: function () { self.setState({ dest: i, panel: 'when' }); } };
+      }),
+      months: months, rangeLine: rangeLine,
+      clearDates: function () { self.setState({ start: null, end: null }); },
+      done: function () { self.setState({ panel: s.panel === 'where' ? 'when' : (s.panel === 'when' ? 'who' : null) }); },
+      guestRows: [row('adults', 'Adults', '13+', 1, 'adult'), row('children', 'Children', '3–12', 0, 'child'), row('infants', 'Infants', '0–2', 0, 'infant')],
+      ready: ready, notReady: !ready,
+      trySearch: function () { self.setState({ tried: true, panel: null }); },
+      showError: s.tried && !ready && s.panel === null, errorText: errorText
+    };
+  }
+}
+</script>
+</body>
+</html>
