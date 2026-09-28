@@ -165,7 +165,38 @@ Plans:
   5. The design-system canvas (claude.ai, 7 pages) is signed off page by page; journey bar (desktop 72px bar, phone one-tap entry + Where → When → Who steps), StepRail, AddOnRow, InclusionsList, JourneyCart are coded and match the canvas in a component-test harness in every state, EN/AR/ES, RTL; `/design` and `/framer` are removed
   6. No stock or invented people anywhere in React code, copy, or the canvas
 
-**Plans:** TBD
+**Plans:** 29 plans
+
+Plans:
+- [ ] 03.1-01-PLAN.md — Canvas Foundations and Components pages, owner gate (D-09)
+- [ ] 03.1-02-PLAN.md — Wave 0: before-screenshots baseline, Playwright config
+- [ ] 03.1-03-PLAN.md — Package legitimacy check and install of class-variance-authority and tailwind-merge
+- [ ] 03.1-04-PLAN.md — tokens.json, @theme generator, cn helper, D-29 guardrail test
+- [ ] 03.1-05-PLAN.md — lib/copy/ catalog, AR/ES parity test, team names removed, embed proof
+- [ ] 03.1-06-PLAN.md — One next.config.ts, stacked lockup saved into brand/
+- [ ] 03.1-07-PLAN.md — Delete /design and /framer and dead specimens, repoint tests
+- [ ] 03.1-08-PLAN.md — Controls to Tailwind: Button, Link, Chip, ToggleCard, Stepper, Field, Checkbox, Switch
+- [ ] 03.1-09-PLAN.md — Overlays to Tailwind: Dialog, ConfirmDialog, Toast, WhatsApp, DateField, Calendar
+- [ ] 03.1-10-PLAN.md — Journey copy in EN/AR/ES, guest-summary formatter, shared types and fixtures
+- [ ] 03.1-11-PLAN.md — Canvas Journey page and tokens install, owner gate
+- [ ] 03.1-12-PLAN.md — LocaleSelect (/account fix), nav and footer, logos from brand/
+- [ ] 03.1-13-PLAN.md — Dashboard shell, sidebar, profile and settings to Tailwind
+- [ ] 03.1-14-PLAN.md — Flag-gated test harness route and scene contract
+- [ ] 03.1-15-PLAN.md — Canvas Public pages page, owner gate
+- [ ] 03.1-16-PLAN.md — Guest screens, status pages and layout to Tailwind
+- [ ] 03.1-17-PLAN.md — Dashboard Home, Bookings, Customers to Tailwind
+- [ ] 03.1-18-PLAN.md — Dashboard Calendar, Catalog, Content to Tailwind
+- [ ] 03.1-19-PLAN.md — DateRangePanel, GuestPanel, DestinationMenu
+- [ ] 03.1-20-PLAN.md — StepRail, AddOnRow, InclusionsList
+- [ ] 03.1-21-PLAN.md — JourneyCart and TeamSection
+- [ ] 03.1-22-PLAN.md — Canvas Guest page, owner gate
+- [ ] 03.1-23-PLAN.md — Hero-booker (embed) to Tailwind, embed proof
+- [ ] 03.1-24-PLAN.md — JourneySegment and JourneyBar
+- [ ] 03.1-25-PLAN.md — JourneySheet, phone entry and docked row
+- [ ] 03.1-26-PLAN.md — Canvas Dashboard page, owner gate
+- [ ] 03.1-27-PLAN.md — Final globals.css, strict guardrail, after-screenshots, production proof
+- [ ] 03.1-28-PLAN.md — Harness matrix screenshots, RTL and accessibility specs, report
+- [ ] 03.1-29-PLAN.md — Owner UAT and DSGN-01 wording
 
 ### Phase 3.2: Real catalog and team (INSERTED)
 
@@ -268,7 +299,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 3.2 → 3.3 → 4 →
 | 1. Design system | 6/6 | Complete   | 2026-09-23 |
 | 2. Platform spine | 1/10 | In Progress|  |
 | 3. Catalog and calendar | 0/2 | Not started | - |
-| 3.1 Design system and journey bar | 0/? | Not started | - |
+| 3.1 Design system and journey bar | 0/29 | Planned | - |
 | 3.2 Real catalog and team | 0/? | Not started | - |
 | 3.3 Booking-path pages | 0/? | Not started | - |
 | 4. Book and pay | 0/3 | Not started | - |
