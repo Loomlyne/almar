@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: "Phase 3.1 plans approved by owner 2026-09-29; next: /gsd-execute-phase 3.1 (run Playwright plans sequentially)"
-last_updated: "2026-09-28T20:55:01.707Z"
-last_activity: 2026-09-28 -- Phase 3.1 planning complete
+last_updated: "2026-09-28T21:08:04.297Z"
+last_activity: 2026-09-28
 progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 58
-  completed_plans: 20
+  completed_plans: 21
   percent: 22
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-22)
 
 **Core value:** A guest can complete a real trip booking (stay + add-ons + pay) and ops can run that booking and the public site from one branded system — no fake controls.
-**Current focus:** Phase 3 — public-site-and-dashboard
+**Current focus:** Phase 3.1 — design-system-and-journey-bar-inserted
 
 ## Current Position
 
-Phase: 03 — COMPLETE
-Plan: 1 of 13
-Last activity: 2026-09-28 -- Phase 3.1 planning complete
+Phase: 3.1 (design-system-and-journey-bar-inserted) — EXECUTING
+Plan: 2 of 29
+Last activity: 2026-09-28
 Status: Ready to execute
 
-Progress: [████░░░░░░] 44%
+Progress: [████░░░░░░] 36%
 
 ## Performance Metrics
 
@@ -100,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-28T20:55:01.693Z
+Last session: 2026-09-28T21:08:04.291Z
 Stopped at: Phase 3.1 plans approved by owner 2026-09-29; next: /gsd-execute-phase 3.1 (run Playwright plans sequentially)
-Resume file: .planning/phases/03.1-design-system-and-journey-bar-inserted/03.1-01-PLAN.md
+Resume file: None
