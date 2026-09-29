@@ -31,19 +31,19 @@ Owner change at the gate: dashboard sidebar Catalog opens a dropdown with its pa
 
 ## Page 5 · Public pages (plan 15), revised 2026-09-29 after owner feedback
 
-11 boards. Each has an EN/AR/ES switch, so there is no separate Arabic board (D-61). Home (two boards, because a board is at most 8000 px tall), About, Contact, Destinations, Experiences and services, Private stays, Stay detail, Blog and Blog post show desktop 1440, tablet 834 and phone 390 side by side. Two boards are special: the details overlay and the header cart.
+11 boards. Each has an EN/AR/ES switch, so there is no separate Arabic board (D-61). Home (screenshots in two halves per width, because a board is at most 8000 px tall), About, Contact, Destinations, Experiences and services, Private stays, Stay detail, Blog and Blog post show desktop 1440, tablet 834 and phone 390 side by side. Two boards are special: the details overlay and the header cart.
 
 | Board | Route | Owner decision drawn |
 |-------|-------|----------------------|
-| 5a Home | `/` | Cart icon in the header |
+| 5a Home | `/` | Unchanged from Framer: screenshots of the live page (owner comment). No redesign. |
 | 5b About | `/about` | |
 | 5c Contact | `/contact` | |
 | 5d Destinations | `/destinations` | |
-| 5e Experiences and services | `/experiences` | One page for both, with search, type chips, destination and private-stay filters, Add icon on every card, and a "2 added · Continue" bar (D-64, D-65) |
+| 5e Experiences and services | `/experiences` | One page. Desktop: filter column (search, type, destination, private stay, clear) beside results grouped into Experiences and Services with counts and removable filter chips. Phone and tablet: search, Filters button and type chips. Add icon on every card and a "2 added · Continue" bar (D-64, D-65) |
 | 5f Overlay | opens from a card | Details overlay with a fixed bottom bar: price and Add to cart, desktop and full-screen phone (D-67) |
 | 5g Cart in the header | header | Empty and with count; drawer for a signed-in guest with an existing booking (Checkout) and for everyone else (complete the booking first) (D-66) |
 | 5h Private stays | `/private-stays` | |
-| 5i Stay detail | `/private-stays/[stay]` | Booking bar pre-filled and locked (destination and stay); calendar with unavailable dates set per stay in the CMS (D-62, D-63) |
+| 5i Stay detail | `/private-stays/[stay]` | Booking bar pre-filled and locked (destination and stay). Clicking Dates opens the calendar under the bar with unavailable dates struck through. Availability is set per stay in Dashboard › Catalog › Stays (D-62, D-63). No separate availability block. |
 | 5j Blog | `/blog` | |
 | 5k Blog post | `/blog/[post]` | Reading time, destination tag, on-this-page list, pull quote, featured stay and experience with Add, share, plan-this-journey bar, related stories, newsletter (D-68) |
 
