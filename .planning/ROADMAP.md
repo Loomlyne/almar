@@ -165,7 +165,7 @@ Plans:
   5. The design-system canvas (claude.ai, 7 pages) is signed off page by page; journey bar (desktop 72px bar, phone one-tap entry + Where → When → Who steps), StepRail, AddOnRow, InclusionsList, JourneyCart are coded and match the canvas in a component-test harness in every state, EN/AR/ES, RTL; `/design` and `/framer` are removed
   6. No stock or invented people anywhere in React code, copy, or the canvas
 
-**Plans:** 12/29 plans executed
+**Plans:** 13/29 plans executed
 
 Plans:
 - [x] 03.1-01-PLAN.md — Canvas Foundations and Components pages, owner gate (D-09)
@@ -181,7 +181,7 @@ Plans:
 - [ ] 03.1-11-PLAN.md — Canvas Journey page and tokens install, owner gate
 - [x] 03.1-12-PLAN.md — LocaleSelect (/account fix), nav and footer, logos from brand/
 - [x] 03.1-13-PLAN.md — Dashboard shell, sidebar, profile and settings to Tailwind
-- [ ] 03.1-14-PLAN.md — Flag-gated test harness route and scene contract
+- [x] 03.1-14-PLAN.md — Flag-gated test harness route and scene contract
 - [ ] 03.1-15-PLAN.md — Canvas Public pages page, owner gate
 - [ ] 03.1-16-PLAN.md — Guest screens, status pages and layout to Tailwind
 - [ ] 03.1-17-PLAN.md — Dashboard Home, Bookings, Customers to Tailwind
@@ -299,7 +299,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 3.2 → 3.3 → 4 →
 | 1. Design system | 6/6 | Complete   | 2026-09-23 |
 | 2. Platform spine | 1/10 | In Progress|  |
 | 3. Catalog and calendar | 0/2 | Not started | - |
-| 3.1 Design system and journey bar | 12/29 | In Progress|  |
+| 3.1 Design system and journey bar | 13/29 | In Progress|  |
 | 3.2 Real catalog and team | 0/? | Not started | - |
 | 3.3 Booking-path pages | 0/? | Not started | - |
 | 4. Book and pay | 0/3 | Not started | - |
