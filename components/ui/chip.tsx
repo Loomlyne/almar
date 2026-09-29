@@ -19,10 +19,12 @@ export function Chip({
   on = false,
   muted = false,
   children,
+  onClick,
 }: {
   on?: boolean;
   muted?: boolean;
   children: ReactNode;
+  onClick?: () => void;
 }) {
   return (
     <button
@@ -30,6 +32,7 @@ export function Chip({
       className={chip({ on, muted }) + (on ? " is-on" : "")}
       aria-pressed={on}
       aria-disabled={muted || undefined}
+      onClick={onClick}
     >
       {children}
     </button>
