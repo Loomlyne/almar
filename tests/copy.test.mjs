@@ -4,13 +4,14 @@ import { HOME_COPY } from "../lib/copy/home.ts";
 import { GUEST_COPY } from "../lib/copy/guest.ts";
 import { DASHBOARD_COPY } from "../lib/copy/dashboard.ts";
 import { FRAMER_SOURCE_COPY } from "../lib/copy/framer-source.ts";
+import { JOURNEY_COPY } from "../lib/copy/journey.ts";
 
-// Plan 10 adds { file: "lib/copy/journey.ts", table: JOURNEY_COPY } here.
 const AREAS = [
   { file: "lib/copy/home.ts", table: HOME_COPY },
   { file: "lib/copy/guest.ts", table: GUEST_COPY },
   { file: "lib/copy/dashboard.ts", table: DASHBOARD_COPY },
   { file: "lib/copy/framer-source.ts", table: FRAMER_SOURCE_COPY },
+  { file: "lib/copy/journey.ts", table: JOURNEY_COPY },
 ];
 
 const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
