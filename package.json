@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "host:cloudflare": "node scripts/assemble-cloudflare.mjs && wrangler deploy",
-    "test": "node --test tests/design-tokens.test.mjs && playwright test"
+    "test": "node --test tests/design-tokens.test.mjs && playwright test",
+    "tokens": "node scripts/generate-theme.mjs",
+    "tokens:check": "node scripts/generate-theme.mjs --check"
   },
   "dependencies": {
     "@internationalized/date": "3.12.4",
