@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SiteNav } from "../../components/ui/nav";
+import { Link } from "../../components/ui/link";
 import { WhatsApp } from "../../components/ui/whatsapp";
 import { HOME_COPY } from "../../lib/copy/home";
 import { setDocumentLocale, type DocumentLocale } from "../../lib/set-document-locale";
@@ -31,26 +32,11 @@ export function BookingsScreen() {
       />
       <main
         id="content"
-        style={{
-          boxSizing: "border-box",
-          maxInlineSize: "var(--width-column)",
-          marginInline: "auto",
-          paddingBlock: "var(--spacing-2xl)",
-          paddingInline: "var(--spacing-lg)",
-          display: "grid",
-          gap: "var(--spacing-lg)",
-          justifyItems: "start",
-        }}
+        className="mx-auto box-border grid w-full max-w-column justify-items-start gap-6 px-4 py-12 md:px-8 lg:px-16"
       >
-        <h1>{copy.bookings}</h1>
-        <p style={{ margin: 0, textWrap: "pretty" }}>{copy.noBookingsYet}</p>
-        <a
-          className="hero-search-submit"
-          href="/"
-          style={{ textDecoration: "none", display: "inline-block" }}
-        >
-          {copy.startATrip}
-        </a>
+        <h1 className="m-0 font-display text-display tracking-display text-teal">{copy.bookings}</h1>
+        <p className="m-0 text-pretty text-body text-ink">{copy.noBookingsYet}</p>
+        <Link href="/" className="h-control justify-center border border-teal px-6 uppercase tracking-kicker ar:normal-case ar:tracking-normal no-underline hover:bg-teal-tint hover:no-underline">{copy.startATrip}</Link>
       </main>
       <WhatsApp />
     </>

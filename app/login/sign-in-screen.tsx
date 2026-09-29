@@ -2,6 +2,7 @@
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { SiteNav } from "../../components/ui/nav";
+import { Button } from "../../components/ui/button";
 import { Field } from "../../components/ui/field";
 import { WhatsApp } from "../../components/ui/whatsapp";
 import { HOME_COPY } from "../../lib/copy/home";
@@ -59,22 +60,13 @@ export function SignInScreen() {
       />
       <main
         id="content"
-        style={{
-          boxSizing: "border-box",
-          maxInlineSize: "var(--width-column)",
-          marginInline: "auto",
-          paddingBlock: "var(--spacing-2xl)",
-          paddingInline: "var(--spacing-lg)",
-          display: "grid",
-          gap: "var(--spacing-lg)",
-          justifyItems: "start",
-        }}
+        className="mx-auto box-border grid w-full max-w-column justify-items-start gap-6 px-4 py-12 md:px-8 lg:px-16"
       >
-        <h1>{copy.signIn}</h1>
+        <h1 className="m-0 font-display text-display tracking-display text-teal">{copy.signIn}</h1>
         <form
           onSubmit={onSubmit}
           noValidate
-          style={{ display: "grid", gap: "var(--spacing-md)", inlineSize: "100%", maxInlineSize: "24rem" }}
+          className="grid w-full max-w-96 gap-4"
         >
           <Field
             id="sign-in-email"
@@ -87,9 +79,9 @@ export function SignInScreen() {
             onChange={onEmailChange}
             error={missingEmail ? copy.enterEmail : undefined}
           />
-          <button type="submit" className="hero-search-submit">
+          <Button type="submit" className="w-full md:w-max">
             {copy.accessWithMagicLink}
-          </button>
+          </Button>
         </form>
       </main>
       <WhatsApp />
