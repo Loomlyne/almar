@@ -1,7 +1,0 @@
-{
-  "plan": "13",
-  "files": [
-    "app/dashboard/(ops)/profile/profile-screen.tsx",
-    "app/dashboard/(ops)/settings/settings-screen.tsx"
-  ]
-}

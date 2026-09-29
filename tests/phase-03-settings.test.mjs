@@ -61,7 +61,7 @@ test("maintenance switch defaults off, is a switch (not a radio), and never fetc
 test("settings has no radius control and does not say it saved", () => {
   const text = readFileSync(SETTINGS_SCREEN, "utf8");
   assert.equal(/radius/i.test(text), false);
-  assert.match(text, /className="hero-search-submit"/);
+  assert.match(text, /<Button onClick=\{\(\) => undefined\}>\{copy\.save\}<\/Button>/);
   assert.equal(text.includes("toast"), false);
   assert.equal(text.includes("Saved"), false);
 });
@@ -86,7 +86,8 @@ test("profile shows name, email, a square photo, and both confirms with the lock
   const text = readFileSync(PROFILE_SCREEN, "utf8");
   assert.match(text, /label="Name"/);
   assert.match(text, /label="Email"/);
-  assert.match(text, /MONOGRAM_SRC/);
+  assert.match(text, /monogram\.src/);
+  assert.equal(text.includes("framerusercontent"), false);
   assert.match(text, /alt=""/);
   assert.match(text, /from ["'].*confirm-dialog["']/);
   assert.match(text, /copy\.signOut\b/);

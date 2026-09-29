@@ -214,7 +214,7 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
       </a>
       <header className="sticky top-0 z-50 flex min-h-control items-center justify-between gap-2 border-b border-line bg-ivory px-4 py-1">
         <Link className="flex min-h-control min-w-0 items-center gap-2 text-teal no-underline" href="/dashboard/home">
-          <img className="block h-auto w-35 max-w-full object-contain object-left" alt="ALMAR" src={charcoalLogo.src} />
+          <img className="block aspect-2/1 h-auto w-35 max-w-full object-contain object-left" alt="ALMAR" src={charcoalLogo.src} />
           <span className="hidden whitespace-nowrap font-display text-label tracking-kicker xl:inline ar:tracking-normal">
             {INTERIOR_MARK}
           </span>
@@ -249,7 +249,7 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
         <nav
           id={menuId}
           className={cn(
-            "flex-col gap-2 border-e border-line bg-surface p-2 xl:flex xl:w-sidebar xl:shrink-0",
+            "flex-col gap-0 border-e border-line bg-surface p-2 xl:flex xl:w-sidebar xl:shrink-0",
             menuOpen ? "fixed inset-0 z-45 flex overflow-auto overscroll-contain border-e-0 bg-ivory pt-16" : "hidden",
           )}
           aria-label={INTERIOR_MARK}

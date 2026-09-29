@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button } from "../../../../components/ui/button";
 import { Field } from "../../../../components/ui/field";
 import { Switch } from "../../../../components/ui/switch";
 import { DASHBOARD_COPY } from "../../../../lib/copy/dashboard";
@@ -30,7 +31,7 @@ function GroupTitle({ id, children }: { id: string; children: string }) {
   return (
     <h2
       id={id}
-      className="m-0 text-[length:var(--text-label)] font-normal leading-[1.4] text-[var(--color-heading)]"
+      className="m-0 text-label font-normal text-teal"
     >
       {children}
     </h2>
@@ -47,13 +48,13 @@ export function SettingsScreen({ rates }: { rates: FxRates | null }) {
   }, []);
 
   return (
-    <div className="flex flex-col gap-[var(--spacing-lg)] min-w-0">
-      <h1 className="m-0 font-[var(--font-display)] text-[length:var(--text-heading)] font-normal leading-[1.1] text-balance text-[var(--color-heading)]">
+    <div className="flex min-w-0 flex-col gap-6">
+      <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">
         {copy.rail.settings}
       </h1>
 
-      <div className="flex flex-col gap-[var(--spacing-md)]">
-        <section className="flex flex-col gap-[var(--spacing-sm)]" aria-labelledby="settings-brand">
+      <div className="flex flex-col gap-4">
+        <section className="flex flex-col gap-2" aria-labelledby="settings-brand">
           <GroupTitle id="settings-brand">Brand</GroupTitle>
           {COLOR_TOKENS.map((token) => (
             <Field
@@ -71,38 +72,36 @@ export function SettingsScreen({ rates }: { rates: FxRates | null }) {
           <Field id="brand-body-face" label="Body face" name="body-face" value="Lato" readOnly />
         </section>
 
-        <section className="flex flex-col gap-[var(--spacing-sm)]" aria-labelledby="settings-money">
+        <section className="flex flex-col gap-2" aria-labelledby="settings-money">
           <GroupTitle id="settings-money">Money</GroupTitle>
           <Field id="money-vat" label="VAT percent" name="vat-percent" type="number" inputMode="decimal" />
           <Field id="money-deposit" label="Deposit percent" name="deposit-percent" type="number" inputMode="decimal" />
-          <div className="flex flex-col gap-[var(--spacing-xs)]">
-            <span className="text-[length:var(--text-label)] leading-[1.4] text-[var(--color-fg)]">FX rate</span>
+          <div className="flex flex-col gap-1">
+            <span className="text-label text-ink">FX rate</span>
             {rates ? (
-              <p className="m-0 tabular-nums text-[length:var(--text-body)] leading-[1.5] text-[var(--color-fg)]">
+              <p className="m-0 text-body tabular-nums text-ink">
                 <span>USD/AED {rates.aed}</span>
-                <span className="ms-[var(--spacing-sm)]">USD/EUR {rates.eur}</span>
+                <span className="ms-2">USD/EUR {rates.eur}</span>
               </p>
             ) : null}
           </div>
         </section>
 
-        <section className="flex flex-col gap-[var(--spacing-sm)]" aria-labelledby="settings-email">
+        <section className="flex flex-col gap-2" aria-labelledby="settings-email">
           <GroupTitle id="settings-email">Email</GroupTitle>
           <Field id="email-templates" label="Templates" name="templates" />
           <Field id="email-reminders" label="Reminders" name="reminders" />
           <Field id="email-confirmation" label="Confirmation" name="confirmation" />
         </section>
 
-        <section className="flex flex-col gap-[var(--spacing-sm)]" aria-labelledby="settings-maintenance">
+        <section className="flex flex-col gap-2" aria-labelledby="settings-maintenance">
           <GroupTitle id="settings-maintenance">Maintenance</GroupTitle>
           <Switch label="Maintenance" checked={maintenance} onCheckedChange={setMaintenance} />
         </section>
       </div>
 
       <div className="flex justify-start">
-        <button type="button" className="hero-search-submit" onClick={() => undefined}>
-          {copy.save}
-        </button>
+        <Button onClick={() => undefined}>{copy.save}</Button>
       </div>
     </div>
   );
