@@ -105,4 +105,12 @@ Third update (owner: trip detail not liked, how to reach Account, help under the
 | 6e Account access | Header shows Login when signed out and an account menu when signed in (menu open shown), plus the phone Menu list. |
 | 6f Delete account | Ten states: confirm, confirm with email (disabled, enabled, mismatch, busy), failed, blocked, link sent, deleted page desktop and phone, phone sheet. |
 
+Fourth update (owner: request cancellation and refund; one image size on bookings): D-79, D-80.
+
+| Board | Change |
+|-------|--------|
+| 6c Bookings | Every booking image is one fixed size, cropped to fill. Cards have Request cancellation; a card with a request shows the Cancellation requested chip and View request. |
+| 6d Trip detail | Cancellation and refund card with the placeholder policy and the request button. |
+| 6g Cancellation and refund | Nine states: request dialog, sending, failed, request sent, not available after the trip starts, phone sheet, requested, refund approved, refunded and cancelled. |
+
 Gate: page 6 awaiting owner.
