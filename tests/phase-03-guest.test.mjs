@@ -4,7 +4,6 @@ import { existsSync, readFileSync } from "node:fs";
 
 const GUEST_COPY = "lib/copy/guest.ts";
 const NAV = "components/ui/nav.tsx";
-const FRAMER_SHELL = "app/framer/framer-shell.tsx";
 const TRIP_SCREEN = "app/booking/trip/trip-screen.tsx";
 const LOGIN_PAGE = "app/login/page.tsx";
 const SIGN_IN_SCREEN = "app/login/sign-in-screen.tsx";
@@ -15,7 +14,6 @@ const ACCOUNT_SCREEN = "app/account/account-screen.tsx";
 
 const PUBLIC_SOURCE_FILES = [
   NAV,
-  FRAMER_SHELL,
   TRIP_SCREEN,
   LOGIN_PAGE,
   SIGN_IN_SCREEN,
@@ -80,7 +78,7 @@ test("bookings screen shows the empty line and Start a trip", () => {
   const text = readFileSync(BOOKINGS_SCREEN, "utf8");
   assert.match(text, /No bookings yet/);
   assert.match(text, /Start a trip/);
-  assert.match(text, /href="\/framer"/);
+  assert.match(text, /href="\/"/);
 });
 
 test("account screen has no Save button and no password input", () => {
@@ -93,9 +91,7 @@ test("account screen has no Save button and no password input", () => {
   assert.match(text, /Language/);
 });
 
-test("FramerShell and the trip screen point Login at /login; the SiteNav default is unchanged", () => {
-  const shell = readFileSync(FRAMER_SHELL, "utf8");
-  assert.match(shell, /loginHref="\/login"/);
+test("the trip screen points Login at /login; the SiteNav default is unchanged", () => {
   const trip = readFileSync(TRIP_SCREEN, "utf8");
   assert.match(trip, /loginHref="\/login"/);
   const nav = readFileSync(NAV, "utf8");
@@ -105,7 +101,7 @@ test("FramerShell and the trip screen point Login at /login; the SiteNav default
 test("SiteNav signedIn defaults false and no call site passes true", () => {
   const nav = readFileSync(NAV, "utf8");
   assert.match(nav, /signedIn = false/);
-  for (const path of [FRAMER_SHELL, TRIP_SCREEN, SIGN_IN_SCREEN, BOOKINGS_SCREEN, ACCOUNT_SCREEN]) {
+  for (const path of [TRIP_SCREEN, SIGN_IN_SCREEN, BOOKINGS_SCREEN, ACCOUNT_SCREEN]) {
     if (!existsSync(path)) continue;
     const text = readFileSync(path, "utf8");
     assert.equal(/signedIn(\s*=\s*\{?\s*)true/.test(text), false, `${path} sets signedIn true`);

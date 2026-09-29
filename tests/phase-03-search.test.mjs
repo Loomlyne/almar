@@ -44,7 +44,7 @@ test("trip screen is an empty stay list with the query as text", () => {
   const page = readFileSync(PAGE, "utf8");
   assert.match(screen, /No stays for these dates/);
   assert.match(screen, /Choose a destination to search\./);
-  assert.match(screen, /href="\/framer"/);
+  assert.match(screen, /href="\/"/);
   assert.equal(screen.includes("Casa San Diego"), false);
   assert.equal(screen.includes("Sample stay"), false);
   assert.equal(screen.includes("innerHTML"), false);
@@ -58,9 +58,8 @@ test("trip screen is an empty stay list with the query as text", () => {
   }
 });
 
-test("design and kit home do not pass onBook", () => {
-  const design = readFileSync("app/design/design-kit.tsx", "utf8");
-  const kit = readFileSync("components/home/kit-home.tsx", "utf8");
-  assert.equal(design.includes("onBook"), false);
-  assert.equal(kit.includes("onBook"), false);
+test("the hero booker component itself does not call a booking handler unless one is passed", () => {
+  const booker = readFileSync("components/specimens/hero-booker.tsx", "utf8");
+  assert.match(booker, /onBook\?: \(query: HeroBookQuery\) => void/);
+  assert.match(booker, /if \(!onBook \|\| !where \|\| !start \|\| !end\) return;/);
 });

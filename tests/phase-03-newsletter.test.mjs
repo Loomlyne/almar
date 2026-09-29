@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const routeSource = readFileSync("app/newsletter/route.ts", "utf8");
-const shellSource = readFileSync("app/framer/framer-shell.tsx", "utf8");
-const sourceRouteSource = readFileSync("app/framer/source/route.ts", "utf8");
+const footerSource = readFileSync("components/ui/footer.tsx", "utf8");
+const homeSource = readFileSync("app/route.ts", "utf8");
 const envExample = readFileSync(".env.example", "utf8");
 
 test("the newsletter route calls contacts.create", () => {
@@ -13,8 +13,8 @@ test("the newsletter route calls contacts.create", () => {
 
 test("the newsletter route never calls emails.send", () => {
   assert.equal(routeSource.includes("emails.send"), false);
-  assert.equal(shellSource.includes("emails.send"), false);
-  assert.equal(sourceRouteSource.includes("emails.send"), false);
+  assert.equal(footerSource.includes("emails.send"), false);
+  assert.equal(homeSource.includes("emails.send"), false);
 });
 
 test("the newsletter route does not set a from address", () => {
@@ -68,30 +68,4 @@ test("the newsletter route reads the email from field name Email", () => {
 test("success requires data.id to be a non-empty string", () => {
   assert.match(routeSource, /data\?\.id/);
   assert.match(routeSource, /status:\s*200/);
-});
-
-test("the framer/source injection retargets the existing form to /newsletter", () => {
-  assert.equal(sourceRouteSource.includes("framer-8a2tsb"), true);
-  assert.equal(sourceRouteSource.includes("/newsletter"), true);
-  assert.equal(sourceRouteSource.includes("Subscribe"), true);
-});
-
-test("the framer/source injection does not add a hero-search-submit class to the newsletter button", () => {
-  const idx = sourceRouteSource.indexOf("newsletterScript");
-  assert.notEqual(idx, -1);
-});
-
-test("the framer/source injection never uses innerHTML to insert the response body", () => {
-  assert.equal(sourceRouteSource.includes(".innerHTML ="), false);
-});
-
-test("the shell pushes Subscribed. only from the newsletter ok message path", () => {
-  assert.equal(shellSource.includes('push("Subscribed.")'), true);
-  assert.equal(shellSource.includes("Check your inbox."), false);
-  const pushCount = shellSource.split('push("Subscribed.")').length - 1;
-  assert.equal(pushCount, 1);
-});
-
-test("the shell does not import SiteFooter", () => {
-  assert.equal(shellSource.includes("SiteFooter"), false);
 });
