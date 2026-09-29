@@ -6,4 +6,4 @@
 
 - RESOLVED in plan 07: Playwright /design and /framer spec timeouts. app/design and app/framer are deleted; the specs are removed, and coverage returns in plans 12 (locale), 24 (search) and 28 (a11y, RTL, video).
 
-- OPEN, plan 27: legacy `.ui-chip { min-block-size: 44px }` in app/globals.css (line ~2317) makes Chip 44px visible, not 40px (D-47). Found in plan 20; the chip's `h-chip` is overridden by the unlayered legacy rule. Remove with the legacy `.ui-chip` block in plan 27; then tighten tests/journey/steps-addons.spec.ts chip test to exactly 40.
+- RESOLVED in plan 27 (legacy layer deleted; chip spec is exactly 40): legacy `.ui-chip { min-block-size: 44px }` in app/globals.css (line ~2317) makes Chip 44px visible, not 40px (D-47). Found in plan 20; the chip's `h-chip` is overridden by the unlayered legacy rule. Remove with the legacy `.ui-chip` block in plan 27; then tighten tests/journey/steps-addons.spec.ts chip test to exactly 40.
