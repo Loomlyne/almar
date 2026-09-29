@@ -52,9 +52,9 @@ test("no file input and no SEO field anywhere in the content screens", () => {
   }
 });
 
-test("Publish uses hero-search-submit and does not publish; Close closes", () => {
+test("Publish is a Button that does not publish; Close closes", () => {
   const text = readFileSync(SCREEN, "utf8");
-  assert.match(text, /className="hero-search-submit"[\s\S]{0,80}\{copy\.publish\}/);
+  assert.match(text, /<Button onClick=\{\(\) => undefined\}>\{copy\.publish\}<\/Button>/);
   assert.match(text, /onOpenChange=\{setOpen\}/);
   assert.equal(text.includes("fetch("), false, "Publish must not call a server");
 });

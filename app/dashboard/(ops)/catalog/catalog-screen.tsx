@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState, type ChangeEvent, type ReactNode } from "react";
+import { Button } from "../../../../components/ui/button";
 import { Field } from "../../../../components/ui/field";
 import { Sidebar } from "../../../../components/ui/sidebar";
 import { DASHBOARD_COPY, type DashboardCopy } from "../../../../lib/copy/dashboard";
 import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
-import styles from "./catalog.module.css";
 
 export type CatalogKind = "destinations" | "stays" | "experiences" | "packages";
 
@@ -74,14 +74,14 @@ export function CatalogScreen({ kind }: { kind: CatalogKind }) {
   }
 
   return (
-    <div className={styles.screen}>
-      <h1 className={styles.title}>{config.title(copy)}</h1>
+    <div className="flex min-w-0 flex-col gap-6">
+      <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{config.title(copy)}</h1>
       {kind === "experiences" ? (
-        <div className={styles.controls} role="group" aria-label={copy.rail.experiences}>
-          <label className={styles.controlLabel}>
+        <div className="flex flex-wrap gap-4" role="group" aria-label={copy.rail.experiences}>
+          <label className="flex flex-col gap-1 text-label text-ink">
             Type
             <select
-              className={styles.controlSelect}
+              className="h-control min-w-40 rounded-none border border-ink bg-surface px-2 font-body text-label text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
               value={type}
               onChange={(event) => setType(event.target.value)}
             >
@@ -90,10 +90,10 @@ export function CatalogScreen({ kind }: { kind: CatalogKind }) {
               <option value="service">Service</option>
             </select>
           </label>
-          <label className={styles.controlLabel}>
+          <label className="flex flex-col gap-1 text-label text-ink">
             Price
             <select
-              className={styles.controlSelect}
+              className="h-control min-w-40 rounded-none border border-ink bg-surface px-2 font-body text-label text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
               value={priceSort}
               onChange={(event) => setPriceSort(event.target.value)}
             >
@@ -102,10 +102,10 @@ export function CatalogScreen({ kind }: { kind: CatalogKind }) {
               <option value="high">High to low</option>
             </select>
           </label>
-          <label className={styles.controlLabel}>
+          <label className="flex flex-col gap-1 text-label text-ink">
             Destination
             <select
-              className={styles.controlSelect}
+              className="h-control min-w-40 rounded-none border border-ink bg-surface px-2 font-body text-label text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
               value={destinationFilter}
               onChange={(event) => setDestinationFilter(event.target.value)}
             >
@@ -114,18 +114,16 @@ export function CatalogScreen({ kind }: { kind: CatalogKind }) {
           </label>
         </div>
       ) : null}
-      <div className={styles.empty}>
-        <p className={styles.emptyText}>{config.emptyText(copy)}</p>
-        <button type="button" className="hero-search-submit" onClick={() => setOpen(true)}>
-          {config.newLabel(copy)}
-        </button>
+      <div className="flex flex-col items-start gap-2">
+        <p className="m-0 text-pretty text-body text-ink">{config.emptyText(copy)}</p>
+        <Button onClick={() => setOpen(true)}>{config.newLabel(copy)}</Button>
       </div>
-      <div className={styles.tableWrap}>
-        <table className="ops-table">
+      <div className="min-w-0 overflow-x-auto">
+        <table className="w-full border-collapse font-body">
           <thead>
-            <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Status</th>
+            <tr className="h-row dense:h-row-dense border-b border-line">
+              <th scope="col" className="px-2 text-start text-caption font-normal uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">Name</th>
+              <th scope="col" className="px-2 text-start text-caption font-normal uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">Status</th>
             </tr>
           </thead>
           <tbody />
@@ -138,10 +136,8 @@ export function CatalogScreen({ kind }: { kind: CatalogKind }) {
           mediaInvalid={mediaInvalid}
           onMediaChange={handleMediaChange}
         />
-        <div className={styles.actions}>
-          <button type="button" className="hero-search-submit" onClick={() => undefined}>
-            {copy.publish}
-          </button>
+        <div className="flex justify-start pt-2">
+          <Button onClick={() => undefined}>{copy.publish}</Button>
         </div>
       </Sidebar>
     </div>

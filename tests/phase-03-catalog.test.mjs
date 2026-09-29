@@ -46,9 +46,9 @@ test("stay editor has Pets, Min nights, and Rates, and has no Max nights", () =>
 
 test("experience list controls are named and do not filter or fetch", () => {
   const text = readFileSync(SCREEN, "utf8");
-  assert.match(text, /controlLabel[\s\S]{0,40}Type/);
-  assert.match(text, /controlLabel[\s\S]{0,40}Price/);
-  assert.match(text, /controlLabel[\s\S]{0,40}Destination/);
+  assert.match(text, /<label className="flex flex-col[^>]*>\s*Type/);
+  assert.match(text, /<label className="flex flex-col[^>]*>\s*Price/);
+  assert.match(text, /<label className="flex flex-col[^>]*>\s*Destination/);
   assert.equal(text.includes("fetch("), false, "experience controls must not fetch");
 });
 
@@ -65,9 +65,9 @@ test("Media URL rejects a non-https value and does not store it", () => {
   assert.equal(text.includes('type="file"'), false, "no file input");
 });
 
-test("Publish uses hero-search-submit and does not publish; Close closes", () => {
+test("Publish is a Button that does not publish; Close closes", () => {
   const text = readFileSync(SCREEN, "utf8");
-  assert.match(text, /className="hero-search-submit"[\s\S]{0,80}\{copy\.publish\}/);
+  assert.match(text, /<Button onClick=\{\(\) => undefined\}>\{copy\.publish\}<\/Button>/);
   assert.match(text, /onOpenChange=\{setOpen\}/);
   assert.equal(text.includes("fetch("), false, "Publish must not call a server");
 });

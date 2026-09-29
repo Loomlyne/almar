@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState, type ChangeEvent, type ReactNode } from "react";
+import { Button } from "../../../../components/ui/button";
 import { Field } from "../../../../components/ui/field";
 import { Sidebar } from "../../../../components/ui/sidebar";
 import { DASHBOARD_COPY, type DashboardCopy } from "../../../../lib/copy/dashboard";
 import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
-import styles from "./content.module.css";
 
 export type ContentKind = "pages" | "blog" | "team" | "legal";
 
@@ -71,20 +71,18 @@ export function ContentScreen({ kind }: { kind: ContentKind }) {
   }
 
   return (
-    <div className={styles.screen}>
-      <h1 className={styles.title}>{config.title(copy)}</h1>
-      <div className={styles.empty}>
-        <p className={styles.emptyText}>{config.emptyText(copy)}</p>
-        <button type="button" className="hero-search-submit" onClick={() => setOpen(true)}>
-          {config.newLabel(copy)}
-        </button>
+    <div className="flex min-w-0 flex-col gap-6">
+      <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{config.title(copy)}</h1>
+      <div className="flex flex-col items-start gap-2">
+        <p className="m-0 text-pretty text-body text-ink">{config.emptyText(copy)}</p>
+        <Button onClick={() => setOpen(true)}>{config.newLabel(copy)}</Button>
       </div>
-      <div className={styles.tableWrap}>
-        <table className="ops-table">
+      <div className="min-w-0 overflow-x-auto">
+        <table className="w-full border-collapse font-body">
           <thead>
-            <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Status</th>
+            <tr className="h-row dense:h-row-dense border-b border-line">
+              <th scope="col" className="px-2 text-start text-caption font-normal uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">Name</th>
+              <th scope="col" className="px-2 text-start text-caption font-normal uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">Status</th>
             </tr>
           </thead>
           <tbody />
@@ -92,10 +90,8 @@ export function ContentScreen({ kind }: { kind: ContentKind }) {
       </div>
       <Sidebar open={open} onOpenChange={setOpen} title={config.newLabel(copy)} closeLabel={copy.close}>
         <Fields kind={kind} photoUrl={photoUrl} photoInvalid={photoInvalid} onPhotoChange={handlePhotoChange} />
-        <div className={styles.actions}>
-          <button type="button" className="hero-search-submit" onClick={() => undefined}>
-            {copy.publish}
-          </button>
+        <div className="flex justify-start pt-2">
+          <Button onClick={() => undefined}>{copy.publish}</Button>
         </div>
       </Sidebar>
     </div>
