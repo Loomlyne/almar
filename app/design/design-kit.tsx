@@ -5,13 +5,9 @@ import { notoNaskh, notoSans } from "../../lib/fonts";
 import { Button } from "../../components/ui/button";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Chip } from "../../components/ui/chip";
-import { DateRangeField } from "../../components/ui/calendar";
-import { KitDialog } from "../../components/ui/dialog";
-import { SelectSpecimen } from "../../components/ui/select";
 import { Stepper } from "../../components/ui/stepper";
-import { ShowToast, ToastProvider } from "../../components/ui/toast";
+import { ToastProvider } from "../../components/ui/toast";
 import { Field } from "../../components/ui/field";
-import { DateField } from "../../components/ui/date-field";
 import { SiteFooter } from "../../components/ui/footer";
 import { SiteNav } from "../../components/ui/nav";
 import { AccountFrames } from "../../components/specimens/account-frames";
@@ -422,7 +418,6 @@ export function DesignKit({ hasMapbox = false }: { hasMapbox?: boolean }) {
         <Field id="search" label="Search" type="search" search placeholder="Cartagena" />
         <Field id="note" label="Note" multiline optional placeholder="Add a note" />
         <Field id="coupon" label="Coupon" coupon optional placeholder="WELCOME" />
-        <DateField />
         <div className="date-check">
           <label className="field-label" htmlFor="check-in">
             Check-in
@@ -534,7 +529,6 @@ export function DesignKit({ hasMapbox = false }: { hasMapbox?: boolean }) {
 
       <section className="kit-section" id="select" aria-label="Select">
         <SectionHead title="Select" />
-        <SelectSpecimen />
         <States
           rows={[
             ["Hover", "same as input"],
@@ -549,7 +543,6 @@ export function DesignKit({ hasMapbox = false }: { hasMapbox?: boolean }) {
 
       <section className="kit-section" id="date-range" aria-label="Date range">
         <SectionHead title="Date range" />
-        <DateRangeField />
         <States
           rows={[
             ["Hover", "teal edge"],
@@ -578,10 +571,6 @@ export function DesignKit({ hasMapbox = false }: { hasMapbox?: boolean }) {
 
       <section className="kit-section" id="modal" aria-label="Modal">
         <SectionHead title="Modal" />
-        <div className="specimen-row">
-          <KitDialog trigger="Open modal" title="Choose a stay" />
-          <KitDialog trigger="Confirm booking" title="Confirm this booking" dismiss="confirm" />
-        </div>
         <States
           rows={[
             ["Hover", "N/A"],
@@ -596,7 +585,6 @@ export function DesignKit({ hasMapbox = false }: { hasMapbox?: boolean }) {
 
       <section className="kit-section" id="toast" aria-label="Toast">
         <SectionHead title="Toast" />
-        <ShowToast />
         <States
           rows={[
             ["Hover", "pause timer"],

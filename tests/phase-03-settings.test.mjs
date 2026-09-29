@@ -104,9 +104,13 @@ test("Sign out is absent from the dashboard shell layout", () => {
   assert.equal(text.includes("Logout-all"), false);
 });
 
-test("dialog.tsx and sidebar.tsx are unchanged by this plan", () => {
+test("dialog.tsx keeps its locked-dismiss handlers and sidebar.tsx keeps its close control", () => {
   const dialog = readFileSync(DIALOG, "utf8");
-  assert.match(dialog, /KitDialog/);
+  assert.match(dialog, /export function Dialog\b/);
+  assert.equal(dialog.includes("KitDialog"), false);
+  assert.match(dialog, /onEscapeKeyDown=\{block\}/);
+  assert.match(dialog, /onPointerDownOutside=\{block\}/);
+  assert.match(dialog, /onInteractOutside=\{block\}/);
   const sidebar = readFileSync(SIDEBAR, "utf8");
   assert.match(sidebar, /Close/);
   assert.match(sidebar, /inset-inline-end/);

@@ -35,24 +35,24 @@ export function ConfirmDialog({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-[70] bg-[color-mix(in_srgb,var(--color-charcoal)_40%,transparent)]" />
+        <Dialog.Overlay className="fixed inset-0 z-70 bg-ink/40" />
         <Dialog.Content
-          className="fixed inset-0 z-[80] flex items-center justify-center p-[var(--spacing-md)]"
+          className="fixed inset-0 z-70 flex items-center justify-center p-4"
           onEscapeKeyDown={preventDismiss}
           onPointerDownOutside={preventDismiss}
           onInteractOutside={preventDismiss}
         >
           <FocusScope trapped loop asChild>
-            <div className="flex w-full max-w-[24rem] flex-col gap-[var(--spacing-md)] rounded-none border border-[var(--color-border)] bg-[var(--color-surface)] p-[var(--spacing-md)] text-[var(--color-fg)] shadow-[var(--shadow-overlay)]">
-              <Dialog.Title className="m-0 font-[var(--font-display)] text-[length:var(--text-heading)] font-normal leading-[1.1] text-balance text-[var(--color-heading)]">
+            <div className="flex w-full max-w-dialog flex-col gap-4 rounded-none bg-surface p-6 text-ink shadow-lg">
+              <Dialog.Title className="m-0 font-display text-heading font-normal text-balance text-teal">
                 {title}
               </Dialog.Title>
               {description ? (
-                <Dialog.Description className="m-0 text-[length:var(--text-body)] leading-[1.5] text-pretty text-[var(--color-fg)]">
+                <Dialog.Description className="m-0 text-body text-pretty text-ink">
                   {description}
                 </Dialog.Description>
               ) : null}
-              <div className="flex flex-wrap gap-[var(--spacing-sm)]">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="danger" onClick={onConfirm}>
                   {confirmLabel}
                 </Button>

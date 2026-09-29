@@ -8,7 +8,6 @@ import { Chip } from "../ui/chip";
 import { Field } from "../ui/field";
 import { Link } from "../ui/link";
 import { Checkbox } from "../ui/checkbox";
-import { OptionSelect } from "../ui/select";
 import { Switch } from "../ui/switch";
 import { useToast } from "../ui/toast";
 import { formatAmount } from "../../lib/format";
@@ -487,15 +486,6 @@ export function CatalogFrames({ hasMapbox = false }: { hasMapbox?: boolean }) {
             </tr>
           </tbody>
         </table>
-      </Frame>
-      <Frame title="Currency">
-        <OptionSelect label="Currency" options={["AED", "USD", "EUR"]} value="AED" />
-      </Frame>
-      <Frame title="Language">
-        <OptionSelect label="Language" options={["English", "العربية", "Español"]} value="English" />
-      </Frame>
-      <Frame title="Sort">
-        <OptionSelect label="Sort" options={["Price", "Date"]} value="Price" />
       </Frame>
       <Frame title="Filter">
         <Chip on>Villa</Chip>
