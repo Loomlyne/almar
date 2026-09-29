@@ -165,7 +165,7 @@ Plans:
   5. The design-system canvas (claude.ai, 7 pages) is signed off page by page; journey bar (desktop 72px bar, phone one-tap entry + Where → When → Who steps), StepRail, AddOnRow, InclusionsList, JourneyCart are coded and match the canvas in a component-test harness in every state, EN/AR/ES, RTL; `/design` and `/framer` are removed
   6. No stock or invented people anywhere in React code, copy, or the canvas
 
-**Plans:** 5/29 plans executed
+**Plans:** 6/29 plans executed
 
 Plans:
 - [x] 03.1-01-PLAN.md — Canvas Foundations and Components pages, owner gate (D-09)
@@ -173,7 +173,7 @@ Plans:
 - [x] 03.1-03-PLAN.md — Package legitimacy check and install of class-variance-authority and tailwind-merge
 - [x] 03.1-04-PLAN.md — tokens.json, @theme generator, cn helper, D-29 guardrail test
 - [x] 03.1-05-PLAN.md — lib/copy/ catalog, AR/ES parity test, team names removed, embed proof
-- [ ] 03.1-06-PLAN.md — One next.config.ts, stacked lockup saved into brand/
+- [x] 03.1-06-PLAN.md — One next.config.ts, stacked lockup saved into brand/
 - [ ] 03.1-07-PLAN.md — Delete /design and /framer and dead specimens, repoint tests
 - [ ] 03.1-08-PLAN.md — Controls to Tailwind: Button, Link, Chip, ToggleCard, Stepper, Field, Checkbox, Switch
 - [ ] 03.1-09-PLAN.md — Overlays to Tailwind: Dialog, ConfirmDialog, Toast, WhatsApp, DateField, Calendar
@@ -299,7 +299,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 3.2 → 3.3 → 4 →
 | 1. Design system | 6/6 | Complete   | 2026-09-23 |
 | 2. Platform spine | 1/10 | In Progress|  |
 | 3. Catalog and calendar | 0/2 | Not started | - |
-| 3.1 Design system and journey bar | 5/29 | In Progress|  |
+| 3.1 Design system and journey bar | 6/29 | In Progress|  |
 | 3.2 Real catalog and team | 0/? | Not started | - |
 | 3.3 Booking-path pages | 0/? | Not started | - |
 | 4. Book and pay | 0/3 | Not started | - |
