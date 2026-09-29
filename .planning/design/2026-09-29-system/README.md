@@ -115,4 +115,6 @@ Fourth update (owner: request cancellation and refund; one image size on booking
 
 Fifth update (owner: update the navbar everywhere; no logo in the account dropdown): D-81. Navbar specimen on 3b now shows signed out, signed in with a cart count, and the account menu open; phone headers on 3b and page 4 carry the cart; account trigger and menu have no logo.
 
+Sixth update (owner: reimagine the trip detail): 6d Trip detail redesigned again (D-78 replaced): Manage booking dropdown, status rail, stay with one fixed photo size, Day by day itinerary, sticky payment card with the balance due, concierge card and a quiet cancellation link.
+
 Gate: page 6 awaiting owner.
