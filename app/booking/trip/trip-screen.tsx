@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { SiteNav } from "../../../components/ui/nav";
+import { Link } from "../../../components/ui/link";
 import { WhatsApp } from "../../../components/ui/whatsapp";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
@@ -78,29 +79,6 @@ export function TripScreen() {
 
   return (
     <>
-      <style>{`
-        .trip-change:active { background: var(--color-accent-press); }
-        @media (hover: hover) {
-          .trip-change:hover { background: var(--color-accent-hover); }
-        }
-        @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-          .trip-change {
-            transition-property: background-color;
-            transition-duration: 150ms;
-            transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .trip-change { transition: none; }
-        }
-        @media (forced-colors: active) {
-          .trip-change {
-            border: 1px solid ButtonText;
-            background: ButtonFace;
-            color: ButtonText;
-          }
-        }
-      `}</style>
       <SiteNav
         locale={locale}
         onLocale={setLocale}
@@ -110,62 +88,29 @@ export function TripScreen() {
       />
       <main
         id="content"
-        style={{
-          boxSizing: "border-box",
-          maxInlineSize: "var(--width-column)",
-          marginInline: "auto",
-          paddingBlock: "var(--spacing-2xl)",
-          paddingInline: "var(--spacing-lg)",
-          display: "grid",
-          gap: "var(--spacing-lg)",
-          justifyItems: "start",
-        }}
+        className="mx-auto box-border grid w-full max-w-column justify-items-start gap-6 px-4 py-12 md:px-8 lg:px-16"
       >
-        <h1>{copy.title}</h1>
-        <dl
-          style={{
-            display: "grid",
-            gap: "var(--spacing-sm)",
-            margin: 0,
-          }}
-        >
+        <h1 className="m-0 font-display text-display tracking-display text-teal">{copy.title}</h1>
+        <dl className="m-0 grid gap-3">
           {fields.map(([label, value]) => (
-            <div key={label} style={{ display: "grid", gap: "var(--spacing-xs)" }}>
-              <dt
-                style={{
-                  fontSize: "var(--text-label)",
-                  lineHeight: 1.4,
-                  color: "var(--color-heading)",
-                }}
-              >
+            <div key={label} className="grid gap-1">
+              <dt className="text-label text-muted">
                 {label}
               </dt>
-              <dd style={{ margin: 0, overflowWrap: "break-word" }}>
+              <dd className="m-0 wrap-break-word text-body text-ink">
                 <bdi>{value}</bdi>
               </dd>
             </div>
           ))}
         </dl>
         {knownWhere ? (
-          <p style={{ margin: 0, textWrap: "pretty" }}>{copy.empty}</p>
+          <p className="m-0 text-pretty text-body text-ink">{copy.empty}</p>
         ) : (
-          <p className="hero-search-notice" role="status">
+          <p className="m-0 text-pretty text-label text-muted" role="status">
             {copy.needWhere}
           </p>
         )}
-        <a
-          className="ui-button trip-change"
-          href="/"
-          style={{
-            background: "var(--color-accent)",
-            color: "var(--color-heading)",
-            borderColor: "transparent",
-            borderRadius: 0,
-            textDecoration: "none",
-          }}
-        >
-          {copy.change}
-        </a>
+        <Link href="/" className="h-control justify-center border border-teal px-6 uppercase tracking-kicker ar:normal-case ar:tracking-normal no-underline hover:bg-teal-tint hover:no-underline">{copy.change}</Link>
       </main>
       <WhatsApp />
     </>

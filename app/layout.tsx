@@ -10,7 +10,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${questa.variable} ${lato.variable} antialiased`}
     >
       <body>
-        <a className="skip-link" href="#content">
+        <a className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-70 focus:bg-teal focus:px-4 focus:py-3 focus:text-ivory" href="#content">
           Skip to content
         </a>
         {children}
