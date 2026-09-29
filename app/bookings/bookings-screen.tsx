@@ -46,7 +46,7 @@ export function BookingsScreen() {
         <p style={{ margin: 0, textWrap: "pretty" }}>{copy.noBookingsYet}</p>
         <a
           className="hero-search-submit"
-          href="/framer"
+          href="/"
           style={{ textDecoration: "none", display: "inline-block" }}
         >
           {copy.startATrip}

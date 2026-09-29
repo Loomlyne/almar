@@ -155,7 +155,7 @@ export function TripScreen() {
         )}
         <a
           className="ui-button trip-change"
-          href="/framer"
+          href="/"
           style={{
             background: "var(--color-accent)",
             color: "var(--color-heading)",
