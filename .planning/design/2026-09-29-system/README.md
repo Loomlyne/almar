@@ -10,10 +10,10 @@ Canvas (the design surface): https://claude.ai/artifact/6MqV4cd2KzXLsVputN2ctw
 | 1 | Audit (boards 1–8a) | frozen, unedited |
 | 2 | Foundations: Colour, Type, Space/shape/motion/dense | approved 2026-09-29 |
 | 3 | Components: Controls, Surfaces and navigation | approved 2026-09-29 (sidebar Catalog subtabs added at owner request) |
-| 4 | Journey: 4 boards (see below) | awaiting owner |
-| 5 | Public pages: 11 layouts (see below) | awaiting owner |
-| 6 | Guest | not drawn (plan 22) |
-| 7 | Dashboard: 8 boards (see below) | awaiting owner |
+| 4 | Journey: 4 boards (see below) | approved 2026-09-29 |
+| 5 | Public pages: 11 layouts (see below) | approved 2026-09-29 |
+| 6 | Guest: login, account, bookings, trip detail, cancellation (see below) | approved 2026-09-29 |
+| 7 | Dashboard: 19 boards (see below) | approved 2026-09-29 |
 
 Every board has an EN/AR/ES switch (AR flips to RTL) and a fixed Arabic RTL board beside it (`…Ar`). AR and ES text is drafted from the real EN copy for owner review.
 
@@ -51,7 +51,7 @@ Removed: `/services`, `/services/[service]` and the separate experiences board (
 
 Notes: tablet and phone use the Menu button (no full nav below 1024). TeamSection is placeholders only and renders nothing with zero members. Blocked dates on the stay calendar are examples. Copy that exists in `lib/copy/home.ts` is used as is in EN, AR and ES. New strings (cart, filters, overlay, blog) are AR/ES drafts for owner review. Images are six repo photos.
 
-Gate: page 5 awaiting owner (second review).
+Gate: page 5 approved by the owner in chat, 2026-09-29 ("all good i approve").
 
 
 ## Page 4 · Journey (plan 11)
@@ -69,7 +69,7 @@ Canvas design system: repo `tokens.json` is not installed as a canvas design sys
 
 Picker placement (D-70): the date picker opens below the Dates tab and the guest picker below the Guests tab, each centered on its own tab.
 
-Gate: page 4 awaiting owner.
+Gate: page 4 approved by the owner in chat, 2026-09-29 ("all good i approve").
 
 
 ## Page 6 · Guest (plan 22), redesigned 2026-09-29
@@ -117,7 +117,7 @@ Fifth update (owner: update the navbar everywhere; no logo in the account dropdo
 
 Sixth update (owner: reimagine the trip detail): 6d Trip detail redesigned again (D-78 replaced): Manage booking dropdown, status rail, stay with one fixed photo size, Day by day itinerary, sticky payment card with the balance due, concierge card and a quiet cancellation link.
 
-Gate: page 6 awaiting owner.
+Gate: page 6 approved by the owner in chat, 2026-09-29 ("all good i approve").
 
 
 ## Page 7 · Dashboard (plan 26), redesigned 2026-09-29 (D-82 to D-92)
@@ -146,4 +146,4 @@ Checked by rendering every board locally with fallback fonts: no frame clips its
 
 Targets, not built in 3.1: most of these screens (bookings pages, calendar blocking, connections, content editing, merged settings) are later phases. Publish and Save are drawn as buttons with no success states.
 
-Gate: page 7 awaiting owner.
+Gate: page 7 approved by the owner in chat, 2026-09-29 ("all good i approve").
