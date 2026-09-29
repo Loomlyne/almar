@@ -235,3 +235,12 @@ export function AlertCircleIcon(props: IconProps) {
     </Icon>
   );
 }
+
+export function MailIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <rect x="3.5" y="6" width="17" height="12" />
+      <path d="m3.5 7 8.5 6.5L20.5 7" />
+    </Icon>
+  );
+}
