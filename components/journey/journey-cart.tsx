@@ -110,7 +110,7 @@ function CartBody({
         <p className={cn("m-0", KICKER)}>{fill(c.kicker, { destination: destinationName })}</p>
         <h3 className="m-0 font-display text-title text-teal">{stay.name}</h3>
         <p className="m-0 text-label text-muted">
-          {stay.dates} · {stay.guests}
+          <bdi dir="ltr">{stay.dates}</bdi> · {stay.guests}
         </p>
       </div>
 

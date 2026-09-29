@@ -133,7 +133,7 @@ export function AddOnRow({ item, quantity, max, onChange, size = "row", copy }: 
         <span className="text-body tabular-nums">{item.price}</span>
         <span className="text-caption text-muted">{a.unit[item.unit]}</span>
       </div>
-      <div className="w-31 shrink-0 flex justify-end">{control}</div>
+      <div className="w-34 shrink-0 flex justify-end">{control}</div>
     </article>
   );
 }
