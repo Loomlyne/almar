@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 
-const COPY = "lib/dashboard-copy.ts";
+const COPY = "lib/copy/dashboard.ts";
 const LOCALE = "lib/set-document-locale.ts";
 const CSS = "app/dashboard/dashboard.module.css";
 const ENTRY = "app/dashboard/page.tsx";

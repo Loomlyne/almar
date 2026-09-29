@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 
-const GUEST_COPY = "lib/guest-copy.ts";
+const GUEST_COPY = "lib/copy/guest.ts";
 const NAV = "components/ui/nav.tsx";
 const FRAMER_SHELL = "app/framer/framer-shell.tsx";
 const TRIP_SCREEN = "app/booking/trip/trip-screen.tsx";
@@ -26,7 +26,7 @@ const PUBLIC_SOURCE_FILES = [
   GUEST_COPY,
 ];
 
-test("lib/guest-copy.ts has en, ar, and es with the locked strings", () => {
+test("lib/copy/guest.ts has en, ar, and es with the locked strings", () => {
   const text = readFileSync(GUEST_COPY, "utf8");
   assert.match(text, /export const GUEST_COPY/);
   for (const locale of ["en", "ar", "es"]) {

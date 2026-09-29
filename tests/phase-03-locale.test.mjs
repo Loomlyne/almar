@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { FRAMER_SOURCE_COPY } from "../lib/framer-source-copy.ts";
+import { FRAMER_SOURCE_COPY } from "../lib/copy/framer-source.ts";
 
 const LOCKED = {
   Destinations: { ar: "الوجهات", es: "Destinos" },
@@ -18,12 +18,12 @@ test("the home string table has en, ar, and es for Destinations, Search, and Clo
 });
 
 test("the copy module does not contain next-intl", () => {
-  const source = readFileSync("lib/framer-source-copy.ts", "utf8");
+  const source = readFileSync("lib/copy/framer-source.ts", "utf8");
   assert.equal(source.includes("next-intl"), false);
 });
 
 test("app/route.ts is read only and still exports a GET handler", () => {
   const source = readFileSync("app/route.ts", "utf8");
   assert.match(source, /export function GET\s*\(/);
-  assert.equal(source.includes("framer-source-copy"), false);
+  assert.equal(source.includes("copy/framer-source"), false);
 });

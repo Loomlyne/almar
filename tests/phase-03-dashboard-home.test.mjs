@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 
 const PAGE = "app/dashboard/(ops)/home/page.tsx";
 const SCREEN = "app/dashboard/(ops)/home/home-screen.tsx";
-const COPY = "lib/dashboard-copy.ts";
+const COPY = "lib/copy/dashboard.ts";
 
 const SLOT_NAMES = ["Bookings", "Revenue", "Cost", "Outstanding", "Occupancy", "Reminders", "Charts"];
 
@@ -29,7 +29,7 @@ test("home screen draws the seven named slots in the UI-SPEC order", () => {
   }
 });
 
-test("home screen sources the reminders empty state from dashboard-copy", () => {
+test("home screen sources the reminders empty state from lib/copy/dashboard", () => {
   const text = readFileSync(SCREEN, "utf8");
   assert.match(text, /copy\.noRemindersYet/);
   assert.equal(text.includes("New"), false, "reminders has no New action");
@@ -60,7 +60,7 @@ test("home screen has no sample number and no chart series", () => {
   assert.equal(/<svg|<path/i.test(text), false, "no drawn chart series");
 });
 
-test("home screen does not touch dashboard-copy or globals.css", () => {
+test("home screen does not touch lib/copy/dashboard or globals.css", () => {
   const text = readFileSync(SCREEN, "utf8");
   assert.equal(text.includes("export const DASHBOARD_COPY"), false);
   assert.equal(/globals\.css/.test(text), false);
