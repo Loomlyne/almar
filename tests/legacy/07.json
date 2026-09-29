@@ -1,0 +1,9 @@
+{
+  "plan": "07",
+  "files": [
+    "app/design",
+    "app/framer",
+    "components/home/kit-home.tsx",
+    "app/home-preview.css"
+  ]
+}

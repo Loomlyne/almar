@@ -1,0 +1,8 @@
+{
+  "plan": "18",
+  "files": [
+    "app/dashboard/(ops)/calendar",
+    "app/dashboard/(ops)/catalog",
+    "app/dashboard/(ops)/content"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "plan": "13",
+  "files": [
+    "app/dashboard/dashboard.module.css",
+    "app/dashboard/(ops)/layout.tsx",
+    "components/ui/sidebar.tsx",
+    "app/dashboard/page.tsx",
+    "app/dashboard/(ops)/profile/profile-screen.tsx",
+    "app/dashboard/(ops)/settings/settings-screen.tsx"
+  ]
+}

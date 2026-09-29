@@ -1,0 +1,11 @@
+{
+  "plan": "27",
+  "files": [
+    "app/globals.css",
+    "components/specimens/hold-countdown.module.css",
+    "components/specimens/home-cards.module.css",
+    "components/specimens/private-stay-card.module.css",
+    "components/specimens/project-footer.module.css",
+    "components/specimens/team-member-card.module.css"
+  ]
+}

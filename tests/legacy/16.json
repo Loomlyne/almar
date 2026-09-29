@@ -1,0 +1,12 @@
+{
+  "plan": "16",
+  "files": [
+    "app/login/sign-in-screen.tsx",
+    "app/bookings/bookings-screen.tsx",
+    "app/booking/trip/trip-screen.tsx",
+    "app/not-found.tsx",
+    "app/error.tsx",
+    "components/status-frame.tsx",
+    "app/layout.tsx"
+  ]
+}
