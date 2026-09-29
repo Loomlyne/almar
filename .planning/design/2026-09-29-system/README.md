@@ -120,21 +120,30 @@ Sixth update (owner: reimagine the trip detail): 6d Trip detail redesigned again
 Gate: page 6 awaiting owner.
 
 
-## Page 7 · Dashboard (plan 26)
+## Page 7 · Dashboard (plan 26), redesigned 2026-09-29 (D-82 to D-92)
 
-Eight boards, each with an EN/AR/ES switch (no separate Arabic boards, D-61), desktop 1440 and tablet 834, empty and filled. Labels and empty lines are `lib/copy/dashboard.ts`. Filled rows use `[Guest name]`, `ALMAR-000000`, `AED [AMOUNT]`, `[Name]`, `[DD/MM/YYYY]` only. Tables use the dense row (44px). The sidebar shows the Catalog dropdown (Destinations, Stays, Experiences, Packages) and a Content group (Pages, Blog, Team, Legal).
+19 boards. Each frame is drawn at desktop 1440, tablet 834 and phone 390 (a few sub-states only at desktop and phone). Every board has the EN/AR/ES switch. Labels and empty lines use `lib/copy/dashboard.ts`; filled rows use brackets only.
 
-| Board | Screens |
-|-------|---------|
-| 7a Home | Stats, recent bookings, reminders; phone frame with the rail open |
-| 7b Bookings | Tabs (All, Upcoming, Cancellation requests, Completed), search, This month / Last 30 / Custom; New booking drawer; cancellation request drawer (refund summary, Approve refund, Decline) |
-| 7c Customers and Calendar | Customers table and New customer; month calendar with booking bars and blocked days, Block |
-| 7d Destinations and Stays | Lists; Stay editor with details, photos and an Availability card where blocked dates are set (feeds the booking bar, D-63) |
-| 7e Experiences and Packages | Lists with type, unit, price and status |
-| 7f Pages and Blog | Lists |
-| 7g Team and Legal | Team shows only its real empty state; Legal list |
-| 7h Settings and Profile | Currency, read-only Brand, sign-in options; Profile |
+| Board | What it covers |
+|-------|----------------|
+| 7a Home | Admin overview, empty state, phone rail open |
+| 7b Bookings | Tabs, filters, table; empty state |
+| 7c New booking page | Five steps with the summary rail |
+| 7d Booking detail | Overview, payments, history, cancellation request |
+| 7e Customers, Customer profile | List; read-only details, bookings, logs |
+| 7f Calendar and blocking | Filter by destination or stay; block everything, one destination or one stay; conflict warning |
+| 7g Destinations | List and side panel: details, connect stays, all experiences and services, delete |
+| 7h Stays | List and side panel: details, connect experiences and services, availability |
+| 7i Experiences and services | One list with filter and search; panel with details and connections |
+| 7j Packages | Coming soon |
+| 7k Content hub and page editor | Hub; sections editor with language switch |
+| 7l Blog | List and post editor |
+| 7m Team and Legal | Member panel; legal page panel with versions |
+| 7n Media and Navigation | Library with alt text in three languages; header and footer menus |
+| 7o Settings | Profile, business and brand, payments and taxes, team and roles, integrations, security and logs |
 
-Targets, not built in 3.1: the cancellation request drawer (D-79) and the stay Availability card (D-63). Publish and Save are drawn as buttons; no success states are drawn (nothing saves or publishes in 3.1).
+Checked by rendering every board locally with fallback fonts: no frame clips its content. Not checked in the real canvas fonts.
+
+Targets, not built in 3.1: most of these screens (bookings pages, calendar blocking, connections, content editing, merged settings) are later phases. Publish and Save are drawn as buttons with no success states.
 
 Gate: page 7 awaiting owner.
