@@ -40,6 +40,8 @@ export type DateRangePanelProps = {
   months?: 1 | 2;
   /** Injectable for deterministic tests. */
   today?: CalendarDate;
+  /** Booked or blocked days for one stay (D-63); shown unavailable and never a range end. */
+  blocked?: CalendarDate[];
   /** "phone" uses text-body day numbers. */
   size?: "md" | "phone";
   className?: string;
@@ -86,6 +88,7 @@ export function DateRangePanel({
   copy,
   months = 2,
   today,
+  blocked,
   size = "md",
   className,
 }: DateRangePanelProps) {
@@ -97,6 +100,13 @@ export function DateRangePanel({
   const [cursor, setCursor] = useState<CalendarDate>(() => firstOf(value.start ?? now));
   const [focused, setFocused] = useState<CalendarDate | null>(null);
   const [tick, setTick] = useState(0);
+
+  const blockedKeys = useMemo(() => new Set((blocked ?? []).map(key)), [blocked]);
+  const isBlocked = (d: CalendarDate) => blockedKeys.has(key(d));
+  const crossesBlocked = (a: CalendarDate, b: CalendarDate) => {
+    for (let d = a.add({ days: 1 }); cmp(d, b) < 0; d = d.add({ days: 1 })) if (isBlocked(d)) return true;
+    return false;
+  };
 
   const shown = Array.from({ length: months }, (_, i) => cursor.add({ months: i }));
   const atCurrentMonth = cmp(cursor, firstOf(now)) <= 0;
@@ -138,10 +148,10 @@ export function DateRangePanel({
   }
 
   function pick(date: CalendarDate) {
-    if (cmp(date, now) < 0) return;
+    if (cmp(date, now) < 0 || isBlocked(date)) return;
     const { start, end } = value;
     if (!start || end) onChange({ start: date, end: null });
-    else if (cmp(date, start) <= 0) onChange({ start: date, end: null });
+    else if (cmp(date, start) <= 0 || crossesBlocked(start, date)) onChange({ start: date, end: null });
     else onChange({ start, end: date });
   }
 
@@ -177,7 +187,7 @@ export function DateRangePanel({
     if (start && cmp(date, start) === 0) parts.push(copy.dates.day.arrival);
     else if (end && cmp(date, end) === 0) parts.push(copy.dates.day.departure);
     else if (start && end && cmp(date, start) > 0 && cmp(date, end) < 0) parts.push(copy.dates.day.inRange);
-    if (cmp(date, now) < 0) parts.push(copy.dates.day.unavailable);
+    if (cmp(date, now) < 0 || isBlocked(date)) parts.push(copy.dates.day.unavailable);
     if (cmp(date, now) === 0) parts.push(copy.dates.day.today);
     return parts.join(", ");
   }
@@ -269,7 +279,7 @@ export function DateRangePanel({
                     {Array.from({ length: 7 }, (_, ci) => {
                       const date = row[ci] ?? null;
                       if (!date) return <div key={ci} role="gridcell" aria-hidden="true" />;
-                      const past = cmp(date, now) < 0;
+                      const past = cmp(date, now) < 0 || isBlocked(date);
                       const isStart = !!value.start && cmp(date, value.start) === 0;
                       const isEnd = !!value.end && cmp(date, value.end) === 0;
                       const inRange =
