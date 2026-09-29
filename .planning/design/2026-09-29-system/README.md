@@ -113,4 +113,6 @@ Fourth update (owner: request cancellation and refund; one image size on booking
 | 6d Trip detail | Cancellation and refund card with the placeholder policy and the request button. |
 | 6g Cancellation and refund | Nine states: request dialog, sending, failed, request sent, not available after the trip starts, phone sheet, requested, refund approved, refunded and cancelled. |
 
+Fifth update (owner: update the navbar everywhere; no logo in the account dropdown): D-81. Navbar specimen on 3b now shows signed out, signed in with a cart count, and the account menu open; phone headers on 3b and page 4 carry the cart; account trigger and menu have no logo.
+
 Gate: page 6 awaiting owner.
