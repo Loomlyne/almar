@@ -1,4 +1,9 @@
 import { useState, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from "react";
+import { cn } from "../../lib/cn";
+import { Button } from "./button";
+
+const INPUT =
+  "ui-input block min-h-control w-full rounded-none border border-ink bg-surface px-4 py-2 font-body text-body text-ink md:text-label aria-invalid:border-error focus-visible:border-teal focus-visible:shadow-selected focus-visible:outline-none";
 
 type Shared = {
   id: string;
@@ -40,20 +45,20 @@ export function Field(props: FieldProps | AreaProps) {
   const describedBy = messageId;
 
   return (
-    <div className="field">
-      <label className="field-label" htmlFor={id}>
+    <div className="field grid max-w-96 gap-2">
+      <label className="field-label text-label text-ink" htmlFor={id}>
         {label}
         {required ? (
-          <span className="text-[var(--color-fg)]" aria-hidden="true">
+          <span className="text-ink" aria-hidden="true">
             {" "}
             *
           </span>
         ) : null}
         {optional ? (
-          <span className="text-[var(--color-muted-fg)]"> optional</span>
+          <span className="text-muted"> optional</span>
         ) : null}
       </label>
-      <div className={coupon ? "field-coupon" : undefined}>
+      <div className={coupon ? "field-coupon flex w-full max-w-96 flex-nowrap items-stretch gap-2" : undefined}>
         <Control
           {...props}
           describedBy={describedBy}
@@ -61,15 +66,15 @@ export function Field(props: FieldProps | AreaProps) {
           search={search}
         />
         {coupon ? (
-          <button type="button" className="ui-button ui-button-inline bg-transparent text-[var(--color-link)] border-[var(--color-heading)]" onClick={onApply}>
+          <Button variant="secondary" className="ui-button-inline self-stretch whitespace-nowrap" onClick={onApply}>
             Apply
-          </button>
+          </Button>
         ) : null}
       </div>
       {message ? (
         <p
           id={messageId}
-          className={error ? "field-error text-[var(--color-danger)]" : "field-hint"}
+          className={cn("m-0 text-label", error ? "field-error text-error" : "field-hint text-ink")}
         >
           {message}
         </p>
@@ -99,10 +104,10 @@ function Control({
   if (multiline) {
     const areaProps = rest as TextareaHTMLAttributes<HTMLTextAreaElement>;
     return (
-      <div className="field-control">
+      <div className="field-control relative">
         <textarea
           id={id}
-          className="ui-input"
+          className={cn(INPUT, "min-h-24 field-sizing-content resize-y")}
           aria-invalid={invalid || undefined}
           aria-describedby={describedBy}
           required={required}
@@ -118,11 +123,11 @@ function Control({
   }
 
   return (
-    <div className={`field-control${search ? " is-search" : ""}`}>
+    <div className={cn("field-control relative", coupon && "flex min-w-0 flex-1 items-stretch")}>
       {search ? <SearchIcon /> : null}
       <input
         id={id}
-        className="ui-input"
+        className={cn(INPUT, search && "ps-control")}
         aria-invalid={invalid || undefined}
         aria-describedby={describedBy}
         required={required}
@@ -145,10 +150,10 @@ function PasswordControl({
 }) {
   const [shown, setShown] = useState(false);
   return (
-    <div className="field-control is-password">
+    <div className="field-control is-password relative">
       <input
         id={id}
-        className="ui-input"
+        className={cn(INPUT, "pe-12")}
         aria-invalid={invalid || undefined}
         aria-describedby={describedBy}
         required={required}
@@ -157,7 +162,7 @@ function PasswordControl({
       />
       <button
         type="button"
-        className="eye inset-inline-end"
+        className="absolute inset-e-1 top-1/2 grid size-control -translate-y-1/2 place-items-center border-0 bg-transparent p-0 text-ink"
         aria-label={shown ? "Hide password" : "Show password"}
         onClick={() => setShown((value) => !value)}
       >
@@ -170,7 +175,7 @@ function PasswordControl({
 function EyeIcon({ masked }: { masked: boolean }) {
   return (
     <svg
-      className="eye-icon"
+      className="size-5"
       viewBox="0 0 20 20"
       width="20"
       height="20"
@@ -198,7 +203,7 @@ function EyeIcon({ masked }: { masked: boolean }) {
 function SearchIcon() {
   return (
     <svg
-      className="field-icon"
+      className="pointer-events-none absolute inset-s-3 top-1/2 size-5 -translate-y-1/2 text-ink"
       viewBox="0 0 20 20"
       width="20"
       height="20"

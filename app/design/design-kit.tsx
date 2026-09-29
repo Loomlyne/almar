@@ -8,7 +8,7 @@ import { Chip } from "../../components/ui/chip";
 import { DateRangeField } from "../../components/ui/calendar";
 import { KitDialog } from "../../components/ui/dialog";
 import { SelectSpecimen } from "../../components/ui/select";
-import { GuestSteppers } from "../../components/ui/stepper";
+import { Stepper } from "../../components/ui/stepper";
 import { ShowToast, ToastProvider } from "../../components/ui/toast";
 import { Field } from "../../components/ui/field";
 import { DateField } from "../../components/ui/date-field";
@@ -563,7 +563,7 @@ export function DesignKit({ hasMapbox = false }: { hasMapbox?: boolean }) {
 
       <section className="kit-section" id="stepper" aria-label="Stepper">
         <SectionHead title="Stepper" />
-        <GuestSteppers />
+        <StepperSpecimen />
         <States
           rows={[
             ["Hover", "darken"],
@@ -745,5 +745,13 @@ export function DesignKit({ hasMapbox = false }: { hasMapbox?: boolean }) {
       </div>
     </main>
     </ToastProvider>
+  );
+}
+
+// Legacy /design specimen only; plan 07 deletes this route. Controlled Stepper demo.
+function StepperSpecimen() {
+  const [count, setCount] = useState(1);
+  return (
+    <Stepper value={count} onChange={setCount} min={1} max={9} addLabel="Add adult" removeLabel="Remove adult" />
   );
 }
