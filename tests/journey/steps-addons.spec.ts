@@ -108,12 +108,12 @@ test.describe("AddOnList", () => {
     await expect(list.locator("[aria-hidden=true]").filter({ has: page.locator(".animate-pulse") })).toHaveCount(3);
   });
 
-  test("filter chips are at least 40px tall (legacy .ui-chip min-block-size 44px, see deferred-items)", async ({ page }) => {
+  test("filter chips are exactly 40px tall (D-47)", async ({ page }) => {
     await page.goto(url("add-on-row", "list-all"));
     const h = await page
       .getByRole("button", { name: "All", exact: true })
       .evaluate((el) => (el as HTMLElement).offsetHeight);
-    expect(h).toBeGreaterThanOrEqual(40);
+    expect(h).toBe(40);
   });
 });
 

@@ -84,20 +84,20 @@ export function CalendarScreen() {
       <div className="flex min-h-control items-center justify-between">
         <button
           type="button"
-          className="icon-button"
+          className="inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border-0 bg-transparent p-0 text-ink"
           aria-label="Previous month"
           onClick={() => setCursor((value) => (value ? value.subtract({ months: 1 }) : value))}
         >
-          <ChevronIcon size={20} className="icon-back" />
+          <ChevronIcon size={20} className="-scale-x-100 rtl:scale-x-100" />
         </button>
         <p className="m-0 flex-1 text-center font-body text-body tabular-nums text-teal">{monthLabel(cursor)}</p>
         <button
           type="button"
-          className="icon-button"
+          className="inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border-0 bg-transparent p-0 text-ink"
           aria-label="Next month"
           onClick={() => setCursor((value) => (value ? value.add({ months: 1 }) : value))}
         >
-          <ChevronIcon size={20} className="icon-forward" />
+          <ChevronIcon size={20} className="rtl:-scale-x-100" />
         </button>
       </div>
       <div className="grid grid-cols-7 justify-items-center font-body text-label text-muted" aria-hidden="true">

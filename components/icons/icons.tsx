@@ -213,7 +213,7 @@ export function WhatsAppIcon(props: IconProps) {
 
 export function SpinnerIcon(props: IconProps) {
   return (
-    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} className="ui-spinner" {...props}>
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} className="motion-safe:animate-spin" {...props}>
       <path d="M12 4.5a7.5 7.5 0 1 1-6.4 3.6" />
     </Icon>
   );

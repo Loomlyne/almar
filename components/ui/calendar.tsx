@@ -135,7 +135,7 @@ export function CalendarPanel({
           aria-label="Previous month"
           onClick={() => setCursor(cursor.subtract({ months: 1 }))}
         >
-          <ChevronIcon size={20} className="icon-back" />
+          <ChevronIcon size={20} className="-scale-x-100 rtl:scale-x-100" />
         </button>
         <p className="m-0 flex-1 text-center font-display text-title whitespace-nowrap text-teal" id={titleId}>
           {monthLabel(cursor)}
@@ -146,7 +146,7 @@ export function CalendarPanel({
           aria-label="Next month"
           onClick={() => setCursor(cursor.add({ months: 1 }))}
         >
-          <ChevronIcon size={20} className="icon-forward" />
+          <ChevronIcon size={20} className="rtl:-scale-x-100" />
         </button>
       </div>
       <div className="grid grid-cols-7 text-center text-caption text-muted" aria-hidden="true">

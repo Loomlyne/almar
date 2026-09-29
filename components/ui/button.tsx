@@ -71,7 +71,7 @@ export function Button({
 function Spinner() {
   return (
     <svg
-      className="ui-spinner size-5 shrink-0"
+      className="size-5 shrink-0 motion-safe:animate-spin"
       viewBox="0 0 20 20"
       width="20"
       height="20"
