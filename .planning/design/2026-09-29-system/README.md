@@ -10,7 +10,7 @@ Canvas (the design surface): https://claude.ai/artifact/6MqV4cd2KzXLsVputN2ctw
 | 1 | Audit (boards 1–8a) | frozen, unedited |
 | 2 | Foundations: Colour, Type, Space/shape/motion/dense | approved 2026-09-29 |
 | 3 | Components: Controls, Surfaces and navigation | approved 2026-09-29 (sidebar Catalog subtabs added at owner request) |
-| 4 | Journey | not drawn (plan 11) |
+| 4 | Journey: 4 boards (see below) | awaiting owner |
 | 5 | Public pages: 11 layouts (see below) | awaiting owner |
 | 6 | Guest | not drawn (plan 22) |
 | 7 | Dashboard | not drawn (plan 26) |
@@ -31,7 +31,7 @@ Owner change at the gate: dashboard sidebar Catalog opens a dropdown with its pa
 
 ## Page 5 · Public pages (plan 15), revised 2026-09-29 after owner feedback
 
-11 boards. Each has an EN/AR/ES switch, so there is no separate Arabic board (D-61). Home, About, Contact, Destinations, Experiences and services, Private stays, Stay detail, Blog and Blog post show desktop 1440, tablet 834 and phone 390 side by side. Two boards are special: the details overlay and the header cart.
+11 boards. Each has an EN/AR/ES switch, so there is no separate Arabic board (D-61). Home (two boards, because a board is at most 8000 px tall), About, Contact, Destinations, Experiences and services, Private stays, Stay detail, Blog and Blog post show desktop 1440, tablet 834 and phone 390 side by side. Two boards are special: the details overlay and the header cart.
 
 | Board | Route | Owner decision drawn |
 |-------|-------|----------------------|
@@ -52,3 +52,19 @@ Removed: `/services`, `/services/[service]` and the separate experiences board (
 Notes: tablet and phone use the Menu button (no full nav below 1024). TeamSection is placeholders only and renders nothing with zero members. Blocked dates on the stay calendar are examples. Copy that exists in `lib/copy/home.ts` is used as is in EN, AR and ES. New strings (cart, filters, overlay, blog) are AR/ES drafts for owner review. Images are six repo photos.
 
 Gate: page 5 awaiting owner (second review).
+
+
+## Page 4 · Journey (plan 11)
+
+Four boards, each with an EN/AR/ES switch (no separate Arabic boards, per D-61). Copy is the drafted `lib/copy/journey.ts` text (EN, AR, ES); guest summaries and plurals use the same rules as `lib/journey-format.ts`. Prices are `AED [PRICE]` and `AED [AMOUNT]` only.
+
+| Board | Shows |
+|-------|-------|
+| 4a Journey bar | Desktop bar: empty; Destination open with DestinationMenu; Dates open with two-month DateRangePanel; Guests open with GuestPanel; hover; Missing with the error rule and alert line; filled; docked in the sticky header. Tablet bar with a one-month panel. |
+| 4b Phone journey | Entry empty and filled, docked row, sheet steps 1 to 3, and the warning states for steps 1 and 2. |
+| 4c Add-ons (desktop) | StepRail, InclusionsList, the add-on list (trip, night and person units, Home pickup Added, stepper at max), filters, cart rail, page actions, skeleton rows, empty lines, empty cart. |
+| 4d Phone add-ons, cart, Pay | Phone StepRail, add-ons list, dock, full-screen cart, and the Pay step with ToggleCards (none chosen with error, deposit chosen, UAE airport with error). |
+
+Canvas design system: repo `tokens.json` is not installed as a canvas design system. The canvas type only installs a design system from another design-system artifact, and the repo file has a different shape, so forcing it in could break the Theme menu. The canvas keeps its existing "UI System" theme. Colours, type and spacing on every board are the same values as `tokens.json`.
+
+Gate: page 4 awaiting owner.
