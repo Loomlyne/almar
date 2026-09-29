@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DASHBOARD_COPY } from "../../../../lib/dashboard-copy";
+import { DASHBOARD_COPY } from "../../../../lib/copy/dashboard";
 import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
 import styles from "./home.module.css";
 

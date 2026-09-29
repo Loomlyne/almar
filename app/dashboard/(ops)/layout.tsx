@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { CloseIcon } from "../../../components/icons/icons";
 import { Sidebar } from "../../../components/ui/sidebar";
-import { DASHBOARD_COPY, type DashboardCopy } from "../../../lib/dashboard-copy";
+import { DASHBOARD_COPY, type DashboardCopy } from "../../../lib/copy/dashboard";
 import { isDocumentLocale, setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
 import styles from "../dashboard.module.css";
 

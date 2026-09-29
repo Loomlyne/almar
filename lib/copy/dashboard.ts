@@ -1,4 +1,4 @@
-import type { DocumentLocale } from "./set-document-locale";
+import type { DocumentLocale } from "../set-document-locale";
 
 export type DashboardLocale = DocumentLocale;
 

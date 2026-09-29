@@ -14,7 +14,7 @@ const SOURCES = [
   path.join(process.cwd(), "components/specimens/hero-booker.tsx"),
   path.join(process.cwd(), "components/ui/calendar.tsx"),
   path.join(process.cwd(), "components/icons/icons.tsx"),
-  path.join(process.cwd(), "lib/home-copy.ts"),
+  path.join(process.cwd(), "lib/copy/home.ts"),
 ];
 const OUTFILE = path.join(process.cwd(), ".next/cache/almar-hero-booker.js");
 

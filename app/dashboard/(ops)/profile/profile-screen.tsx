@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "../../../../components/ui/button";
 import { ConfirmDialog } from "../../../../components/ui/confirm-dialog";
 import { Field } from "../../../../components/ui/field";
-import { DASHBOARD_COPY } from "../../../../lib/dashboard-copy";
+import { DASHBOARD_COPY } from "../../../../lib/copy/dashboard";
 import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
 
 /** Same URL string as the unexported constant in components/ui/nav.tsx. */

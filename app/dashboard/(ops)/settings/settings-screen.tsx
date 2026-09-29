@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Field } from "../../../../components/ui/field";
 import { Switch } from "../../../../components/ui/switch";
-import { DASHBOARD_COPY } from "../../../../lib/dashboard-copy";
+import { DASHBOARD_COPY } from "../../../../lib/copy/dashboard";
 import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
 import type { FxRates } from "../../../../lib/fx/rates";
 

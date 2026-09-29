@@ -3,7 +3,7 @@
 import { useEffect, useState, type ChangeEvent, type ReactNode } from "react";
 import { Field } from "../../../../components/ui/field";
 import { Sidebar } from "../../../../components/ui/sidebar";
-import { DASHBOARD_COPY, type DashboardCopy } from "../../../../lib/dashboard-copy";
+import { DASHBOARD_COPY, type DashboardCopy } from "../../../../lib/copy/dashboard";
 import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
 import styles from "./content.module.css";
 

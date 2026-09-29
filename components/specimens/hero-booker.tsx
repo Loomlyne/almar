@@ -1,6 +1,6 @@
 "use client";
 
-import { BOOKER_COPY, type HomeLocale } from "../../lib/home-copy";
+import { BOOKER_COPY, type HomeLocale } from "../../lib/copy/home";
 import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { CalendarDate, getLocalTimeZone } from "@internationalized/date";

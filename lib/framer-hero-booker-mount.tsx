@@ -1,6 +1,6 @@
 import { createRoot, type Root } from "react-dom/client";
 import { HeroBooker, type HeroBookQuery } from "../components/specimens/hero-booker";
-import type { HomeLocale } from "./home-copy";
+import type { HomeLocale } from "./copy/home";
 
 declare global {
   interface Window {

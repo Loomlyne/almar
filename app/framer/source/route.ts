@@ -1,7 +1,7 @@
 import { GET as homeGet } from "../../route";
 import { homePriceScript } from "../../../lib/fx/rates";
 import { injectHeroBooker } from "../inject-hero-booker";
-import { FRAMER_SOURCE_COPY } from "../../../lib/framer-source-copy";
+import { FRAMER_SOURCE_COPY } from "../../../lib/copy/framer-source";
 import { notoNaskh, notoSans } from "../../../lib/fonts";
 
 export const dynamic = "force-dynamic";

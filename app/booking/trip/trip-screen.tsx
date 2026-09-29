@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { SiteNav } from "../../../components/ui/nav";
 import { WhatsApp } from "../../../components/ui/whatsapp";
-import { HOME_COPY } from "../../../lib/home-copy";
+import { HOME_COPY } from "../../../lib/copy/home";
 import { setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
 
 const DESTINATIONS = ["Cartagena", "Medellín", "Bogotá", "San Andrés", "Cocora Valley"] as const;

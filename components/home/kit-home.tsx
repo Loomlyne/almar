@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { notoNaskh, notoSans } from "../../lib/fonts";
-import { BOOKER_COPY, HOME_COPY, type HomeLocale } from "../../lib/home-copy";
+import { BOOKER_COPY, HOME_COPY, type HomeLocale } from "../../lib/copy/home";
 import { SiteNav } from "../ui/nav";
 import { HeroBooker } from "../specimens/hero-booker";
 
