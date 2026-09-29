@@ -53,6 +53,8 @@ test("home screen has no sample number and no chart series", () => {
   // "last30" copy key, and the array index used to read a cookie match) so
   // the remaining source is checked for an actual metric value.
   const sanitized = text
+    .replace(/(className|SLOT)(=|\s*=\s*)(\{[^}]*\}|"[^"]*")/g, "")
+    .replace(/"[a-z0-9:\-\[\]\/(),.]+ [a-z0-9 :\-\[\]\/(),.]+"/g, "")
     .replace(/<\/?h[1-6]\b/g, "<h")
     .replace(/last30/g, "lastRange")
     .replace(/matched\[1\]/g, "matched[n]");

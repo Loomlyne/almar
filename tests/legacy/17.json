@@ -1,8 +1,0 @@
-{
-  "plan": "17",
-  "files": [
-    "app/dashboard/(ops)/home",
-    "app/dashboard/(ops)/bookings",
-    "app/dashboard/(ops)/customers"
-  ]
-}

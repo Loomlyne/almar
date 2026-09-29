@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { cn } from "../../../../lib/cn";
 import { DASHBOARD_COPY } from "../../../../lib/copy/dashboard";
 import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
-import styles from "./home.module.css";
 
 type DateRangeKey = "thisMonth" | "last30" | "custom";
 type MetricSlotKey = "bookings" | "revenue" | "cost" | "outstanding" | "occupancy";
@@ -15,6 +15,8 @@ const METRIC_SLOTS: ReadonlyArray<{ key: MetricSlotKey; label: string }> = [
   { key: "outstanding", label: "Outstanding" },
   { key: "occupancy", label: "Occupancy" },
 ];
+
+const SLOT = "flex min-h-32 flex-col gap-1 rounded-none border bg-white p-4";
 
 function readLocale(): DocumentLocale {
   const matched = document.cookie.match(/(?:^|;\s*)almar-locale=([^;]*)/);
@@ -38,14 +40,14 @@ export function HomeScreen() {
   ];
 
   return (
-    <div className={styles.screen}>
-      <h1 className={styles.title}>{copy.rail.home}</h1>
-      <div className={styles.dateControl} role="group" aria-label="Date range">
+    <div className="flex min-w-0 flex-col gap-6">
+      <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.rail.home}</h1>
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Date range">
         {dateOptions.map((option) => (
           <button
             key={option.key}
             type="button"
-            className={styles.dateButton}
+            className="inline-flex h-control min-w-11 cursor-pointer items-center justify-center rounded-none border border-line bg-white px-4 font-body text-label text-ink transition-colors duration-fast ease-standard hover:bg-line focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal aria-pressed:border-teal aria-pressed:text-teal"
             aria-pressed={dateRange === option.key}
             onClick={() => setDateRange(option.key)}
           >
@@ -53,22 +55,29 @@ export function HomeScreen() {
           </button>
         ))}
       </div>
-      <div className={styles.grid}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6">
         {METRIC_SLOTS.map((slot) => (
           <section
             key={slot.key}
-            className={slot.key === "bookings" ? `${styles.slot} ${styles.slotPrimary}` : styles.slot}
+            className={cn(SLOT, slot.key === "bookings" ? "border-teal" : "border-line")}
             aria-label={slot.label}
           >
-            <h2 className={styles.slotLabel}>{slot.label}</h2>
+            <h2
+              className={cn(
+                "m-0 font-display font-normal text-teal",
+                slot.key === "bookings" ? "text-heading" : "text-label",
+              )}
+            >
+              {slot.label}
+            </h2>
           </section>
         ))}
-        <section className={styles.slot} aria-label="Reminders">
-          <h2 className={styles.slotLabel}>Reminders</h2>
-          <p className={styles.slotEmpty}>{copy.noRemindersYet}</p>
+        <section className={cn(SLOT, "border-line")} aria-label="Reminders">
+          <h2 className="m-0 font-display text-label font-normal text-teal">Reminders</h2>
+          <p className="m-0 text-pretty text-body text-ink">{copy.noRemindersYet}</p>
         </section>
-        <section className={styles.slot} aria-label="Charts">
-          <h2 className={styles.slotLabel}>Charts</h2>
+        <section className={cn(SLOT, "border-line")} aria-label="Charts">
+          <h2 className="m-0 font-display text-label font-normal text-teal">Charts</h2>
         </section>
       </div>
     </div>
