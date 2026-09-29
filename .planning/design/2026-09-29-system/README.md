@@ -67,4 +67,13 @@ Four boards, each with an EN/AR/ES switch (no separate Arabic boards, per D-61).
 
 Canvas design system: repo `tokens.json` is not installed as a canvas design system. The canvas type only installs a design system from another design-system artifact, and the repo file has a different shape, so forcing it in could break the Theme menu. The canvas keeps its existing "UI System" theme. Colours, type and spacing on every board are the same values as `tokens.json`.
 
+Picker placement (D-70): the date picker opens below the Dates tab and the guest picker below the Guests tab, each centered on its own tab.
+
 Gate: page 4 awaiting owner.
+
+
+## Page 6 · Guest (plan 22)
+
+Three boards (6a Login, 6b Account, 6c Bookings), each with an EN/AR/ES switch and no separate Arabic board (D-61). Every board shows desktop 1440, tablet 834 and phone 390, in two states: Login empty and error, Account empty and filled, Bookings empty and filled. Strings are `lib/copy/guest.ts`. Filled states use `[Guest name]`, `[Email]`, `[Phone]`, `[Trip name]`, `ALMAR-000000`, `AED [AMOUNT]` and bracketed dates. Account shows the language select and an inline WhatsApp channel control linking to `https://wa.me/971563883302` (not floating). The header carries the cart icon (D-66).
+
+Gate: page 6 awaiting owner.
