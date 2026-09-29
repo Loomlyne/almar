@@ -44,6 +44,8 @@ export type DateRangePanelProps = {
   blocked?: CalendarDate[];
   /** "phone" uses text-body day numbers. */
   size?: "md" | "phone";
+  /** false hides Clear and Done (the phone sheet has its own dock); the line stays for screen readers. */
+  footer?: boolean;
   className?: string;
 };
 
@@ -90,6 +92,7 @@ export function DateRangePanel({
   today,
   blocked,
   size = "md",
+  footer = true,
   className,
 }: DateRangePanelProps) {
   const now = useMemo(() => today ?? todayFn(getLocalTimeZone()), [today]);
@@ -312,15 +315,21 @@ export function DateRangePanel({
           );
         })}
       </div>
-      <div className="pt-4 border-t border-line flex items-center gap-6">
-        <p aria-live="polite" className="m-0 flex-1 text-label text-ink">
+      {footer ? (
+        <div className="pt-4 border-t border-line flex items-center gap-6">
+          <p aria-live="polite" className="m-0 flex-1 text-label text-ink">
+            {line}
+          </p>
+          <Button variant="ghost" onClick={onClear}>
+            {copy.dates.clear}
+          </Button>
+          <Button onClick={onDone}>{copy.done}</Button>
+        </div>
+      ) : (
+        <p aria-live="polite" className="sr-only">
           {line}
         </p>
-        <Button variant="ghost" onClick={onClear}>
-          {copy.dates.clear}
-        </Button>
-        <Button onClick={onDone}>{copy.done}</Button>
-      </div>
+      )}
     </div>
   );
 }

@@ -12,6 +12,8 @@ export type GuestPanelProps = {
   counts: GuestCounts;
   onChange: (next: GuestCounts) => void;
   onDone: () => void;
+  /** false hides the floor line and Done (the phone sheet has its own dock). */
+  footer?: boolean;
   locale: Locale;
   copy: JourneyCopy;
   className?: string;
@@ -26,7 +28,7 @@ const GROUPS: Array<{ id: Group; unit: "adult" | "child" | "infant"; min: number
 ];
 
 /** Adults floor 1, children and infants floor 0, no maximum; never blocks (D-41). */
-export function GuestPanel({ counts, onChange, onDone, locale, copy, className }: GuestPanelProps) {
+export function GuestPanel({ counts, onChange, onDone, footer = true, locale, copy, className }: GuestPanelProps) {
   const g = copy.guests;
   const label: Record<Group, string> = { adults: g.adults, children: g.children, infants: g.infants };
   const hint: Record<Group, string> = { adults: g.adultsHint, children: g.childrenHint, infants: g.infantsHint };
@@ -68,10 +70,14 @@ export function GuestPanel({ counts, onChange, onDone, locale, copy, className }
       <p data-testid="guest-summary" aria-live="polite" className="sr-only">
         {summary}
       </p>
-      <div className="pt-6 flex items-center justify-between gap-4">
-        <span className="text-caption text-muted">{g.floor}</span>
-        <Button onClick={onDone}>{copy.done}</Button>
-      </div>
+      {footer ? (
+        <div className="pt-6 flex items-center justify-between gap-4">
+          <span className="text-caption text-muted">{g.floor}</span>
+          <Button onClick={onDone}>{copy.done}</Button>
+        </div>
+      ) : (
+        <p className="m-0 pt-4 text-caption text-muted">{g.floor}</p>
+      )}
     </div>
   );
 }

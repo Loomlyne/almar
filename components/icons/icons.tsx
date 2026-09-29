@@ -253,3 +253,11 @@ export function SearchIcon(props: IconProps) {
     </Icon>
   );
 }
+
+export function ArrowIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path d="M4.5 12h15M13.5 6l6 6-6 6" />
+    </Icon>
+  );
+}
