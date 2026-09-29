@@ -113,5 +113,5 @@ test("dialog.tsx keeps its locked-dismiss handlers and sidebar.tsx keeps its clo
   assert.match(dialog, /onInteractOutside=\{block\}/);
   const sidebar = readFileSync(SIDEBAR, "utf8");
   assert.match(sidebar, /Close/);
-  assert.match(sidebar, /inset-inline-end/);
+  assert.match(sidebar, /\bend-0\b/);
 });

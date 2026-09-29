@@ -39,11 +39,14 @@ test("locale setter sets dir rtl only for ar", () => {
   assert.doesNotMatch(text, /locale === "es"[\s\S]{0,40}rtl/);
 });
 
-test("shell css docks to the end side without a physical right property", () => {
-  if (!existsSync(CSS)) return;
-  const text = readFileSync(CSS, "utf8");
-  assert.match(text, /inset-inline-end/);
-  assert.equal(/\bright\b/.test(text), false, "physical right");
+test("shell is utility-styled: no module css, no Framer logo URL, logos from brand/", () => {
+  assert.equal(existsSync(CSS), false, "dashboard.module.css must be deleted");
+  const layout = readFileSync("app/dashboard/(ops)/layout.tsx", "utf8");
+  assert.equal(/styles\.|module\.css/.test(layout), false);
+  assert.equal(layout.includes("framerusercontent"), false);
+  assert.equal(layout.includes("encodeURIComponent"), false);
+  assert.match(layout, /brand\/Logo Typography\/Stacked_Charcoal\.svg/);
+  assert.match(layout, /charcoalLogo\.src/);
 });
 
 test("sign-in entry does not contain the text dashboard", () => {
@@ -71,12 +74,36 @@ test("ops rail lists the eight labels and the interior mark", () => {
   assert.match(text, /from ["'].*sidebar["']/);
 });
 
-test("sidebar close control is Close and docks to the end side", () => {
+test("ops rail keeps every route and the Catalog group is a disclosure", () => {
+  const text = readFileSync("app/dashboard/(ops)/layout.tsx", "utf8");
+  for (const href of [
+    "/dashboard/home", "/dashboard/bookings", "/dashboard/customers", "/dashboard/calendar",
+    "/dashboard/catalog/destinations", "/dashboard/catalog/stays", "/dashboard/catalog/experiences", "/dashboard/catalog/packages",
+    "/dashboard/content/pages", "/dashboard/content/blog", "/dashboard/content/team", "/dashboard/content/legal",
+    "/dashboard/settings", "/dashboard/profile",
+  ]) {
+    assert.equal(text.includes(`"${href}"`), true, href);
+  }
+  assert.match(text, /aria-expanded=\{catalogOpen\}/);
+  assert.match(text, /aria-controls=\{subId\}/);
+  assert.match(text, /aria-current=\{current \? "page" : undefined\}/);
+  assert.match(text, /bg-teal-tint text-teal/);
+  assert.match(text, /data-density="dense"/);
+  assert.match(text, /xl:w-sidebar/);
+});
+
+test("sidebar is a Radix dialog with title and Close, docked with end-0 and no JS inset", () => {
   const sidebar = "components/ui/sidebar.tsx";
-  if (!existsSync(sidebar)) return;
   const text = readFileSync(sidebar, "utf8");
+  assert.match(text, /from "radix-ui"/);
+  assert.match(text, /Dialog\.Title/);
+  assert.match(text, /Dialog\.Close/);
   assert.match(text, /Close/);
-  assert.match(text, /inset-inline-end/);
+  assert.match(text, /\bend-0\b/);
+  assert.match(text, /bg-ink\/40/);
+  assert.match(text, /z-70/);
+  assert.equal(text.includes("dockEnd"), false);
+  assert.equal(/module\.css|styles\./.test(text), false);
   assert.equal(text.includes("innerHTML"), false);
   assert.equal(text.includes("KitDialog"), false);
 });

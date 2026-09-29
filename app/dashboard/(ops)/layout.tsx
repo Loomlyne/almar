@@ -3,15 +3,12 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { CloseIcon } from "../../../components/icons/icons";
+import { ChevronIcon, CloseIcon } from "../../../components/icons/icons";
+import { cn } from "../../../lib/cn";
 import { Sidebar } from "../../../components/ui/sidebar";
 import { DASHBOARD_COPY, type DashboardCopy } from "../../../lib/copy/dashboard";
 import { isDocumentLocale, setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
-import styles from "../dashboard.module.css";
-
-/** Same URL strings as the unexported constants in components/ui/nav.tsx. */
-const WORDMARK_SRC = "https://framerusercontent.com/images/RX7lhKpzXFpv2KTvbxNSm3UZz8.svg";
-const MONOGRAM_SRC = "https://framerusercontent.com/images/prMcX1bT4P2ZzVsjpoFmR4T5nA.svg";
+import charcoalLogo from "../../../brand/Logo Typography/Stacked_Charcoal.svg";
 const INTERIOR_MARK = "DASHBOARD";
 
 type RailKey = keyof DashboardCopy["rail"];
@@ -48,6 +45,11 @@ const RAIL: RailItem[] = [
   { key: "profile", label: "Profile", href: "/dashboard/profile" },
 ];
 
+const RAIL_ITEM =
+  "flex min-h-control w-full items-center px-2 text-start font-body text-label no-underline transition-colors duration-fast ease-standard";
+const MENU_BUTTON =
+  "inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border border-line bg-surface p-0 text-teal xl:hidden";
+
 function isGroup(item: RailItem): item is RailGroup {
   return "children" in item;
 }
@@ -73,6 +75,7 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useState<DocumentLocale>("en");
   const [menuOpen, setMenuOpen] = useState(false);
   const [compact, setCompact] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const copy = DASHBOARD_COPY[locale];
 
   useEffect(() => {
@@ -80,6 +83,10 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
     setLocale(next);
     setDocumentLocale(next);
   }, []);
+
+  useEffect(() => {
+    if (pathname?.startsWith("/dashboard/catalog")) setCatalogOpen(true);
+  }, [pathname]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -92,7 +99,7 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const query = window.matchMedia("(max-width: 1439px)");
+    const query = window.matchMedia("(max-width: 1279px)");
     function syncViewport(event: MediaQueryList | MediaQueryListEvent) {
       setCompact(event.matches);
       if (!event.matches) setMenuOpen(false);
@@ -139,13 +146,13 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
     };
   }, [menuOpen, menuId]);
 
-  function renderLink(item: RailLink) {
+  function renderLink(item: RailLink, nested = false) {
     const current = pathname === item.href;
     return (
       <Link
         key={item.href}
         href={item.href}
-        className={styles.railLink}
+        className={cn(RAIL_ITEM, nested && "ps-4", current ? "bg-teal-tint text-teal" : "text-ink hover:bg-ivory")}
         aria-current={current ? "page" : undefined}
         onClick={() => setMenuOpen(false)}
       >
@@ -154,25 +161,68 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  function renderGroup(item: RailGroup) {
+    if (item.key === "catalog") {
+      const subId = `${menuId}-catalog`;
+      return (
+        <div key={item.key} className="flex flex-col">
+          <button
+            type="button"
+            className={cn(RAIL_ITEM, "justify-between text-ink hover:bg-ivory", catalogOpen && "text-teal")}
+            aria-expanded={catalogOpen}
+            aria-controls={subId}
+            onClick={() => setCatalogOpen((value) => !value)}
+          >
+            <span>{copy.rail[item.key]}</span>
+            <ChevronIcon
+              size={16}
+              className={cn("shrink-0 text-teal rtl:-scale-x-100", catalogOpen ? "-rotate-90" : "rotate-90")}
+            />
+          </button>
+          <div
+            id={subId}
+            role="group"
+            aria-label={copy.rail[item.key]}
+            className={cn("ms-4 flex-col border-s border-line", catalogOpen ? "flex" : "hidden")}
+          >
+            {item.children.map((child) => renderLink(child, true))}
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="flex flex-col" key={item.key}>
+        <p className="m-0 flex min-h-control items-center px-2 text-caption uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">
+          {copy.rail[item.key]}
+        </p>
+        <div className="ms-4 flex flex-col border-s border-line">{item.children.map((child) => renderLink(child, true))}</div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className={styles.shell}
-      data-density="compact"
+      className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-ivory text-ink"
+      data-density="dense"
       style={{ paddingInline: "max(env(safe-area-inset-left), env(safe-area-inset-right))" }}
     >
-      <a className={styles.skip} href="#content">
+      <a
+        className="absolute start-4 top-2 z-100 inline-flex min-h-control items-center bg-surface px-2 text-teal not-focus:sr-only"
+        href="#content"
+      >
         {copy.skip}
       </a>
-      <header className={styles.header}>
-        <Link className={styles.brand} href="/dashboard/home">
-          <img className={styles.wordmark} alt="ALMAR" src={WORDMARK_SRC} />
-          <img className={styles.monogram} alt="" src={MONOGRAM_SRC} />
-          <span className={styles.interiorMark}>{INTERIOR_MARK}</span>
+      <header className="sticky top-0 z-50 flex min-h-control items-center justify-between gap-2 border-b border-line bg-ivory px-4 py-1">
+        <Link className="flex min-h-control min-w-0 items-center gap-2 text-teal no-underline" href="/dashboard/home">
+          <img className="block h-auto w-35 max-w-full object-contain object-left" alt="ALMAR" src={charcoalLogo.src} />
+          <span className="hidden whitespace-nowrap font-display text-label tracking-kicker xl:inline ar:tracking-normal">
+            {INTERIOR_MARK}
+          </span>
         </Link>
         {menuOpen ? (
           <button
             type="button"
-            className={styles.menuButton}
+            className={MENU_BUTTON}
             aria-label={copy.closeMenu}
             onClick={() => {
               setMenuOpen(false);
@@ -185,7 +235,7 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
           <button
             ref={menuButtonRef}
             type="button"
-            className={styles.menuButton}
+            className={MENU_BUTTON}
             aria-expanded={false}
             aria-controls={menuId}
             aria-label={copy.menu}
@@ -195,25 +245,19 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
           </button>
         )}
       </header>
-      <div className={styles.body}>
+      <div className="flex min-w-0 flex-1 items-stretch">
         <nav
           id={menuId}
-          className={menuOpen ? styles.railOpen : styles.rail}
+          className={cn(
+            "flex-col gap-2 border-e border-line bg-surface p-2 xl:flex xl:w-sidebar xl:shrink-0",
+            menuOpen ? "fixed inset-0 z-45 flex overflow-auto overscroll-contain border-e-0 bg-ivory pt-16" : "hidden",
+          )}
           aria-label={INTERIOR_MARK}
           inert={compact && !menuOpen ? true : undefined}
         >
-          {RAIL.map((item) =>
-            isGroup(item) ? (
-              <div className={styles.group} key={item.key}>
-                <p className={styles.groupLabel}>{copy.rail[item.key]}</p>
-                <div className={styles.children}>{item.children.map(renderLink)}</div>
-              </div>
-            ) : (
-              renderLink(item)
-            ),
-          )}
+          {RAIL.map((item) => (isGroup(item) ? renderGroup(item) : renderLink(item)))}
         </nav>
-        <main id="content" className={styles.content} inert={menuOpen ? true : undefined}>
+        <main id="content" className="min-w-0 flex-1 scroll-mt-16 p-4" inert={menuOpen ? true : undefined}>
           {children}
         </main>
       </div>

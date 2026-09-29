@@ -12,7 +12,7 @@ export default function SignInEntry() {
   }
 
   return (
-    <main style={{ padding: "var(--spacing-lg)", maxInlineSize: "var(--width-column)" }}>
+    <main className="max-w-column p-6">
       <h1>Sign in</h1>
     </main>
   );

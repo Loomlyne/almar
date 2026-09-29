@@ -3,7 +3,9 @@ import { expect, test } from "@playwright/test";
 test("New booking opens one sidebar and does not shrink the bookings table", async ({ page }) => {
   await page.goto("/dashboard/bookings");
 
-  const table = page.getByRole("table");
+  // A modal dialog sets aria-hidden on the page behind it, so a role query would stop
+  // matching the table once the sidebar opens. Locate it by tag instead.
+  const table = page.locator("table");
   const before = await table.boundingBox();
   expect(before).not.toBeNull();
 

@@ -59,8 +59,9 @@ test("no bookings or customers source contains a sample guest name", () => {
   }
 });
 
-test("sidebar.tsx is unchanged by this plan", () => {
+test("sidebar.tsx keeps its close control and docks to the end side", () => {
   const text = readFileSync("components/ui/sidebar.tsx", "utf8");
   assert.match(text, /Close/);
-  assert.match(text, /inset-inline-end/);
+  assert.match(text, /\bend-0\b/);
+  assert.equal(text.includes("dockEnd"), false);
 });
