@@ -1,19 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { SiteNav, NavDrop } from "../../components/ui/nav";
+import { SiteNav } from "../../components/ui/nav";
+import { LocaleSelect } from "../../components/ui/locale-select";
 import { Field } from "../../components/ui/field";
 import { WhatsApp } from "../../components/ui/whatsapp";
 import { HOME_COPY } from "../../lib/copy/home";
+import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { setDocumentLocale, type DocumentLocale } from "../../lib/set-document-locale";
-
-const LOCALE_COOKIE = "almar-locale";
-
-const LOCALES = [
-  { value: "en", label: "EN" },
-  { value: "ar", label: "AR" },
-  { value: "es", label: "ES" },
-] as const;
 
 const COPY = {
   en: { account: "Account", name: "Name", email: "Email", phone: "Phone", language: "Language" },
@@ -28,7 +22,7 @@ export function AccountScreen() {
   function chooseLocale(next: DocumentLocale) {
     setLocale(next);
     setDocumentLocale(next);
-    document.cookie = `${LOCALE_COOKIE}=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
+    document.cookie = `almar-locale=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
   }
 
   return (
@@ -41,30 +35,23 @@ export function AccountScreen() {
       />
       <main
         id="content"
-        style={{
-          boxSizing: "border-box",
-          maxInlineSize: "var(--width-column)",
-          marginInline: "auto",
-          paddingBlock: "var(--spacing-2xl)",
-          paddingInline: "var(--spacing-lg)",
-          display: "grid",
-          gap: "var(--spacing-lg)",
-          justifyItems: "start",
-        }}
+        className="mx-auto grid w-full max-w-column justify-items-start gap-6 px-6 py-12 text-start"
       >
         <h1>{copy.account}</h1>
-        <div style={{ display: "grid", gap: "var(--spacing-md)", inlineSize: "100%", maxInlineSize: "24rem" }}>
+        <div className="grid w-full max-w-96 gap-4">
           <Field id="account-name" label={copy.name} name="account-name" />
           <Field id="account-email" label={copy.email} name="account-email" type="email" />
           <Field id="account-phone" label={copy.phone} name="account-phone" type="tel" />
-          <div className="field">
-            <span className="field-label">{copy.language}</span>
-            <NavDrop
-              label={copy.language}
+          <div className="grid gap-2">
+            <label className="text-label text-ink" htmlFor="account-language">
+              {copy.language}
+            </label>
+            <LocaleSelect
+              id="account-language"
+              kind="language"
               value={locale}
-              options={LOCALES}
-              onChange={chooseLocale}
-              className="nav-drop locale-switch"
+              copy={JOURNEY_COPY[locale].locale}
+              onChange={(next) => chooseLocale(next as DocumentLocale)}
             />
           </div>
         </div>

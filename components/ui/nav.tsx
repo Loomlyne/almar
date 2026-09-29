@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { ChevronIcon, CloseIcon } from "../icons/icons";
+import { useEffect, useId, useRef, useState } from "react";
+import { cva } from "class-variance-authority";
+import { cn } from "../../lib/cn";
+import { CloseIcon } from "../icons/icons";
+import { JOURNEY_COPY } from "../../lib/copy/journey";
+import { LocaleSelect } from "./locale-select";
+import charcoalLogo from "../../brand/Logo Typography/Stacked_Charcoal.svg";
+import whiteLogo from "../../brand/Logo Typography/Poly_White.svg";
 
 const DEFAULT_LABELS = {
   destinations: "Destinations",
@@ -20,151 +26,24 @@ const DEFAULT_LABELS = {
 
 export type NavLabels = { [K in keyof typeof DEFAULT_LABELS]: string };
 
-/** Matches @container site-nav (min-width: 1088px). Below this, the menu stays. */
-const NAV_ROW_MIN = 1088;
+/** Matches the @6xl container variant (72rem). Below this, the menu stays. */
+const NAV_ROW_MIN = 1152;
 
 type Locale = "en" | "ar" | "es";
 type Currency = "AED" | "USD" | "EUR";
 
-const CURRENCIES = [
-  { value: "AED", label: "AED" },
-  { value: "USD", label: "USD" },
-  { value: "EUR", label: "EUR" },
-] as const;
+const LINK =
+  "inline-flex min-h-control items-center whitespace-nowrap px-3 font-body text-caption uppercase tracking-kicker no-underline ar:normal-case ar:tracking-normal hover:underline decoration-gold decoration-1 underline-offset-4";
 
-const LOCALES = [
-  { value: "en", label: "EN" },
-  { value: "ar", label: "AR" },
-  { value: "es", label: "ES" },
-] as const;
-
-type NavOption<T extends string> = { value: T; label: string };
-
-/** Exported Framer logos. Ivory nav uses the black pair. URL strings, not SVG module objects. */
-const WORDMARK_SRC = "https://framerusercontent.com/images/RX7lhKpzXFpv2KTvbxNSm3UZz8.svg";
-const MONOGRAM_SRC = "https://framerusercontent.com/images/prMcX1bT4P2ZzVsjpoFmR4T5nA.svg";
-
-export function NavDrop<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-  className,
-}: {
-  label: string;
-  value: T;
-  options: readonly NavOption<T>[];
-  onChange: (next: T) => void;
-  className: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const listId = useId();
-  const selected = options.find((option) => option.value === value) ?? options[0];
-
-  useEffect(() => {
-    if (!open) return;
-    const root = rootRef.current;
-    root?.querySelector<HTMLButtonElement>('[role="option"][aria-selected="true"]')?.focus();
-
-    function onPointer(event: PointerEvent) {
-      if (!root?.contains(event.target as Node)) setOpen(false);
-    }
-    document.addEventListener("pointerdown", onPointer);
-    return () => document.removeEventListener("pointerdown", onPointer);
-  }, [open]);
-
-  function focusIndex(index: number) {
-    const nodes = rootRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]');
-    nodes?.[index]?.focus();
-  }
-
-  function closeToTrigger() {
-    setOpen(false);
-    triggerRef.current?.focus();
-  }
-
-  function choose(next: T) {
-    onChange(next);
-    closeToTrigger();
-  }
-
-  function onRootKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      closeToTrigger();
-    } else if (event.key === "Tab") {
-      setOpen(false);
-    }
-  }
-
-  function onTriggerKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
-    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
-    event.preventDefault();
-    if (!open) setOpen(true);
-  }
-
-  function onOptionKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      focusIndex((index + 1) % options.length);
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      focusIndex((index - 1 + options.length) % options.length);
-    } else if (event.key === "Home") {
-      event.preventDefault();
-      focusIndex(0);
-    } else if (event.key === "End") {
-      event.preventDefault();
-      focusIndex(options.length - 1);
-    }
-  }
-
-  return (
-    <div ref={rootRef} className={className} onKeyDown={onRootKeyDown}>
-      <button
-        ref={triggerRef}
-        type="button"
-        className="nav-drop-trigger"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={listId}
-        onClick={() => setOpen((next) => !next)}
-        onKeyDown={onTriggerKeyDown}
-      >
-        <span className="nav-drop-name">{label}</span>
-        <span className="nav-drop-value">{selected.label}</span>
-        <span className="nav-drop-icon" aria-hidden="true">
-          <ChevronIcon size={16} />
-        </span>
-      </button>
-      <ul
-        id={listId}
-        className={open ? "nav-drop-panel is-open" : "nav-drop-panel"}
-        role="listbox"
-        aria-label={label}
-        aria-hidden={open ? undefined : true}
-      >
-        {options.map((option, index) => (
-          <li key={option.value} role="presentation">
-            <button
-              type="button"
-              role="option"
-              tabIndex={-1}
-              aria-selected={option.value === value}
-              className="nav-drop-option"
-              onClick={() => choose(option.value)}
-              onKeyDown={(event) => onOptionKeyDown(event, index)}
-            >
-              {option.label}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
+const nav = cva("@container sticky top-0 z-40 w-full border-b", {
+  variants: {
+    tone: {
+      solid: "border-line bg-ivory text-ink",
+      "on-image": "absolute inset-x-0 border-transparent bg-transparent text-ivory",
+    },
+  },
+  defaultVariants: { tone: "solid" },
+});
 
 export function SiteNav({
   locale,
@@ -176,6 +55,7 @@ export function SiteNav({
   onCurrency,
   signedIn = false,
   onSignOut,
+  tone = "solid",
 }: {
   locale: Locale;
   onLocale: (next: Locale) => void;
@@ -187,6 +67,8 @@ export function SiteNav({
   /** No session exists this phase. Default false. Do not pass true from a call site. */
   signedIn?: boolean;
   onSignOut?: () => void;
+  /** on-image sits over the hero: transparent bar, ivory text, Poly_White logo. */
+  tone?: "solid" | "on-image";
 }) {
   const text: NavLabels = { ...DEFAULT_LABELS, ...labels };
   const links = [
@@ -203,6 +85,7 @@ export function SiteNav({
     onCurrency?.(next);
   }
   const menuId = useId();
+  const headerRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -212,7 +95,7 @@ export function SiteNav({
   }
 
   useEffect(() => {
-    const root = menuRef.current?.closest<HTMLElement>(".site-nav");
+    const root = headerRef.current;
     if (!root) return;
     const observer = new ResizeObserver((entries) => {
       const raw = entries[0]?.contentBoxSize;
@@ -227,7 +110,7 @@ export function SiteNav({
   useEffect(() => {
     if (!open) return;
     closeRef.current?.focus();
-    const root = document.getElementById(menuId)?.closest(".site-nav");
+    const root = headerRef.current;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
@@ -261,104 +144,126 @@ export function SiteNav({
     };
   }, [open, menuId]);
 
+  const onImage = tone === "on-image" && !open;
+  const localeCopy = JOURNEY_COPY[locale].locale;
+  const tools = onImage ? "on-image" : "default";
+  const login = cn(LINK, "@6xl:ms-2");
+  const closeMenuIfOpen = () => {
+    if (open) closeMenu();
+  };
+
   return (
-    <header className={open ? "site-nav is-menu" : "site-nav"}>
-      <a className="wordmark" href="#content">
-        <img className="wordmark-full" alt="ALMAR" src={WORDMARK_SRC} />
-        <img className="wordmark-mark" alt="" src={MONOGRAM_SRC} />
-      </a>
-      <button
-        ref={menuRef}
-        type="button"
-        className="nav-menu"
-        aria-expanded={open}
-        aria-controls={menuId}
-        onClick={() => setOpen(true)}
+    <header ref={headerRef} className={nav({ tone })}>
+      <div
+        className={cn(
+          "flex w-full min-w-0 items-center gap-4 px-3 py-2 @6xl:gap-8 @6xl:px-6",
+          open && "fixed inset-0 z-50 flex-col items-start overflow-auto overscroll-contain bg-ivory p-3 text-ink",
+        )}
       >
-        {text.menu}
-      </button>
-      <button
-        ref={closeRef}
-        type="button"
-        className="nav-close icon-button"
-        aria-label={text.close}
-        onClick={closeMenu}
-      >
-        <CloseIcon size={20} />
-      </button>
-      <div id={menuId} className="nav-panel">
-        <nav className={open ? "site-links is-open" : "site-links"} aria-label="Primary">
-          {links.map(([name, href], index) => (
-            <a
-              key={href}
-              href={href}
-              className={markCurrent && index === 0 ? "is-active" : undefined}
-              aria-current={markCurrent && index === 0 ? "page" : undefined}
-              onClick={() => {
-                if (open) closeMenu();
-              }}
-            >
-              {name}
-            </a>
-          ))}
-        </nav>
-        <div className="nav-tools">
-          <NavDrop
-            label={text.currency}
-            value={currency}
-            options={CURRENCIES}
-            onChange={setCurrency}
-            className="nav-drop is-currency"
+        <a
+          href="#content"
+          aria-label="ALMAR Private Journeys home"
+          className={cn("inline-flex min-h-control min-w-control items-center", open && "me-12")}
+        >
+          <img
+            alt="ALMAR Private Journeys"
+            src={(onImage ? whiteLogo : charcoalLogo).src}
+            className="block h-auto w-28 @6xl:w-37.5"
           />
-          <NavDrop
-            label={text.language}
-            value={locale}
-            options={LOCALES}
-            onChange={onLocale}
-            className="nav-drop locale-switch"
-          />
-          {signedIn ? (
-            <>
-              <a
-                className="nav-login"
-                href="/bookings"
-                onClick={() => {
-                  if (open) closeMenu();
-                }}
-              >
-                {text.bookings}
-              </a>
-              <a
-                className="nav-login"
-                href="/account"
-                onClick={() => {
-                  if (open) closeMenu();
-                }}
-              >
-                {text.account}
-              </a>
-              <button
-                type="button"
-                className="nav-login"
-                onClick={() => {
-                  if (open) closeMenu();
-                  onSignOut?.();
-                }}
-              >
-                {text.signOut}
-              </button>
-            </>
-          ) : (
-            <a
-              className="nav-login"
-              href={loginHref}
-              onClick={() => {
-                if (open) closeMenu();
-              }}
-            >
-              {text.login}
-            </a>
+        </a>
+        <button
+          ref={menuRef}
+          type="button"
+          className={cn(
+            "ms-auto inline-flex h-control min-w-control cursor-pointer items-center justify-center whitespace-nowrap rounded-none border px-4 font-body text-label uppercase tracking-kicker ar:normal-case ar:tracking-normal @6xl:hidden",
+            onImage ? "border-ivory/70 bg-transparent text-ivory" : "border-muted bg-surface text-ink",
+            open && "hidden",
           )}
+          aria-expanded={open}
+          aria-controls={menuId}
+          onClick={() => setOpen(true)}
+        >
+          {text.menu}
+        </button>
+        <button
+          ref={closeRef}
+          type="button"
+          className={cn(
+            "absolute end-3 top-3 size-11 cursor-pointer items-center justify-center rounded-none border border-muted bg-surface text-teal",
+            open ? "inline-flex" : "hidden",
+          )}
+          aria-label={text.close}
+          onClick={closeMenu}
+        >
+          <CloseIcon size={20} />
+        </button>
+        <div
+          id={menuId}
+          className={cn(
+            "min-w-0 gap-4 @6xl:flex @6xl:flex-1 @6xl:flex-row @6xl:items-center @6xl:gap-8",
+            open ? "flex w-full flex-col items-start" : "hidden",
+          )}
+        >
+          <nav
+            aria-label="Primary"
+            className="flex flex-col items-start @6xl:flex-row @6xl:items-center @6xl:gap-3"
+          >
+            {links.map(([name, href], index) => {
+              const active = markCurrent && index === 0;
+              return (
+                <a
+                  key={href}
+                  href={href}
+                  className={cn(LINK, active && "underline decoration-2")}
+                  aria-current={active ? "page" : undefined}
+                  onClick={closeMenuIfOpen}
+                >
+                  {name}
+                </a>
+              );
+            })}
+          </nav>
+          <div className="flex flex-wrap items-center gap-4 @6xl:ms-auto @6xl:flex-nowrap">
+            <LocaleSelect
+              kind="currency"
+              dir={locale === "ar" ? "rtl" : "ltr"}
+              value={currency}
+              tone={tools}
+              copy={localeCopy}
+              onChange={(next) => setCurrency(next as Currency)}
+            />
+            <LocaleSelect
+              kind="language"
+              value={locale}
+              tone={tools}
+              copy={localeCopy}
+              onChange={(next) => onLocale(next as Locale)}
+            />
+            {signedIn ? (
+              <>
+                <a className={login} href="/bookings" onClick={closeMenuIfOpen}>
+                  {text.bookings}
+                </a>
+                <a className={login} href="/account" onClick={closeMenuIfOpen}>
+                  {text.account}
+                </a>
+                <button
+                  type="button"
+                  className={cn(login, "cursor-pointer bg-transparent")}
+                  onClick={() => {
+                    closeMenuIfOpen();
+                    onSignOut?.();
+                  }}
+                >
+                  {text.signOut}
+                </button>
+              </>
+            ) : (
+              <a className={login} href={loginHref} onClick={closeMenuIfOpen}>
+                {text.login}
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </header>

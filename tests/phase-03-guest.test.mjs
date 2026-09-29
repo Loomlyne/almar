@@ -107,3 +107,17 @@ test("SiteNav signedIn defaults false and no call site passes true", () => {
     assert.equal(/signedIn(\s*=\s*\{?\s*)true/.test(text), false, `${path} sets signedIn true`);
   }
 });
+
+test("nav takes its logos from brand/ and uses LocaleSelect, not NavDrop or Framer URLs", () => {
+  const nav = readFileSync(NAV, "utf8");
+  assert.match(nav, /Stacked_Charcoal\.svg/);
+  assert.match(nav, /Poly_White\.svg/);
+  assert.equal(nav.includes("framerusercontent.com"), false);
+  assert.equal(nav.includes("encodeURIComponent"), false);
+  assert.equal(nav.includes("NavDrop"), false);
+  assert.match(nav, /LocaleSelect/);
+  const footer = readFileSync("components/ui/footer.tsx", "utf8");
+  assert.equal(footer.includes("framerusercontent.com"), false);
+  assert.match(footer, /inquiries@<wbr \/>almarprivatejourney\.com/);
+  assert.match(footer, /\+971 56 388 3302/);
+});
