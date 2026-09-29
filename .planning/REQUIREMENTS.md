@@ -13,7 +13,7 @@ Requirements for this product. Each maps to roadmap phases.
 - [x] **DSGN-02**: Guest and ops see the same token system (Questa primary, Lato secondary; Deep Teal `#1f3b40`, Charcoal `#262626`, Gold `#d4ba8a`, Ivory `#fffaf0`; light theme only)
 - [x] **DSGN-03**: Guest sees RTL-flipped components when language is Arabic (`dir=rtl` on `<html>`, logical CSS, password eye on inline-end)
 - [ ] **DSGN-04**: Ops can change brand tokens (colors, uploaded font family, light/dark logos, favicon) in Settings → Brand and Publish applies immediately on public and dashboard
-- [ ] **DSGN-05**: Guest sees icons as vector components using token colors; icon-only controls have an accessible name
+- [x] **DSGN-05**: Guest sees icons as vector components using token colors; icon-only controls have an accessible name
 - [ ] **DSGN-06**: Guest sees branded 404 using Questa/Lato (no Bricolage)
 - [ ] **DSGN-07**: Autoplay video is muted and pauses when off-screen; motion is kept
 
@@ -191,7 +191,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DSGN-02 | Phase 1 | Complete |
 | DSGN-03 | Phase 1 | Complete |
 | DSGN-04 | Phase 5 | Pending |
-| DSGN-05 | Phase 1 | Pending |
+| DSGN-05 | Phase 1 | Complete |
 | DSGN-06 | Phase 1 | Pending |
 | DSGN-07 | Phase 1 | Pending |
 | BOOK-01 | Phase 4 | Pending |
