@@ -221,7 +221,7 @@ export function HeroBooker({
         return;
       }
       const panel = root.querySelector<HTMLElement>(`[data-panel="${open}"]`);
-      const day = panel?.querySelector<HTMLElement>(".calendar-day[tabindex='0']");
+      const day = panel?.querySelector<HTMLElement>("[data-date][tabindex='0']");
       const control = day ?? panel?.querySelector<HTMLElement>("button:not(:disabled)");
       control?.focus();
       panel?.scrollIntoView({ block: "nearest", inline: "nearest" });

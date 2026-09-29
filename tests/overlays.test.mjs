@@ -15,13 +15,14 @@ test("no arbitrary z-layers, color-mix or var() padding in components/ui", () =>
   }
 });
 
-test("dialogs sit on z-70, scrim is bg-ink/40, toast z-50", () => {
+test("dialogs sit on z-70, scrim is bg-ink/40, toast z-50, WhatsApp z-60", () => {
   for (const name of ["dialog.tsx", "confirm-dialog.tsx"]) {
     const text = read(name);
     assert.match(text, /bg-ink\/40/, `${name} scrim`);
     assert.match(text, /z-70/, `${name} layer`);
   }
   assert.match(read("toast.tsx"), /z-50/);
+  assert.match(read("whatsapp.tsx"), /z-60/);
 });
 
 test("close controls are a teal glyph, never a gold fill, with a 44px hit area", () => {
@@ -50,4 +51,16 @@ test("specimen-only exports are gone from the app", () => {
   }
   assert.equal(read("toast.tsx").includes("ShowToast"), false);
   assert.equal(read("calendar.tsx").includes("DateRangeField"), false);
+});
+
+test("calendar days: teal arrive and leave, tint nights, no gold", () => {
+  const text = read("calendar.tsx");
+  assert.match(text, /selected && "bg-teal text-ivory"/);
+  assert.match(text, /bg-teal-tint/);
+  assert.equal(/gold/.test(text), false);
+  assert.equal(text.includes("calendar-day"), false);
+});
+
+test("WhatsApp keeps the exact wa.me link", () => {
+  assert.match(read("whatsapp.tsx"), /https:\/\/wa\.me\/971563883302/);
 });

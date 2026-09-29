@@ -8,6 +8,7 @@ import {
   today,
 } from "@internationalized/date";
 import { ChevronIcon } from "../icons/icons";
+import { cn } from "../../lib/cn";
 
 function pad(value: number) {
   return String(value).padStart(2, "0");
@@ -40,19 +41,6 @@ function compare(a: CalendarDate, b: CalendarDate) {
 
 function dateKey(date: CalendarDate) {
   return `${date.year}-${date.month}-${date.day}`;
-}
-
-function nightsBetween(start: CalendarDate, end: CalendarDate) {
-  const ms = end.toDate(getLocalTimeZone()).getTime() - start.toDate(getLocalTimeZone()).getTime();
-  return Math.max(0, Math.round(ms / 86_400_000));
-}
-
-function rangeStatus(start: CalendarDate | null, end: CalendarDate | null) {
-  if (!start) return "No range yet";
-  if (!end) return "Select check-out";
-  const count = nightsBetween(start, end);
-  if (count === 0) return "Same day";
-  return count === 1 ? "1 night" : `${count} nights`;
 }
 
 export function CalendarPanel({
@@ -139,36 +127,36 @@ export function CalendarPanel({
   }
 
   return (
-    <div className="calendar">
-      <div className="calendar-bar">
+    <div className="calendar min-w-0 max-w-full overflow-x-auto">
+      <div className="flex min-h-control items-center justify-between">
         <button
           type="button"
-          className="icon-button"
+          className="inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border-0 bg-transparent p-0 text-teal"
           aria-label="Previous month"
           onClick={() => setCursor(cursor.subtract({ months: 1 }))}
         >
           <ChevronIcon size={20} className="icon-back" />
         </button>
-        <p className="calendar-title" id={titleId}>
+        <p className="m-0 flex-1 text-center font-display text-title whitespace-nowrap text-teal" id={titleId}>
           {monthLabel(cursor)}
         </p>
         <button
           type="button"
-          className="icon-button"
+          className="inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border-0 bg-transparent p-0 text-teal"
           aria-label="Next month"
           onClick={() => setCursor(cursor.add({ months: 1 }))}
         >
           <ChevronIcon size={20} className="icon-forward" />
         </button>
       </div>
-      <div className="calendar-week" aria-hidden="true">
+      <div className="grid grid-cols-7 text-center text-caption text-muted" aria-hidden="true">
         {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((label) => (
           <span key={label}>{label}</span>
         ))}
       </div>
       <div
         ref={gridRef}
-        className="calendar-grid"
+        className="grid grid-cols-7"
         role="grid"
         aria-labelledby={titleId}
         aria-describedby={describedBy}
@@ -197,7 +185,7 @@ export function CalendarPanel({
           const rangeStart = isStart && !single;
           const inMiddle = inRange && !single && !rangeStart && !rangeEnd;
           const tab = compare(date, tabDay) === 0 && !past;
-          const isHot = Boolean(hover && !past && compare(date, hover) === 0);
+          const selected = rangeStart || rangeEnd || single;
           const role = [isStart ? "check-in" : "", isEnd ? "check-out" : ""].filter(Boolean).join(", ");
           return (
             <button
@@ -205,20 +193,17 @@ export function CalendarPanel({
               type="button"
               role="gridcell"
               data-date={dateKey(date)}
-              className={[
-                "calendar-day",
-                inMiddle ? "is-range" : "",
-                rangeStart ? "is-start" : "",
-                rangeEnd ? "is-end" : "",
-                isToday ? "is-today" : "",
-                !end && hover && inMiddle ? "is-preview" : "",
-                isPreviewEnd ? "is-preview-end" : "",
-                isHot ? "is-hot" : "",
-                single ? "is-single" : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              className={cn(
+                "relative grid size-control cursor-pointer appearance-none place-items-center justify-self-center rounded-none border-0 bg-transparent p-0 font-body text-body font-normal text-teal tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal",
+                !past && !selected && "hover:ring-1 hover:ring-teal hover:ring-inset",
+                inMiddle && "w-full justify-self-stretch bg-teal-tint text-ink",
+                selected && "bg-teal text-ivory",
+                (rangeStart || rangeEnd) && "w-full justify-self-stretch",
+                isToday && !selected && "shadow-rule-today",
+                past && "cursor-default text-muted",
+              )}
               disabled={past}
+              aria-disabled={past || undefined}
               tabIndex={tab ? 0 : -1}
               aria-label={role ? `${spokenDate(date)}, ${role}` : spokenDate(date)}
               aria-selected={isStart || isEnd || (Boolean(end) && inMiddle) || undefined}
