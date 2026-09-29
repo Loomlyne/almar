@@ -8,8 +8,8 @@ Canvas (the design surface): https://claude.ai/artifact/6MqV4cd2KzXLsVputN2ctw
 | # | Page | Status |
 |---|------|--------|
 | 1 | Audit (boards 1–8a) | frozen, unedited |
-| 2 | Foundations: Colour, Type, Space/shape/motion/dense | awaiting owner |
-| 3 | Components: Controls, Surfaces and navigation | awaiting owner |
+| 2 | Foundations: Colour, Type, Space/shape/motion/dense | approved 2026-09-29 |
+| 3 | Components: Controls, Surfaces and navigation | approved 2026-09-29 (sidebar Catalog subtabs added at owner request) |
 | 4 | Journey | not drawn (plan 11) |
 | 5 | Public pages | not drawn (plan 15) |
 | 6 | Guest | not drawn (plan 22) |
@@ -19,9 +19,10 @@ Every board has an EN/AR/ES switch (AR flips to RTL) and a fixed Arabic RTL boar
 
 ## Gate: Foundations + Components (plan 03.1-01, D-09)
 
-Status: awaiting owner.
-Answer A (current-step rule colour): pending. Default teal.
-Answer B (Lato 700 on stepper count and phone warning): pending. Default keep.
+Status: approved by the owner in chat, 2026-09-29 ("All good, continue").
+Answer A (current-step rule colour): not given separately, default holds: teal.
+Answer B (Lato 700 on stepper count and phone warning): not given separately, default holds: keep.
+Owner change at the gate: dashboard sidebar Catalog opens a dropdown with its pages (Destinations, Experiences, Packages, Stays), drawn on board 3b.
 
 ## Notes
 
