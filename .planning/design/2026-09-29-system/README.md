@@ -96,4 +96,13 @@ Second update (owner: "get more out of account page and bookings"): Account, Boo
 
 Amounts, dates, names, counts and the days-to-go line are bracket placeholders.
 
+Third update (owner: trip detail not liked, how to reach Account, help under the tabs, delete account states, better organized account): D-75 to D-78.
+
+| Board | Change |
+|-------|--------|
+| 6b Account | Grouped left rail (Personal, Settings) with Need help? directly below it; sectioned content; Delete account card. |
+| 6d Trip detail | Redesigned: photo header, facts strip, tabs, payment card. |
+| 6e Account access | Header shows Login when signed out and an account menu when signed in (menu open shown), plus the phone Menu list. |
+| 6f Delete account | Ten states: confirm, confirm with email (disabled, enabled, mismatch, busy), failed, blocked, link sent, deleted page desktop and phone, phone sheet. |
+
 Gate: page 6 awaiting owner.
