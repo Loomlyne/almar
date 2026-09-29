@@ -31,11 +31,12 @@ export function Dialog({
   title: string;
   closeLabel: string;
   dismiss?: Dismiss;
-  size?: "sm" | "wide";
+  size?: "sm" | "wide" | "full";
   children?: ReactNode;
   footer?: ReactNode;
 }) {
   const locked = dismiss === "confirm";
+  const full = size === "full";
   const block = locked ? (event: Event) => event.preventDefault() : undefined;
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -44,8 +45,10 @@ export function Dialog({
         <RadixDialog.Overlay className="fixed inset-0 z-70 bg-ink/40" />
         <RadixDialog.Content
           className={cn(
-            "fixed top-1/2 start-1/2 z-70 max-h-screen w-full -translate-y-1/2 overflow-auto overscroll-contain rounded-none bg-surface p-6 text-ink shadow-lg ltr:-translate-x-1/2 rtl:translate-x-1/2",
-            size === "wide" ? "max-w-column" : "max-w-dialog",
+            full
+              ? "fixed inset-0 z-70 flex h-full w-full flex-col overflow-hidden rounded-none bg-ivory text-ink animate-sheet-in motion-reduce:animate-fade-in"
+              : "fixed top-1/2 start-1/2 z-70 max-h-screen w-full -translate-y-1/2 overflow-auto overscroll-contain rounded-none bg-surface p-6 text-ink shadow-lg ltr:-translate-x-1/2 rtl:translate-x-1/2",
+            size === "wide" ? "max-w-column" : !full && "max-w-dialog",
           )}
           aria-describedby={undefined}
           onEscapeKeyDown={block}
@@ -53,8 +56,13 @@ export function Dialog({
           onInteractOutside={block}
         >
           <FocusScope trapped loop asChild>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-2">
+            <div className={cn("flex flex-col", full ? "min-h-0 flex-1" : "gap-4")}>
+              <div
+                className={cn(
+                  "flex items-center justify-between gap-2",
+                  full && "h-sheet-head shrink-0 border-b border-line bg-surface ps-4",
+                )}
+              >
                 <RadixDialog.Title className="m-0 font-display text-title text-teal">
                   {title}
                 </RadixDialog.Title>
@@ -65,8 +73,10 @@ export function Dialog({
                   <CloseIcon size={20} />
                 </RadixDialog.Close>
               </div>
-              {children}
-              {footer ? <div className="flex flex-wrap items-center gap-2">{footer}</div> : null}
+              {full ? <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div> : children}
+              {footer ? (
+                <div className={cn("flex flex-wrap items-center gap-2", full && "shrink-0")}>{footer}</div>
+              ) : null}
             </div>
           </FocusScope>
         </RadixDialog.Content>
