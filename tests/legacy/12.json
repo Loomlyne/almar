@@ -1,8 +1,0 @@
-{
-  "plan": "12",
-  "files": [
-    "components/ui/nav.tsx",
-    "components/ui/footer.tsx",
-    "app/account/account-screen.tsx"
-  ]
-}
