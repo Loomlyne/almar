@@ -13,6 +13,9 @@ const SOURCES = [
   ENTRY,
   path.join(process.cwd(), "components/specimens/hero-booker.tsx"),
   path.join(process.cwd(), "components/ui/calendar.tsx"),
+  path.join(process.cwd(), "components/ui/button.tsx"),
+  path.join(process.cwd(), "components/ui/stepper.tsx"),
+  path.join(process.cwd(), "lib/cn.ts"),
   path.join(process.cwd(), "components/icons/icons.tsx"),
   path.join(process.cwd(), "lib/copy/home.ts"),
 ];

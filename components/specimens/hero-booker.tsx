@@ -5,6 +5,9 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { CalendarDate, getLocalTimeZone } from "@internationalized/date";
 import { CalendarPanel, formatDate } from "../ui/calendar";
+import { Button } from "../ui/button";
+import { Stepper } from "../ui/stepper";
+import { cn } from "../../lib/cn";
 
 type BookerLabels = {
   form: string;
@@ -51,6 +54,21 @@ type BookerLabels = {
   nightsSelected: string;
   datesCleared: string;
 };
+
+const FOCUS =
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal";
+const SLOT = "relative min-w-0 md:flex-1 md:basis-0";
+const SLOT_NEXT = "border-t border-line md:border-s md:border-t-0";
+const SEGMENT = cn(
+  "flex min-h-entry w-full cursor-pointer flex-col items-start justify-center gap-0.5 rounded-none border-0 bg-transparent px-4 py-3 text-start transition-colors duration-fast ease-standard hover:bg-ivory aria-expanded:bg-ivory aria-expanded:shadow-rule-primary aria-invalid:shadow-rule-error",
+  FOCUS,
+);
+const LABEL = "whitespace-nowrap text-caption text-teal";
+const KICKER = "m-0 whitespace-nowrap text-caption text-teal";
+const VALUE = "max-w-full truncate text-body text-ink";
+const PANEL =
+  "m-0 border-t border-line bg-ivory p-4 text-ink md:absolute md:top-full md:z-10 md:mt-2 md:border md:border-line md:bg-surface md:shadow-lg";
+const PANEL_BAR = "mt-4 flex flex-wrap justify-end gap-3";
 
 function fill(template: string, values: Record<string, string | number>) {
   return template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ""));
@@ -348,34 +366,42 @@ export function HeroBooker({
   return (
     <form
       ref={formRef}
-      className="hero-booker hero-search"
+      className="relative z-20 block max-w-full font-body text-body text-ink"
       role="search"
       aria-label={t.form}
       onSubmit={onSubmit}
     >
-      <div className="hero-search-bar">
-        <div className="hero-search-slot" data-slot="where">
+      <div className="flex flex-col items-stretch border border-t-2 border-line border-t-gold bg-surface md:flex-row">
+        <div className={SLOT} data-slot="where">
           <button
             ref={whereBtnRef}
             type="button"
-            className="hero-search-segment"
+            className={SEGMENT}
             aria-expanded={open === "where"}
             aria-controls={open === "where" ? whereId : undefined}
             aria-invalid={missingWhere || undefined}
             onClick={() => toggle("where")}
           >
-            <span className="hero-search-label">{t.destination}</span>
-            <span className={where ? "hero-search-value" : "hero-search-value is-empty"}>
-              {where ?? t.choosePlace}
-            </span>
+            <span className={LABEL}>{t.destination}</span>
+            <span className={cn(VALUE, !where && "text-muted")}>{where ?? t.choosePlace}</span>
           </button>
           {open === "where" ? (
-            <div id={whereId} className="hero-search-panel" data-panel="where" role="region" aria-label={t.destination}>
-              <label className="hero-search-field">
-                <span>{t.destination}</span>
+            <div
+              id={whereId}
+              className={cn(PANEL, "md:start-0 md:w-menu")}
+              data-panel="where"
+              role="region"
+              aria-label={t.destination}
+            >
+              <label className="mb-3 grid gap-1">
+                <span className="text-label text-teal">{t.destination}</span>
                 <input
                   ref={whereInputRef}
                   name="destination-filter"
+                  className={cn(
+                    "min-h-control w-full rounded-none border border-teal bg-surface px-3 text-body text-ink",
+                    FOCUS,
+                  )}
                   value={query}
                   placeholder={t.placeholder}
                   autoComplete="off"
@@ -384,148 +410,148 @@ export function HeroBooker({
                 />
               </label>
               {matches.length === 0 ? (
-                <div className="hero-search-empty">
-                  <p>{t.noMatch}</p>
-                  <button type="button" className="hero-search-textbtn" onClick={() => setQuery("")}>
+                <div className="grid justify-items-start gap-2">
+                  <p className="m-0 text-pretty">{t.noMatch}</p>
+                  <Button variant="secondary" onClick={() => setQuery("")}>
                     {t.clearSearch}
-                  </button>
+                  </Button>
                 </div>
               ) : (
-                <ul className="hero-search-options">
+                <ul className="m-0 grid list-none gap-0 p-0">
                   {matches.map((item) => (
                     <li key={item.name}>
                       <button
                         type="button"
-                        className="hero-search-option"
+                        className={cn(
+                          "flex min-h-control w-full cursor-pointer flex-col items-start justify-center gap-0.5 rounded-none border-0 bg-transparent px-3 py-2 text-start text-body transition-colors duration-fast ease-standard hover:bg-ivory aria-pressed:bg-ivory aria-pressed:shadow-rule-primary",
+                          FOCUS,
+                        )}
                         aria-pressed={where === item.name}
                         onClick={() => chooseWhere(item.name)}
                       >
                         <span>{item.name}</span>
-                        <span className="hero-search-region">{item.region}</span>
+                        <span className="text-label text-muted">{item.region}</span>
                       </button>
                     </li>
                   ))}
                 </ul>
               )}
-              <div className="hero-search-panel-bar">
-                <button type="button" className="hero-search-textbtn" onClick={() => setOpen(null)}>
+              <div className={PANEL_BAR}>
+                <Button variant="secondary" onClick={() => setOpen(null)}>
                   {t.done}
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}
         </div>
 
-        <div className="hero-search-slot" data-slot="when">
+        <div className={cn(SLOT, SLOT_NEXT)} data-slot="when">
           <button
             ref={whenBtnRef}
             type="button"
-            className="hero-search-segment"
+            className={SEGMENT}
             aria-expanded={open === "when"}
             aria-controls={open === "when" ? whenId : undefined}
             aria-invalid={missingWhen || undefined}
             onClick={() => toggle("when")}
           >
-            <span className="hero-search-label">{t.dates}</span>
-            <span className={start ? "hero-search-value" : "hero-search-value is-empty"}>
-              {rangeLabel(start, end, t, dateLocale)}
-            </span>
+            <span className={LABEL}>{t.dates}</span>
+            <span className={cn(VALUE, !start && "text-muted")}>{rangeLabel(start, end, t, dateLocale)}</span>
           </button>
           {open === "when" ? (
-            <div id={whenId} className="hero-search-panel" data-panel="when" role="region" aria-label={t.dates}>
-              <div className="hero-search-range">
+            <div
+              id={whenId}
+              className={cn(PANEL, "md:start-0 md:w-dialog")}
+              data-panel="when"
+              role="region"
+              aria-label={t.dates}
+            >
+              <div className="mb-3 grid grid-cols-2 gap-3">
                 <div>
-                  <p className="hero-search-kicker">{t.checkIn}</p>
-                  <p className={start ? "hero-search-date" : "hero-search-date is-empty"}>
+                  <p className={KICKER}>{t.checkIn}</p>
+                  <p className={cn(VALUE, "m-0", !start && "text-muted")}>
                     {start ? formatDate(start) : t.addDate}
                   </p>
                 </div>
                 <div>
-                  <p className="hero-search-kicker">{t.checkOut}</p>
-                  <p className={end ? "hero-search-date" : "hero-search-date is-empty"}>
-                    {end ? formatDate(end) : t.addDate}
-                  </p>
+                  <p className={KICKER}>{t.checkOut}</p>
+                  <p className={cn(VALUE, "m-0", !end && "text-muted")}>{end ? formatDate(end) : t.addDate}</p>
                 </div>
               </div>
-              {nights !== null ? <p className="hero-search-nights">{nightsLabel(nights, t)}</p> : null}
-              <div className="hero-search-dates">
+              {nights !== null ? (
+                <p className="m-0 mb-2 text-label tabular-nums">{nightsLabel(nights, t)}</p>
+              ) : null}
+              <div className="max-w-full overflow-x-auto overscroll-contain">
                 <CalendarPanel start={start} end={end} hover={hover} onPick={pick} onHover={setHover} />
               </div>
-              <div className="hero-search-panel-bar">
-                <button type="button" className="hero-search-textbtn" onClick={clearDates} disabled={!start}>
+              <div className={PANEL_BAR}>
+                <Button variant="secondary" onClick={clearDates} disabled={!start}>
                   {t.clearDates}
-                </button>
-                <button type="button" className="hero-search-textbtn" onClick={() => setOpen(null)}>
+                </Button>
+                <Button variant="secondary" onClick={() => setOpen(null)}>
                   {t.done}
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}
         </div>
 
-        <div className="hero-search-slot" data-slot="guests">
+        <div className={cn(SLOT, SLOT_NEXT)} data-slot="guests">
           <button
             ref={guestsBtnRef}
             type="button"
-            className="hero-search-segment"
+            className={SEGMENT}
             aria-expanded={open === "guests"}
             aria-controls={open === "guests" ? guestsId : undefined}
             onClick={() => toggle("guests")}
           >
-            <span className="hero-search-label">{t.guests}</span>
-            <span className="hero-search-value">{guestLabel(guests, t)}</span>
+            <span className={LABEL}>{t.guests}</span>
+            <span className={VALUE}>{guestLabel(guests, t)}</span>
           </button>
           {open === "guests" ? (
-            <div id={guestsId} className="hero-search-panel" data-panel="guests" role="region" aria-label={t.guests}>
-              <div className="hero-search-guests">
+            <div
+              id={guestsId}
+              className={cn(PANEL, "md:end-0 md:w-menu")}
+              data-panel="guests"
+              role="region"
+              aria-label={t.guests}
+            >
+              <div className="grid gap-2">
                 {guestRows.map((row) => {
                   const value = guests[row.key];
                   const atFloor = value <= row.floor;
                   return (
-                    <div key={row.key} className="hero-search-guest">
-                      <div className="hero-search-guest-copy">
-                        <p className="hero-search-guest-label">{row.label}</p>
-                        <p className="hero-search-guest-hint">{row.hint}</p>
+                    <div key={row.key} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 py-1">
+                      <div className="grid min-w-0 gap-0.5">
+                        <p className="m-0 text-body">{row.label}</p>
+                        <p className="m-0 text-label text-muted">{row.hint}</p>
                       </div>
-                      <div className="hero-search-steps">
-                        <button
-                          type="button"
-                          className="hero-search-step"
-                          aria-label={row.remove}
-                          disabled={atFloor}
-                          onClick={() => changeGuests(row.key, row.floor, -1)}
-                        >
-                          −
-                        </button>
-                        <span className="hero-search-count">{value}</span>
-                        <button
-                          type="button"
-                          className="hero-search-step"
-                          aria-label={row.add}
-                          onClick={() => changeGuests(row.key, row.floor, 1)}
-                        >
-                          +
-                        </button>
-                      </div>
+                      <Stepper
+                        value={value}
+                        min={row.floor}
+                        onChange={(next) => changeGuests(row.key, row.floor, next - value)}
+                        addLabel={row.add}
+                        removeLabel={row.remove}
+                      />
                       {atFloor && row.floorNote ? (
-                        <p className="hero-search-guest-note">{row.floorNote}</p>
+                        <p className="m-0 basis-full text-label text-muted">{row.floorNote}</p>
                       ) : null}
                     </div>
                   );
                 })}
               </div>
-              <div className="hero-search-panel-bar">
-                <button type="button" className="hero-search-textbtn" onClick={() => setOpen(null)}>
+              <div className={PANEL_BAR}>
+                <Button variant="secondary" onClick={() => setOpen(null)}>
                   {t.done}
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}
         </div>
 
-        <button type="submit" className="hero-search-submit">
+        <Button type="submit" size="bar" className="w-full md:h-auto md:w-search">
           {t.search}
-        </button>
+        </Button>
       </div>
 
       <input type="hidden" name="where" value={where ?? ""} />
@@ -535,10 +561,10 @@ export function HeroBooker({
       <input type="hidden" name="children" value={guests.child} />
       <input type="hidden" name="infants" value={guests.infant} />
 
-      <p className="hero-search-live" role="status">
+      <p className="sr-only" role="status">
         {live}
       </p>
-      <p className="hero-search-notice" role="status">
+      <p className="m-0 mt-2 text-pretty text-label text-ink empty:sr-only" role="status">
         {notice}
       </p>
     </form>
