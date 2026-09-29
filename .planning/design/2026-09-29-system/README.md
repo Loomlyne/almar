@@ -86,4 +86,14 @@ Three boards (6a Login, 6b Account, 6c Bookings), each with an EN/AR/ES switch a
 
 New strings (sign-in headline and helper, sent state, cards) are EN drafts with AR and ES drafts for owner review. No social sign-in buttons, because those would be controls that do nothing. The terms and privacy line is a placeholder: `[Terms and privacy line]`.
 
+Second update (owner: "get more out of account page and bookings"): Account, Bookings and a new Trip detail board are much richer (D-72, D-73, D-74).
+
+| Board | What it adds |
+|-------|--------------|
+| 6b Account | Side nav; Profile; Saved travelers; Saved stays (teal hearts); Preferences (language, currency, two switches); Sign-in and security (signed in as, sign out); Help (WhatsApp, email). Empty states use "No … yet" lines. |
+| 6c Bookings | Summary tiles, tabs, search, and rich booking cards with payment progress and actions. |
+| 6d Trip detail | Timeline, stay, experiences and services with Add, payment card, help card. |
+
+Amounts, dates, names, counts and the days-to-go line are bracket placeholders.
+
 Gate: page 6 awaiting owner.
