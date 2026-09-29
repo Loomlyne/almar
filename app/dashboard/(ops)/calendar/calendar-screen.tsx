@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDate, getDayOfWeek, today } from "@internationalized/date";
 import { formatDate } from "../../../../components/ui/calendar";
+import { Button } from "../../../../components/ui/button";
 import { Field } from "../../../../components/ui/field";
 import { Sidebar } from "../../../../components/ui/sidebar";
 import { ChevronIcon } from "../../../../components/icons/icons";
 import { DASHBOARD_COPY } from "../../../../lib/copy/dashboard";
 import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
-import styles from "./calendar.module.css";
 
 const DUBAI_TIME_ZONE = "Asia/Dubai";
 const WEEKDAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
@@ -75,13 +75,13 @@ export function CalendarScreen() {
     : "";
 
   if (!cursor || !now) {
-    return <div className={styles.screen} />;
+    return <div className="flex min-w-0 flex-col gap-6" />;
   }
 
   return (
-    <div className={styles.screen}>
-      <h1 className={styles.title}>{copy.rail.calendar}</h1>
-      <div className={styles.bar}>
+    <div className="flex min-w-0 flex-col gap-6">
+      <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.rail.calendar}</h1>
+      <div className="flex min-h-control items-center justify-between">
         <button
           type="button"
           className="icon-button"
@@ -90,7 +90,7 @@ export function CalendarScreen() {
         >
           <ChevronIcon size={20} className="icon-back" />
         </button>
-        <p className={styles.monthLabel}>{monthLabel(cursor)}</p>
+        <p className="m-0 flex-1 text-center font-body text-body tabular-nums text-teal">{monthLabel(cursor)}</p>
         <button
           type="button"
           className="icon-button"
@@ -100,27 +100,27 @@ export function CalendarScreen() {
           <ChevronIcon size={20} className="icon-forward" />
         </button>
       </div>
-      <div className={styles.week} aria-hidden="true">
+      <div className="grid grid-cols-7 justify-items-center font-body text-label text-muted" aria-hidden="true">
         {WEEKDAY_LABELS.map((label) => (
           <span key={label}>{label}</span>
         ))}
       </div>
-      <div className={styles.grid} role="grid">
+      <div className="grid grid-cols-7 justify-items-center gap-2" role="grid">
         {cells.map((date, index) =>
           date ? (
             <button
               key={date.toString()}
               type="button"
               role="gridcell"
-              className={styles.day}
+              className="relative flex size-control cursor-pointer flex-col items-center justify-center gap-1 rounded-none border border-ink bg-surface font-body text-ink hover:bg-ivory focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
               aria-label={formatDate(date)}
               onClick={() => openDay(date)}
             >
-              <span className={styles.dayNumber}>{date.day}</span>
-              {isSameDate(date, now) ? <span className={styles.todayDot} aria-hidden="true" /> : null}
+              <span className="text-label tabular-nums">{date.day}</span>
+              {isSameDate(date, now) ? <span className="size-1 bg-ink" aria-hidden="true" /> : null}
             </button>
           ) : (
-            <span key={`pad-${index}`} className={styles.pad} />
+            <span key={`pad-${index}`} className="size-control" />
           ),
         )}
       </div>
@@ -139,19 +139,11 @@ export function CalendarScreen() {
             <Field id="calendar-booking-status" label="Status" name="status" />
           </>
         ) : (
-          <div className={styles.empty}>
-            <p className={styles.emptyText}>{copy.noBookingsYet}</p>
-            <div className={styles.actions}>
-              <button
-                type="button"
-                className="hero-search-submit"
-                onClick={() => setView("newBooking")}
-              >
-                {copy.newBooking}
-              </button>
-              <button type="button" className={styles.block}>
-                {copy.block}
-              </button>
+          <div className="flex flex-col items-start gap-2">
+            <p className="m-0 text-pretty text-body text-ink">{copy.noBookingsYet}</p>
+            <div className="flex gap-2">
+              <Button onClick={() => setView("newBooking")}>{copy.newBooking}</Button>
+              <Button variant="secondary">{copy.block}</Button>
             </div>
           </div>
         )}
