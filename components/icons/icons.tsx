@@ -218,3 +218,20 @@ export function SpinnerIcon(props: IconProps) {
     </Icon>
   );
 }
+
+export function CheckIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path d="M5.5 12.5 10 17 18.5 7.5" />
+    </Icon>
+  );
+}
+
+export function AlertCircleIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5v5.5M12 15.8v.7" />
+    </Icon>
+  );
+}

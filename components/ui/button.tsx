@@ -1,28 +1,53 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { cn } from "../../lib/cn";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+// "ui-button" and "ui-button-primary" stay as layout hooks for legacy rules
+// (plan 27 removes them). Every visual value comes from the utilities below.
+const button = cva(
+  "ui-button inline-flex items-center justify-center gap-2 w-max max-w-full shrink-0 border font-body text-label cursor-pointer rounded-none transition-colors duration-fast ease-standard disabled:cursor-default",
+  {
+    variants: {
+      variant: {
+        primary:
+          "ui-button-primary uppercase tracking-kicker ar:normal-case ar:tracking-normal bg-teal text-ivory border-teal hover:bg-teal-hover active:bg-teal-press",
+        secondary:
+          "uppercase tracking-kicker ar:normal-case ar:tracking-normal bg-transparent text-teal border-teal hover:bg-teal-tint active:bg-teal-tint active:border-teal-press",
+        ghost:
+          "bg-transparent text-teal border-transparent hover:underline decoration-gold decoration-1 underline-offset-4",
+        danger: "bg-transparent text-ink border-error hover:bg-line active:bg-line",
+      },
+      size: {
+        md: "h-control px-6",
+        lg: "h-action px-8",
+        bar: "h-bar w-search",
+        docked: "h-bar-docked w-40",
+      },
+      journey: {
+        true: "",
+        false:
+          "disabled:bg-ivory disabled:border-line disabled:text-muted disabled:no-underline",
+      },
+    },
+    defaultVariants: { variant: "primary", size: "md", journey: false },
+  },
+);
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: Variant;
-  busy?: boolean;
-  children: ReactNode;
-};
+type Variant = NonNullable<VariantProps<typeof button>["variant"]>;
 
-const VARIANT_CLASS: Record<Variant, string> = {
-  primary:
-    "ui-button-primary bg-[var(--color-bg)] text-[var(--color-heading)] border-[var(--color-accent)] hover:bg-[var(--color-heading)] hover:text-[var(--color-bg)]",
-  secondary:
-    "bg-transparent text-[var(--color-link)] border-[var(--color-heading)]",
-  ghost:
-    "bg-transparent text-[var(--color-link)] border-transparent hover:text-[var(--color-link-hover)]",
-  danger:
-    "bg-transparent text-[var(--color-fg)] border-[var(--color-danger)]",
-};
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof button> & {
+    variant?: Variant;
+    busy?: boolean;
+    children: ReactNode;
+  };
 
 export function Button({
   variant = "primary",
+  size,
+  journey,
   busy = false,
-  className = "",
+  className,
   children,
   disabled,
   type = "button",
@@ -32,7 +57,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={`ui-button ${VARIANT_CLASS[variant]} disabled:bg-[var(--color-bg)] disabled:text-[var(--color-muted-fg)] disabled:border-[var(--color-border)] disabled:cursor-default ${className}`}
+      className={cn(button({ variant, size, journey }), className)}
       disabled={isDisabled}
       aria-busy={busy || undefined}
       {...rest}
@@ -46,7 +71,7 @@ export function Button({
 function Spinner() {
   return (
     <svg
-      className="ui-spinner"
+      className="ui-spinner size-5 shrink-0"
       viewBox="0 0 20 20"
       width="20"
       height="20"
