@@ -171,6 +171,36 @@ test.describe("JourneySheet", () => {
   });
 });
 
+test.describe("Private stay (D-62, D-63)", () => {
+  test("lockDestination: sheet starts at When and Back on When closes it", async ({ page }) => {
+    await page.goto(url("stay-locked"));
+    await expect(heading(page)).toHaveText("When?");
+    await expect(dialog(page)).toContainText("2 of 3");
+    await dialog(page).getByRole("button", { name: "Back", exact: true }).click();
+    await expect(dialog(page)).toHaveCount(0);
+  });
+
+  test("blockedDates: blocked days are unavailable, unpickable, and a crossing range restarts", async ({ page }) => {
+    await page.goto(url("blocked-when"));
+    await expect(heading(page)).toHaveText("When?");
+    await dialog(page).getByRole("button", { name: "Next month" }).click();
+    const blocked = day(page, "20/10/2026");
+    await expect(blocked).toHaveAttribute("aria-disabled", "true");
+    await expect(blocked).toHaveAttribute("aria-label", /unavailable/);
+    await day(page, "18/10/2026").click();
+    await blocked.click({ force: true });
+    await expect(day(page, "20/10/2026")).not.toHaveAttribute("aria-label", /arrival|departure|leave/i);
+    await day(page, "22/10/2026").click();
+    await expect(day(page, "22/10/2026")).toHaveAttribute("aria-label", /arrival/);
+  });
+
+  test("locked stay in Arabic: starts at When, RTL", async ({ page }) => {
+    await page.goto(url("stay-locked", "ar"));
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    await expect(dialog(page).getByRole("heading", { level: 2 })).not.toHaveText("إلى أين؟");
+  });
+});
+
 test.describe("Arabic", () => {
   test("entry mirrors and reads in Arabic", async ({ page }) => {
     await page.goto(url("entry-empty", "ar"));

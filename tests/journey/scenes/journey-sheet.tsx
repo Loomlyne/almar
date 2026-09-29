@@ -16,7 +16,12 @@ type Opts = {
   open?: boolean;
   step?: SheetStep;
   warn?: "where" | "when";
+  lockDestination?: boolean;
+  blockedDates?: CalendarDate[];
 };
+
+// Example blocked days for a stay (D-63); the same two days as the bar's stay scene.
+const BLOCKED = [new CalendarDate(2026, 10, 20), new CalendarDate(2026, 10, 21)];
 
 function Live({ ctx, o }: { ctx: SceneContext; o: Opts }) {
   const [value, setValue] = useState(o.initial);
@@ -53,6 +58,8 @@ function Live({ ctx, o }: { ctx: SceneContext; o: Opts }) {
         locale={ctx.locale}
         today={TODAY}
         initialWarn={o.warn}
+        lockDestination={o.lockDestination}
+        blockedDates={o.blockedDates}
       />
       <output data-testid="search-calls" className="sr-only">
         {calls.length}
@@ -89,4 +96,18 @@ export const scenes: Scenes = {
     step: 3,
   })),
   "step-3-incomplete": live(() => ({ initial: emptyValue, open: true, step: 3 })),
+  // D-62, D-63: private-stay page. Destination locked (sheet starts at When) and blocked days.
+  "stay-locked": live(() => ({
+    initial: { ...emptyValue, destinationId: "cartagena" },
+    open: true,
+    step: 1,
+    lockDestination: true,
+    blockedDates: BLOCKED,
+  })),
+  "blocked-when": live(() => ({
+    initial: { ...emptyValue, destinationId: "cartagena" },
+    open: true,
+    step: 2,
+    blockedDates: BLOCKED,
+  })),
 };
