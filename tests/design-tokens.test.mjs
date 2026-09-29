@@ -3,9 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-// D-29 guardrail. Conversion plans own a tests/legacy/<plan>.json shard listing
-// files (or directory prefixes) not yet converted. A shard is deleted when its
-// files are converted, so the test goes fully strict as shards disappear.
+// D-29 guardrail. Strict on the whole scope: no allowlist of unconverted files.
 
 const SCAN_DIRS = ["app", "components", "lib"];
 const SCAN_EXTRA = ["app/globals.css", "app/layout.tsx"];
@@ -21,7 +19,7 @@ const FONT_BOLD_ALLOWLIST = [
   "journey-sheet.tsx",
 ];
 const BANNED = ["Bricolage", "Philosopher", "#f9f6f3", "#183e43", "#a98e58", "#0f677d"];
-const LAYER_ORDER = "@layer theme, base, legacy, components, utilities;";
+const LAYER_ORDER = "@layer theme, base, components, utilities;";
 const CLASS_DIRS = ["components/journey", "components/ui"];
 
 const tokens = JSON.parse(readFileSync("tokens.json", "utf8"));
@@ -74,19 +72,6 @@ function scopedFiles() {
   });
   for (const extra of SCAN_EXTRA) if (existsSync(extra) && !files.includes(extra)) files.push(extra);
   return files.sort();
-}
-
-function loadShards() {
-  const dir = "tests/legacy";
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter((n) => n.endsWith(".json"))
-    .sort()
-    .map((n) => ({ name: n, ...JSON.parse(readFileSync(join(dir, n), "utf8")) }));
-}
-
-function inShard(file, shards) {
-  return shards.some((s) => s.files.some((entry) => file === entry || file.startsWith(`${entry}/`)));
 }
 
 // ---- class extraction -------------------------------------------------------
@@ -246,16 +231,35 @@ test("app/globals.css declares layer order first and keeps every rule layered", 
   assert.match(css, /GENERATED:THEME:START/);
   assert.match(css, /@custom-variant ar /);
   assert.match(css, /@custom-variant dense /);
-  const blocks = topLevel(css).filter((s) => /^@layer\s+(base|legacy)$/.test(s.prelude));
-  const legacy = blocks.find((s) => s.prelude === "@layer legacy");
-  const base = blocks.filter((s) => s.prelude === "@layer base");
-  assert.ok(legacy && base.length > 0, "base and legacy layers must exist");
-  assert.equal(
-    legacy.inner.some((p) => /^(?:h[123](?:\s*,|$)|html\[lang="ar"\]\s+(?:body|:where\(h))/.test(p)),
-    false,
-    "h1-h3 and html[lang=ar] rules belong in @layer base",
-  );
+  const base = topLevel(css).filter((s) => s.prelude === "@layer base");
+  assert.ok(base.length > 0, "@layer base must exist");
   assert.ok(base.some((b) => b.inner.some((p) => /^h1\b/.test(p))), "h1 rule must live in @layer base");
+  assert.deepEqual(topLevel(css).map((s) => s.prelude).filter((p) => /^@layer\s+\w+$/.test(p) && p !== "@layer base"), [], "only @layer base is allowed");
+});
+
+test("app/globals.css has no class or id selector outside the generated theme", () => {
+  const css = readFileSync("app/globals.css", "utf8");
+  const outside = css.replace(/\/\* GENERATED:THEME:START \*\/[\s\S]*?\/\* GENERATED:THEME:END \*\//, "");
+  const stripped = outside.replace(/\/\*[\s\S]*?\*\//g, "");
+  const selectors = [];
+  for (const s of topLevel(stripped)) {
+    if (/^@layer\s+base$/.test(s.prelude)) selectors.push(...s.inner);
+    else if (!/^@(?:layer|import|custom-variant|theme)\b/.test(s.prelude)) selectors.push(s.prelude);
+  }
+  const bad = selectors.filter((p) => !p.startsWith("@") && /(?:^|[\s,>+~])[.#][A-Za-z_-]/.test(p));
+  assert.deepEqual(bad, [], "class or id selectors belong in components as utilities");
+  assert.equal(/nav-tools|Comment \d+/.test(stripped), false, "no route-keyed patches");
+  assert.ok(css.split("\n").length < 200, "globals.css must stay under 200 lines");
+});
+
+test("no module.css and no framerusercontent in components or non-route app code", () => {
+  const all = [];
+  for (const dir of SCAN_DIRS) if (existsSync(dir)) collect(dir, all);
+  assert.deepEqual(all.filter((f) => f.endsWith(".module.css")), []);
+  const hits = all.filter(
+    (f) => /\.(tsx|ts)$/.test(f) && !f.endsWith("route.ts") && !f.startsWith("lib/copy/") && /framerusercontent/.test(readFileSync(f, "utf8")),
+  );
+  assert.deepEqual(hits, [], "framerusercontent logo references are not allowed");
 });
 
 test("layer analysis flags an unlayered probe rule", () => {
@@ -287,30 +291,11 @@ test("standalone 404 document only uses tokens.json hexes", () => {
   }
 });
 
-test("shards list existing files and the rest of the tree is clean", (t) => {
-  const shards = loadShards();
-  for (const shard of shards) {
-    for (const entry of shard.files) {
-      assert.ok(existsSync(entry), `tests/legacy/${shard.name} lists ${entry}, which does not exist`);
-    }
-  }
-  const pending = shards.reduce((n, s) => n + s.files.length, 0);
-  t.diagnostic(`legacy shards pending: ${shards.length} shards, ${pending} entries`);
-
-  const files = scopedFiles();
-  const bad = new Map();
-  for (const file of files) {
+test("every scoped file passes the token rules", () => {
+  const bad = [];
+  for (const file of scopedFiles()) {
     const v = fileViolations(file);
-    if (v.length > 0) bad.set(file, v);
+    if (v.length > 0) bad.push(`${file}\n    ${v.slice(0, 8).join("\n    ")}`);
   }
-
-  if (process.env.LEGACY_DISCOVER) {
-    console.log(`LEGACY_DISCOVER ${JSON.stringify([...bad.keys()])}`);
-    return;
-  }
-
-  const report = [...bad.entries()]
-    .filter(([file]) => !inShard(file, shards))
-    .map(([file, v]) => `${file}\n    ${v.slice(0, 8).join("\n    ")}`);
-  assert.deepEqual(report, [], `violations outside legacy shards:\n${report.join("\n")}`);
+  assert.deepEqual(bad, [], `violations:\n${bad.join("\n")}`);
 });
