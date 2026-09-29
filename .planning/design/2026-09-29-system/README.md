@@ -136,11 +136,11 @@ Gate: page 6 awaiting owner.
 | 7h Stays | List and side panel: details, connect experiences and services, availability |
 | 7i Experiences and services | One list with filter and search; panel with details and connections |
 | 7j Packages | Coming soon |
-| 7k Content hub and page editor | Hub; sections editor with language switch |
-| 7l Blog | List and post editor |
-| 7m Team and Legal | Member panel; legal page panel with versions |
+| 7k Content hub, Pages | Hub; Pages marked Coming soon |
+| 7l Blog | Marked Coming soon |
+| 7m Team and Legal | Member panel with social media links; legal page panel with versions |
 | 7n Media and Navigation | Library with alt text in three languages; header and footer menus |
-| 7o Settings | Profile, business and brand, payments and taxes, team and roles, integrations, security and logs |
+| 7o Settings | My profile (no photo), business and brand, payments and taxes, team and roles, security and logs |
 
 Checked by rendering every board locally with fallback fonts: no frame clips its content. Not checked in the real canvas fonts.
 
