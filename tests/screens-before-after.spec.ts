@@ -23,9 +23,9 @@ const VIEWPORTS = [
 
 /**
  * Switches the page to Arabic through the visible language control.
- * Plan 12 replaces NavDrop with LocaleSelect and edits only this helper.
+ * Plan 12 drives LocaleSelect (Radix combobox) and edits only this helper.
  * Method per route:
- *  - /account, /login, /booking/trip: SiteNav Language control, option AR.
+ *  - /account, /login, /booking/trip: SiteNav Language control, option AR (native name العربية).
  *  - /dashboard: static "Sign in" placeholder with no language control and no
  *    copy; the almar-locale cookie is set and html lang/dir applied directly.
  */
@@ -41,13 +41,14 @@ async function chooseArabic(page: Page, ownLanguageControl: boolean) {
   } else {
     // Below 1088px the language control sits inside the Menu panel.
     const menu = page.getByRole("button", { name: /^(Menu|القائمة)$/ });
-    if (await menu.isVisible()) await menu.click();
-    const byButton = page.getByRole("button", { name: /Language|اللغة/ });
-    const trigger = (await byButton.count()) > 0
-      ? byButton.first()
-      : page.getByRole("combobox", { name: /Language|اللغة/ }).first();
+    const trigger = page.getByRole("combobox", { name: /Language|اللغة/ }).first();
+    // Retry the Menu click: an early click can land before hydration.
+    await expect(async () => {
+      if (!(await trigger.isVisible()) && (await menu.isVisible())) await menu.click();
+      await expect(trigger).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15000 });
     await trigger.click();
-    await page.getByRole("option", { name: "AR", exact: true }).click();
+    await page.getByRole("option", { name: /^(AR|العربية)$/ }).click();
     // Return to the resting layout: close the list, then the phone menu.
     await page.keyboard.press("Escape");
     const close = page.getByRole("button", { name: /Close menu|إغلاق/ });
