@@ -18,7 +18,10 @@ test("booker source names the five destinations and six query keys", () => {
   for (const key of QUERY_KEYS) {
     assert.match(text, new RegExp(`name="${key}"`));
   }
-  assert.match(text, /Search is a preview on this page\./);
+  // The preview sentence lives in BOOKER_COPY (lib/copy/home.ts), not in the component source.
+  assert.match(readFileSync("lib/copy/home.ts", "utf8"), /preview: "Search is a preview on this page\."/);
+  assert.match(text, /t\.preview/);
+  assert.match(text, /role="search"/);
   assert.match(text, /onBook/);
   assert.equal(text.includes("window.top"), false);
 });
@@ -62,4 +65,11 @@ test("the hero booker component itself does not call a booking handler unless on
   const booker = readFileSync("components/specimens/hero-booker.tsx", "utf8");
   assert.match(booker, /onBook\?: \(query: HeroBookQuery\) => void/);
   assert.match(booker, /if \(!onBook \|\| !where \|\| !start \|\| !end\) return;/);
+});
+
+test("the hero booker Search button is never disabled", () => {
+  const booker = readFileSync(BOOKER, "utf8");
+  const submit = booker.match(/<Button type="submit"[^>]*>/);
+  assert.ok(submit, "submit button not found");
+  assert.equal(/disabled/.test(submit[0]), false);
 });
