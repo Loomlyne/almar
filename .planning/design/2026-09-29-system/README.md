@@ -72,8 +72,18 @@ Picker placement (D-70): the date picker opens below the Dates tab and the guest
 Gate: page 4 awaiting owner.
 
 
-## Page 6 · Guest (plan 22)
+## Page 6 · Guest (plan 22), redesigned 2026-09-29
 
-Three boards (6a Login, 6b Account, 6c Bookings), each with an EN/AR/ES switch and no separate Arabic board (D-61). Every board shows desktop 1440, tablet 834 and phone 390, in two states: Login empty and error, Account empty and filled, Bookings empty and filled. Strings are `lib/copy/guest.ts`. Filled states use `[Guest name]`, `[Email]`, `[Phone]`, `[Trip name]`, `ALMAR-000000`, `AED [AMOUNT]` and bracketed dates. Account shows the language select and an inline WhatsApp channel control linking to `https://wa.me/971563883302` (not floating). The header carries the cart icon (D-66).
+Redesigned after the owner said the first version had too much empty space. References came from Mobbin (split-screen sign-in screens from Cosmos, lululemon, Runway, Origin and Zillow; one-page sign in or create account from lululemon, Kayak and GetYourGuide). The owner chose the split screen and rejected the overlay login (D-71).
+
+Three boards (6a Login, 6b Account, 6c Bookings), each with an EN/AR/ES switch and no separate Arabic board (D-61), each at desktop 1440, tablet 834 and phone 390.
+
+| Board | States | Layout |
+|-------|--------|--------|
+| 6a Login | empty, error, typing, link sent | One page for sign in and sign up. Desktop: form on the left (logo, language select, headline, one email field, full-width teal button, a note that the account is created on first use), inset photo on the right with the Framer hero headline. Tablet and phone: photo band on top, form below. |
+| 6b Account | empty, filled | Cards: profile card, Personal details, Preferences (language and currency), Contact ALMAR (WhatsApp inline, wa.me/971563883302), Sign out. Two columns on desktop. |
+| 6c Bookings | empty, filled | Empty: photo beside "No bookings yet" and Start a trip. Filled: booking cards with photo, status chip, ref, dates, guests and amount, in brackets. |
+
+New strings (sign-in headline and helper, sent state, cards) are EN drafts with AR and ES drafts for owner review. No social sign-in buttons, because those would be controls that do nothing. The terms and privacy line is a placeholder: `[Terms and privacy line]`.
 
 Gate: page 6 awaiting owner.
