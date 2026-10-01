@@ -39,4 +39,4 @@ KNOWN
 - The `chooseArabic` helper flakes under parallel Playwright workers: use `--workers=1`.
 - The phone booking steps leave no room above the iPhone home bar yet: moved to Phase 4.
 - AR and ES copy is draft for the owner's review.
-- `.planning/HANDOFF-phase-3.1.md` was written before plans 19 to 28 ran; this file replaces it.
+- The old `HANDOFF-phase-3.1.md` (written before plans 19 to 28 ran) was removed on 2026-10-01; this file replaces it.
