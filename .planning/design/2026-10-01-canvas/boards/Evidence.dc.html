@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ALMAR audit · Where it is today</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400..700&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap">
+<style>
+body{margin:0;background:#FBFAF6;color:#11100D;font-family:'Inter',ui-sans-serif,system-ui,sans-serif}
+a{color:#C63D08}a:hover{color:#BE4B27}
+</style>
+</helmet>
+<div style="width: 1440px; height: 2480px; box-sizing: border-box; padding: 80px 96px; background: #FBFAF6; display: flex; flex-direction: column; gap: 48px; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; color: #11100D;">
+
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 1000px;">
+<div style="font-size: 11px; line-height: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #5E5A54;">Evidence · screenshots taken 28/09/2026</div>
+<h1 style="margin: 0; font-family: 'Inter Tight', sans-serif; font-size: 48px; line-height: 50px; font-weight: 600; letter-spacing: -0.03em;">Where it is today</h1>
+<p style="margin: 0; font-size: 16px; line-height: 25px; color: #45423D;">Live site checked with a cache-bust. Local screens run from the current branch host/cloudflare-frontsite (97 commits ahead of origin, not pushed).</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 32px;">
+
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<img src="/_blob/1fd1afb9cf2a0b753f3c76985f92f6fa" alt="Live home hero: Colombia, Privately Yours over a white arched villa" style="width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 13px; border: 1px solid #E1DED8; display: block;">
+<div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #E8F2E9; color: #005429;">KEEP THE LOOK</span><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">Live site · almarprivatejourney.com</h3></div>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">The look works. What doesn't: the team section shows Ana Velásquez, Mateo Ríos and Sofía Marín, not the founders in PROJECT.md (Maria Del Mar Valdes, María Francis). Service and blog detail pages are identical 166 KB stubs. "Sign in" sits at low contrast in the header. Headline breaks "Colombia, Privately / Yours".</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<img src="/_blob/425733daf117af918a7e5a39dde67077" alt="/framer with Arabic selected: nav is Arabic, hero and booker stay English" style="width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 13px; border: 1px solid #E1DED8; display: block;">
+<div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #FDE9E6; color: #860105;">REWRITE</span><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">/framer with Arabic selected</h3></div>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">Only the React nav flips. The headline, the booker labels (Destination, Choose a place, Search) and every section below stay English and left-to-right, because they live inside an iframe of the Framer HTML. The Framer runtime also throws React error #405 after the booker is injected ("recoverable error… flickering or degraded page load").</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<img src="/_blob/3c1c835f4d05bb0cbebdb079179f0c9b" alt="Dashboard home: rail and empty bordered boxes" style="width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 13px; border: 1px solid #E1DED8; display: block;">
+<div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #E7EEFB; color: #103E92;">RESTYLE</span><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">/dashboard/home</h3></div>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">Structure is right (rail, groups, date control, named slots). The finish is a wireframe: 1px charcoal boxes, 12px slot titles, "Bookings" alone in 32px Questa, no numbers style, no card hierarchy. The /dashboard entry itself shows only a "Sign in" heading with no form.</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<img src="/_blob/5f0cabfc02ab57da69bacd192a4df715" alt="/account: language select rendered as plain text list" style="width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 13px; border: 1px solid #E1DED8; display: block;">
+<div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #FDE9E6; color: #860105;">BUG</span><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">/account</h3></div>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">The Language select renders as "LanguageEN ›" followed by a bare EN / AR / ES list. It reuses the header's NavDrop, whose styles only exist under .nav-tools inside the header, so anywhere else it renders unstyled. Styles scoped to a place instead of a component: the same bug waits for every new screen until the CSS is consolidated.</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<img src="/_blob/6759d0bf9d574ca279751c1751058b68" alt="/design specimen page: brand colours, wordmarks, site header, stays" style="width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border-radius: 13px; border: 1px solid #E1DED8; display: block;">
+<div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #F9EFE5; color: #633A00;">CONSOLIDATE</span><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">/design</h3></div>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">Coverage is the strongest part of the project: controls, booking pieces, statuses, catalog, account, legal, cookie, FAQ, in EN/AR/ES. It is one 42,789 px page, logs a hydration mismatch, and its Team specimen still carries the three stock people.</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<img src="/_blob/87014589b06a6fe022ecf6cabce4beea" alt="Brand guideline pages: monogram, wordmark, palette, typography, applications" style="width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border-radius: 13px; border: 1px solid #E1DED8; display: block;">
+<div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #E8F2E9; color: #005429;">KEEP</span><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">Brand guideline · 24 pages</h3></div>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">An identity kit, not a web system: logo, clear space, 4 colours, 2 typefaces, mockups. No type scale, no UI states, no semantic colours. That gap is what the React system has to own, and it mostly does.</p>
+</div>
+
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 16px;">
+<h2 style="margin: 0; font-family: 'Inter Tight', sans-serif; font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em;">Numbers from the repo</h2>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;">
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><div style="font-family: 'Inter Tight', sans-serif; font-size: 36px; line-height: 40px; font-weight: 600; font-variant-numeric: tabular-nums;">11.3 MB</div><div style="font-size: 13px; line-height: 18px; color: #5E5A54;">Framer HTML in 26 route files</div></div>
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><div style="font-family: 'Inter Tight', sans-serif; font-size: 36px; line-height: 40px; font-weight: 600; font-variant-numeric: tabular-nums;">75 · 8,213</div><div style="font-size: 13px; line-height: 18px; color: #5E5A54;">React files · lines (worth keeping)</div></div>
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><div style="font-family: 'Inter Tight', sans-serif; font-size: 36px; line-height: 40px; font-weight: 600; font-variant-numeric: tabular-nums;">6,183</div><div style="font-size: 13px; line-height: 18px; color: #5E5A54;">lines in one globals.css</div></div>
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><div style="font-family: 'Inter Tight', sans-serif; font-size: 36px; line-height: 40px; font-weight: 600; font-variant-numeric: tabular-nums;">47</div><div style="font-size: 13px; line-height: 18px; color: #5E5A54;">"Comment N" patch blocks in that file</div></div>
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><div style="font-family: 'Inter Tight', sans-serif; font-size: 36px; line-height: 40px; font-weight: 600; font-variant-numeric: tabular-nums;">168</div><div style="font-size: 13px; line-height: 18px; color: #5E5A54;">CSS lines keyed to page ids</div></div>
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><div style="font-family: 'Inter Tight', sans-serif; font-size: 36px; line-height: 40px; font-weight: 600; font-variant-numeric: tabular-nums;">3</div><div style="font-size: 13px; line-height: 18px; color: #5E5A54;">hashed Framer classes our scripts depend on</div></div>
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><div style="font-family: 'Inter Tight', sans-serif; font-size: 36px; line-height: 40px; font-weight: 600; font-variant-numeric: tabular-nums;">26</div><div style="font-size: 13px; line-height: 18px; color: #5E5A54;">test files (keep them)</div></div>
+<div style="background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px;"><div style="font-family: 'Inter Tight', sans-serif; font-size: 36px; line-height: 40px; font-weight: 600; font-variant-numeric: tabular-nums;">1 / 10</div><div style="font-size: 13px; line-height: 18px; color: #5E5A54;">Phase 2 plans done (auth spine)</div></div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2480}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

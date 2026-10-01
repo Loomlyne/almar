@@ -1,5 +1,7 @@
 # ALMAR design system canvas — 29/09/2026
 
+**Superseded 2026-10-01** by `../2026-10-01-canvas/`, a copy of all 63 current boards. This folder is kept as history.
+
 Canvas (the design surface): https://claude.ai/artifact/6MqV4cd2KzXLsVputN2ctw
 `pages/*.dc.html` are reference copies of the boards for Claude Code to read. They are not app code. Never import them.
 

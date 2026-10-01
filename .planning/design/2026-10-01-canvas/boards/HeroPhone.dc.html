@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ALMAR phone hero and journey steps</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:'Questa';src:url('/_blob/dfb13bed53d3c684b2436f251c533b6f') format('woff');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Lato';src:url('/_blob/77d52f10b0e77b462369bcd47ca1c172') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Lato';src:url('/_blob/32fa77770b678d5e662eb3e29bdb2c6b') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #fffaf0; font-family: 'Lato', Arial, sans-serif; color: #262626;">
+
+<sc-if value="{{isHero}}" hint-placeholder-val="{{true}}">
+<div style="position: absolute; left: 0; top: 0; width: 390px; height: 844px;">
+<img src="/_blob/7d53a3a9f8de9819eabfcc4203ba7d2e" alt="Colonial courtyard with arches around a still pool" style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; object-fit: cover; object-position: 40% 50%; display: block;">
+<div style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; background: linear-gradient(180deg, rgba(20, 25, 28, 0.55) 0%, rgba(20, 25, 28, 0.1) 30%, rgba(20, 25, 28, 0.3) 60%, rgba(20, 25, 28, 0.72) 100%);"></div>
+<header style="position: absolute; left: 20px; top: 20px; width: 350px; height: 48px; display: flex; align-items: center; justify-content: space-between;">
+<img src="/_blob/8e60641dd12a4b950f06a2bcf35dbf7b" alt="ALMAR Private Journeys" style="width: 112px; height: auto; display: block;">
+<button type="button" style="height: 44px; padding: 0 14px; background: transparent; border: 1px solid rgba(255, 250, 240, 0.7); color: #fffaf0; font-family: 'Lato', Arial, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;">Menu</button>
+</header>
+<div style="position: absolute; left: 20px; top: 470px; width: 350px; display: flex; flex-direction: column; gap: 12px;">
+<div style="font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; color: #fffaf0;">Welcome to ALMAR</div>
+<h1 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 48px; line-height: 50px; letter-spacing: -0.02em; color: #ffffff;">Colombia,<br>Privately Yours</h1>
+</div>
+<button type="button" onClick="{{goWhere}}" style="position: absolute; left: 20px; top: 668px; width: 350px; height: 64px; border: 0; border-top: 2px solid #d4ba8a; background: #fffaf0; box-shadow: 0 18px 40px -10px rgba(10, 9, 7, 0.35); display: flex; align-items: center; gap: 14px; padding: 0 8px 0 18px; font-family: inherit; text-align: start; cursor: pointer;">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1f3b40" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 16px; line-height: 20px; font-weight: 700; color: #262626;">Plan your journey</span><span style="font-size: 13px; line-height: 17px; color: #63615f;">Where · When · Who</span></span>
+<span style="width: 44px; height: 44px; background: #1f3b40; display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fffaf0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+</button>
+</div>
+</sc-if>
+
+<sc-if value="{{isSheet}}" hint-placeholder-val="{{false}}">
+<div role="dialog" aria-label="Plan your journey" style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; display: flex; flex-direction: column; background: #fffaf0;">
+
+<div style="height: 60px; padding: 0 8px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
+<button type="button" onClick="{{back}}" aria-label="Back" style="width: 44px; height: 44px; border: 0; background: transparent; color: #262626; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<span style="font-size: 13px; font-weight: 700; color: #63615f; font-variant-numeric: tabular-nums;">{{stepLabel}}</span>
+<button type="button" onClick="{{close}}" aria-label="Close" style="width: 44px; height: 44px; border: 0; background: transparent; color: #262626; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div style="padding: 0 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; flex-shrink: 0;">
+<span style="{{bar1}}"></span><span style="{{bar2}}"></span><span style="{{bar3}}"></span>
+</div>
+
+<div style="flex-grow: 1; padding: 28px 20px 0; display: flex; flex-direction: column; gap: 20px; overflow: hidden;">
+
+<sc-if value="{{isWhere}}" hint-placeholder-val="{{false}}">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 36px; line-height: 40px; color: #1f3b40;">Where to?</h2>
+<div style="display: flex; flex-direction: column; border-top: 1px solid rgba(38, 38, 38, 0.14);">
+<sc-for list="{{destinations}}" as="d" hint-placeholder-count="5">
+<button type="button" onClick="{{d.pick}}" aria-pressed="{{d.selected}}" style="{{d.style}}">
+<span style="display: flex; flex-direction: column; gap: 2px; text-align: start;"><span style="font-size: 18px; line-height: 24px; font-weight: 700; color: #262626;">{{d.name}}</span><span style="font-size: 13px; line-height: 18px; color: #63615f;">{{d.region}}</span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f3b40" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+</button>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 13px; line-height: 19px; color: #63615f;">One destination per journey. More than one city? <a href="#" style="color: #1f3b40; font-weight: 700;">See Packages</a></p>
+</sc-if>
+
+<sc-if value="{{isWhen}}" hint-placeholder-val="{{false}}">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 36px; line-height: 40px; color: #1f3b40;">When?</h2>
+<div style="display: flex; align-items: center; justify-content: space-between;">
+<button type="button" onClick="{{prevMonth}}" aria-label="Previous month" style="width: 44px; height: 44px; border: 0; background: transparent; color: #1f3b40; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<span style="font-size: 16px; font-weight: 700; color: #1f3b40;">{{monthTitle}}</span>
+<button type="button" onClick="{{nextMonth}}" aria-label="Next month" style="width: 44px; height: 44px; border: 0; background: transparent; color: #1f3b40; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); font-size: 12px; font-weight: 700; color: #63615f; text-align: center; margin-top: -8px;"><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px 0; margin-top: -8px;">
+<sc-for list="{{blanks}}" as="b" hint-placeholder-count="3"><span style="height: 46px;"></span></sc-for>
+<sc-for list="{{days}}" as="day" hint-placeholder-count="31"><button type="button" onClick="{{day.pick}}" aria-label="{{day.label}}" style="{{day.style}}">{{day.n}}</button></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{isWho}}" hint-placeholder-val="{{false}}">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 36px; line-height: 40px; color: #1f3b40;">Who's coming?</h2>
+<div style="display: flex; flex-direction: column; border-top: 1px solid rgba(38, 38, 38, 0.14);">
+<sc-for list="{{guestRows}}" as="g" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 14px; padding: 16px 0; border-bottom: 1px solid rgba(38, 38, 38, 0.14);">
+<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 18px; line-height: 24px; font-weight: 700;">{{g.label}}</span><span style="font-size: 13px; color: #63615f;">{{g.hint}}</span></span>
+<button type="button" onClick="{{g.dec}}" disabled="{{g.atFloor}}" aria-label="{{g.decLabel}}" style="{{g.decStyle}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+<span style="width: 24px; text-align: center; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums;">{{g.count}}</span>
+<button type="button" onClick="{{g.inc}}" aria-label="{{g.incLabel}}" style="width: 44px; height: 44px; border: 1px solid #1f3b40; background: #ffffff; color: #1f3b40; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></button>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+
+<div style="height: 96px; padding: 0 20px; display: flex; align-items: center; gap: 16px; border-top: 1px solid rgba(38, 38, 38, 0.14); flex-shrink: 0;">
+<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;"><span style="font-size: 14px; line-height: 19px; font-weight: 700; color: #262626; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{summaryTop}}</span><span style="{{summaryBottomStyle}}">{{summaryBottom}}</span></span>
+<sc-if value="{{showNext}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{next}}" style="height: 56px; padding: 0 28px; border: 0; background: #1f3b40; color: #fffaf0; font-family: inherit; font-size: 14px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;">Next</button></sc-if>
+<sc-if value="{{isWho}}" hint-placeholder-val="{{false}}"><a href="FlowPhone.dc.html" style="height: 56px; padding: 0 24px; background: #1f3b40; color: #fffaf0; display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 14px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Search</a></sc-if>
+</div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"step":{"editor":"enum","options":["hero","where","when","who"],"default":"hero"},"demo":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var demo = !!props.demo;
+    this.state = { step: props.step || 'hero', month: 10, dest: demo ? 0 : null, start: demo ? 1012 : null, end: demo ? 1017 : null, adults: demo ? 2 : 1, children: 0, infants: 0, warn: false };
+  }
+  fmt(key) { var d = key % 100; var m = Math.floor(key / 100); return String(d).padStart(2, '0') + '/' + String(m).padStart(2, '0'); }
+  nights() { var s = this.state; if (!s.start || !s.end) return 0; var a = new Date(2026, Math.floor(s.start / 100) - 1, s.start % 100); var b = new Date(2026, Math.floor(s.end / 100) - 1, s.end % 100); return Math.round((b - a) / 86400000); }
+  renderVals() {
+    var self = this; var s = this.state;
+    var dests = [
+      { name: 'Cartagena', region: 'Caribbean coast' },
+      { name: 'Medellín', region: 'Andes' },
+      { name: 'Bogotá', region: 'Capital' },
+      { name: 'San Andrés', region: 'Island' },
+      { name: 'Cocora Valley', region: 'Coffee region' }
+    ];
+    var order = ['where', 'when', 'who'];
+    var idx = order.indexOf(s.step);
+    function bar(i) { return 'height: 3px; display: block; background: ' + (i <= idx ? '#1f3b40' : 'rgba(38, 38, 38, 0.14)') + ';'; }
+    var m = s.month;
+    var first = new Date(2026, m - 1, 1).getDay();
+    var blanks = []; for (var i = 0; i < (first + 6) % 7; i++) blanks.push(i);
+    var count = new Date(2026, m, 0).getDate();
+    var days = [];
+    for (var d = 1; d <= count; d++) {
+      (function (d) {
+        var key = m * 100 + d;
+        var edge = key === s.start || key === s.end;
+        var mid = s.start && s.end && key > s.start && key < s.end;
+        var base = "height: 46px; border: 0; font-family: 'Lato', Arial, sans-serif; font-size: 15px; font-variant-numeric: tabular-nums; cursor: pointer; ";
+        var st = edge ? base + 'background: #1f3b40; color: #fffaf0; font-weight: 700;' : (mid ? base + 'background: #d1dfe0; color: #262626;' : base + 'background: transparent; color: #262626;');
+        days.push({ n: d, label: String(d).padStart(2, '0') + '/' + String(m).padStart(2, '0') + '/2026', style: st, pick: function () {
+          if (!s.start || s.end || key <= s.start) self.setState({ start: key, end: null, warn: false });
+          else self.setState({ end: key, warn: false });
+        } });
+      })(d);
+    }
+    function row(key, label, hint, floor, word) {
+      var c = s[key]; var atFloor = c <= floor;
+      return { label: label, hint: hint, count: c, atFloor: atFloor, decLabel: 'Remove ' + word, incLabel: 'Add ' + word,
+        decStyle: 'width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: #ffffff; ' + (atFloor ? 'border: 1px solid rgba(38, 38, 38, 0.2); color: rgba(38, 38, 38, 0.35);' : 'border: 1px solid #1f3b40; color: #1f3b40; cursor: pointer;'),
+        dec: function () { if (!atFloor) { var o = {}; o[key] = c - 1; self.setState(o); } },
+        inc: function () { var o = {}; o[key] = c + 1; self.setState(o); } };
+    }
+    var guests = s.adults + s.children;
+    var who = guests === 1 ? '1 guest' : guests + ' guests';
+    if (s.infants) who += s.infants === 1 ? ', 1 infant' : ', ' + s.infants + ' infants';
+    var n = this.nights();
+    var place = s.dest === null ? '' : dests[s.dest].name;
+    var dates = s.start && s.end ? this.fmt(s.start) + ' – ' + this.fmt(s.end) + ' · ' + n + (n === 1 ? ' night' : ' nights') : (s.start ? 'Arrive ' + this.fmt(s.start) + ' · pick departure' : 'Pick arrival, then departure');
+    var summaryTop = s.step === 'where' ? 'Choose one destination' : (s.step === 'when' ? place : place + ' · ' + (s.start && s.end ? this.fmt(s.start) + ' – ' + this.fmt(s.end) : ''));
+    var summaryBottom = s.step === 'where' ? 'Tap a place to continue' : (s.step === 'when' ? (s.warn ? 'Choose arrival and departure.' : dates) : who);
+    return {
+      isHero: s.step === 'hero', isSheet: s.step !== 'hero',
+      isWhere: s.step === 'where', isWhen: s.step === 'when', isWho: s.step === 'who',
+      goWhere: function () { self.setState({ step: 'where' }); },
+      close: function () { self.setState({ step: 'hero' }); },
+      back: function () { self.setState({ step: idx <= 0 ? 'hero' : order[idx - 1] }); },
+      stepLabel: (idx + 1) + ' of 3',
+      bar1: bar(0), bar2: bar(1), bar3: bar(2),
+      destinations: dests.map(function (d, i) {
+        var sel = s.dest === i;
+        return { name: d.name, region: d.region, selected: sel,
+          style: 'width: 100%; min-height: 68px; border: 0; border-bottom: 1px solid rgba(38, 38, 38, 0.14); padding: 0 4px; display: flex; align-items: center; justify-content: space-between; font-family: inherit; cursor: pointer; background: ' + (sel ? '#d1dfe0' : 'transparent') + ';',
+          pick: function () { self.setState({ dest: i, step: 'when' }); } };
+      }),
+      monthTitle: m === 10 ? 'October 2026' : (m === 11 ? 'November 2026' : 'December 2026'),
+      prevMonth: function () { if (s.month > 10) self.setState({ month: s.month - 1 }); },
+      nextMonth: function () { if (s.month < 12) self.setState({ month: s.month + 1 }); },
+      blanks: blanks, days: days,
+      guestRows: [row('adults', 'Adults', '13+', 1, 'adult'), row('children', 'Children', '3–12', 0, 'child'), row('infants', 'Infants', '0–2', 0, 'infant')],
+      summaryTop: summaryTop, summaryBottom: summaryBottom,
+      summaryBottomStyle: 'font-size: 13px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: ' + (s.warn && s.step === 'when' ? '#8f2d2d; font-weight: 700;' : '#63615f;'),
+      showNext: s.step === 'when',
+      next: function () { if (s.start && s.end) self.setState({ step: 'who' }); else self.setState({ warn: true }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

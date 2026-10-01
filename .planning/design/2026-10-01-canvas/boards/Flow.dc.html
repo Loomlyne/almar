@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ALMAR booking flow, add-ons step</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:'Questa';src:url('/_blob/dfb13bed53d3c684b2436f251c533b6f') format('woff');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Lato';src:url('/_blob/77d52f10b0e77b462369bcd47ca1c172') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Lato';src:url('/_blob/32fa77770b678d5e662eb3e29bdb2c6b') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+body{margin:0;background:#fffaf0;color:#262626;font-family:'Lato',Arial,sans-serif}
+a{color:#1f3b40}a:hover{color:#1f3b40}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1480px; position: relative; background: #fffaf0; font-family: 'Lato', Arial, sans-serif; color: #262626; display: flex; flex-direction: column;">
+
+<header style="height: 96px; padding: 0 100px; display: flex; align-items: center; gap: 40px; border-bottom: 1px solid rgba(38, 38, 38, 0.14); flex-shrink: 0;">
+<a href="Hero.dc.html" aria-label="ALMAR Private Journeys home" style="display: block; width: 150px;"><img src="/_blob/53953403beecb9765d30a4fa42e8849b" alt="ALMAR Private Journeys" style="width: 150px; height: auto; display: block;"></a>
+<nav aria-label="Main" style="display: flex; gap: 32px; flex-grow: 1;">
+<a href="#" style="color: #262626; text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;">Destinations</a>
+<a href="#" style="color: #262626; text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;">Experiences</a>
+<a href="#" style="color: #262626; text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;">About</a>
+<a href="#" style="color: #262626; text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;">Contact</a>
+</nav>
+<button type="button" style="height: 40px; padding: 0 14px; background: transparent; border: 1px solid rgba(38, 38, 38, 0.3); color: #262626; font-family: inherit; font-size: 13px; font-weight: 700;">AED</button>
+<button type="button" style="height: 40px; padding: 0 14px; background: transparent; border: 1px solid rgba(38, 38, 38, 0.3); color: #262626; font-family: inherit; font-size: 13px; font-weight: 700;">EN</button>
+<a href="#" style="color: #262626; text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;">Login</a>
+</header>
+
+<div style="padding: 32px 100px 0; display: flex; flex-direction: column; gap: 28px;">
+
+<div style="height: 64px; display: flex; align-items: stretch; background: #ffffff; border: 1px solid rgba(38, 38, 38, 0.16);">
+<div style="padding: 0 24px; display: flex; flex-direction: column; justify-content: center; gap: 2px; border-inline-end: 1px solid rgba(38, 38, 38, 0.12);"><span style="font-size: 13px; font-weight: 700; color: #63615f;">Destination</span><span style="font-size: 16px; color: #262626;">Cartagena</span></div>
+<div style="padding: 0 24px; display: flex; flex-direction: column; justify-content: center; gap: 2px; border-inline-end: 1px solid rgba(38, 38, 38, 0.12);"><span style="font-size: 13px; font-weight: 700; color: #63615f;">Dates</span><span style="font-size: 16px; color: #262626;">12/10/2026 – 17/10/2026 · 5 nights</span></div>
+<div style="padding: 0 24px; display: flex; flex-direction: column; justify-content: center; gap: 2px; flex-grow: 1;"><span style="font-size: 13px; font-weight: 700; color: #63615f;">Guests</span><span style="font-size: 16px; color: #262626;">2 guests</span></div>
+<button type="button" style="padding: 0 28px; border: 0; border-inline-start: 1px solid rgba(38, 38, 38, 0.12); background: transparent; color: #1f3b40; font-family: inherit; font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;">Edit search</button>
+</div>
+
+<ol aria-label="Booking steps" style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-bottom: 1px solid rgba(38, 38, 38, 0.16);">
+<li style="padding: 0 0 16px; display: flex; align-items: center; gap: 12px; color: #1f3b40;"><span style="width: 28px; height: 28px; background: #1f3b40; color: #fffaf0; display: flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span><span style="font-size: 14px; font-weight: 700;">Stay</span><a href="#" style="font-size: 13px; color: #1f3b40;">Change</a></li>
+<li aria-current="step" style="padding: 0 0 13px; display: flex; align-items: center; gap: 12px; color: #1f3b40; box-shadow: inset 0 -3px 0 #1f3b40;"><span style="width: 28px; height: 28px; border: 1px solid #1f3b40; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">2</span><span style="font-size: 14px; font-weight: 700;">Add-ons</span></li>
+<li style="padding: 0 0 16px; display: flex; align-items: center; gap: 12px; color: #63615f;"><span style="width: 28px; height: 28px; border: 1px solid rgba(38, 38, 38, 0.3); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">3</span><span style="font-size: 14px; font-weight: 700;">Travelers</span></li>
+<li style="padding: 0 0 16px; display: flex; align-items: center; gap: 12px; color: #63615f;"><span style="width: 28px; height: 28px; border: 1px solid rgba(38, 38, 38, 0.3); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">4</span><span style="font-size: 14px; font-weight: 700;">Pay</span></li>
+</ol>
+
+<div style="display: grid; grid-template-columns: 800px 400px; gap: 40px; align-items: start;">
+
+<div style="display: flex; flex-direction: column; gap: 28px;">
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<h1 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 48px; line-height: 52px; letter-spacing: -0.02em; color: #1f3b40;">Shape your journey</h1>
+<p style="margin: 0; font-size: 16px; line-height: 25px; color: #262626; max-width: 620px;">Add as many as you like. You can also add experiences and services after you pay, from your account.</p>
+</div>
+
+<section aria-label="Included in your journey" style="background: #d1dfe0; padding: 20px 28px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; align-items: baseline; justify-content: space-between;"><h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 24px; color: #1f3b40;">Included in your journey</h2><span style="font-size: 13px; color: #1f3b40;">No extra charge</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 14px; line-height: 20px; color: #1f3b40;">
+<span>✓ Airport meet</span><span>✓ Transfer in Colombia</span><span>✓ Your stay</span><span>✓ Private guide</span><span>✓ Security</span><span>✓ Insurance</span><span>✓ Return</span>
+</div>
+</section>
+
+<section aria-label="Experiences and services" style="display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;">
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 28px; color: #1f3b40;">Experiences and services in Cartagena</h2>
+<span style="font-size: 13px; color: #63615f;">{{countLine}}</span>
+</div>
+<div role="group" aria-label="Filter" style="display: flex;">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="3"><button type="button" onClick="{{f.pick}}" aria-pressed="{{f.on}}" style="{{f.style}}">{{f.label}}</button></sc-for>
+</div>
+</div>
+
+<div tabindex="0" aria-label="Add-ons list, scrolls" style="height: 548px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-inline-end: 8px;">
+<sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+<div style="{{it.rowStyle}}">
+<img src="{{it.img}}" alt="{{it.alt}}" style="width: 136px; height: 104px; object-fit: cover; display: block;">
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;"><span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #63615f;">{{it.kind}}</span><span style="font-family: 'Questa', Georgia, serif; font-size: 22px; line-height: 28px; color: #1f3b40;">{{it.name}}</span></div>
+<div style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;">AED [PRICE]<span style="display: block; font-size: 12px; font-weight: 400; color: #63615f;">[per night or per stay]</span></div>
+<button type="button" onClick="{{it.toggle}}" aria-pressed="{{it.on}}" aria-label="{{it.aria}}" style="{{it.btnStyle}}">{{it.btn}}</button>
+</div>
+</sc-for>
+</div>
+</section>
+
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<a href="#" style="font-size: 14px; font-weight: 700; color: #1f3b40;">Back to stay</a>
+<button type="button" style="height: 56px; padding: 0 36px; border: 0; background: #1f3b40; color: #fffaf0; font-family: inherit; font-size: 14px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;">Continue to travelers</button>
+</div>
+</div>
+
+<aside aria-label="Your journey" style="background: #ffffff; border: 1px solid rgba(38, 38, 38, 0.16); display: flex; flex-direction: column;">
+<img src="/_blob/f10ec5772be8c5b911eeb6c5efc13c27" alt="Getsemaní Colonial House, a private stay in Cartagena" style="width: 100%; height: 180px; object-fit: cover; display: block;">
+<div style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+<div style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #63615f;">Your journey · Cartagena</span><span style="font-family: 'Questa', Georgia, serif; font-size: 24px; line-height: 30px; color: #1f3b40;">Getsemaní Colonial House</span><span style="font-size: 14px; color: #262626;">12/10/2026 – 17/10/2026 · 2 guests</span></div>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 20px; padding-top: 14px; border-top: 1px solid rgba(38, 38, 38, 0.12); font-variant-numeric: tabular-nums;">
+<div style="display: flex; justify-content: space-between;"><span>Stay · 5 nights</span><span>AED [AMOUNT]</span></div>
+<span style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #63615f; padding-top: 4px;">{{cartHead}}</span>
+<sc-if value="{{cartEmpty}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #63615f;">Nothing added yet.</span></sc-if>
+<sc-for list="{{cart}}" as="c" hint-placeholder-count="2">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"><span style="min-width: 0;">{{c.name}}</span><span style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">AED [AMOUNT]<button type="button" onClick="{{c.remove}}" aria-label="{{c.aria}}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #63615f; display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span></div>
+</sc-for>
+<div style="display: flex; justify-content: space-between; color: #63615f;"><span>7 inclusions</span><span>Included</span></div>
+<div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid rgba(38, 38, 38, 0.12);"><span>Subtotal</span><span>AED [AMOUNT]</span></div>
+<div style="display: flex; justify-content: space-between;"><span>VAT [RATE]%</span><span>AED [AMOUNT]</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; padding-top: 10px; border-top: 1px solid #262626;"><span>Total</span><span>AED [AMOUNT]</span></div>
+</div>
+<p style="margin: 0; font-size: 13px; line-height: 19px; color: #63615f;">Nothing is charged before Pay. At step 4 you choose a deposit or pay in full, in one checkout for the stay and every add-on.</p>
+</div>
+</aside>
+
+</div>
+
+<section aria-label="How the flow works" style="border-top: 1px solid #262626; padding-top: 24px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px;">
+<div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #1f3b40;">Hero</span><span style="font-size: 14px; line-height: 21px;">Destination, dates, guests. Search never charges and opens /booking/trip.</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #1f3b40;">Steps 1–3</span><span style="font-size: 14px; line-height: 21px;">Stay, add-ons, travelers. One cart holds everything. Back is always allowed.</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #1f3b40;">Step 4 · Pay</span><span style="font-size: 14px; line-height: 21px;">UAE airport, deposit or full, one payment. A 30-minute hold starts here; if it ends, the stay is chosen again.</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #1f3b40;">After pay</span><span style="font-size: 14px; line-height: 21px;">Account › Bookings: add experiences and services, pay the difference in the same checkout.</span></div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1480}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 'all', picked: { pickup: true } };
+  }
+  renderVals() {
+    var self = this; var s = this.state;
+    var all = [
+      { id: 'pickup', kind: 'Service · UAE', type: 'service', name: 'Home pickup', img: '/_blob/938ef18e93a0fcd006586e45c6bdea01', alt: 'Private car waiting at the terminal at dusk' },
+      { id: 'meet', kind: 'Service', type: 'service', name: 'VIP Airport Meet & Greet', img: '/_blob/fc6f5b7a83e2ef9803a3abdc92b5c41d', alt: 'Host holding a welcome sign in the arrivals hall' },
+      { id: 'concierge', kind: 'Service', type: 'service', name: '24/7 Private Concierge', img: '/_blob/a747652dc7fe225fd2f5495819050348', alt: 'Private jet cabin with cream leather seats' },
+      { id: 'night', kind: 'Experience', type: 'experience', name: 'Cartagena Walled City Night', img: '/_blob/b582f283aa68c1e6c9bc37ebf94e27c3', alt: 'Lit colonial street in Cartagena at dusk' },
+      { id: 'heritage', kind: 'Experience', type: 'experience', name: 'Cartagena Heritage Tours', img: '/_blob/9651123cacbcef7d937ea5da694f6f6a', alt: 'Yellow colonial house with bougainvillea' },
+      { id: 'rosario', kind: 'Experience', type: 'experience', name: 'Rosario Islands Escape', img: '/_blob/2a20a72cfb310c98b4ac2b69402488d5', alt: 'Beach club on white sand' },
+      { id: 'yacht', kind: 'Experience', type: 'experience', name: 'Yacht & Island Charters', img: '/_blob/78c62b78742590c257989d2a9b70d1ed', alt: 'Catamaran anchored in turquoise water' },
+      { id: 'cocktail', kind: 'Experience', type: 'experience', name: 'Welcome Cocktail at Sunset', img: '/_blob/864dc9aad7852aa70f844cd801054041', alt: 'Glasses raised against the sunset' },
+      { id: 'food', kind: 'Experience', type: 'experience', name: 'Gourmet Food Tours', img: '/_blob/986be09011050c443dc98f1a38e33d45', alt: 'Shared table of Colombian dishes' },
+      { id: 'beach', kind: 'Experience', type: 'experience', name: 'Private Beach Experiences', img: '/_blob/cf64c0a798bbb5befc00507516006302', alt: 'Quiet beach cove with palms' },
+      { id: 'cooking', kind: 'Experience', type: 'experience', name: 'Traditional Cooking Classes', img: '/_blob/46d4bc824f43733b5223e36796fcc64d', alt: 'Cooks around an outdoor kitchen' }
+    ];
+    function toggle(id) { var p = Object.assign({}, s.picked); if (p[id]) delete p[id]; else p[id] = true; self.setState({ picked: p }); }
+    var shown = all.filter(function (x) { return s.filter === 'all' || (s.filter === 'experience' && x.type === 'experience') || (s.filter === 'service' && x.type === 'service'); });
+    var items = shown.map(function (x) {
+      var on = !!s.picked[x.id];
+      return {
+        img: x.img, alt: x.alt, kind: x.kind, name: x.name, on: on,
+        aria: (on ? 'Remove ' : 'Add ') + x.name,
+        btn: on ? '✓ Added' : 'Add',
+        toggle: function () { toggle(x.id); },
+        rowStyle: 'display: grid; grid-template-columns: 136px 1fr 150px 124px; gap: 24px; align-items: center; padding: 12px 20px 12px 12px; background: #ffffff; flex-shrink: 0; ' + (on ? 'box-shadow: inset 0 0 0 2px #1f3b40;' : 'box-shadow: inset 0 0 0 1px rgba(38, 38, 38, 0.16);'),
+        btnStyle: "height: 44px; border: 1px solid #1f3b40; font-family: 'Lato', Arial, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; " + (on ? 'background: #1f3b40; color: #fffaf0;' : 'background: #ffffff; color: #1f3b40;')
+      };
+    });
+    var cart = all.filter(function (x) { return s.picked[x.id]; }).map(function (x) { return { name: x.name, aria: 'Remove ' + x.name, remove: function () { toggle(x.id); } }; });
+    var filters = [['all', 'All'], ['experience', 'Experiences'], ['service', 'Services']].map(function (f, i) {
+      var on = s.filter === f[0];
+      return { label: f[1], on: on, pick: function () { self.setState({ filter: f[0] }); },
+        style: "height: 40px; padding: 0 16px; font-family: 'Lato', Arial, sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; " + (on ? 'border: 1px solid #1f3b40; background: #1f3b40; color: #fffaf0;' : 'border: 1px solid rgba(38, 38, 38, 0.3); background: transparent; color: #262626;') + (i > 0 ? ' margin-inline-start: -1px;' : '') };
+    });
+    var n = cart.length;
+    return {
+      filters: filters, items: items, cart: cart, cartEmpty: n === 0,
+      countLine: shown.length + ' options · scroll for more · ' + n + ' added',
+      cartHead: n === 1 ? '1 add-on' : n + ' add-ons'
+    };
+  }
+}
+</script>
+</body>
+</html>
