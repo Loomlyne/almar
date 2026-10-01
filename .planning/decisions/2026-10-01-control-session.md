@@ -21,5 +21,12 @@ What it means here:
 
 The method: skill `control-session` (written by the Vamos control session, 2026-10-01).
 The binding text: `CLAUDE.local.md`, section "One job, one branch, one ship".
-Open: how a job lands on `main` (straight push on his Ship, as Vamos does, or a PR as ALMAR does
-today). Until he answers, the ALMAR rule stands: `main` is never pushed directly.
+## Answered by the owner, 2026-10-01 14:06 (+04), question form
+
+6. **Landing, like Vamos.** On his Ship the control session puts the job on `main` as one commit
+   and pushes `main`. No PR unless he asks. This replaces "Never push `main`" (2026-09-27) and the
+   PR-per-phase flow (2026-09-29): only the control session pushes `main`, only on his Ship. Before
+   the push it tags `main` (`backup/*`) and the branch tip (`archive/*`) on GitHub, so the full
+   history stays readable. After Phase 3.1 lands, new branches are cut from `origin/main`.
+7. **Backup push.** `host/cloudflare-frontsite` was pushed to GitHub at once (208 commits that
+   existed only on this Mac, plus the planning commit): GitHub tip `c9c7b55`, 14:07.

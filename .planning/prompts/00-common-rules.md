@@ -22,7 +22,9 @@ with SendMessage. Method: skill `control-session`.
   export (`scripts/assemble-cloudflare.mjs` builds `out/`). `/booking/trip`, `/account`,
   `/login` and `/dashboard` are not live.
 - GitHub `Loomlyne/almar` (private). The control board names the base for new branches.
-- Next.js 14.2.35, React 18, Tailwind v4 generated from `tokens.json` (`npm run tokens`). The design
+- Next.js 15.5.26 (bumped in 02-08 on 2026-09-26; `PROJECT.md` still says 14.2.35), React 18.3,
+  `@opennextjs/cloudflare` 1.20.6 installed, wrangler 4.141, Tailwind v4 (4.3.3) generated from
+  `tokens.json` (`npm run tokens`). The design
   system is the claude.ai canvas https://claude.ai/artifact/6MqV4cd2KzXLsVputN2ctw. `/design` and
   `/framer` are deleted.
 - Supabase: one project (plan 02-01), the app is not wired, no `.env.local`. Stripe and Resend:

@@ -10,6 +10,12 @@ Folder `/Users/koss/Developer/almar-wt/phase-2-auth`, branch `gsd/phase-02-auth-
 the base the control board names at that moment. Lead: Opus 5.5 (auth and security). Executors:
 Sonnet, one at a time.
 
+02-08 IS PARTLY DONE (found by the control session 2026-10-01): commits `6c8a50e` (host and phase
+gate guards), `f97f262` (approved auth and email packages) and `eabe097` (Next bumped to 15.5.26 so
+`@opennextjs/cloudflare` 1.20.6 installs), all 2026-09-26: that is Task 1, including `.env.example`.
+Not done: Task 2 (`open-next.config.ts`, the Worker pointed at a server runtime without deploying)
+and the SUMMARY. Start at Task 2.
+
 STEPS
 1. The four plans were written on 2026-09-24 and 25, before Phase 3.1 moved styling to Tailwind
    v4, put copy in `lib/copy/`, added LocaleSelect, deleted `/design` and `/framer` and added the
