@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 3.1 plans 01-28 done; plan 29 (owner test) open; work moves to the ALMAR cloud project, ship stays with the Mac control session"
-last_updated: "2026-10-01T11:05:44.000Z"
+stopped_at: "Phase 3.1 complete (29 of 29) and landed on main 2026-10-01; next is Phase 2 auth chain (job 02)"
+last_updated: "2026-10-01T13:30:00.000Z"
 last_activity: 2026-10-01
 progress:
   total_phases: 9
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 58
-  completed_plans: 48
+  completed_plans: 49
   percent: 22
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-22)
 
 **Core value:** A guest can complete a real trip booking (stay + add-ons + pay) and ops can run that booking and the public site from one branded system — no fake controls.
-**Current focus:** Phase 3.1 — design-system-and-journey-bar-inserted
+**Current focus:** Phase 2 — platform spine (auth chain 02-08, 02-02, 02-03, 02-04)
 
 ## Current Position
 
-Phase: 3.1 (design-system-and-journey-bar-inserted) — EXECUTING
-Plan: 28 of 29 (plan 29 is the owner's test)
+Phase: 3.1 (design-system-and-journey-bar-inserted) — COMPLETE, 29 of 29, landed on main 2026-10-01
+Next: Phase 2 auth chain (job 02), then 3.2
 Last activity: 2026-10-01
-Status: Waiting for the owner's test
+Status: Phase 3.1 shipped. Success criterion 1 is met except hand-written font sizes in globals.css (hand-over open item 3)
 
-Progress: [█████████░] 97%
+Progress: [██████████] 100% of 3.1
 
 ## Performance Metrics
 
@@ -77,6 +77,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Session time-box stays unset until the Supabase plan is Pro. — Free plan rejects time-boxed sessions. Owner approved closing 02-01 and will set 30 days after going Pro.
 - 2026-10-01: one control session lands work; each job lands as one commit on main on the owner's Ship, no PR (`decisions/2026-10-01-control-session.md`).
 - 2026-10-01: work moves to the ALMAR cloud project; shipping stays on the Mac with the control session (`decisions/2026-10-01-cloud-project.md`).
+- 2026-10-01 13:10 (owner): the cloud project is now the control session; it lands each job on main as one squashed commit on his Ship and deletes the landed branches. Deploys and live-DB changes still need his word each time.
+- 2026-10-01: Phase 3.1 shipped to main (owner UAT 18/18, review fixes W1–W5). Hand-over: `phases/03.1-design-system-and-journey-bar-inserted/03.1-HANDOVER.md`.
 
 ### Roadmap Evolution
 
@@ -85,7 +87,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+From the 3.1 hand-over (open items 1–5): dead controls W6 (Phase 3.2 and 2), guest nav/currency/locale cookie/newsletter W7–W9 (Phase 2 and 3.3), hand-written font sizes in `app/globals.css` and repeated hexes in the settings screen, small i18n/RTL nits, Node >=22.18 engines field and the Dockerfile before any deploy.
 
 ### Blockers/Concerns
 
@@ -103,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-01T11:05:44.000Z
-Stopped at: Phase 3.1 plans 01-28 done; plan 29 (owner test) open; work moves to the ALMAR cloud project, ship stays with the Mac control session
-Resume file: .planning/prompts/01-finish-phase-3.1.md
+Last session: 2026-10-01T13:30:00.000Z
+Stopped at: Phase 3.1 complete and landed on main; next is Phase 2 auth chain (job 02)
+Resume file: .planning/prompts/02-phase-2-auth-chain.md

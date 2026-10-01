@@ -14,7 +14,7 @@ Rebuild the Framer HTML export into a live booking OS. Tokens and components fir
 - [x] **Phase 1: Design system** - Tokens, core components, RTL states, owner `/design` (completed 2026-09-23)
 - [ ] **Phase 2: Platform spine** - Supabase auth, host gate, locale/currency, no ops leak
 - [ ] **Phase 3: Public site and dashboard** - Public site and dashboard screens first; catalogue, connections, and calculations after
-- [ ] **Phase 3.1: Design system and journey bar** (INSERTED) - One token set, CSS per component, journey bar and booking components from the design canvas
+- [x] **Phase 3.1: Design system and journey bar** (INSERTED) - One token set, CSS per component, journey bar and booking components from the design canvas
 - [ ] **Phase 3.2: Real catalog and team** (INSERTED) - Dashboard Catalog and Team save to Supabase, restyled in the dense variant
 - [ ] **Phase 3.3: Booking-path pages** (INSERTED) - Home, Private stays, Stay detail, Destinations, Experiences & Services in React on the same URLs
 - [ ] **Phase 4: Book and pay** - Hero → `/booking/trip` → Stripe TEST deposit or full
@@ -165,7 +165,7 @@ Plans:
   5. The design-system canvas (claude.ai, 7 pages) is signed off page by page; journey bar (desktop 72px bar, phone one-tap entry + Where → When → Who steps), StepRail, AddOnRow, InclusionsList, JourneyCart are coded and match the canvas in a component-test harness in every state, EN/AR/ES, RTL; `/design` and `/framer` are removed
   6. No stock or invented people anywhere in React code, copy, or the canvas
 
-**Plans:** 28/29 plans executed (plan 29 is the owner's test)
+**Plans:** 29/29 plans complete (landed on main 2026-10-01). Criterion 1 met except hand-written font sizes in `app/globals.css` (hand-over open item 3)
 
 Plans:
 - [x] 03.1-01-PLAN.md — Canvas Foundations and Components pages, owner gate (D-09)
@@ -196,7 +196,7 @@ Plans:
 - [x] 03.1-26-PLAN.md — Canvas Dashboard page, owner gate
 - [x] 03.1-27-PLAN.md — Final globals.css, strict guardrail, after-screenshots, production proof
 - [x] 03.1-28-PLAN.md — Harness matrix screenshots, RTL and accessibility specs, report
-- [ ] 03.1-29-PLAN.md — Owner UAT and DSGN-01 wording
+- [x] 03.1-29-PLAN.md — Owner UAT and DSGN-01 wording
 
 ### Phase 3.2: Real catalog and team (INSERTED)
 
@@ -292,14 +292,14 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 3.2 → 3.3 → 4 → 5 → 6. Phase 3.1 waits on its owner test (plan 29); 3.2 waits on 02-08 and 02-04.
+Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 3.2 → 3.3 → 4 → 5 → 6. Phase 3.1 is complete; 3.2 waits on 02-08 and 02-04.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design system | 6/6 | Complete   | 2026-09-23 |
 | 2. Platform spine | 1/10 | In Progress|  |
 | 3. Public site and dashboard | 13/13 | Executed, not verified | - |
-| 3.1 Design system and journey bar | 28/29 | In Progress (plan 29: owner test) |  |
+| 3.1 Design system and journey bar | 29/29 | Complete | 2026-10-01 |
 | 3.2 Real catalog and team | 0/? | Not started | - |
 | 3.3 Booking-path pages | 0/? | Not started | - |
 | 4. Book and pay | 0/3 | Not started | - |
