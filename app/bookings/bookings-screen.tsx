@@ -1,21 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { NavAccount } from "../../components/ui/account-menu";
+import { GUEST_COPY } from "../../lib/copy/guest";
 import { SiteNav } from "../../components/ui/nav";
 import { Link } from "../../components/ui/link";
 import { WhatsApp } from "../../components/ui/whatsapp";
 import { HOME_COPY } from "../../lib/copy/home";
 import { setDocumentLocale, type DocumentLocale } from "../../lib/set-document-locale";
 
-const COPY = {
-  en: { bookings: "Bookings", noBookingsYet: "No bookings yet", startATrip: "Start a trip" },
-  ar: { bookings: "الحجوزات", noBookingsYet: "لا حجوزات بعد", startATrip: "ابدأ رحلة" },
-  es: { bookings: "Reservas", noBookingsYet: "Aún no hay reservas", startATrip: "Empezar un viaje" },
-} as const;
 
-export function BookingsScreen() {
-  const [locale, setLocale] = useState<DocumentLocale>("en");
-  const copy = COPY[locale];
+export function BookingsScreen({ initialLocale, account }: { initialLocale: DocumentLocale; account: NavAccount }) {
+  const [locale, setLocale] = useState<DocumentLocale>(initialLocale);
+  const copy = GUEST_COPY[locale];
+
+  useEffect(() => setDocumentLocale(locale), [locale]);
 
   function chooseLocale(next: DocumentLocale) {
     setLocale(next);
@@ -27,8 +26,10 @@ export function BookingsScreen() {
       <SiteNav
         locale={locale}
         onLocale={chooseLocale}
-        labels={HOME_COPY[locale].nav}
+        labels={{ ...HOME_COPY[locale].nav, bookings: copy.bookings, account: copy.account, signOut: copy.signOut, profile: copy.hub.profile, preferences: copy.hub.preferences, accountMenu: copy.hub.menuLabel }}
+        loginHref="/login"
         markCurrent={false}
+        account={account}
       />
       <main
         id="content"

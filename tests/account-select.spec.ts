@@ -1,11 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
 
 // D-60 anchor: the /account language select works and is screenshot-tested in EN and AR.
+// /account needs a session since 02-02, so the hub renders through the harness with a fixture guest.
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
 async function open(page: Page) {
-  await page.goto("/account");
+  await page.goto("/__harness?c=guest-account&s=hub&l=en");
   await page.waitForLoadState("networkidle");
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({ content: "nextjs-portal{display:none!important}" });
@@ -64,7 +65,7 @@ test("Escape closes the list and returns focus to the trigger", async ({ page })
 
 test("the currency control lists AED, USD and EUR", async ({ page }) => {
   await open(page);
-  await page.getByRole("combobox", { name: /^Currency:/ }).click();
+  await page.locator("#account-currency").click();
   const options = page.getByRole("option");
   await expect(options).toHaveText(["AED", "USD", "EUR"]);
 });
