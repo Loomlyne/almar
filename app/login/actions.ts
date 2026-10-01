@@ -26,7 +26,7 @@ export async function requestSignIn(_previous: SignInState, form: FormData): Pro
     maxAge: 60 * 60,
   });
 
-  const result = await sendLinkFromRequest({ email, host: "public", locale });
+  const result = await sendLinkFromRequest({ email, locale });
   switch (result.status) {
     case "sent":
       return { status: "sent", email };
@@ -34,8 +34,10 @@ export async function requestSignIn(_previous: SignInState, form: FormData): Pro
       return { status: "wait", email, seconds: result.seconds };
     case "invalid":
       return { status: "invalid", email };
+    case "refused":
+      // Posted on the ops host: the same field line as the ops form.
+      return { status: "refused", email };
     default:
-      // "refused" never happens on the public host; treat it like an outage, not a leak.
       return { status: "unavailable", email };
   }
 }

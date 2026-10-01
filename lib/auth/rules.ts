@@ -27,6 +27,8 @@ export function safeReturnPath(value: unknown): string {
   const path = value.trim();
   if (!path.startsWith("/") || path.startsWith("//") || path.startsWith("/\\")) return "/";
   if (/[\u0000-\u001f]/.test(path)) return "/";
+  // Back to the sign-in or an auth route after signing in would loop.
+  if (/^\/(login|auth)(\/|\?|#|$)/i.test(path)) return "/";
   return path;
 }
 

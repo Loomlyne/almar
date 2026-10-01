@@ -22,7 +22,7 @@ export async function opsSignIn(_previous: SignInState, form: FormData): Promise
     maxAge: 60 * 60,
   });
 
-  const result = await sendLinkFromRequest({ email, host: "ops", locale });
+  const result = await sendLinkFromRequest({ email, locale });
   switch (result.status) {
     case "sent":
       return { status: "sent", email };

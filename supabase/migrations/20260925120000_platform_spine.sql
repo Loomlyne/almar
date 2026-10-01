@@ -29,7 +29,7 @@ drop policy if exists "profiles: update own row" on public.profiles;
 create policy "profiles: update own row" on public.profiles
   for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
 
-revoke all on public.profiles from anon, authenticated;
+revoke all on public.profiles from public, anon, authenticated;
 grant select on public.profiles to authenticated;
 grant update (first_name, last_name, phone, locale, currency) on public.profiles to authenticated;
 
@@ -56,6 +56,26 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_auth_user();
+
+-- Her sign-in email changes -> profiles.email follows. The role never changes here.
+create or replace function public.handle_auth_email_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  update public.profiles set email = lower(new.email) where id = new.id;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_email_changed on auth.users;
+create trigger on_auth_user_email_changed
+  after update of email on auth.users
+  for each row
+  when (new.email is distinct from old.email and new.email is not null)
+  execute function public.handle_auth_email_change();
 
 -- Users that existed before this migration (the owner, plan 02-01).
 insert into public.profiles (id, email, role)
@@ -85,13 +105,16 @@ create table if not exists public.site_settings (
 );
 
 alter table public.site_settings enable row level security;
-revoke all on public.site_settings from anon, authenticated;
+revoke all on public.site_settings from public, anon, authenticated;
 
 create or replace view public.site_settings_public
 with (security_invoker = false) as
   select teal, charcoal, gold, ivory, white, title_face, body_face, vat_percent, deposit_percent, maintenance
   from public.site_settings;
 
+-- Supabase's default privileges grant ALL on new views; a simple view is writable through its
+-- owner, so everything is revoked first and only select is given back.
+revoke all on public.site_settings_public from public, anon, authenticated;
 grant select on public.site_settings_public to anon, authenticated;
 
 -- touchword handoff (plan 02-04): hash only, single use, five minutes.
@@ -103,4 +126,4 @@ create table if not exists public.host_handoff (
 );
 
 alter table public.host_handoff enable row level security;
-revoke all on public.host_handoff from anon, authenticated;
+revoke all on public.host_handoff from public, anon, authenticated;

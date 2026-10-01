@@ -83,7 +83,7 @@ test("a provider wait comes back as seconds; other failures are unavailable", as
 
 test("return paths stay on this site", () => {
   assert.equal(safeReturnPath("/account"), "/account");
-  for (const bad of ["//evil.com", "/\\evil.com", "https://evil.com", "account", "", null, "/a\nb"]) {
+  for (const bad of ["/login", "/login?expired=1", "/auth/confirm", "/LOGIN", "//evil.com", "/\\evil.com", "https://evil.com", "account", "", null, "/a\nb"]) {
     assert.equal(safeReturnPath(bad), "/", String(bad));
   }
 });

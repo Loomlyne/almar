@@ -24,6 +24,24 @@ test("a guest can update only her names, phone, language and currency", () => {
   assert.equal(/grant (insert|delete|all)[^;]*to (anon|authenticated)/i.test(sql), false);
 });
 
+test("the public settings view is read-only: everything revoked before select", () => {
+  const revoke = sql.indexOf("revoke all on public.site_settings_public from public, anon, authenticated;");
+  const grant = sql.indexOf("grant select on public.site_settings_public to anon, authenticated;");
+  assert.ok(revoke > -1 && grant > revoke);
+  assert.equal(/grant (insert|update|delete|all)[^;]*site_settings_public/i.test(sql), false);
+  for (const table of ["profiles", "site_settings", "host_handoff"]) {
+    assert.match(sql, new RegExp(`revoke all on public\\.${table} from public, anon, authenticated;`));
+  }
+});
+
+test("profiles.email follows a changed sign-in email; the role does not", () => {
+  const fn = sql.slice(sql.indexOf("function public.handle_auth_email_change"));
+  const body = fn.slice(0, fn.indexOf("$$;"));
+  assert.match(body, /update public\.profiles set email = lower\(new\.email\) where id = new\.id/);
+  assert.equal(/role/.test(body), false);
+  assert.match(sql, /after update of email on auth\.users/);
+});
+
 test("the handoff stores a hash, never the raw token", () => {
   assert.match(sql, /token_hash text primary key/);
   assert.equal(/\btoken text\b/.test(sql), false);

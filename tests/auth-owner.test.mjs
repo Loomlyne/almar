@@ -26,10 +26,14 @@ test("ops sign-in refuses a guest email without calling Supabase", async () => {
   assert.equal(calls, 1);
 });
 
-test("the ops action maps refused to the field line and asks for the ops host", () => {
-  const actions = code("app/dashboard/actions.ts");
-  assert.match(actions, /host: "ops"/);
-  assert.match(actions, /case "refused":\s*return \{ status: "refused", email \}/);
+test("the host comes from the middleware shell header, never from the caller", () => {
+  const server = code("lib/auth/magic-link-server.ts");
+  assert.match(server, /const host = \(await headers\(\)\)\.get\(SHELL_HEADER\) === "ops" \? "ops" : "public";/);
+  for (const path of ["app/dashboard/actions.ts", "app/login/actions.ts"]) {
+    const actions = code(path);
+    assert.equal(/host:/.test(actions), false, path);
+    assert.match(actions, /case "refused":\s*(\/\/[^\n]*\s*)?return \{ status: "refused", email \}/, path);
+  }
   const screen = code("app/login/sign-in-screen.tsx");
   assert.match(screen, /state\.status === "refused"[\s\S]{0,80}copy\.auth\.cannotUseEmail/);
 });
