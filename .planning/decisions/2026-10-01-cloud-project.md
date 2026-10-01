@@ -25,3 +25,5 @@ His words: "I am moving ALMAR to a Claude cloud project, the way I did with Vamo
 
 The project instructions and the coordinator's first message were prepared by the control session on
 2026-10-01 and handed to him as files; they are not stored in the repo.
+
+> Replaced: the owner ended the cloud project at 2026-10-01 19:27 UTC; all work runs on the Mac, one controller plus worker sessions in `.claude/worktrees/<job>` (`2026-10-02-cleanup.md`).

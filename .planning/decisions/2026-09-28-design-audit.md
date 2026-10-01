@@ -10,3 +10,5 @@ worktrees cannot see it). The two copies say the same; the control session keeps
 - The hero booking bar and the booking flow are design-system components. Their look may be fully redesigned. Square corners and the no-radio rule still hold.
 - Phone booking entry: one tap target in the hero, then 3 steps (Where → When → Who). Experiences and services always show an image.
 - ALMAR sessions may run in Claude Cowork linked to this Mac, not only the Hermes `almar` bot. In Cowork, do not send him to the Hermes bot; do the next step in the same chat. GSD slash commands may not exist there: follow the GSD step by hand and write files in the existing `.planning/` format.
+
+> 2026-10-02: one exception to "stop patching Framer HTML": job 04 deletes the three invented team members, hides 8 dead footer links and fixes the JSON-LD domain on the live Framer pages (`2026-10-02-cleanup.md`).

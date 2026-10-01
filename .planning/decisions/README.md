@@ -20,3 +20,4 @@ Older decisions also live in:
 | `2026-09-29-public-pages-gate.md` | Cart in the nav, one experiences and services page with overlay, pre-filled stay bar |
 | `2026-10-01-control-session.md` | ALMAR runs like Vamos: one control session lands and deploys; jobs land as one commit on `main` |
 | `2026-10-01-cloud-project.md` | Work moves to a Claude cloud project; shipping stays on the Mac with the control session |
+| `2026-10-02-cleanup.md` | New controller, ALMAR on Cloudflare account f1d9a1fa, 3.1 shipped and deployed, old Worker and Pages deleted, worktrees in `.claude/worktrees`, job 04 repo tidy with the fake-team and dead-link fixes |

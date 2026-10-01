@@ -1,45 +1,61 @@
-You run the Phase 2 auth chain for ALMAR: plans 02-08, 02-02, 02-03 and 02-04, in that order.
-Phase 3.2 needs 02-08 (server runtime) and 02-04 (ops sign-in); 02-04 needs 02-03, 02-03 needs
-02-02, 02-02 needs 02-08.
+You finish job 02, the Phase 2 auth chain for ALMAR (plans 02-08, 02-02, 02-03, 02-04), on the Mac.
+The code was built in the cloud on 2026-10-01 on branch `claude/project-thread-8h6bed` and stopped
+there by the owner's local-only rule. Your job: bring it onto `main`, prove it on this Mac, pass his
+gates and his test, hand over. Phase 3.2 needs 02-08 (server runtime) and 02-04 (ops sign-in).
 
 Read `.planning/prompts/00-common-rules.md` first and follow it.
 
-STARTS only after job 01 (Phase 3.1) has landed and the owner says go. Not started on 2026-10-01.
+STARTS after job 04 (repo tidy) has landed and the owner says go.
 
-One cloud thread (on the Mac: `/Users/koss/Developer/almar-wt/phase-2-auth`), branch
-`gsd/phase-02-auth-chain`, cut from the base named in the common rules. Lead: Opus 5.5 (auth and
-security). Executors: Sonnet, one at a time. This job changes sign-in and the database, so a fresh
-reviewer thread reads the diff before each hand-over.
+Folder `.claude/worktrees/phase-02-auth`, branch `gsd/phase-02-auth-chain`, cut from `origin/main`.
+Lead: Opus 5.5 (sign-in, database and security). Executors: Sonnet, one at a time. After every change
+to sign-in or the database, a fresh Opus reviewer agent reads the diff before the hand-over.
 
-02-08 IS PARTLY DONE (found by the control session 2026-10-01): commits `6c8a50e` (host and phase
-gate guards), `f97f262` (approved auth and email packages) and `eabe097` (Next bumped to 15.5.26 so
-`@opennextjs/cloudflare` 1.20.6 installs), all 2026-09-26: that is Task 1, including `.env.example`.
-Not done: Task 2 (`open-next.config.ts`, the Worker pointed at a server runtime without deploying)
-and the SUMMARY. Start at Task 2.
+WHAT IS ON THE OLD BRANCH (tip `3e2d58c`, kept on GitHub until this job lands)
+- Plan revisions: `9d170d5`, `6440aeb`, `a0c02dd` (re-checked against 3.1; owner answers A, B, C).
+- `f10f765` 02-08 server runtime config (build only), `4155797` plans aligned with the signed discuss
+  refresh, `2598290` 02-02 magic link and account hub, `5b6739d` 02-03 language cookie on login,
+  account, bookings and 404, `e0be58a` 02-04 ops host, owner gate, TOUCHWORD, Logout-all, `393964f`
+  summaries, `e30e518` review fixes (security: anon could write `site_settings_public`, plus 4 more),
+  `3e2d58c` its hand-over `.planning/phases/02-platform-spine/HANDOVER.md` (the owner's 6 gates and
+  8 test steps).
+- `f0c7cef` is a merge of the old base: skip it. Everything older is already in `main`.
 
 STEPS
-1. The four plans were written on 2026-09-24 and 25, before Phase 3.1 moved styling to Tailwind
-   v4, put copy in `lib/copy/`, added LocaleSelect, deleted `/design` and `/framer` and added the
-   harness. Re-check each plan against the code on your branch and list every file or step that
-   no longer matches. Bring one revised plan per plan to the owner; he signs before code.
-2. 02-08 specifies the server runtime beside the static assets (`open-next.config.ts`). No deploy,
-   no Worker change, no DNS change. Install only packages that passed the 02-01 legitimacy check;
-   any new package gets the same check first.
-3. Supabase keys: the three names in `.planning/phases/02-platform-spine/02-USER-SETUP.md` are
-   secrets on Worker `almar` since 2026-09-26. A cloud thread has no keys and never asks for them:
-   it builds and tests without the live project, and any step that needs the real project goes to
-   the control session on the Mac. On the Mac the owner puts the names into `.env.local` himself,
-   one numbered step. Nobody reads or prints a value.
-4. Migration `20260925120000_platform_spine.sql` is named in both 02-02 and 02-04. Ask the coordinator
-   to confirm the number before you write it. Nothing is applied to the hosted project by you.
-5. Owner account `maria@almarprivatejourney.com`: its password is set by the owner in his own
-   terminal, never from chat. Password fields have the eye on the inline end.
-6. Hand-over per the common rules. Ask the coordinator whether it wants one hand-over per plan or one
-   at the end.
+1. `/gsd-progress` to confirm Phase 2 position, then move the work:
+   `git cherry-pick $(git rev-list --no-merges --reverse archive/ship-3.1..origin/claude/project-thread-8h6bed)`.
+   Expected conflicts: `app/account`, `app/login`, `components/ui/nav.tsx`, the ops layout,
+   `tests/phase-03-*`. `main` wins on 3.1 styling and structure; job 02 wins on sign-in behaviour. List
+   every conflict and how you solved it in the hand-over.
+2. Run the full check set (common rules) and the Mac screenshots. Expected red, by design:
+   `tests/screens-before-after.spec.ts` for account (6) and login (4 of 6), because those pages were
+   redrawn to the signed canvas (6a, 6b). Show him the shots; he decides. Never regenerate
+   `tests/screens/before/`.
+3. Fresh Opus reviewer agent on the whole moved diff (sign-in, database, host gate). Fix what it finds.
+4. Migration `supabase/migrations/20260925120000_platform_spine.sql`: ask the controller to confirm the
+   number. You never apply it; the controller does, on the owner's word.
+5. His gates, one numbered step each, in this order, then wait (from the old hand-over): Supabase
+   project named and the migration applied (controller); Supabase Auth: new sign-ups off and the
+   password provider off; Resend: verify the sending domain for `inquiries@almarprivatejourney.com`;
+   `.env.local` on the Mac with the names in `02-USER-SETUP.md` (he types the values; nobody prints
+   them); Cloudflare rate limit or Turnstile on POST `/login`; DNS for `dashboard.almarprivatejourney.com`
+   and the 02-07 runtime switch (later, his call).
+6. His test: the 8 numbered steps in the old hand-over (magic link, profile save, Arabic, guest refused
+   on the ops host, TOUCHWORD, Logout-all), updated for anything step 1 changed.
+7. Also in this job, as separate plans he signs before code: 3.1 open items W6 for sign-in submit and
+   Profile sign-out (wire or hide), W7 guest nav anchors, W8 currency select, W9 language cookie read.
+   W7 to W9 are shared with 3.3: propose, do not build, if they need 3.3 pages.
+8. Hand-over per the common rules, in `.planning/phases/02-platform-spine/HANDOVER.md` (replace the
+   cloud one).
 
-DECISIONS THAT STAND (STATE.md, 02-CONTEXT.md)
-- The confirmation email is Resend; the magic link is the email. `email-verification-api` is
-  rejected.
+DECISIONS THAT STAND (STATE.md, 02-CONTEXT.md, 02-DISCUSS-2026-10-01.md)
+- The confirmation email is Resend; the magic link is the email and creates the account (no Create
+  account tab). `email-verification-api` is rejected.
+- Login shows only on React pages. `/account` is a working hub showing only parts that work. Profile
+  names and phone are editable. TOUCHWORD is written in capitals.
+- Owner account `maria@almarprivatejourney.com`: its password is set by the owner in his own terminal,
+  never from chat. Password fields have the eye on the inline end.
 - The session time-box stays unset until the Supabase plan is Pro.
 - Plans 02-09 and 02-10 stay paused (no more patching of Framer HTML).
 - Guests never reach ops: a guest on the ops host gets ops sign-in or a refusal, never data.
+- No deploy. The server runtime goes live only on the owner's word, through the controller.

@@ -1,3 +1,6 @@
+DONE — job 01 landed on `main` on 2026-10-02 as `9fd6786` (owner's Ship 01:42 +04) and was deployed
+to Worker `almar` at 02:25 +04 (version `49112d4b`). Kept as a record; do not run it again.
+
 You finish Phase 3.1 (design system and journey bar) for ALMAR.
 
 Read `.planning/prompts/00-common-rules.md` first and follow it.

@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 3.1 landed on main as 9fd6786 on the owner's Ship (2026-10-02 01:42 +04), not deployed; next job 02"
-last_updated: "2026-10-01T21:46:00.000Z"
+stopped_at: "Phase 3.1 landed (9fd6786) and live (49112d4b); cleanup done; next job 04 repo tidy, then job 02"
+last_updated: "2026-10-01T22:40:00.000Z"
 last_activity: 2026-10-01
 progress:
   total_phases: 9
@@ -25,8 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
-Phase: 3.1 (design-system-and-journey-bar-inserted) — COMPLETE, 29 of 29; LANDED on `main` as `9fd6786` (2026-10-02, owner's Ship 01:42 +04; tag `archive/ship-3.1` = `7e72c20`). Not deployed to Worker `almar`
-Next: Phase 2 auth chain (job 02, branch `claude/project-thread-8h6bed` tip `3e2d58c`, to be moved onto `origin/main`), then 3.2
+Phase: 3.1 (design-system-and-journey-bar-inserted) — COMPLETE, 29 of 29; LANDED on `main` as `9fd6786` (2026-10-02, owner's Ship 01:42 +04; tag `archive/ship-3.1` = `7e72c20`). Deployed to Worker `almar` 2026-10-02 02:25 +04 (version `49112d4b`)
+Next: job 04 repo tidy (`prompts/04-repo-tidy.md`), then Phase 2 auth chain (job 02: cherry-pick `claude/project-thread-8h6bed` onto `origin/main`), then 3.2
 Last activity: 2026-10-01
 Status: Phase 3.1 landed. Controller check of `7e72c20` in a clean clone on 2026-10-02: install, tsc, 160/160 node tests, tokens, build pass; Playwright 1,109 passed, 28 skipped, 4 load timeouts that pass on rerun. Success criterion 1 is met except hand-written font sizes in globals.css (hand-over open item 3)
 
@@ -84,6 +84,8 @@ Recent decisions affecting current work:
 - 2026-10-02 00:05 +04 (owner): this Mac session `local_836ffacc-…` ("ALMAR controller") is the controller; `local_90a0e6e2-…` is retired.
 - 2026-10-02 ~01:00 +04 (owner): the `almarprivatejourney.com` zone moved to Cloudflare account "Almar Private Journey" `f1d9a1fa…`. The site was down until Worker `almar` was redeployed there at 01:32 +04 (version `99d76f13`, commit `2f82714`, the same pages; owner's word). The Vamos account `e64b47de…` is no longer ALMAR's.
 - 2026-10-02 01:42 +04 (owner's Ship): Phase 3.1 landed on `main` as `9fd6786`; the push also builds Pages project `almar` (production branch `main`, `almar-khb.pages.dev`), which the owner accepted. No Worker deploy.
+- 2026-10-02 02:25 +04 (owner's word): `main` `68df3b6` deployed to Worker `almar` (version `49112d4b`); the 26 public pages are unchanged, the branded 404 is new. The old Worker `almar` on the Vamos account and the Pages project `almar` were deleted (owner's word).
+- 2026-10-02 (owner): each work session runs in its own worktree `.claude/worktrees/<job>` inside the main folder, never a sibling folder. A short repo-tidy job (04) runs before job 02. GSD codebase map and `HERMES.md` refreshed. 18 idle ALMAR sessions archived.
 
 ### Roadmap Evolution
 
@@ -110,6 +112,6 @@ From the 3.1 hand-over (open items 1–5): dead controls W6 (Phase 3.2 and 2), g
 
 ## Session Continuity
 
-Last session: 2026-10-01T21:46:00.000Z
-Stopped at: Phase 3.1 landed on main (`9fd6786`), not deployed; next job 02
+Last session: 2026-10-01T22:40:00.000Z
+Stopped at: Phase 3.1 landed and live; cleanup before execution done; next job 04, then job 02
 Resume file: .planning/CONTROL-BOARD.md

@@ -1,61 +1,62 @@
 # Rules every ALMAR work session follows
 
 You are a work session on the owner's Mac. You are not the controller. Only the "ALMAR controller"
-(`local_836ffacc-ca03-41c4-b1ff-385b8aa9d357`, pinned, sidebar group ALMAR; owner's choice 2026-10-02,
-replacing `local_90a0e6e2-…`) lands work on GitHub `main`, applies migrations to the live Supabase
-project and deploys Worker `almar`. The claude.ai cloud project ended 2026-10-01. Message the
-controller with SendMessage. Decisions behind this: `.planning/decisions/2026-10-01-control-session.md`
-and `2026-10-01-cloud-project.md` (the cloud part is ended).
+(`local_836ffacc-ca03-41c4-b1ff-385b8aa9d357`, pinned, sidebar group ALMAR; owner's choice 2026-10-02)
+lands work on GitHub `main`, applies migrations to the live Supabase project and deploys Worker
+`almar`. Message it with SendMessage. The claude.ai cloud project ended on 2026-10-01; nothing runs in
+the cloud. Decisions behind this: `.planning/decisions/2026-10-01-control-session.md`.
 
-## Base branch
-- Phase 3.1 landed on `main` on 2026-10-02 (`9fd6786`). Cut every branch from `origin/main` and merge
-  `origin/main` before the hand-over. `host/cloudflare-frontsite` is deleted.
-- Only the controller moves `main`.
-- Cloudflare: ALMAR is on account "Almar Private Journey" `f1d9a1fa…` since 2026-10-02. A work session
-  never deploys; a push to any branch builds a Pages preview at `*.almar-khb.pages.dev`.
+## Base branch and your folder
+- `main` holds everything landed (Phase 3.1 landed 2026-10-02 as `9fd6786`). Cut your branch from
+  `origin/main` and merge `origin/main` into it before every hand-over. The base wins a conflict unless
+  the owner says otherwise.
+- Your folder is a git worktree inside the main folder: `.claude/worktrees/<job>` (owner, 2026-10-02).
+  Start the session from the desktop app in a new worktree, or run
+  `git worktree add .claude/worktrees/<job> -b <branch> origin/main` from the main folder. Never a sibling
+  folder, never the main folder itself. Run `npm ci` in your folder first.
+- One job, one branch, named in your prompt (`gsd/phase-<n>-<slug>` or `fix/<slug>`). Push only it.
 
 ## Read first, in this order
-1. Cloud: the project instructions. Mac: `/Users/koss/Developer/almarprod-Website-Code/CLAUDE.local.md`
-   by that absolute path (it is gitignored), section "One job, one branch, one ship", then the auto
-   memory index `~/.claude/projects/-Users-koss-Developer-almarprod-Website-Code/memory/MEMORY.md`.
-2. `.claude/rules/connections.md` and `.hermes.md`. `HERMES.md` is a stale snapshot that GSD loads:
-   where it disagrees with the code or these files, it loses.
+1. `/Users/koss/Developer/almarprod-Website-Code/CLAUDE.local.md` by that absolute path (it is gitignored,
+   so it is not in your folder), section "One job, one branch, one ship"; then the memory index
+   `~/.claude/projects/-Users-koss-Developer-almarprod-Website-Code/memory/MEMORY.md`.
+2. `.claude/rules/connections.md`, `.hermes.md` and `HERMES.md` (GSD's project instructions, refreshed
+   2026-10-02). Where any of them disagrees with the code, the code wins; say so in your hand-over.
 3. `.planning/GOAL.md`, then `.planning/CONTROL-BOARD.md`.
 4. `.planning/decisions/`: every file. Owner-approved texts are used verbatim.
 5. Your job's prompt file in `.planning/prompts/`, then the phase files it names.
 
-## Facts on 2026-10-01, verify each
-- Live: https://almarprivatejourney.com and www on Worker `almar`, serving the static Framer export
-  (`npm run build`, then `scripts/assemble-cloudflare.mjs` builds `out/`). `/booking/trip`,
-  `/account`, `/login`, `/dashboard`, `/fx`, `/newsletter` and `/__harness` answer 404 on live.
-- GitHub `Loomlyne/almar` (private). There is no GitHub Actions workflow: the control check in a clean
-  clone is the CI.
-- Next.js 15.5.26, React 18.3, `@opennextjs/cloudflare` 1.20.6 installed (server runtime not
-  configured: plan 02-08 Task 2), wrangler 4.141, Tailwind v4 (4.3.3) generated from `tokens.json`
-  (`npm run tokens`). The design system is the claude.ai canvas
-  https://claude.ai/artifact/6MqV4cd2KzXLsVputN2ctw; a copy of its 63 boards (2026-10-01) is in
-  `.planning/design/2026-10-01-canvas/`. `/design` and `/framer` are deleted.
-- Supabase: one project (plan 02-01); the app is not wired; no `.env.local`; its three names are
-  secrets on Worker `almar`. Stripe and Resend: nothing live. Never read, print or write a secret value.
-- Dev server: `npm run dev -- -H 127.0.0.1 -p 3010` (on the Mac, port 3000 is another product).
-  `npm run build` kills a running dev server; restart it after. Harness pages need `ALMAR_HARNESS=1`.
+## Facts on 2026-10-02, verify each
+- Live: https://almarprivatejourney.com and www on Worker `almar`, Cloudflare account "Almar Private
+  Journey" `f1d9a1fa3abdda98c15161b00b40385c`, version `49112d4b` = `main` `68df3b6`: the static Framer
+  pages (`npm run build`, then `scripts/assemble-cloudflare.mjs` builds `out/`) and the branded 404.
+  `/booking/trip`, `/account`, `/login`, `/dashboard`, `/fx`, `/newsletter` and `/__harness` answer 404.
+- The Vamos account `e64b47de…` is not ALMAR's. There is no Pages project. The plain `wrangler` login on
+  this Mac sees only the Vamos account; only the controller deploys.
+- GitHub `Loomlyne/almar` (private). No GitHub Actions: the controller's clean-clone check is the CI.
+- Next.js 15.5.26, React 18.3, `@opennextjs/cloudflare` 1.20.6 installed (server runtime not configured),
+  wrangler 4.141, Tailwind v4 (4.3.3) generated from `tokens.json` (`npm run tokens`). Node >= 22.18
+  (the assemble script and node tests import `.ts`). The design system is the claude.ai canvas
+  https://claude.ai/artifact/6MqV4cd2KzXLsVputN2ctw; a copy of its 63 boards is in
+  `.planning/design/2026-10-01-canvas/`.
+- Supabase: one project (plan 02-01); the app is not wired; no `.env.local`; no secrets on Worker `almar`
+  yet. Stripe and Resend: nothing live. Never read, print or write a secret value.
+- Dev server: `npm run dev -- -H 127.0.0.1 -p 3010` (port 3000 is another product). `npm run build` kills
+  a running dev server; restart it after. Harness pages need `ALMAR_HARNESS=1`.
+- Playwright needs headless shell build 1243. If it is missing (another project's install can remove it),
+  ask the owner before `npx playwright install --only-shell chromium` (a ~95 MB download).
 
 ## Your branch and files
-- One job, one branch (`gsd/phase-<n>-<slug>` or `fix/<slug>`), cut from the base, pushed to GitHub.
-  Cloud: your thread's checkout. Mac: your own worktree `/Users/koss/Developer/almar-wt/<job>`; run
-  `npm ci` there first.
-- Never push `main` or `host/cloudflare-frontsite`. No PR unless the owner asks. No deploy, no hosted
-  SQL, no change to Cloudflare, DNS, R2, Supabase settings, Stripe or Resend. Live probes are plain GET
-  requests unless the owner says yes. `git stash` is forbidden except its `list` and `show` forms.
+- Never push `main`. No PR unless the owner asks. No deploy, no hosted SQL, no change to Cloudflare, DNS,
+  R2, Supabase settings, Stripe or Resend. Live probes are plain GET requests unless the owner says yes.
+  `git stash` is forbidden except its `list` and `show` forms.
 - Add files to git by name. Never add a whole folder.
-- Do not edit `.planning/STATE.md`, `ROADMAP.md`, `CONTROL-BOARD.md`, `GOAL.md` or `decisions/`. Put
-  the proposed change in your hand-over; the control session applies it at ship.
-- Ask the coordinator (on the Mac: the control session) for a migration number before you write a
-  migration, and before you touch a shared file: `lib/copy/*.ts`, `tokens.json`, `app/globals.css`,
-  `next.config.ts`, `package.json`, `package-lock.json`, `tests/design-tokens.test.mjs`. Two jobs never
-  edit the same file at once.
-- Merge the base into your branch before every hand-over. The base wins a conflict unless the owner
-  says otherwise.
+- Do not edit `.planning/STATE.md`, `ROADMAP.md`, `CONTROL-BOARD.md`, `GOAL.md`, `decisions/` or
+  `prompts/`. Put the proposed change in your hand-over; the controller applies it at ship.
+- Ask the controller for a migration number before you write a migration, and before you touch a shared
+  file: `lib/copy/*.ts`, `tokens.json`, `app/globals.css`, `next.config.ts`, `package.json`,
+  `package-lock.json`, `wrangler.toml`, `tests/design-tokens.test.mjs`. Two jobs never edit the same file
+  at once.
 - `tests/screens/before/` is never regenerated.
 
 ## The owner
@@ -68,33 +69,32 @@ and `2026-10-01-cloud-project.md` (the cloud part is ended).
 - EN, AR and ES in the same pass; AR is RTL. Square corners. Gold is a line only. No radio controls.
   Checked at 390, 834 and 1440.
 - A control that is shown works end to end, or it is not shown.
-- His gates, one numbered step each, then wait: Cloudflare Worker or Pages, DNS, R2, Supabase
-  settings, Stripe live, Resend domain, any secret or password.
+- His gates, one numbered step each, then wait: Cloudflare, DNS, R2, Supabase settings, Stripe live,
+  Resend domain, any secret or password.
 
 ## Models
 - Opus 5.5 for planning, reviews and anything touching money, sign-in, the database or security.
   Sonnet 5.5 for routine building and plan executors.
-- After every change to money, sign-in or the database, a fresh reviewer thread reads the diff before
+- After every change to money, sign-in or the database, a fresh reviewer agent reads the diff before
   the hand-over.
 - GSD `model_profile` stays `balanced`. The strongest model for sub-agents only with the owner's OK.
 
 ## Hand-over
 1. Run the full check set on the final commit:
    `npm ci`, `npx tsc --noEmit`, `node --test tests/*.test.mjs`, `npm run tokens:check`,
-   `npm run build`, then `npx playwright install chromium` once and `npx playwright test --workers=1`
-   (set `PW_PORT` if port 3010 is taken). Not `npm test`: it runs Playwright with parallel workers.
-   Agents run only the tests they touched; the lead runs the full set once.
+   `npm run build`, then `npx playwright test --workers=1` (set `PW_PORT` if port 3010 is taken). Not
+   `npm test`: it runs Playwright with parallel workers. Agents run only the tests they touched; the lead
+   runs the full set once. A page-load timeout under heavy Mac load: rerun that file and report both.
 2. Write `HANDOVER.md` in your phase or quick folder: branch and final commit; folder clean; every
    check with its result on that commit; what was NOT verified, in plain words; each migration and
    whether it is safe on live data; environment names added (never values); proposed changes to
-   state, roadmap, board or decisions; the owner's numbered test steps, each with the page and the
-   expected result (a TEST payment first when checkout is touched); lessons from his corrections.
-3. Push your branch, report the commit and the file path to the coordinator (on the Mac: the control
-   session), tell the owner in one line, and stop.
+   state, roadmap, board, decisions or prompts; the owner's numbered test steps, each with the page and
+   the expected result (a TEST payment first when checkout is touched); lessons from his corrections.
+3. Push your branch, send the controller the commit and the file path with SendMessage, tell the owner
+   in one line, and stop.
 
-## Mac only: disk
-- One local database stack per session, if any (ALMAR has none today). Stop it when the session is
-  idle.
-- When your job has landed, the control session removes your folder, its stack and its build output
-  the same day, after checking that the branch tip is on GitHub. You never remove a folder, a branch
-  or a stash yourself.
+## Disk
+- One local database stack per session, if any (ALMAR has none today). Stop it when the session is idle.
+- When your job has landed, the controller removes your worktree, its stack and its build output the
+  same day, after checking that the branch tip is on GitHub. You never remove a folder, a branch or a
+  stash yourself.
