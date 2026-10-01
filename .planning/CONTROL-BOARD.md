@@ -18,6 +18,7 @@ comes next. Updated at every hand-over and every landing. The goal: `GOAL.md`. T
 | This Mac | `host/cloudflare-frontsite` equal to GitHub. Local `main` = `284cc31`: 9 commits not on GitHub `main`, all inside the branch. No stash, no other worktree, no tag |
 | GitHub alerts | 27 open Dependabot alerts (2 critical, 10 high, 13 medium, 2 low), all on `main`'s August lockfile (next 14.2.35, postcss). The branch has next 15.5.26 and postcss 8.5.28, above every fixed version: they close when 3.1 lands |
 | Database | One Supabase project (plan 02-01, Storage off, owner user confirmed). The app is not wired; no `.env.local`; no migration written |
+| Design system | Canvas https://claude.ai/artifact/6MqV4cd2KzXLsVputN2ctw, version `1790852310-eba8`: 63 boards on 7 pages. Copy in `.planning/design/2026-10-01-canvas/` (2026-10-01, hashes checked). Code takes values from `tokens.json` only |
 | Stripe, Resend | Nothing live |
 | CI | None (no `.github`). The control check in a clean clone is the CI. Fresh clone of `1e6ec8e` on 2026-10-01: install, `tsc`, 157 of 157 node tests, `tokens:check` and the build pass; Playwright lists 1,133 tests |
 | Where work runs | The ALMAR cloud project: a coordinator and one thread per job, both Opus 5.5 High, GitHub only, no Mac (owner, 2026-10-01). Threads never push `main`, deploy or write to the live database |
@@ -84,3 +85,4 @@ All 18 local sessions sit in the sidebar group ALMAR. No work folder exists unde
 | Check job 01's hand-over in a clean clone (install from the lockfile, `tsc`, node tests, Playwright with one worker, tokens check, build), then the Ship question | When it arrives |
 | Land job 01: tags first, one commit on `main`, staged tree equal to the checked tree, push `main`; then point local `main` at `origin/main` and set the base here to `origin/main` | After his Ship |
 | Check each cloud hand-over the same way when he brings it | On his word |
+| Copy the canvas again into a new dated folder under `.planning/design/` | Whenever the owner changes the canvas |

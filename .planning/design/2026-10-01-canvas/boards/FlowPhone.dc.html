@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ALMAR booking flow on phone, add-ons step</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:'Questa';src:url('/_blob/dfb13bed53d3c684b2436f251c533b6f') format('woff');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Lato';src:url('/_blob/77d52f10b0e77b462369bcd47ca1c172') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Lato';src:url('/_blob/32fa77770b678d5e662eb3e29bdb2c6b') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+body{margin:0}
+a{color:#1f3b40}a:hover{color:#1f3b40}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #fffaf0; font-family: 'Lato', Arial, sans-serif; color: #262626; display: flex; flex-direction: column;">
+
+<div style="height: 60px; padding: 0 8px; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid rgba(38, 38, 38, 0.14); flex-shrink: 0;">
+<a href="HeroPhone.dc.html" aria-label="Back" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #262626;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a>
+<span style="flex-grow: 1; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 700;">Cartagena · 12/10 – 17/10</span><span style="font-size: 12px; color: #63615f;">2 guests · 5 nights</span></span>
+<button type="button" style="height: 44px; padding: 0 12px; border: 0; background: transparent; color: #1f3b40; font-family: inherit; font-size: 13px; font-weight: 700; text-decoration: underline;">Edit</button>
+</div>
+
+<div style="padding: 12px 20px 0; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px;">
+<span style="height: 3px; background: #1f3b40; display: block;"></span><span style="height: 3px; background: #1f3b40; display: block;"></span><span style="height: 3px; background: rgba(38, 38, 38, 0.14); display: block;"></span><span style="height: 3px; background: rgba(38, 38, 38, 0.14); display: block;"></span>
+</div>
+<span style="font-size: 12px; font-weight: 700; color: #63615f;">Step 2 of 4 · Add-ons</span>
+<h1 style="margin: 4px 0 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 30px; line-height: 34px; color: #1f3b40;">Shape your journey</h1>
+<div role="group" aria-label="Filter" style="display: flex; padding: 6px 0 10px;">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="3"><button type="button" onClick="{{f.pick}}" aria-pressed="{{f.on}}" style="{{f.style}}">{{f.label}}</button></sc-for>
+</div>
+</div>
+
+<div tabindex="0" aria-label="Add-ons list, scrolls" style="flex-grow: 1; overflow-y: auto; padding: 0 20px 16px; display: flex; flex-direction: column; gap: 10px;">
+<div style="min-height: 44px; padding: 10px 14px; background: #d1dfe0; color: #1f3b40; font-size: 13px; line-height: 19px; flex-shrink: 0;"><strong>Included:</strong> airport meet, transfer, stay, guide, security, insurance, return.</div>
+<sc-for list="{{items}}" as="it" hint-placeholder-count="5">
+<div style="{{it.rowStyle}}">
+<img src="{{it.img}}" alt="{{it.alt}}" style="width: 84px; height: 84px; object-fit: cover; display: block; flex-shrink: 0;">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;"><span style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; color: #63615f;">{{it.kind}}</span><span style="font-size: 16px; line-height: 20px; font-weight: 700; color: #1f3b40;">{{it.name}}</span><span style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;">AED [PRICE]</span></div>
+<button type="button" onClick="{{it.toggle}}" aria-pressed="{{it.on}}" aria-label="{{it.aria}}" style="{{it.btnStyle}}"><sc-if value="{{it.on}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if><sc-if value="{{it.off}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></sc-if></button>
+</div>
+</sc-for>
+</div>
+
+<div style="height: 88px; padding: 0 20px; display: flex; align-items: center; gap: 14px; border-top: 1px solid rgba(38, 38, 38, 0.14); background: #fffaf0; flex-shrink: 0;">
+<button type="button" style="flex-grow: 1; height: 56px; border: 0; background: transparent; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; font-family: inherit; text-align: start; padding: 0;"><span style="font-size: 12px; color: #63615f;">{{totalLine}}</span><span style="font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; text-decoration: underline;">AED [AMOUNT]</span></button>
+<button type="button" style="height: 56px; padding: 0 24px; border: 0; background: #1f3b40; color: #fffaf0; font-family: inherit; font-size: 14px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;">Continue</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 'all', picked: { pickup: true } };
+  }
+  renderVals() {
+    var self = this; var s = this.state;
+    var all = [
+      { id: 'pickup', kind: 'Service · UAE', type: 'service', name: 'Home pickup', img: '/_blob/938ef18e93a0fcd006586e45c6bdea01', alt: 'Private car waiting at the terminal at dusk' },
+      { id: 'meet', kind: 'Service', type: 'service', name: 'VIP Airport Meet & Greet', img: '/_blob/fc6f5b7a83e2ef9803a3abdc92b5c41d', alt: 'Host holding a welcome sign in the arrivals hall' },
+      { id: 'concierge', kind: 'Service', type: 'service', name: '24/7 Private Concierge', img: '/_blob/a747652dc7fe225fd2f5495819050348', alt: 'Private jet cabin with cream leather seats' },
+      { id: 'night', kind: 'Experience', type: 'experience', name: 'Cartagena Walled City Night', img: '/_blob/b582f283aa68c1e6c9bc37ebf94e27c3', alt: 'Lit colonial street in Cartagena at dusk' },
+      { id: 'heritage', kind: 'Experience', type: 'experience', name: 'Cartagena Heritage Tours', img: '/_blob/9651123cacbcef7d937ea5da694f6f6a', alt: 'Yellow colonial house with bougainvillea' },
+      { id: 'rosario', kind: 'Experience', type: 'experience', name: 'Rosario Islands Escape', img: '/_blob/2a20a72cfb310c98b4ac2b69402488d5', alt: 'Beach club on white sand' },
+      { id: 'yacht', kind: 'Experience', type: 'experience', name: 'Yacht & Island Charters', img: '/_blob/78c62b78742590c257989d2a9b70d1ed', alt: 'Catamaran anchored in turquoise water' },
+      { id: 'cocktail', kind: 'Experience', type: 'experience', name: 'Welcome Cocktail at Sunset', img: '/_blob/864dc9aad7852aa70f844cd801054041', alt: 'Glasses raised against the sunset' },
+      { id: 'food', kind: 'Experience', type: 'experience', name: 'Gourmet Food Tours', img: '/_blob/986be09011050c443dc98f1a38e33d45', alt: 'Shared table of Colombian dishes' },
+      { id: 'beach', kind: 'Experience', type: 'experience', name: 'Private Beach Experiences', img: '/_blob/cf64c0a798bbb5befc00507516006302', alt: 'Quiet beach cove with palms' },
+      { id: 'cooking', kind: 'Experience', type: 'experience', name: 'Traditional Cooking Classes', img: '/_blob/46d4bc824f43733b5223e36796fcc64d', alt: 'Cooks around an outdoor kitchen' }
+    ];
+    function toggle(id) { var p = Object.assign({}, s.picked); if (p[id]) delete p[id]; else p[id] = true; self.setState({ picked: p }); }
+    var shown = all.filter(function (x) { return s.filter === 'all' || x.type === s.filter; });
+    var items = shown.map(function (x) {
+      var on = !!s.picked[x.id];
+      return { img: x.img, alt: x.alt, kind: x.kind, name: x.name, on: on, off: !on,
+        aria: (on ? 'Remove ' : 'Add ') + x.name,
+        toggle: function () { toggle(x.id); },
+        rowStyle: 'display: flex; gap: 12px; align-items: center; padding: 8px; background: #ffffff; flex-shrink: 0; ' + (on ? 'box-shadow: inset 0 0 0 2px #1f3b40;' : 'box-shadow: inset 0 0 0 1px rgba(38, 38, 38, 0.16);'),
+        btnStyle: 'width: 44px; height: 44px; flex-shrink: 0; border: 1px solid #1f3b40; display: flex; align-items: center; justify-content: center; cursor: pointer; ' + (on ? 'background: #1f3b40; color: #fffaf0;' : 'background: #ffffff; color: #1f3b40;') };
+    });
+    var filters = [['all', 'All'], ['experience', 'Experiences'], ['service', 'Services']].map(function (f, i) {
+      var on = s.filter === f[0];
+      return { label: f[1], on: on, pick: function () { self.setState({ filter: f[0] }); },
+        style: "height: 40px; padding: 0 14px; font-family: 'Lato', Arial, sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; " + (on ? 'border: 1px solid #1f3b40; background: #1f3b40; color: #fffaf0;' : 'border: 1px solid rgba(38, 38, 38, 0.3); background: transparent; color: #262626;') + (i > 0 ? ' margin-inline-start: -1px;' : '') };
+    });
+    var n = Object.keys(s.picked).length;
+    return { filters: filters, items: items, totalLine: 'Total · stay + ' + (n === 1 ? '1 add-on' : n + ' add-ons') };
+  }
+}
+</script>
+</body>
+</html>

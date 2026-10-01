@@ -1,0 +1,749 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "BookerKit.dc.html": {
+      "h": 2240,
+      "page": "audit",
+      "title": "7 · Design-system spec",
+      "w": 1440,
+      "x": 3400,
+      "y": 2900
+    },
+    "ComponentsControls.dc.html": {
+      "h": 6000,
+      "is_interactive": true,
+      "page": "components",
+      "title": "3a · Controls",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "ComponentsControlsAr.dc.html": {
+      "h": 6000,
+      "page": "components",
+      "title": "3a · Controls · Arabic RTL (fixed)",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "ComponentsSurfaces.dc.html": {
+      "h": 6700,
+      "is_interactive": true,
+      "page": "components",
+      "title": "3b · Surfaces and navigation",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "ComponentsSurfacesAr.dc.html": {
+      "h": 6700,
+      "page": "components",
+      "title": "3b · Surfaces and navigation · Arabic RTL (fixed)",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "DashBookingDetailA.dc.html": {
+      "h": 4754,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7d · Booking detail, overview and payments",
+      "w": 3024,
+      "x": 0,
+      "y": 19626
+    },
+    "DashBookingDetailB.dc.html": {
+      "h": 4154,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7d · Booking detail, history and cancellation",
+      "w": 3024,
+      "x": 0,
+      "y": 24500
+    },
+    "DashBookings.dc.html": {
+      "h": 3104,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7b · Bookings",
+      "w": 3024,
+      "x": 0,
+      "y": 5564
+    },
+    "DashCalendar.dc.html": {
+      "h": 5334,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7f · Calendar and blocking",
+      "w": 3024,
+      "x": 0,
+      "y": 37212
+    },
+    "DashContent.dc.html": {
+      "h": 2854,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7k · Content hub and page editor",
+      "w": 3024,
+      "x": 0,
+      "y": 64682
+    },
+    "DashCustomerProfile.dc.html": {
+      "h": 5244,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7e · Customer profile",
+      "w": 3024,
+      "x": 0,
+      "y": 31848
+    },
+    "DashCustomers.dc.html": {
+      "h": 2954,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7e · Customers",
+      "w": 3024,
+      "x": 0,
+      "y": 28774
+    },
+    "DashDestinations.dc.html": {
+      "h": 7314,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7g · Destinations",
+      "w": 3024,
+      "x": 0,
+      "y": 42666
+    },
+    "DashHome.dc.html": {
+      "h": 5444,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7a · Home",
+      "w": 3024,
+      "x": 0,
+      "y": 0
+    },
+    "DashMediaNav.dc.html": {
+      "h": 4344,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7n · Media and Navigation",
+      "w": 3024,
+      "x": 0,
+      "y": 74094
+    },
+    "DashNewBookingA.dc.html": {
+      "h": 6444,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7c · New booking page, steps 1 to 3",
+      "w": 3024,
+      "x": 0,
+      "y": 8788
+    },
+    "DashNewBookingB.dc.html": {
+      "h": 4154,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7c · New booking page, steps 4 and 5",
+      "w": 3024,
+      "x": 0,
+      "y": 15352
+    },
+    "DashPackages.dc.html": {
+      "h": 1564,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7j · Packages, coming soon",
+      "w": 3024,
+      "x": 0,
+      "y": 62998
+    },
+    "DashPosts.dc.html": {
+      "h": 1564,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7l · Blog",
+      "w": 3024,
+      "x": 0,
+      "y": 67656
+    },
+    "DashServices.dc.html": {
+      "h": 5634,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7i · Experiences and services",
+      "w": 3024,
+      "x": 0,
+      "y": 57244
+    },
+    "DashSettingsA.dc.html": {
+      "h": 4444,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7o · Settings, profile, business, payments",
+      "w": 3024,
+      "x": 0,
+      "y": 78558
+    },
+    "DashSettingsB.dc.html": {
+      "h": 2754,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7o · Settings, team, integrations, security",
+      "w": 3024,
+      "x": 0,
+      "y": 83122
+    },
+    "DashStays.dc.html": {
+      "h": 7024,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7h · Stays",
+      "w": 3024,
+      "x": 0,
+      "y": 50100
+    },
+    "DashTeamLegal.dc.html": {
+      "h": 4634,
+      "is_interactive": true,
+      "page": "dashboard",
+      "title": "7m · Team and Legal",
+      "w": 3024,
+      "x": 0,
+      "y": 69340
+    },
+    "Drift.dc.html": {
+      "h": 1760,
+      "page": "audit",
+      "title": "3 · Token drift",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "Evidence.dc.html": {
+      "h": 2480,
+      "page": "audit",
+      "title": "2 · Where it is today",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "Flow.dc.html": {
+      "h": 1480,
+      "is_interactive": true,
+      "page": "audit",
+      "title": "8 · /booking/trip · add-ons (scroll, pick many)",
+      "w": 1440,
+      "x": 4920,
+      "y": 2900
+    },
+    "FlowPhone.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "audit",
+      "title": "8a · Phone · add-ons (scroll, pick many)",
+      "w": 390,
+      "x": 6440,
+      "y": 2900
+    },
+    "FoundationsColor.dc.html": {
+      "h": 3350,
+      "is_interactive": true,
+      "page": "foundations",
+      "title": "2a · Colour",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "FoundationsColorAr.dc.html": {
+      "h": 3350,
+      "page": "foundations",
+      "title": "2a · Colour · Arabic RTL (fixed)",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "FoundationsSpace.dc.html": {
+      "h": 4200,
+      "is_interactive": true,
+      "page": "foundations",
+      "title": "2c · Space, shape, motion, dense",
+      "w": 1440,
+      "x": 6080,
+      "y": 0
+    },
+    "FoundationsSpaceAr.dc.html": {
+      "h": 4200,
+      "page": "foundations",
+      "title": "2c · Space, shape, motion, dense · Arabic RTL (fixed)",
+      "w": 1440,
+      "x": 7600,
+      "y": 0
+    },
+    "FoundationsType.dc.html": {
+      "h": 3400,
+      "is_interactive": true,
+      "page": "foundations",
+      "title": "2b · Type",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "FoundationsTypeAr.dc.html": {
+      "h": 3400,
+      "page": "foundations",
+      "title": "2b · Type · Arabic RTL (fixed)",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "GuestAccount.dc.html": {
+      "h": 6082,
+      "is_interactive": true,
+      "page": "guest",
+      "title": "6b · Account",
+      "w": 3024,
+      "x": 0,
+      "y": 4958
+    },
+    "GuestBookings.dc.html": {
+      "h": 5482,
+      "is_interactive": true,
+      "page": "guest",
+      "title": "6c · Bookings",
+      "w": 3024,
+      "x": 0,
+      "y": 11160
+    },
+    "GuestCancel.dc.html": {
+      "h": 2180,
+      "is_interactive": true,
+      "page": "guest",
+      "title": "6g · Cancellation and refund, all states",
+      "w": 2216,
+      "x": 0,
+      "y": 25376
+    },
+    "GuestDelete.dc.html": {
+      "h": 2876,
+      "is_interactive": true,
+      "page": "guest",
+      "title": "6f · Delete account, all states",
+      "w": 2580,
+      "x": 0,
+      "y": 22380
+    },
+    "GuestLogin.dc.html": {
+      "h": 4838,
+      "is_interactive": true,
+      "page": "guest",
+      "title": "6a · Login",
+      "w": 3024,
+      "x": 0,
+      "y": 0
+    },
+    "GuestMenu.dc.html": {
+      "h": 1874,
+      "is_interactive": true,
+      "page": "guest",
+      "title": "6e · Account access (header menu)",
+      "w": 2110,
+      "x": 0,
+      "y": 20386
+    },
+    "GuestTrip.dc.html": {
+      "h": 3504,
+      "is_interactive": true,
+      "page": "guest",
+      "title": "6d · Trip detail",
+      "w": 3024,
+      "x": 0,
+      "y": 16762
+    },
+    "Hero.dc.html": {
+      "h": 1100,
+      "is_interactive": true,
+      "page": "audit",
+      "title": "5 · Desktop hero · journey bar (click it)",
+      "w": 1440,
+      "x": 0,
+      "y": 2900
+    },
+    "HeroPhone.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "audit",
+      "title": "6 · Phone hero (click it)",
+      "w": 390,
+      "x": 1520,
+      "y": 2900
+    },
+    "JourneyAddons.dc.html": {
+      "h": 4302,
+      "is_interactive": true,
+      "page": "journey",
+      "title": "4c · Add-ons step (desktop)",
+      "w": 1440,
+      "x": 0,
+      "y": 6628
+    },
+    "JourneyBar.dc.html": {
+      "h": 4700,
+      "is_interactive": true,
+      "page": "journey",
+      "title": "4a · Journey bar (desktop and tablet)",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "JourneyPhone.dc.html": {
+      "h": 1688,
+      "is_interactive": true,
+      "page": "journey",
+      "title": "4b · Phone journey",
+      "w": 3880,
+      "x": 0,
+      "y": 4820
+    },
+    "JourneyPhoneAddons.dc.html": {
+      "h": 2562,
+      "is_interactive": true,
+      "page": "journey",
+      "title": "4d · Phone add-ons, cart and Pay",
+      "w": 1440,
+      "x": 0,
+      "y": 11050
+    },
+    "Main.dc.html": {
+      "h": 1760,
+      "page": "audit",
+      "title": "1 · Verdict",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "PhoneWhen.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "audit",
+      "title": "6b · Phone step 2 · When",
+      "w": 390,
+      "x": 2460,
+      "y": 2900
+    },
+    "PhoneWhere.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "audit",
+      "title": "6a · Phone step 1 · Where",
+      "w": 390,
+      "x": 1990,
+      "y": 2900
+    },
+    "PhoneWho.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "audit",
+      "title": "6c · Phone step 3 · Who",
+      "w": 390,
+      "x": 2930,
+      "y": 2900
+    },
+    "Plan.dc.html": {
+      "h": 1760,
+      "page": "audit",
+      "title": "4 · The order (decided)",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "PublicAbout.dc.html": {
+      "h": 4533,
+      "is_interactive": true,
+      "page": "public",
+      "title": "5b · About",
+      "w": 3024,
+      "x": 0,
+      "y": 7752
+    },
+    "PublicBlog.dc.html": {
+      "h": 3081,
+      "is_interactive": true,
+      "page": "public",
+      "title": "5j · Blog",
+      "w": 3024,
+      "x": 0,
+      "y": 38289
+    },
+    "PublicBlogPost.dc.html": {
+      "h": 5052,
+      "is_interactive": true,
+      "page": "public",
+      "title": "5k · Blog post",
+      "w": 3024,
+      "x": 0,
+      "y": 41490
+    },
+    "PublicCart.dc.html": {
+      "h": 1424,
+      "is_interactive": true,
+      "page": "public",
+      "title": "5g · Cart in the header",
+      "w": 2230,
+      "x": 0,
+      "y": 25290
+    },
+    "PublicContact.dc.html": {
+      "h": 3088,
+      "is_interactive": true,
+      "page": "public",
+      "title": "5c · Contact",
+      "w": 3024,
+      "x": 0,
+      "y": 12405
+    },
+    "PublicDestinations.dc.html": {
+      "h": 3444,
+      "is_interactive": true,
+      "page": "public",
+      "title": "5d · Destinations",
+      "w": 3024,
+      "x": 0,
+      "y": 15613
+    },
+    "PublicExperiences.dc.html": {
+      "h": 4419,
+      "is_interactive": true,
+      "page": "public",
+      "title": "5e · Experiences and services",
+      "w": 3024,
+      "x": 0,
+      "y": 19177
+    },
+    "PublicHome.dc.html": {
+      "h": 7632,
+      "is_interactive": true,
+      "page": "public",
+      "title": "5a · Home",
+      "w": 5928,
+      "x": 0,
+      "y": 0
+    },
+    "PublicOverlay.dc.html": {
+      "h": 1454,
+      "is_interactive": true,
+      "page": "public",
+      "title": "5f · Experience and service overlay",
+      "w": 2110,
+      "x": 0,
+      "y": 23716
+    },
+    "PublicStayDetail.dc.html": {
+      "h": 7408,
+      "is_interactive": true,
+      "page": "public",
+      "title": "5i · Stay detail",
+      "w": 3024,
+      "x": 0,
+      "y": 30761
+    },
+    "PublicStays.dc.html": {
+      "h": 3807,
+      "is_interactive": true,
+      "page": "public",
+      "title": "5h · Private stays",
+      "w": 3024,
+      "x": 0,
+      "y": 26834
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-28T15:15:00Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/code/artifact/f69f08c9-a17d-42b7-a0bc-ffe15c816f4f",
+      "copiedAt": "2026-09-28T15:15:00Z",
+      "namespace": "ui-system",
+      "title": "UI System",
+      "version": "1790516248-4f0f"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "booker": {
+      "kind": "title1",
+      "maxW": 6830,
+      "page": "audit",
+      "text": "Journey bar and booking flow · v2, simpler phone · for your sign-off",
+      "w": 240,
+      "x": 0,
+      "y": 2640
+    },
+    "head": {
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "audit",
+      "text": "ALMAR · brand & design system audit · 28/09/2026",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "head-comp": {
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "components",
+      "text": "Components · for your sign-off · Arabic and Spanish are drafts",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "head-dashboard": {
+      "kind": "title1",
+      "maxW": 2700,
+      "page": "dashboard",
+      "text": "Dashboard · for your sign-off · Arabic and Spanish are drafts",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "head-found": {
+      "kind": "title1",
+      "maxW": 8000,
+      "page": "foundations",
+      "text": "Foundations · for your sign-off · Arabic and Spanish are drafts",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "head-guest": {
+      "kind": "title1",
+      "maxW": 3000,
+      "page": "guest",
+      "text": "Guest · for your sign-off · Arabic and Spanish are drafts",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "head-journey": {
+      "kind": "title1",
+      "maxW": 3800,
+      "page": "journey",
+      "text": "Journey · for your sign-off · Arabic and Spanish are drafts",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "head-public": {
+      "kind": "title1",
+      "maxW": 6100,
+      "page": "public",
+      "text": "Public pages · for your sign-off · Arabic and Spanish are drafts",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Evidence.dc.html",
+    "Drift.dc.html",
+    "Plan.dc.html",
+    "Hero.dc.html",
+    "HeroPhone.dc.html",
+    "PhoneWhere.dc.html",
+    "PhoneWhen.dc.html",
+    "PhoneWho.dc.html",
+    "BookerKit.dc.html",
+    "Flow.dc.html",
+    "FlowPhone.dc.html",
+    "FoundationsColor.dc.html",
+    "FoundationsColorAr.dc.html",
+    "FoundationsType.dc.html",
+    "FoundationsTypeAr.dc.html",
+    "FoundationsSpace.dc.html",
+    "FoundationsSpaceAr.dc.html",
+    "ComponentsControls.dc.html",
+    "ComponentsControlsAr.dc.html",
+    "ComponentsSurfaces.dc.html",
+    "ComponentsSurfacesAr.dc.html",
+    "PublicHome.dc.html",
+    "PublicAbout.dc.html",
+    "PublicContact.dc.html",
+    "PublicDestinations.dc.html",
+    "PublicExperiences.dc.html",
+    "PublicOverlay.dc.html",
+    "PublicCart.dc.html",
+    "PublicStays.dc.html",
+    "PublicStayDetail.dc.html",
+    "PublicBlog.dc.html",
+    "PublicBlogPost.dc.html",
+    "JourneyBar.dc.html",
+    "JourneyPhone.dc.html",
+    "JourneyAddons.dc.html",
+    "JourneyPhoneAddons.dc.html",
+    "GuestLogin.dc.html",
+    "GuestAccount.dc.html",
+    "GuestBookings.dc.html",
+    "GuestTrip.dc.html",
+    "GuestMenu.dc.html",
+    "GuestDelete.dc.html",
+    "GuestCancel.dc.html",
+    "DashHome.dc.html",
+    "DashBookings.dc.html",
+    "DashNewBookingA.dc.html",
+    "DashNewBookingB.dc.html",
+    "DashBookingDetailA.dc.html",
+    "DashBookingDetailB.dc.html",
+    "DashCustomers.dc.html",
+    "DashCustomerProfile.dc.html",
+    "DashCalendar.dc.html",
+    "DashDestinations.dc.html",
+    "DashStays.dc.html",
+    "DashServices.dc.html",
+    "DashPackages.dc.html",
+    "DashContent.dc.html",
+    "DashPosts.dc.html",
+    "DashTeamLegal.dc.html",
+    "DashMediaNav.dc.html",
+    "DashSettingsA.dc.html",
+    "DashSettingsB.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "audit",
+      "name": "1 · Audit"
+    },
+    {
+      "id": "foundations",
+      "name": "2 · Foundations"
+    },
+    {
+      "id": "components",
+      "name": "3 · Components"
+    },
+    {
+      "id": "journey",
+      "name": "4 · Journey"
+    },
+    {
+      "id": "public",
+      "name": "5 · Public pages"
+    },
+    {
+      "id": "guest",
+      "name": "6 · Guest"
+    },
+    {
+      "id": "dashboard",
+      "name": "7 · Dashboard"
+    }
+  ],
+  "title": "ALMAR Design System Audit"
+}

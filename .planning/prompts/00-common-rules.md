@@ -32,7 +32,8 @@ jobs: report to it. On the Mac, message the control session with SendMessage. De
 - Next.js 15.5.26, React 18.3, `@opennextjs/cloudflare` 1.20.6 installed (server runtime not
   configured: plan 02-08 Task 2), wrangler 4.141, Tailwind v4 (4.3.3) generated from `tokens.json`
   (`npm run tokens`). The design system is the claude.ai canvas
-  https://claude.ai/artifact/6MqV4cd2KzXLsVputN2ctw. `/design` and `/framer` are deleted.
+  https://claude.ai/artifact/6MqV4cd2KzXLsVputN2ctw; a copy of its 63 boards (2026-10-01) is in
+  `.planning/design/2026-10-01-canvas/`. `/design` and `/framer` are deleted.
 - Supabase: one project (plan 02-01); the app is not wired; no `.env.local`; its three names are
   secrets on Worker `almar`. Stripe and Resend: nothing live. Never read, print or write a secret value.
 - Dev server: `npm run dev -- -H 127.0.0.1 -p 3010` (on the Mac, port 3000 is another product).

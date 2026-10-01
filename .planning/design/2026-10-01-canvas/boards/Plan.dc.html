@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ALMAR audit · The order</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400..700&amp;family=Inter:wght@400..700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap">
+<style>
+body{margin:0;background:#FBFAF6;color:#11100D;font-family:'Inter',ui-sans-serif,system-ui,sans-serif}
+a{color:#C63D08}a:hover{color:#BE4B27}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1760px; box-sizing: border-box; padding: 80px 96px; background: #FBFAF6; display: flex; flex-direction: column; gap: 36px; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; color: #11100D;">
+
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 1040px;">
+<div style="font-size: 11px; line-height: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #5E5A54;">Decided 28/09/2026 · in .planning/ROADMAP.md (commit 9b8422b) · each phase still has your gates</div>
+<h1 style="margin: 0; font-family: 'Inter Tight', sans-serif; font-size: 48px; line-height: 50px; font-weight: 600; letter-spacing: -0.03em;">The order</h1>
+<p style="margin: 0; font-size: 16px; line-height: 25px; color: #45423D;">Build each thing once, on real data, in the order a guest meets it. Dashboard screens get restyled when they become real, not in a separate pass.</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 12px;">
+
+<div style="display: grid; grid-template-columns: 120px 1fr 200px; gap: 24px; background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 22px 28px; align-items: start;">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #5E5A54;">done</div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">Stop patching Framer HTML</h3><p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">02-09 (string map on Framer pages) and 02-10 (prices in Framer strings) are paused in the roadmap.</p></div>
+<div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #E8F2E9; color: #005429;">Done</span></div>
+</div>
+
+<div style="display: grid; grid-template-columns: 120px 1fr 200px; gap: 24px; background: #FFFEFD; border: 2px solid #11100D; border-radius: 14px; padding: 22px 28px; align-items: start;">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600;">3.1</div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">Design system and journey bar</h3><p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">One token set, CSS per component, patches folded in, logos from brand/, teal tint token, gold never as text. Then the journey bar, phone steps, StepRail, AddOnRow (image, multi-select), InclusionsList and JourneyCart from boards 5–8a, in /design, EN/AR/ES. No backend needed.</p></div>
+<div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #F9EFE5; color: #633A00;">Next · starts now</span></div>
+</div>
+
+<div style="display: grid; grid-template-columns: 120px 1fr 200px; gap: 24px; background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 22px 28px; align-items: start;">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #5E5A54;">02-08 · 02-04</div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">Platform pieces the catalog needs</h3><p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">Server runtime on Worker almar, and ops sign-in. The Supabase project exists (02-01); the app is not wired to it yet. Keys go into .env.local from your terminal.</p></div>
+<div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #F6F4F0; color: #45423D;">Owner gate: secrets</span></div>
+</div>
+
+<div style="display: grid; grid-template-columns: 120px 1fr 200px; gap: 24px; background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 22px 28px; align-items: start;">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #5E5A54;">3.2</div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">Real catalog and team</h3><p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">Destinations, stays with rates, experiences and services with images, inclusions kit, packages and Team save to Supabase and publish. The fake team goes. These screens get the dense dashboard style now.</p></div>
+<div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #E7EEFB; color: #103E92;">Real + restyle</span></div>
+</div>
+
+<div style="display: grid; grid-template-columns: 120px 1fr 200px; gap: 24px; background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 22px 28px; align-items: start;">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #5E5A54;">3.3</div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">Booking-path pages in React</h3><p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">Home with the journey bar, Private stays, Stay detail, Destinations, Experiences & Services. Same URLs, Framer look on the new tokens, reading the 3.2 catalog. Cut over one template at a time on Cloudflare.</p></div>
+<div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #FDE9E6; color: #860105;">Rewrite · deploy gate</span></div>
+</div>
+
+<div style="display: grid; grid-template-columns: 120px 1fr 200px; gap: 24px; background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 22px 28px; align-items: start;">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #5E5A54;">4</div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">Book and pay</h3><p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">/booking/trip for real: stay, add-ons cart, travelers, one checkout (deposit or full) on Stripe TEST.</p></div>
+<div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #F6F4F0; color: #45423D;">Existing phase</span></div>
+</div>
+
+<div style="display: grid; grid-template-columns: 120px 1fr 200px; gap: 24px; background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 22px 28px; align-items: start;">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #5E5A54;">5</div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">Ops OS</h3><p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">Bookings, customers, calendar, money, settings become real and get the dense style as they do.</p></div>
+<div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #F6F4F0; color: #45423D;">Existing phase</span></div>
+</div>
+
+<div style="display: grid; grid-template-columns: 120px 1fr 200px; gap: 24px; background: #FFFEFD; border: 1px solid #E1DED8; border-radius: 14px; padding: 22px 28px; align-items: start;">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #5E5A54;">6</div>
+<div style="display: flex; flex-direction: column; gap: 6px;"><h3 style="margin: 0; font-size: 20px; line-height: 27px; font-weight: 600;">Remaining pages, then delete the bridge</h3><p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">About, Contact, Services and detail, Blog and posts, packages, consult. Then remove the Framer route strings, /framer, injected scripts, vercel.json and the exporter README, keeping the 404 assemble step working.</p></div>
+<div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #F6F4F0; color: #45423D;">Existing phase</span></div>
+</div>
+
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px;">
+<div style="border-top: 2px solid #11100D; padding-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+<div style="font-size: 13px; font-weight: 600;">Brand book</div>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">Final, no further work. Use its logos, palette and typefaces. Ignore its "premium chauffeur service" paragraph (Vamos Taxi wording) and its lorem ipsum type page.</p>
+</div>
+<div style="border-top: 2px solid #11100D; padding-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+<div style="font-size: 13px; font-weight: 600;">Why not all pages first</div>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #45423D;">Pages built before the catalog is real get rebuilt when data arrives. About, Contact and Blog don't block a booking, so they wait.</p>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1760}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

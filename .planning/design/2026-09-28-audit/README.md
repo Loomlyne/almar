@@ -1,5 +1,7 @@
 # ALMAR design audit and journey bar — 28/09/2026
 
+**Superseded 2026-10-01** by `../2026-10-01-canvas/`, a copy of all 63 current boards. This folder is kept as history.
+
 Source canvas (owner can open it): https://claude.ai/artifact/6MqV4cd2KzXLsVputN2ctw
 These `.dc.html` files are the same boards as that canvas, copied here so Claude Code can read them.
 They are design references, not app code. Do not import them into the app.
