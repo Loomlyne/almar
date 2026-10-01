@@ -12,7 +12,9 @@ What it means here:
    deploys Worker `almar`. It builds nothing itself.
 3. Every other session does one job, on one branch, in its own folder under
    `/Users/koss/Developer/almar-wt/`, started from a prompt file in `.planning/prompts/`, and hands
-   over by commit name and a `HANDOVER.md`.
+   over by commit name and a `HANDOVER.md`. Replaced later the same day for where work runs:
+   work sessions are threads in the ALMAR cloud project (`2026-10-01-cloud-project.md`); a work
+   session on the Mac still uses `almar-wt/`.
 4. The control session checks each hand-over in a clean clone, then asks the owner for Ship through
    the question form. Only his own answer is a Ship.
 5. Models, as measured on Vamos: the control session on the strongest model; leads of money,

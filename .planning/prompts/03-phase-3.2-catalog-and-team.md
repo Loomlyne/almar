@@ -6,8 +6,9 @@ Read `.planning/prompts/00-common-rules.md` first and follow it.
 STARTS only after job 01 (Phase 3.1) has landed and the owner says go. Not started on 2026-10-01.
 Discuss may run while job 02 builds: it is talk and planning files, no code.
 
-Folder `/Users/koss/Developer/almar-wt/phase-3.2`, branch `gsd/phase-3.2-catalog-and-team`, cut
-from the base the control board names at that moment. Lead: Opus 5.5 (database and rates).
+One cloud thread (on the Mac: `/Users/koss/Developer/almar-wt/phase-3.2`), branch
+`gsd/phase-3.2-catalog-and-team`, cut from the base named in the common rules. Lead: Opus 5.5
+(database and rates). A fresh reviewer thread reads every database change before the hand-over.
 
 GOAL (ROADMAP)
 Ops can create and publish destinations, stays with rates, experiences and services with images,

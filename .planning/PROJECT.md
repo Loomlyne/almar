@@ -166,7 +166,7 @@ A guest can complete a real trip booking (stay + add-ons + pay) and ops can run 
 - Official name: ALMAR PRIVATE JOURNEYS. Brand personality: elegance, transformation, exclusivity. Voice: elegant, exclusive, inspiring, personalized.
 - Origin: founder from Colombia; UAE clients want to visit but fear safety; product is 24/7 private, accompanied luxury.
 - Brief (Notion) + July 2026 decisions: UAE/GCC-based guests; domain almarprivatejourney.com later; Cartagena & Medellín were the launch freeze — this project seeds five destinations in CMS instead.
-- Current codebase: Next.js 14.2.35 App Router, 27 `route.ts` HTML dumps, no DB/auth/payments. Map in `.planning/codebase/`.
+- Codebase at the start (2026-09-22): Next.js 14.2.35 App Router, 27 `route.ts` HTML dumps, no DB/auth/payments. Map in `.planning/codebase/`. Since 2026-09-26 Next is 15.5.26 (02-08); live state: `.planning/CONTROL-BOARD.md`.
 - Brand book in-repo: `brand/` (Guideline PDF, Questa, Lato, logos, icons, colors). Copied from Downloads 2026-09-22.
 - Team public: Maria Del Mar Valdes (founder), María Francis (co-founder).
 - Competitors (brief): Galavanta, Amakuna, Magical Colombia, Cielo Travel. ALMAR differentiator: security + 24/7 bilingual ops + bespoke, not canned itineraries.
@@ -174,8 +174,8 @@ A guest can complete a real trip booking (stay + add-ons + pay) and ops can run 
 
 ## Constraints
 
-- **Stack**: Next.js 14.2.35, React 18, TypeScript — existing pin. Cloudflare project name `almar`. Supabase + Stripe + Resend planned; create/paid only when Koss gates.
-- **Git**: GitHub `Loomlyne/almar`. Never push `main`. Branch → PR → CI.
+- **Stack**: Next.js 15.5.26 (bumped 2026-09-26 in 02-08), React 18, TypeScript, Tailwind v4. Cloudflare project name `almar`. Supabase + Stripe + Resend planned; create/paid only when Koss gates.
+- **Git**: GitHub `Loomlyne/almar`. Since 2026-10-01 only the control session pushes `main`, one commit per job, on the owner's Ship; no PR unless he asks (`decisions/2026-10-01-control-session.md`).
 - **Secrets**: none in repo or chat. Owner commands numbered, then wait.
 - **Contact**: do not replace `inquiries@almarprivatejourney.com` / `+971 56 388 3302`.
 - **Media**: Cloudflare only for files; Supabase never storage.

@@ -84,7 +84,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-08: Server runtime on Worker almar, no deploy (wave 2)
+- [ ] 02-08: Server runtime on Worker almar, no deploy (wave 2) — Task 1 done 2026-09-26 (approved packages, Next 15.5.26); Task 2 and the summary open
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -131,23 +131,23 @@ Plans:
   3. Deposit-paid / Confirmed nights hard-block; unpaid draft holds 30 minutes; maintenance blocks; overlap is an error
   4. Experiences & Services catalog + inclusions kit on/off per destination and per stay; media is https URLs only (R2, not Supabase storage)
 
-**Plans:** 13 plans
+**Plans:** 13/13 plans executed (summaries exist; no verification file)
 
 Plans:
 
-- [ ] 03-01-PLAN.md — Connect FX on /framer for the six written amounts. PAY-16 stays deferred.
-- [ ] 03-02-PLAN.md — Draw the /dashboard shell, rail, and overlay sidebar.
-- [ ] 03-03-PLAN.md — Connect language so copy and dir change on /framer.
-- [ ] 03-04-PLAN.md — Hero Search opens an empty /booking/trip. CMS-04 stays deferred.
-- [ ] 03-05-PLAN.md — Draw Sign in, Bookings, and Account. Sign in does not send.
-- [ ] 03-06-PLAN.md — Connect WhatsApp on /framer and the later public pages.
-- [ ] 03-07-PLAN.md — Connect the existing footer form. Success only after a Resend contact id.
-- [ ] 03-08-PLAN.md — Draw dashboard Home with empty slots.
-- [ ] 03-09-PLAN.md — Draw empty Bookings and Customers tables and sidebars.
-- [ ] 03-10-PLAN.md — Draw the empty calendar. OPS-09, STAY-04, and STAY-07 stay deferred.
-- [ ] 03-11-PLAN.md — Draw empty catalog editors. Catalogue requirements stay deferred.
-- [ ] 03-12-PLAN.md — Draw empty content editors. Publish does not publish.
-- [ ] 03-13-PLAN.md — Draw Settings and Profile. Nothing saves.
+- [x] 03-01-PLAN.md — Connect FX on /framer for the six written amounts. PAY-16 stays deferred.
+- [x] 03-02-PLAN.md — Draw the /dashboard shell, rail, and overlay sidebar.
+- [x] 03-03-PLAN.md — Connect language so copy and dir change on /framer.
+- [x] 03-04-PLAN.md — Hero Search opens an empty /booking/trip. CMS-04 stays deferred.
+- [x] 03-05-PLAN.md — Draw Sign in, Bookings, and Account. Sign in does not send.
+- [x] 03-06-PLAN.md — Connect WhatsApp on /framer and the later public pages.
+- [x] 03-07-PLAN.md — Connect the existing footer form. Success only after a Resend contact id.
+- [x] 03-08-PLAN.md — Draw dashboard Home with empty slots.
+- [x] 03-09-PLAN.md — Draw empty Bookings and Customers tables and sidebars.
+- [x] 03-10-PLAN.md — Draw the empty calendar. OPS-09, STAY-04, and STAY-07 stay deferred.
+- [x] 03-11-PLAN.md — Draw empty catalog editors. Catalogue requirements stay deferred.
+- [x] 03-12-PLAN.md — Draw empty content editors. Publish does not publish.
+- [x] 03-13-PLAN.md — Draw Settings and Profile. Nothing saves.
 
 ### Phase 3.1: Design system and journey bar (INSERTED)
 
@@ -165,7 +165,7 @@ Plans:
   5. The design-system canvas (claude.ai, 7 pages) is signed off page by page; journey bar (desktop 72px bar, phone one-tap entry + Where → When → Who steps), StepRail, AddOnRow, InclusionsList, JourneyCart are coded and match the canvas in a component-test harness in every state, EN/AR/ES, RTL; `/design` and `/framer` are removed
   6. No stock or invented people anywhere in React code, copy, or the canvas
 
-**Plans:** 17/29 plans executed
+**Plans:** 28/29 plans executed (plan 29 is the owner's test)
 
 Plans:
 - [x] 03.1-01-PLAN.md — Canvas Foundations and Components pages, owner gate (D-09)
@@ -178,24 +178,24 @@ Plans:
 - [x] 03.1-08-PLAN.md — Controls to Tailwind: Button, Link, Chip, ToggleCard, Stepper, Field, Checkbox, Switch
 - [x] 03.1-09-PLAN.md — Overlays to Tailwind: Dialog, ConfirmDialog, Toast, WhatsApp, DateField, Calendar
 - [x] 03.1-10-PLAN.md — Journey copy in EN/AR/ES, guest-summary formatter, shared types and fixtures
-- [ ] 03.1-11-PLAN.md — Canvas Journey page and tokens install, owner gate
+- [x] 03.1-11-PLAN.md — Canvas Journey page and tokens install, owner gate
 - [x] 03.1-12-PLAN.md — LocaleSelect (/account fix), nav and footer, logos from brand/
 - [x] 03.1-13-PLAN.md — Dashboard shell, sidebar, profile and settings to Tailwind
 - [x] 03.1-14-PLAN.md — Flag-gated test harness route and scene contract
-- [ ] 03.1-15-PLAN.md — Canvas Public pages page, owner gate
+- [x] 03.1-15-PLAN.md — Canvas Public pages page, owner gate
 - [x] 03.1-16-PLAN.md — Guest screens, status pages and layout to Tailwind
 - [x] 03.1-17-PLAN.md — Dashboard Home, Bookings, Customers to Tailwind
 - [x] 03.1-18-PLAN.md — Dashboard Calendar, Catalog, Content to Tailwind
-- [ ] 03.1-19-PLAN.md — DateRangePanel, GuestPanel, DestinationMenu
-- [ ] 03.1-20-PLAN.md — StepRail, AddOnRow, InclusionsList
-- [ ] 03.1-21-PLAN.md — JourneyCart and TeamSection
-- [ ] 03.1-22-PLAN.md — Canvas Guest page, owner gate
+- [x] 03.1-19-PLAN.md — DateRangePanel, GuestPanel, DestinationMenu
+- [x] 03.1-20-PLAN.md — StepRail, AddOnRow, InclusionsList
+- [x] 03.1-21-PLAN.md — JourneyCart and TeamSection
+- [x] 03.1-22-PLAN.md — Canvas Guest page, owner gate
 - [x] 03.1-23-PLAN.md — Hero-booker (embed) to Tailwind, embed proof
-- [ ] 03.1-24-PLAN.md — JourneySegment and JourneyBar
-- [ ] 03.1-25-PLAN.md — JourneySheet, phone entry and docked row
-- [ ] 03.1-26-PLAN.md — Canvas Dashboard page, owner gate
-- [ ] 03.1-27-PLAN.md — Final globals.css, strict guardrail, after-screenshots, production proof
-- [ ] 03.1-28-PLAN.md — Harness matrix screenshots, RTL and accessibility specs, report
+- [x] 03.1-24-PLAN.md — JourneySegment and JourneyBar
+- [x] 03.1-25-PLAN.md — JourneySheet, phone entry and docked row
+- [x] 03.1-26-PLAN.md — Canvas Dashboard page, owner gate
+- [x] 03.1-27-PLAN.md — Final globals.css, strict guardrail, after-screenshots, production proof
+- [x] 03.1-28-PLAN.md — Harness matrix screenshots, RTL and accessibility specs, report
 - [ ] 03.1-29-PLAN.md — Owner UAT and DSGN-01 wording
 
 ### Phase 3.2: Real catalog and team (INSERTED)
@@ -292,14 +292,14 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 3.2 → 3.3 → 4 → 5 → 6. Phase 3.1 can start now; 3.2 waits on 02-08 and 02-04.
+Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 3.2 → 3.3 → 4 → 5 → 6. Phase 3.1 waits on its owner test (plan 29); 3.2 waits on 02-08 and 02-04.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design system | 6/6 | Complete   | 2026-09-23 |
 | 2. Platform spine | 1/10 | In Progress|  |
-| 3. Catalog and calendar | 0/2 | Not started | - |
-| 3.1 Design system and journey bar | 17/29 | In Progress|  |
+| 3. Public site and dashboard | 13/13 | Executed, not verified | - |
+| 3.1 Design system and journey bar | 28/29 | In Progress (plan 29: owner test) |  |
 | 3.2 Real catalog and team | 0/? | Not started | - |
 | 3.3 Booking-path pages | 0/? | Not started | - |
 | 4. Book and pay | 0/3 | Not started | - |

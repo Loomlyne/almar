@@ -1,5 +1,7 @@
 # Handoff — ALMAR phase 3.1 (written 2026-09-29)
 
+**Superseded 2026-10-01** by `.planning/prompts/01-finish-phase-3.1.md`: plans 19 to 28 ran after this was written.
+
 Paste the "Prompt" block below into a new Claude Code session opened in `/Users/koss/Developer/almarprod-Website-Code`.
 
 ## Prompt

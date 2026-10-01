@@ -177,7 +177,7 @@ Deferred. Not in the current roadmap.
 | Inventing a live custom domain before purchase | Intended later: almarprivatejourney.com + dashboard.almarprivatejourney.com |
 | Brand-book “chauffeur service” and `+971 50 975 8018` | Brief/site win |
 | Eje Cafetero until ops adds it | CMS, not code |
-| vinext / OpenNext 1.20.x / Next 15–16 | Pin is Next 14.2.35 + OpenNext 1.15.x until a gated bump |
+| vinext / Next 16 | Next 15.5.26 + @opennextjs/cloudflare 1.20.6 installed 2026-09-26 (02-08); vinext and Next 16 wait for a gated bump |
 | Supabase Storage | R2 only |
 | Stripe hosted Checkout / Card Element / PAN in our app | Payment Element only |
 

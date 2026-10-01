@@ -69,6 +69,9 @@ members, comments on stories, Stripe live charges before the go-live plan, Verce
 
 ## How the work runs
 
-One control session lands work and deploys. Work sessions build one job each, in their own
-folder and branch, from a prompt file in `.planning/prompts/`. Skill `control-session`;
-ALMAR's rules: `CLAUDE.local.md`, section "One job, one branch, one ship".
+Work runs in the ALMAR cloud project: a coordinator plans and tracks, and each job is one thread
+on its own branch, started from a prompt file in `.planning/prompts/` and ending with a hand-over.
+Shipping stays on the owner's Mac: the control session checks each job in a clean copy, applies
+any database change, deploys on his word and checks the live site. Rules:
+`.planning/prompts/00-common-rules.md`; decisions `2026-10-01-control-session.md` and
+`2026-10-01-cloud-project.md`.

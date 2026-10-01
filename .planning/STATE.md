@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 3.1 plans approved by owner 2026-09-29; next: /gsd-execute-phase 3.1 (run Playwright plans sequentially)"
-last_updated: "2026-09-29T05:50:47.586Z"
-last_activity: 2026-09-29
+stopped_at: "Phase 3.1 plans 01-28 done; plan 29 (owner test) open; work moves to the ALMAR cloud project, ship stays with the Mac control session"
+last_updated: "2026-10-01T11:05:44.000Z"
+last_activity: 2026-10-01
 progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 58
-  completed_plans: 37
+  completed_plans: 48
   percent: 22
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 ## Current Position
 
 Phase: 3.1 (design-system-and-journey-bar-inserted) — EXECUTING
-Plan: 17 of 29
-Last activity: 2026-09-29
-Status: Ready to execute
+Plan: 28 of 29 (plan 29 is the owner's test)
+Last activity: 2026-10-01
+Status: Waiting for the owner's test
 
-Progress: [██████░░░░] 60%
+Progress: [█████████░] 97%
 
 ## Performance Metrics
 
@@ -71,10 +71,12 @@ Recent decisions affecting current work:
 - Rebuild, don’t patch Framer HTML
 - Design system first, then booking, then ops, then site cutover
 - 2026-09-28 (owner delegated the order): stop patching Framer → consolidate design system + journey bar (3.1) → real catalog and team (3.2) → booking-path pages (3.3) → Book & pay → Ops OS → remaining pages
-- Next 14.2.35 + OpenNext 1.15.x; Stripe TEST Payment Element; R2 not Supabase storage
+- Next 14.2.35 + OpenNext 1.15.x at the start; bumped 2026-09-26 in 02-08 to Next 15.5.26 + @opennextjs/cloudflare 1.20.6. Stripe TEST Payment Element; R2 not Supabase storage
 - [Phase 01]: Playwright dev server uses port 3010 — 127.0.0.1:3000 is held by Twenty CRM, not this repo
 - [Phase 02]: email-verification-api is rejected. The confirm email is Resend. — That package is not Resend. The magic link is the email.
 - [Phase 02]: Session time-box stays unset until the Supabase plan is Pro. — Free plan rejects time-boxed sessions. Owner approved closing 02-01 and will set 30 days after going Pro.
+- 2026-10-01: one control session lands work; each job lands as one commit on main on the owner's Ship, no PR (`decisions/2026-10-01-control-session.md`).
+- 2026-10-01: work moves to the ALMAR cloud project; shipping stays on the Mac with the control session (`decisions/2026-10-01-cloud-project.md`).
 
 ### Roadmap Evolution
 
@@ -89,7 +91,7 @@ None yet.
 
 - Cloudflare / Supabase / Stripe live / Resend domain are owner-gated — one numbered step, then wait
 - Owner password is never stored from chat; set in owner terminal when auth is gated
-- OpenNext 1.20.x / vinext need a gated Next bump
+- Server runtime not configured yet: plan 02-08 Task 2 (Next 15.5.26 and OpenNext 1.20.6 are installed)
 - Session time-box stays unset until the Supabase plan is Pro.
 
 ## Deferred Items
@@ -101,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-29T05:50:47.580Z
-Stopped at: Phase 3.1 plans approved by owner 2026-09-29; next: /gsd-execute-phase 3.1 (run Playwright plans sequentially)
-Resume file: None
+Last session: 2026-10-01T11:05:44.000Z
+Stopped at: Phase 3.1 plans 01-28 done; plan 29 (owner test) open; work moves to the ALMAR cloud project, ship stays with the Mac control session
+Resume file: .planning/prompts/01-finish-phase-3.1.md
