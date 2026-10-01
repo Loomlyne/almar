@@ -9,17 +9,15 @@ const CUSTOMERS_SCREEN = "app/dashboard/(ops)/customers/customers-screen.tsx";
 
 const SAMPLE_GUEST_NAMES = ["Maria", "Ahmed", "Sofia", "John Doe", "Jane Doe"];
 
-test("bookings and customers pages gate production and delegate to client screens", () => {
+test("bookings and customers pages have no page gate (02-04 owner gate in the layout) and delegate to client screens", () => {
   const bookingsPage = readFileSync(BOOKINGS_PAGE, "utf8");
   assert.equal(bookingsPage.includes("use client"), false);
-  assert.match(bookingsPage, /NODE_ENV/);
-  assert.match(bookingsPage, /notFound\(\)/);
+  assert.equal(/NODE_ENV|notFound\(\)/.test(bookingsPage), false);
   assert.match(bookingsPage, /from ["']\.\/bookings-screen["']/);
 
   const customersPage = readFileSync(CUSTOMERS_PAGE, "utf8");
   assert.equal(customersPage.includes("use client"), false);
-  assert.match(customersPage, /NODE_ENV/);
-  assert.match(customersPage, /notFound\(\)/);
+  assert.equal(/NODE_ENV|notFound\(\)/.test(customersPage), false);
   assert.match(customersPage, /from ["']\.\/customers-screen["']/);
 });
 

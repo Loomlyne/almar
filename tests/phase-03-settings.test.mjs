@@ -11,17 +11,15 @@ const OPS_LAYOUT = "app/dashboard/(ops)/layout.tsx";
 const DIALOG = "components/ui/dialog.tsx";
 const SIDEBAR = "components/ui/sidebar.tsx";
 
-test("settings and profile pages gate production, stay server components, and delegate to client screens", () => {
+test("settings and profile pages have no page gate (02-04), stay server components, and delegate to client screens", () => {
   const settingsPage = readFileSync(SETTINGS_PAGE, "utf8");
   assert.equal(settingsPage.includes('"use client"'), false);
-  assert.match(settingsPage, /NODE_ENV/);
-  assert.match(settingsPage, /notFound\(\)/);
+  assert.equal(/NODE_ENV|notFound\(\)/.test(settingsPage), false);
   assert.match(settingsPage, /from ["']\.\/settings-screen["']/);
 
   const profilePage = readFileSync(PROFILE_PAGE, "utf8");
   assert.equal(profilePage.includes('"use client"'), false);
-  assert.match(profilePage, /NODE_ENV/);
-  assert.match(profilePage, /notFound\(\)/);
+  assert.equal(/NODE_ENV|notFound\(\)/.test(profilePage), false);
   assert.match(profilePage, /from ["']\.\/profile-screen["']/);
 });
 
