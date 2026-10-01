@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Journey bar design-system spec</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400&amp;family=Noto+Sans+Arabic:wght@400;700&amp;family=JetBrains+Mono:wght@400..600&amp;display=swap">
+<style>
+@font-face{font-family:'Questa';src:url('/_blob/dfb13bed53d3c684b2436f251c533b6f') format('woff');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Lato';src:url('/_blob/77d52f10b0e77b462369bcd47ca1c172') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Lato';src:url('/_blob/32fa77770b678d5e662eb3e29bdb2c6b') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+body{margin:0;background:#fffaf0;color:#262626;font-family:'Lato',Arial,sans-serif}
+a{color:#1f3b40}a:hover{color:#1f3b40}
+</style>
+</helmet>
+<div style="width: 1440px; height: 2240px; box-sizing: border-box; padding: 80px 100px; background: #fffaf0; font-family: 'Lato', Arial, sans-serif; color: #262626; display: flex; flex-direction: column; gap: 56px;">
+
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 980px;">
+<div style="font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; color: #63615f;">Design system · booking components</div>
+<h1 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 64px; line-height: 66px; letter-spacing: -0.02em; color: #1f3b40;">Journey bar and booking flow</h1>
+<p style="margin: 0; font-size: 17px; line-height: 28px;">One set of components drives the desktop bar, the phone steps, the trip summary on /booking/trip and the dashboard's "New booking". Values come only from tokens. Roles follow UI System naming so the consolidation pass has one vocabulary.</p>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 20px;">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 32px; color: #1f3b40;">Tokens used</h2>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px;">
+<div style="display: flex; flex-direction: column; gap: 8px;"><span style="height: 72px; background: #fffaf0; border: 1px solid rgba(38, 38, 38, 0.16); display: block;"></span><span style="font-size: 14px; font-weight: 700;">bg · ivory</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #63615f;">#fffaf0 · bar, page</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px;"><span style="height: 72px; background: #ffffff; border: 1px solid rgba(38, 38, 38, 0.16); display: block;"></span><span style="font-size: 14px; font-weight: 700;">surface · white</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #63615f;">#ffffff · panels, open segment</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px;"><span style="height: 72px; background: #1f3b40; display: block;"></span><span style="font-size: 14px; font-weight: 700;">primary · teal</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #63615f;">#1f3b40 · Search, selected, rules</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px;"><span style="height: 72px; background: #d1dfe0; display: block;"></span><span style="font-size: 14px; font-weight: 700;">primary-soft · teal tint</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #63615f;">#d1dfe0 · range, included, selected row</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px;"><span style="height: 72px; background: #d4ba8a; display: block;"></span><span style="font-size: 14px; font-weight: 700;">accent · gold</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #63615f;">#d4ba8a · 2px bar rule only</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px;"><span style="height: 72px; background: #262626; display: block;"></span><span style="font-size: 14px; font-weight: 700;">ink · charcoal</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #63615f;">#262626 · values, body</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px;"><span style="height: 72px; background: #63615f; display: block;"></span><span style="font-size: 14px; font-weight: 700;">ink-3 · muted</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #63615f;">#63615f · labels, placeholders</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px;"><span style="height: 72px; background: rgba(38, 38, 38, 0.16); display: block;"></span><span style="font-size: 14px; font-weight: 700;">line</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #63615f;">charcoal 16% · dividers</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px;"><span style="height: 72px; background: #8f2d2d; display: block;"></span><span style="font-size: 14px; font-weight: 700;">danger-text</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #63615f;">#8f2d2d · missing field</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px; justify-content: flex-end;"><span style="font-size: 14px; font-weight: 700;">shape · type · size</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 18px; color: #63615f;">radius 0 · Questa / Lato · Noto Naskh / Noto Sans (AR) · control 44 · bar 72 (desktop) · entry 64 (phone) · shadow-float bar · shadow-lg panels</span></div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px;">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 32px; color: #1f3b40;">JourneySegment · states</h2>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px;">
+<div style="display: flex; flex-direction: column; gap: 10px;"><div style="height: 72px; padding: 0 24px; background: #fffaf0; border: 1px solid rgba(38, 38, 38, 0.16); display: flex; flex-direction: column; justify-content: center; gap: 2px;"><span style="font-size: 13px; font-weight: 700; color: #63615f;">Destination</span><span style="font-size: 16px; color: #63615f;">Where to?</span></div><span style="font-size: 13px; font-weight: 700;">Empty</span></div>
+<div style="display: flex; flex-direction: column; gap: 10px;"><div style="height: 72px; padding: 0 24px; background: #ffffff; border: 1px solid rgba(38, 38, 38, 0.16); display: flex; flex-direction: column; justify-content: center; gap: 2px;"><span style="font-size: 13px; font-weight: 700; color: #63615f;">Destination</span><span style="font-size: 16px; color: #63615f;">Where to?</span></div><span style="font-size: 13px; font-weight: 700;">Hover</span></div>
+<div style="display: flex; flex-direction: column; gap: 10px;"><div style="height: 72px; padding: 0 24px; background: #ffffff; border: 1px solid rgba(38, 38, 38, 0.16); box-shadow: inset 0 -3px 0 #1f3b40; display: flex; flex-direction: column; justify-content: center; gap: 2px;"><span style="font-size: 13px; font-weight: 700; color: #63615f;">Destination</span><span style="font-size: 16px; color: #63615f;">Where to?</span></div><span style="font-size: 13px; font-weight: 700;">Open · focus</span></div>
+<div style="display: flex; flex-direction: column; gap: 10px;"><div style="height: 72px; padding: 0 24px; background: #fffaf0; border: 1px solid rgba(38, 38, 38, 0.16); display: flex; flex-direction: column; justify-content: center; gap: 2px;"><span style="font-size: 13px; font-weight: 700; color: #63615f;">Destination</span><span style="font-size: 16px; color: #262626;">Cartagena</span></div><span style="font-size: 13px; font-weight: 700;">Filled</span></div>
+<div style="display: flex; flex-direction: column; gap: 10px;"><div style="height: 72px; padding: 0 24px; background: #fffaf0; border: 1px solid rgba(38, 38, 38, 0.16); box-shadow: inset 0 -3px 0 #8f2d2d; display: flex; flex-direction: column; justify-content: center; gap: 6px;"><span style="font-size: 13px; font-weight: 700; color: #8f2d2d;">Destination</span><span style="font-size: 16px; color: #63615f;">Where to?</span></div><span style="font-size: 13px; font-weight: 700;">Missing after Search</span></div>
+</div>
+</section>
+
+<section style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px;">
+<div style="display: flex; flex-direction: column; gap: 16px;">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 28px; color: #1f3b40;">DayCell</h2>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 16px; font-size: 13px;">
+<div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;"><span style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: #ffffff;">14</span>Default</div>
+<div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;"><span style="width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: #ffffff; border: 1px solid #1f3b40;">14</span>Hover</div>
+<div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;"><span style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; background: #1f3b40; color: #fffaf0;">12</span>Arrive / leave</div>
+<div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;"><span style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; background: #d1dfe0;">14</span>In range</div>
+<div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;"><span style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: rgba(38, 38, 38, 0.35); background: #ffffff;">27</span>Past · unavailable</div>
+<div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;"><span style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; background: #ffffff; box-shadow: inset 0 -2px 0 #1f3b40;">28</span>Today</div>
+</div>
+<p style="margin: 0; font-size: 13px; line-height: 19px; color: #63615f;">DD/MM/YYYY, week starts Monday, Western numerals in every language. Reuses CalendarPanel logic.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 16px;">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 28px; color: #1f3b40;">GuestStepper</h2>
+<div style="display: flex; align-items: center; gap: 16px; background: #ffffff; padding: 12px 16px;"><span style="flex-grow: 1; font-family: 'Questa', Georgia, serif; font-size: 20px; color: #1f3b40;">Adults</span><span style="width: 44px; height: 44px; border: 1px solid rgba(38, 38, 38, 0.2); color: rgba(38, 38, 38, 0.35); display: flex; align-items: center; justify-content: center;">−</span><span style="width: 24px; text-align: center; font-weight: 700;">1</span><span style="width: 44px; height: 44px; border: 1px solid #1f3b40; color: #1f3b40; display: flex; align-items: center; justify-content: center;">+</span></div>
+<div style="font-size: 13px; color: #63615f;">At floor: minus disabled (adults 1, others 0)</div>
+<div style="display: flex; align-items: center; gap: 16px; background: #ffffff; padding: 12px 16px;"><span style="flex-grow: 1; font-family: 'Questa', Georgia, serif; font-size: 20px; color: #1f3b40;">Children</span><span style="width: 44px; height: 44px; border: 1px solid #1f3b40; color: #1f3b40; display: flex; align-items: center; justify-content: center;">−</span><span style="width: 24px; text-align: center; font-weight: 700;">2</span><span style="width: 44px; height: 44px; border: 1px solid #1f3b40; color: #1f3b40; display: flex; align-items: center; justify-content: center;">+</span></div>
+<div style="font-size: 13px; color: #63615f;">Over a stay's max: the stay shows the reason on step 1, the bar never blocks.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 16px;">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 28px; color: #1f3b40;">AddOnToggle · StepRail</h2>
+<div style="display: flex; gap: 12px;">
+<span style="height: 44px; padding: 0 20px; border: 1px solid #1f3b40; color: #1f3b40; display: flex; align-items: center; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;">Add</span>
+<span style="height: 44px; padding: 0 20px; background: #1f3b40; color: #fffaf0; display: flex; align-items: center; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;">✓ Added</span>
+<span style="height: 44px; padding: 0 16px; background: #d1dfe0; color: #1f3b40; display: flex; align-items: center; font-size: 13px; font-weight: 700;">Included</span>
+</div>
+<div style="font-size: 13px; color: #63615f;">A toggle button with aria-pressed. No radio controls.</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid rgba(38, 38, 38, 0.16); font-size: 14px; font-weight: 700;">
+<span style="padding-bottom: 12px; color: #1f3b40;">✓ Done</span>
+<span style="padding-bottom: 9px; color: #1f3b40; box-shadow: inset 0 -3px 0 #1f3b40;">2 Current</span>
+<span style="padding-bottom: 12px; color: #63615f;">3 Next</span>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px;">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 32px; color: #1f3b40;">Arabic · the whole bar mirrors</h2>
+<form dir="rtl" lang="ar" role="search" aria-label="خططوا رحلتكم" style="width: 1240px; height: 72px; display: flex; background: #fffaf0; border-top: 2px solid #d4ba8a; box-shadow: 0 18px 40px -10px rgba(10, 9, 7, 0.3), 0 4px 10px -4px rgba(10, 9, 7, 0.1); font-family: 'Noto Sans Arabic', 'Lato', sans-serif;">
+<div style="flex-grow: 1.1; flex-basis: 0; padding: 0 28px; display: flex; flex-direction: column; justify-content: center; gap: 2px;"><span style="font-size: 13px; font-weight: 700; color: #63615f;">الوجهة</span><span style="font-size: 16px; color: #262626;">كارتاخينا</span></div>
+<span style="width: 1px; height: 36px; align-self: center; background: rgba(38, 38, 38, 0.16);"></span>
+<div style="flex-grow: 1.5; flex-basis: 0; padding: 0 28px; display: flex; flex-direction: column; justify-content: center; gap: 2px;"><span style="font-size: 13px; font-weight: 700; color: #63615f;">التواريخ</span><span style="font-size: 16px; color: #262626; direction: rtl;">12/10/2026 – 17/10/2026</span></div>
+<span style="width: 1px; height: 36px; align-self: center; background: rgba(38, 38, 38, 0.16);"></span>
+<div style="flex-grow: 1.1; flex-basis: 0; padding: 0 28px; display: flex; flex-direction: column; justify-content: center; gap: 2px;"><span style="font-size: 13px; font-weight: 700; color: #63615f;">الضيوف</span><span style="font-size: 16px; color: #262626;">ضيفان</span></div>
+<span style="width: 200px; height: 72px; flex-shrink: 0; background: #1f3b40; color: #fffaf0; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; font-weight: 700;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13" cy="11" r="7"></circle><path d="M4 20l3.5-3.5"></path></svg>بحث</span>
+</form>
+<p style="margin: 0; font-size: 14px; line-height: 21px; color: #63615f;">Logical CSS only (inline-start / inline-end). Panels open from the same segment, mirrored. Search icon flips. Dates stay DD/MM/YYYY with Western numerals. Uppercase tracking is dropped for Arabic labels.</p>
+</section>
+
+<section style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; border-top: 1px solid #262626; padding-top: 28px;">
+<div style="display: flex; flex-direction: column; gap: 12px;">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 28px; color: #1f3b40;">Components to build</h2>
+<div style="display: grid; grid-template-columns: 200px 1fr; gap: 8px 16px; font-size: 14px; line-height: 20px;">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">JourneyBar</span><span>Hero, sticky header on scroll, /booking/trip summary (compact)</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">JourneySegment</span><span>Label + value button, 5 states</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">DestinationMenu</span><span>From CMS destinations, one per journey</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">DateRangePanel</span><span>2 months desktop, 1 month phone</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">GuestPanel</span><span>Adults, children, infants steppers</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">JourneySheet</span><span>Phone: one tap target in the hero, then 3 steps: Where → When → Who</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">StepRail</span><span>Stay · Add-ons · Travelers · Pay</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">AddOnRow</span><span>Catalog item, unit, price, toggle</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">InclusionsList</span><span>Per destination / stay from the inclusions kit</span>
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">JourneyCart</span><span>One cart for stay + add-ons, feeds Pay</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px;">
+<h2 style="margin: 0; font-family: 'Questa', Georgia, serif; font-weight: 400; font-size: 28px; color: #1f3b40;">Rules</h2>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 21px;">
+<span>• Square corners everywhere. No pills.</span>
+<span>• Gold is the 2px bar rule only. Never text on ivory or white.</span>
+<span>• Search validates, it is never disabled. Missing fields get the error rule and one alert line.</span>
+<span>• Search never charges. The first charge is step 4.</span>
+<span>• Every value, label and alt in EN / AR / ES. No hard-coded copy in components.</span>
+<span>• Destinations, add-ons, inclusions and prices come from the dashboard. Nothing seeded in the component.</span>
+<span>• Touch targets 44 px minimum. Visible focus: 3px teal rule inside the segment, 2px teal outline elsewhere.</span>
+<span>• One source: the hero, phone sheet and /booking/trip summary are the same component in three sizes.</span>
+</div>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2240}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
