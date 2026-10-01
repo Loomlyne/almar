@@ -6,7 +6,7 @@ comes next. Updated at every hand-over and every landing. The goal: `GOAL.md`. T
 `prompts/00-common-rules.md`; decisions `decisions/2026-10-01-control-session.md` and
 `decisions/2026-10-01-cloud-project.md`.
 
-**Last update:** 2026-10-01 15:06 (+04).
+**Last update:** 2026-10-01 16:00 (+04), branch and job rows refreshed by the cloud cleanup thread.
 
 ## Live now
 
@@ -14,7 +14,7 @@ comes next. Updated at every hand-over and every landing. The goal: `GOAL.md`. T
 |---|---|
 | Site | https://almarprivatejourney.com and https://www.almarprivatejourney.com answer 200 with the static Framer export, title "Private luxury trips in Colombia \| ALMAR" (last read 15:06). `/booking/trip`, `/account`, `/login`, `/bookings`, `/dashboard`, `/fx`, `/newsletter`, `/embed/hero-booker` and `/__harness` answer 404. `dashboard.almarprivatejourney.com` has no DNS record |
 | Worker `almar` | Version `cbab55c7` (2026-09-26 21:46 +04, a secret change). Last code upload 2026-09-23 00:36 (+04). Secrets on the Worker, names only: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. Read with wrangler as koussayzayeni@gmail.com, account `e64b47de…` |
-| GitHub `Loomlyne/almar` (private) | `main` = `014ae37` (the August export and the Hermes contract). `host/cloudflare-frontsite` = last code commit `ba274a3` plus planning notes; everything since 2026-09-23 is there and only there |
+| GitHub `Loomlyne/almar` (private) | `main` = `014ae37` (the August export and the Hermes contract). `host/cloudflare-frontsite` = `8cc7b4e`; everything since 2026-09-23 is there and only there. Other branches (checked 2026-10-01 12:00 +04, no stale ones left): `claude/project-thread-ksoh69` (job 02 discuss refresh, PR #1 into the branch, the only open PR) and `claude/project-thread-8h6bed` (job 02 plan re-check and 02-08 Task 2). The two merge with no conflict. No worktree |
 | This Mac | `host/cloudflare-frontsite` equal to GitHub. Local `main` = `284cc31`: 9 commits not on GitHub `main`, all inside the branch. No stash, no other worktree, no tag |
 | GitHub alerts | 27 open Dependabot alerts (2 critical, 10 high, 13 medium, 2 low), all on `main`'s August lockfile (next 14.2.35, postcss). The branch has next 15.5.26 and postcss 8.5.28, above every fixed version: they close when 3.1 lands |
 | Database | One Supabase project (plan 02-01, Storage off, owner user confirmed). The app is not wired; no `.env.local`; no migration written |
@@ -22,14 +22,14 @@ comes next. Updated at every hand-over and every landing. The goal: `GOAL.md`. T
 | Stripe, Resend | Nothing live |
 | CI | None (no `.github`). The control check in a clean clone is the CI. Fresh clone of `1e6ec8e` on 2026-10-01: install, `tsc`, 157 of 157 node tests, `tokens:check` and the build pass; Playwright lists 1,133 tests |
 | Where work runs | The ALMAR cloud project: a coordinator and one thread per job, both Opus 5.5 High, GitHub only, no Mac (owner, 2026-10-01). Threads never push `main`, deploy or write to the live database |
-| Landing | On the owner's Ship, from this Mac: `backup/*` tag on `main` and `archive/*` tag on the branch tip, one commit on `main`, staged tree equal to the checked tree, push `main`. Deploys and DNS need his explicit word. No PR unless he asks |
+| Landing | On the owner's Ship, from this Mac: `backup/*` tag on `main` and `archive/*` tag on the branch tip, one commit on `main`, staged tree equal to the checked tree, push `main`. Deploys and DNS need his explicit word. No PR unless he asks. In the same step, delete every branch now on `main` (remote and local) and close its PR; only `main` and work in progress stay |
 
 ## Jobs
 
 | # | Job | Who | Branch | State | Needs |
 |---|---|---|---|---|---|
-| 01 | Finish Phase 3.1 (`prompts/01-finish-phase-3.1.md`) | Mac session "ALMAR phase 3.1 continuation"; a cloud thread if he closes it | `host/cloudflare-frontsite`; cloud: `gsd/phase-3.1-close` | 28 of 29 plans done. Plan 29 = owner test, 18 steps in `03.1-29-PLAN.md`, sent 2026-09-29 16:25, no answer yet. The steps need the dev server on the Mac | Owner test, then hand-over, control check, Ship question |
-| 02 | Phase 2 auth chain 02-08, 02-02, 02-03, 02-04 (`prompts/02-phase-2-auth-chain.md`) | one cloud thread | `gsd/phase-02-auth-chain` | Prompt written. 02-08 Task 1 done 2026-09-26 (packages, Next 15.5.26); Task 2 and the summary open | Job 01 landed, owner's go; first step re-checks the four plans |
+| 01 | Finish Phase 3.1 (`prompts/01-finish-phase-3.1.md`) | cloud thread "Finish phase 3.1 handover" | its own branch, not pushed yet | Plan 29 test recorded as passed 2026-10-01; review fixes W1 to W5 in progress; then 03.1-29-SUMMARY and 03.1-HANDOVER | Hand-over, control check, Ship question |
+| 02 | Phase 2 auth chain 02-08, 02-02, 02-03, 02-04 (`prompts/02-phase-2-auth-chain.md`) | cloud threads "Plan phase 2 auth chain" and "Read loomlyne/almar and propose next steps" | `claude/project-thread-ksoh69` (PR #1) and `claude/project-thread-8h6bed` | Discuss refresh signed 2026-10-01. Plans 02-02/03/04 re-checked and revised; 02-08 Task 2 (server runtime config, build only) and its summary written on `8h6bed` | Fold both branches into the base before the 3.1 ship, or land them after it as job 02 |
 | 03 | Phase 3.2 catalogue and team (`prompts/03-phase-3.2-catalog-and-team.md`) | one cloud thread | `gsd/phase-3.2-catalog-and-team` | Prompt written, not started | Job 01 landed, owner's go; code after job 02 |
 | later | 3.3 booking-path pages, 4 book and pay, 5 ops OS, 6 remaining pages | | | Roadmap | |
 
@@ -40,10 +40,8 @@ Base for new branches: `origin/host/cloudflare-frontsite` until Phase 3.1 lands,
 
 | # | What | Where |
 |---|---|---|
-| 1 | Plan 29 test, 18 numbered steps; "done" is a pass | Mac, with the 3.1 session or the control session |
-| 2 | Create the cloud project: general (name, goal, models), project instructions, GitHub repository; first message to the coordinator. Both texts were handed to him on 2026-10-01 | claude.ai |
-| 3 | Item 7 of his 2026-09-29 dashboard feedback arrived empty; not confirmed answered since | Any thread |
-| 4 | For Mac work only: the three Supabase names in a local `.env.local` (`02-USER-SETUP.md`); the 30-day session time-box after Pro | His terminal, Supabase |
+| 1 | Item 7 of his 2026-09-29 dashboard feedback arrived empty; not confirmed answered since | Any thread |
+| 2 | For Mac work only: the three Supabase names in a local `.env.local` (`02-USER-SETUP.md`); the 30-day session time-box after Pro | His terminal, Supabase |
 
 ## Sessions and folders
 
@@ -54,7 +52,7 @@ Base for new branches: `origin/host/cloudflare-frontsite` until Phase 3.1 lands,
 | GSD execute phase 3.1 | | main checkout | idle since 2026-09-29; its work is on the branch |
 | Phase 3.1 design system and journey bar | | main checkout | idle since 2026-09-28; its work is on the branch |
 | 14 Framer-era sessions, June and July | | home folder | the app removed their transcripts; titles only |
-| ALMAR cloud project | Opus 5.5 High | GitHub | being created by the owner |
+| ALMAR cloud project | Opus 5.5 High | GitHub | running since 2026-10-01 |
 
 All 18 local sessions sit in the sidebar group ALMAR. No work folder exists under
 `/Users/koss/Developer/almar-wt/`. Disk free: 51 GB.
