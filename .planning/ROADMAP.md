@@ -165,7 +165,7 @@ Plans:
   5. The design-system canvas (claude.ai, 7 pages) is signed off page by page; journey bar (desktop 72px bar, phone one-tap entry + Where → When → Who steps), StepRail, AddOnRow, InclusionsList, JourneyCart are coded and match the canvas in a component-test harness in every state, EN/AR/ES, RTL; `/design` and `/framer` are removed
   6. No stock or invented people anywhere in React code, copy, or the canvas
 
-**Plans:** 29/29 plans complete (landed on main 2026-10-01). Criterion 1 met except hand-written font sizes in `app/globals.css` (hand-over open item 3)
+**Plans:** 29/29 plans complete (landed on main 2026-10-02 as `9fd6786`; not deployed). Criterion 1 met except hand-written font sizes in `app/globals.css` (hand-over open item 3)
 
 Plans:
 - [x] 03.1-01-PLAN.md — Canvas Foundations and Components pages, owner gate (D-09)

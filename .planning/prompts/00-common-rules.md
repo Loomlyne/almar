@@ -1,17 +1,18 @@
 # Rules every ALMAR work session follows
 
-You are a work session: a thread in the ALMAR cloud project, or a session on the owner's Mac when he
-says so. You are not the control session. Only the "ALMAR control session" on his Mac
-(`local_90a0e6e2-4bce-4142-b7d6-2fd05b2a84e1`) lands work on GitHub `main`, applies migrations to the
-live Supabase project and deploys Worker `almar`. In the cloud, the coordinator plans and tracks the
-jobs: report to it. On the Mac, message the control session with SendMessage. Decisions behind this:
-`.planning/decisions/2026-10-01-control-session.md` and `2026-10-01-cloud-project.md`.
+You are a work session on the owner's Mac. You are not the controller. Only the "ALMAR controller"
+(`local_836ffacc-ca03-41c4-b1ff-385b8aa9d357`, pinned, sidebar group ALMAR; owner's choice 2026-10-02,
+replacing `local_90a0e6e2-…`) lands work on GitHub `main`, applies migrations to the live Supabase
+project and deploys Worker `almar`. The claude.ai cloud project ended 2026-10-01. Message the
+controller with SendMessage. Decisions behind this: `.planning/decisions/2026-10-01-control-session.md`
+and `2026-10-01-cloud-project.md` (the cloud part is ended).
 
 ## Base branch
-- Until Phase 3.1 lands, `origin/main` is `014ae37`, the August export, and all the work is on
-  `origin/host/cloudflare-frontsite`. Test: `git show origin/main:.planning/CONTROL-BOARD.md`. If it
-  fails, cut from and merge `origin/host/cloudflare-frontsite`; once it succeeds, use `origin/main`.
-- Only the control session moves `main` or `host/cloudflare-frontsite`.
+- Phase 3.1 landed on `main` on 2026-10-02 (`9fd6786`). Cut every branch from `origin/main` and merge
+  `origin/main` before the hand-over. `host/cloudflare-frontsite` is deleted.
+- Only the controller moves `main`.
+- Cloudflare: ALMAR is on account "Almar Private Journey" `f1d9a1fa…` since 2026-10-02. A work session
+  never deploys; a push to any branch builds a Pages preview at `*.almar-khb.pages.dev`.
 
 ## Read first, in this order
 1. Cloud: the project instructions. Mac: `/Users/koss/Developer/almarprod-Website-Code/CLAUDE.local.md`
