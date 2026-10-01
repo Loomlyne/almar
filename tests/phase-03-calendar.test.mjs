@@ -11,11 +11,10 @@ test("a known Monday (2026-09-28) is day index 0 with en-GB", () => {
   assert.equal(weekday, 0);
 });
 
-test("calendar page gates production and delegates to the client screen", () => {
+test("calendar page has no page gate (02-04 owner gate in the layout) and delegates to the client screen", () => {
   const page = readFileSync(CALENDAR_PAGE, "utf8");
   assert.equal(page.includes("use client"), false);
-  assert.match(page, /NODE_ENV/);
-  assert.match(page, /notFound\(\)/);
+  assert.equal(/NODE_ENV|notFound\(\)/.test(page), false);
   assert.match(page, /from ["']\.\/calendar-screen["']/);
 });
 

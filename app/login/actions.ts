@@ -9,7 +9,9 @@ export type SignInState =
   | { status: "invalid"; email: string }
   | { status: "sent"; email: string }
   | { status: "wait"; email: string; seconds: number }
-  | { status: "unavailable"; email: string };
+  | { status: "unavailable"; email: string }
+  /** Ops host only (plan 02-04): not the owner email. */
+  | { status: "refused"; email: string };
 
 /** Public sign-in and sign-up in one: an unknown email gets a link that creates the account. */
 export async function requestSignIn(_previous: SignInState, form: FormData): Promise<SignInState> {

@@ -91,3 +91,8 @@ export function validateProfile(input: ProfileInput): ProfileErrors {
   if (input.phone && !PHONE.test(input.phone)) errors.phone = "phoneCharacters";
   return errors;
 }
+
+/** The ops host and TOUCHWORD need both: the owner role in profiles and the owner email. */
+export function isOwnerProfile(profile: { role: string; email: string } | null | undefined): boolean {
+  return Boolean(profile && profile.role === "owner" && isOwnerEmail(profile.email));
+}

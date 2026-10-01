@@ -8,11 +8,10 @@ const COPY = "lib/copy/dashboard.ts";
 
 const SLOT_NAMES = ["Bookings", "Revenue", "Cost", "Outstanding", "Occupancy", "Reminders", "Charts"];
 
-test("home page gates production and delegates to the client screen", () => {
+test("home page has no page gate (02-04 owner gate in the layout) and delegates to the client screen", () => {
   const text = readFileSync(PAGE, "utf8");
   assert.equal(text.includes("use client"), false);
-  assert.match(text, /NODE_ENV/);
-  assert.match(text, /notFound\(\)/);
+  assert.equal(/NODE_ENV|notFound\(\)/.test(text), false);
   assert.match(text, /from ["']\.\/home-screen["']/);
   assert.match(text, /title:\s*"Home"/);
 });

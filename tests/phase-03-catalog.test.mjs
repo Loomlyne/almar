@@ -12,12 +12,11 @@ const PAGES = [
   { path: `${CATALOG_DIR}/packages/page.tsx`, kind: "packages" },
 ];
 
-test("each catalog page gates production and delegates to CatalogScreen with its kind", () => {
+test("each catalog page has no page gate (02-04 owner gate in the layout) and delegates to CatalogScreen with its kind", () => {
   for (const { path, kind } of PAGES) {
     const text = readFileSync(path, "utf8");
     assert.equal(text.includes("use client"), false, `${path} must not be a client component`);
-    assert.match(text, /NODE_ENV/);
-    assert.match(text, /notFound\(\)/);
+    assert.equal(/NODE_ENV|notFound\(\)/.test(text), false);
     assert.match(text, /from ["']\.\.\/catalog-screen["']/);
     assert.match(text, new RegExp(`kind=["']${kind}["']`));
   }

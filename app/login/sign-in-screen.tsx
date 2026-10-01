@@ -14,15 +14,23 @@ import whiteLogo from "../../brand/Logo Typography/Poly_White.svg";
 
 const IMAGE = "/assets/img/caedcb84dd0d35bb.webp";
 
-/** Canvas page 6, board 6a: one page for sign in and sign up, split screen from 1024px. */
+/**
+ * Canvas page 6, board 6a: one page for sign in and sign up, split screen from 1024px.
+ * variant "ops" (plan 02-04) is the same board on the ops host: heading Sign in, no "New here?"
+ * line (that host never creates an account), no WhatsApp, and its own server action.
+ */
 export function SignInScreen({
   initialLocale,
   returnTo,
   expired,
+  variant = "public",
+  action = requestSignIn,
 }: {
   initialLocale: DocumentLocale;
   returnTo: string;
   expired: boolean;
+  variant?: "public" | "ops";
+  action?: (previous: SignInState, form: FormData) => Promise<SignInState>;
 }) {
   const [locale, setLocale] = useState<DocumentLocale>(initialLocale);
   const [email, setEmail] = useState("");
@@ -47,7 +55,7 @@ export function SignInScreen({
     form.set("locale", locale);
     form.set("returnTo", returnTo);
     startTransition(async () => {
-      const next = await requestSignIn(state, form);
+      const next = await action(state, form);
       setState(next);
       if (next.status === "wait") setWait(next.seconds);
     });
@@ -62,7 +70,11 @@ export function SignInScreen({
 
   const sent = state.status === "sent" || (state.status === "wait" && state.email === email.trim().toLowerCase());
   const emailError =
-    (tried && !email.trim()) || state.status === "invalid" ? copy.enterEmail : undefined;
+    (tried && !email.trim()) || state.status === "invalid"
+      ? copy.enterEmail
+      : state.status === "refused" && state.email === email.trim().toLowerCase()
+        ? copy.auth.cannotUseEmail
+        : undefined;
 
   const brandLine = (
     <div className="grid gap-3">
@@ -127,7 +139,7 @@ export function SignInScreen({
           </section>
         ) : (
           <form onSubmit={onSubmit} noValidate className="grid w-full max-w-108 gap-6">
-            <h1 className="m-0 font-display text-heading tracking-display text-teal">{copy.auth.heading}</h1>
+            <h1 className="m-0 font-display text-heading tracking-display text-teal">{variant === "ops" ? copy.signIn : copy.auth.heading}</h1>
             <p className="m-0 text-body text-muted">{copy.auth.lead}</p>
             {expired && state.status === "idle" ? (
               <p className="m-0 text-label text-error" role="status">
@@ -155,7 +167,9 @@ export function SignInScreen({
                 {copy.auth.unavailable}
               </p>
             ) : null}
-            <p className="m-0 border-t border-line pt-6 text-label text-ink">{copy.auth.newHere}</p>
+            {variant === "public" ? (
+              <p className="m-0 border-t border-line pt-6 text-label text-ink">{copy.auth.newHere}</p>
+            ) : null}
           </form>
         )}
 
@@ -163,7 +177,7 @@ export function SignInScreen({
           <bdi>inquiries@almarprivatejourney.com</bdi>
         </span>
       </main>
-      <WhatsApp />
+      {variant === "public" ? <WhatsApp /> : null}
     </div>
   );
 }

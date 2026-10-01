@@ -36,6 +36,10 @@ export type DashboardCopy = {
   signOutOfThisSite: string;
   signOutEverywhere: string;
   staySignedIn: string;
+  /** Plan 02-04: the one line on an ops section that is not wired yet. */
+  notReady: string;
+  /** Plan 02-04: the name next to the logo after she is in. Never a section name. */
+  dashboardName: string;
   thisMonth: string;
   last30: string;
   custom: string;
@@ -101,6 +105,8 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     signOutOfThisSite: "Sign out of this site",
     signOutEverywhere: "Sign out everywhere",
     staySignedIn: "Stay signed in",
+    notReady: "Not ready.",
+    dashboardName: "Dashboard",
     thisMonth: "This month",
     last30: "Last 30",
     custom: "Custom",
@@ -158,6 +164,8 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     signOutOfThisSite: "تسجيل الخروج من هذا الموقع",
     signOutEverywhere: "تسجيل الخروج من كل مكان",
     staySignedIn: "البقاء في الجلسة",
+    notReady: "غير جاهز.",
+    dashboardName: "لوحة التحكم",
     thisMonth: "هذا الشهر",
     last30: "آخر 30",
     custom: "مخصص",
@@ -215,6 +223,8 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     signOutOfThisSite: "Cerrar sesión en este sitio",
     signOutEverywhere: "Cerrar sesión en todas partes",
     staySignedIn: "Seguir dentro",
+    notReady: "No está listo.",
+    dashboardName: "Panel",
     thisMonth: "Este mes",
     last30: "Últimos 30",
     custom: "Personalizado",

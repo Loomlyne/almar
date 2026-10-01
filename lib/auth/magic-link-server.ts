@@ -29,6 +29,10 @@ export async function sendLinkFromRequest({
   host: "public" | "ops";
   locale: AuthLocale;
 }): Promise<SendLinkResult> {
+  // The ops host refuses a guest email before any service is touched, configured or not.
+  const address = email.trim().toLowerCase();
+  if (host === "ops" && isEmail(address) && address !== OWNER_EMAIL) return { status: "refused" };
+
   const admin = createSupabaseAdmin();
   const resendKey = process.env.RESEND_API_KEY?.trim();
   if (!admin || !resendKey) {
