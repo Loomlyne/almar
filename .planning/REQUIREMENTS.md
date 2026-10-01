@@ -9,7 +9,7 @@ Requirements for this product. Each maps to roadmap phases.
 
 ### Design system
 
-- [x] **DSGN-01**: Owner can open `/design` (owner-only) and see every core component in hover, focus, disabled, loading, error, and empty states
+- [x] **DSGN-01**: Owner opens the design-system canvas and sees every core component in hover, focus, disabled, loading, error and empty states
 - [x] **DSGN-02**: Guest and ops see the same token system (Questa primary, Lato secondary; Deep Teal `#1f3b40`, Charcoal `#262626`, Gold `#d4ba8a`, Ivory `#fffaf0`; light theme only)
 - [x] **DSGN-03**: Guest sees RTL-flipped components when language is Arabic (`dir=rtl` on `<html>`, logical CSS, password eye on inline-end)
 - [ ] **DSGN-04**: Ops can change brand tokens (colors, uploaded font family, light/dark logos, favicon) in Settings → Brand and Publish applies immediately on public and dashboard
