@@ -5,3 +5,8 @@
 next-env.d.ts
 *.tsbuildinfo
 .vercel
+.wrangler
+/test-results/
+/playwright-report/
+CLAUDE.local.md
+tests/screens/after/

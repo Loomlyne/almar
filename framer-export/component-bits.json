@@ -1,0 +1,661 @@
+{
+  "Buttons/Primary Button": [
+    {
+      "name": "Sand",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "auto",
+      "height": "auto",
+      "padding": "14px 28px 14px 28px"
+    },
+    {
+      "name": "BG_Hover",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--variable-sATKAgx5h)",
+      "width": "0%",
+      "height": "100%"
+    },
+    {
+      "name": "BG_Primary",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--variable-nTqy2elce)",
+      "width": "100%",
+      "height": "100%"
+    },
+    {
+      "name": "Label",
+      "type": "RichTextNode",
+      "text": "var(--variable-Qhv6HTqCk)",
+      "fill": null,
+      "width": "auto",
+      "height": "auto"
+    },
+    {
+      "name": "Sand",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "auto",
+      "height": "auto",
+      "padding": "14px 28px 14px 28px"
+    },
+    {
+      "name": "BG_Hover",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--variable-sATKAgx5h)",
+      "width": "100%",
+      "height": "100%"
+    },
+    {
+      "name": "BG_Primary",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--variable-nTqy2elce)",
+      "width": "1px",
+      "height": "100%"
+    },
+    {
+      "name": "Label",
+      "type": "RichTextNode",
+      "text": "var(--variable-Qhv6HTqCk)",
+      "fill": null,
+      "width": "auto",
+      "height": "auto"
+    }
+  ],
+  "Buttons/Link Button": [
+    {
+      "name": "Line",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-f1edf26d-aa25-4ebb-a99f-c7bf85430cc9)",
+      "width": "0%",
+      "height": "1px"
+    },
+    {
+      "name": "Line",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-f1edf26d-aa25-4ebb-a99f-c7bf85430cc9)",
+      "width": "100%",
+      "height": "1px"
+    },
+    {
+      "name": "Line",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "0%",
+      "height": "1px"
+    },
+    {
+      "name": "Line",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "100%",
+      "height": "1px"
+    }
+  ],
+  "Buttons/Icon Button": [
+    {
+      "name": "Icon",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-f1edf26d-aa25-4ebb-a99f-c7bf85430cc9)",
+      "width": "40px",
+      "height": "40px"
+    },
+    {
+      "name": "Icon",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-f1edf26d-aa25-4ebb-a99f-c7bf85430cc9)",
+      "width": "40px",
+      "height": "40px"
+    },
+    {
+      "name": "Icon",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "40px",
+      "height": "40px"
+    },
+    {
+      "name": "Icon",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "40px",
+      "height": "40px"
+    }
+  ],
+  "Navigation/Header": [
+    {
+      "name": "BG",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "100%",
+      "height": "100%"
+    },
+    {
+      "name": "BG",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "100%",
+      "height": "100%"
+    },
+    {
+      "name": "BG",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "100%",
+      "height": "110.00000000000001vh"
+    },
+    {
+      "name": "BG",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "rgba(24, 32, 48, 0.8)",
+      "width": "100%",
+      "height": "100%"
+    },
+    {
+      "name": "BG",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "100%",
+      "height": "110.00000000000001vh"
+    },
+    {
+      "name": "BG",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "100%",
+      "height": "100%"
+    },
+    {
+      "name": "Tablet 2",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "810px",
+      "height": "auto",
+      "padding": "16px 28px 16px 28px"
+    },
+    {
+      "name": "BG",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "100%",
+      "height": "100%"
+    },
+    {
+      "name": "Phone 2",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "390px",
+      "height": "auto",
+      "padding": "14px 20px 14px 20px"
+    },
+    {
+      "name": "BG",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "100%",
+      "height": "100%"
+    }
+  ],
+  "Private Stays/Stay Card": [
+    {
+      "name": "Room Image",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--variable-uEHoJ9bOT)",
+      "width": "100%",
+      "height": "100%"
+    },
+    {
+      "name": "Room Image",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--variable-uEHoJ9bOT)",
+      "width": "100%",
+      "height": "100%"
+    }
+  ],
+  "Brand/Logo": [
+    {
+      "name": "White Wordmark",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "https://framerusercontent.com/images/9UQH6L9unLcVGSBMDQ8zgJYMBT0.svg",
+      "width": "140px",
+      "height": "70px"
+    },
+    {
+      "name": "Black Wordmark",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "https://framerusercontent.com/images/RX7lhKpzXFpv2KTvbxNSm3UZz8.svg",
+      "width": "140px",
+      "height": "70px"
+    },
+    {
+      "name": "Black Polygon",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "https://framerusercontent.com/images/9iiV0CfugYnGxSPRzesh3liqs.svg",
+      "width": "140px",
+      "height": "70px"
+    },
+    {
+      "name": "White Polygon",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "https://framerusercontent.com/images/iFS0Oj39DFjk35aAaQNDBN1TtDM.svg",
+      "width": "140px",
+      "height": "70px"
+    },
+    {
+      "name": "Gold Polygon",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "https://framerusercontent.com/images/YfhnZNlsqpGuo6qLpQhrHHlrts.svg",
+      "width": "140px",
+      "height": "70px"
+    },
+    {
+      "name": "Black Monogram",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "https://framerusercontent.com/images/prMcX1bT4P2ZzVsjpoFmR4T5nA.svg",
+      "width": "140px",
+      "height": "70px"
+    },
+    {
+      "name": "White Monogram",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "https://framerusercontent.com/images/Hbj6Mb3vJsfPCLnDYGGfXzH5pU.svg",
+      "width": "140px",
+      "height": "70px"
+    },
+    {
+      "name": "Variant 8",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "https://framerusercontent.com/images/yP5qUfmkgfIjOUBRBmT5ngV2Ww.svg",
+      "width": "140px",
+      "height": "70px"
+    }
+  ],
+  "Team Profile Card": [
+    {
+      "name": "Portrait",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--variable-zfX0CUeuu)",
+      "width": "1fr",
+      "height": "420px"
+    },
+    {
+      "name": "Name",
+      "type": "RichTextNode",
+      "text": "var(--variable-XDrcFH9vb)",
+      "fill": null,
+      "width": "1fr",
+      "height": "auto",
+      "font": "Questa"
+    },
+    {
+      "name": "Role",
+      "type": "RichTextNode",
+      "text": "var(--variable-zBGUFJyFD)",
+      "fill": null,
+      "width": "1fr",
+      "height": "auto",
+      "font": "Lato"
+    }
+  ],
+  "Footer/Site Footer": [
+    {
+      "name": "Desktop",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "1440px",
+      "height": "auto"
+    },
+    {
+      "name": "Line",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-d1976c24-6c21-4160-88b3-7d5296f99d3f)",
+      "width": "1fr",
+      "height": "1px"
+    },
+    {
+      "name": "Tablet",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "810px",
+      "height": "auto"
+    },
+    {
+      "name": "Line",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-d1976c24-6c21-4160-88b3-7d5296f99d3f)",
+      "width": "1fr",
+      "height": "1px"
+    },
+    {
+      "name": "Phone",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "390px",
+      "height": "auto"
+    },
+    {
+      "name": "Line",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-d1976c24-6c21-4160-88b3-7d5296f99d3f)",
+      "width": "1fr",
+      "height": "1px"
+    }
+  ],
+  "Typography/Section Heading": [
+    {
+      "name": "Stay Your Way",
+      "type": "RichTextNode",
+      "text": "var(--variable-RoF9nOMmz)",
+      "fill": null,
+      "width": "1fr",
+      "height": "auto"
+    },
+    {
+      "type": "RichTextNode",
+      "text": "var(--variable-jmOIIQ3ii)",
+      "fill": null,
+      "width": "1fr",
+      "height": "auto"
+    },
+    {
+      "name": "Stay Your Way",
+      "type": "RichTextNode",
+      "text": "var(--variable-RoF9nOMmz)",
+      "fill": null,
+      "width": "1fr",
+      "height": "auto"
+    },
+    {
+      "type": "RichTextNode",
+      "text": "var(--variable-jmOIIQ3ii)",
+      "fill": null,
+      "width": "1fr",
+      "height": "auto"
+    },
+    {
+      "name": "Stay Your Way",
+      "type": "RichTextNode",
+      "text": "var(--variable-RoF9nOMmz)",
+      "fill": null,
+      "width": "1fr",
+      "height": "auto"
+    },
+    {
+      "type": "RichTextNode",
+      "text": "var(--variable-jmOIIQ3ii)",
+      "fill": null,
+      "width": "1fr",
+      "height": "auto"
+    }
+  ],
+  "Experiences/Destination Card": [
+    {
+      "name": "Overlay",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-94064e5a-5acb-4344-921a-4fe9eeffcd9f)",
+      "width": "600px",
+      "height": "400px"
+    },
+    {
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--variable-mwd5ORT_6)",
+      "width": "600px",
+      "height": "400px"
+    },
+    {
+      "name": "Content",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-1fe5294d-6e57-4288-9df0-44a6d7103ae8)",
+      "width": "1fr",
+      "height": "1fr"
+    },
+    {
+      "name": "Content",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-1fe5294d-6e57-4288-9df0-44a6d7103ae8)",
+      "width": "1fr",
+      "height": "1fr"
+    },
+    {
+      "name": "Overlay",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-94064e5a-5acb-4344-921a-4fe9eeffcd9f)",
+      "width": "600px",
+      "height": "400px"
+    },
+    {
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--variable-mwd5ORT_6)",
+      "width": "600px",
+      "height": "400px"
+    },
+    {
+      "name": "Overlay",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-94064e5a-5acb-4344-921a-4fe9eeffcd9f)",
+      "width": "600px",
+      "height": "400px"
+    },
+    {
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--variable-mwd5ORT_6)",
+      "width": "600px",
+      "height": "400px"
+    },
+    {
+      "name": "Content",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-6e23324a-452b-4d80-89d7-d08e2f63c9f1)",
+      "width": "1fr",
+      "height": "auto"
+    }
+  ],
+  "Footer/Social Icon": [
+    {
+      "name": "Line",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-f1edf26d-aa25-4ebb-a99f-c7bf85430cc9)",
+      "width": "32px",
+      "height": "32px"
+    },
+    {
+      "name": "Line",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-f1edf26d-aa25-4ebb-a99f-c7bf85430cc9)",
+      "width": "32px",
+      "height": "32px"
+    }
+  ],
+  "Buttons/Form Button": [
+    {
+      "name": "Default",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-dfba78a1-5348-458d-9f38-c3b5f11086bc)",
+      "width": "240px",
+      "height": "48px"
+    },
+    {
+      "type": "RichTextNode",
+      "text": "var(--variable-szLd7T7SC)",
+      "fill": null,
+      "width": "auto",
+      "height": "auto"
+    },
+    {
+      "name": "Conic",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "#4cf",
+      "width": "20px",
+      "height": "20px"
+    },
+    {
+      "name": "Default",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-f1edf26d-aa25-4ebb-a99f-c7bf85430cc9)",
+      "width": "240px",
+      "height": "48px"
+    },
+    {
+      "type": "RichTextNode",
+      "text": "var(--variable-szLd7T7SC)",
+      "fill": null,
+      "width": "auto",
+      "height": "auto"
+    },
+    {
+      "name": "Conic",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "#4cf",
+      "width": "20px",
+      "height": "20px"
+    },
+    {
+      "name": "Loading",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-f1edf26d-aa25-4ebb-a99f-c7bf85430cc9)",
+      "width": "240px",
+      "height": "48px"
+    },
+    {
+      "type": "RichTextNode",
+      "text": "var(--variable-szLd7T7SC)",
+      "fill": null,
+      "width": "auto",
+      "height": "auto"
+    },
+    {
+      "name": "Default",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-f1edf26d-aa25-4ebb-a99f-c7bf85430cc9)",
+      "width": "240px",
+      "height": "48px"
+    },
+    {
+      "type": "RichTextNode",
+      "text": "var(--variable-szLd7T7SC)",
+      "fill": null,
+      "width": "auto",
+      "height": "auto"
+    },
+    {
+      "name": "Conic",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "#4cf",
+      "width": "20px",
+      "height": "20px"
+    },
+    {
+      "name": "Disabled",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-f1edf26d-aa25-4ebb-a99f-c7bf85430cc9)",
+      "width": "240px",
+      "height": "48px"
+    },
+    {
+      "type": "RichTextNode",
+      "text": "var(--variable-szLd7T7SC)",
+      "fill": null,
+      "width": "auto",
+      "height": "auto"
+    },
+    {
+      "name": "Conic",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "#4cf",
+      "width": "20px",
+      "height": "20px"
+    },
+    {
+      "name": "Success",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "var(--token-f1edf26d-aa25-4ebb-a99f-c7bf85430cc9)",
+      "width": "240px",
+      "height": "48px"
+    },
+    {
+      "name": "Conic",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "#4cf",
+      "width": "20px",
+      "height": "20px"
+    },
+    {
+      "name": "Error",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "rgb(130, 40, 48)",
+      "width": "240px",
+      "height": "48px"
+    },
+    {
+      "name": "Conic",
+      "type": "FrameNode",
+      "text": null,
+      "fill": "#4cf",
+      "width": "20px",
+      "height": "20px"
+    }
+  ]
+}

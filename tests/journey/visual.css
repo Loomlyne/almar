@@ -1,0 +1,4 @@
+/* Screenshot-only: hide the Next.js dev overlay (badge, route announcer) so it is not in any baseline. */
+nextjs-portal {
+  display: none !important;
+}

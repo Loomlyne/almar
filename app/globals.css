@@ -1,0 +1,186 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss";
+
+@custom-variant ar (&:where(:lang(ar), :lang(ar) *));
+@custom-variant dense (&:where([data-density="dense"], [data-density="dense"] *));
+
+/* GENERATED:THEME:START */
+@theme static {
+  --color-ivory: #fffaf0;
+  --color-surface: #ffffff;
+  --color-teal: #1f3b40;
+  --color-teal-hover: #1b3438;
+  --color-teal-press: #182d31;
+  --color-teal-tint: #d1dfe0;
+  --color-gold: #d4ba8a;
+  --color-ink: #262626;
+  --color-muted: #63615f;
+  --color-line: rgb(38 38 38 / 0.16);
+  --color-error: #8f2d2d;
+  --color-success: #1e6b45;
+  --color-warning: #8a3b12;
+  --color-whatsapp: #25D366;
+  --text-caption: 12px;
+  --text-caption--line-height: 1.5;
+  --text-label: 14px;
+  --text-label--line-height: 1.43;
+  --text-body: 16px;
+  --text-body--line-height: 1.5;
+  --text-title: 20px;
+  --text-title--line-height: 1.3;
+  --text-heading: 32px;
+  --text-heading--line-height: 1.2;
+  --text-display: 48px;
+  --text-display--line-height: 1.1;
+  --text-hero: 64px;
+  --text-hero--line-height: 1.05;
+  --tracking-kicker: 0.12em;
+  --tracking-display: -0.02em;
+  --spacing-control: 44px;
+  --spacing-chip: 40px;
+  --spacing-bar: 72px;
+  --spacing-bar-docked: 56px;
+  --spacing-summary: 64px;
+  --spacing-entry: 64px;
+  --spacing-action: 56px;
+  --spacing-sheet-head: 60px;
+  --spacing-dock: 88px;
+  --spacing-mark: 28px;
+  --spacing-search: 200px;
+  --spacing-rail-offset: 112px;
+  --spacing-row: 56px;
+  --spacing-row-dense: 44px;
+  --spacing-chip-dense: 24px;
+  --container-column: 1240px;
+  --container-menu: 440px;
+  --container-calendar: 760px;
+  --container-rail: 400px;
+  --container-dialog: 480px;
+  --container-sidebar: 240px;
+  --radius-control: 0;
+  --radius-overlay: 0;
+  --shadow-float: 0 18px 40px -10px rgb(10 9 7 / 0.3), 0 4px 10px -4px rgb(10 9 7 / 0.1);
+  --shadow-lg: 0 28px 56px -16px rgb(10 9 7 / 0.28), 0 10px 20px -10px rgb(10 9 7 / 0.12);
+  --shadow-rule-primary: inset 0 -3px 0 var(--color-teal);
+  --shadow-rule-error: inset 0 -3px 0 var(--color-error);
+  --shadow-rule-today: inset 0 -2px 0 var(--color-teal);
+  --shadow-selected: inset 0 0 0 2px var(--color-teal);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --transition-duration-fast: 150ms;
+  --transition-duration-mid: 250ms;
+  --animate-panel-in: panel-in 250ms var(--ease-standard) both;
+  --animate-sheet-in: sheet-in 250ms var(--ease-standard) both;
+  --animate-dock-in: dock-in 150ms var(--ease-standard) both;
+  --animate-fade-in: fade-in 150ms linear both;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  @keyframes panel-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes sheet-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes dock-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+@theme inline {
+  --font-display: var(--face-display);
+  --font-body: var(--face-body);
+}
+
+@layer base {
+  :root {
+    --face-display: var(--font-questa), Georgia, serif;
+    --face-body: var(--font-lato), Arial, sans-serif;
+  }
+  :root:lang(ar) {
+    --face-display: var(--font-noto-naskh), var(--font-questa), Georgia, serif;
+    --face-body: var(--font-noto-sans), var(--font-lato), Arial, sans-serif;
+    --text-caption--line-height: 1.7;
+    --text-label--line-height: 1.63;
+    --text-body--line-height: 1.7;
+    --text-title--line-height: 1.5;
+    --text-heading--line-height: 1.4;
+    --text-display--line-height: 1.3;
+    --text-hero--line-height: 1.25;
+  }
+}
+/* GENERATED:THEME:END */
+
+@layer base {
+  :root {
+    --text-hero: 40px;
+    --text-display: 32px;
+    --text-heading: 24px;
+  }
+
+  @media (width >= 48rem) {
+    :root {
+      --text-hero: 64px;
+      --text-display: 48px;
+      --text-heading: 32px;
+    }
+  }
+
+  html {
+    color-scheme: light;
+    background: var(--color-ivory);
+    color: var(--color-ink);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    font-family: var(--face-body);
+    font-size: var(--text-body);
+    font-weight: 400;
+    line-height: var(--text-body--line-height);
+    letter-spacing: 0;
+  }
+
+  h1,
+  h2,
+  h3 {
+    margin: 0;
+    color: var(--color-teal);
+    font-family: var(--face-display);
+    font-size: var(--text-heading);
+    font-weight: 400;
+    line-height: var(--text-heading--line-height);
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--color-teal-tint);
+    color: var(--color-teal);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-teal);
+    outline-offset: 2px;
+  }
+
+  @media (forced-colors: active) {
+    :focus-visible {
+      outline: 2px solid CanvasText;
+      outline-offset: 2px;
+    }
+  }
+}
+
