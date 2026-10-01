@@ -65,10 +65,10 @@ test("public guest screen sources do not say dashboard", () => {
   }
 });
 
-test("sign-in screen has the magic-link button and does not send", () => {
-  if (!existsSync(SIGN_IN_SCREEN)) return;
+test("sign-in screen has the magic-link button and sends through the server action only", () => {
   const text = readFileSync(SIGN_IN_SCREEN, "utf8");
-  assert.match(text, /Access with magic link/);
+  assert.match(text, /copy\.accessWithMagicLink/);
+  assert.match(text, /requestSignIn/);
   assert.equal(text.includes("fetch("), false);
   assert.equal(text.includes('type="password"'), false);
 });
@@ -76,19 +76,22 @@ test("sign-in screen has the magic-link button and does not send", () => {
 test("bookings screen shows the empty line and Start a trip", () => {
   if (!existsSync(BOOKINGS_SCREEN)) return;
   const text = readFileSync(BOOKINGS_SCREEN, "utf8");
-  assert.match(text, /No bookings yet/);
-  assert.match(text, /Start a trip/);
+  assert.match(text, /GUEST_COPY/);
+  assert.match(text, /copy\.noBookingsYet/);
+  assert.match(text, /copy\.startATrip/);
   assert.match(text, /href="\/"/);
 });
 
-test("account screen has no Save button and no password input", () => {
-  if (!existsSync(ACCOUNT_SCREEN)) return;
+test("account hub: Save is wired to saveProfile, preferences save, no password input", () => {
   const text = readFileSync(ACCOUNT_SCREEN, "utf8");
-  assert.equal(/>\s*Save\s*</.test(text), false);
+  assert.match(text, /saveProfile/);
+  assert.match(text, /savePreferences/);
+  assert.match(text, /hub\.save\b/);
+  assert.match(text, /hub\.firstName/);
+  assert.match(text, /hub\.lastName/);
+  assert.match(text, /hub\.phoneOptional/);
   assert.equal(text.includes('type="password"'), false);
-  assert.match(text, /Name/);
-  assert.match(text, /Phone/);
-  assert.match(text, /Language/);
+  assert.equal(/name="email"/.test(text), false, "email is shown as text, not a field");
 });
 
 test("the trip screen points Login at /login; the SiteNav default is unchanged", () => {
@@ -98,13 +101,27 @@ test("the trip screen points Login at /login; the SiteNav default is unchanged",
   assert.match(nav, /loginHref = "#log-in"/);
 });
 
-test("SiteNav signedIn defaults false and no call site passes true", () => {
+test("SiteNav shows the account menu only from a session, never a hardcoded flag", () => {
   const nav = readFileSync(NAV, "utf8");
-  assert.match(nav, /signedIn = false/);
+  assert.equal(nav.includes("signedIn"), false);
+  assert.match(nav, /account\?: NavAccount \| null/);
   for (const path of [TRIP_SCREEN, SIGN_IN_SCREEN, BOOKINGS_SCREEN, ACCOUNT_SCREEN]) {
-    if (!existsSync(path)) continue;
     const text = readFileSync(path, "utf8");
-    assert.equal(/signedIn(\s*=\s*\{?\s*)true/.test(text), false, `${path} sets signedIn true`);
+    assert.equal(/account=\{\s*\{/.test(text), false, `${path} hardcodes an account`);
+  }
+  for (const path of [BOOKINGS_PAGE, ACCOUNT_PAGE]) {
+    assert.match(readFileSync(path, "utf8"), /readSessionProfile\(\)/, `${path} reads the session`);
+  }
+});
+
+test("TOUCHWORD lives only in the account menu, in capitals, behind opsHref, in a new tab", () => {
+  const menu = readFileSync("components/ui/account-menu.tsx", "utf8");
+  assert.match(menu, />\s*TOUCHWORD\s*</);
+  assert.match(menu, /opsHref \?/);
+  assert.match(menu, /target="_blank"/);
+  assert.match(menu, /rel="noopener noreferrer"/);
+  for (const path of PUBLIC_SOURCE_FILES) {
+    assert.equal(/touchword/i.test(readFileSync(path, "utf8")), false, `${path} mentions TOUCHWORD`);
   }
 });
 

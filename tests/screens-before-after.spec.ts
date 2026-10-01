@@ -8,7 +8,8 @@ const MODE = process.env.SCREENS_MODE === "before" ? "before" : "after";
 
 const ROUTES = [
   { path: "/dashboard", slug: "dashboard", ownLanguageControl: false },
-  { path: "/account", slug: "account", ownLanguageControl: true },
+  // /account needs a session since 02-02: the hub renders through the harness with a fixture guest.
+  { path: "/__harness?c=guest-account&s=hub&l=en", slug: "account", ownLanguageControl: true },
   { path: "/login", slug: "login", ownLanguageControl: true },
   { path: "/booking/trip", slug: "booking-trip", ownLanguageControl: true },
 ] as const;
