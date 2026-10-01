@@ -3,7 +3,7 @@
 // boundary) markers: rendering this through JSX instead was tried and
 // reverted because React cannot emit comment nodes, and losing them forces
 // Framer's runtime into a slow client-side re-render (measured 94 -> 62
-// mobile Performance). See routeHandler() in lib/nextjs-export.ts.
+// mobile Performance).
 //
 // Page map (orientation only — search this file for a title below to
 // jump to that spot in the HTML string constant further down):
