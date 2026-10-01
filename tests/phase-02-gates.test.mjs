@@ -53,3 +53,38 @@ test("app, components, and lib contain no key material", () => {
   }
   assert.deepEqual(hits, []);
 });
+
+function readJsonc(path) {
+  const text = readFileSync(path, "utf8")
+    .split("\n")
+    .filter((line) => !line.trim().startsWith("//"))
+    .join("\n");
+  return JSON.parse(text);
+}
+
+test("wrangler.server.jsonc names almar with no routes, R2 or dashboard host", () => {
+  const raw = readFileSync("wrangler.server.jsonc", "utf8");
+  const config = readJsonc("wrangler.server.jsonc");
+  assert.equal(config.name, "almar");
+  assert.equal(config.main, ".open-next/worker.js");
+  assert.equal(config.routes, undefined);
+  assert.equal(config.route, undefined);
+  assert.equal(config.r2_buckets, undefined);
+  assert.equal(raw.includes("dashboard.almarprivatejourney.com"), false);
+  assert.ok(config.compatibility_flags.includes("nodejs_compat"));
+});
+
+test("host:server builds and never deploys", () => {
+  const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+  const script = pkg.scripts["host:server"];
+  assert.ok(script.includes("opennextjs-cloudflare build"));
+  for (const word of ["deploy", "upload", "preview"]) {
+    assert.equal(script.includes(word), false, `host:server contains ${word}`);
+  }
+});
+
+test("open-next.config.ts does not set a static export", () => {
+  const source = readFileSync("open-next.config.ts", "utf8");
+  assert.ok(source.includes("defineCloudflareConfig"));
+  assert.equal(/output\s*:/.test(source), false);
+});

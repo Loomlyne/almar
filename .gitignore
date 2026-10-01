@@ -10,3 +10,4 @@ next-env.d.ts
 /playwright-report/
 CLAUDE.local.md
 tests/screens/after/
+/.open-next/
