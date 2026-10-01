@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 3.1 complete (29 of 29) and landed on main 2026-10-01; next is Phase 2 auth chain (job 02)"
-last_updated: "2026-10-01T13:30:00.000Z"
+stopped_at: "Phase 3.1 complete (29 of 29), tested 1,113/0 on the Mac, NOT landed: waits for the owner's Ship; then job 02"
+last_updated: "2026-10-01T19:35:00.000Z"
 last_activity: 2026-10-01
 progress:
   total_phases: 9
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
-Phase: 3.1 (design-system-and-journey-bar-inserted) — COMPLETE, 29 of 29, landed on main 2026-10-01
-Next: Phase 2 auth chain (job 02), then 3.2
+Phase: 3.1 (design-system-and-journey-bar-inserted) — COMPLETE, 29 of 29; NOT landed on main (PR #3 open, branch `claude/ship-3.1-c1bvb2`, tested code tip `08ffd1b`)
+Next: land 3.1 on the owner's Ship (controller session on the Mac), then Phase 2 auth chain (job 02, branch `claude/project-thread-8h6bed` tip `3e2d58c`), then 3.2
 Last activity: 2026-10-01
-Status: Phase 3.1 shipped. Success criterion 1 is met except hand-written font sizes in globals.css (hand-over open item 3)
+Status: Phase 3.1 done and tested (2026-10-01 13:55 UTC: 1,113 passed, 0 failed, 28 skipped, `--workers=1`, Mac); waits for Ship. Success criterion 1 is met except hand-written font sizes in globals.css (hand-over open item 3)
 
 Progress: [██████████] 100% of 3.1
 
@@ -78,7 +78,9 @@ Recent decisions affecting current work:
 - 2026-10-01: one control session lands work; each job lands as one commit on main on the owner's Ship, no PR (`decisions/2026-10-01-control-session.md`).
 - 2026-10-01: work moves to the ALMAR cloud project; shipping stays on the Mac with the control session (`decisions/2026-10-01-cloud-project.md`).
 - 2026-10-01 13:10 (owner): the cloud project is now the control session; it lands each job on main as one squashed commit on his Ship and deletes the landed branches. Deploys and live-DB changes still need his word each time.
-- 2026-10-01: Phase 3.1 shipped to main (owner UAT 18/18, review fixes W1–W5). Hand-over: `phases/03.1-design-system-and-journey-bar-inserted/03.1-HANDOVER.md`.
+- 2026-10-01 13:42–13:54 UTC (owner): local only, never cloud; all work through local `/gsd`, stopping at every gate; mark finished work done right away.
+- 2026-10-01 19:27 UTC (owner): the claude.ai project is ended. One controller session in the Mac main checkout controls ALMAR again; worker sessions run one GSD job each on their own branch. Record: `HANDOFF-2026-10-01-projects.md`.
+- 2026-10-01 13:03 UTC: Phase 3.1 closed for ship (owner UAT 18/18, review fixes W1–W5 in `5660f8f`). Not landed yet. Hand-over: `phases/03.1-design-system-and-journey-bar-inserted/03.1-HANDOVER.md`.
 
 ### Roadmap Evolution
 
@@ -105,6 +107,6 @@ From the 3.1 hand-over (open items 1–5): dead controls W6 (Phase 3.2 and 2), g
 
 ## Session Continuity
 
-Last session: 2026-10-01T13:30:00.000Z
-Stopped at: Phase 3.1 complete and landed on main; next is Phase 2 auth chain (job 02)
-Resume file: .planning/prompts/02-phase-2-auth-chain.md
+Last session: 2026-10-01T19:35:00.000Z
+Stopped at: Phase 3.1 complete and tested, waits for the owner's Ship; the claude.ai project ended 19:27 UTC
+Resume file: .planning/HANDOFF-2026-10-01-projects.md
