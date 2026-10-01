@@ -7,6 +7,7 @@ import { GUEST_COPY } from "../copy/guest";
 import { sendMagicLink, type SendLinkResult } from "./send-link";
 import { isEmail, OWNER_EMAIL, type AuthLocale } from "./rules";
 import { linkOrigin } from "./allowed-origin";
+import { SHELL_HEADER } from "../host";
 
 const FROM = "ALMAR Private Journey <inquiries@almarprivatejourney.com>";
 
@@ -20,15 +21,18 @@ export async function requestOrigin(): Promise<string> {
   return linkOrigin(list.get("host"), process.env.NODE_ENV);
 }
 
+/**
+ * The host comes from the shell header the middleware set, never from the caller: any server
+ * action can be posted to any path, so the ops refusal must not depend on which action ran.
+ */
 export async function sendLinkFromRequest({
   email,
-  host,
   locale,
 }: {
   email: string;
-  host: "public" | "ops";
   locale: AuthLocale;
 }): Promise<SendLinkResult> {
+  const host = (await headers()).get(SHELL_HEADER) === "ops" ? "ops" : "public";
   // The ops host refuses a guest email before any service is touched, configured or not.
   const address = email.trim().toLowerCase();
   if (host === "ops" && isEmail(address) && address !== OWNER_EMAIL) return { status: "refused" };

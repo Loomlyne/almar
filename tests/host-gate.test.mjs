@@ -6,7 +6,9 @@ import { allowHostOverride, isOpsHost, opsOrigin, routeFor } from "../lib/host.t
 test("isOpsHost: only the ops host and dashboard.localhost", () => {
   assert.equal(isOpsHost("dashboard.almarprivatejourney.com"), true);
   assert.equal(isOpsHost("DASHBOARD.almarprivatejourney.com:443"), true);
-  assert.equal(isOpsHost("dashboard.localhost:3010"), true);
+  assert.equal(isOpsHost("dashboard.localhost:3010", "development"), true);
+  assert.equal(isOpsHost("dashboard.localhost:3010", "production"), false);
+  assert.equal(isOpsHost("dashboard.almarprivatejourney.com", "production"), true);
   for (const host of ["almarprivatejourney.com", "www.almarprivatejourney.com", "dashboard.almarprivatejourney.com.evil.com", "evil-dashboard.almarprivatejourney.com", "", null]) {
     assert.equal(isOpsHost(host), false, String(host));
   }

@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
   const admin = createSupabaseAdmin();
   if (!profile || !isOwnerProfile(profile) || !admin) return home;
 
+  // Old rows are useless once expired; clear them as new ones are issued.
+  await admin.from("host_handoff").delete().lt("expires_at", new Date().toISOString());
   const token = newHandoffToken();
   const { error } = await admin.from("host_handoff").insert({
     token_hash: hashHandoffToken(token),

@@ -10,10 +10,10 @@ function hostname(host: string | null | undefined): string {
   return (host ?? "").trim().toLowerCase().replace(/:\d+$/, "");
 }
 
-/** True only for the ops host, plus dashboard.localhost for local tests. */
-export function isOpsHost(host: string | null | undefined): boolean {
+/** True only for the ops host, plus dashboard.localhost outside production (local tests). */
+export function isOpsHost(host: string | null | undefined, nodeEnv: string | undefined = process.env.NODE_ENV): boolean {
   const name = hostname(host);
-  return name === OPS_HOSTNAME || name === "dashboard.localhost";
+  return name === OPS_HOSTNAME || (nodeEnv !== "production" && name === "dashboard.localhost");
 }
 
 /** The x-almar-host override is read only outside production. */
