@@ -36,11 +36,10 @@ test("the four empty lines and their New actions are wired to dashboard copy", (
   assert.match(text, /<tbody\s*\/>/, "content list must not render a sample row");
 });
 
-test("team editor has a Photo URL field and rejects a non-https value", () => {
+test("team editor Photo URL keeps every keystroke and flags a value that cannot become https://", () => {
   const text = readFileSync(SCREEN, "utf8");
   assert.equal(text.includes("Photo"), true, "missing team field: Photo");
-  assert.match(text, /startsWith\(HTTPS_PREFIX\)/);
-  assert.match(text, /setPhotoInvalid\(true\)/);
+  assert.match(text, /setPhotoInvalid\(!canBecomeHttpsUrl\(value\)\)/);
 });
 
 test("no file input and no SEO field anywhere in the content screens", () => {

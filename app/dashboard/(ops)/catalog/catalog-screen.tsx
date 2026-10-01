@@ -6,10 +6,10 @@ import { Field } from "../../../../components/ui/field";
 import { Sidebar } from "../../../../components/ui/sidebar";
 import { DASHBOARD_COPY, type DashboardCopy } from "../../../../lib/copy/dashboard";
 import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
+import { canBecomeHttpsUrl } from "../../../../lib/https-url";
 
 export type CatalogKind = "destinations" | "stays" | "experiences" | "packages";
 
-const HTTPS_PREFIX = "https://";
 
 type Config = {
   title: (copy: DashboardCopy) => string;
@@ -62,16 +62,13 @@ export function CatalogScreen({ kind }: { kind: CatalogKind }) {
   }, []);
 
   function handleMediaChange(event: ChangeEvent<HTMLInputElement>) {
+    // Every keystroke is kept so the URL can be typed. The error shows once the value can no
+    // longer become https://. T-03-27: whatever saves this later must accept only isHttpsUrl().
     const value = event.target.value;
-    if (value === "" || value.startsWith(HTTPS_PREFIX)) {
-      setMediaUrl(value);
-      setMediaInvalid(false);
-      return;
-    }
-    // T-03-27: a value that is not https:// is rejected in the field and is
-    // never written to component state, so it cannot be stored or uploaded.
-    setMediaInvalid(true);
+    setMediaUrl(value);
+    setMediaInvalid(!canBecomeHttpsUrl(value));
   }
+
 
   return (
     <div className="flex min-w-0 flex-col gap-6">

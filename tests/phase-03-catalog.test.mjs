@@ -57,10 +57,9 @@ test("no inclusion toggle is drawn anywhere in the catalog screens", () => {
   assert.equal(/inclusion/i.test(text), false);
 });
 
-test("Media URL rejects a non-https value and does not store it", () => {
+test("Media URL keeps every keystroke and flags a value that cannot become https://", () => {
   const text = readFileSync(SCREEN, "utf8");
-  assert.match(text, /startsWith\(HTTPS_PREFIX\)/);
-  assert.match(text, /setMediaInvalid\(true\)/);
+  assert.match(text, /setMediaInvalid\(!canBecomeHttpsUrl\(value\)\)/);
   assert.equal(text.includes("<input type=\"file\""), false);
   assert.equal(text.includes('type="file"'), false, "no file input");
 });

@@ -88,11 +88,19 @@ export function SiteNav({
   const headerRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  // The Menu button is hidden while the menu is open, so focus returns to it after the re-render.
+  const restoreFocusRef = useRef(false);
 
   function closeMenu() {
+    restoreFocusRef.current = true;
     setOpen(false);
-    menuRef.current?.focus();
   }
+
+  useEffect(() => {
+    if (open || !restoreFocusRef.current) return;
+    restoreFocusRef.current = false;
+    menuRef.current?.focus();
+  }, [open]);
 
   useEffect(() => {
     const root = headerRef.current;
@@ -115,10 +123,11 @@ export function SiteNav({
     document.body.style.overflow = "hidden";
 
     function onKey(event: globalThis.KeyboardEvent) {
+      // An open Language or Currency list handles its own Escape first.
+      if (event.defaultPrevented) return;
       if (event.key === "Escape") {
         event.preventDefault();
-        setOpen(false);
-        menuRef.current?.focus();
+        closeMenu();
         return;
       }
       if (event.key !== "Tab" || !root) return;

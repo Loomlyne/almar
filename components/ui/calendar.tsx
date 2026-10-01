@@ -78,7 +78,11 @@ export function CalendarPanel({
 
   const previewEnd = end ?? hover;
   const preferred = focused ?? start ?? now;
-  const tabDay = compare(preferred, now) < 0 ? now : preferred;
+  const inShownMonth = (date: CalendarDate) => date.year === cursor.year && date.month === cursor.month;
+  const firstSelectable = compare(first, now) < 0 ? now : first;
+  // The grid keeps exactly one Tab stop in the month shown, even after Previous or Next month.
+  const tabDay = compare(preferred, now) >= 0 && inShownMonth(preferred) ? preferred : firstSelectable;
+  const atFirstMonth = cursor.year === now.year && cursor.month === now.month;
 
   useEffect(() => {
     const key = pendingFocus.current;
@@ -131,9 +135,12 @@ export function CalendarPanel({
       <div className="flex min-h-control items-center justify-between">
         <button
           type="button"
-          className="inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border-0 bg-transparent p-0 text-teal"
+          className="inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border-0 bg-transparent p-0 text-teal aria-disabled:cursor-default aria-disabled:text-muted"
           aria-label="Previous month"
-          onClick={() => setCursor(cursor.subtract({ months: 1 }))}
+          aria-disabled={atFirstMonth || undefined}
+          onClick={() => {
+            if (!atFirstMonth) setCursor(cursor.subtract({ months: 1 }));
+          }}
         >
           <ChevronIcon size={20} className="-scale-x-100 rtl:scale-x-100" />
         </button>

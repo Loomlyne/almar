@@ -72,6 +72,7 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const menuId = useId();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const restoreFocusRef = useRef(false);
   const [locale, setLocale] = useState<DocumentLocale>("en");
   const [menuOpen, setMenuOpen] = useState(false);
   const [compact, setCompact] = useState(false);
@@ -119,12 +120,12 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();
-        setMenuOpen(false);
-        menuButtonRef.current?.focus();
+        closeMenu();
         return;
       }
       if (event.key !== "Tab") return;
-      const nodes = [...(root?.querySelectorAll<HTMLElement>("a[href], button:not([disabled])") ?? [])].filter(
+      const toggle = menuButtonRef.current ? [menuButtonRef.current] : [];
+      const nodes = [...toggle, ...(root?.querySelectorAll<HTMLElement>("a[href], button:not([disabled])") ?? [])].filter(
         (node) => node.getClientRects().length > 0,
       );
       if (nodes.length === 0) return;
@@ -145,6 +146,17 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
       document.body.style.overflow = previous;
     };
   }, [menuOpen, menuId]);
+
+  useEffect(() => {
+    if (menuOpen || !restoreFocusRef.current) return;
+    restoreFocusRef.current = false;
+    menuButtonRef.current?.focus();
+  }, [menuOpen]);
+
+  function closeMenu() {
+    restoreFocusRef.current = true;
+    setMenuOpen(false);
+  }
 
   function renderLink(item: RailLink, nested = false) {
     const current = pathname === item.href;
@@ -219,31 +231,17 @@ export default function OpsLayout({ children }: { children: ReactNode }) {
             {INTERIOR_MARK}
           </span>
         </Link>
-        {menuOpen ? (
-          <button
-            type="button"
-            className={MENU_BUTTON}
-            aria-label={copy.closeMenu}
-            onClick={() => {
-              setMenuOpen(false);
-              menuButtonRef.current?.focus();
-            }}
-          >
-            <CloseIcon size={20} />
-          </button>
-        ) : (
-          <button
-            ref={menuButtonRef}
-            type="button"
-            className={MENU_BUTTON}
-            aria-expanded={false}
-            aria-controls={menuId}
-            aria-label={copy.menu}
-            onClick={() => setMenuOpen(true)}
-          >
-            <MenuGlyph />
-          </button>
-        )}
+        <button
+          ref={menuButtonRef}
+          type="button"
+          className={MENU_BUTTON}
+          aria-expanded={menuOpen}
+          aria-controls={menuId}
+          aria-label={menuOpen ? copy.closeMenu : copy.menu}
+          onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
+        >
+          {menuOpen ? <CloseIcon size={20} /> : <MenuGlyph />}
+        </button>
       </header>
       <div className="flex min-w-0 flex-1 items-stretch">
         <nav

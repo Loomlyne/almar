@@ -28,7 +28,10 @@ type StepperProps = {
   className?: string;
 };
 
-/** Controlled [-] n [+]. Every string comes from props. */
+/**
+ * Controlled [-] n [+]. Every string comes from props.
+ * At a bound the button is aria-disabled, not disabled, so keyboard focus stays on it.
+ */
 export function Stepper({
   value,
   onChange,
@@ -47,8 +50,10 @@ export function Stepper({
         type="button"
         className={stepButton({ off: atMin })}
         aria-label={removeLabel}
-        disabled={atMin}
-        onClick={() => onChange(Math.max(min, value - 1))}
+        aria-disabled={atMin || undefined}
+        onClick={() => {
+          if (!atMin) onChange(Math.max(min, value - 1));
+        }}
       >
         <span aria-hidden="true">−</span>
       </button>
@@ -59,8 +64,10 @@ export function Stepper({
         type="button"
         className={stepButton({ off: atMax })}
         aria-label={addLabel}
-        disabled={atMax}
-        onClick={() => onChange(max === undefined ? value + 1 : Math.min(max, value + 1))}
+        aria-disabled={atMax || undefined}
+        onClick={() => {
+          if (!atMax) onChange(max === undefined ? value + 1 : Math.min(max, value + 1));
+        }}
       >
         <span aria-hidden="true">+</span>
       </button>
