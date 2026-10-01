@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SignInScreen } from "./sign-in-screen";
 import { readSessionProfile } from "../../lib/supabase/clients";
-import { LOCALE_COOKIE, readLocale, RETURN_COOKIE, safeReturnPath } from "../../lib/auth/rules";
+import { RETURN_COOKIE, safeReturnPath } from "../../lib/auth/rules";
+import { requestLocale } from "../../lib/request-locale";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export default async function LoginPage({
   const { expired } = query;
   return (
     <SignInScreen
-      initialLocale={readLocale(store.get(LOCALE_COOKIE)?.value)}
+      initialLocale={await requestLocale()}
       returnTo={returnTo}
       expired={expired === "1"}
     />

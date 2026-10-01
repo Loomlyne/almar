@@ -63,6 +63,11 @@ export type GuestCopy = {
     ignore: string;
     sender: string;
   };
+  /** Plan 02-03, the 404 on the server runtime. The static host 404 stays English (lib/not-found-document.ts). */
+  notFound: {
+    title: string;
+    returnHome: string;
+  };
 };
 
 export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
@@ -126,6 +131,10 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
       ignore: "If you did not ask for this email, you can ignore it.",
       sender: "ALMAR Private Journey",
     },
+    notFound: {
+      title: "Page not found",
+      returnHome: "Return home",
+    },
   },
   ar: {
     login: "دخول",
@@ -187,6 +196,10 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
       ignore: "إذا لم تطلب هذه الرسالة، يمكنك تجاهلها.",
       sender: "ALMAR Private Journey",
     },
+    notFound: {
+      title: "الصفحة غير موجودة",
+      returnHome: "العودة إلى الرئيسية",
+    },
   },
   es: {
     login: "Entrar",
@@ -247,6 +260,10 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
       intro: "Usa este botón para acceder a ALMAR Private Journey.",
       ignore: "Si no pediste este correo, puedes ignorarlo.",
       sender: "ALMAR Private Journey",
+    },
+    notFound: {
+      title: "Página no encontrada",
+      returnHome: "Volver al inicio",
     },
   },
 };
