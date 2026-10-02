@@ -1,32 +1,44 @@
-# Next.js project (converted from Framer)
+# ALMAR Private Journeys
 
-Generated from https://almarprod.framer.website/. 20 page(s), one App Router route each.
+The site at https://almarprivatejourney.com (and `www`). Next.js 15, Tailwind v4, hosted on Cloudflare.
 
-## Run
+## What is live
+
+The public pages are Framer exports. Each one is a static route handler (`app/<route>/route.ts`) that
+returns the page HTML as a string, including the comment nodes Framer's runtime needs to hydrate. They
+are not patched any more; Phase 3.3 and Phase 6 replace them with React pages.
+
+The React pages (`/account`, `/login`, `/booking/trip`, `/bookings`, `/dashboard`) and the route
+handlers `/fx`, `/newsletter` and `/embed/*` answer 404 in production until their phases ship.
+
+## Run and check
+
+Node 22.18 or later (the assemble script and the node tests import `.ts` files directly).
 
 ```bash
-npm install
-npm run dev      # http://localhost:3000
-npm run build && npm start
+npm ci
+npm run dev -- -H 127.0.0.1 -p 3010
 ```
 
-## How it works
+Checks, as the controller runs them on a clean clone:
 
-Each page is a statically-prerendered Next.js **route handler**
-(`app/<route>/route.ts`) serving the page HTML verbatim — including the HTML
-comment markers Framer's runtime uses to hydrate instantly (which is why the
-markup is a string constant rather than JSX: React cannot emit comment nodes,
-and dropping them forces a slow client-side re-render). Framer's runtime
-stays fully intact, so the site renders **identically to the original** —
-full content, animations, interactivity.
+```bash
+npx tsc --noEmit
+node --test tests/*.test.mjs
+npm run tokens:check
+npm run build
+npx playwright test --workers=1
+```
 
-On top of that it applies a few fixes: site images are re-encoded to WebP and
-self-hosted under `public/assets/img` (fidelity-safe, and the biggest payload
-win on image-led sites), fonts are self-hosted under `public/assets/fonts`
-with `font-display: swap` forced, the above-the-fold hero image is marked
-`fetchpriority="high"` for a faster LCP, canonical/og:url are repointed to the
-deploy domain (root-relative, upgraded to absolute in the browser so they never
-reference Framer's domain), and Framer's analytics beacon is removed. Pages are
-static and CDN-cacheable, so TTFB stays low.
+Design tokens live in `tokens.json`; `npm run tokens` regenerates the theme block in `app/globals.css`.
 
-Deploy to Vercel/Netlify like any Next.js app.
+## Build and deploy
+
+`node scripts/assemble-cloudflare.mjs` runs `npm run build`, then writes `out/`: `public/`, every
+static page body from `.next/server/app` as `.html`, the branded `404.html` and `_headers`.
+
+Worker `almar` (`wrangler.toml`) serves `out/` as static assets on the Cloudflare account "Almar Private
+Journey", pinned by `account_id`. There is no server code in production.
+
+Only the ALMAR control session deploys, and only on the owner's word (`npm run host:cloudflare` with
+the ALMAR Cloudflare login). Work sessions never deploy. There is no Vercel, Netlify or Docker path.

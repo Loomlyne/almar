@@ -10,3 +10,9 @@ next-env.d.ts
 /playwright-report/
 CLAUDE.local.md
 tests/screens/after/
+.DS_Store
+.claude/worktrees/
+.env
+.env.*
+!.env.example
+.dev.vars

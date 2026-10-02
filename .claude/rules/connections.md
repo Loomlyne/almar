@@ -14,7 +14,7 @@ GSD is already initialized. Commands use `/gsd-execute-phase`, not a colon.
 
 ## Connectors
 
-This repo's `.mcp.json`: Cloudflare, Resend, Supabase, Stripe. OAuth. No keys in the file. Supabase has no project yet — do not create one unless he says.
+This repo's `.mcp.json`: Cloudflare, Resend, Supabase, Stripe. OAuth. No keys in the file. One Supabase project exists since plan 02-01 (Storage off); the app is not wired to it yet. Never create another.
 
 Not connected, on purpose: Vercel, Figma, Notion, Lovable, Canva.
 
