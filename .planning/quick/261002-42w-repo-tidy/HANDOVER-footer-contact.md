@@ -30,3 +30,36 @@ Pre-change tree: `git archive 2350b51 | tar -x -C /tmp/fcc-before`, new test fil
 - Cause of the single first-run `next build` crash in this worktree (not reproduced on two reruns); I did not capture the error text.
 - The `/contact` Playwright case clicks a link on the target page itself: it proves the click does not go to `/legal/privacy-policy`, not that a navigation happens.
 - No-JS behaviour (plain href) was not run in a browser; it follows from the 2350b51 markup test only.
+
+---
+
+# Round 2: modifier-key guard
+
+No separate commit exists. While I was running the final checks, someone committed this worktree as 797ed9f ("archive the dropped click-delegate work", owner dropped the stopgap 2026-10-02 13:30), and that commit already holds all the round-2 code and test changes. My own `git commit` then found nothing to commit. The message you gave me was therefore never used.
+
+## What changed
+- The delegate now starts with `if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;`. Replaced in all 20 files: 20 replacements, each file asserted to hold exactly one old copy before and exactly one new copy and one `</body>` after.
+- `tests/no-dead-links.test.mjs`: the exactly-once assertion now matches the new script text on all 20 pages.
+- `tests/footer-contact-link.spec.ts`: 4 new tests (9 total): /about at 390 px and at 834 px land on /contact; cmd+click on /about leaves the tab on /about; focus plus Enter on /about lands on /contact. A `settle()` helper replaces the bare networkidle wait: networkidle best effort capped at 10 s, then 2 s (the plain networkidle wait hit the 30 s test timeout on `/` three times in cold runs).
+
+## Proof the cmd+click test is real
+`git archive 0832d2d` (old guard) into a temp dir with the new tests copied in (deleted afterwards):
+- Node assertion: FAILED (7 pass / 1 fail).
+- Playwright spec: cmd+click test FAILED, `Expected: "/about"  Received: "/contact"`; the other 8 passed (including Enter, 390 px, 834 px, which means those pass with either script). 
+On this branch: all 9 spec tests pass; node 8/8 in the file.
+Enter reached /contact in Chromium with the guard in place: a keyboard-activated click reports button 0, so nothing had to be weakened.
+
+## Checks
+- tsc exit 0. node --test tests/*.test.mjs: 197 pass, 0 fail. tokens:check: theme up to date.
+- assemble: run twice from a clean `out` and `.next`, both exit 0, 27 html files. The one-off `next build` crash did not recur; I never captured its text, so it stays unexplained.
+- out/: new script in 20 files, once each; 20 files contain `window.location.href="/contact"`; `href="/contact"` 99; team-name grep 0; dead-path href grep 0.
+- Full Playwright (PW_PORT=3023, --workers=1): FIRST run 1084 passed, 28 skipped, 38 failed, all 38 ERR_CONNECTION_REFUSED / ECONNREFUSED from test 1113 on: the dev server on 3023 vanished. Another session (worktree `mariven-text`) runs `pkill -f "next-server"`, which kills every next server on the Mac, mine included; I saw that command in the process list. Rerun untouched: 1122 passed, 28 skipped, 0 failed (13.8 min).
+- Flake: the `/` click test failed once in about 12 cold-server runs of the spec with the `settle()` helper (and the 3 networkidle failures before it); I did not capture that failure's message and could not reproduce it in 15 repeats (15 of 15 passed) or 5 further full-spec runs.
+
+## Still not verified
+- Browsers other than Chromium; real Safari/Firefox modifier behaviour.
+- That cmd+click really opens a new tab: only that this tab stays on /about (headless popup not asserted).
+- Ctrl, shift, alt-click and middle-click individually (guarded by the same condition, only Meta tested; middle-click rests on the browser firing auxclick).
+- The 390 and 834 tests click whichever copy is visible; they do not prove the other two copies are hidden at that width.
+- The unexplained single first-run `next build` crash and the one unreproduced `/` click-test failure.
+- The live site.
