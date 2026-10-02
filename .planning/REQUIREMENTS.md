@@ -93,7 +93,7 @@ Requirements for this product. Each maps to roadmap phases.
 
 ### Languages and chrome
 
-- [ ] **I18N-01**: Guest uses the same URLs in EN, AR, and ES (no `/en` `/ar` `/es`); toggle is remembered; default EN; AR is real RTL
+- [ ] **I18N-01**: Guest reads EN at the root and AR, ES at `/ar/…`, `/es/…`, baked at build with the right `lang` and `dir` in the served HTML; default EN; AR is real RTL from first paint; the switcher changes the address and the choice is remembered as a preference (owner, 2026-10-02: per-locale URLs replaced "same URLs")
 - [ ] **I18N-02**: Language and currency switchers are in the header; language switch keeps currency
 - [ ] **I18N-03**: Dates are DD/MM/YYYY, week starts Monday, Western numerals in AR
 - [ ] **I18N-04**: Ops types English; Publish auto-translates AR/ES (editable, lockable); English change re-translates unless locked
@@ -247,7 +247,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-05 | Phase 2 | Pending |
 | AUTH-06 | Phase 2 | Pending |
 | AUTH-07 | Phase 2 | Pending |
-| I18N-01 | Phase 2 | Pending |
+| I18N-01 | Phase 3.3 | Pending |
 | I18N-02 | Phase 2 | Pending |
 | I18N-03 | Phase 2 | Pending |
 | I18N-04 | Phase 6 | Pending |
