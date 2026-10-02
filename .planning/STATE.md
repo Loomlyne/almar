@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Order reshaped 2026-10-02 13:35: frontend before backend. Next jobs 05 (Mariven text) then 06 (Phase 3.3 slice 1)"
+stopped_at: "Job 05 landed (2180b14) and live (f9ba2378) 2026-10-02 15:15. Job 06 design running for his signature"
 last_updated: "2026-10-02T09:40:00.000Z"
 last_activity: 2026-10-02
 progress:
@@ -30,7 +30,7 @@ Execution order is no longer numeric: 1 → 3 → 3.1 → **3.3** → **2** → 
 Next: job 05 (delete the Mariven sentence from the 12 live stay pages), then job 06 (Phase 3.3 slice 1 — `lib/data` plus home, `/private-stays` and the 12 stay pages). Both prompts written, both waiting on his go.
 Open: the owner reviews each 3.3 slice on `preview.almarprivatejourney.com` — Worker `almar-preview` is one numbered Cloudflare step at job 06's hand-over.
 Last activity: 2026-10-02
-Status: planning only since job 04 landed. Nothing is building. The footer Contact stopgap was dropped and archived as tag `archive/footer-contact-click`; the live footer Contact link still navigates to `/legal/privacy-policy` on a click until the React `/contact` page lands.
+Status: job 05 landed as `2180b14` and deployed as `f9ba2378` (15:15 +04, his Ship and deploy word); live-verified in Chromium — the sentence is in the DOM but 0 visible nodes and absent from `innerText` at 390 and 1440 on 3 pages, both hosts byte-identical to the build, all 12 pages 200. Job 06's design is running for his signature. The footer Contact stopgap was dropped and archived as tag `archive/footer-contact-click`; the live footer Contact link still navigates to `/legal/privacy-policy` on a click until the React `/contact` page lands.
 
 Progress: [██████████] 100% of 3.1 · 3.3 not started
 
