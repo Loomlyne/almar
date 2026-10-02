@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Job 04 repo tidy built and handed over on fix/repo-tidy (6bc38f2); controller clean-clone check passed 2026-10-02 04:20; waiting for the owner's Ship"
+stopped_at: "Job 04 landed (97005a0) and live (b769e01a) 2026-10-02 12:35; next job 02"
 last_updated: "2026-10-02T00:20:00.000Z"
 last_activity: 2026-10-02
 progress:
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 ## Current Position
 
 Phase: 3.1 (design-system-and-journey-bar-inserted) — COMPLETE, 29 of 29; LANDED on `main` as `9fd6786` (2026-10-02, owner's Ship 01:42 +04; tag `archive/ship-3.1` = `7e72c20`). Deployed to Worker `almar` 2026-10-02 02:25 +04 (version `49112d4b`)
-Next: **job 04 repo tidy is built and checked, waiting for the owner's Ship** (`fix/repo-tidy`, tip `6bc38f2`, final code commit `2e4fe87`; hand-over `.planning/quick/261002-42w-repo-tidy/HANDOVER.md`). Then Phase 2 auth chain (job 02: cherry-pick `claude/project-thread-8h6bed` onto `origin/main`), then 3.2
+Next: job 02, Phase 2 auth chain (`prompts/02-phase-2-auth-chain.md`: cherry-pick `claude/project-thread-8h6bed` onto `origin/main`), then 3.2. Open: the footer "Contact" follow-up to job 04, uncommitted in `.claude/worktrees/repo-tidy`
 Last activity: 2026-10-01
 Status: Phase 3.1 landed. Controller check of `7e72c20` in a clean clone on 2026-10-02: install, tsc, 160/160 node tests, tokens, build pass; Playwright 1,109 passed, 28 skipped, 4 load timeouts that pass on rerun. Success criterion 1 is met except hand-written font sizes in globals.css (hand-over open item 3)
 
@@ -86,6 +86,7 @@ Recent decisions affecting current work:
 - 2026-10-02 01:42 +04 (owner's Ship): Phase 3.1 landed on `main` as `9fd6786`; the push also builds Pages project `almar` (production branch `main`, `almar-khb.pages.dev`), which the owner accepted. No Worker deploy.
 - 2026-10-02 02:25 +04 (owner's word): `main` `68df3b6` deployed to Worker `almar` (version `49112d4b`); the 26 public pages are unchanged, the branded 404 is new. The old Worker `almar` on the Vamos account and the Pages project `almar` were deleted (owner's word).
 - 2026-10-02 (owner): each work session runs in its own worktree `.claude/worktrees/<job>` inside the main folder, never a sibling folder. A short repo-tidy job (04) runs before job 02. GSD codebase map and `HERMES.md` refreshed. 18 idle ALMAR sessions archived.
+- 2026-10-02 12:34 +04 (owner's Ship): job 04 landed as `97005a0`; deployed 12:35 as `b769e01a` (owner's word). The invented team members, 8 dead footer links and 3 name-only stay cards are off the live site; `wrangler.toml` pins the ALMAR account; the workers.dev address is off.
 - 2026-10-02 ~03:14 +04 (owner, in job 04): the ~52 other dead card links are listed and fixed later, not in job 04; the footer "Legal" heading stays; the three name-only `/private-stays` cards (Baru House, Corona Island, Yury House Cartagena) are hidden. Recorded in `decisions/2026-10-02-cleanup.md`.
 - 2026-10-02 04:20 +04 (controller): job 04 checked in a clean clone of `7c5774f` — 193/193 node tests, tsc, tokens, build, Playwright 1,112 passed with one known `chooseArabic` flake that passes on rerun; and four independent checks of the three live-page fixes. Superseded by this job: D-56 in `03.1-CONTEXT.md` ("route.ts pages keep the team members until 3.3 and 6").
 
@@ -115,5 +116,5 @@ From the 3.1 hand-over (open items 1–5): dead controls W6 (Phase 3.2 and 2), g
 ## Session Continuity
 
 Last session: 2026-10-01T22:40:00.000Z
-Stopped at: Phase 3.1 landed and live; cleanup before execution done; next job 04, then job 02
+Stopped at: job 04 landed and live; next job 02
 Resume file: .planning/CONTROL-BOARD.md
