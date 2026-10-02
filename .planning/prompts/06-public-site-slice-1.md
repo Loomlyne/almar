@@ -34,6 +34,36 @@ final submit is **not rendered** until Phase 4; do not render a disabled or plac
 team members (`decisions/2026-09-28-design-audit.md`). The Mariven sentence that job 05 deletes must not
 reappear in a fixture.
 
+## Three languages: per-locale URLs, decided before you start
+
+The owner decided on 2026-10-02: **EN / AR / ES are baked as per-locale URLs at build time** —
+`/about`, `/ar/about`, `/es/about`. Not the client cookie switch that exists today. Verified reasons: no
+`app/` page calls `cookies()`, `almar-locale` is read in 10 client components and written in
+`app/account/account-screen.tsx:25`, and every live page serves `<html lang="en" dir="ltr">` — so AR and ES
+do not exist in served HTML, Arabic would paint LTR before flipping, and job 04's "Arabic" screenshots were
+byte-identical English pages for exactly this reason.
+
+**Slice 1 establishes the pattern and every later slice inherits it, so get it right once:**
+
+1. Route shape: an `app/[locale]/…` segment with `generateStaticParams` over `en`, `ar`, `es`, or three built
+   trees. English stays at the root (`/about`) so today's live URLs and their SEO do not move; AR and ES are
+   prefixed. Emit `hreflang` for all three. `<html lang>` and `dir` are set from the segment, server-side.
+2. The switcher changes URL. The `almar-locale` cookie becomes a remembered preference that can redirect a
+   first visit, never the source of truth. Say in the hand-over whether the dashboard's own cookie reads stay
+   as they are — they are a different surface and are not in this slice.
+3. `scripts/assemble-cloudflare.mjs` harvests `.html` from `.next/server/app` and writes `out/<rel>.html`
+   (line 39-40). It must emit nested locale paths and create those directories. 26 pages become 78.
+4. `wrangler.toml` has `html_handling = "auto-trailing-slash"` and `not_found_handling = "404-page"`. Check
+   both behave for `/ar/about` and `/ar/`. Do not edit `wrangler.toml` — report if it must change.
+5. The branded 404 comes from `renderStaticNotFound()` in `lib/not-found-document.ts`, hardcoded
+   `<html lang="en" dir="ltr">`, and `tests/assemble-404.test.mjs` guards the single one. There are now three
+   404s to consider. Propose, do not silently change the guard.
+6. `tests/no-dead-links.test.mjs` resolves every `<a href>` against the routes in `app/`, and its `HIDDEN` and
+   52 `KNOWN_DEAD` entries are path literals. Locale-prefixed hrefs will read as dead links until its
+   resolver learns the prefixes.
+7. Currency needs rethinking against URL-based locale. Do not invent the rule — put it to the owner as one
+   question with a recommendation, through the controller.
+
 ## Scope — this slice only
 
 - `lib/data/` : types, the modules for stays, destinations, experiences and services, team, and the fixtures.
@@ -41,6 +71,7 @@ reappear in a fixture.
 - `/private-stays` list, with its filters and search working.
 - The 12 `/private-stays/*` detail pages, with the pre-filled booking bar; blocked dates come from the
   fixture per stay (D-62, D-63 in `03.1-CONTEXT.md`).
+- All of the above in three locales: 14 pages become 42 built documents in this slice.
 
 Out of scope: destinations, experiences, about, contact, services, blog. Later slices. Do not start them.
 
@@ -59,6 +90,14 @@ the same `[assets]` block as `wrangler.toml`, `account_id = "f1d9a1fa3abdda98c15
 domain route `preview.almarprivatejourney.com`. Ship a preview-only `noindex` header and a `robots.txt`
 disallow with it. **You do not run wrangler.** Creating the Worker and its hostname is the owner's gate — one
 numbered step at your hand-over, the controller runs it. Do not touch `wrangler.toml` itself.
+
+## Two standing cautions
+
+- **Every guard is a browser assertion, not a file-text one.** Job 04's footer fix passed its node tests and
+  was still a fake control, because Framer's client router overrode the server `href` at click time. It cost
+  the owner that job twice. Click the control, assert the result.
+- **Questions go through the controller, not straight to the owner.** Two sessions asking him in two chats is
+  what caused today's duplicate work. Send the question to the controller with your recommendation.
 
 ## Hand-over
 

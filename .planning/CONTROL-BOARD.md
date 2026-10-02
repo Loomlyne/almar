@@ -1,7 +1,11 @@
 # Control board
 
-Kept by the controller: the Mac session "ALMAR controller" (`local_836ffacc-ca03-41c4-b1ff-385b8aa9d357`,
-pinned, sidebar group ALMAR) in the main checkout, since 2026-10-02 00:05 (+04), on the owner's choice. The
+Kept by the controller: **this Mac session in the main checkout, named controller by the owner on 2026-10-02
+~14:00 (question form)**, sidebar group ALMAR. It replaces `local_836ffacc-ca03-41c4-b1ff-385b8aa9d357`, the
+pinned Desktop session that held the title from 00:05 but sat idle — which is why two sessions each believed
+they were control and built the same thing three times today. Session `almarprod-website-code-34` stood down of
+its own accord and keeps to checking, reading live state and reporting. (This session cannot read its own id;
+the owner pins it when he wants the id on the board.) The
 claude.ai project ran 2026-10-01 11:08–19:27 UTC; its record is `HANDOFF-2026-10-01-projects.md`. One page:
 what is live, what is being built, what waits for the owner, what comes next. Updated at every hand-over and
 every landing. The goal: `GOAL.md`. The rules: `prompts/00-common-rules.md`; decisions
@@ -25,6 +29,28 @@ Framer export. 3.3 needs no database, no auth and nothing owner-gated, so it is 
 he set: **one data layer** (`lib/data/<entity>.ts`, async, Supabase shapes, fixtures behind it, no component
 touches a fixture) and **no fake controls** (every control shown works; the journey bar's final submit is not
 rendered until Phase 4). Because a dashboard is almost all write controls, it waits for the backend.
+
+
+### EN / AR / ES: per-locale URLs, decided 2026-10-02 ~14:05
+
+His answer, question form, given in session `almarprod-website-code-34`'s chat and relayed here verbatim:
+**bake per-locale URLs at build time** — `/about`, `/ar/about`, `/es/about`. English stays at the root so
+today's live URLs do not move. This controller reached the same recommendation independently.
+
+Verified here before recording it: no `app/` page calls `cookies()`; `almar-locale` is read in 10 client
+components and written in `app/account/account-screen.tsx:25`; `/`, `/private-stays` and `/about` all serve
+`<html lang="en" dir="ltr">` live. So AR and ES do not exist in served HTML today, Arabic would paint LTR
+before flipping, and job 04's "Arabic" screenshots were byte-identical English pages for this reason.
+
+What it costs, all verified in the code and all written into `prompts/06-public-site-slice-1.md`: 26 pages
+become 78 built documents; `scripts/assemble-cloudflare.mjs` writes `out/<rel>.html` (lines 39-40) and must
+emit nested locale paths; `wrangler.toml`'s `html_handling = "auto-trailing-slash"` and
+`not_found_handling = "404-page"` must be checked for `/ar/about` and `/ar/`; `renderStaticNotFound()` is
+hardcoded `lang="en" dir="ltr"` and `tests/assemble-404.test.mjs` guards the single 404, so there are three to
+consider; `tests/no-dead-links.test.mjs` resolves hrefs against `app/` routes with path-literal `HIDDEN` and 52
+`KNOWN_DEAD` entries and will read locale prefixes as dead links. The switcher changes URL and the cookie
+becomes a remembered preference, not the source of truth. **Currency still needs a rule against URL-based
+locale — one question to him, not invented.**
 
 ### ⚠ Dropped: the footer Contact stopgap (owner, 2026-10-02 13:30)
 
@@ -138,7 +164,7 @@ the day it lands; `.claude/worktrees/repo-tidy` stays until job 04 lands.
 | "Mariven is thoughtfully designed for comfort and style" on 12 of 12 live stay pages, and in all 12 `route.ts` files: another property's name in leftover template text | **Job 05**, after the footer fix |
 | What | Where |
 |---|---|
-| **Worker `almar` is static assets only: `wrangler.toml` has `[assets]` and no `main` entry.** So `middleware.ts` can never run, and any `force-dynamic` page emits no HTML and answers 404 — which is why `/login`, `/account` and `/dashboard` 404 live today. `main` has 5 `force-dynamic` files; the job 02 auth branch takes it to 14. Found by session `almarprod-website-code-34`, **verified here 2026-10-02 13:55** from `wrangler.toml` and a grep of `app/`. Phase 2 cannot be live until a server-runtime job lands (plan 02-08 Task 2: `@opennextjs/cloudflare` 1.20.6 is installed but not configured). The peer reports the owner's answer was "land job 02 dormant, make the runtime switch its own job" — **reported by a peer, not his word in the control session; needs his confirmation** | Its own job, before Phase 2 goes live |
+| **Worker `almar` is static assets only: `wrangler.toml` has `[assets]` and no `main` entry.** So `middleware.ts` can never run, and any `force-dynamic` page emits no HTML and answers 404 — which is why `/login`, `/account` and `/dashboard` 404 live today. `main` has 5 `force-dynamic` files; the job 02 auth branch takes it to 14. Found by session `almarprod-website-code-34`, **verified here 2026-10-02 13:55** from `wrangler.toml` and a grep of `app/`. Phase 2 cannot be live until a server-runtime job lands (plan 02-08 Task 2: `@opennextjs/cloudflare` 1.20.6 is installed but not configured). The peer states the owner chose "Land it dormant, no deploy" over "do the runtime switch first" and "land both together", first-hand in its own chat through the question form — **recorded as his answer given elsewhere, still to be confirmed here before job 02 runs** (it is parked behind Phase 3.3, so there is time) | Its own job, before Phase 2 goes live |
 | **Phase 3.3 constraint from the same fact:** with no server runtime, EN / AR / ES cannot be middleware-routed. There are no per-locale route segments in `app/` today and `lib/copy` is one catalog with an object per locale, so the choice is client-side switching or per-locale URLs baked at build time. A job 06 discuss decision | Job 06 |
 | Phase 3 has 13 of 13 summaries and no verification file | Controller report |
 | The `chooseArabic` helper flakes under parallel Playwright workers | Run with `--workers=1` |

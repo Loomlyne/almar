@@ -209,7 +209,8 @@ Plans:
   1. All 26 public pages render from React with the Framer look on 3.1 tokens, on the same URLs: `/`, `/private-stays`, the 12 `/private-stays/*`, `/destinations`, `/experiences`, `/about`, `/contact`, services and service detail, `/blog` and posts
   2. Every read comes from `lib/data/<entity>.ts` — async, returning the shape Supabase will return, backed by `lib/data/fixtures/*.json`. No component touches a fixture
   3. No fake controls: every control shown works, including filters, search, overlays, language, currency and the journey bar's Where → When → Who. The only held control is the journey bar's final submit, which is not rendered until Phase 4
-  4. Home hero carries the journey bar; EN / AR / ES with real RTL on every section; contact stays `inquiries@almarprivatejourney.com` / `+971 56 388 3302`
+  4. Home hero carries the journey bar; contact stays `inquiries@almarprivatejourney.com` / `+971 56 388 3302`
+  4b. **EN / AR / ES are per-locale URLs baked at build time** (owner, 2026-10-02): `/about`, `/ar/about`, `/es/about`. The served HTML carries the right `lang` and `dir` — Arabic is RTL from the first paint, not after a client swap — and AR/ES are indexable and work with JavaScript off. 26 pages become 78 built documents, plus `hreflang`. The language switcher changes URL; the `almar-locale` cookie becomes a preference that redirects, not the source of truth. Currency is rethought against this
   5. No Framer `route.ts` page, no Framer CDN script and no `files.catbox.moe` asset is left serving; `robots.txt` and `sitemap.xml` exist
   6. The owner reviews each slice on `preview.almarprivatejourney.com` (Worker `almar-preview`, noindex) before any production deploy; production cuts over on his word
 
