@@ -83,6 +83,17 @@ local-only branch that needs pushing; `prep/phase-3.2-discuss` (`prep/phase-3.2-
 premise moved — 3.2 is now the fixture-to-Supabase swap, so the prep needs re-reading before reuse. None of the
 three pushed, deployed or touched a database.
 
+**Duplicate work, 2026-10-02 (budget lost).** This controller and session `almarprod-website-code-34` built the
+same thing three times before they spoke: the markup-only footer fix (`2350b51` and the byte-identical `1e6d19d`),
+the click delegate, and job 05 (two worktrees, `mariven-text` and `mariven-text-2`). The fix is the declaration
+protocol in the sessions table above. Cause: two sessions each believed they were control, because the board named
+a Desktop session that was idle.
+
+Archive tags the peer pushed, verified on GitHub 2026-10-02 13:55: `archive/job-02-conflicts` (`0499fc1`, the job 02
+conflict survey — 8 of 11 commits apply clean, `.gitignore` and 12 PNGs mechanical, `app/dashboard/(ops)/layout.tsx`
+a real semantic merge) and `archive/phase-3.2-discuss` (`ff99fd5`, the 3.2 prep with 12 decisions for his gate,
+written before the 13:30 reshape — re-read it against the new definition of 3.2 before reusing it).
+
 Branches 2026-10-02 13:40: `main` `0b44f27`; `claude/project-thread-8h6bed` (job 02's source, on GitHub);
 `fix/footer-contact` `2350b51` (on GitHub, **broken, never lands** — delete it on his word);
 `fix/footer-contact-click` `797ed9f` (archived as a tag, worktree to be removed);
@@ -107,8 +118,8 @@ worktree to be removed); `survey/job-02-conflicts` `0499fc1` (local only).
 | ALMAR controller (`local_836ffacc-…`, pinned) | Opus 5.5, xhigh | main checkout | the controller |
 | job 04 worker | Opus 5.5 | `.claude/worktrees/repo-tidy` | landed and live; worktree to be removed |
 | footer-contact-click | — | `.claude/worktrees/footer-contact-click` | **dropped** by the owner 13:30, archived as tag `archive/footer-contact-click`; worktree to be removed |
-| job 02 survey | Sonnet 5.5 | `.claude/worktrees/job-02-survey` | survey finished (`0499fc1`), local only; push then remove |
-| 3.2 prep | — | `.claude/worktrees/phase-3.2-prep` | premise moved (3.2 is now the fixture-to-Supabase swap); re-read before reuse |
+| `almarprod-website-code-34` | — | same checkout | **Stood down 2026-10-02 13:50, by its own message**: it will not push `main`, tag or deploy again unless the owner tells it directly in its own chat, and it keeps to checking, reading live state and reporting. It removed its `job-02-survey`, `phase-3.2-prep` and duplicate `mariven-text-2` worktrees. Protocol agreed both ways: declare job number, branch and worktree before starting one |
+| job 05 worker | Sonnet 5.5 | `.claude/worktrees/mariven-text`, `fix/mariven-text` | **running** from `b87fdac`: deletes the Mariven sentence from the 12 stay pages with a browser-level guard. Commits only; the controller pushes |
 
 Archived 2026-10-02 on the owner's word (undoable): the retired control session, the 3 Phase 3.1 sessions and
 the 14 Framer-era sessions. All ALMAR sessions sit in the sidebar group ALMAR. Each job's worktree is removed
@@ -127,6 +138,8 @@ the day it lands; `.claude/worktrees/repo-tidy` stays until job 04 lands.
 | "Mariven is thoughtfully designed for comfort and style" on 12 of 12 live stay pages, and in all 12 `route.ts` files: another property's name in leftover template text | **Job 05**, after the footer fix |
 | What | Where |
 |---|---|
+| **Worker `almar` is static assets only: `wrangler.toml` has `[assets]` and no `main` entry.** So `middleware.ts` can never run, and any `force-dynamic` page emits no HTML and answers 404 — which is why `/login`, `/account` and `/dashboard` 404 live today. `main` has 5 `force-dynamic` files; the job 02 auth branch takes it to 14. Found by session `almarprod-website-code-34`, **verified here 2026-10-02 13:55** from `wrangler.toml` and a grep of `app/`. Phase 2 cannot be live until a server-runtime job lands (plan 02-08 Task 2: `@opennextjs/cloudflare` 1.20.6 is installed but not configured). The peer reports the owner's answer was "land job 02 dormant, make the runtime switch its own job" — **reported by a peer, not his word in the control session; needs his confirmation** | Its own job, before Phase 2 goes live |
+| **Phase 3.3 constraint from the same fact:** with no server runtime, EN / AR / ES cannot be middleware-routed. There are no per-locale route segments in `app/` today and `lib/copy` is one catalog with an object per locale, so the choice is client-side switching or per-locale URLs baked at build time. A job 06 discuss decision | Job 06 |
 | Phase 3 has 13 of 13 summaries and no verification file | Controller report |
 | The `chooseArabic` helper flakes under parallel Playwright workers | Run with `--workers=1` |
 | The Playwright browser cache is shared by every project on this Mac; another project's install can remove build 1243 | Reinstall from this checkout: `npx playwright install --only-shell chromium` (a download: owner's OK) |
