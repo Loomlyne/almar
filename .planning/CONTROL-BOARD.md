@@ -7,26 +7,38 @@ what is live, what is being built, what waits for the owner, what comes next. Up
 every landing. The goal: `GOAL.md`. The rules: `prompts/00-common-rules.md`; decisions
 `decisions/2026-10-01-control-session.md`.
 
-**Last update:** 2026-10-02 13:05 (+04), by the controller session `local_836ffacc-…` (owner's word, 13:00: this
-session stays control). Job 04 **landed** as `97005a0` and **deployed** (`b769e01a`, 12:35) — by a second session,
-outside the gate and without the footer follow-up the owner had asked for first. Job 04's substance is live and
-correct. **The footer follow-up is not done and the pushed branch for it is broken — see the warning below.**
-Next after it: job 02.
+**Last update:** 2026-10-02 13:40 (+04), by the controller session `local_836ffacc-…`. Job 04 is landed
+(`97005a0`) and live (`b769e01a`). **The owner reshaped the order at 13:30–13:35: the frontend is finished
+before the backend is connected.** Phase 3.3 becomes all 26 public pages in React on one fixture-backed data
+layer and runs now; Phase 2 (the auth chain) and Phase 3.2 follow it; the dashboard is built after the backend,
+already wired. The footer Contact stopgap is dropped. Next jobs: 05 (Mariven text) then 06 (data layer + home +
+private stays). Decisions: `decisions/2026-10-02-cleanup.md` 13:30–13:35.
 
-### ⚠ Do not land `fix/footer-contact` (`2350b51`)
+### The order, after his 13:30–13:35 answers
 
-That branch is on GitHub and sets the footer Contact anchor's `href` to `/contact` on the 20 footer pages. The
-controller tested it in Chromium on a real build (2026-10-02 13:00): the link renders, is visible and reads
-`href="/contact"`, but **a plain click navigates to `/legal/privacy-policy`** — Framer's own client router handles
-the click and ignores the server href. It is a fake control. `1e6d19d` on the local `fix/repo-tidy` has
-byte-identical code and the same defect; it is archived as tag `archive/repo-tidy-contact-fix`.
-The owner's answer (13:02, question form): keep the link and add a small capture-phase click delegate that forces
-`/contact`. Verified working by the controller: a plain click then lands on `/contact`, 200. Without the script the
-plain `href` still navigates correctly, so the fallback is safe. Being built on `fix/footer-contact-click`.
-Lesson for every Framer page: a markup-only link fix cannot be trusted — the guard must click the link and assert
-the URL, which is why the node tests passed on a broken link.
-over on `fix/repo-tidy` (`6bc38f2`) and checked by the controller in a clean clone: it waits for the owner's Ship.
-Then job 02 sign-in. Nothing is running.
+| Was | Now |
+|---|---|
+| 02 auth → 03 (3.2 catalog, Supabase) → 3.3 pages → 4 → 5 → 6 | 05 Mariven → **3.3 all 26 pages in React on `lib/data` fixtures** → 02 auth → 3.2 (swap fixtures for Supabase, dashboard already wired) → 4 → 5 → 6 |
+
+Why: the design system is 29 plans deep and no visitor-facing page uses it; the 26 live pages are still the
+Framer export. 3.3 needs no database, no auth and nothing owner-gated, so it is unblocked today. Two conditions
+he set: **one data layer** (`lib/data/<entity>.ts`, async, Supabase shapes, fixtures behind it, no component
+touches a fixture) and **no fake controls** (every control shown works; the journey bar's final submit is not
+rendered until Phase 4). Because a dashboard is almost all write controls, it waits for the backend.
+
+### ⚠ Dropped: the footer Contact stopgap (owner, 2026-10-02 13:30)
+
+The owner reversed his 13:02 answer: **no stopgap is built.** The React `/contact` page in Phase 3.3 fixes the
+link instead. Until that lands, the live footer Contact link keeps navigating to `/legal/privacy-policy` on a
+plain click — accepted, on the record.
+
+Three things carry the same defect and none of them lands: `fix/footer-contact` (`2350b51`, on GitHub),
+`fix/repo-tidy` (`1e6d19d`, local, already tagged `archive/repo-tidy-contact-fix`), and the click-delegate work
+that was in progress, now committed as `797ed9f` and pushed as tag **`archive/footer-contact-click`**.
+
+The lesson stays, for every Framer page and for job 05: a markup-only fix cannot be trusted. The node tests
+passed on a broken link because they read the file; Framer's own client router ignored the server `href` at click
+time. **A guard must click the control in a browser and assert the result.**
 
 ## Live now
 
@@ -53,40 +65,50 @@ Then job 02 sign-in. Nothing is running.
 |---|---|---|---|---|---|
 | 01 | Finish Phase 3.1 | done | — | **Landed** 2026-10-02 01:42 as `9fd6786`; **deployed** 02:25 (`49112d4b`) | — |
 | 04 | Repo tidy plus three live-page fixes (`prompts/04-repo-tidy.md`, 12 items) | done | — | **Landed** 2026-10-02 12:34 as `97005a0`; **deployed** 12:35 (`b769e01a`). Clean-clone check: 193/193 node tests, build, Playwright 1,113 passed, 28 skipped, 0 failed | Follow-up open, see the warning above |
-| 02 | Phase 2 auth chain 02-08, 02-02, 02-03, 02-04 (`prompts/02-phase-2-auth-chain.md`) | one Mac worker, **Opus lead, Sonnet executors** (owner, 2026-10-02 13:1x, confirming rule 12 for this job) | `.claude/worktrees/phase-02-auth`, `gsd/phase-02-auth-chain` | Built in the cloud on `claude/project-thread-8h6bed` (tip `3e2d58c`, 11 own commits, 216 unit tests); to be cherry-picked onto `main`, checked on the Mac, reviewed, then his 6 gates and 8 test steps. Also proposes W6 (sign-in, sign-out) and W7–W9. Migration `20260925120000` applied nowhere | After job 04 lands |
-| 03 | Phase 3.2 catalogue and team (`prompts/03-phase-3.2-catalog-and-team.md`) | one Mac worker, Opus lead | `.claude/worktrees/phase-3.2`, `gsd/phase-3.2-catalog-and-team` | Prompt ready. Discuss may run while job 02 builds; code after job 02 lands. Takes W6 for Settings, Catalog, Content, Calendar, Experiences | Owner's go |
-| later | 3.3 booking-path pages, 4 book and pay, 5 ops OS, 6 remaining pages | | | Roadmap. 3.3 shares W7–W9 with job 02 | |
+| 05 | Delete another property's name from the 12 live stay pages (`prompts/05-mariven-text.md`) | one Mac worker, Sonnet 5.5 | `.claude/worktrees/mariven-text`, `fix/mariven-text` | Prompt ready. Deletion only, no new copy. The guard must click in a browser, not read the file | Owner's go |
+| 06 | **Phase 3.3 slice 1** — the data layer, home, `/private-stays` and the 12 stay pages (`prompts/06-public-site-slice-1.md`) | one Mac worker, **Opus lead, Sonnet executors** | `.claude/worktrees/phase-3.3-slice-1`, `gsd/phase-3.3-slice-1` | Prompt ready. Design signed before code. Writes `wrangler.preview.toml` but runs no wrangler | Owner's go, then his signature on the design |
+| later | **Phase 3.3 further slices** — destinations, experiences and services, about, contact, services and detail, blog and posts; then the Framer bridge comes out | | | Sliced at each hand-over, not planned ahead | After slice 1 |
+| 02 | Phase 2 auth chain 02-08, 02-02, 02-03, 02-04 (`prompts/02-phase-2-auth-chain.md`) | one Mac worker, **Opus lead, Sonnet executors** (owner, 2026-10-02 13:1x, confirming rule 12 for this job) | `.claude/worktrees/phase-02-auth`, `gsd/phase-02-auth-chain` | Built in the cloud on `claude/project-thread-8h6bed` (tip `3e2d58c`, 11 own commits, 216 unit tests); to be cherry-picked onto `main`, checked on the Mac, reviewed, then his 6 gates and 8 test steps. Also proposes W6 (sign-in, sign-out) and W7–W9. Migration `20260925120000` applied nowhere. **Parked 2026-10-02 13:30 behind Phase 3.3** (owner: frontend first). The conflict survey is done — `quick/job-02-conflict-survey.md`: in order, 8 of 11 commits apply clean, `.gitignore` and 12 PNGs are mechanical, `app/dashboard/(ops)/layout.tsx` is a real semantic merge (auth's owner gate plus main's three W1 review fixes ported into `ops-shell.tsx`) | After Phase 3.3; the survey goes stale as `main` moves |
+| 03 | Phase 3.2 catalogue and team (`prompts/03-phase-3.2-catalog-and-team.md`) | one Mac worker, Opus lead | `.claude/worktrees/phase-3.2`, `gsd/phase-3.2-catalog-and-team` | Prompt ready, **but its shape changed on 2026-10-02 13:30**: 3.2 now swaps the 3.3 fixtures for Supabase queries and builds the dashboard screens already wired — no screen is styled before it saves. Needs a rewrite before it runs. Takes W6 for Settings, Catalog, Content, Calendar, Experiences | After job 02 |
+| later | 4 book and pay, 5 ops OS, 6 rest of CMS | | | Roadmap. W7–W9 are shared between job 02 and Phase 3.3 | |
 | → 03 | **3.1 leftovers, assigned to job 03 / Phase 3.2** (owner, 2026-10-02 13:1x): hand-written font sizes in `app/globals.css:126-128` and `:133-135`; 9 repeated hexes in `settings-screen.tsx`; `object-left` logo in AR; English-only "Show/Hide password" and "Apply" in `field.tsx`; `harness-client.tsx` pulling fixtures into the build | with job 03 | with job 03 | In the 3.2 prep being written on `prep/phase-3.2-discuss` | Owner's go for 3.2 |
 
-Base for new branches: `origin/main` (`6416b51`). One job at a time into `main`; the next job merges the new
-`main` first.
+Base for new branches: `origin/main` (`0b44f27` plus this planning note). One job at a time into `main`; the
+next job merges the new `main` first.
 
-Running in parallel 2026-10-02 13:1x, each on its own branch and worktree (owner asked for more parallelism):
-`fix/footer-contact-click` (the working footer fix plus a Playwright click guard), `survey/job-02-conflicts`
-(cherry-picks the 11 auth commits onto `main` and maps every conflict; reads the migration for anything
-destructive), `prep/phase-3.2-discuss` (3.2 content inventory, dead controls, schema options, the owner's decision
-list, and the five 3.1 leftovers). None of the three pushes, deploys or touches a database. Only the controller
-lands.
+Three jobs ran in parallel on 2026-10-02 13:1x; two are now closed by his 13:30 answers:
+`fix/footer-contact-click` **dropped and archived** as tag `archive/footer-contact-click` (`797ed9f`);
+`survey/job-02-conflicts` **finished** — its survey is the map for job 02 whenever it runs, and it is still a
+local-only branch that needs pushing; `prep/phase-3.2-discuss` (`prep/phase-3.2-discuss`) was 3.2 prep and its
+premise moved — 3.2 is now the fixture-to-Supabase swap, so the prep needs re-reading before reuse. None of the
+three pushed, deployed or touched a database.
 
-Branches open 2026-10-02 13:05: `fix/footer-contact` `2350b51` (on GitHub, **broken, do not land**);
-`fix/footer-contact-click` (the controller's, being built, carries `2350b51` plus the click delegate and a
-Playwright click guard); `fix/repo-tidy` `1e6d19d` (local, landed content plus the same broken fix, archived as
-`archive/repo-tidy-contact-fix`, worktree to be removed).
+Branches 2026-10-02 13:40: `main` `0b44f27`; `claude/project-thread-8h6bed` (job 02's source, on GitHub);
+`fix/footer-contact` `2350b51` (on GitHub, **broken, never lands** — delete it on his word);
+`fix/footer-contact-click` `797ed9f` (archived as a tag, worktree to be removed);
+`fix/repo-tidy` `1e6d19d` (local, landed content plus the same broken fix, tagged `archive/repo-tidy-contact-fix`,
+worktree to be removed); `survey/job-02-conflicts` `0499fc1` (local only).
 
 ## Waiting for the owner
 
 | # | What | Where |
 |---|---|---|
-| 1 | Answered 13:00–13:02: this session stays control; the footer Contact link keeps its link plus the click delegate. **Still his to do: tell the second session to stop landing, deploying and pushing branches for ALMAR** — it landed and deployed job 04 at 12:34–12:35 and pushed the broken `fix/footer-contact` | His word, to that session |
+| 1 | **Still his to do: tell the second session to stop landing, deploying and pushing branches for ALMAR** — it landed and deployed job 04 at 12:34–12:35 outside the gate and pushed the broken `fix/footer-contact` | His word, to that session |
 | 2 | Item 7 of his 2026-09-29 dashboard feedback arrived empty; not confirmed answered since | Any session |
-| 3 | For job 02: the Supabase names in a local `.env.local` (`02-USER-SETUP.md`) and on Worker `almar`; the 30-day session time-box after Pro | His terminal, Supabase |
+| 3 | For job 02, **no longer urgent — Phase 2 is parked behind Phase 3.3**: the Supabase names in a local `.env.local` (`02-USER-SETUP.md`) and on Worker `almar`; the 30-day session time-box after Pro | His terminal, Supabase |
+| 4 | **Go for job 05** (Mariven deletion) and **job 06** (Phase 3.3 slice 1) | His word |
+| 5 | At job 06's hand-over, one numbered step: create Worker `almar-preview` with custom domain `preview.almarprivatejourney.com`, so he reviews each slice on a real URL. Verified 13:25 that the production Worker has preview URLs off (`workers_dev = false` from job 04, error 1042), so a second Worker is the way that leaves `almar` untouched. The hostname is public and unauthenticated — the preview ships `noindex` plus a `robots.txt` disallow, and can be locked to his email with Cloudflare Access if he wants | His gate, at the hand-over |
+| 6 | Cleanup owed, on his word: remove the `repo-tidy`, `footer-contact-click` and `job-02-survey` worktrees (all three tips are safe — two tagged on GitHub, the survey needs a push first) and delete `fix/footer-contact` on GitHub | His word |
 
 ## Sessions and folders
 
 | Session | Model | Where | State |
 |---|---|---|---|
 | ALMAR controller (`local_836ffacc-…`, pinned) | Opus 5.5, xhigh | main checkout | the controller |
-| job 04 worker | Opus 5.5 | `.claude/worktrees/repo-tidy` | handed over 03:44, stopped |
+| job 04 worker | Opus 5.5 | `.claude/worktrees/repo-tidy` | landed and live; worktree to be removed |
+| footer-contact-click | — | `.claude/worktrees/footer-contact-click` | **dropped** by the owner 13:30, archived as tag `archive/footer-contact-click`; worktree to be removed |
+| job 02 survey | Sonnet 5.5 | `.claude/worktrees/job-02-survey` | survey finished (`0499fc1`), local only; push then remove |
+| 3.2 prep | — | `.claude/worktrees/phase-3.2-prep` | premise moved (3.2 is now the fixture-to-Supabase swap); re-read before reuse |
 
 Archived 2026-10-02 on the owner's word (undoable): the retired control session, the 3 Phase 3.1 sessions and
 the 14 Framer-era sessions. All ALMAR sessions sit in the sidebar group ALMAR. Each job's worktree is removed
@@ -112,6 +134,7 @@ the day it lands; `.claude/worktrees/repo-tidy` stays until job 04 lands.
 | After a DNS outage this Mac keeps the "no record" answer up to 30 minutes | `sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder` (his terminal) |
 | The Cloudflare Pages GitHub app may still be installed on `Loomlyne/almar` with no project behind it | Harmless; remove in GitHub settings if he wants |
 | About 52 more card links answer 404 (7 destinations, 38 experiences, 7 services): job 04 lists them in `tests/no-dead-links.test.mjs` and hides none (his answer 2026-10-02) | Phases 3.3 and 6 |
+| The live footer Contact link navigates to `/legal/privacy-policy` on a plain click — the stopgap was dropped 13:30; the React `/contact` page in 3.3 fixes it | Phase 3.3 |
 | After job 04 the footer headings "Legal" and "Connect" stand with no links under them. He chose to keep the "Legal" heading; "Connect" emptied because its only link was the mislabelled one to the privacy policy | Phase 6, with the legal pages |
 | The footer social links point at generic `facebook.com`, `instagram.com`, `youtube.com`, `tiktok.com`, not ALMAR accounts | Owner: the real handles |
 | The 3 invented names are still in `framer-export/canvas-components.json` and the two `Evidence.dc.html` design-board copies under `.planning/design/`; neither is served | Whoever next touches those files |

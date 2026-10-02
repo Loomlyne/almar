@@ -15,11 +15,11 @@ Rebuild the Framer HTML export into a live booking OS. Tokens and components fir
 - [ ] **Phase 2: Platform spine** - Supabase auth, host gate, locale/currency, no ops leak
 - [ ] **Phase 3: Public site and dashboard** - Public site and dashboard screens first; catalogue, connections, and calculations after
 - [x] **Phase 3.1: Design system and journey bar** (INSERTED) - One token set, CSS per component, journey bar and booking components from the design canvas
-- [ ] **Phase 3.2: Real catalog and team** (INSERTED) - Dashboard Catalog and Team save to Supabase, restyled in the dense variant
-- [ ] **Phase 3.3: Booking-path pages** (INSERTED) - Home, Private stays, Stay detail, Destinations, Experiences & Services in React on the same URLs
+- [ ] **Phase 3.3: Public site in React** (INSERTED, reshaped 2026-10-02) - All 26 public pages in React on one fixture-backed data layer; the Framer bridge comes out
+- [ ] **Phase 3.2: Real catalog and team** (INSERTED, moved after Phase 2) - The data layer swaps fixtures for Supabase; dashboard Catalog and Team built already wired
 - [ ] **Phase 4: Book and pay** - Hero → `/booking/trip` → Stripe TEST deposit or full
 - [ ] **Phase 5: Ops OS** - `/ops` runs bookings, customers, money, brand publish
-- [ ] **Phase 6: Site and rest of CMS** - Replace Framer pages; packages, consult, i18n publish
+- [ ] **Phase 6: Rest of CMS** - Packages, consult, i18n publish, remaining CMS (the page replacement moved to 3.3)
 
 ## Phase Details
 
@@ -198,33 +198,37 @@ Plans:
 - [x] 03.1-28-PLAN.md — Harness matrix screenshots, RTL and accessibility specs, report
 - [x] 03.1-29-PLAN.md — Owner UAT and DSGN-01 wording
 
+### Phase 3.3: Public site in React (INSERTED, reshaped 2026-10-02)
+
+**Goal:** Every public page is React on the 3.1 design system, reading one fixture-backed data layer, with no control that does not work. The Framer bridge is removed.
+**Mode:** mvp
+**Depends on:** Phase 3.1 only (no platform dependency, no database)
+**Requirements:** SITE-01…SITE-13, I18N-04 (confirm at discuss)
+**Success Criteria** (what must be TRUE):
+
+  1. All 26 public pages render from React with the Framer look on 3.1 tokens, on the same URLs: `/`, `/private-stays`, the 12 `/private-stays/*`, `/destinations`, `/experiences`, `/about`, `/contact`, services and service detail, `/blog` and posts
+  2. Every read comes from `lib/data/<entity>.ts` — async, returning the shape Supabase will return, backed by `lib/data/fixtures/*.json`. No component touches a fixture
+  3. No fake controls: every control shown works, including filters, search, overlays, language, currency and the journey bar's Where → When → Who. The only held control is the journey bar's final submit, which is not rendered until Phase 4
+  4. Home hero carries the journey bar; EN / AR / ES with real RTL on every section; contact stays `inquiries@almarprivatejourney.com` / `+971 56 388 3302`
+  5. No Framer `route.ts` page, no Framer CDN script and no `files.catbox.moe` asset is left serving; `robots.txt` and `sitemap.xml` exist
+  6. The owner reviews each slice on `preview.almarprivatejourney.com` (Worker `almar-preview`, noindex) before any production deploy; production cuts over on his word
+
+**Jobs:** 06 data layer + home + private stays (first slice) · further slices TBD at hand-over
+**Plans:** TBD
+
 ### Phase 3.2: Real catalog and team (INSERTED)
 
 **Goal:** Ops can create and publish destinations, stays with rates, experiences and services with images, the inclusions kit, and team members; the data lives in Supabase.
 **Mode:** mvp
-**Depends on:** Phase 3.1; Phase 2 plans 02-08 (server runtime) and 02-04 (ops sign-in)
+**Depends on:** Phase 3.3 (the data layer it replaces); Phase 2 plans 02-08 (server runtime) and 02-04 (ops sign-in)
 **Requirements:** CMS-01, CMS-02, STAY-03, STAY-05, STAY-06 (confirm at discuss)
 **Success Criteria** (what must be TRUE):
 
   1. Dashboard Catalog (Destinations, Stays, Experiences & Services, Packages) and Content › Team save, publish and unpublish through Supabase
   2. Every experience and service has an image (https, Cloudflare), a type, a unit and a destination link
   3. The three fake team members are gone; public Team reads only published members
-  4. Catalog and Team screens use the dense dashboard variant of the 3.1 system
-
-**Plans:** TBD
-
-### Phase 3.3: Booking-path pages (INSERTED)
-
-**Goal:** The pages a guest passes through before booking are React on the same URLs, reading the 3.2 catalog.
-**Mode:** mvp
-**Depends on:** Phase 3.2
-**Requirements:** SITE (home, destinations, experiences, private stays) — confirm at discuss
-**Success Criteria** (what must be TRUE):
-
-  1. `/`, `/private-stays`, `/private-stays/*`, `/destinations`, `/experiences` render from React with the Framer look on 3.1 tokens
-  2. Home hero carries the journey bar; Search opens `/booking/trip`
-  3. EN / AR / ES with real RTL on every section; contact stays `inquiries@almarprivatejourney.com` / `+971 56 388 3302`
-  4. Each template cuts over on Cloudflare one at a time (owner gate); the other Framer routes keep serving
+  4. Catalog and Team screens use the dense dashboard variant of the 3.1 system, and are built already wired — no screen is styled before it saves (owner, 2026-10-02: no fake controls)
+  5. Replacing the fixtures with Supabase queries changes only the `lib/data/<entity>.ts` modules from 3.3; no component is edited to make the swap
 
 **Plans:** TBD
 
@@ -271,7 +275,7 @@ Plans:
 
 ### Phase 6: Site and rest of CMS
 
-**Goal:** The remaining public pages (About, Contact, Services and service detail, Blog and posts) are React, the Framer bridge is removed; remaining Active CMS (packages, consult, content) is live.
+**Goal:** The remaining Active CMS (packages, consult, content) is live and i18n publish works. The page replacement and the Framer bridge removal moved to Phase 3.3 on 2026-10-02.
 **Mode:** mvp
 **Depends on:** Phase 5
 **Requirements:** BOOK-05, BOOK-06, BOOK-07, ADDN-03, I18N-04, SITE-01, SITE-02, SITE-03, SITE-04, SITE-05, SITE-06, SITE-07, SITE-08, SITE-09, SITE-10, SITE-11, SITE-12, SITE-13, OPS-12, CMS-03, CMS-07, CMS-08, CMS-09, PLAT-03
@@ -292,7 +296,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 3.2 → 3.3 → 4 → 5 → 6. Phase 3.1 is complete; 3.2 waits on 02-08 and 02-04.
+Reshaped by the owner 2026-10-02 13:30-13:35 (frontend before backend): 1 → 3 → 3.1 → **3.3** → **2** → **3.2** → 4 → 5 → 6. Phases 1, 3 and 3.1 are complete. 3.3 runs now because it needs no database, no auth and nothing owner-gated; Phase 2 (the auth chain, already surveyed) follows; 3.2 then swaps the 3.3 fixtures for Supabase and builds the dashboard already wired. Numeric order no longer equals execution order — this paragraph is the order.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|

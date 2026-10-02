@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Job 04 landed (97005a0) and live (b769e01a) 2026-10-02 12:35; next job 02"
-last_updated: "2026-10-02T00:20:00.000Z"
+stopped_at: "Order reshaped 2026-10-02 13:35: frontend before backend. Next jobs 05 (Mariven text) then 06 (Phase 3.3 slice 1)"
+last_updated: "2026-10-02T09:40:00.000Z"
 last_activity: 2026-10-02
 progress:
   total_phases: 9
@@ -21,16 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-22)
 
 **Core value:** A guest can complete a real trip booking (stay + add-ons + pay) and ops can run that booking and the public site from one branded system — no fake controls.
-**Current focus:** Phase 2 — platform spine (auth chain 02-08, 02-02, 02-03, 02-04)
+**Current focus:** Phase 3.3 — all 26 public pages in React on one fixture-backed data layer (owner, 2026-10-02 13:30: finish the frontend, then connect the backend). Phase 2's auth chain is parked behind it
 
 ## Current Position
 
-Phase: 3.1 (design-system-and-journey-bar-inserted) — COMPLETE, 29 of 29; LANDED on `main` as `9fd6786` (2026-10-02, owner's Ship 01:42 +04; tag `archive/ship-3.1` = `7e72c20`). Deployed to Worker `almar` 2026-10-02 02:25 +04 (version `49112d4b`)
-Next: job 02, Phase 2 auth chain (`prompts/02-phase-2-auth-chain.md`: cherry-pick `claude/project-thread-8h6bed` onto `origin/main`), then 3.2. Open: the footer "Contact" follow-up to job 04, uncommitted in `.claude/worktrees/repo-tidy`
-Last activity: 2026-10-01
-Status: Phase 3.1 landed. Controller check of `7e72c20` in a clean clone on 2026-10-02: install, tsc, 160/160 node tests, tokens, build pass; Playwright 1,109 passed, 28 skipped, 4 load timeouts that pass on rerun. Success criterion 1 is met except hand-written font sizes in globals.css (hand-over open item 3)
+Phase: **3.3 (public site in React)** — reshaped and starting. Phases 1, 3 and 3.1 are complete; 3.1 landed as `9fd6786` and job 04 as `97005a0`, live as `b769e01a`.
+Execution order is no longer numeric: 1 → 3 → 3.1 → **3.3** → **2** → **3.2** → 4 → 5 → 6 (`ROADMAP.md`, Execution Order).
+Next: job 05 (delete the Mariven sentence from the 12 live stay pages), then job 06 (Phase 3.3 slice 1 — `lib/data` plus home, `/private-stays` and the 12 stay pages). Both prompts written, both waiting on his go.
+Open: the owner reviews each 3.3 slice on `preview.almarprivatejourney.com` — Worker `almar-preview` is one numbered Cloudflare step at job 06's hand-over.
+Last activity: 2026-10-02
+Status: planning only since job 04 landed. Nothing is building. The footer Contact stopgap was dropped and archived as tag `archive/footer-contact-click`; the live footer Contact link still navigates to `/legal/privacy-policy` on a click until the React `/contact` page lands.
 
-Progress: [██████████] 100% of 3.1
+Progress: [██████████] 100% of 3.1 · 3.3 not started
 
 ## Performance Metrics
 
@@ -89,6 +91,11 @@ Recent decisions affecting current work:
 - 2026-10-02 12:34 +04 (owner's Ship): job 04 landed as `97005a0`; deployed 12:35 as `b769e01a` (owner's word). The invented team members, 8 dead footer links and 3 name-only stay cards are off the live site; `wrangler.toml` pins the ALMAR account; the workers.dev address is off.
 - 2026-10-02 ~03:14 +04 (owner, in job 04): the ~52 other dead card links are listed and fixed later, not in job 04; the footer "Legal" heading stays; the three name-only `/private-stays` cards (Baru House, Corona Island, Yury House Cartagena) are hidden. Recorded in `decisions/2026-10-02-cleanup.md`.
 - 2026-10-02 04:20 +04 (controller): job 04 checked in a clean clone of `7c5774f` — 193/193 node tests, tsc, tokens, build, Playwright 1,112 passed with one known `chooseArabic` flake that passes on rerun; and four independent checks of the three live-page fixes. Superseded by this job: D-56 in `03.1-CONTEXT.md` ("route.ts pages keep the team members until 3.3 and 6").
+- 2026-10-02 13:30 +04 (owner): **the frontend is finished before the backend is connected.** Phase 3.3 becomes all 26 public pages in React and runs now; Phase 2 then 3.2 follow; the dashboard is built after the backend, already wired, because a dashboard is almost all write controls and "no fake controls" forbids styling one before it saves.
+- 2026-10-02 13:30 +04 (owner): **one data layer** — `lib/data/<entity>.ts`, async, returning the shape Supabase will return, fixtures behind it, no component touching a fixture. Phase 3.2 edits only those modules.
+- 2026-10-02 13:30 +04 (owner): the footer Contact click-delegate stopgap is **dropped** (reversing 13:02); the React `/contact` page fixes it. Archived as tag `archive/footer-contact-click` (`797ed9f`).
+- 2026-10-02 13:35 +04 (owner): Phase 3.3 absorbs the rest of the public pages so the Framer bridge comes out in one pass; Phase 6 keeps packages, consult, i18n publish and the rest of the CMS. First slice is the data layer plus home and private stays. The Mariven sentence is fixed now as job 05, deletion only.
+- 2026-10-02 13:25 (controller, verified): preview URLs are off on Worker `almar` (`workers_dev = false`; `b769e01a-almar.almar-private-journey.workers.dev` answers Cloudflare error 1042). His review URL is a separate Worker `almar-preview` on `preview.almarprivatejourney.com` — one gated step at job 06's hand-over.
 
 ### Roadmap Evolution
 
@@ -116,5 +123,5 @@ From the 3.1 hand-over (open items 1–5): dead controls W6 (Phase 3.2 and 2), g
 ## Session Continuity
 
 Last session: 2026-10-01T22:40:00.000Z
-Stopped at: job 04 landed and live; next job 02
+Stopped at: order reshaped (frontend before backend); next jobs 05 then 06, both waiting on his go
 Resume file: .planning/CONTROL-BOARD.md
