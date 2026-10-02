@@ -1,5 +1,10 @@
 import { test } from "@playwright/test";
+import { HOME_COPY } from "../../lib/copy/home";
+import { convertWrittenAmount, formatConverted, rewriteHomeAmounts } from "../../lib/fx/rates";
 import { LOCALES, WIDTHS, VIEWPORTS, expect, open, style, token } from "./_helpers";
+
+// Same fixed rates as tests/journey/scenes/amount.tsx.
+const RATES = { aed: 3.6725, eur: 0.92, date: "2026-10-01" };
 
 // Nine new primitives, proven in the browser at 390, 834 and 1440 in EN, AR and ES.
 // Every block runs for the full width x locale matrix.
@@ -211,6 +216,104 @@ for (const viewport of WIDTHS) {
         await expect(dock).toContainText("[Summary only]");
         await expect(dock.getByRole("button")).toHaveCount(0);
         await expect(dock.locator("> div")).toHaveCount(1);
+      });
+    });
+
+    test.describe(`Select ${where}`, () => {
+      test("click opens a listbox of three, the chosen row is checked, choosing changes the value", async ({ page }) => {
+        await open(page, "select", "chosen", locale, viewport);
+        const trigger = page.getByRole("combobox", { name: "[Filter]: [Option A]" });
+        expect(Math.round((await trigger.boundingBox())!.height)).toBe(44);
+        expect(await style(trigger, "border-radius")).toBe("0px");
+        await trigger.click();
+        await expect(page.getByRole("listbox")).toBeVisible();
+        await expect(page.getByRole("option")).toHaveCount(3);
+        await expect(page.getByRole("option", { name: "[Option A]" }).locator("svg")).toHaveCount(1);
+        await expect(page.getByRole("option", { name: "[Option B]" }).locator("svg")).toHaveCount(0);
+        await page.getByRole("option", { name: "[Option B]" }).click();
+        await expect(page.getByTestId("select-value")).toHaveText("b");
+        await expect(page.getByTestId("select-calls")).toHaveText("1");
+        await expect(page.getByRole("combobox", { name: "[Filter]: [Option B]" })).toBeVisible();
+      });
+
+      test("choosing the row that is already chosen is not a change", async ({ page }) => {
+        await open(page, "select", "chosen", locale, viewport);
+        await page.getByRole("combobox").click();
+        await page.getByRole("option", { name: "[Option A]" }).click();
+        await expect(page.getByTestId("select-calls")).toHaveText("0");
+      });
+
+      test("keyboard opens, moves and chooses; Escape closes", async ({ page }) => {
+        await open(page, "select", "chosen", locale, viewport);
+        const trigger = page.getByRole("combobox");
+        await trigger.focus();
+        await page.keyboard.press("Enter");
+        await expect(page.getByRole("listbox")).toBeVisible();
+        await page.keyboard.press("Escape");
+        await expect(page.getByRole("listbox")).toHaveCount(0);
+        await expect(trigger).toBeFocused();
+        await page.keyboard.press("Enter");
+        await expect(page.getByRole("option", { name: "[Option A]" })).toBeFocused();
+        await page.keyboard.press("ArrowDown");
+        await expect(page.getByRole("option", { name: "[Option B]" })).toBeFocused();
+        await page.keyboard.press("Enter");
+        await expect(page.getByTestId("select-value")).toHaveText("b");
+      });
+
+      test("no choice yet: the placeholder shows, nothing is checked, choosing the first option is a real change", async ({ page }) => {
+        await open(page, "select", "none", locale, viewport);
+        const trigger = page.getByRole("combobox", { name: "[Filter]: [None]" });
+        await expect(trigger).toContainText("[None]");
+        await trigger.click();
+        await expect(page.getByRole("option")).toHaveCount(3);
+        await expect(page.getByRole("listbox").locator("svg")).toHaveCount(0);
+        await page.getByRole("option", { name: "[Option A]" }).click();
+        await expect(page.getByTestId("select-value")).toHaveText("a");
+        await expect(page.getByTestId("select-calls")).toHaveText("1");
+      });
+    });
+
+    test.describe(`Amount ${where}`, () => {
+      test("with no choice yet, or no rates, the published text is byte-identical", async ({ page }) => {
+        await open(page, "amount", "rates", locale, viewport);
+        for (const [i, tier] of HOME_COPY.en.journeys.entries()) {
+          await expect(page.getByTestId(`price-${i}`)).toHaveText(tier.price);
+        }
+        await expect(page.getByTestId("price-aed")).toHaveText("AED 80,000");
+        await open(page, "amount", "no-rates", locale, viewport);
+        await expect(page.getByRole("combobox")).toContainText("USD");
+        for (const [i, tier] of HOME_COPY.en.journeys.entries()) {
+          await expect(page.getByTestId(`price-${i}`)).toHaveText(tier.price);
+        }
+      });
+
+      test("choosing USD converts AED 80,000 to the amount formatConverted returns; Western digits in ar", async ({ page }) => {
+        await open(page, "amount", "rates", locale, viewport);
+        await page.getByRole("combobox").click();
+        await page.getByRole("option", { name: "USD" }).click();
+        const usd = convertWrittenAmount({ amount: 80000, currency: "AED" }, "USD", RATES)!;
+        const expected = formatConverted("USD", usd, locale);
+        expect(expected).not.toBe("AED 80,000");
+        await expect(page.getByTestId("price-aed")).toHaveText(expected);
+        expect(expected).toMatch(/^USD [0-9][0-9,.]*$/);
+        const first = HOME_COPY.en.journeys[0].price;
+        await expect(page.getByTestId("price-0")).toHaveText(rewriteHomeAmounts(first, "USD", RATES, locale));
+      });
+
+      test("choosing AED with no choice yet is a real change that keeps the AED text", async ({ page }) => {
+        await open(page, "amount", "rates", locale, viewport);
+        await expect(page.getByRole("combobox")).toContainText("[Currency]");
+        await page.getByRole("combobox").click();
+        await page.getByRole("option", { name: "AED" }).click();
+        await expect(page.getByRole("combobox")).toContainText("AED");
+        await expect(page.getByTestId("price-aed")).toHaveText("AED 80,000");
+      });
+
+      test("the amount sits in a bdi with tabular figures", async ({ page }) => {
+        await open(page, "amount", "rates", locale, viewport);
+        const bdi = page.getByTestId("price-aed").locator("bdi");
+        await expect(bdi).toHaveCount(1);
+        expect(await style(bdi, "font-variant-numeric")).toContain("tabular-nums");
       });
     });
   }
