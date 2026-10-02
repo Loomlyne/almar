@@ -121,6 +121,19 @@ test("the hide rule lists the other seven footer links and not the Contact one",
   }
 });
 
+// Framer's client router ignores the server href and sent a plain click to ./legal/privacy-policy,
+// so each footer page carries a capture-phase click delegate that forces the link to /contact.
+const CLICK_DELEGATE =
+  '<script>document.addEventListener("click",function(e){var t=e.target,a=t&&t.closest&&t.closest(".framer-1pmr5p9-container a");if(a){e.preventDefault();e.stopImmediatePropagation();window.location.href="/contact";}},true);</script>';
+
+test("all 20 footer pages carry the click-delegate script exactly once", () => {
+  assert.equal(footerPages.length, 20);
+  for (const file of footerPages) {
+    const src = readFileSync(file, "utf8").replaceAll('\\"', '"');
+    assert.equal(src.split(CLICK_DELEGATE).length - 1, 1, file);
+  }
+});
+
 test("/contact is a real route", () => {
   assert.ok(hasRoute("/contact"));
 });
