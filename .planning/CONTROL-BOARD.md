@@ -101,6 +101,8 @@ the day it lands; `.claude/worktrees/repo-tidy` stays until job 04 lands.
 
 ## Known, not fixed
 
+| The three home-page package prices (USD $3,000 / $3,500 / $20,000 per person, with AED estimates) are live and **owner-accepted 2026-10-02** after the controller flagged that nothing ratified them. They came from the Framer export. Phase 3.2 brings them under the dashboard | Phase 3.2 |
+| "Mariven is thoughtfully designed for comfort and style" on 12 of 12 live stay pages, and in all 12 `route.ts` files: another property's name in leftover template text | **Job 05**, after the footer fix |
 | What | Where |
 |---|---|
 | Phase 3 has 13 of 13 summaries and no verification file | Controller report |
