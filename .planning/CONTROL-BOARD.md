@@ -52,6 +52,19 @@ consider; `tests/no-dead-links.test.mjs` resolves hrefs against `app/` routes wi
 becomes a remembered preference, not the source of truth. **Currency still needs a rule against URL-based
 locale — one question to him, not invented.**
 
+**Routing for per-locale URLs is settled, 2026-10-02 (do not re-investigate).** Session
+`almarprod-website-code-34` measured it on a throwaway local Worker in `/tmp` (never ALMAR's; ALMAR's Worker
+re-read afterwards, still `b769e01a`), and this controller confirmed each point against Cloudflare's own
+static-assets documentation:
+
+| Fact | Consequence for Phase 3.3 |
+|---|---|
+| `/ar/about` serves 200 under the existing `html_handling` / `not_found_handling` | **No `wrangler.toml` change is needed for per-locale URLs** |
+| Canonicalisation is asymmetric: `/ar/about/` → 307 → `/ar/about`, but `/ar` → 307 → `/ar/` (docs: files without a trailing slash, folder indexes with one) | The switcher, internal links, `canonical` and `og:url` must emit `/ar/` for a locale home and `/ar/about` for a page, or every language switch costs a redirect. Assert it in a test |
+| `/es` and `/es/` both 404 when `es/index.html` is missing | Every locale ships its own `index.html` or that locale's home is a hard 404 |
+| Cloudflare serves the **nearest** `404.html` up the tree (docs confirm; measured with `ar/404.html`) | **Three branded 404s work with no runtime**: `out/404.html`, `out/ar/404.html`, `out/es/404.html`. `renderStaticNotFound()` takes a locale; `tests/assemble-404.test.mjs` must cover all three |
+
+
 ### ⚠ Dropped: the footer Contact stopgap (owner, 2026-10-02 13:30)
 
 The owner reversed his 13:02 answer: **no stopgap is built.** The React `/contact` page in Phase 3.3 fixes the

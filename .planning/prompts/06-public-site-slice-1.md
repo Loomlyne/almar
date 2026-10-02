@@ -53,11 +53,23 @@ byte-identical English pages for exactly this reason.
    as they are — they are a different surface and are not in this slice.
 3. `scripts/assemble-cloudflare.mjs` harvests `.html` from `.next/server/app` and writes `out/<rel>.html`
    (line 39-40). It must emit nested locale paths and create those directories. 26 pages become 78.
-4. `wrangler.toml` has `html_handling = "auto-trailing-slash"` and `not_found_handling = "404-page"`. Check
-   both behave for `/ar/about` and `/ar/`. Do not edit `wrangler.toml` — report if it must change.
-5. The branded 404 comes from `renderStaticNotFound()` in `lib/not-found-document.ts`, hardcoded
-   `<html lang="en" dir="ltr">`, and `tests/assemble-404.test.mjs` guards the single one. There are now three
-   404s to consider. Propose, do not silently change the guard.
+4. **Routing is already settled — do not re-investigate it.** Measured on a throwaway local Worker on
+   2026-10-02 and confirmed against Cloudflare's own docs for `html_handling = "auto-trailing-slash"` and
+   `not_found_handling = "404-page"`:
+   - `/ar/about` serves 200 under the existing config. **Nothing in `wrangler.toml` has to change.**
+   - **The canonicalisation is asymmetric.** A page canonicalises *without* a trailing slash
+     (`/ar/about/` → 307 → `/ar/about`); a locale root canonicalises *with* one (`/ar` → 307 → `/ar/`).
+     Docs: individual files are served without a trailing slash, folder index files with one. So the
+     switcher, every internal link, and the `canonical` and `og:url` tags must emit `/ar/` for a locale home
+     and `/ar/about` for a page, or every language switch costs a redirect. **Assert this in a test.**
+   - **Every locale must ship its own `index.html`** or that locale's home is a hard 404. A scratch build
+     without `es/index.html` returned 404 for both `/es` and `/es/`.
+5. **Three branded 404s, one per locale — this works and is required.** Cloudflare serves the *nearest*
+   `404.html` walking up the tree, so `out/404.html`, `out/ar/404.html` and `out/es/404.html` give each locale
+   a 404 in the right language and direction with no runtime (measured: with `ar/404.html` present,
+   `/ar/nope` and `/ar/deep/nope` both served the Arabic one while `/nope` and `/es/nope` served the root).
+   `renderStaticNotFound()` in `lib/not-found-document.ts` is hardcoded `<html lang="en" dir="ltr">`: give it
+   a locale. `tests/assemble-404.test.mjs` guards the single English one and must cover all three.
 6. `tests/no-dead-links.test.mjs` resolves every `<a href>` against the routes in `app/`, and its `HIDDEN` and
    52 `KNOWN_DEAD` entries are path literals. Locale-prefixed hrefs will read as dead links until its
    resolver learns the prefixes.
