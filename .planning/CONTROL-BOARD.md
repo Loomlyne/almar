@@ -7,7 +7,24 @@ what is live, what is being built, what waits for the owner, what comes next. Up
 every landing. The goal: `GOAL.md`. The rules: `prompts/00-common-rules.md`; decisions
 `decisions/2026-10-01-control-session.md`.
 
-**Last update:** 2026-10-02 12:40 (+04). Job 04 **landed** on `main` as `97005a0` (owner's Ship) and **deployed** (`b769e01a`, 12:35). Next: job 02. A follow-up to job 04 (footer "Contact" link) is uncommitted in `.claude/worktrees/repo-tidy`.
+**Last update:** 2026-10-02 13:05 (+04), by the controller session `local_836ffacc-…` (owner's word, 13:00: this
+session stays control). Job 04 **landed** as `97005a0` and **deployed** (`b769e01a`, 12:35) — by a second session,
+outside the gate and without the footer follow-up the owner had asked for first. Job 04's substance is live and
+correct. **The footer follow-up is not done and the pushed branch for it is broken — see the warning below.**
+Next after it: job 02.
+
+### ⚠ Do not land `fix/footer-contact` (`2350b51`)
+
+That branch is on GitHub and sets the footer Contact anchor's `href` to `/contact` on the 20 footer pages. The
+controller tested it in Chromium on a real build (2026-10-02 13:00): the link renders, is visible and reads
+`href="/contact"`, but **a plain click navigates to `/legal/privacy-policy`** — Framer's own client router handles
+the click and ignores the server href. It is a fake control. `1e6d19d` on the local `fix/repo-tidy` has
+byte-identical code and the same defect; it is archived as tag `archive/repo-tidy-contact-fix`.
+The owner's answer (13:02, question form): keep the link and add a small capture-phase click delegate that forces
+`/contact`. Verified working by the controller: a plain click then lands on `/contact`, 200. Without the script the
+plain `href` still navigates correctly, so the fallback is safe. Being built on `fix/footer-contact-click`.
+Lesson for every Framer page: a markup-only link fix cannot be trusted — the guard must click the link and assert
+the URL, which is why the node tests passed on a broken link.
 over on `fix/repo-tidy` (`6bc38f2`) and checked by the controller in a clean clone: it waits for the owner's Ship.
 Then job 02 sign-in. Nothing is running.
 
@@ -35,19 +52,25 @@ Then job 02 sign-in. Nothing is running.
 | # | Job | Who | Folder and branch | State | Needs |
 |---|---|---|---|---|---|
 | 01 | Finish Phase 3.1 | done | — | **Landed** 2026-10-02 01:42 as `9fd6786`; **deployed** 02:25 (`49112d4b`) | — |
-| 04 | Repo tidy plus three live-page fixes (`prompts/04-repo-tidy.md`, 12 items) | done | — | **Landed** 2026-10-02 12:34 as `97005a0`; **deployed** 12:35 (`b769e01a`). Clean-clone check: 193/193 node tests, build, Playwright 1,113 passed, 28 skipped, 0 failed | Follow-up: footer "Contact" → `/contact`, uncommitted in its worktree |
+| 04 | Repo tidy plus three live-page fixes (`prompts/04-repo-tidy.md`, 12 items) | done | — | **Landed** 2026-10-02 12:34 as `97005a0`; **deployed** 12:35 (`b769e01a`). Clean-clone check: 193/193 node tests, build, Playwright 1,113 passed, 28 skipped, 0 failed | Follow-up open, see the warning above |
 | 02 | Phase 2 auth chain 02-08, 02-02, 02-03, 02-04 (`prompts/02-phase-2-auth-chain.md`) | one Mac worker, Opus lead, Sonnet executors | `.claude/worktrees/phase-02-auth`, `gsd/phase-02-auth-chain` | Built in the cloud on `claude/project-thread-8h6bed` (tip `3e2d58c`, 11 own commits, 216 unit tests); to be cherry-picked onto `main`, checked on the Mac, reviewed, then his 6 gates and 8 test steps. Also proposes W6 (sign-in, sign-out) and W7–W9. Migration `20260925120000` applied nowhere | After job 04 lands |
 | 03 | Phase 3.2 catalogue and team (`prompts/03-phase-3.2-catalog-and-team.md`) | one Mac worker, Opus lead | `.claude/worktrees/phase-3.2`, `gsd/phase-3.2-catalog-and-team` | Prompt ready. Discuss may run while job 02 builds; code after job 02 lands. Takes W6 for Settings, Catalog, Content, Calendar, Experiences | Owner's go |
 | later | 3.3 booking-path pages, 4 book and pay, 5 ops OS, 6 remaining pages | | | Roadmap. 3.3 shares W7–W9 with job 02 | |
 | unassigned | 3.1 open items 3 and 4: hand-written font sizes in `app/globals.css:126-128` and `:133-135`, 9 repeated hexes in `settings-screen.tsx`; `object-left` logo in AR; English-only "Show/Hide password" and "Apply" in `field.tsx`; dead class hooks, unused `FRAMER_SOURCE_COPY`, checkbox, footer, `data-density`; `harness-client.tsx` pulling fixtures into the build | | | | Owner: which job |
 
-Base for new branches: `origin/main`. One job at a time into `main`; the next job merges the new `main` first.
+Base for new branches: `origin/main` (`6416b51`). One job at a time into `main`; the next job merges the new
+`main` first.
+
+Branches open 2026-10-02 13:05: `fix/footer-contact` `2350b51` (on GitHub, **broken, do not land**);
+`fix/footer-contact-click` (the controller's, being built, carries `2350b51` plus the click delegate and a
+Playwright click guard); `fix/repo-tidy` `1e6d19d` (local, landed content plus the same broken fix, archived as
+`archive/repo-tidy-contact-fix`, worktree to be removed).
 
 ## Waiting for the owner
 
 | # | What | Where |
 |---|---|---|
-| 1 | Who is doing the footer "Contact" follow-up in `.claude/worktrees/repo-tidy`, and on which branch it should hand over | His word |
+| 1 | Answered 13:00–13:02: this session stays control; the footer Contact link keeps its link plus the click delegate. **Still his to do: tell the second session to stop landing, deploying and pushing branches for ALMAR** — it landed and deployed job 04 at 12:34–12:35 and pushed the broken `fix/footer-contact` | His word, to that session |
 | 2 | Item 7 of his 2026-09-29 dashboard feedback arrived empty; not confirmed answered since | Any session |
 | 3 | For job 02: the Supabase names in a local `.env.local` (`02-USER-SETUP.md`) and on Worker `almar`; the 30-day session time-box after Pro | His terminal, Supabase |
 
