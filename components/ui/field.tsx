@@ -15,6 +15,10 @@ type Shared = {
   search?: boolean;
   coupon?: boolean;
   onApply?: () => void;
+  /** Extra classes on the wrapper (it is max-w-96 by default; pass max-w-none for a full-width field). */
+  className?: string;
+  /** The coupon button's label. Defaults to "Apply". */
+  couponLabel?: string;
 };
 
 type FieldProps = Shared &
@@ -39,13 +43,15 @@ export function Field(props: FieldProps | AreaProps) {
     coupon,
     onApply,
     multiline,
+    className,
+    couponLabel = "Apply",
   } = props;
   const message = error || hint;
   const messageId = message ? `${id}-message` : undefined;
   const describedBy = messageId;
 
   return (
-    <div className="field grid max-w-96 gap-2">
+    <div className={cn("field grid max-w-96 gap-2", className)}>
       <label className="field-label text-label text-ink" htmlFor={id}>
         {label}
         {required ? (
@@ -67,7 +73,7 @@ export function Field(props: FieldProps | AreaProps) {
         />
         {coupon ? (
           <Button variant="secondary" className="ui-button-inline self-stretch whitespace-nowrap" onClick={onApply}>
-            Apply
+            {couponLabel}
           </Button>
         ) : null}
       </div>
@@ -90,6 +96,8 @@ function Control({
   multiline,
   coupon,
   onApply,
+  className: _wrapperClass,
+  couponLabel: _couponLabel,
   label,
   hint,
   error,
