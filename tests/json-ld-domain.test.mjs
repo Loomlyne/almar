@@ -1,20 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { englishReactRoutes, framerRoutes } from "./helpers/site-links.mjs";
 
 // Job 04 item 12: the JSON-LD on every Framer page names the real domain, never Framer's.
 const DOMAIN = "https://almarprivatejourney.com/";
-
-function framerRoutes(dir = "app", out = []) {
-  for (const name of readdirSync(dir)) {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) framerRoutes(path, out);
-    else if (name === "route.ts" && readFileSync(path, "utf8").includes('const HTML = "')) out.push(path);
-  }
-  return out;
-}
 
 function urls(value, out = []) {
   if (typeof value === "string") {
@@ -28,8 +18,11 @@ function urls(value, out = []) {
 
 const routes = framerRoutes();
 
-test("there are Framer pages to check", () => {
-  assert.equal(routes.length, 26);
+// The 26 English pages are Framer route handlers plus React pages (3.3 converts 14 of them). The per-page
+// JSON-LD check below runs on the Framer ones; the React documents are checked in the built output by
+// tests/build/assembled-site.test.mjs.
+test("the 26 English pages are all accounted for", () => {
+  assert.equal(routes.length + englishReactRoutes().length, 26);
 });
 
 for (const file of routes) {
