@@ -34,6 +34,25 @@ final submit is **not rendered** until Phase 4; do not render a disabled or plac
 team members (`decisions/2026-09-28-design-audit.md`). The Mariven sentence that job 05 deletes must not
 reappear in a fixture.
 
+## Same code as the dashboard (owner, 2026-10-02)
+
+His words: "i wnat the ful website to be rewriten in react same code as the dashbaord". The public site is
+built from the **same component library the dashboard screens use** — not a parallel system, not a visual
+copy. Verified in the repo: 8 dashboard files import `components/ui`, and across `app/` `ui/button` is used
+10 times, `ui/field` 9, `ui/sidebar` 6, `ui/nav` 4, plus `ui/link`, `ui/calendar`, `ui/switch`, `ui/stepper`,
+`ui/locale-select`, `ui/confirm-dialog`, `ui/whatsapp`.
+
+- Build from `components/ui/*`, `components/journey/*`, `components/icons/*` and `tokens.json`. Values come
+  from `tokens.json` only. This is also the standing rule in `CLAUDE.local.md`: do not invent a second
+  visual system.
+- **If a public page needs a primitive that does not exist, add it to `components/ui/` so the dashboard can
+  use it too.** Never inline a one-off on a page.
+- **Take the library, not the dashboard's shortcuts.** Some dashboard screens are known debt already assigned
+  to job 03: `app/dashboard/(ops)/home/home-screen.tsx` imports none of the primitives and is hand-rolled,
+  `settings-screen.tsx` repeats 9 raw hexes, and `app/globals.css` has hand-written font sizes. Do not copy
+  those patterns forward. If you find yourself writing a raw hex or a raw font size, stop — use a token.
+- Square corners, gold is a line only, no radio controls, `--radius-control` and `--radius-overlay` stay 0.
+
 ## Three languages: per-locale URLs, decided before you start
 
 The owner decided on 2026-10-02: **EN / AR / ES are baked as per-locale URLs at build time** —
