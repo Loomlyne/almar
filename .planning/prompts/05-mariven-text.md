@@ -31,8 +31,18 @@ Job 04's footer fix passed its node tests and was still a fake control: the text
 Framer's own client router ignored it in the browser. The lesson is on the control board and in the repo
 memory. So:
 
-1. Remove it from the server HTML **and** from any hydration payload in the same file. Grep each file for
-   `Mariven` after the edit — zero hits per file, 0 of 12 total.
+1. ~~Remove it from the server HTML and grep for zero hits per file.~~ **CORRECTED 2026-10-02 by the
+   controller: this acceptance criterion was wrong and cannot be met on a Framer page. Do not judge this
+   branch against it.** Two sessions measured the same result independently: Framer's CDN code owns this
+   sentence as a component default, so deleting it from the HTML string leaves the *built file* clean (0 hits
+   in `out/…/baru-island-private-villa.html`) while the *rendered page still shows "Mariven"* after
+   hydration, with a flood of "Caught a recoverable error" in the console. Deletion is not risky here, it is
+   **ineffective**. Removing the wrapper instead makes React rebuild the whole page client-side — the
+   94 → 62 mobile Performance regression warned about at the top of all 12 files.
+   **The correct criterion for a Framer page is behavioural, not textual:** the sentence is neither visible
+   nor announced in a real browser after hydration, and hydration still reuses the server `h1`, `nav` and
+   `footer` nodes. Expect the words to remain in the page source until Phase 3.3 replaces the page in React.
+   Keep this paragraph for the next Framer edit.
 2. The guard is a **browser** assertion, not a file-text assertion. Add to `tests/` a Playwright check that
    loads a real build of all 12 pages and asserts the rendered DOM contains no "Mariven" after hydration
    settles. A node test that only reads the file is not enough and was exactly how the last fix slipped through.
