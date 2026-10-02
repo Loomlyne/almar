@@ -46,6 +46,30 @@ the cloud. Decisions behind this: `.planning/decisions/2026-10-01-control-sessio
 - Playwright needs headless shell build 1243. If it is missing (another project's install can remove it),
   ask the owner before `npx playwright install --only-shell chromium` (a ~95 MB download).
 
+## This Mac is shared: kill only what you started, and only by port
+
+Other products and other sessions run on this machine at the same time as you. On 2026-10-02 a job 05 worker
+ran `pkill -f "next-server"` and killed another ALMAR session's dev server mid-run: its Playwright went from
+1,122 passed / 0 failed to 1,084 passed / **38 failed**, every failure a connection-refused from test 1113
+onward. Nothing was wrong with the code. A third product's dev server (`Houssam Portfolio`, port 3200) and a
+Vamos one (port 4330) have both been in the process list today; a pattern kill would have taken them too, and
+cross-product interference is against the owner's rules.
+
+- **Never** `pkill -f next-server`, `pkill -f next`, `killall node`, or any pattern-matched kill.
+- Kill only a process you started, and only by port:
+  `lsof -nP -iTCP:$PW_PORT -sTCP:LISTEN -t | xargs kill`
+- Better, let Playwright's `webServer` own the lifecycle and pass `PW_PORT`.
+- **If a port is busy, take another port — do not clear it.** Seen in use 2026-10-02: 3000 (Docker/Twenty),
+  3010, 3017, 3021, 3023, 3200 (another product), 4330 (Vamos).
+- If your Playwright run shows connection-refused failures, or a block of failures starting partway through,
+  treat them as an artifact, not a regression. Rerun cleanly on a free port and report **both** runs with the
+  explanation. Never rerun until green without saying why it went red.
+
+Two more measured on 2026-10-02: a bare network-idle wait hits the 30 s timeout on `/` on cold runs — cap
+network idle at about 10 s, then a short settle pause. And `next build` inside `assemble-cloudflare.mjs`
+crashed once and has not recurred across clean runs; there is no stack trace. If it crashes for you, **capture
+the stack before rerunning**.
+
 ## Your branch and files
 - Never push `main`. No PR unless the owner asks. No deploy, no hosted SQL, no change to Cloudflare, DNS,
   R2, Supabase settings, Stripe or Resend. Live probes are plain GET requests unless the owner says yes.

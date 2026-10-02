@@ -1,7 +1,11 @@
 # Control board
 
-Kept by the controller: the Mac session "ALMAR controller" (`local_836ffacc-ca03-41c4-b1ff-385b8aa9d357`,
-pinned, sidebar group ALMAR) in the main checkout, since 2026-10-02 00:05 (+04), on the owner's choice. The
+Kept by the controller: **this Mac session in the main checkout, named controller by the owner on 2026-10-02
+~14:00 (question form)**, sidebar group ALMAR. It replaces `local_836ffacc-ca03-41c4-b1ff-385b8aa9d357`, the
+pinned Desktop session that held the title from 00:05 but sat idle — which is why two sessions each believed
+they were control and built the same thing three times today. Session `almarprod-website-code-34` stood down of
+its own accord and keeps to checking, reading live state and reporting. (This session cannot read its own id;
+the owner pins it when he wants the id on the board.) The
 claude.ai project ran 2026-10-01 11:08–19:27 UTC; its record is `HANDOFF-2026-10-01-projects.md`. One page:
 what is live, what is being built, what waits for the owner, what comes next. Updated at every hand-over and
 every landing. The goal: `GOAL.md`. The rules: `prompts/00-common-rules.md`; decisions
@@ -25,6 +29,41 @@ Framer export. 3.3 needs no database, no auth and nothing owner-gated, so it is 
 he set: **one data layer** (`lib/data/<entity>.ts`, async, Supabase shapes, fixtures behind it, no component
 touches a fixture) and **no fake controls** (every control shown works; the journey bar's final submit is not
 rendered until Phase 4). Because a dashboard is almost all write controls, it waits for the backend.
+
+
+### EN / AR / ES: per-locale URLs, decided 2026-10-02 ~14:05
+
+His answer, question form, given in session `almarprod-website-code-34`'s chat and relayed here verbatim:
+**bake per-locale URLs at build time** — `/about`, `/ar/about`, `/es/about`. English stays at the root so
+today's live URLs do not move. This controller reached the same recommendation independently.
+
+Verified here before recording it: no `app/` page calls `cookies()`; `almar-locale` is read in 10 client
+components and written in `app/account/account-screen.tsx:25`; `/`, `/private-stays` and `/about` all serve
+`<html lang="en" dir="ltr">` live. So AR and ES do not exist in served HTML today, Arabic would paint LTR
+before flipping, and job 04's "Arabic" screenshots were byte-identical English pages for this reason.
+
+What it costs, all verified in the code and all written into `prompts/06-public-site-slice-1.md`: 26 pages
+become 78 built documents; `scripts/assemble-cloudflare.mjs` writes `out/<rel>.html` (lines 39-40) and must
+emit nested locale paths; `wrangler.toml`'s `html_handling = "auto-trailing-slash"` and
+`not_found_handling = "404-page"` must be checked for `/ar/about` and `/ar/`; `renderStaticNotFound()` is
+hardcoded `lang="en" dir="ltr"` and `tests/assemble-404.test.mjs` guards the single 404, so there are three to
+consider; `tests/no-dead-links.test.mjs` resolves hrefs against `app/` routes with path-literal `HIDDEN` and 52
+`KNOWN_DEAD` entries and will read locale prefixes as dead links. The switcher changes URL and the cookie
+becomes a remembered preference, not the source of truth. **Currency still needs a rule against URL-based
+locale — one question to him, not invented.**
+
+**Routing for per-locale URLs is settled, 2026-10-02 (do not re-investigate).** Session
+`almarprod-website-code-34` measured it on a throwaway local Worker in `/tmp` (never ALMAR's; ALMAR's Worker
+re-read afterwards, still `b769e01a`), and this controller confirmed each point against Cloudflare's own
+static-assets documentation:
+
+| Fact | Consequence for Phase 3.3 |
+|---|---|
+| `/ar/about` serves 200 under the existing `html_handling` / `not_found_handling` | **No `wrangler.toml` change is needed for per-locale URLs** |
+| Canonicalisation is asymmetric: `/ar/about/` → 307 → `/ar/about`, but `/ar` → 307 → `/ar/` (docs: files without a trailing slash, folder indexes with one) | The switcher, internal links, `canonical` and `og:url` must emit `/ar/` for a locale home and `/ar/about` for a page, or every language switch costs a redirect. Assert it in a test |
+| `/es` and `/es/` both 404 when `es/index.html` is missing | Every locale ships its own `index.html` or that locale's home is a hard 404 |
+| Cloudflare serves the **nearest** `404.html` up the tree (docs confirm; measured with `ar/404.html`) | **Three branded 404s work with no runtime**: `out/404.html`, `out/ar/404.html`, `out/es/404.html`. `renderStaticNotFound()` takes a locale; `tests/assemble-404.test.mjs` must cover all three |
+
 
 ### ⚠ Dropped: the footer Contact stopgap (owner, 2026-10-02 13:30)
 
@@ -83,6 +122,17 @@ local-only branch that needs pushing; `prep/phase-3.2-discuss` (`prep/phase-3.2-
 premise moved — 3.2 is now the fixture-to-Supabase swap, so the prep needs re-reading before reuse. None of the
 three pushed, deployed or touched a database.
 
+**Duplicate work, 2026-10-02 (budget lost).** This controller and session `almarprod-website-code-34` built the
+same thing three times before they spoke: the markup-only footer fix (`2350b51` and the byte-identical `1e6d19d`),
+the click delegate, and job 05 (two worktrees, `mariven-text` and `mariven-text-2`). The fix is the declaration
+protocol in the sessions table above. Cause: two sessions each believed they were control, because the board named
+a Desktop session that was idle.
+
+Archive tags the peer pushed, verified on GitHub 2026-10-02 13:55: `archive/job-02-conflicts` (`0499fc1`, the job 02
+conflict survey — 8 of 11 commits apply clean, `.gitignore` and 12 PNGs mechanical, `app/dashboard/(ops)/layout.tsx`
+a real semantic merge) and `archive/phase-3.2-discuss` (`ff99fd5`, the 3.2 prep with 12 decisions for his gate,
+written before the 13:30 reshape — re-read it against the new definition of 3.2 before reusing it).
+
 Branches 2026-10-02 13:40: `main` `0b44f27`; `claude/project-thread-8h6bed` (job 02's source, on GitHub);
 `fix/footer-contact` `2350b51` (on GitHub, **broken, never lands** — delete it on his word);
 `fix/footer-contact-click` `797ed9f` (archived as a tag, worktree to be removed);
@@ -107,8 +157,8 @@ worktree to be removed); `survey/job-02-conflicts` `0499fc1` (local only).
 | ALMAR controller (`local_836ffacc-…`, pinned) | Opus 5.5, xhigh | main checkout | the controller |
 | job 04 worker | Opus 5.5 | `.claude/worktrees/repo-tidy` | landed and live; worktree to be removed |
 | footer-contact-click | — | `.claude/worktrees/footer-contact-click` | **dropped** by the owner 13:30, archived as tag `archive/footer-contact-click`; worktree to be removed |
-| job 02 survey | Sonnet 5.5 | `.claude/worktrees/job-02-survey` | survey finished (`0499fc1`), local only; push then remove |
-| 3.2 prep | — | `.claude/worktrees/phase-3.2-prep` | premise moved (3.2 is now the fixture-to-Supabase swap); re-read before reuse |
+| `almarprod-website-code-34` | — | same checkout | **Stood down 2026-10-02 13:50, by its own message**: it will not push `main`, tag or deploy again unless the owner tells it directly in its own chat, and it keeps to checking, reading live state and reporting. It removed its `job-02-survey`, `phase-3.2-prep` and duplicate `mariven-text-2` worktrees. Protocol agreed both ways: declare job number, branch and worktree before starting one |
+| job 05 worker | Sonnet 5.5 | `.claude/worktrees/mariven-text`, `fix/mariven-text` | **running** from `b87fdac`: deletes the Mariven sentence from the 12 stay pages with a browser-level guard. Commits only; the controller pushes |
 
 Archived 2026-10-02 on the owner's word (undoable): the retired control session, the 3 Phase 3.1 sessions and
 the 14 Framer-era sessions. All ALMAR sessions sit in the sidebar group ALMAR. Each job's worktree is removed
@@ -127,6 +177,11 @@ the day it lands; `.claude/worktrees/repo-tidy` stays until job 04 lands.
 | "Mariven is thoughtfully designed for comfort and style" on 12 of 12 live stay pages, and in all 12 `route.ts` files: another property's name in leftover template text | **Job 05**, after the footer fix |
 | What | Where |
 |---|---|
+| **A pattern kill on this shared Mac corrupts test results and reaches other products.** A job 05 worker ran `pkill -f "next-server"` on 2026-10-02 and killed another ALMAR session's dev server mid-run: Playwright went from 1,122 passed / 0 failed to 1,084 passed / **38 failed**, all connection-refused from test 1113 on, with nothing wrong in the code. Verified in the process list at 14:20: a third product's dev server was live (`Houssam Portfolio`, port 3200, next-server v16.3.8) and a Vamos one (port 4330) had been live earlier — a pattern kill hits both, and cross-product interference is against his rules. **No causation is claimed for the Vamos server's disappearance; it may have ended on its own.** Fixed by a new section in `prompts/00-common-rules.md`: kill only what you started, only by port, take another port rather than clearing one. The running job 05 worker was told mid-flight and asked whether its own results need redoing | Fixed in the rules; watch job 05's hand-over |
+| A bare network-idle wait hits the 30 s Playwright timeout on `/` on cold runs — cap network idle near 10 s then a short settle pause | In the common rules |
+| `next build` inside `assemble-cloudflare.mjs` crashed once on 2026-10-02 and has not recurred across clean runs. No stack trace was captured, so it stays unexplained | Capture the stack if it happens again |
+| **Worker `almar` is static assets only: `wrangler.toml` has `[assets]` and no `main` entry.** So `middleware.ts` can never run, and any `force-dynamic` page emits no HTML and answers 404 — which is why `/login`, `/account` and `/dashboard` 404 live today. `main` has 5 `force-dynamic` files; the job 02 auth branch takes it to 14. Found by session `almarprod-website-code-34`, **verified here 2026-10-02 13:55** from `wrangler.toml` and a grep of `app/`. Phase 2 cannot be live until a server-runtime job lands (plan 02-08 Task 2: `@opennextjs/cloudflare` 1.20.6 is installed but not configured). The peer states the owner chose "Land it dormant, no deploy" over "do the runtime switch first" and "land both together", first-hand in its own chat through the question form — **recorded as his answer given elsewhere, still to be confirmed here before job 02 runs** (it is parked behind Phase 3.3, so there is time) | Its own job, before Phase 2 goes live |
+| **Phase 3.3 constraint from the same fact:** with no server runtime, EN / AR / ES cannot be middleware-routed. There are no per-locale route segments in `app/` today and `lib/copy` is one catalog with an object per locale, so the choice is client-side switching or per-locale URLs baked at build time. A job 06 discuss decision | Job 06 |
 | Phase 3 has 13 of 13 summaries and no verification file | Controller report |
 | The `chooseArabic` helper flakes under parallel Playwright workers | Run with `--workers=1` |
 | The Playwright browser cache is shared by every project on this Mac; another project's install can remove build 1243 | Reinstall from this checkout: `npx playwright install --only-shell chromium` (a download: owner's OK) |
