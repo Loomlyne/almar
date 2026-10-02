@@ -316,5 +316,95 @@ for (const viewport of WIDTHS) {
         expect(await style(bdi, "font-variant-numeric")).toContain("tabular-nums");
       });
     });
+
+    test.describe(`Gallery ${where}`, () => {
+      const tile = (page: import("@playwright/test").Page, n: number) =>
+        page.getByTestId("harness-gallery").getByRole("button", { name: `[Photo ${n}]` });
+
+      test("grid: 1 column on the phone, 2 on the tablet, 3 on the desktop", async ({ page }) => {
+        await open(page, "gallery", "six", locale, viewport);
+        const xs = new Set<number>();
+        for (let n = 1; n <= 6; n += 1) xs.add(Math.round((await tile(page, n).boundingBox())!.x));
+        expect(xs.size).toBe({ phone: 1, tablet: 2, desktop: 3 }[viewport]);
+      });
+
+      test("click tile 2 opens the lightbox on that picture, 2 of 6", async ({ page }) => {
+        await open(page, "gallery", "six", locale, viewport);
+        const src = await tile(page, 2).locator("img").getAttribute("src");
+        await tile(page, 2).click();
+        const dialog = page.getByRole("dialog");
+        await expect(dialog).toBeVisible();
+        await expect(dialog.locator("[aria-live=polite]")).toHaveText("2 of 6");
+        await expect(dialog.locator("img")).toHaveAttribute("src", src!);
+      });
+
+      test("the arrow keys step, mirrored in Arabic, and wrap", async ({ page }) => {
+        await open(page, "gallery", "six", locale, viewport);
+        await tile(page, 2).click();
+        const count = page.getByRole("dialog").locator("[aria-live=polite]");
+        await page.keyboard.press(locale === "ar" ? "ArrowLeft" : "ArrowRight");
+        await expect(count).toHaveText("3 of 6");
+        await page.keyboard.press(locale === "ar" ? "ArrowRight" : "ArrowLeft");
+        await expect(count).toHaveText("2 of 6");
+        await page.keyboard.press(locale === "ar" ? "ArrowRight" : "ArrowLeft");
+        await page.keyboard.press(locale === "ar" ? "ArrowRight" : "ArrowLeft");
+        await expect(count).toHaveText("6 of 6");
+        await page.keyboard.press(locale === "ar" ? "ArrowLeft" : "ArrowRight");
+        await expect(count).toHaveText("1 of 6");
+      });
+
+      test("previous and next are real buttons that wrap, never disabled, on the right sides", async ({ page }) => {
+        await open(page, "gallery", "six", locale, viewport);
+        await tile(page, 6).click();
+        const dialog = page.getByRole("dialog");
+        const next = dialog.getByRole("button", { name: "[Next]" });
+        const previous = dialog.getByRole("button", { name: "[Previous]" });
+        await expect(next).toBeEnabled();
+        await expect(previous).toBeEnabled();
+        const n = await next.boundingBox();
+        const p = await previous.boundingBox();
+        if (locale === "ar") expect(p!.x).toBeGreaterThan(n!.x);
+        else expect(p!.x).toBeLessThan(n!.x);
+        await next.click();
+        await expect(dialog.locator("[aria-live=polite]")).toHaveText("1 of 6");
+        await previous.click();
+        await expect(dialog.locator("[aria-live=polite]")).toHaveText("6 of 6");
+      });
+
+      test("Escape closes it and focus returns to the tile that opened it", async ({ page }) => {
+        await open(page, "gallery", "six", locale, viewport);
+        await tile(page, 2).click();
+        await expect(page.getByRole("dialog")).toBeVisible();
+        await page.keyboard.press("Escape");
+        await expect(page.getByRole("dialog")).toHaveCount(0);
+        await expect(tile(page, 2)).toBeFocused();
+      });
+
+      test("the close button closes it", async ({ page }) => {
+        await open(page, "gallery", "six", locale, viewport);
+        await tile(page, 3).click();
+        await page.getByRole("dialog").getByRole("button", { name: "[Close]" }).click();
+        await expect(page.getByRole("dialog")).toHaveCount(0);
+        await expect(tile(page, 3)).toBeFocused();
+      });
+
+      test("four images count of 4; a single image has no previous or next", async ({ page }) => {
+        await open(page, "gallery", "four", locale, viewport);
+        await tile(page, 4).click();
+        await expect(page.getByRole("dialog").locator("[aria-live=polite]")).toHaveText("4 of 4");
+        await open(page, "gallery", "one", locale, viewport);
+        await tile(page, 1).click();
+        const dialog = page.getByRole("dialog");
+        await expect(dialog.getByRole("button", { name: "[Next]" })).toHaveCount(0);
+        await expect(dialog.getByRole("button", { name: "[Previous]" })).toHaveCount(0);
+      });
+
+      test("the tile is square with the line outline", async ({ page }) => {
+        await open(page, "gallery", "six", locale, viewport);
+        const img = tile(page, 1).locator("img");
+        expect(await style(img, "outline-width")).toBe("1px");
+        expect(await style(img, "border-radius")).toBe("0px");
+      });
+    });
   }
 }

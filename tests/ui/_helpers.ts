@@ -11,6 +11,8 @@ export async function open(page: Page, component: string, state: string, locale:
   await page.setViewportSize(VIEWPORTS[viewport]);
   await page.goto(`/__harness?c=${component}&s=${state}&l=${locale}`);
   await settle(page);
+  // The dev server's own indicator can sit over a control at the page corner and swallow the click.
+  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
 }
 
 /** The computed rgb() string of a colour token, so a style test never hand-types a colour. */
