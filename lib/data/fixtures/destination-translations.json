@@ -1,0 +1,62 @@
+[
+  {
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "locale": "en",
+    "name": "Cartagena",
+    "short_line": null,
+    "region": "Caribbean coast",
+    "summary": "Cartagena is ALMAR's densest verified inventory: colonial houses in Getsemaní and the Historic Center, San Diego residences, Bocagrande beach houses, Barú villas, private islands, and marine charters.",
+    "nights_label": "3–7 nights",
+    "status": "published"
+  },
+  {
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "locale": "ar",
+    "name": "كارتاخينا",
+    "short_line": null,
+    "region": "الساحل الكاريبي",
+    "summary": "كارتاخينا هي أكثف مخزون موثّق لدى المار: بيوت استعمارية في خيتسيماني والمركز التاريخي، وإقامات في سان دييغو، وبيوت شاطئية في بوكاغراندي، وفلل في بارو، وجزر خاصة، ورحلات بحرية مستأجرة.",
+    "nights_label": "3–7 ليالٍ",
+    "status": "draft"
+  },
+  {
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "locale": "es",
+    "name": "Cartagena",
+    "short_line": null,
+    "region": "Costa Caribe",
+    "summary": "Cartagena es el inventario verificado más denso de ALMAR: casas coloniales en Getsemaní y el Centro Histórico, residencias en San Diego, casas de playa en Bocagrande, villas en Barú, islas privadas y chárteres marinos.",
+    "nights_label": "3–7 noches",
+    "status": "draft"
+  },
+  {
+    "destination_id": "e34e5839-d6a1-5930-a061-512e7e6bc8f1",
+    "locale": "en",
+    "name": "Medellín",
+    "short_line": null,
+    "region": "Andes",
+    "summary": "Medellín anchors modern Colombia: secure neighborhoods, refined dining, and culture. For ALMAR's current verified inventory, the countryside beyond the city is the hard asset — private farm and estate stays in Antioquia.",
+    "nights_label": "2–5 nights",
+    "status": "published"
+  },
+  {
+    "destination_id": "e34e5839-d6a1-5930-a061-512e7e6bc8f1",
+    "locale": "ar",
+    "name": "ميديلين",
+    "short_line": null,
+    "region": "الأنديز",
+    "summary": "ميديلين ركيزة كولومبيا الحديثة: أحياء آمنة وتجارب طعام راقية وثقافة. وفي مخزون المار الموثّق حالياً، الريف خارج المدينة هو الأصل الأقوى: إقامات خاصة في المزارع والعزب في أنتيوكيا.",
+    "nights_label": "2–5 ليالٍ",
+    "status": "draft"
+  },
+  {
+    "destination_id": "e34e5839-d6a1-5930-a061-512e7e6bc8f1",
+    "locale": "es",
+    "name": "Medellín",
+    "short_line": null,
+    "region": "Andes",
+    "summary": "Medellín es el ancla de la Colombia moderna: barrios seguros, gastronomía refinada y cultura. En el inventario verificado actual de ALMAR, el campo más allá de la ciudad es el gran activo: estancias privadas en fincas y haciendas de Antioquia.",
+    "nights_label": "2–5 noches",
+    "status": "draft"
+  }
+]

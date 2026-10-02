@@ -1,0 +1,1044 @@
+[
+  {
+    "id": "38f3ed2e-e6d2-50df-886c-c90c815252ad",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "getsemani-colonial-house",
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "max_guests": 10,
+    "min_guests": null,
+    "bedrooms": 5,
+    "bathrooms": 5,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-17",
+      "2026-10-18",
+      "2026-10-19",
+      "2026-11-10",
+      "2026-11-11",
+      "2026-11-12"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "d4cc2412-6db6-5e58-8108-610b391a2cb6",
+      "8736a8de-7744-53f9-8cb2-3028d9d309d9"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "bf310a54-f008-5120-bc7a-d30ed3f2586b",
+      "media_key": "stays/getsemani-colonial-house/hero.webp",
+      "width": 1600,
+      "height": 1084,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "0c04c4d8-2a45-5955-aee8-6b86e69a1ed8",
+        "media_key": "stays/getsemani-colonial-house/gallery-1.webp",
+        "width": 1600,
+        "height": 1400,
+        "position": 1
+      },
+      {
+        "id": "ad83da8f-7ad5-52b6-82db-275d1dccf1ac",
+        "media_key": "stays/getsemani-colonial-house/gallery-2.webp",
+        "width": 1600,
+        "height": 1210,
+        "position": 2
+      },
+      {
+        "id": "2433d28e-95c8-5f4c-a811-f76b74eadde4",
+        "media_key": "stays/getsemani-colonial-house/gallery-3.webp",
+        "width": 1600,
+        "height": 1245,
+        "position": 3
+      },
+      {
+        "id": "a8138d32-dc34-5b4a-91a7-b03abdf00789",
+        "media_key": "stays/getsemani-colonial-house/gallery-4.webp",
+        "width": 1600,
+        "height": 1522,
+        "position": 4
+      }
+    ],
+    "is_published": true,
+    "position": 1
+  },
+  {
+    "id": "0e62e1e3-77bc-5658-b643-e4407fdc18a3",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "getsemani-courtyard-residence",
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "max_guests": 10,
+    "min_guests": null,
+    "bedrooms": 5,
+    "bathrooms": 5,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-22",
+      "2026-10-23",
+      "2026-10-24",
+      "2026-11-17",
+      "2026-11-18",
+      "2026-11-19"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "d4cc2412-6db6-5e58-8108-610b391a2cb6",
+      "8736a8de-7744-53f9-8cb2-3028d9d309d9"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "3cc0aac9-3b4b-5002-aeb0-49053333e657",
+      "media_key": "stays/getsemani-courtyard-residence/hero.webp",
+      "width": 1280,
+      "height": 853,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "f05ecace-f79c-5130-bb58-7fa7f2b9fc90",
+        "media_key": "stays/getsemani-courtyard-residence/gallery-1.webp",
+        "width": 1280,
+        "height": 853,
+        "position": 1
+      },
+      {
+        "id": "5a03c2e0-3b82-5dd2-9b51-0692c20f45af",
+        "media_key": "stays/getsemani-courtyard-residence/gallery-2.webp",
+        "width": 1280,
+        "height": 853,
+        "position": 2
+      },
+      {
+        "id": "58f37df8-c5c0-5e5b-8cd5-60ecc5569247",
+        "media_key": "stays/getsemani-courtyard-residence/gallery-3.webp",
+        "width": 1280,
+        "height": 853,
+        "position": 3
+      },
+      {
+        "id": "77235106-be8c-502e-bb45-2805da8e76d2",
+        "media_key": "stays/getsemani-courtyard-residence/gallery-4.webp",
+        "width": 1280,
+        "height": 853,
+        "position": 4
+      },
+      {
+        "id": "6319d498-cf50-5c7a-a0df-96835e31596d",
+        "media_key": "stays/getsemani-courtyard-residence/gallery-5.webp",
+        "width": 1280,
+        "height": 853,
+        "position": 5
+      },
+      {
+        "id": "1687c160-5699-5ea4-b949-3aeb5652791d",
+        "media_key": "stays/getsemani-courtyard-residence/gallery-6.webp",
+        "width": 1280,
+        "height": 856,
+        "position": 6
+      }
+    ],
+    "is_published": true,
+    "position": 2
+  },
+  {
+    "id": "4bc21ad0-2d92-595a-8a70-ba2f895097ec",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "cartagena-historic-center-house",
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "max_guests": 7,
+    "min_guests": null,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-27",
+      "2026-10-28",
+      "2026-10-29",
+      "2026-11-04",
+      "2026-11-05",
+      "2026-11-06"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "d4cc2412-6db6-5e58-8108-610b391a2cb6",
+      "8736a8de-7744-53f9-8cb2-3028d9d309d9"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "5e0a620e-ae44-50c0-a212-d682c99a938e",
+      "media_key": "stays/cartagena-historic-center-house/hero.webp",
+      "width": 720,
+      "height": 480,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "3ff8ff18-d0f2-576e-9a7f-54265d3b341d",
+        "media_key": "stays/cartagena-historic-center-house/gallery-1.webp",
+        "width": 720,
+        "height": 480,
+        "position": 1
+      },
+      {
+        "id": "3a424ac7-20f4-569c-a693-39b4feca5ac2",
+        "media_key": "stays/cartagena-historic-center-house/gallery-2.webp",
+        "width": 720,
+        "height": 480,
+        "position": 2
+      },
+      {
+        "id": "b2fec886-b93d-59c8-96d6-396ac59a1273",
+        "media_key": "stays/cartagena-historic-center-house/gallery-3.webp",
+        "width": 720,
+        "height": 480,
+        "position": 3
+      },
+      {
+        "id": "eff7129e-5e40-5dbf-9902-7c59f28337e2",
+        "media_key": "stays/cartagena-historic-center-house/gallery-4.webp",
+        "width": 720,
+        "height": 480,
+        "position": 4
+      },
+      {
+        "id": "6ef3ac3d-13eb-5380-982f-fdda7b1b41ac",
+        "media_key": "stays/cartagena-historic-center-house/gallery-5.webp",
+        "width": 720,
+        "height": 480,
+        "position": 5
+      },
+      {
+        "id": "b8b8ce47-53d4-53d8-8f58-1d893892a8fb",
+        "media_key": "stays/cartagena-historic-center-house/gallery-6.webp",
+        "width": 720,
+        "height": 480,
+        "position": 6
+      }
+    ],
+    "is_published": true,
+    "position": 3
+  },
+  {
+    "id": "d774b123-42b7-57c1-85b4-b73c697155dd",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "casa-jardin-san-diego",
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "max_guests": 14,
+    "min_guests": null,
+    "bedrooms": 6,
+    "bathrooms": 6,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-14",
+      "2026-10-15",
+      "2026-10-16",
+      "2026-11-11",
+      "2026-11-12",
+      "2026-11-13"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "d4cc2412-6db6-5e58-8108-610b391a2cb6",
+      "8736a8de-7744-53f9-8cb2-3028d9d309d9"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "d0e7df71-5db5-5839-93e1-52beef528a00",
+      "media_key": "stays/casa-jardin-san-diego/hero.webp",
+      "width": 1280,
+      "height": 960,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "9f88f7d2-214f-50a1-9adc-b29977af0543",
+        "media_key": "stays/casa-jardin-san-diego/gallery-1.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 1
+      },
+      {
+        "id": "51defef1-5a8a-5c59-9ee3-bd008f0994a6",
+        "media_key": "stays/casa-jardin-san-diego/gallery-2.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 2
+      },
+      {
+        "id": "50bcb645-7177-5785-8031-ccf3389bb27c",
+        "media_key": "stays/casa-jardin-san-diego/gallery-3.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 3
+      },
+      {
+        "id": "4de707ac-52ce-5ffa-a9fd-00cc464e0ab0",
+        "media_key": "stays/casa-jardin-san-diego/gallery-4.webp",
+        "width": 960,
+        "height": 1280,
+        "position": 4
+      },
+      {
+        "id": "e597a1dc-1b3a-50d2-a5e4-779fe9a744ab",
+        "media_key": "stays/casa-jardin-san-diego/gallery-5.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 5
+      },
+      {
+        "id": "783047ec-519d-58f6-a5e1-2e7ba457aa81",
+        "media_key": "stays/casa-jardin-san-diego/gallery-6.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 6
+      }
+    ],
+    "is_published": true,
+    "position": 4
+  },
+  {
+    "id": "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "casa-juliana-historic-center",
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "max_guests": 18,
+    "min_guests": null,
+    "bedrooms": 8,
+    "bathrooms": 7,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-19",
+      "2026-10-20",
+      "2026-10-21",
+      "2026-11-18",
+      "2026-11-19",
+      "2026-11-20"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "d4cc2412-6db6-5e58-8108-610b391a2cb6",
+      "8736a8de-7744-53f9-8cb2-3028d9d309d9"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "0eb34390-241d-52eb-b2a5-f8e5d321a676",
+      "media_key": "stays/casa-juliana-historic-center/hero.webp",
+      "width": 1280,
+      "height": 960,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "c756daf3-91a8-5b2f-acc9-b3c80662f338",
+        "media_key": "stays/casa-juliana-historic-center/gallery-1.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 1
+      },
+      {
+        "id": "528de6c8-69fc-5666-b410-6ae967116f19",
+        "media_key": "stays/casa-juliana-historic-center/gallery-2.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 2
+      },
+      {
+        "id": "29b1e68b-e190-5d65-802d-883267362f9d",
+        "media_key": "stays/casa-juliana-historic-center/gallery-3.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 3
+      },
+      {
+        "id": "2a227620-6b40-5660-a6bc-2b5927a84d19",
+        "media_key": "stays/casa-juliana-historic-center/gallery-4.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 4
+      },
+      {
+        "id": "2909178c-a89e-53a8-8e36-4a7f1b13f28d",
+        "media_key": "stays/casa-juliana-historic-center/gallery-5.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 5
+      },
+      {
+        "id": "5be2597b-705c-5b08-bab7-7b7c29a71d20",
+        "media_key": "stays/casa-juliana-historic-center/gallery-6.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 6
+      }
+    ],
+    "is_published": true,
+    "position": 5
+  },
+  {
+    "id": "c5444a7c-d129-5536-bdd5-ee35dff4a096",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "casa-mariana-historic-center",
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "max_guests": 14,
+    "min_guests": null,
+    "bedrooms": 6,
+    "bathrooms": 7,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-24",
+      "2026-10-25",
+      "2026-10-26",
+      "2026-11-05",
+      "2026-11-06",
+      "2026-11-07"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "d4cc2412-6db6-5e58-8108-610b391a2cb6",
+      "8736a8de-7744-53f9-8cb2-3028d9d309d9"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "1c01f400-2e1a-5139-8605-dd8b1c40453b",
+      "media_key": "stays/casa-mariana-historic-center/hero.webp",
+      "width": 1024,
+      "height": 576,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "2d0e0b32-cec0-5fb3-8c6f-13ea768c27f2",
+        "media_key": "stays/casa-mariana-historic-center/gallery-1.webp",
+        "width": 1024,
+        "height": 576,
+        "position": 1
+      },
+      {
+        "id": "247910ff-b3b6-5669-8c6d-ea0eb8fc2139",
+        "media_key": "stays/casa-mariana-historic-center/gallery-2.webp",
+        "width": 1024,
+        "height": 576,
+        "position": 2
+      },
+      {
+        "id": "fd62d681-662f-5049-bc37-ccb54586e029",
+        "media_key": "stays/casa-mariana-historic-center/gallery-3.webp",
+        "width": 1024,
+        "height": 576,
+        "position": 3
+      },
+      {
+        "id": "d238c511-d19e-5837-8eef-a19f5dbc10ec",
+        "media_key": "stays/casa-mariana-historic-center/gallery-4.webp",
+        "width": 1024,
+        "height": 576,
+        "position": 4
+      },
+      {
+        "id": "f754a8d4-ffe5-54a4-b8bd-da9710e28a46",
+        "media_key": "stays/casa-mariana-historic-center/gallery-5.webp",
+        "width": 1024,
+        "height": 576,
+        "position": 5
+      },
+      {
+        "id": "6107c9da-ca4c-516d-9b5a-eda72687378d",
+        "media_key": "stays/casa-mariana-historic-center/gallery-6.webp",
+        "width": 1024,
+        "height": 576,
+        "position": 6
+      }
+    ],
+    "is_published": true,
+    "position": 6
+  },
+  {
+    "id": "9a5ae3ce-043f-533f-80c1-6d742dac42c7",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "baru-island-private-villa",
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "max_guests": 10,
+    "min_guests": null,
+    "bedrooms": 5,
+    "bathrooms": 5,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-29",
+      "2026-10-30",
+      "2026-10-31",
+      "2026-11-12",
+      "2026-11-13",
+      "2026-11-14"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "9f31a21f-e3f0-5f1d-ae06-71da428e3abd",
+      "18d491a4-8c28-569a-9587-ff21bc5aeeba"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "29a2ec34-413a-559d-aca2-ee69c03eaaa2",
+      "media_key": "stays/baru-island-private-villa/hero.webp",
+      "width": 1242,
+      "height": 773,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "b0766d08-c3b5-562d-8e8d-7bd88a70ac07",
+        "media_key": "stays/baru-island-private-villa/gallery-1.webp",
+        "width": 1242,
+        "height": 883,
+        "position": 1
+      },
+      {
+        "id": "03a2e80c-cc60-573d-8a36-6cf88657e1c0",
+        "media_key": "stays/baru-island-private-villa/gallery-2.webp",
+        "width": 1242,
+        "height": 1579,
+        "position": 2
+      },
+      {
+        "id": "d9829c2b-ffe2-5f29-9f32-18fa435896ba",
+        "media_key": "stays/baru-island-private-villa/gallery-3.webp",
+        "width": 1242,
+        "height": 780,
+        "position": 3
+      },
+      {
+        "id": "9869354b-2b6a-564c-90ed-ca88e85d93d1",
+        "media_key": "stays/baru-island-private-villa/gallery-4.webp",
+        "width": 1242,
+        "height": 764,
+        "position": 4
+      },
+      {
+        "id": "b102fdde-ebd8-517c-988c-7b85789ec4d0",
+        "media_key": "stays/baru-island-private-villa/gallery-5.webp",
+        "width": 1242,
+        "height": 762,
+        "position": 5
+      },
+      {
+        "id": "fd790b40-c42d-5114-bcb2-b9b0d5127fd2",
+        "media_key": "stays/baru-island-private-villa/gallery-6.webp",
+        "width": 1242,
+        "height": 766,
+        "position": 6
+      }
+    ],
+    "is_published": true,
+    "position": 7
+  },
+  {
+    "id": "b22e8dfd-1f35-541d-85bf-4169d08ed448",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "bocagrande-beach-house",
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "max_guests": 17,
+    "min_guests": null,
+    "bedrooms": 10,
+    "bathrooms": null,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-16",
+      "2026-10-17",
+      "2026-10-18",
+      "2026-11-19",
+      "2026-11-20",
+      "2026-11-21"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "d4cc2412-6db6-5e58-8108-610b391a2cb6",
+      "8736a8de-7744-53f9-8cb2-3028d9d309d9"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "cd160525-69aa-50d9-987c-4c8b425eaa3e",
+      "media_key": "stays/bocagrande-beach-house/hero.webp",
+      "width": 1040,
+      "height": 694,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "3d59a6c7-a56a-5d79-be57-657648ac0068",
+        "media_key": "stays/bocagrande-beach-house/gallery-1.webp",
+        "width": 1600,
+        "height": 1067,
+        "position": 1
+      },
+      {
+        "id": "63fe8f8a-e172-53a0-b76f-a4d04566b7ab",
+        "media_key": "stays/bocagrande-beach-house/gallery-2.webp",
+        "width": 1040,
+        "height": 693,
+        "position": 2
+      },
+      {
+        "id": "65d81eeb-a25b-5149-aa43-faf0c261bb85",
+        "media_key": "stays/bocagrande-beach-house/gallery-3.webp",
+        "width": 1600,
+        "height": 1067,
+        "position": 3
+      },
+      {
+        "id": "27b56fd7-507c-543f-bb92-e3df2432ab68",
+        "media_key": "stays/bocagrande-beach-house/gallery-4.webp",
+        "width": 1600,
+        "height": 1066,
+        "position": 4
+      },
+      {
+        "id": "5ad509cb-6117-5510-92ca-9a2b5503a43b",
+        "media_key": "stays/bocagrande-beach-house/gallery-5.webp",
+        "width": 1600,
+        "height": 1066,
+        "position": 5
+      },
+      {
+        "id": "840d074e-831c-511a-90f3-637dda2a659f",
+        "media_key": "stays/bocagrande-beach-house/gallery-6.webp",
+        "width": 1040,
+        "height": 693,
+        "position": 6
+      }
+    ],
+    "is_published": true,
+    "position": 8
+  },
+  {
+    "id": "4a8e01c7-215d-578f-996a-6121e7b10e69",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "private-island-cartagena",
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "max_guests": 20,
+    "min_guests": 16,
+    "bedrooms": 8,
+    "bathrooms": null,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-21",
+      "2026-10-22",
+      "2026-10-23",
+      "2026-11-06",
+      "2026-11-07",
+      "2026-11-08"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "9f31a21f-e3f0-5f1d-ae06-71da428e3abd",
+      "18d491a4-8c28-569a-9587-ff21bc5aeeba"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "039bfa7f-147c-5083-916b-7cdaa8d5a41b",
+      "media_key": "stays/private-island-cartagena/hero.webp",
+      "width": 1200,
+      "height": 1600,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "0ceb68dd-cf5d-545d-a0e5-346c5fc1782a",
+        "media_key": "stays/private-island-cartagena/gallery-1.webp",
+        "width": 576,
+        "height": 1024,
+        "position": 1
+      },
+      {
+        "id": "a7b0c4bb-4a1a-5fc0-b756-b15fc64149e0",
+        "media_key": "stays/private-island-cartagena/gallery-2.webp",
+        "width": 4160,
+        "height": 2774,
+        "position": 2
+      },
+      {
+        "id": "1c311d67-6fa7-5e88-a604-669494c123d3",
+        "media_key": "stays/private-island-cartagena/gallery-3.webp",
+        "width": 4160,
+        "height": 2774,
+        "position": 3
+      },
+      {
+        "id": "3ea9ef50-f0ae-5183-b638-e551d534d9a3",
+        "media_key": "stays/private-island-cartagena/gallery-4.webp",
+        "width": 829,
+        "height": 1024,
+        "position": 4
+      },
+      {
+        "id": "fc653b6c-e9cf-587e-8839-f2315787b357",
+        "media_key": "stays/private-island-cartagena/gallery-5.webp",
+        "width": 1024,
+        "height": 576,
+        "position": 5
+      },
+      {
+        "id": "c54a4845-ecaf-5703-a883-a7df5e1a1bc7",
+        "media_key": "stays/private-island-cartagena/gallery-6.webp",
+        "width": 4160,
+        "height": 2768,
+        "position": 6
+      }
+    ],
+    "is_published": true,
+    "position": 9
+  },
+  {
+    "id": "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "private-island-estate-cartagena",
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "max_guests": 30,
+    "min_guests": 20,
+    "bedrooms": 11,
+    "bathrooms": 13,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-26",
+      "2026-10-27",
+      "2026-10-28",
+      "2026-11-13",
+      "2026-11-14",
+      "2026-11-15"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "9f31a21f-e3f0-5f1d-ae06-71da428e3abd",
+      "18d491a4-8c28-569a-9587-ff21bc5aeeba"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "165b5e01-e0e4-5610-9d94-edbc28594c39",
+      "media_key": "stays/private-island-estate-cartagena/hero.webp",
+      "width": 768,
+      "height": 1024,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "f1934b3d-193d-54ea-a714-1868da5b7bdf",
+        "media_key": "stays/private-island-estate-cartagena/gallery-1.webp",
+        "width": 768,
+        "height": 1024,
+        "position": 1
+      },
+      {
+        "id": "60a4d29d-b722-5467-ad5a-980d2df44442",
+        "media_key": "stays/private-island-estate-cartagena/gallery-2.webp",
+        "width": 1024,
+        "height": 768,
+        "position": 2
+      },
+      {
+        "id": "47a7a3af-c2d3-503d-b256-6d39e8f40aa9",
+        "media_key": "stays/private-island-estate-cartagena/gallery-3.webp",
+        "width": 1280,
+        "height": 960,
+        "position": 3
+      },
+      {
+        "id": "8cff20fc-7735-5945-baf3-e508dd4f6c9a",
+        "media_key": "stays/private-island-estate-cartagena/gallery-4.webp",
+        "width": 1024,
+        "height": 761,
+        "position": 4
+      },
+      {
+        "id": "8329c69d-b9c7-5fba-9235-97bbc9cae9cd",
+        "media_key": "stays/private-island-estate-cartagena/gallery-5.webp",
+        "width": 1024,
+        "height": 768,
+        "position": 5
+      },
+      {
+        "id": "33296ffe-41a4-5a12-9170-d4f559abc465",
+        "media_key": "stays/private-island-estate-cartagena/gallery-6.webp",
+        "width": 768,
+        "height": 1024,
+        "position": 6
+      }
+    ],
+    "is_published": true,
+    "position": 10
+  },
+  {
+    "id": "dae54186-686b-5701-9198-38818eb3aded",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "santa-fe-farm-antioquia",
+    "destination_id": "e34e5839-d6a1-5930-a061-512e7e6bc8f1",
+    "max_guests": 16,
+    "min_guests": null,
+    "bedrooms": 4,
+    "bathrooms": 5,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-13",
+      "2026-10-14",
+      "2026-10-15",
+      "2026-11-20",
+      "2026-11-21",
+      "2026-11-22"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "0eb443e0-f11d-58ef-93db-40d370d85c31",
+      "feb9b4e7-6a66-5a31-b1d0-603fe49f04ea"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "abc7fd4d-8e6b-5803-97a0-4e7f70796f1e",
+      "media_key": "stays/santa-fe-farm-antioquia/hero.webp",
+      "width": 960,
+      "height": 1280,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "983c839f-c304-5a4e-a58f-41a2aad93d0a",
+        "media_key": "stays/santa-fe-farm-antioquia/gallery-1.webp",
+        "width": 960,
+        "height": 1280,
+        "position": 1
+      },
+      {
+        "id": "0180f362-328a-54c0-8bfe-b7e576497801",
+        "media_key": "stays/santa-fe-farm-antioquia/gallery-2.webp",
+        "width": 1200,
+        "height": 1600,
+        "position": 2
+      },
+      {
+        "id": "11c6657f-5493-53b6-8964-ed468a99e813",
+        "media_key": "stays/santa-fe-farm-antioquia/gallery-3.webp",
+        "width": 960,
+        "height": 1280,
+        "position": 3
+      },
+      {
+        "id": "6c95ce2e-c397-5876-bc2e-f1fd180adbce",
+        "media_key": "stays/santa-fe-farm-antioquia/gallery-4.webp",
+        "width": 1200,
+        "height": 1600,
+        "position": 4
+      },
+      {
+        "id": "d518950c-08d9-57a4-a777-7727846bbfa2",
+        "media_key": "stays/santa-fe-farm-antioquia/gallery-5.webp",
+        "width": 1200,
+        "height": 1600,
+        "position": 5
+      },
+      {
+        "id": "3a3904d4-f936-59ea-a2a2-5ad5a2634bd5",
+        "media_key": "stays/santa-fe-farm-antioquia/gallery-6.webp",
+        "width": 960,
+        "height": 1280,
+        "position": 6
+      }
+    ],
+    "is_published": true,
+    "position": 11
+  },
+  {
+    "id": "91748919-5a54-5ddb-9a5f-35b33b74c8a3",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": true,
+    "sample_fields": [
+      "blocked_dates"
+    ],
+    "slug": "sopetran-country-estate",
+    "destination_id": "e34e5839-d6a1-5930-a061-512e7e6bc8f1",
+    "max_guests": 18,
+    "min_guests": null,
+    "bedrooms": 6,
+    "bathrooms": 9,
+    "nightly_rate_aed": null,
+    "min_nights": null,
+    "blocked_dates": [
+      "2026-10-18",
+      "2026-10-19",
+      "2026-10-20",
+      "2026-11-07",
+      "2026-11-08",
+      "2026-11-09"
+    ],
+    "experience_ids": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "0eb443e0-f11d-58ef-93db-40d370d85c31",
+      "feb9b4e7-6a66-5a31-b1d0-603fe49f04ea"
+    ],
+    "service_ids": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0",
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ],
+    "hero_image": {
+      "id": "063be6e8-a7a1-5a4e-bf7b-ccb0d7e0de6a",
+      "media_key": "stays/sopetran-country-estate/hero.webp",
+      "width": 1200,
+      "height": 1600,
+      "position": 0
+    },
+    "gallery": [
+      {
+        "id": "9003acfd-9c1a-51c9-a436-4ad00eb1d261",
+        "media_key": "stays/sopetran-country-estate/gallery-1.webp",
+        "width": 1200,
+        "height": 1600,
+        "position": 1
+      },
+      {
+        "id": "5cecc6ca-47ac-5b5e-98e0-42b4b98fa343",
+        "media_key": "stays/sopetran-country-estate/gallery-2.webp",
+        "width": 1024,
+        "height": 768,
+        "position": 2
+      },
+      {
+        "id": "8821441b-ae47-5c93-9602-7677ab40d419",
+        "media_key": "stays/sopetran-country-estate/gallery-3.webp",
+        "width": 1200,
+        "height": 1600,
+        "position": 3
+      },
+      {
+        "id": "a8660eea-3f59-5252-8611-a298c3a5e80e",
+        "media_key": "stays/sopetran-country-estate/gallery-4.webp",
+        "width": 1600,
+        "height": 1200,
+        "position": 4
+      },
+      {
+        "id": "1fb3607c-5fd9-5541-8ac8-ee087b4d7975",
+        "media_key": "stays/sopetran-country-estate/gallery-5.webp",
+        "width": 1024,
+        "height": 768,
+        "position": 5
+      },
+      {
+        "id": "f317e635-4802-573d-890d-3e0780a4ac56",
+        "media_key": "stays/sopetran-country-estate/gallery-6.webp",
+        "width": 1024,
+        "height": 768,
+        "position": 6
+      }
+    ],
+    "is_published": true,
+    "position": 12
+  }
+]
