@@ -1,0 +1,242 @@
+[
+  {
+    "item_id": "0d2a7249-64d9-5035-8996-f3b002d307f0",
+    "locale": "en",
+    "name": "24/7 Private Concierge",
+    "summary": "Your dedicated ALMAR concierge, reservations, logistics, surprises, and last-minute requests handled around the clock across Colombia.",
+    "duration_label": null,
+    "status": "published"
+  },
+  {
+    "item_id": "0d2a7249-64d9-5035-8996-f3b002d307f0",
+    "locale": "ar",
+    "name": "كونسيرج خاص على مدار الساعة",
+    "summary": "كونسيرج المار المخصّص لكم: الحجوزات والتنسيق والمفاجآت وطلبات اللحظة الأخيرة، على مدار الساعة في كولومبيا.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "0d2a7249-64d9-5035-8996-f3b002d307f0",
+    "locale": "es",
+    "name": "Conserje privado 24/7",
+    "summary": "Su conserje ALMAR dedicado: reservas, logística, sorpresas y pedidos de último momento, atendidos a cualquier hora en toda Colombia.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+    "locale": "en",
+    "name": "Luxury Ground Transport",
+    "summary": "Mercedes S-Class, Range Rover, and VIP sprinter vans with bilingual chauffeurs for airport runs, city tours, and multi-day itineraries.",
+    "duration_label": null,
+    "status": "published"
+  },
+  {
+    "item_id": "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+    "locale": "ar",
+    "name": "نقل بري فاخر",
+    "summary": "مرسيدس إس-كلاس، ورينج روفر، وفانات سبرنتر لكبار الشخصيات مع سائقين ثنائيي اللغة لرحلات المطار والجولات داخل المدن والبرامج متعددة الأيام.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+    "locale": "es",
+    "name": "Transporte terrestre de lujo",
+    "summary": "Mercedes Clase S, Range Rover y furgonetas Sprinter VIP con chóferes bilingües para traslados al aeropuerto, recorridos por la ciudad e itinerarios de varios días.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9",
+    "locale": "en",
+    "name": "VIP Airport Meet & Greet",
+    "summary": "Fast-track immigration, private lounge access, luggage handling, and seamless curbside pickup at BOG, MDE, and CTG.",
+    "duration_label": null,
+    "status": "published"
+  },
+  {
+    "item_id": "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9",
+    "locale": "ar",
+    "name": "استقبال كبار الشخصيات في المطار",
+    "summary": "عبور سريع للجوازات، ودخول إلى صالة خاصة، وتولّي الأمتعة، واستلام سلس عند الرصيف في مطارات بوغوتا وميديلين وكارتاخينا.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9",
+    "locale": "es",
+    "name": "Recibimiento VIP en el aeropuerto",
+    "summary": "Inmigración rápida, acceso a sala privada, manejo de equipaje y recogida fluida en la acera en BOG, MDE y CTG.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+    "locale": "en",
+    "name": "Welcome Cocktail at Sunset",
+    "summary": "Your first evening in Colombia at a private Cartagena villa. A personal chef crafts a seasonal menu from Caribbean harvests, served as the sun dissolves into the sea.",
+    "duration_label": "3 Hours",
+    "status": "published"
+  },
+  {
+    "item_id": "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+    "locale": "ar",
+    "name": "كوكتيل الترحيب عند الغروب",
+    "summary": "أول مساء لكم في كولومبيا في فيلا خاصة بكارتاخينا. يعدّ شيف خاص قائمة موسمية من خيرات الكاريبي، تُقدَّم بينما تذوب الشمس في البحر.",
+    "duration_label": "3 ساعات",
+    "status": "draft"
+  },
+  {
+    "item_id": "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+    "locale": "es",
+    "name": "Cóctel de bienvenida al atardecer",
+    "summary": "Su primera noche en Colombia en una villa privada de Cartagena. Un chef personal crea un menú de temporada con productos del Caribe, servido mientras el sol se disuelve en el mar.",
+    "duration_label": "3 horas",
+    "status": "draft"
+  },
+  {
+    "item_id": "d4cc2412-6db6-5e58-8108-610b391a2cb6",
+    "locale": "en",
+    "name": "Cartagena Walled City Night",
+    "summary": "A curated evening through Cartagena's colonial streets. A private table at a hidden restaurant, live cumbia under lantern light, and a rooftop overlooking the Caribbean at midnight.",
+    "duration_label": "Evening",
+    "status": "published"
+  },
+  {
+    "item_id": "d4cc2412-6db6-5e58-8108-610b391a2cb6",
+    "locale": "ar",
+    "name": "ليلة في مدينة كارتاخينا المسوّرة",
+    "summary": "أمسية منسّقة في شوارع كارتاخينا الاستعمارية. طاولة خاصة في مطعم خفي، وموسيقى كومبيا حية تحت ضوء الفوانيس، وسطح يطل على الكاريبي عند منتصف الليل.",
+    "duration_label": "أمسية",
+    "status": "draft"
+  },
+  {
+    "item_id": "d4cc2412-6db6-5e58-8108-610b391a2cb6",
+    "locale": "es",
+    "name": "Noche en la ciudad amurallada de Cartagena",
+    "summary": "Una velada cuidada por las calles coloniales de Cartagena. Una mesa privada en un restaurante escondido, cumbia en vivo bajo la luz de los faroles y una azotea con vista al Caribe a medianoche.",
+    "duration_label": "Noche",
+    "status": "draft"
+  },
+  {
+    "item_id": "8736a8de-7744-53f9-8cb2-3028d9d309d9",
+    "locale": "en",
+    "name": "Cartagena Heritage Tours",
+    "summary": "Private historian-led walks through the Walled City, Getsemaní street art, and exclusive after-hours access to colonial mansions.",
+    "duration_label": "Half, Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "8736a8de-7744-53f9-8cb2-3028d9d309d9",
+    "locale": "ar",
+    "name": "جولات تراث كارتاخينا",
+    "summary": "جولات مشي خاصة بصحبة مؤرخ في المدينة المسوّرة وفنون الشارع في خيتسيماني، مع دخول حصري بعد ساعات الدوام إلى القصور الاستعمارية.",
+    "duration_label": "نصف يوم أو يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "8736a8de-7744-53f9-8cb2-3028d9d309d9",
+    "locale": "es",
+    "name": "Recorridos patrimoniales por Cartagena",
+    "summary": "Caminatas privadas con un historiador por la ciudad amurallada, el arte callejero de Getsemaní y acceso exclusivo fuera de horario a casonas coloniales.",
+    "duration_label": "Medio día o día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "9f31a21f-e3f0-5f1d-ae06-71da428e3abd",
+    "locale": "en",
+    "name": "Rosario Islands Escape",
+    "summary": "Speedboat to pristine Caribbean islands with beach club access, snorkeling over coral reefs, and a private lunch on the sand.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "9f31a21f-e3f0-5f1d-ae06-71da428e3abd",
+    "locale": "ar",
+    "name": "رحلة إلى جزر الروساريو",
+    "summary": "قارب سريع إلى جزر كاريبية بكر مع دخول إلى نادٍ شاطئي، وغطس سطحي فوق الشعاب المرجانية، وغداء خاص على الرمال.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "9f31a21f-e3f0-5f1d-ae06-71da428e3abd",
+    "locale": "es",
+    "name": "Escapada a las Islas del Rosario",
+    "summary": "Lancha rápida a islas caribeñas vírgenes con acceso a un club de playa, snorkel sobre arrecifes de coral y un almuerzo privado sobre la arena.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "18d491a4-8c28-569a-9587-ff21bc5aeeba",
+    "locale": "en",
+    "name": "Yacht & Island Charters",
+    "summary": "Private yachts and speedboats to the Rosario Islands, Barú, and hidden Caribbean coves with chef, crew, and snorkeling gear.",
+    "duration_label": "Half, Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "18d491a4-8c28-569a-9587-ff21bc5aeeba",
+    "locale": "ar",
+    "name": "رحلات اليخوت والجزر",
+    "summary": "يخوت وقوارب سريعة خاصة إلى جزر الروساريو وبارو وخلجان كاريبية خفية، مع شيف وطاقم ومعدات غطس.",
+    "duration_label": "نصف يوم أو يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "18d491a4-8c28-569a-9587-ff21bc5aeeba",
+    "locale": "es",
+    "name": "Chárteres de yate e islas",
+    "summary": "Yates y lanchas privadas a las Islas del Rosario, Barú y calas escondidas del Caribe, con chef, tripulación y equipo de snorkel.",
+    "duration_label": "Medio día o día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "0eb443e0-f11d-58ef-93db-40d370d85c31",
+    "locale": "en",
+    "name": "Medellín Renaissance",
+    "summary": "From barrio to skyline, a private guided exploration of Medellín's extraordinary transformation. Cable cars over rooftops, street art in communes, and a city that rebuilt itself.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "0eb443e0-f11d-58ef-93db-40d370d85c31",
+    "locale": "ar",
+    "name": "نهضة ميديلين",
+    "summary": "من الحي إلى الأفق، استكشاف خاص بصحبة مرشد لتحوّل ميديلين اللافت. تلفريكات فوق الأسطح، وفنون الشارع في الأحياء، ومدينة أعادت بناء نفسها.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "0eb443e0-f11d-58ef-93db-40d370d85c31",
+    "locale": "es",
+    "name": "Renacimiento de Medellín",
+    "summary": "Del barrio al horizonte, una exploración privada y guiada de la extraordinaria transformación de Medellín. Cables sobre los tejados, arte callejero en las comunas y una ciudad que se reconstruyó a sí misma.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "feb9b4e7-6a66-5a31-b1d0-603fe49f04ea",
+    "locale": "en",
+    "name": "Medellín Discovery Tours",
+    "summary": "Private tours of Comuna 13, Botero Plaza, Guatapé day trips, and Medellín's world-class dining scene with a local insider.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "feb9b4e7-6a66-5a31-b1d0-603fe49f04ea",
+    "locale": "ar",
+    "name": "جولات اكتشاف ميديلين",
+    "summary": "جولات خاصة في الكومونا 13 وساحة بوتيرو، ورحلات يوم إلى غواتابي، ومشهد الطعام العالمي في ميديلين برفقة مطّلع محلي.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "feb9b4e7-6a66-5a31-b1d0-603fe49f04ea",
+    "locale": "es",
+    "name": "Recorridos de descubrimiento de Medellín",
+    "summary": "Recorridos privados por la Comuna 13, la Plaza Botero, excursiones de un día a Guatapé y la gastronomía de talla mundial de Medellín con un conocedor local.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  }
+]

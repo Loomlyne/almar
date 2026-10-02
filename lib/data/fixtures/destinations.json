@@ -1,0 +1,36 @@
+[
+  {
+    "id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "cartagena",
+    "hero_image": {
+      "id": "57712fa2-a2e8-5d2c-8b02-e3fd3fb586a3",
+      "media_key": "destinations/cartagena/hero.webp",
+      "width": 1920,
+      "height": 1280,
+      "position": 0
+    },
+    "is_published": true,
+    "position": 1
+  },
+  {
+    "id": "e34e5839-d6a1-5930-a061-512e7e6bc8f1",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "medellin",
+    "hero_image": {
+      "id": "0037bd48-66fa-5e80-b853-e85b23c14458",
+      "media_key": "destinations/medellin/hero.webp",
+      "width": 736,
+      "height": 1318,
+      "position": 0
+    },
+    "is_published": true,
+    "position": 2
+  }
+]

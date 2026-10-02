@@ -1,0 +1,270 @@
+{
+  "hero": [
+    {
+      "locale": "en",
+      "headline": "Colombia, Privately Yours",
+      "status": "published"
+    },
+    {
+      "locale": "ar",
+      "headline": "كولومبيا، لكم بخصوصية",
+      "status": "draft"
+    },
+    {
+      "locale": "es",
+      "headline": "Colombia, en privado",
+      "status": "draft"
+    }
+  ],
+  "welcome": [
+    {
+      "locale": "en",
+      "kicker": "Welcome to ALMAR",
+      "heading": "Where Safety Meets Bespoke Luxury",
+      "salutation": "Dear Traveler,",
+      "paragraphs": [
+        "ALMAR is built for travellers in the UAE and GCC who want a considered private journey through Colombia, planned around their dates, interests, and preferred pace.",
+        "Each journey is personalised with stays, transport, and experiences confirmed for your group. Any additional arrangements are discussed individually and secured only once availability is confirmed.",
+        "Our aim is simple: make Colombia easier to experience with a private journey that is clear, personal, and built around what matters to you."
+      ],
+      "sign_off": "Warmest regards,",
+      "signer": "ALMAR Private Journeys",
+      "signer_role": "Founder & Director",
+      "status": "published"
+    },
+    {
+      "locale": "ar",
+      "kicker": "أهلاً بكم في المار",
+      "heading": "حيث يلتقي الأمان بالفخامة المفصّلة",
+      "salutation": "عزيزي المسافر،",
+      "paragraphs": [
+        "بُنيت المار للمسافرين من الإمارات والخليج الذين يريدون رحلة خاصة مدروسة في كولومبيا، تُخطَّط حول تواريخهم واهتماماتهم وإيقاعهم.",
+        "كل رحلة تُفصَّل بإقامات وتنقّل وتجارب مؤكدة لمجموعتكم. أي ترتيبات إضافية تُناقَش على حدة ولا تُثبَّت إلا بعد تأكيد التوفر.",
+        "هدفنا بسيط: أن تصبح كولومبيا أسهل عبر رحلة خاصة واضحة وشخصية، مبنية حول ما يهمكم."
+      ],
+      "sign_off": "مع أطيب التحيات،",
+      "signer": "رحلات المار الخاصة",
+      "signer_role": "المؤسس والمدير",
+      "status": "draft"
+    },
+    {
+      "locale": "es",
+      "kicker": "Bienvenido a ALMAR",
+      "heading": "Donde la seguridad se encuentra con el lujo a medida",
+      "salutation": "Estimado viajero,",
+      "paragraphs": [
+        "ALMAR está hecho para viajeros de Emiratos y el Golfo que quieren un viaje privado y pensado por Colombia, organizado según sus fechas, intereses y ritmo.",
+        "Cada viaje se personaliza con estancias, traslados y experiencias confirmadas para su grupo. Cualquier arreglo adicional se habla por separado y solo se reserva cuando hay disponibilidad.",
+        "El objetivo es simple: hacer Colombia más fácil, con un viaje privado claro, personal y construido alrededor de lo que les importa."
+      ],
+      "sign_off": "Un cordial saludo,",
+      "signer": "ALMAR Private Journeys",
+      "signer_role": "Fundador y director",
+      "status": "draft"
+    }
+  ],
+  "gallery": [
+    {
+      "locale": "en",
+      "kicker": "Colombia Through Your Eyes",
+      "heading": "Colombia, Beautifully Captured",
+      "status": "published"
+    },
+    {
+      "locale": "ar",
+      "kicker": "كولومبيا بعيونكم",
+      "heading": "كولومبيا، كما تُرى",
+      "status": "draft"
+    },
+    {
+      "locale": "es",
+      "kicker": "Colombia a través de sus ojos",
+      "heading": "Colombia, bien mirada",
+      "status": "draft"
+    }
+  ],
+  "tiers": [
+    {
+      "tier_id": "25af917e-8005-5ec2-9782-a0c2d002ddc0",
+      "locale": "en",
+      "name": "The Explorer",
+      "price_label": "From USD $3,000/person · Est. AED 80,000–90,000",
+      "tagline": "A considered introduction to Colombia, shaped around your group",
+      "duration_label": "5–7 nights · 1–2 cities",
+      "ideal_for_label": "Ideal For",
+      "ideal_for": "First-time visitors, couples, and small groups seeking an authentic introduction to Colombia",
+      "body": "A private journey framework shaped around your dates, group, and confirmed availability. Stays, transfers, guides, dining, and experiences are proposed after inquiry and confirmed before booking.",
+      "status": "published"
+    },
+    {
+      "tier_id": "25af917e-8005-5ec2-9782-a0c2d002ddc0",
+      "locale": "ar",
+      "name": "المستكشف",
+      "price_label": "From USD $3,000/person · Est. AED 80,000–90,000",
+      "tagline": "تعرّف مدروس على كولومبيا، يُشكَّل حول مجموعتكم",
+      "duration_label": "5–7 ليالٍ · مدينة إلى مدينتين",
+      "ideal_for_label": "مثالي لـ",
+      "ideal_for": "الزوار لأول مرة والأزواج والمجموعات الصغيرة الباحثون عن مدخل أصيل إلى كولومبيا",
+      "body": "إطار رحلة خاصة يُشكَّل حول تواريخكم ومجموعتكم والتوفر المؤكد. تُقترح الإقامات والتنقلات والمرشدون والطعام والتجارب بعد الاستفسار وتُؤكَّد قبل الحجز.",
+      "status": "draft"
+    },
+    {
+      "tier_id": "25af917e-8005-5ec2-9782-a0c2d002ddc0",
+      "locale": "es",
+      "name": "The Explorer",
+      "price_label": "From USD $3,000/person · Est. AED 80,000–90,000",
+      "tagline": "Una introducción pensada a Colombia, formada alrededor de su grupo",
+      "duration_label": "5–7 noches · 1–2 ciudades",
+      "ideal_for_label": "Ideal para",
+      "ideal_for": "Visitantes primerizos, parejas y grupos pequeños que buscan una introducción auténtica a Colombia",
+      "body": "Un marco de viaje privado formado alrededor de sus fechas, su grupo y la disponibilidad confirmada. Las estancias, los traslados, los guías, las comidas y las experiencias se proponen tras la consulta y se confirman antes de reservar.",
+      "status": "draft"
+    },
+    {
+      "tier_id": "383c2fb5-8408-5a06-b748-638e93876bfc",
+      "locale": "en",
+      "name": "The Resident",
+      "price_label": "From USD $3,500/person · Est. AED 120,000–150,000",
+      "tagline": "A deeper multi-city Colombia journey, tailored to your pace",
+      "duration_label": "8–14 nights · up to 2 additional cities",
+      "ideal_for_label": "Ideal For",
+      "ideal_for": "Discerning travelers who want a deeper multi-city journey at a refined, unhurried pace",
+      "body": "Everything begins with the essentials of a private journey, then expands around your preferred pace and confirmed availability. Multi-city routing, transport, stays, and experiences are discussed individually and secured before booking.",
+      "status": "published"
+    },
+    {
+      "tier_id": "383c2fb5-8408-5a06-b748-638e93876bfc",
+      "locale": "ar",
+      "name": "المقيم",
+      "price_label": "From USD $3,500/person · Est. AED 120,000–150,000",
+      "tagline": "رحلة أعمق بين عدة مدن في كولومبيا، على إيقاعكم",
+      "duration_label": "8–14 ليلة · حتى مدينتين إضافيتين",
+      "ideal_for_label": "مثالي لـ",
+      "ideal_for": "المسافرون المدقّقون الذين يريدون رحلة أعمق بين عدة مدن بإيقاع راقٍ غير متعجّل",
+      "body": "كل شيء يبدأ بأساسيات الرحلة الخاصة، ثم يتوسع حول إيقاعكم المفضل والتوفر المؤكد. تُناقَش مسارات المدن المتعددة والتنقل والإقامات والتجارب على حدة وتُثبَّت قبل الحجز.",
+      "status": "draft"
+    },
+    {
+      "tier_id": "383c2fb5-8408-5a06-b748-638e93876bfc",
+      "locale": "es",
+      "name": "The Resident",
+      "price_label": "From USD $3,500/person · Est. AED 120,000–150,000",
+      "tagline": "Un viaje más hondo por varias ciudades de Colombia, a su ritmo",
+      "duration_label": "8–14 noches · hasta 2 ciudades adicionales",
+      "ideal_for_label": "Ideal para",
+      "ideal_for": "Viajeros exigentes que quieren un viaje más profundo por varias ciudades, a un ritmo refinado y sin prisas",
+      "body": "Todo empieza con lo esencial de un viaje privado y luego se amplía según su ritmo preferido y la disponibilidad confirmada. Las rutas entre varias ciudades, el transporte, las estancias y las experiencias se hablan por separado y se aseguran antes de reservar.",
+      "status": "draft"
+    },
+    {
+      "tier_id": "98d5b6e9-94f5-56dc-8037-a11b4b85786b",
+      "locale": "en",
+      "name": "The Sovereign",
+      "price_label": "From USD $20,000/person · Est. AED 200,000–250,000+",
+      "tagline": "A high-touch Colombia journey, shaped around confirmed possibilities",
+      "duration_label": "14–21 nights · up to 3 additional cities",
+      "ideal_for_label": "Ideal For",
+      "ideal_for": "Ultra-high-net-worth families and executives seeking maximum privacy, flexibility, and white-glove service",
+      "body": "A high-touch planning framework for longer, multi-city journeys. Stays, transport, water-based options, and special arrangements are discussed individually and included only when confirmed for your dates.",
+      "status": "published"
+    },
+    {
+      "tier_id": "98d5b6e9-94f5-56dc-8037-a11b4b85786b",
+      "locale": "ar",
+      "name": "السيادة",
+      "price_label": "From USD $20,000/person · Est. AED 200,000–250,000+",
+      "tagline": "رحلة عالية العناية في كولومبيا، تُشكَّل حول ما يمكن تأكيده",
+      "duration_label": "14–21 ليلة · حتى 3 مدن إضافية",
+      "ideal_for_label": "مثالي لـ",
+      "ideal_for": "العائلات والتنفيذيون من أصحاب الثروات الضخمة الباحثون عن أقصى خصوصية ومرونة وخدمة بمعايير القفازات البيضاء",
+      "body": "إطار تخطيط عالي العناية للرحلات الأطول بين عدة مدن. تُناقَش الإقامات والتنقل والخيارات المائية والترتيبات الخاصة على حدة ولا تُدرج إلا عند تأكيدها لتواريخكم.",
+      "status": "draft"
+    },
+    {
+      "tier_id": "98d5b6e9-94f5-56dc-8037-a11b4b85786b",
+      "locale": "es",
+      "name": "The Sovereign",
+      "price_label": "From USD $20,000/person · Est. AED 200,000–250,000+",
+      "tagline": "Un viaje de mucha atención por Colombia, formado alrededor de lo que se puede confirmar",
+      "duration_label": "14–21 noches · hasta 3 ciudades adicionales",
+      "ideal_for_label": "Ideal para",
+      "ideal_for": "Familias y ejecutivos de patrimonio ultraalto que buscan máxima privacidad, flexibilidad y un servicio de guante blanco",
+      "body": "Un marco de planificación de mucha atención para viajes más largos por varias ciudades. Las estancias, el transporte, las opciones acuáticas y los arreglos especiales se hablan por separado y solo se incluyen cuando están confirmados para sus fechas.",
+      "status": "draft"
+    }
+  ],
+  "stories": [
+    {
+      "story_id": "9616c101-0b63-58c5-a525-9eb1c910765a",
+      "locale": "en",
+      "title": "Discovering Cartagena's Hidden Colonial Courtyards",
+      "excerpt": "A private guide to the walled city's most intimate spaces — sun-dappled patios, bougainvillea-draped balconies, and the quiet stories they hold.",
+      "date_label": "Jun 1, 2025",
+      "status": "published"
+    },
+    {
+      "story_id": "9616c101-0b63-58c5-a525-9eb1c910765a",
+      "locale": "ar",
+      "title": "اكتشاف الأفنية الاستعمارية المخفية في كارتاخينا",
+      "excerpt": "دليل خاص إلى أكثر أماكن المدينة المسوّرة حميمية: أفنية تتخللها الشمس، وشرفات تكسوها الجهنمية، والحكايات الهادئة التي تحتفظ بها.",
+      "date_label": "1 يونيو 2025",
+      "status": "draft"
+    },
+    {
+      "story_id": "9616c101-0b63-58c5-a525-9eb1c910765a",
+      "locale": "es",
+      "title": "Descubrir los patios coloniales ocultos de Cartagena",
+      "excerpt": "Una guía privada por los espacios más íntimos de la ciudad amurallada: patios bañados por el sol, balcones cubiertos de buganvilla y las historias silenciosas que guardan.",
+      "date_label": "1 jun 2025",
+      "status": "draft"
+    },
+    {
+      "story_id": "544d5a28-0412-53ca-8822-5ab420600aac",
+      "locale": "en",
+      "title": "Why Medellín Is Redefining Luxury Travel in Latin America",
+      "excerpt": "How the City of Eternal Spring evolved from a troubled past into one of South America's most compelling destinations for discerning travellers.",
+      "date_label": "May 28, 2025",
+      "status": "published"
+    },
+    {
+      "story_id": "544d5a28-0412-53ca-8822-5ab420600aac",
+      "locale": "ar",
+      "title": "لماذا تعيد ميديلين تعريف السفر الفاخر في أمريكا اللاتينية",
+      "excerpt": "كيف تحوّلت مدينة الربيع الدائم من ماضٍ مضطرب إلى واحدة من أكثر وجهات أمريكا الجنوبية جاذبية للمسافرين المدقّقين.",
+      "date_label": "28 مايو 2025",
+      "status": "draft"
+    },
+    {
+      "story_id": "544d5a28-0412-53ca-8822-5ab420600aac",
+      "locale": "es",
+      "title": "Por qué Medellín está redefiniendo el viaje de lujo en América Latina",
+      "excerpt": "Cómo la Ciudad de la Eterna Primavera pasó de un pasado difícil a convertirse en uno de los destinos más atractivos de Sudamérica para el viajero exigente.",
+      "date_label": "28 may 2025",
+      "status": "draft"
+    },
+    {
+      "story_id": "26cb9d6c-202e-518e-8892-281f854eff5c",
+      "locale": "en",
+      "title": "Colombia's Coffee Triangle: A Journey Through Eje Cafetero",
+      "excerpt": "Coffee estates draped in mist, valleys of wax palms, and the unhurried art of tasting coffee at origin — this is Colombia's most sensory journey.",
+      "date_label": "May 24, 2025",
+      "status": "published"
+    },
+    {
+      "story_id": "26cb9d6c-202e-518e-8892-281f854eff5c",
+      "locale": "ar",
+      "title": "مثلث القهوة في كولومبيا: رحلة عبر إيخي كافيتيرو",
+      "excerpt": "مزارع قهوة يكسوها الضباب، ووديان من نخيل الشمع، وفنّ تذوّق القهوة بلا عجلة عند منبعها: هذه أكثر رحلات كولومبيا حسّية.",
+      "date_label": "24 مايو 2025",
+      "status": "draft"
+    },
+    {
+      "story_id": "26cb9d6c-202e-518e-8892-281f854eff5c",
+      "locale": "es",
+      "title": "El Triángulo del Café de Colombia: un viaje por el Eje Cafetero",
+      "excerpt": "Fincas cafeteras envueltas en niebla, valles de palmas de cera y el arte pausado de probar café en origen: este es el viaje más sensorial de Colombia.",
+      "date_label": "24 may 2025",
+      "status": "draft"
+    }
+  ]
+}

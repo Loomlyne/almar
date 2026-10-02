@@ -1,0 +1,938 @@
+[
+  {
+    "key": "catalog/24-7-private-concierge.webp",
+    "source": "/assets/img/fad99748eb29b7f8.webp",
+    "source_kind": "local",
+    "used_by": [
+      "0d2a7249-64d9-5035-8996-f3b002d307f0"
+    ]
+  },
+  {
+    "key": "catalog/cartagena-heritage-tours.webp",
+    "source": "/assets/img/2e8e18393ba7bc74.webp",
+    "source_kind": "local",
+    "used_by": [
+      "8736a8de-7744-53f9-8cb2-3028d9d309d9"
+    ]
+  },
+  {
+    "key": "catalog/cartagena-night-experience.webp",
+    "source": "/assets/img/0787c0615a96af62.webp",
+    "source_kind": "local",
+    "used_by": [
+      "d4cc2412-6db6-5e58-8108-610b391a2cb6"
+    ]
+  },
+  {
+    "key": "catalog/luxury-ground-transport.webp",
+    "source": "/assets/img/d93681892835d48b.webp",
+    "source_kind": "local",
+    "used_by": [
+      "36f0cbfa-61c7-53e1-85b8-a380296aa654"
+    ]
+  },
+  {
+    "key": "catalog/medellin-discovery-tours.webp",
+    "source": "/assets/img/a0c9bfc5e2c09cad.webp",
+    "source_kind": "local",
+    "used_by": [
+      "feb9b4e7-6a66-5a31-b1d0-603fe49f04ea"
+    ]
+  },
+  {
+    "key": "catalog/medellin-renaissance.webp",
+    "source": "/assets/img/61f0185cb8d5387c.webp",
+    "source_kind": "local",
+    "used_by": [
+      "0eb443e0-f11d-58ef-93db-40d370d85c31"
+    ]
+  },
+  {
+    "key": "catalog/rosario-islands-escape.webp",
+    "source": "/assets/img/0dadd08a491bfc52.webp",
+    "source_kind": "local",
+    "used_by": [
+      "9f31a21f-e3f0-5f1d-ae06-71da428e3abd"
+    ]
+  },
+  {
+    "key": "catalog/vip-airport-meet-greet.webp",
+    "source": "/assets/img/640c57b0d03641cc.webp",
+    "source_kind": "local",
+    "used_by": [
+      "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9"
+    ]
+  },
+  {
+    "key": "catalog/welcome-cocktail.webp",
+    "source": "/assets/img/726c964e0318bf1b.webp",
+    "source_kind": "local",
+    "used_by": [
+      "f9f2fa01-8a29-5343-a1a1-8de64593212b"
+    ]
+  },
+  {
+    "key": "catalog/yacht-island-charters.webp",
+    "source": "/assets/img/85bdc83c0860c091.webp",
+    "source_kind": "local",
+    "used_by": [
+      "18d491a4-8c28-569a-9587-ff21bc5aeeba"
+    ]
+  },
+  {
+    "key": "destinations/cartagena/hero.webp",
+    "source": "/assets/img/05c5854491d0153e.webp",
+    "source_kind": "local",
+    "used_by": [
+      "8990190e-2836-58e4-9eb0-3ac94c24632a"
+    ]
+  },
+  {
+    "key": "destinations/medellin/hero.webp",
+    "source": "/assets/img/61f0185cb8d5387c.webp",
+    "source_kind": "local",
+    "used_by": [
+      "e34e5839-d6a1-5930-a061-512e7e6bc8f1"
+    ]
+  },
+  {
+    "key": "home/gallery/01.webp",
+    "source": "/assets/img/7f7264439c6d0776.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/02.webp",
+    "source": "/assets/img/1fc4deb624086a13.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/03.webp",
+    "source": "/assets/img/4d62ca4792adaf59.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/04.webp",
+    "source": "/assets/img/bb7ae32200d3cfeb.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/05.webp",
+    "source": "/assets/img/7be54fdf64a2e281.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/06.webp",
+    "source": "/assets/img/db602d7b90b0904f.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/07.webp",
+    "source": "/assets/img/661ee2b5f2e07e52.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/08.webp",
+    "source": "/assets/img/6820e6e15ad8f3ed.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/09.webp",
+    "source": "/assets/img/b76352bfe9f0432b.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/10.webp",
+    "source": "/assets/img/8f543b7b795dcceb.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/11.webp",
+    "source": "/assets/img/f59e11d80c03481d.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/12.webp",
+    "source": "/assets/img/b0865263fd79d2a8.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/13.webp",
+    "source": "/assets/img/bfe105a629dcc096.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/14.webp",
+    "source": "/assets/img/e40e814fd05f620a.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/gallery/15.webp",
+    "source": "/assets/img/31b41ff01ed8b7b0.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:gallery"
+    ]
+  },
+  {
+    "key": "home/hero/poster.webp",
+    "source": "/assets/img/caedcb84dd0d35bb.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:hero"
+    ]
+  },
+  {
+    "key": "home/journeys/the-explorer.webp",
+    "source": "/assets/img/6dfbf0e54d04f1da.webp",
+    "source_kind": "local",
+    "used_by": [
+      "25af917e-8005-5ec2-9782-a0c2d002ddc0"
+    ]
+  },
+  {
+    "key": "home/journeys/the-resident.webp",
+    "source": "/assets/img/b58677dc2a514f73.webp",
+    "source_kind": "local",
+    "used_by": [
+      "383c2fb5-8408-5a06-b748-638e93876bfc"
+    ]
+  },
+  {
+    "key": "home/journeys/the-sovereign.webp",
+    "source": "/assets/img/88ad9b5c0cfb91eb.webp",
+    "source_kind": "local",
+    "used_by": [
+      "98d5b6e9-94f5-56dc-8037-a11b4b85786b"
+    ]
+  },
+  {
+    "key": "home/stories/colombias-coffee-triangle-eje-cafetero.webp",
+    "source": "/assets/img/2af2299b05a87c37.webp",
+    "source_kind": "local",
+    "used_by": [
+      "26cb9d6c-202e-518e-8892-281f854eff5c"
+    ]
+  },
+  {
+    "key": "home/stories/discovering-cartagenas-hidden-colonial-courtyards.webp",
+    "source": "/assets/img/ef78a57ee630532d.webp",
+    "source_kind": "local",
+    "used_by": [
+      "9616c101-0b63-58c5-a525-9eb1c910765a"
+    ]
+  },
+  {
+    "key": "home/stories/why-medellin-is-redefining-luxury-travel.webp",
+    "source": "/assets/img/21bbbec680a4a9ab.webp",
+    "source_kind": "local",
+    "used_by": [
+      "544d5a28-0412-53ca-8822-5ab420600aac"
+    ]
+  },
+  {
+    "key": "home/welcome/signature.webp",
+    "source": "/assets/img/8e1af34b261140e6.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:welcome"
+    ]
+  },
+  {
+    "key": "stays/baru-island-private-villa/gallery-1.webp",
+    "source": "https://framerusercontent.com/images/ForokhxiN0sklGTbvMMuL5DFLus.jpg?width=1242&height=883",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7"
+    ]
+  },
+  {
+    "key": "stays/baru-island-private-villa/gallery-2.webp",
+    "source": "https://framerusercontent.com/images/IPEbunTrKLK4tSJgbpuJ1BqdcwI.jpg?width=1242&height=1579",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7"
+    ]
+  },
+  {
+    "key": "stays/baru-island-private-villa/gallery-3.webp",
+    "source": "https://framerusercontent.com/images/BMVzYsl4ZYoeKj7KJTCWL6dahO8.jpg?width=1242&height=780",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7"
+    ]
+  },
+  {
+    "key": "stays/baru-island-private-villa/gallery-4.webp",
+    "source": "https://framerusercontent.com/images/oeKZ3Vo78LqjQxPt92kCBpdCVnA.jpg?width=1242&height=764",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7"
+    ]
+  },
+  {
+    "key": "stays/baru-island-private-villa/gallery-5.webp",
+    "source": "https://framerusercontent.com/images/jYaUtIOuiWpM2R1XrLOOpp1tlg.jpg?width=1242&height=762",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7"
+    ]
+  },
+  {
+    "key": "stays/baru-island-private-villa/gallery-6.webp",
+    "source": "https://framerusercontent.com/images/WEi5jHLo5JsstlcikEzY1YJ4oY.jpg?width=1242&height=766",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7"
+    ]
+  },
+  {
+    "key": "stays/baru-island-private-villa/hero.webp",
+    "source": "/assets/img/8873c5eb6f2a9149.webp",
+    "source_kind": "local",
+    "used_by": [
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7"
+    ]
+  },
+  {
+    "key": "stays/bocagrande-beach-house/gallery-1.webp",
+    "source": "https://framerusercontent.com/images/1VTGUPPxHnWr7a57ULsiuVszo5A.jpg?width=1600&height=1067",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448"
+    ]
+  },
+  {
+    "key": "stays/bocagrande-beach-house/gallery-2.webp",
+    "source": "https://framerusercontent.com/images/bmUeODeLdV3Uzdx0o3QBbFlJAVM.jpg?width=1040&height=693",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448"
+    ]
+  },
+  {
+    "key": "stays/bocagrande-beach-house/gallery-3.webp",
+    "source": "https://framerusercontent.com/images/HzNgLKyV2bi1Lu5kMuTYHWUYEc8.jpg?width=1600&height=1067",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448"
+    ]
+  },
+  {
+    "key": "stays/bocagrande-beach-house/gallery-4.webp",
+    "source": "https://framerusercontent.com/images/36W3qWTeHUbG8UyZFzqBhJ2bpFw.jpg?width=1600&height=1066",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448"
+    ]
+  },
+  {
+    "key": "stays/bocagrande-beach-house/gallery-5.webp",
+    "source": "https://framerusercontent.com/images/COhBEWCK64RQa4IHRo1n4fdqpWU.jpg?width=1600&height=1066",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448"
+    ]
+  },
+  {
+    "key": "stays/bocagrande-beach-house/gallery-6.webp",
+    "source": "https://framerusercontent.com/images/rTld15BMmtsWEnTvZQTRvRCa8.jpg?width=1040&height=693",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448"
+    ]
+  },
+  {
+    "key": "stays/bocagrande-beach-house/hero.webp",
+    "source": "/assets/img/4ee4e8fcd59269c3.webp",
+    "source_kind": "local",
+    "used_by": [
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448"
+    ]
+  },
+  {
+    "key": "stays/cartagena-historic-center-house/gallery-1.webp",
+    "source": "https://framerusercontent.com/images/IYERM2SiOnAZowXmm4NVl4hWI.jpg?width=720&height=480",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec"
+    ]
+  },
+  {
+    "key": "stays/cartagena-historic-center-house/gallery-2.webp",
+    "source": "https://framerusercontent.com/images/lyQ4RA5mIAysTsiD8E199ZxsFs.jpg?width=720&height=480",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec"
+    ]
+  },
+  {
+    "key": "stays/cartagena-historic-center-house/gallery-3.webp",
+    "source": "https://framerusercontent.com/images/A7QIgbbfFLUraUpcamE4VpBzsZo.jpg?width=720&height=480",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec"
+    ]
+  },
+  {
+    "key": "stays/cartagena-historic-center-house/gallery-4.webp",
+    "source": "https://framerusercontent.com/images/EgUvtaeQ9tLmfNeP6QWDs7vN0.jpg?width=720&height=480",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec"
+    ]
+  },
+  {
+    "key": "stays/cartagena-historic-center-house/gallery-5.webp",
+    "source": "https://framerusercontent.com/images/07hjbs7IkswEWabbR68QzR7EgIk.jpg?width=720&height=480",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec"
+    ]
+  },
+  {
+    "key": "stays/cartagena-historic-center-house/gallery-6.webp",
+    "source": "https://framerusercontent.com/images/tAA8SLAYUrWIqyGGCon5UP7H3zY.jpg?width=720&height=480",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec"
+    ]
+  },
+  {
+    "key": "stays/cartagena-historic-center-house/hero.webp",
+    "source": "/assets/img/1c65dc4c2954c949.webp",
+    "source_kind": "local",
+    "used_by": [
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec"
+    ]
+  },
+  {
+    "key": "stays/casa-jardin-san-diego/gallery-1.webp",
+    "source": "https://framerusercontent.com/images/T9jgV9500lbEtbXNE4JFisoZE.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "d774b123-42b7-57c1-85b4-b73c697155dd"
+    ]
+  },
+  {
+    "key": "stays/casa-jardin-san-diego/gallery-2.webp",
+    "source": "https://framerusercontent.com/images/NfU76SRnFRNqhlJZ9vWY2faHHrg.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "d774b123-42b7-57c1-85b4-b73c697155dd"
+    ]
+  },
+  {
+    "key": "stays/casa-jardin-san-diego/gallery-3.webp",
+    "source": "https://framerusercontent.com/images/gNs5ddpoQD1pH6px4cgCW8wC9Kk.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "d774b123-42b7-57c1-85b4-b73c697155dd"
+    ]
+  },
+  {
+    "key": "stays/casa-jardin-san-diego/gallery-4.webp",
+    "source": "https://framerusercontent.com/images/99u1IC66GyyQLXJHs5N6wj1yIM.jpg?width=960&height=1280",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "d774b123-42b7-57c1-85b4-b73c697155dd"
+    ]
+  },
+  {
+    "key": "stays/casa-jardin-san-diego/gallery-5.webp",
+    "source": "https://framerusercontent.com/images/nsoQwHEZPP0fcH2X18PweLIPrw.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "d774b123-42b7-57c1-85b4-b73c697155dd"
+    ]
+  },
+  {
+    "key": "stays/casa-jardin-san-diego/gallery-6.webp",
+    "source": "https://framerusercontent.com/images/dMhPx3fZA2Ol7hQyu1mApvhpgjo.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "d774b123-42b7-57c1-85b4-b73c697155dd"
+    ]
+  },
+  {
+    "key": "stays/casa-jardin-san-diego/hero.webp",
+    "source": "/assets/img/c14d71888fa15a4c.webp",
+    "source_kind": "local",
+    "used_by": [
+      "d774b123-42b7-57c1-85b4-b73c697155dd"
+    ]
+  },
+  {
+    "key": "stays/casa-juliana-historic-center/gallery-1.webp",
+    "source": "https://framerusercontent.com/images/PLlmt2hSDYA2UsuvuWOw9t4ZDM.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba"
+    ]
+  },
+  {
+    "key": "stays/casa-juliana-historic-center/gallery-2.webp",
+    "source": "https://framerusercontent.com/images/xy0lpW4pFiYaH2FkrmewSQ7lcg.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba"
+    ]
+  },
+  {
+    "key": "stays/casa-juliana-historic-center/gallery-3.webp",
+    "source": "https://framerusercontent.com/images/SBxUaUfnRTJQc5MV7zjPBlSI.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba"
+    ]
+  },
+  {
+    "key": "stays/casa-juliana-historic-center/gallery-4.webp",
+    "source": "https://framerusercontent.com/images/5WxFfGmvdi4Yd3xYmN5j08JOuUw.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba"
+    ]
+  },
+  {
+    "key": "stays/casa-juliana-historic-center/gallery-5.webp",
+    "source": "https://framerusercontent.com/images/aolUZsAZn2yHIuhjR9yhgnpnqWA.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba"
+    ]
+  },
+  {
+    "key": "stays/casa-juliana-historic-center/gallery-6.webp",
+    "source": "https://framerusercontent.com/images/cwprDHyTI6kOCSZVW07SVuJcI.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba"
+    ]
+  },
+  {
+    "key": "stays/casa-juliana-historic-center/hero.webp",
+    "source": "/assets/img/36f9874fc539688f.webp",
+    "source_kind": "local",
+    "used_by": [
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba"
+    ]
+  },
+  {
+    "key": "stays/casa-mariana-historic-center/gallery-1.webp",
+    "source": "https://framerusercontent.com/images/DKsYXHWURBqoppnW5ZTo8F31jRM.jpg?width=1024&height=576",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096"
+    ]
+  },
+  {
+    "key": "stays/casa-mariana-historic-center/gallery-2.webp",
+    "source": "https://framerusercontent.com/images/QaRzcOb1aS1wsHPYkpLhNesF8.jpg?width=1024&height=576",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096"
+    ]
+  },
+  {
+    "key": "stays/casa-mariana-historic-center/gallery-3.webp",
+    "source": "https://framerusercontent.com/images/hzmYMD8lAGXSIB1BVoZFK3pcvA8.jpg?width=1024&height=576",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096"
+    ]
+  },
+  {
+    "key": "stays/casa-mariana-historic-center/gallery-4.webp",
+    "source": "https://framerusercontent.com/images/fS95fwquaICOvPQH6iYcEFEJydE.jpg?width=1024&height=576",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096"
+    ]
+  },
+  {
+    "key": "stays/casa-mariana-historic-center/gallery-5.webp",
+    "source": "https://framerusercontent.com/images/FuEoyi0AnpUc2xL1qR3i1NpaPQ.jpg?width=1024&height=576",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096"
+    ]
+  },
+  {
+    "key": "stays/casa-mariana-historic-center/gallery-6.webp",
+    "source": "https://framerusercontent.com/images/O2I6eK4gWYLPJJqqRaxGk6Xu7C8.jpg?width=1024&height=576",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096"
+    ]
+  },
+  {
+    "key": "stays/casa-mariana-historic-center/hero.webp",
+    "source": "/assets/img/cbcfd3f9c8b424c0.webp",
+    "source_kind": "local",
+    "used_by": [
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096"
+    ]
+  },
+  {
+    "key": "stays/getsemani-colonial-house/gallery-1.webp",
+    "source": "/assets/img/cf8fd9ee1bd6b83e.webp",
+    "source_kind": "local",
+    "used_by": [
+      "38f3ed2e-e6d2-50df-886c-c90c815252ad"
+    ]
+  },
+  {
+    "key": "stays/getsemani-colonial-house/gallery-2.webp",
+    "source": "/assets/img/ea050e271b6bbb8f.webp",
+    "source_kind": "local",
+    "used_by": [
+      "38f3ed2e-e6d2-50df-886c-c90c815252ad"
+    ]
+  },
+  {
+    "key": "stays/getsemani-colonial-house/gallery-3.webp",
+    "source": "/assets/img/be5a173d24dd0271.webp",
+    "source_kind": "local",
+    "used_by": [
+      "38f3ed2e-e6d2-50df-886c-c90c815252ad"
+    ]
+  },
+  {
+    "key": "stays/getsemani-colonial-house/gallery-4.webp",
+    "source": "/assets/img/15a986d36fb13387.webp",
+    "source_kind": "local",
+    "used_by": [
+      "38f3ed2e-e6d2-50df-886c-c90c815252ad"
+    ]
+  },
+  {
+    "key": "stays/getsemani-colonial-house/hero.webp",
+    "source": "/assets/img/59682878de873329.webp",
+    "source_kind": "local",
+    "used_by": [
+      "38f3ed2e-e6d2-50df-886c-c90c815252ad"
+    ]
+  },
+  {
+    "key": "stays/getsemani-courtyard-residence/gallery-1.webp",
+    "source": "https://framerusercontent.com/images/89Ye7ZhyJrZhx91NnRWiMICLZY.jpg?width=1280&height=853",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3"
+    ]
+  },
+  {
+    "key": "stays/getsemani-courtyard-residence/gallery-2.webp",
+    "source": "https://framerusercontent.com/images/E4aX9OUQANaiBBJok2Soqpbzx3s.jpg?width=1280&height=853",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3"
+    ]
+  },
+  {
+    "key": "stays/getsemani-courtyard-residence/gallery-3.webp",
+    "source": "https://framerusercontent.com/images/6XLvjyr7LK8ZX2TeUAsdSMqRXpQ.jpg?width=1280&height=853",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3"
+    ]
+  },
+  {
+    "key": "stays/getsemani-courtyard-residence/gallery-4.webp",
+    "source": "https://framerusercontent.com/images/GEVhik7jK3SUXiNZp1Hid8HLM.jpg?width=1280&height=853",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3"
+    ]
+  },
+  {
+    "key": "stays/getsemani-courtyard-residence/gallery-5.webp",
+    "source": "https://framerusercontent.com/images/aaFtDYhBy1WJF3EtvyMxhDLRwk.jpg?width=1280&height=853",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3"
+    ]
+  },
+  {
+    "key": "stays/getsemani-courtyard-residence/gallery-6.webp",
+    "source": "https://framerusercontent.com/images/NnsJ5NifU0V4UY7YI984y3TMmw.jpg?width=1280&height=856",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3"
+    ]
+  },
+  {
+    "key": "stays/getsemani-courtyard-residence/hero.webp",
+    "source": "/assets/img/3d4468b8d961eff5.webp",
+    "source_kind": "local",
+    "used_by": [
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3"
+    ]
+  },
+  {
+    "key": "stays/private-island-cartagena/gallery-1.webp",
+    "source": "https://framerusercontent.com/images/ITXU1LX2G9Ady8RU9Fuy4RhtTo.jpg?width=576&height=1024",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4a8e01c7-215d-578f-996a-6121e7b10e69"
+    ]
+  },
+  {
+    "key": "stays/private-island-cartagena/gallery-2.webp",
+    "source": "https://framerusercontent.com/images/ixjIIWIDjTi4BBqf5UamkSL8WI0.jpg?width=4160&height=2774",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4a8e01c7-215d-578f-996a-6121e7b10e69"
+    ]
+  },
+  {
+    "key": "stays/private-island-cartagena/gallery-3.webp",
+    "source": "https://framerusercontent.com/images/PBRLcWTKff7ceyuUlE0470oNMw.jpg?width=4160&height=2774",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4a8e01c7-215d-578f-996a-6121e7b10e69"
+    ]
+  },
+  {
+    "key": "stays/private-island-cartagena/gallery-4.webp",
+    "source": "https://framerusercontent.com/images/YhcRhwKso0XkLd4A4HBqnoDPhM.jpg?width=829&height=1024",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4a8e01c7-215d-578f-996a-6121e7b10e69"
+    ]
+  },
+  {
+    "key": "stays/private-island-cartagena/gallery-5.webp",
+    "source": "https://framerusercontent.com/images/NA1sfH0XqMZbewSUfRG1Pyc0ULU.jpg?width=1024&height=576",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4a8e01c7-215d-578f-996a-6121e7b10e69"
+    ]
+  },
+  {
+    "key": "stays/private-island-cartagena/gallery-6.webp",
+    "source": "https://framerusercontent.com/images/7ShUBtt8OcqTD71lQXVpBHv7wyk.jpg?width=4160&height=2768",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "4a8e01c7-215d-578f-996a-6121e7b10e69"
+    ]
+  },
+  {
+    "key": "stays/private-island-cartagena/hero.webp",
+    "source": "/assets/img/8adcef772737810d.webp",
+    "source_kind": "local",
+    "used_by": [
+      "4a8e01c7-215d-578f-996a-6121e7b10e69"
+    ]
+  },
+  {
+    "key": "stays/private-island-estate-cartagena/gallery-1.webp",
+    "source": "https://framerusercontent.com/images/cvRMFZFgWHYnUXeh81eWBHvBK0.jpg?width=768&height=1024",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c"
+    ]
+  },
+  {
+    "key": "stays/private-island-estate-cartagena/gallery-2.webp",
+    "source": "https://framerusercontent.com/images/eYwwiLk5iCX8GRBN97iHiksOT0.jpg?width=1024&height=768",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c"
+    ]
+  },
+  {
+    "key": "stays/private-island-estate-cartagena/gallery-3.webp",
+    "source": "https://framerusercontent.com/images/2zmV68j54FFwNqyCDGnDzCDPts.jpg?width=1280&height=960",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c"
+    ]
+  },
+  {
+    "key": "stays/private-island-estate-cartagena/gallery-4.webp",
+    "source": "https://framerusercontent.com/images/PRBlLD6flkCtEf5MFogx1KmcfKo.jpg?width=1024&height=761",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c"
+    ]
+  },
+  {
+    "key": "stays/private-island-estate-cartagena/gallery-5.webp",
+    "source": "https://framerusercontent.com/images/cMlIKsB0YO50c3hgnHOtm721rg.jpg?width=1024&height=768",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c"
+    ]
+  },
+  {
+    "key": "stays/private-island-estate-cartagena/gallery-6.webp",
+    "source": "https://framerusercontent.com/images/aQuYgKo8EeZcMAZJMelju9o5oI.jpg?width=768&height=1024",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c"
+    ]
+  },
+  {
+    "key": "stays/private-island-estate-cartagena/hero.webp",
+    "source": "/assets/img/58dfb17e463224fe.webp",
+    "source_kind": "local",
+    "used_by": [
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c"
+    ]
+  },
+  {
+    "key": "stays/santa-fe-farm-antioquia/gallery-1.webp",
+    "source": "https://framerusercontent.com/images/kFqlG7n9yWD6BvlBoAC8ms3FpTA.jpg?width=960&height=1280",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "dae54186-686b-5701-9198-38818eb3aded"
+    ]
+  },
+  {
+    "key": "stays/santa-fe-farm-antioquia/gallery-2.webp",
+    "source": "https://framerusercontent.com/images/nYwJ96Rsn6DzLKrSArMtfcueQxM.jpg?width=1200&height=1600",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "dae54186-686b-5701-9198-38818eb3aded"
+    ]
+  },
+  {
+    "key": "stays/santa-fe-farm-antioquia/gallery-3.webp",
+    "source": "https://framerusercontent.com/images/QiVDFtaYK4KlFLZ5jhm6XvmLMQ.jpg?width=960&height=1280",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "dae54186-686b-5701-9198-38818eb3aded"
+    ]
+  },
+  {
+    "key": "stays/santa-fe-farm-antioquia/gallery-4.webp",
+    "source": "https://framerusercontent.com/images/05zxOiGVITYy1UruLFckB42dc8.jpg?width=1200&height=1600",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "dae54186-686b-5701-9198-38818eb3aded"
+    ]
+  },
+  {
+    "key": "stays/santa-fe-farm-antioquia/gallery-5.webp",
+    "source": "https://framerusercontent.com/images/pA0XOKiN2xecMU4O5L4WBaYnuY.jpg?width=1200&height=1600",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "dae54186-686b-5701-9198-38818eb3aded"
+    ]
+  },
+  {
+    "key": "stays/santa-fe-farm-antioquia/gallery-6.webp",
+    "source": "https://framerusercontent.com/images/mBD9Ngmuvu54PDWHbZk8g7V0sqI.jpg?width=960&height=1280",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "dae54186-686b-5701-9198-38818eb3aded"
+    ]
+  },
+  {
+    "key": "stays/santa-fe-farm-antioquia/hero.webp",
+    "source": "/assets/img/2cda967c77e9a102.webp",
+    "source_kind": "local",
+    "used_by": [
+      "dae54186-686b-5701-9198-38818eb3aded"
+    ]
+  },
+  {
+    "key": "stays/sopetran-country-estate/gallery-1.webp",
+    "source": "https://framerusercontent.com/images/5LNg8yrh03bLalJztxxrkJrkjY.jpg?width=1200&height=1600",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ]
+  },
+  {
+    "key": "stays/sopetran-country-estate/gallery-2.webp",
+    "source": "https://framerusercontent.com/images/hDIOxAyUbCYngatBmotm0L7u88.jpg?width=1024&height=768",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ]
+  },
+  {
+    "key": "stays/sopetran-country-estate/gallery-3.webp",
+    "source": "https://framerusercontent.com/images/D1PskURmenoQZyOnHkd9itkg7QQ.jpg?width=1200&height=1600",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ]
+  },
+  {
+    "key": "stays/sopetran-country-estate/gallery-4.webp",
+    "source": "https://framerusercontent.com/images/OWgkfdCyikniiwvZ1VgYGL0Sc.jpg?width=1600&height=1200",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ]
+  },
+  {
+    "key": "stays/sopetran-country-estate/gallery-5.webp",
+    "source": "https://framerusercontent.com/images/7lwphVvG4FLdyTrHCuN6zWPic.jpg?width=1024&height=768",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ]
+  },
+  {
+    "key": "stays/sopetran-country-estate/gallery-6.webp",
+    "source": "https://framerusercontent.com/images/1W4oU6sUuuJncqpmD0YRsmaCuk.jpg?width=1024&height=768",
+    "source_kind": "framerusercontent",
+    "used_by": [
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ]
+  },
+  {
+    "key": "stays/sopetran-country-estate/hero.webp",
+    "source": "/assets/img/cc02a17549b5d272.webp",
+    "source_kind": "local",
+    "used_by": [
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ]
+  }
+]
