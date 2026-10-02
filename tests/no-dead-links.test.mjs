@@ -90,3 +90,37 @@ test("every link without a route is a known one", () => {
 test("every known dead link is still linked and still has no route", () => {
   assert.deepEqual(KNOWN_DEAD.filter((path) => !dead.has(path)), []);
 });
+
+// Job 04 follow-up (owner, 2026-10-02): the footer link labelled "Contact" (container
+// framer-1pmr5p9-container) points at /contact and stays visible, so "Connect" keeps a link.
+const CONTACT_CONTAINER = "framer-1pmr5p9-container";
+const STILL_HIDDEN = [
+  "framer-1kw8qb8-container", "framer-b3mz9f-container", "framer-u4mwsj-container", "framer-1lnpq0j-container",
+  "framer-ng404t-container", "framer-19ainfs-container", "framer-vs5r6w-container",
+];
+const footerPages = routes.filter((file) => readFileSync(file, "utf8").includes(`<div class=\\"${CONTACT_CONTAINER}\\">`));
+
+test("the footer Contact link is on 20 pages, 3 breakpoint copies each, all pointing at /contact", () => {
+  assert.equal(footerPages.length, 20);
+  let total = 0;
+  for (const file of footerPages) {
+    const src = readFileSync(file, "utf8");
+    const anchors = [...src.matchAll(new RegExp(`<div class=\\\\"${CONTACT_CONTAINER}\\\\"><!--\\$--><a ([^>]*)>`, "g"))];
+    assert.equal(anchors.length, 3, file);
+    for (const [, attrs] of anchors) assert.match(attrs, /(^|\s)href=\\"\/contact\\"/, file);
+    total += anchors.length;
+  }
+  assert.equal(total, 60);
+});
+
+test("the hide rule lists the other seven footer links and not the Contact one", () => {
+  for (const file of footerPages) {
+    const rules = [...readFileSync(file, "utf8").matchAll(/((?:\.framer-[a-z0-9]+-container,?)+)\{display:none!important\}/gi)];
+    assert.equal(rules.length, 1, file);
+    assert.deepEqual(rules[0][1].split(",").map((c) => c.slice(1)), STILL_HIDDEN, file);
+  }
+});
+
+test("/contact is a real route", () => {
+  assert.ok(hasRoute("/contact"));
+});
