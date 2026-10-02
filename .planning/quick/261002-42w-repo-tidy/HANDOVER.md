@@ -155,3 +155,24 @@ None. No environment names added. No secret read or written.
   to the privacy policy).
 
 Hand-over written 2026-10-02 03:44 +04. The final commit is the one that adds this file; its hash is in the message to the controller.
+
+## Follow-up 2026-10-02: the footer Contact link
+
+Owner decision (2026-10-02, question form): the footer link labelled "Contact" (container `framer-1pmr5p9-container`,
+the only link under "Connect") points at `/contact` and is no longer hidden. The other seven stay hidden.
+
+- **Changed:** on the 20 Framer pages that carry the footer, `href="/contact"` was added to the three breakpoint
+  copies of that anchor (60 anchors) and `.framer-1pmr5p9-container` was dropped from the one job-04
+  `{display:none!important}` rule (Framer's own `flex:none` rule with the same class is untouched). Markup only, no script.
+  Every file had exactly 3 anchors and 1 rule before the edit; the edit script aborts otherwise.
+- **Guard:** three tests added to `tests/no-dead-links.test.mjs` (20 pages x 3 anchors = 60 with `href="/contact"`;
+  the hide rule lists exactly the other seven classes; `/contact` has a route). Run against a `git archive 6bc38f2`
+  copy in /tmp, the first two fail and the route test passes; on this branch all pass.
+- **Checks:** `tsc --noEmit` clean; `node --test tests/*.test.mjs` 196 pass, 0 fail; `tokens:check` up to date;
+  `assemble-cloudflare` 27 html files; Playwright (`PW_PORT=3021`, 1 worker) 1113 passed, 28 skipped, 0 failed;
+  `git status --short` empty after the run. Built `out/`: 60 footer Contact anchors with `href="/contact"` in 20
+  files; no team names; no hidden-path hrefs.
+- **Not verified:** the link rendering visible in a browser on the final build (the controller probed it on a throwaway
+  build; the committed screens in `screens/` were not regenerated, so step 1 of the owner's test steps still says
+  "Connect with no links": it now shows one link, Contact). Six Framer pages (3 blog posts, 3 services) have no
+  footer container of this class and are unchanged.
