@@ -123,8 +123,9 @@ test("the hide rule lists the other seven footer links and not the Contact one",
 
 // Framer's client router ignores the server href and sent a plain click to ./legal/privacy-policy,
 // so each footer page carries a capture-phase click delegate that forces the link to /contact.
+// It bails out unless the click is a plain primary click, so cmd/ctrl/shift/alt-click still open a new tab.
 const CLICK_DELEGATE =
-  '<script>document.addEventListener("click",function(e){var t=e.target,a=t&&t.closest&&t.closest(".framer-1pmr5p9-container a");if(a){e.preventDefault();e.stopImmediatePropagation();window.location.href="/contact";}},true);</script>';
+  '<script>document.addEventListener("click",function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;var t=e.target,a=t&&t.closest&&t.closest(".framer-1pmr5p9-container a");if(a){e.preventDefault();e.stopImmediatePropagation();window.location.href="/contact";}},true);</script>';
 
 test("all 20 footer pages carry the click-delegate script exactly once", () => {
   assert.equal(footerPages.length, 20);
