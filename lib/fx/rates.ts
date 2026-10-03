@@ -64,15 +64,22 @@ const WRITTEN: Array<{
 const START = String.raw`(?<![\w$])`;
 const END = String.raw`(?!\d|[.,]\d)`;
 
-// "AED 80,000–90,000" (en dash, hyphen or em dash, spaced or not, optional trailing "+"): both ends
-// convert under one currency code and the written separator is kept.
-const AED_RANGE = /(?<![\w$])AED (\d{1,3}(?:,\d{3})*)(\s*[-–—]\s*)(\d{1,3}(?:,\d{3})*)(\+?)(?!\d|[.,]\d)/g;
+// The dashes a range may be written with: hyphen, en dash, em dash. AED_RANGE, the single-amount guards
+// and settled() all use this one class, so a range is either read whole or not at all.
+const DASH = "[-–—]";
+
+// "AED 80,000–90,000" (a DASH, spaced or not, optional trailing "+"): both ends convert under one
+// currency code and the written separator is kept.
+const AED_RANGE = new RegExp(
+  String.raw`(?<![\w$])AED (\d{1,3}(?:,\d{3})*)(\s*${DASH}\s*)(\d{1,3}(?:,\d{3})*)(\+?)(?!\d|[.,]\d)`,
+  "g",
+);
 
 // A single written amount is never one end of a range: no dash or "to" and a digit after it (the low
 // end) and no digit and a dash or "to" before it (the high end). Only AED_RANGE converts a range, and a
 // range it cannot read keeps the whole label as written.
-const NOT_LOW_END = String.raw`(?!\s*(?:[-–—]|to)\s*\d)`;
-const NOT_HIGH_END = String.raw`(?<!\d\s*(?:[-–—]|to)\s*)`;
+const NOT_LOW_END = String.raw`(?!\s*(?:${DASH}|to)\s*\d)`;
+const NOT_HIGH_END = String.raw`(?<!\d\s*(?:${DASH}|to)\s*)`;
 const WRITTEN_PATTERNS = WRITTEN.map((row) => ({
   ...row,
   pattern: new RegExp(`${START}${NOT_HIGH_END}${row.source.replace(/[$.]/g, "\\$&")}${END}${NOT_LOW_END}`, "g"),
@@ -149,14 +156,23 @@ function shownAmount(selected: SelectedCurrency, amount: number, locale: string)
   return shown !== "" && /[1-9]/.test(shown) ? shown : null;
 }
 
+// An amount as printed in the selected currency: "21,783.53", "80,000".
+const PRINTED = String.raw`\d{1,3}(?:,\d{3})*(?:\.\d+)?`;
+
 /**
- * True when `out` reads in one currency only: no written dollar amount is left ("$3,000", "US$3,000")
- * and every currency code in it is the selected one.
+ * True when `out` reads in one currency only: no written dollar amount is left ("$3,000", "US$3,000"),
+ * every currency code in it is the selected one, and once every amount or DASH range in the selected
+ * currency ("USD 21,783.53–24,506.47+") is set aside, no grouped number ("90,000") is left. That last
+ * rule catches any range end the module did not read, whatever separates it ("−", "~", " or ", " a ",
+ * " إلى ", a third end). A DASH range set aside here was converted whole: a low end alone before a DASH
+ * and a digit never converts (NOT_LOW_END).
  */
 function settled(out: string, selected: SelectedCurrency): boolean {
   if (/\$\s?\d/.test(out)) return false;
   const codes = out.match(/\b(?:AED|USD|EUR)\b/g) ?? [];
-  return codes.every((code) => code === selected);
+  if (!codes.every((code) => code === selected)) return false;
+  const inSelected = new RegExp(String.raw`\b${selected} ${PRINTED}(?:\s*${DASH}\s*${PRINTED})?\+?`, "g");
+  return !/\d,\d{3}/.test(out.replace(inSelected, ""));
 }
 
 export function rewriteHomeAmounts(
