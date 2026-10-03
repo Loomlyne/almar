@@ -8,6 +8,7 @@ import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { getDestinations } from "../../lib/data/destinations";
 import { LOCALES, SITE_ORIGIN, localeAlternates, localeDir, localePath, siteHref, type Locale } from "../../lib/locale-path";
+import { clickClearOfDock } from "../helpers/click-clear-of-dock";
 import { routeMedia } from "../helpers/media-route";
 
 // Plan 03.3-08, Task 4. Run on the assembled out/ under local wrangler (playwright.build.config.ts):
@@ -374,7 +375,7 @@ for (const locale of LOCALES) {
           const link = pages.getByRole("link", { name: nav[key], exact: true });
           const href = siteHref(locale, `/${key}`);
           await expect(link).toHaveAttribute("href", href);
-          await followLink(page, () => link.click(), href, `footer ${key}`);
+          await followLink(page, () => clickClearOfDock(link), href, `footer ${key}`);
         }
 
         await page.goto(here);
@@ -391,7 +392,7 @@ for (const locale of LOCALES) {
         for (const link of [mail, phone]) {
           await link.focus();
           await expect(link, "reachable by keyboard").toBeFocused();
-          await link.click();
+          await clickClearOfDock(link);
           expect(new URL(page.url()).pathname, "a mail or phone link does not navigate the page").toBe(here);
         }
 
@@ -399,7 +400,7 @@ for (const locale of LOCALES) {
         await expect(instagram).toHaveCount(1);
         await expect(instagram).toHaveAttribute("href", "https://www.instagram.com/almarprivatejourney/");
         await expect(instagram).toHaveAttribute("target", "_blank");
-        const [popup] = await Promise.all([page.waitForEvent("popup"), instagram.click()]);
+        const [popup] = await Promise.all([page.waitForEvent("popup"), clickClearOfDock(instagram)]);
         await popup.waitForLoadState("domcontentloaded");
         expect(popup.url()).toBe("https://www.instagram.com/almarprivatejourney/");
         expect(instagramRequests).toEqual(["https://www.instagram.com/almarprivatejourney/"]);
