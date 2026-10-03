@@ -79,6 +79,9 @@ export async function openStay(page: Page, locale: Locale, slug: string, query =
     undefined,
     { timeout: 30_000 },
   );
+  // Under `next dev` the framework's own indicator sits at the page's bottom-left corner and, in right-to-left
+  // pages, over the sheet's Done and the lightbox's Next. It does not exist in a production build.
+  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
   await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
   await page.waitForTimeout(400);
 }
