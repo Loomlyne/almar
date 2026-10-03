@@ -8,7 +8,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { HOME_COPY } from "../lib/copy/home.ts";
-import { convertWrittenAmount, rewriteHomeAmounts } from "../lib/fx/rates.ts";
+import { convertWrittenAmount, parseWrittenAmount, rewriteHomeAmounts } from "../lib/fx/rates.ts";
 
 const FIXTURE = { aed: 3.6725, eur: 0.92 };
 const LOCALES = ["en", "ar", "es"];
@@ -264,6 +264,18 @@ test("N4: a price that would print empty or as zero leaves the label as written"
           assert.equal(rewriteHomeAmounts(label, code, rates, locale), want, `${code} ${locale} aed=${rates.aed} eur=${rates.eur}`);
         }
       }
+    }
+  }
+});
+
+test("N5: an amount that is not a safe integer is never read or converted", () => {
+  // 2^53 - 1 is the largest safe integer; one above it cannot be held exactly.
+  assert.deepEqual(parseWrittenAmount("$9,007,199,254,740,991"), { amount: Number.MAX_SAFE_INTEGER, currency: "USD" });
+  assert.equal(parseWrittenAmount("$9,007,199,254,740,993"), null);
+  assert.equal(parseWrittenAmount("AED 90,000,000,000,000,000,000"), null);
+  for (const text of ["AED 80,000–90,000,000,000,000,000,000", "AED 90,000,000,000,000,000,000–80,000"]) {
+    for (const code of ["USD", "EUR"]) {
+      for (const locale of LOCALES) assert.equal(rewriteHomeAmounts(text, code, FIXTURE, locale), text, `${text} -> ${code}`);
     }
   }
 });
