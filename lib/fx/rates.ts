@@ -70,6 +70,11 @@ const WRITTEN_PATTERNS = WRITTEN.map((row) => ({
 
 let memory: { rates: FxRates; at: number } | null = null;
 
+/** A usable rate is a real number above zero: never 0, negative, NaN, Infinity, a string or null. */
+function isRate(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
 export function parseWrittenAmount(text: string): WrittenAmount | null {
   if (typeof text !== "string") return null;
   const usd = text.match(/^\$(\d{1,3}(?:,\d{3})*)$/);
@@ -97,23 +102,19 @@ export function convertWrittenAmount(
   if (selected !== "AED" && selected !== "USD" && selected !== "EUR") return null;
   if (written.currency === selected) return written.amount;
 
-  const aed = Number(rates?.aed);
-  const eur = Number(rates?.eur);
+  const aed: unknown = rates?.aed;
+  const eur: unknown = rates?.eur;
+  let converted: number | null = null;
   if (written.currency === "USD" && selected === "EUR") {
-    return Number.isFinite(eur) ? written.amount * eur : null;
+    converted = isRate(eur) ? written.amount * eur : null;
+  } else if (written.currency === "USD" && selected === "AED") {
+    converted = isRate(aed) ? written.amount * aed : null;
+  } else if (written.currency === "AED" && selected === "USD") {
+    converted = isRate(aed) ? written.amount * (1 / aed) : null;
+  } else if (written.currency === "AED" && selected === "EUR") {
+    converted = isRate(aed) && isRate(eur) ? written.amount * (eur / aed) : null;
   }
-  if (written.currency === "USD" && selected === "AED") {
-    return Number.isFinite(aed) ? written.amount * aed : null;
-  }
-  if (written.currency === "AED" && selected === "USD") {
-    return Number.isFinite(aed) && aed !== 0 ? written.amount * (1 / aed) : null;
-  }
-  if (written.currency === "AED" && selected === "EUR") {
-    return Number.isFinite(aed) && Number.isFinite(eur) && aed !== 0
-      ? written.amount * (eur / aed)
-      : null;
-  }
-  return null;
+  return converted !== null && Number.isFinite(converted) ? converted : null;
 }
 
 export function formatConverted(
@@ -134,13 +135,12 @@ export function rewriteHomeAmounts(
 ): string {
   if (typeof text !== "string") return "";
   if (selected !== "AED" && selected !== "USD" && selected !== "EUR") return text;
-  if (!rates || !Number.isFinite(Number(rates.aed)) || !Number.isFinite(Number(rates.eur))) {
-    return text;
-  }
+  if (!rates || !isRate(rates.aed) || !isRate(rates.eur)) return text;
   let next = text;
   // A written AED range ("AED 80,000–90,000", en dash, optional trailing "+") converts at BOTH ends under
   // one currency code. Only the low end carries the "AED " prefix the rows below match, so without this the
-  // high end stayed in AED under a USD label. A range with an end that cannot convert is left as written.
+  // high end stayed in AED under a USD label. A range converts only when both ends come out finite and
+  // above zero; otherwise it is left as written.
   next = next.replace(
     AED_RANGE,
     (whole: string, low: string, high: string, plus: string) => {
@@ -151,7 +151,7 @@ export function rewriteHomeAmounts(
           selected,
           rates,
         );
-        if (amount === null) return null;
+        if (amount === null || !Number.isFinite(amount) || amount <= 0) return null;
         const shown = formatConverted(selected, amount, locale);
         return shown.startsWith(prefix) ? shown.slice(prefix.length) : null;
       });
@@ -179,10 +179,10 @@ async function readFeed(): Promise<FxRates | null> {
     const body: unknown = await response.json();
     if (!body || typeof body !== "object") return null;
     const record = body as { date?: unknown; usd?: { aed?: unknown; eur?: unknown } };
-    const aed = Number(record.usd?.aed);
-    const eur = Number(record.usd?.eur);
+    const aed = record.usd?.aed;
+    const eur = record.usd?.eur;
     const date = record.date;
-    if (!Number.isFinite(aed) || !Number.isFinite(eur)) return null;
+    if (!isRate(aed) || !isRate(eur)) return null;
     if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
     return { aed, eur, date };
   } catch {
