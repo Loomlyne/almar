@@ -7,9 +7,8 @@
 //    aed then multiplies by eur. A module that inverts any of these prints different text and fails here.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { HOME_COPY } from "../lib/copy/home.ts";
-import { convertWrittenAmount, parseWrittenAmount, rewriteHomeAmounts } from "../lib/fx/rates.ts";
+import { convertWrittenAmount, formatConverted, parseWrittenAmount, rewriteHomeAmounts } from "../lib/fx/rates.ts";
 
 const FIXTURE = { aed: 3.6725, eur: 0.92 };
 const LOCALES = ["en", "ar", "es"];
@@ -327,11 +326,23 @@ test("SF-2: the feed is accepted at the edges of the sanity band", async () => {
   }
 });
 
-test("Arabic prices name the Latin numbering system in the source (-u-nu-latn)", () => {
+test("Arabic prices are formatted with the Latin numbering system (ar-AE-u-nu-latn)", () => {
   // Node's ICU already gives ar-AE Western digits, so no output test fails if the tag is dropped; a
-  // runtime with other locale data would print Arabic-Indic digits. The tag must stay.
-  const source = readFileSync(new URL("../lib/fx/rates.ts", import.meta.url), "utf8");
-  assert.match(source, /"ar-AE-u-nu-latn"/);
+  // runtime with other locale data would print Arabic-Indic digits. Check the locale actually passed.
+  const Original = Intl.NumberFormat;
+  const asked = [];
+  Intl.NumberFormat = function (locale, options) {
+    asked.push(locale);
+    return new Original(locale, options);
+  };
+  try {
+    formatConverted("USD", 1234.5, "ar");
+    formatConverted("USD", 1234.5, "en");
+    formatConverted("USD", 1234.5, "es");
+  } finally {
+    Intl.NumberFormat = Original;
+  }
+  assert.deepEqual(asked, ["ar-AE-u-nu-latn", "en-US", "en-US"]);
 });
 
 test("SF-4/SF-5: a range the module cannot read, whatever its separator, keeps the label as written", () => {
