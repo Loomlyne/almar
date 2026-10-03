@@ -5,7 +5,9 @@ import test from "node:test";
 const src = readFileSync("components/site/public-frame.tsx", "utf8");
 
 test("the frame composes nav, footer and WhatsApp once", () => {
-  for (const name of ["SiteNav", "SiteFooter", "WhatsApp"]) assert.ok(src.includes(`<${name === "SiteNav" ? "FrameNav" : name === "SiteFooter" ? "FrameFooter" : name}`), name);
+  for (const name of ["SiteNav", "SiteFooter", "WhatsApp"]) assert.ok(src.includes(`<${name}`), name);
+  // Plan 02 merged: the interim casts are gone, the real components take the real props.
+  assert.equal(/as unknown as|FrameNav|FrameFooter|TODO\(plan 02 merge\)/.test(src), false);
   assert.equal((src.match(/<WhatsApp\s*\/>/g) ?? []).length, 1);
 });
 
@@ -22,12 +24,14 @@ test("currency is off unless a page turns it on", () => {
 });
 
 test("a language switch only goes to a path of this site (T-3.3-04)", () => {
-  assert.match(src, /startsWith\("\/"\)/);
-  assert.match(src, /startsWith\("\/\/"\)/);
+  // The frame hands localeHrefs to SiteNav and no onLocale; LocaleSelect drops any href that is not a path of this site.
+  assert.equal(/onLocale/.test(src), false);
+  const select = readFileSync("components/ui/locale-select.tsx", "utf8");
+  assert.match(select, /startsWith\("\/"\)/);
+  assert.match(select, /startsWith\("\/\/"\)/);
 });
 
-test("the frame carries the plan 02 merge TODO and no invented contact details", () => {
-  assert.ok(src.includes("TODO(plan 02 merge)"));
+test("the frame carries no invented contact details", () => {
   assert.ok(src.includes("inquiries@almarprivatejourney.com"));
   assert.ok(src.includes("+971563883302"));
 });
