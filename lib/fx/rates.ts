@@ -154,6 +154,7 @@ export function rewriteHomeAmounts(
   next = next.replace(
     AED_RANGE,
     (whole: string, low: string, high: string, plus: string) => {
+      if (selected === "AED") return whole; // already in AED: keep it byte for byte
       const prefix = `${selected} `;
       const ends = [low, high].map((digits) => {
         const amount = convertWrittenAmount(
@@ -169,6 +170,7 @@ export function rewriteHomeAmounts(
     },
   );
   for (const row of WRITTEN_PATTERNS) {
+    if (row.currency === "AED" && selected === "AED") continue; // already in AED: keep it byte for byte
     if (!next.includes(row.source)) continue;
     const amount = convertWrittenAmount(
       { amount: row.amount, currency: row.currency },
