@@ -383,3 +383,27 @@ test("a number after a dash that is smaller than the amount before it is not mon
     );
   }
 });
+
+test("a number right after a converted amount, across a short gap, keeps the label as written", () => {
+  // The Spanish and Arabic labels are still to be translated and may write numbers differently: a high end
+  // without comma groups, with dot groups, with "k" or "ألف". The leftover-number rule only saw comma
+  // groups, so these printed half converted ("Est. USD 21,783.53−90000").
+  const cases = [
+    "Est. AED 80,000−90000",
+    "Est. AED 80,000 − 90k",
+    "Est. AED 80,000 a 90.000",
+    "Est. AED 80,000 إلى 90 ألف",
+    "Desde USD $3,000 a 3.500/persona",
+    "From USD $3,000 or 3500",
+  ];
+  for (const text of cases) {
+    for (const code of CODES) {
+      for (const locale of LOCALES) assert.equal(rewriteHomeAmounts(text, code, FIXTURE, locale), text, `${text} -> ${code} (${locale})`);
+    }
+  }
+  // Text after the amount that is not a number still converts: "/person", " · 7–10 days" after "/person".
+  assert.equal(
+    rewriteHomeAmounts("From USD $3,000/person · 7–10 days · Est. AED 80,000–90,000", "EUR", FIXTURE, "en"),
+    "From EUR 2,760/person · 7–10 days · Est. EUR 20,040.84–22,545.95",
+  );
+});
