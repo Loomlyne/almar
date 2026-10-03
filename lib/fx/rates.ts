@@ -52,6 +52,22 @@ const WRITTEN: Array<{
   { source: "AED 80,000", amount: 80000, currency: "AED" },
 ];
 
+// A written amount ends where no further digit and no decimal or group part follows, so "AED 80,000"
+// never matches inside "AED 80,0000" or "AED 80,000.50". It starts where no word character or "$" comes
+// before it, so "$3,000" never matches inside "US$3,000".
+const START = String.raw`(?<![\w$])`;
+const END = String.raw`(?!\d|[.,]\d)`;
+
+// "AED 80,000–90,000" (en dash, optional trailing "+"): both ends convert under one currency code.
+const AED_RANGE = /(?<![\w$])AED (\d{1,3}(?:,\d{3})*)–(\d{1,3}(?:,\d{3})*)(\+?)(?!\d|[.,]\d)/g;
+
+// A single written amount. "–" and a digit after it make it the low end of a range, which only
+// AED_RANGE may convert.
+const WRITTEN_PATTERNS = WRITTEN.map((row) => ({
+  ...row,
+  pattern: new RegExp(`${START}${row.source.replace(/[$.]/g, "\\$&")}${END}(?!–\\d)`, "g"),
+}));
+
 let memory: { rates: FxRates; at: number } | null = null;
 
 export function parseWrittenAmount(text: string): WrittenAmount | null {
@@ -126,7 +142,7 @@ export function rewriteHomeAmounts(
   // one currency code. Only the low end carries the "AED " prefix the rows below match, so without this the
   // high end stayed in AED under a USD label. A range with an end that cannot convert is left as written.
   next = next.replace(
-    /AED (\d{1,3}(?:,\d{3})*)–(\d{1,3}(?:,\d{3})*)(\+?)/g,
+    AED_RANGE,
     (whole: string, low: string, high: string, plus: string) => {
       const prefix = `${selected} `;
       const ends = [low, high].map((digits) => {
@@ -142,7 +158,7 @@ export function rewriteHomeAmounts(
       return ends[0] === null || ends[1] === null ? whole : `${prefix}${ends[0]}–${ends[1]}${plus}`;
     },
   );
-  for (const row of WRITTEN) {
+  for (const row of WRITTEN_PATTERNS) {
     if (!next.includes(row.source)) continue;
     const amount = convertWrittenAmount(
       { amount: row.amount, currency: row.currency },
@@ -150,7 +166,8 @@ export function rewriteHomeAmounts(
       rates,
     );
     if (amount === null) continue;
-    next = next.split(row.source).join(formatConverted(selected, amount, locale));
+    const shown = formatConverted(selected, amount, locale);
+    next = next.replace(row.pattern, () => shown);
   }
   return next;
 }
