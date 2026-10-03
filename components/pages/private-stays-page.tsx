@@ -7,6 +7,7 @@ import { absoluteLocaleUrl, localeAlternates, localePath, siteHref, type Locale 
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
 import { PublicFrame, type PublicFrameLink } from "../site/public-frame";
 import { PageShell } from "../ui/page-shell";
+import { SectionHead } from "../ui/section";
 import { StayBrowser, type ListStay } from "./private-stays/stay-browser";
 
 /** The English path of this page. localePath turns it into the address in each language. */
@@ -65,11 +66,8 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
       </noscript>
       <main id="content">
         <PageShell className="grid gap-6 pb-16 pt-12">
-          {/* The page h1 in board 5h's head: SectionHead takes levels 2 to 4 only, so the same gold rule,
-              padding and teal Questa are written here once. */}
-          <div className="max-w-3xl border-t-2 border-gold pt-6">
-            <h1 className="m-0 font-display text-display text-teal">{copy.heading}</h1>
-          </div>
+          {/* The page's one h1, in board 5h's head: the gold rule, 24px padding and teal Questa at the display size. */}
+          <SectionHead heading={copy.heading} headingLevel={1} headingSize="display" />
           <StayBrowser
             locale={locale}
             stays={listStays}
