@@ -234,3 +234,15 @@ test("SF-4/SF-5: every converted published label carries exactly one currency co
     }
   }
 });
+
+test("N1: with AED selected an AED range is kept byte for byte, never re-formatted", () => {
+  for (const locale of LOCALES) {
+    for (const text of ["AED 080,000–090,000", "Est. AED 200,000–250,000+", "AED 1–2"]) {
+      assert.equal(rewriteHomeAmounts(text, "AED", FIXTURE, locale), text, `${text} (${locale})`);
+    }
+    assert.equal(
+      rewriteHomeAmounts("From USD $3,000/person · Est. AED 080,000–090,000", "AED", FIXTURE, locale),
+      "From AED 11,017.50/person · Est. AED 080,000–090,000",
+    );
+  }
+});
