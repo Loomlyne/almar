@@ -1,19 +1,17 @@
 # Control board
 
-Kept by the controller: **the Mac session `almarprod-website-code-79`, in the main checkout, named controller
-by the owner on 2026-10-02 ~14:00 (question form)**, sidebar group ALMAR. It replaces
-`local_836ffacc-ca03-41c4-b1ff-385b8aa9d357` — the pinned Desktop session titled "ALMAR controller" that held
-the role from 00:05 but sat idle (confirmed still idle at 14:50, 2 h into its session). **For him: retitle that
-Desktop session "retired", or the same two-controllers confusion will happen again** — which is why two sessions each believed
-they were control and built the same thing three times today. Session `almarprod-website-code-34` stood down of
-its own accord and keeps to checking, reading live state and reporting. (This session cannot read its own id;
-the owner pins it when he wants the id on the board.) The
+Kept by the controller: **the Desktop session "ALMAR controller" (`local_836ffacc-ca03-41c4-b1ff-385b8aa9d357`,
+pinned, sidebar group ALMAR), in the main checkout, again since 2026-10-03 17:39 (+04)** on the owner's word
+("ALMAR control is yours again"), after `HANDOFF-2026-10-03-controller.md` (`135cdcb`). From 2026-10-02 ~14:00 to
+2026-10-03 16:40 the terminal session `almarprod-website-code-79` / `-d4` held control; it stood down with that
+hand-off. Only this session lands on `main`, deploys and pushes `main`; any other session declares its job,
+branch and worktree before starting and hands over. The
 claude.ai project ran 2026-10-01 11:08–19:27 UTC; its record is `HANDOFF-2026-10-01-projects.md`. One page:
 what is live, what is being built, what waits for the owner, what comes next. Updated at every hand-over and
 every landing. The goal: `GOAL.md`. The rules: `prompts/00-common-rules.md`; decisions
 `decisions/2026-10-01-control-session.md`.
 
-**Last update:** 2026-10-03 16:40 (+04): slice 1 wave 1 done, control handed back to "ALMAR controller" (`HANDOFF-2026-10-03-controller.md`). Before that: 2026-10-02 13:40 (+04), by the controller session `local_836ffacc-…`. Job 04 is landed
+**Last update:** 2026-10-03 17:41 (+04): control taken back by "ALMAR controller" from the hand-off `135cdcb`; claims checked (live `f9ba2378` read through `cf`, slice branch `acdeba7`, wave-1 worktrees gone); three dropped worktrees removed, `fix/footer-contact` archived as tag `archive/footer-contact` and deleted on GitHub. Next: wave 2 (plan 07, images on R2). Before that: 2026-10-03 16:40 (+04): slice 1 wave 1 done, control handed back. Before that: 2026-10-02 13:40 (+04), by the controller session `local_836ffacc-…`. Job 04 is landed
 (`97005a0`) and live (`b769e01a`). **The owner reshaped the order at 13:30–13:35: the frontend is finished
 before the backend is connected.** Phase 3.3 becomes all 26 public pages in React on one fixture-backed data
 layer and runs now; Phase 2 (the auth chain) and Phase 3.2 follow it; the dashboard is built after the backend,
@@ -145,13 +143,13 @@ worktree to be removed); `survey/job-02-conflicts` `0499fc1` (local only).
 
 | # | What | Where |
 |---|---|---|
-| 1 | **Still his to do: tell the second session to stop landing, deploying and pushing branches for ALMAR** — it landed and deployed job 04 at 12:34–12:35 outside the gate and pushed the broken `fix/footer-contact` | His word, to that session |
+| 1 | Done 2026-10-03: the second session stood down with its hand-off (`135cdcb`); this session is the one controller again | — |
 | 2 | Item 7 of his 2026-09-29 dashboard feedback arrived empty; not confirmed answered since | Any session |
 | 3 | For job 02, **no longer urgent — Phase 2 is parked behind Phase 3.3**: the Supabase names in a local `.env.local` (`02-USER-SETUP.md`) and on Worker `almar`; the 30-day session time-box after Pro | His terminal, Supabase |
-| 4 | **Enable R2 on the ALMAR Cloudflare account** (dashboard, his step; API answers code 10042 until then). He chose R2 for images in slice 1. After it: his word for bucket `almar-media` and public hostname `media.almarprivatejourney.com` | His gate |
-| 4b | **Sign the slice 1 plans** when the job 06 lead hands them over (`03.3-01-PLAN-SUMMARY.md`) | His signature |
+| 4 | **R2 bucket and hostname for plan 07**: R2 answers on account `f1d9a1fa…` (empty bucket list, 2026-10-03 16:31), no bucket yet. His word for bucket `almar-media` and public hostname `media.almarprivatejourney.com` | His gate, before plan 07 uploads |
+| 4b | Done 2026-10-03: slice 1 plans signed ("Sign, start wave 1") | — |
 | 5 | At job 06's hand-over, one numbered step: create Worker `almar-preview` with custom domain `preview.almarprivatejourney.com`, so he reviews each slice on a real URL. Verified 13:25 that the production Worker has preview URLs off (`workers_dev = false` from job 04, error 1042), so a second Worker is the way that leaves `almar` untouched. The hostname is public and unauthenticated — the preview ships `noindex` plus a `robots.txt` disallow, and can be locked to his email with Cloudflare Access if he wants | His gate, at the hand-over |
-| 6 | Cleanup owed, on his word: remove the `repo-tidy`, `footer-contact-click` and `job-02-survey` worktrees (all three tips are safe — two tagged on GitHub, the survey needs a push first) and delete `fix/footer-contact` on GitHub | His word |
+| 6 | Done 2026-10-03 17:4x by the controller: worktrees `footer-contact`, `footer-contact-click`, `phase-3.2-recheck` removed (tips on GitHub as `archive/footer-contact`, `archive/footer-contact-click-round2`, `archive/phase-3.2-recheck`); `fix/footer-contact` deleted on GitHub. `repo-tidy` and `job-02-survey` were already gone | — |
 
 ## Sessions and folders
 
@@ -159,10 +157,10 @@ worktree to be removed); `survey/job-02-conflicts` `0499fc1` (local only).
 |---|---|---|---|
 | ALMAR controller (`local_836ffacc-…`, pinned) | Opus 5.5, xhigh | main checkout | the controller |
 | job 04 worker | Opus 5.5 | `.claude/worktrees/repo-tidy` | landed and live; worktree to be removed |
-| footer-contact-click | — | `.claude/worktrees/footer-contact-click` | **dropped** by the owner 13:30, archived as tag `archive/footer-contact-click`; worktree to be removed |
+| footer-contact-click | — | removed 2026-10-03 | **dropped** by the owner 13:30, archived as tags `archive/footer-contact-click` and `-round2` |
 | `almarprod-website-code-34` | — | same checkout | **Session ended** (unreachable at 14:50). Before it ended it stood down 13:50 by its own message: it will not push `main`, tag or deploy again unless the owner tells it directly in its own chat, and it keeps to checking, reading live state and reporting. It removed its `job-02-survey`, `phase-3.2-prep` and duplicate `mariven-text-2` worktrees. Protocol agreed both ways: declare job number, branch and worktree before starting one |
 | job 05 worker | Sonnet 5.5 | `.claude/worktrees/mariven-text`, `fix/mariven-text` | handed over `b8fbe05`, stopped. It confirmed it ran `pkill -f "next-server"` ~13:50–14:00, the kill that corrupted the other session's run; its own Playwright ran after the kill so its numbers stand, but it could not tell what else that kill reached |
-| job 06 lead | Opus 5.5 | `.claude/worktrees/phase-3.3-slice-1`, `gsd/phase-3.3-slice-1` | **design handed over 15:25**, `363c633`, pushed as `gsd/phase-3.3-slice-1`: `.planning/phases/03.3-public-site-in-react/03.3-01-DESIGN.md` (1,472 lines), no application code. **Signed as written 15:40.** Plans 01–08 written and reconciled 2026-10-03, branch tip `2a06813`, pushed: four waves (01–03, 07, 04–06, 08), overlaps settled in `03.3-RECONCILE.md`, the owner's page `03.3-01-PLAN-SUMMARY.md`. Two planner agents stalled on single large files; the rest were split one agent per plan. **Plans signed 2026-10-03. Wave 1 running:** plan 01 in `.claude/worktrees/phase-3.3-w1-p01` (`gsd/phase-3.3-s1-p01`, port 3031), plan 02 in `…-w1-p02` (`gsd/phase-3.3-s1-p02`, port 3032), plan 03 in `…-w1-p03` (`gsd/phase-3.3-s1-p03`, port 3033), all cut from the slice branch at `b842408`, Sonnet 5.5 executors. The controller merges them into `gsd/phase-3.3-slice-1` in order and checks before wave 2. Nothing is pushed from them, nothing deploys. **Wave 1 done 2026-10-03 16:40:** plans 01, 02, 03 merged, `PublicFrame` on plan 02's real props, slice branch pushed at `acdeba7`; checks in `HANDOFF-2026-10-03-controller.md`. Control handed back to the Desktop session "ALMAR controller" (owner, 2026-10-03). Next: wave 2 (plan 07) |
+| job 06 lead | Opus 5.5 | `.claude/worktrees/phase-3.3-slice-1`, `gsd/phase-3.3-slice-1` | **design handed over 15:25**, `363c633`, pushed as `gsd/phase-3.3-slice-1`: `.planning/phases/03.3-public-site-in-react/03.3-01-DESIGN.md` (1,472 lines), no application code. **Signed as written 15:40.** Plans 01–08 written and reconciled 2026-10-03, branch tip `2a06813`, pushed: four waves (01–03, 07, 04–06, 08), overlaps settled in `03.3-RECONCILE.md`, the owner's page `03.3-01-PLAN-SUMMARY.md`. Two planner agents stalled on single large files; the rest were split one agent per plan. **Plans signed 2026-10-03. Wave 1 running:** plan 01 in `.claude/worktrees/phase-3.3-w1-p01` (`gsd/phase-3.3-s1-p01`, port 3031), plan 02 in `…-w1-p02` (`gsd/phase-3.3-s1-p02`, port 3032), plan 03 in `…-w1-p03` (`gsd/phase-3.3-s1-p03`, port 3033), all cut from the slice branch at `b842408`, Sonnet 5.5 executors. The controller merges them into `gsd/phase-3.3-slice-1` in order and checks before wave 2. Nothing is pushed from them, nothing deploys. **Wave 1 done 2026-10-03 16:40** (wave-1 worktrees and branches removed, all inside `acdeba7`): plans 01, 02, 03 merged, `PublicFrame` on plan 02's real props, slice branch pushed at `acdeba7`; checks in `HANDOFF-2026-10-03-controller.md`. Control handed back to the Desktop session "ALMAR controller" (owner, 2026-10-03). Next: wave 2 (plan 07) |
 
 Archived 2026-10-02 on the owner's word (undoable): the retired control session, the 3 Phase 3.1 sessions and
 the 14 Framer-era sessions. All ALMAR sessions sit in the sidebar group ALMAR. Each job's worktree is removed
