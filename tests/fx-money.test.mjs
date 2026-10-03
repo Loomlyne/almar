@@ -201,3 +201,36 @@ test("SF-2: the feed is refused when a rate is zero, negative, infinite or not a
     globalThis.fetch = originalFetch;
   }
 });
+
+test("SF-4/SF-5: a label that cannot convert completely is printed as written, never half converted", () => {
+  const cases = [
+    "From $3,000 or $5,000", // $5,000 is not a published amount, so it cannot be converted
+    "AED 80,000 or AED 95,000",
+    "From USD $4,000/person · Est. AED 80,000–90,000", // the per-person amount is not a published one
+    "From USD $3,000/person · Est. AED 80,000–90,0001", // the range is not a whole token (SF-1)
+    "Prices in AED: $3,000", // a currency code that is not the selected one stays in the text
+  ];
+  for (const text of cases) {
+    for (const code of CODES) {
+      for (const locale of LOCALES) {
+        const out = rewriteHomeAmounts(text, code, FIXTURE, locale);
+        const codes = new Set(out.match(/\b(?:AED|USD|EUR)\b/g) ?? []);
+        const mixed = codes.size > 1 || /\$\s?\d/.test(out);
+        assert.ok(out === text || !mixed, `half converted: ${text} -> ${code} (${locale}): ${out}`);
+        if (code !== "AED") assert.equal(out, text, `${text} -> ${code} (${locale})`);
+      }
+    }
+  }
+});
+
+test("SF-4/SF-5: every converted published label carries exactly one currency code and no dollar sign", () => {
+  for (const label of LABELS) {
+    for (const code of CODES) {
+      for (const locale of LOCALES) {
+        const out = rewriteHomeAmounts(label, code, FIXTURE, locale);
+        assert.deepEqual([...new Set(out.match(/\b(?:AED|USD|EUR)\b/g))], [code], out);
+        assert.equal(out.includes("$"), false, out);
+      }
+    }
+  }
+});
