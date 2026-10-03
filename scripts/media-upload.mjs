@@ -264,7 +264,8 @@ const USAGE =
 
 /**
  * Returns the exit code: 0 done, 1 a refusal, a failed check or a failed put, 2 a usage or gate error.
- * deps = { spawnSync, fetch, env, log }: the real ones by default, stubs in tests.
+ * deps = { spawnSync, fetch, env, log, root }: the real ones by default, stubs in tests. `root` (tests only) points the
+ * manifest, the cache and the child process's working folder at a scratch tree, like --root but allowed with --apply.
  */
 export async function main(argv = [], deps = {}) {
   const spawnSync = deps.spawnSync ?? realSpawnSync;
@@ -299,7 +300,7 @@ export async function main(argv = [], deps = {}) {
     }
   }
 
-  const paths = defaultPaths(o.root);
+  const paths = defaultPaths(o.root ?? deps.root);
   let manifest;
   try {
     manifest = readManifest(paths.manifestPath);

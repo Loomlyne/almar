@@ -1,5 +1,7 @@
 // Tests for scripts/media-upload.mjs (plan 03.3-07, task 3). Everything is offline: wrangler and the network are
-// stubs. No test starts a real process or sends a request.
+// stubs. No test starts a real process or sends a request, and none reads the gitignored media-staging/ download:
+// they run against a small synthetic manifest and cache built in os.tmpdir() (a clean clone has no media-staging/).
+// The one test that runs the real manifest is opt-in and skips, with its reason, when media-staging/ is absent.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -17,11 +19,53 @@ import {
 } from "../scripts/media-lib.mjs";
 import { alwaysVerified, formatCommand, main, parseBase, pickSample, planUploads, verifyObjects, putArgv } from "../scripts/media-upload.mjs";
 
-const manifest = readManifest();
 const BASE = "https://media.example.test";
 const GOOD_ENV = { HOME: ALMAR_CF_HOME, CLOUDFLARE_ACCOUNT_ID: ALMAR_ACCOUNT_ID, PATH: "/usr/bin" };
 
-function harness({ env = GOOD_ENV, fetch, spawnResults = [] } = {}) {
+// A synthetic project: six tiny files, a manifest that matches them, a cache folder that holds them. Every test that
+// calls main() runs on this root (deps.root), so nothing here depends on the gitignored media-staging/ download.
+function scratchRoot(entries, { cache = true } = {}) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "almar-upload-"));
+  fs.mkdirSync(path.join(root, "lib", "data"), { recursive: true });
+  const rows = entries.map(({ key, body }) => ({
+    key,
+    source: "/assets/img/0000000000000000.webp",
+    source_kind: "local",
+    used_by: ["x"],
+    image_ids: ["i"],
+    content_type: "image/webp",
+    bytes: body.length,
+    sha256: sha256(body),
+    md5: md5(body),
+    width: 1,
+    height: 1,
+  }));
+  fs.writeFileSync(path.join(root, "lib", "data", "media-manifest.json"), JSON.stringify(rows, null, 2) + "\n");
+  if (cache) {
+    for (const { key, body } of entries) {
+      fs.mkdirSync(path.dirname(path.join(root, "media-staging", key)), { recursive: true });
+      fs.writeFileSync(path.join(root, "media-staging", key), body);
+    }
+  }
+  return { root, rows };
+}
+
+const webpish = (n) => Buffer.concat([Buffer.from("RIFF\0\0\0\0WEBPVP8 ", "latin1"), Buffer.alloc(n, 7)]);
+
+const SYN_ENTRIES = [
+  { key: "catalog/a-service.webp", body: webpish(11) },
+  { key: "destinations/a-town/hero.webp", body: webpish(22) },
+  { key: "home/hero/poster.webp", body: webpish(33) },
+  { key: "stays/a-house/gallery-1.webp", body: webpish(44) },
+  { key: "stays/a-house/hero.webp", body: webpish(55) },
+  { key: "stays/b-house/hero.webp", body: webpish(66) },
+];
+const SYN = scratchRoot(SYN_ENTRIES);
+const manifest = SYN.rows;
+// The real manifest, for the tests that only read it (no cache needed).
+const realManifest = readManifest();
+
+function harness({ env = GOOD_ENV, fetch, spawnResults = [], root = SYN.root } = {}) {
   const logs = [];
   const spawns = [];
   const fetches = [];
@@ -32,6 +76,7 @@ function harness({ env = GOOD_ENV, fetch, spawnResults = [] } = {}) {
     fetches,
     deps: {
       env,
+      root,
       log: (l) => logs.push(l),
       spawnSync: (bin, args, opts) => {
         spawns.push({ bin, args, opts });
@@ -71,34 +116,6 @@ function lastLine(logs) {
   return logs.at(-1);
 }
 
-function scratchRoot(entries, { cache = true } = {}) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "almar-upload-"));
-  fs.mkdirSync(path.join(root, "lib", "data"), { recursive: true });
-  const rows = entries.map(({ key, body }) => ({
-    key,
-    source: "/assets/img/0000000000000000.webp",
-    source_kind: "local",
-    used_by: ["x"],
-    image_ids: ["i"],
-    content_type: "image/webp",
-    bytes: body.length,
-    sha256: sha256(body),
-    md5: md5(body),
-    width: 1,
-    height: 1,
-  }));
-  fs.writeFileSync(path.join(root, "lib", "data", "media-manifest.json"), JSON.stringify(rows, null, 2) + "\n");
-  if (cache) {
-    for (const { key, body } of entries) {
-      fs.mkdirSync(path.dirname(path.join(root, "media-staging", key)), { recursive: true });
-      fs.writeFileSync(path.join(root, "media-staging", key), body);
-    }
-  }
-  return { root, rows };
-}
-
-const webpish = (n) => Buffer.concat([Buffer.from("RIFF\0\0\0\0WEBPVP8 ", "latin1"), Buffer.alloc(n, 7)]);
-
 // 1. Dry run ------------------------------------------------------------------------------------------------------
 
 test("dry run with no --public-base prints one PUT line and one command per entry and spawns nothing", async () => {
@@ -107,7 +124,7 @@ test("dry run with no --public-base prints one PUT line and one command per entr
   assert.equal(code, 0, h.logs.join("\n"));
   const puts = h.logs.filter((l) => l.startsWith("PUT "));
   assert.equal(puts.length, manifest.length);
-  assert.ok(manifest.length >= 100);
+  assert.ok(manifest.length >= 5, "the synthetic project has several entries");
   for (const e of manifest) {
     assert.ok(h.logs.includes(`    ${formatCommand(e, "almar-media")}`), `command line for ${e.key}`);
     assert.ok(h.logs.includes(`PUT ${e.key}`));
@@ -119,8 +136,21 @@ test("dry run with no --public-base prints one PUT line and one command per entr
   assert.ok(h.logs.some((l) => l.includes("remote state not checked")));
 });
 
+// The real manifest and the real cache. Opt-in by presence: a clean clone has no media-staging/, and this skips with
+// its reason; everything else in this file runs on the synthetic project above.
+const realCache = fs.existsSync(defaultPaths().cacheDir);
+test(realCache ? "the real manifest: dry run prints one PUT line per entry" : "the real manifest: dry run prints one PUT line per entry (SKIPPED: media-staging/ is absent, as in a clean clone)", { skip: !realCache && "media-staging/ is absent (run node scripts/media-fetch.mjs to enable)" }, async () => {
+  const h = harness({ root: REPO_ROOT });
+  assert.equal(await main([], h.deps), 0, h.logs.slice(0, 5).join("\n"));
+  assert.equal(h.logs.filter((l) => l.startsWith("PUT ")).length, realManifest.length);
+  assert.ok(realManifest.length >= 100);
+  assert.equal(h.spawns.length, 0);
+  assert.equal(h.fetches.length, 0);
+  assert.match(lastLine(h.logs), new RegExp(`^${realManifest.length} entries: ${realManifest.length} put, 0 skip, 0 fix, 0 refuse, \\d+\\.\\d MB to send$`));
+});
+
 test("formatCommand is the exact env-prefixed line and the argv carries --remote and the immutable cache-control", () => {
-  const e = manifest[0];
+  const e = realManifest[0]; // pure: reads the committed manifest only, no cache
   assert.equal(
     formatCommand(e, "almar-media"),
     `HOME=/Users/koss/.almar-cloudflare CLOUDFLARE_ACCOUNT_ID=f1d9a1fa3abdda98c15161b00b40385c ./node_modules/.bin/wrangler r2 object put almar-media/${e.key} --file media-staging/${e.key} --content-type image/webp --cache-control "public, max-age=31536000, immutable" --remote`,
@@ -168,13 +198,13 @@ test("a different ETag is REFUSE and exit 1; --replace-key on exactly that key t
   let h = harness({ fetch: bucket(have) });
   assert.equal(await main(["--public-base", BASE], h.deps), 1);
   assert.ok(h.logs.some((l) => l.startsWith(`REFUSE ${k}`)));
-  assert.match(lastLine(h.logs) === undefined ? "" : h.logs.join("\n"), /refusing: a key already holds other bytes/);
+  assert.match(h.logs.join("\n"), /refusing: a key already holds other bytes/);
   assert.equal(h.spawns.length, 0);
   h = harness({ fetch: bucket(have) });
   assert.equal(await main(["--public-base", BASE, "--replace-key", k], h.deps), 0, h.logs.join("\n"));
-  assert.ok(h.logs.includes(`PUT ${k}`) || h.logs.some((l) => l.startsWith(`PUT ${k}`)));
+  assert.ok(h.logs.includes(`PUT ${k}`));
   assert.equal(h.logs.filter((l) => l.startsWith("REFUSE")).length, 0);
-  assert.match(lastLine(h.logs), /: 1 put, 116 skip, 0 fix, 0 refuse,/);
+  assert.match(lastLine(h.logs), new RegExp(`: 1 put, ${manifest.length - 1} skip, 0 fix, 0 refuse,`));
   // a different length with the right ETag is also a refusal
   have[k] = { "content-length": String(manifest[3].bytes + 1) };
   h = harness({ fetch: bucket(have) });
@@ -192,7 +222,7 @@ test("the right ETag with the wrong Cache-Control or Content-Type is FIX, not RE
   assert.equal(await main(["--public-base", BASE], h.deps), 0, h.logs.join("\n"));
   assert.ok(h.logs.some((l) => l.startsWith(`FIX ${manifest[0].key}`)));
   assert.ok(h.logs.some((l) => l.startsWith(`FIX ${manifest[1].key}`)));
-  assert.match(lastLine(h.logs), /: 0 put, 115 skip, 2 fix, 0 refuse,/);
+  assert.match(lastLine(h.logs), new RegExp(`: 0 put, ${manifest.length - 2} skip, 2 fix, 0 refuse,`));
   assert.ok(h.logs.includes(`    ${formatCommand(manifest[0], "almar-media")}`));
 });
 
@@ -250,9 +280,9 @@ test("--apply with the right env runs one wrangler call per PUT, as an argv arra
     assert.equal(s.opts.stdio, "inherit");
     assert.equal(s.opts.shell, undefined);
     assert.equal(s.opts.env, GOOD_ENV);
-    assert.equal(s.opts.cwd, defaultPaths().root);
+    assert.equal(s.opts.cwd, SYN.root);
   });
-  assert.match(lastLine(h.logs), /^media-upload: applied 117 object\(s\)$/);
+  assert.equal(lastLine(h.logs), `media-upload: applied ${manifest.length} object(s)`);
 });
 
 test("--apply stops at the first failing call, names the key, and a re-run skips what landed", async () => {
@@ -273,7 +303,7 @@ test("--apply stops at the first failing call, names the key, and a re-run skips
   assert.equal(await main(["--public-base", BASE, "--apply"], again.deps), 0);
   assert.equal(again.spawns.length, manifest.length - 2);
   assert.ok(again.logs.some((l) => l.startsWith(`SKIP ${manifest[0].key}`)));
-  assert.match(lastLine(again.logs.slice(0, -1)), /: 115 put, 2 skip, 0 fix, 0 refuse,/);
+  assert.match(lastLine(again.logs.slice(0, -1)), new RegExp(`: ${manifest.length - 2} put, 2 skip, 0 fix, 0 refuse,`));
 });
 
 test("--apply does nothing when any key would be refused", async () => {
@@ -345,16 +375,16 @@ test("main --verify exits 1 on any failure and 0 on none; it needs --public-base
 });
 
 test("pickSample always has the home hero poster and every stay hero, then a reproducible seeded rest", () => {
-  const always = alwaysVerified(manifest);
+  const always = alwaysVerified(realManifest);
   assert.ok(always.includes("home/hero/poster.webp"));
   assert.equal(always.filter((k) => /^stays\//.test(k)).length, 12);
-  const a = pickSample(manifest, 20);
-  assert.deepEqual(a, pickSample(manifest, 20));
+  const a = pickSample(realManifest, 20);
+  assert.deepEqual(a, pickSample(realManifest, 20));
   assert.equal(a.length, 20);
   assert.deepEqual(a.slice(0, always.length), always);
   assert.equal(new Set(a).size, a.length);
-  assert.equal(pickSample(manifest, 12).length, always.length, "the always-checked set is never cut");
-  const changed = manifest.map((e, i) => (i === 0 ? { ...e, sha256: "0".repeat(64) } : e));
+  assert.equal(pickSample(realManifest, 12).length, always.length, "the always-checked set is never cut");
+  const changed = realManifest.map((e, i) => (i === 0 ? { ...e, sha256: "0".repeat(64) } : e));
   assert.notDeepEqual(pickSample(changed, 20).slice(always.length), a.slice(always.length), "the seed is the manifest's hashes");
 });
 
