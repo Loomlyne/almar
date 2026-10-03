@@ -358,3 +358,20 @@ test("SF-4/SF-5: a range the module cannot read, whatever its separator, keeps t
     }
   }
 });
+
+test("a number after a dash that is smaller than the amount before it is not money and is never converted", () => {
+  // Since the separator widened to any dash, "AED 80,000 – 7 nights" read 7 as the high end of a range
+  // and printed "USD 21,783.53 – 1.91 nights". A high end below the low end is not a range.
+  for (const text of ["Est. AED 80,000 – 7 nights", "Est. AED 80,000 — 12 days", "Est. AED 80,000 - 2 guests"]) {
+    for (const code of CODES) {
+      for (const locale of LOCALES) assert.equal(rewriteHomeAmounts(text, code, FIXTURE, locale), text, `${text} -> ${code} (${locale})`);
+    }
+  }
+  // The rule is high >= low, not "the high end must be grouped": a small ascending range still converts.
+  for (const locale of LOCALES) {
+    assert.equal(
+      rewriteHomeAmounts("AED 500–900", "USD", FIXTURE, locale),
+      `USD ${shown(BY_HAND.AED.USD(500))}–${shown(BY_HAND.AED.USD(900))}`,
+    );
+  }
+});
