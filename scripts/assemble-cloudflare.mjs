@@ -4,6 +4,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderStaticNotFound } from "../lib/not-found-document.ts";
 import { LOCALES, isLocale, localePath, matchPublicPage, stripLocale } from "../lib/locale-path.ts";
+import { assertPublicClean, assertTargetFiles, outDirNameFor, parseTarget, writeTargetFiles } from "./crawl-files.mjs";
+import { assertMediaReady } from "./media-guard.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -132,19 +134,41 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile 
   };
 }
 
-function main() {
+/**
+ * node scripts/assemble-cloudflare.mjs [--target=local|preview|production]
+ *
+ *   local (default)  out/          production crawl files; no media check, so the check set can build
+ *   production       out/          the same files, after assertMediaReady()
+ *   preview          out-preview/  noindex header, disallow-all robots.txt, no sitemap, after assertMediaReady()
+ *
+ * Preview and production go to different folders, so a preview build never writes out/ and a production build
+ * never writes out-preview/ (reconcile R-11): a wrong `wrangler deploy` cannot ship preview files to the live site.
+ * A typo in the target throws before anything is built or removed.
+ */
+function main(argv = process.argv.slice(2)) {
+  const target = parseTarget(argv);
   process.chdir(root);
+  assertPublicClean(root);
+  // Before the build and before any folder is wiped: a refused run leaves the previous output intact.
+  if (target !== "local") assertMediaReady();
   execSync("npm run build", { cwd: root, stdio: "inherit" });
+  const folder = outDirNameFor(target);
+  const outDir = path.join(root, folder);
   const report = assembleOut({
     appDir: path.join(root, ".next/server/app"),
     staticDir: path.join(root, ".next/static"),
-    outDir: path.join(root, "out"),
+    outDir,
     publicDir: path.join(root, "public"),
-    headersFile: path.join(root, "_headers"),
   });
+  // _headers, robots.txt and sitemap.xml are written per target, never copied from public/.
+  const htmlFiles = listFiles(outDir)
+    .filter((f) => f.rel.endsWith(".html"))
+    .map((f) => f.rel);
+  writeTargetFiles({ outDir, target, root, htmlFiles });
+  assertTargetFiles(outDir, target, { root });
   const r = report.react;
   console.log(
-    `assembled ${report.total} html files into out/: ${report.framer.length} Framer, ` +
+    `assembled ${report.total} html files into ${folder}/ (target: ${target}): ${report.framer.length} Framer, ` +
       `React en ${r.en.length} / ar ${r.ar.length} / es ${r.es.length}, ${report.notFound.length} 404s`,
   );
 }
