@@ -32,7 +32,7 @@ Scope: what the code at `main` = `68df3b6` actually calls, versus what is only i
 - Free community currency feed `https://latest.currency-api.pages.dev/v1/currencies/usd.json` (constant `FX_URL` in `lib/fx/rates.ts`).
   - SDK/Client: global `fetch` in `readFeed()`; one retry; 12-hour in-memory cache (`memory`, `TWELVE_HOURS`) per server process.
   - Auth: none.
-  - Consumers: `loadRates()` is called from `app/fx/route.ts` (`GET /fx`, `force-dynamic`, 404 when `NODE_ENV === "production"`) and from `app/dashboard/(ops)/settings/page.tsx` (server page, `notFound()` in production). `homePriceScript()` in `lib/fx/rates.ts` builds a browser script that rewrites written prices from a `postMessage` payload (`{ currency, locale, aed, eur }`, origin-checked with `event.origin === location.origin`); it is exported but has no caller in `app/`, `lib/`, or `components/`.
+  - Consumers: `loadRates()` is called from `app/fx/route.ts` (`GET /fx`, `force-dynamic`, 404 when `NODE_ENV === "production"`) and from `app/dashboard/(ops)/settings/page.tsx` (server page, `notFound()` in production). `homePriceScript()` (a `postMessage` price-rewriting browser script with no caller) was deleted as dead code in the slice 1 money fix (2026-10-03).
   - Production state: not live. The static Worker has no `/fx`, so no rates are fetched in production.
 
 **Newsletter / email contacts (Resend):**
@@ -129,7 +129,7 @@ Scope: what the code at `main` = `68df3b6` actually calls, versus what is only i
 - None.
 
 **Cross-window messaging (internal, not a webhook):**
-- `homePriceScript()` (`lib/fx/rates.ts`, currently unused) listens for `window.postMessage` from `window.parent`; the hero booker mounted by `lib/framer-hero-booker-mount.tsx` navigates `window.top` to `/booking/trip?where=...&check-in=...` via `window.top.location.assign`.
+- `homePriceScript()` (`lib/fx/rates.ts`, the `window.postMessage` listener) was deleted as dead code in the slice 1 money fix (2026-10-03); the hero booker mounted by `lib/framer-hero-booker-mount.tsx` navigates `window.top` to `/booking/trip?where=...&check-in=...` via `window.top.location.assign`.
 
 ---
 
