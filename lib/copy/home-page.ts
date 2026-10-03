@@ -47,17 +47,6 @@ export type HomePageCopy = {
   team: { kicker: string; heading: string };
   /** DRAFTED UI COPY: the lightbox. `{alt}`, `{n}` and `{total}` are slots. */
   gallery: { open: string; previous: string; next: string; close: string; count: string };
-  /** The footer's string table. Pages, contact and language reuse words already approved in lib/copy/home.ts. */
-  footer: {
-    pages: string;
-    contact: string;
-    instagram: string;
-    /** DRAFTED UI COPY: screen-reader suffix of a link that opens a new tab. */
-    newTab: string;
-    language: string;
-    /** Byte-copied from the live footer (FRAMER_SOURCE_COPY), pinned by tests/home-page-copy.test.mjs. */
-    copyright: string;
-  };
 };
 
 export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
@@ -116,14 +105,6 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
       next: "Next image",
       close: "Close",
       count: "{n} of {total}",
-    },
-    footer: {
-      pages: "Pages",
-      contact: "Contact",
-      instagram: "Instagram",
-      newTab: "(opens in a new tab)",
-      language: "Language",
-      copyright: "© 2026 ALMAR Private Journeys. All rights reserved.",
     },
   },
   ar: {
@@ -185,14 +166,6 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
       close: "إغلاق",
       count: "{n} من {total}",
     },
-    footer: {
-      pages: "الصفحات",
-      contact: "تواصل",
-      instagram: "Instagram",
-      newTab: "(يفتح في تبويب جديد)",
-      language: "اللغة",
-      copyright: "© 2026 المار للرحلات الخاصة. كل الحقوق محفوظة.",
-    },
   },
   es: {
     meta: {
@@ -250,14 +223,6 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
       next: "Imagen siguiente",
       close: "Cerrar",
       count: "{n} de {total}",
-    },
-    footer: {
-      pages: "Páginas",
-      contact: "Contacto",
-      instagram: "Instagram",
-      newTab: "(se abre en una pestaña nueva)",
-      language: "Idioma",
-      copyright: "© 2026 ALMAR Private Journeys. Todos los derechos reservados.",
     },
   },
 };

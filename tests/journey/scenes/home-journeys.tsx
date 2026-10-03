@@ -5,6 +5,7 @@ import { HomeJourneys, type HomeTier } from "../../../components/pages/home/home
 import { HomeFrame } from "../../../components/pages/home/home-nav";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { HOME_PAGE_COPY } from "../../../lib/copy/home-page";
+import { SITE_FOOTER_COPY } from "../../../lib/copy/site-footer";
 import type { Scenes, SceneContext } from "../scene-types";
 import { harnessHref } from "./_images";
 
@@ -45,7 +46,7 @@ function Scene({ ctx, rates }: { ctx: SceneContext; rates: typeof RATES | null }
           locale={ctx.locale}
           links={links}
           labels={{ ...nav, currencyNone: nav.currency }}
-          footerCopy={{ ...HOME_PAGE_COPY[ctx.locale].footer }}
+          footerCopy={SITE_FOOTER_COPY[ctx.locale]}
           currencyEnabled={rates !== null}
           tone="solid"
         >

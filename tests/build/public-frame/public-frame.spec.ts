@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
+import { SITE_FOOTER_COPY } from "../../../lib/copy/site-footer";
 import { localePath, type Locale } from "../../../lib/locale-path";
 import { routeMedia } from "../../helpers/media-route";
 
@@ -9,6 +10,7 @@ import { routeMedia } from "../../helpers/media-route";
 //  2. the footer prints the phone as designed and dials the digits
 //  3. the currency select is controlled by the page's own saved choice (the home), and absent where a page has no amount
 //  4. the WhatsApp float takes the page's class (lifted above the pinned dock on a stay page, at the corner elsewhere)
+//  5. (item f) the footer reads one table: the home, the list and a stay page print the same footer text in a language
 
 const LOCALES: Locale[] = ["en", "ar", "es"];
 const SIZES = [
@@ -99,6 +101,25 @@ for (const locale of LOCALES) {
         await page.reload();
         await openMenuIfCollapsed(page, locale);
         await expect(page.getByRole("combobox", { name: nameOfCurrency(locale, "EUR") })).toBeVisible();
+      });
+
+      test(`5 the footer text is the one table's on the home, the list page and a stay page (${where})`, async ({ page }) => {
+        await routeMedia(page);
+        const texts: string[] = [];
+        for (const path of [HOMES[locale], localePath(locale, "/private-stays"), localePath(locale, STAY)]) {
+          await page.goto(path);
+          const footer = page.locator("footer");
+          await expect(footer).toHaveCount(1);
+          const copy = SITE_FOOTER_COPY[locale];
+          await expect(footer).toContainText(copy.copyright);
+          await expect(footer.getByRole("navigation", { name: copy.pages })).toBeVisible();
+          await expect(footer.getByRole("navigation", { name: copy.language })).toBeVisible();
+          await expect(footer.getByRole("link", { name: `${copy.instagram} ${copy.newTab}` })).toHaveCount(1);
+          await expect(footer.locator("address")).toContainText(copy.contact);
+          texts.push(await footer.innerText());
+        }
+        expect(texts[1], "list page footer text equals the home's").toBe(texts[0]);
+        expect(texts[2], "stay page footer text equals the home's").toBe(texts[0]);
       });
 
       test(`4 the WhatsApp float: lifted above the dock on a stay page, at the corner on the list page (${where})`, async ({ page }) => {

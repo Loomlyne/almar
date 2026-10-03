@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HOME_COPY } from "../../lib/copy/home";
+import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { STAYS_LIST_COPY } from "../../lib/copy/stays-list";
 import { getDestinations } from "../../lib/data/destinations";
 import { getStays } from "../../lib/data/stays";
@@ -57,7 +58,7 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
       currentPath={PATH}
       links={links}
       footerLinks={links}
-      footerCopy={copy.frame.footer}
+      footerCopy={SITE_FOOTER_COPY[locale]}
       labels={nav}
     >
       <script {...ORGANIZATION_JSON_LD_SCRIPT} />

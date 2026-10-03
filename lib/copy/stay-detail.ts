@@ -43,14 +43,6 @@ export type StayDetailCopy = {
   sampleDatesNote: string;
   metaTitle: string;
   metaDescription: string;
-  footer: {
-    /** Screen-reader suffix for a link that opens in a new tab. */
-    newTab: string;
-    /** Accessible name of the footer's language row. */
-    language: string;
-    /** The footer's last line; the EN text is the live footer's. */
-    copyright: string;
-  };
 };
 
 export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
@@ -84,11 +76,6 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
     metaTitle: "{title} — private stay in Colombia | ALMAR",
     metaDescription:
       "Book {title} as a private stay in Colombia. ALMAR checks the home, handles staff, and plans your trip.",
-    footer: {
-      newTab: "(opens in a new tab)",
-      language: "Language",
-      copyright: "© 2026 ALMAR Private Journeys. All rights reserved.",
-    },
   },
   ar: {
     about: "نبذة",
@@ -120,11 +107,6 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
     metaTitle: "{title} — إقامة خاصة في كولومبيا | ALMAR",
     metaDescription:
       "احجزوا {title} كإقامة خاصة في كولومبيا. تتحقق ALMAR من المنزل وتتولى شؤون الطاقم وتخطط لرحلتكم.",
-    footer: {
-      newTab: "(يفتح في نافذة جديدة)",
-      language: "اللغة",
-      copyright: "© 2026 ALMAR Private Journeys. جميع الحقوق محفوظة.",
-    },
   },
   es: {
     about: "Acerca de",
@@ -156,10 +138,5 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
     metaTitle: "{title} — estancia privada en Colombia | ALMAR",
     metaDescription:
       "Reserven {title} como estancia privada en Colombia. ALMAR revisa la casa, se ocupa del personal y planifica su viaje.",
-    footer: {
-      newTab: "(se abre en una pestaña nueva)",
-      language: "Idioma",
-      copyright: "© 2026 ALMAR Private Journeys. Todos los derechos reservados.",
-    },
   },
 };

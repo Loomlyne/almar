@@ -25,6 +25,7 @@ import type { CatalogItem, Locale } from "../../lib/data/types";
 import { HOME_COPY } from "../../lib/copy/home";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { pickStayJourneyCopy } from "./stay-detail/booking-value";
+import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
 import { absoluteLocaleUrl, localeAlternates, localePath, siteHref } from "../../lib/locale-path";
 
@@ -142,14 +143,7 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
             menu: home.nav.menu,
             close: home.nav.close,
           }}
-          footerCopy={{
-            pages: home.pages,
-            contact: home.nav.contact,
-            instagram: "Instagram",
-            newTab: copy.footer.newTab,
-            language: copy.footer.language,
-            copyright: copy.footer.copyright,
-          }}
+          footerCopy={SITE_FOOTER_COPY[locale]}
         >
           <main id="content">
             <StayHero
