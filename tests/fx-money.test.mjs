@@ -333,3 +333,28 @@ test("Arabic prices name the Latin numbering system in the source (-u-nu-latn)",
   const source = readFileSync(new URL("../lib/fx/rates.ts", import.meta.url), "utf8");
   assert.match(source, /"ar-AE-u-nu-latn"/);
 });
+
+test("SF-4/SF-5: a range the module cannot read, whatever its separator, keeps the label as written", () => {
+  // Any separator outside the three dashes, and a third range end, used to leave the high end in the
+  // written currency under the new code ("Est. USD 21,783.53−90,000"). The rule is general: once the
+  // converted amounts are set aside, no grouped written number may be left.
+  const cases = [
+    "Est. AED 80,000−90,000", // minus sign
+    "Est. AED 80,000‒90,000", // figure dash
+    "Est. AED 80,000‑90,000", // non-breaking hyphen
+    "Est. AED 80,000―90,000", // horizontal bar
+    "Est. AED 80,000~90,000",
+    "Est. AED 80,000 / 90,000",
+    "Est. AED 80,000 or 90,000",
+    "Est. AED 80,000 a 90,000",
+    "Est. AED 80,000 hasta 90,000",
+    "Est. AED 80,000 إلى 90,000",
+    "Desde USD $3,000 a 3,500/persona",
+    "Est. AED 80,000–90,000–120,000",
+  ];
+  for (const text of cases) {
+    for (const code of CODES) {
+      for (const locale of LOCALES) assert.equal(rewriteHomeAmounts(text, code, FIXTURE, locale), text, `${text} -> ${code} (${locale})`);
+    }
+  }
+});
