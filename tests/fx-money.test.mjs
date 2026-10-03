@@ -7,6 +7,7 @@
 //    aed then multiplies by eur. A module that inverts any of these prints different text and fails here.
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { HOME_COPY } from "../lib/copy/home.ts";
 import { convertWrittenAmount, parseWrittenAmount, rewriteHomeAmounts } from "../lib/fx/rates.ts";
 
@@ -324,4 +325,11 @@ test("SF-2: the feed is accepted at the edges of the sanity band", async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("Arabic prices name the Latin numbering system in the source (-u-nu-latn)", () => {
+  // Node's ICU already gives ar-AE Western digits, so no output test fails if the tag is dropped; a
+  // runtime with other locale data would print Arabic-Indic digits. The tag must stay.
+  const source = readFileSync(new URL("../lib/fx/rates.ts", import.meta.url), "utf8");
+  assert.match(source, /"ar-AE-u-nu-latn"/);
 });
