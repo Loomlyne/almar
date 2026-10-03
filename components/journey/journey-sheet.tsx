@@ -45,22 +45,41 @@ function datesNode(value: JourneyValue, copy: JourneyCopy): ReactNode {
 }
 
 export type JourneyEntryProps = {
-  variant: "entry" | "docked";
+  /** "stay" is the private-stay page's collapsed row: stay line over "dates · guests". */
+  variant: "entry" | "docked" | "stay";
   value: JourneyValue;
   destinations: Destination[];
   /** Called with the step the sheet should open at. */
   onOpen: (step: SheetStep) => void;
   copy: JourneyCopy;
   locale: Locale;
+  /** Stay variant: the first line, for example "Cartagena, Getsemaní Colonial House". */
+  stayLine?: string;
   className?: string;
 };
 
 /** Phone hero entry and the slim docked row: one button that opens the sheet (D-42, D-43). */
-export function JourneyEntry({ variant, value, destinations, onOpen, copy, locale, className }: JourneyEntryProps) {
+export function JourneyEntry({
+  variant,
+  value,
+  destinations,
+  onOpen,
+  copy,
+  locale,
+  stayLine,
+  className,
+}: JourneyEntryProps) {
   const destName = destinations.find((d) => d.id === value.destinationId)?.name;
   const dates = datesNode(value, copy);
-  const filled = Boolean(destName || dates);
-  const title: ReactNode = filled ? (
+  const filled = variant === "stay" ? true : Boolean(destName || dates);
+  const stayCaption: ReactNode = (
+    <>
+      {dates ?? copy.bar.dates.empty} · {formatGuestSummary(value, locale, copy.guests.summary)}
+    </>
+  );
+  const title: ReactNode = variant === "stay" ? (
+    (stayLine ?? destName)
+  ) : filled ? (
     <>
       {destName}
       {destName && dates ? " · " : null}
@@ -69,14 +88,15 @@ export function JourneyEntry({ variant, value, destinations, onOpen, copy, local
   ) : (
     copy.entry.title
   );
-  const caption = filled ? formatGuestSummary(value, locale, copy.guests.summary) : copy.entry.hint;
+  const caption =
+    variant === "stay" ? stayCaption : filled ? formatGuestSummary(value, locale, copy.guests.summary) : copy.entry.hint;
   return (
     <button
       type="button"
       onClick={() => onOpen(firstMissingStep(value))}
       className={cn(
         "w-full bg-ivory border-t-2 border-gold flex items-center gap-4 ps-4 pe-2 text-start cursor-pointer rounded-none border-x-0 border-b-0 focus-visible:outline-2 focus-visible:outline-teal",
-        variant === "entry"
+        variant !== "docked"
           ? "h-entry shadow-float"
           : "h-bar-docked animate-dock-in motion-reduce:animate-fade-in",
         className,
@@ -101,8 +121,12 @@ export type JourneySheetProps = {
   destinations: Destination[];
   value: JourneyValue;
   onChange: (value: JourneyValue) => void;
-  /** Fires only when destination and both dates are set. Never charges (D-37). */
-  onSearch: (value: JourneyValue) => void;
+  /**
+   * Fires only when destination and both dates are set. Never charges (D-37).
+   * Omitted: the last step ends in Done (copy.done), which closes the sheet and keeps the value.
+   * No Search button is drawn.
+   */
+  onSearch?: (value: JourneyValue) => void;
   copy: JourneyCopy;
   locale: Locale;
   /** Injectable for deterministic tests. */
@@ -177,7 +201,8 @@ function SheetBody({
       else go(3);
     } else if (!value.destinationId) go(1, "where");
     else if (!hasDates) go(2, "when");
-    else onSearch({ ...value });
+    else if (onSearch) onSearch({ ...value });
+    else onOpenChange(false);
   }
 
   function back() {
@@ -310,10 +335,14 @@ function SheetBody({
         </div>
         <Button size="lg" onClick={advance}>
           {step === 3 ? (
-            <>
-              <SearchIcon size={20} className="rtl:-scale-x-100" />
-              {copy.bar.search}
-            </>
+            onSearch ? (
+              <>
+                <SearchIcon size={20} className="rtl:-scale-x-100" />
+                {copy.bar.search}
+              </>
+            ) : (
+              copy.done
+            )
           ) : (
             s.next
           )}

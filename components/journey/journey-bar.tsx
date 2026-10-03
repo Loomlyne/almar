@@ -15,7 +15,7 @@ import {
 import { Popover } from "radix-ui";
 import type { CalendarDate } from "@internationalized/date";
 import { Button } from "../ui/button";
-import { AlertCircleIcon, SearchIcon } from "../icons/icons";
+import { AlertCircleIcon, LockIcon, SearchIcon } from "../icons/icons";
 import { cn } from "../../lib/cn";
 import { formatGuestSummary, formatPlural } from "../../lib/journey-format";
 import { DateRangePanel } from "./date-range-panel";
@@ -31,8 +31,12 @@ export type JourneyBarProps = {
   destinations: Destination[];
   value: JourneyValue;
   onChange: (value: JourneyValue) => void;
-  /** Fires only when destination and both dates are set. Never charges (D-37). */
-  onSearch: (value: JourneyValue) => void;
+  /**
+   * Fires only when destination and both dates are set. Never charges (D-37).
+   * Omitted: the bar has no submit control at all (no Search button, and the wrapper is a
+   * role="group", not a search form). A page with nowhere to send the search does this.
+   */
+  onSearch?: (value: JourneyValue) => void;
   copy: JourneyCopy;
   locale: Locale;
   /** Injectable for deterministic tests. */
@@ -45,6 +49,12 @@ export type JourneyBarProps = {
   lockDestination?: boolean;
   /** Private-stay page: booked or blocked days for this stay, from the CMS (D-63). */
   blockedDates?: CalendarDate[];
+  /**
+   * Private-stay page: a fourth, locked segment after Destination showing the stay. Static text with
+   * a lock icon, never opens. With it the segments are 1 / 1.3 / 1.3 / 1 wide and Destination shows
+   * its lock icon too.
+   */
+  lockStay?: { label: string; value: string };
   /** Docked only: shown once this element leaves the viewport. Omit to always show. */
   sentinelRef?: RefObject<HTMLElement | null>;
   /** Summary only: the Edit search control. */
@@ -83,6 +93,38 @@ function useDesktop(): boolean {
   );
 }
 
+/** A search form when the bar can submit; a plain labelled group when it cannot. */
+function Wrapper({
+  formRef,
+  groupRef,
+  search,
+  label,
+  onSubmit,
+  className,
+  children,
+}: {
+  formRef: RefObject<HTMLFormElement>;
+  groupRef: RefObject<HTMLDivElement>;
+  search: boolean;
+  label: string;
+  onSubmit: (event: FormEvent) => void;
+  className: string;
+  children: ReactNode;
+}) {
+  if (search) {
+    return (
+      <form ref={formRef} role="search" aria-label={label} onSubmit={onSubmit} noValidate className={className}>
+        {children}
+      </form>
+    );
+  }
+  return (
+    <div ref={groupRef} role="group" aria-label={label} className={className}>
+      {children}
+    </div>
+  );
+}
+
 const shell = {
   hero: "h-bar bg-ivory border-t-2 border-gold shadow-float flex",
   docked: "h-bar-docked bg-ivory border-t-2 border-gold flex",
@@ -101,6 +143,7 @@ export function JourneyBar({
   forceMissing,
   lockDestination = false,
   blockedDates,
+  lockStay,
   sentinelRef,
   onEditSearch,
   className,
@@ -109,6 +152,7 @@ export function JourneyBar({
   const alertId = useId();
   const desktop = useDesktop();
   const formRef = useRef<HTMLFormElement>(null);
+  const groupRef = useRef<HTMLDivElement>(null);
   const segRefs = useRef<Partial<Record<JourneyPanel, HTMLButtonElement | null>>>({});
   const [open, setOpen] = useState<JourneyPanel | null>(initialOpen);
   const [attempted, setAttempted] = useState(Boolean(forceMissing && forceMissing.length > 0));
@@ -147,7 +191,7 @@ export function JourneyBar({
       segRefs.current[gaps[0]]?.focus();
       return;
     }
-    onSearch({ ...value });
+    onSearch?.({ ...value });
   }
 
   // Panels anchor under their own segment on desktop and under the whole bar on tablet (D-70).
@@ -155,7 +199,7 @@ export function JourneyBar({
     () => ({
       current: {
         getBoundingClientRect: () => {
-          const el = desktop && open ? segRefs.current[open] : formRef.current;
+          const el = desktop && open ? segRefs.current[open] : (formRef.current ?? groupRef.current);
           return (el ?? document.body).getBoundingClientRect();
         },
       },
@@ -228,15 +272,15 @@ export function JourneyBar({
     <div className={cn("w-full", className)}>
       <Popover.Root open={open !== null} onOpenChange={(next) => !next && show(null)}>
         <Popover.Anchor virtualRef={anchor} />
-        <form
-          ref={formRef}
-          role="search"
-          aria-label={b.label}
+        <Wrapper
+          formRef={formRef}
+          groupRef={groupRef}
+          search={Boolean(onSearch)}
+          label={b.label}
           onSubmit={submit}
-          noValidate
           className={cn(shell[size], size === "docked" && "animate-dock-in motion-reduce:animate-fade-in")}
         >
-          <div className="flex-2 min-w-0">
+          <div className={cn("min-w-0", lockStay ? "flex-10" : "flex-2")}>
             <JourneySegment
               ref={(el) => {
                 segRefs.current.where = el;
@@ -248,10 +292,28 @@ export function JourneyBar({
               ariaDescribedBy={alertId}
               onClick={() => show(open === "where" ? null : "where")}
               locked={lockDestination}
+              lockIcon={Boolean(lockStay) && lockDestination}
             />
           </div>
           {divider}
-          <div className="flex-3 min-w-0">
+          {lockStay ? (
+            <>
+              <div className="flex-13 min-w-0">
+                <div
+                  data-bar-segment="stay"
+                  className="h-full min-w-0 px-6 flex flex-col justify-center gap-1 text-start"
+                >
+                  <span className="text-caption text-muted whitespace-nowrap">{lockStay.label}</span>
+                  <span className="flex min-w-0 items-center gap-2 text-body text-ink whitespace-nowrap">
+                    <LockIcon size={16} className="shrink-0 text-muted" />
+                    <span className="truncate">{lockStay.value}</span>
+                  </span>
+                </div>
+              </div>
+              {divider}
+            </>
+          ) : null}
+          <div className={cn("min-w-0", lockStay ? "flex-13" : "flex-3")}>
             <JourneySegment
               ref={(el) => {
                 segRefs.current.when = el;
@@ -265,7 +327,7 @@ export function JourneyBar({
             />
           </div>
           {divider}
-          <div className="flex-2 min-w-0">
+          <div className={cn("min-w-0", lockStay ? "flex-10" : "flex-2")}>
             <JourneySegment
               ref={(el) => {
                 segRefs.current.guests = el;
@@ -277,11 +339,13 @@ export function JourneyBar({
               onClick={() => show(open === "guests" ? null : "guests")}
             />
           </div>
-          <Button type="submit" size={size === "hero" ? "bar" : "docked"} journey>
-            <SearchIcon size={20} className="rtl:-scale-x-100" />
-            {b.search}
-          </Button>
-        </form>
+          {onSearch ? (
+            <Button type="submit" size={size === "hero" ? "bar" : "docked"} journey>
+              <SearchIcon size={20} className="rtl:-scale-x-100" />
+              {b.search}
+            </Button>
+          ) : null}
+        </Wrapper>
 
         <Popover.Portal>
           {open ? (
@@ -293,7 +357,8 @@ export function JourneyBar({
               collisionPadding={16}
               onInteractOutside={(event) => {
                 // Clicks on the bar itself switch or toggle panels through the segments.
-                if (formRef.current?.contains(event.target as Node)) event.preventDefault();
+                const bar = formRef.current ?? groupRef.current;
+                if (bar?.contains(event.target as Node)) event.preventDefault();
               }}
               onCloseAutoFocus={(event) => {
                 event.preventDefault();

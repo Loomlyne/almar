@@ -68,8 +68,10 @@ const dayCell = cva(
         past: "bg-surface text-muted cursor-default",
       },
       today: { true: "shadow-rule-today", false: "" },
+      // A day the stay is booked or blocked (design 1.4 #4): muted like a past day, and struck through.
+      blocked: { true: "line-through", false: "" },
     },
-    defaultVariants: { size: "md", state: "idle", today: false },
+    defaultVariants: { size: "md", state: "idle", today: false, blocked: false },
   },
 );
 
@@ -298,7 +300,7 @@ export function DateRangePanel({
                             aria-disabled={past ? true : undefined}
                             aria-current={cmp(date, now) === 0 ? "date" : undefined}
                             tabIndex={stop ? 0 : -1}
-                            className={dayCell({ size, state, today: cmp(date, now) === 0 })}
+                            className={dayCell({ size, state, today: cmp(date, now) === 0, blocked: isBlocked(date) })}
                             onClick={() => pick(date)}
                             onFocus={() => setFocused(date)}
                             onKeyDown={(e) => onKey(e, date)}
