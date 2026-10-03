@@ -105,3 +105,29 @@ test("SF-3: convertWrittenAmount points the right way for every pair", () => {
     );
   }
 });
+
+test("SF-1: an amount that runs on inside a longer token is never rewritten", () => {
+  const cases = [
+    ["AED 80,000–90,0001", "USD"], // the high end runs on into another digit
+    ["AED 80,000–90,000.50", "USD"], // the high end has a decimal part
+    ["AED 80,000–90,000,5", "EUR"], // the high end runs on into a broken group
+    ["XAED 80,000–90,000", "USD"], // the code is glued to a word
+    ["AED 80,0000", "USD"], // a single amount runs on
+    ["AED 80,000.5", "EUR"],
+    ["$3,0000", "EUR"],
+    ["$3,000.50", "AED"],
+    ["US$3,000", "EUR"], // the dollar sign is glued to a word
+    ["USD $3,0001", "EUR"],
+  ];
+  for (const [text, code] of cases) {
+    for (const locale of LOCALES) assert.equal(rewriteHomeAmounts(text, code, FIXTURE, locale), text, `${text} -> ${code} (${locale})`);
+  }
+});
+
+test("SF-1: a whole amount next to punctuation or the end of the line still converts", () => {
+  assert.equal(rewriteHomeAmounts("(AED 80,000–90,000)", "USD", FIXTURE, "en"), "(USD 21,783.53–24,506.47)");
+  assert.equal(rewriteHomeAmounts("Est. AED 80,000–90,000.", "USD", FIXTURE, "en"), "Est. USD 21,783.53–24,506.47.");
+  assert.equal(rewriteHomeAmounts("AED 200,000–250,000+", "EUR", FIXTURE, "es"), "EUR 50,102.11–62,627.64+");
+  assert.equal(rewriteHomeAmounts("$3,000, per person", "EUR", FIXTURE, "en"), "EUR 2,760, per person");
+  assert.equal(rewriteHomeAmounts("from $20,000/person", "EUR", FIXTURE, "ar"), "from EUR 18,400/person");
+});
