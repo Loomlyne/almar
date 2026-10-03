@@ -71,8 +71,11 @@ export function htmlFileToPath(rel) {
   return `/${rel.slice(0, -".html".length)}`;
 }
 
-/** The sections that are never public pages. A locale prefix does not change that (ar/login.html is excluded too). */
-const NOT_PUBLIC = new Set(["__harness", "dashboard", "account", "login", "booking", "bookings", "fx", "newsletter", "embed"]);
+/**
+ * The sections that are never public pages. A locale prefix does not change that (ar/login.html is excluded too).
+ * Any name that starts with an underscore (the test harness, Next's own documents) is excluded by the rule below.
+ */
+const NOT_PUBLIC = new Set(["dashboard", "account", "login", "booking", "bookings", "fx", "newsletter", "embed"]);
 
 export function isSitemapExcluded(rel) {
   const segments = rel.split("/");
