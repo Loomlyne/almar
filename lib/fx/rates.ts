@@ -159,19 +159,30 @@ function shownAmount(selected: SelectedCurrency, amount: number, locale: string)
 // An amount as printed in the selected currency: "21,783.53", "80,000".
 const PRINTED = String.raw`\d{1,3}(?:,\d{3})*(?:\.\d+)?`;
 
+// What may not follow an amount in the selected currency: a short gap (one sign, or a word of up to five
+// letters such as "a", "or", "hasta", "إلى") and then a digit. That digit starts a range end the module
+// did not read, in any number format ("−90000", " a 90.000", " إلى 90 ألف", " or 3500").
+const NUMBER_AFTER_GAP = /^\s*(?:[^\p{L}\p{N}\s]|\p{L}{1,5})\s*\p{N}/u;
+
 /**
  * True when `out` reads in one currency only: no written dollar amount is left ("$3,000", "US$3,000"),
  * every currency code in it is the selected one, and once every amount or DASH range in the selected
  * currency ("USD 21,783.53–24,506.47+") is set aside, no grouped number ("90,000") is left. That last
  * rule catches any range end the module did not read, whatever separates it ("−", "~", " or ", " a ",
- * " إلى ", a third end). A DASH range set aside here was converted whole: a low end alone before a DASH
- * and a digit never converts (NOT_LOW_END).
+ * " إلى ", a third end), and NUMBER_AFTER_GAP catches one written without comma groups ("90000",
+ * "90.000", "90k"). A DASH range set aside here was converted whole: a low end alone before a DASH and a
+ * digit never converts (NOT_LOW_END).
  */
 function settled(out: string, selected: SelectedCurrency): boolean {
   if (/\$\s?\d/.test(out)) return false;
   const codes = out.match(/\b(?:AED|USD|EUR)\b/g) ?? [];
   if (!codes.every((code) => code === selected)) return false;
   const inSelected = new RegExp(String.raw`\b${selected} ${PRINTED}(?:\s*${DASH}\s*${PRINTED})?\+?`, "g");
+  // Each span is matched whole (greedy, nothing after it to backtrack for) before the text after it is
+  // checked, so "USD 3,000" is never read as "USD 3" followed by ",0".
+  for (const span of out.matchAll(inSelected)) {
+    if (NUMBER_AFTER_GAP.test(out.slice(span.index + span[0].length))) return false;
+  }
   return !/\d,\d{3}/.test(out.replace(inSelected, ""));
 }
 
