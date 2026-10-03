@@ -58,14 +58,18 @@ const WRITTEN: Array<{
 const START = String.raw`(?<![\w$])`;
 const END = String.raw`(?!\d|[.,]\d)`;
 
-// "AED 80,000–90,000" (en dash, optional trailing "+"): both ends convert under one currency code.
-const AED_RANGE = /(?<![\w$])AED (\d{1,3}(?:,\d{3})*)–(\d{1,3}(?:,\d{3})*)(\+?)(?!\d|[.,]\d)/g;
+// "AED 80,000–90,000" (en dash, hyphen or em dash, spaced or not, optional trailing "+"): both ends
+// convert under one currency code and the written separator is kept.
+const AED_RANGE = /(?<![\w$])AED (\d{1,3}(?:,\d{3})*)(\s*[-–—]\s*)(\d{1,3}(?:,\d{3})*)(\+?)(?!\d|[.,]\d)/g;
 
-// A single written amount. "–" and a digit after it make it the low end of a range, which only
-// AED_RANGE may convert.
+// A single written amount is never one end of a range: no dash or "to" and a digit after it (the low
+// end) and no digit and a dash or "to" before it (the high end). Only AED_RANGE converts a range, and a
+// range it cannot read keeps the whole label as written.
+const NOT_LOW_END = String.raw`(?!\s*(?:[-–—]|to)\s*\d)`;
+const NOT_HIGH_END = String.raw`(?<!\d\s*(?:[-–—]|to)\s*)`;
 const WRITTEN_PATTERNS = WRITTEN.map((row) => ({
   ...row,
-  pattern: new RegExp(`${START}${row.source.replace(/[$.]/g, "\\$&")}${END}(?!–\\d)`, "g"),
+  pattern: new RegExp(`${START}${NOT_HIGH_END}${row.source.replace(/[$.]/g, "\\$&")}${END}${NOT_LOW_END}`, "g"),
 }));
 
 let memory: { rates: FxRates; at: number } | null = null;
@@ -159,13 +163,13 @@ export function rewriteHomeAmounts(
   if (selected !== "AED" && selected !== "USD" && selected !== "EUR") return text;
   if (!rates || !isRate(rates.aed) || !isRate(rates.eur)) return text;
   let next = text;
-  // A written AED range ("AED 80,000–90,000", en dash, optional trailing "+") converts at BOTH ends under
+  // A written AED range ("AED 80,000–90,000", see AED_RANGE) converts at BOTH ends under
   // one currency code. Only the low end carries the "AED " prefix the rows below match, so without this the
   // high end stayed in AED under a USD label. A range converts only when both ends come out finite and
   // above zero; otherwise it is left as written.
   next = next.replace(
     AED_RANGE,
-    (whole: string, low: string, high: string, plus: string) => {
+    (whole: string, low: string, separator: string, high: string, plus: string) => {
       if (selected === "AED") return whole; // already in AED: keep it byte for byte
       const prefix = `${selected} `;
       const ends = [low, high].map((digits) => {
@@ -176,7 +180,7 @@ export function rewriteHomeAmounts(
         const shown = shownAmount(selected, amount, locale);
         return shown !== null && shown.startsWith(prefix) ? shown.slice(prefix.length) : null;
       });
-      return ends[0] === null || ends[1] === null ? whole : `${prefix}${ends[0]}–${ends[1]}${plus}`;
+      return ends[0] === null || ends[1] === null ? whole : `${prefix}${ends[0]}${separator}${ends[1]}${plus}`;
     },
   );
   for (const row of WRITTEN_PATTERNS) {
