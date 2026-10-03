@@ -131,3 +131,73 @@ test("SF-1: a whole amount next to punctuation or the end of the line still conv
   assert.equal(rewriteHomeAmounts("$3,000, per person", "EUR", FIXTURE, "en"), "EUR 2,760, per person");
   assert.equal(rewriteHomeAmounts("from $20,000/person", "EUR", FIXTURE, "ar"), "from EUR 18,400/person");
 });
+
+// Zero, negative, NaN, infinite and non-number rates. JSON cannot carry NaN or Infinity, so the feed
+// test below sends 1e400 (parses to Infinity) and strings instead.
+const BAD_RATES = [0, -3.6725, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, "3.6725", null, undefined, true, {}];
+
+test("SF-2: convertWrittenAmount refuses a bad rate instead of returning a number", () => {
+  for (const bad of BAD_RATES) {
+    const badAed = { aed: bad, eur: FIXTURE.eur };
+    const badEur = { aed: FIXTURE.aed, eur: bad };
+    for (const amount of [3000, 80000]) {
+      assert.equal(convertWrittenAmount({ amount, currency: "USD" }, "AED", badAed), null, `USD->AED aed=${String(bad)}`);
+      assert.equal(convertWrittenAmount({ amount, currency: "AED" }, "USD", badAed), null, `AED->USD aed=${String(bad)}`);
+      assert.equal(convertWrittenAmount({ amount, currency: "AED" }, "EUR", badAed), null, `AED->EUR aed=${String(bad)}`);
+      assert.equal(convertWrittenAmount({ amount, currency: "USD" }, "EUR", badEur), null, `USD->EUR eur=${String(bad)}`);
+      assert.equal(convertWrittenAmount({ amount, currency: "AED" }, "EUR", badEur), null, `AED->EUR eur=${String(bad)}`);
+    }
+  }
+});
+
+test("SF-2: with a bad rate every published label stays exactly as written", () => {
+  for (const bad of BAD_RATES) {
+    for (const rates of [{ aed: bad, eur: FIXTURE.eur }, { aed: FIXTURE.aed, eur: bad }]) {
+      for (const label of LABELS) {
+        for (const code of CODES) {
+          for (const locale of LOCALES) {
+            const out = rewriteHomeAmounts(label, code, rates, locale);
+            assert.equal(out, label, `${code} ${locale} aed=${String(rates.aed)} eur=${String(rates.eur)}`);
+          }
+        }
+      }
+    }
+  }
+});
+
+test("SF-2: a range converts only when both ends come out finite and above zero", () => {
+  for (const text of ["AED 0–90,000", "AED 80,000–0", "AED 0–0+"]) {
+    for (const code of ["USD", "EUR"]) {
+      for (const locale of LOCALES) assert.equal(rewriteHomeAmounts(text, code, FIXTURE, locale), text, `${text} -> ${code}`);
+    }
+  }
+});
+
+test("SF-2: the feed is refused when a rate is zero, negative, infinite or not a number", async () => {
+  // A fresh copy of the module, so the 12-hour memory of another test cannot answer for the feed.
+  const { loadRates } = await import("../lib/fx/rates.ts?bad-feed");
+  const bodies = [
+    '{"date":"2026-10-03","usd":{"aed":0,"eur":0.92}}',
+    '{"date":"2026-10-03","usd":{"aed":-3.6725,"eur":0.92}}',
+    '{"date":"2026-10-03","usd":{"aed":1e400,"eur":0.92}}',
+    '{"date":"2026-10-03","usd":{"aed":"3.6725","eur":0.92}}',
+    '{"date":"2026-10-03","usd":{"aed":null,"eur":0.92}}',
+    '{"date":"2026-10-03","usd":{"aed":true,"eur":0.92}}',
+    '{"date":"2026-10-03","usd":{"aed":3.6725,"eur":0}}',
+    '{"date":"2026-10-03","usd":{"aed":3.6725,"eur":"NaN"}}',
+    '{"date":"2026-10-03","usd":{"aed":3.6725,"eur":-1e400}}',
+    '{"date":"2026-10-03","usd":{"aed":3.6725}}',
+  ];
+  const originalFetch = globalThis.fetch;
+  try {
+    for (const body of bodies) {
+      globalThis.fetch = async () => new Response(body, { status: 200, headers: { "content-type": "application/json" } });
+      assert.equal(await loadRates(), null, body);
+    }
+    globalThis.fetch = async () =>
+      new Response('{"date":"2026-10-03","usd":{"aed":3.6725,"eur":0.92}}', { status: 200 });
+    assert.deepEqual(await loadRates(), { aed: 3.6725, eur: 0.92, date: "2026-10-03" });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
