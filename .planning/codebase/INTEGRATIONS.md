@@ -32,8 +32,8 @@ Scope: what the code at `main` = `68df3b6` actually calls, versus what is only i
 - Free community currency feed `https://latest.currency-api.pages.dev/v1/currencies/usd.json` (constant `FX_URL` in `lib/fx/rates.ts`).
   - SDK/Client: global `fetch` in `readFeed()`; one retry; 12-hour in-memory cache (`memory`, `TWELVE_HOURS`) per server process.
   - Auth: none.
-  - Consumers: `loadRates()` is called from `app/fx/route.ts` (`GET /fx`, `force-dynamic`, 404 when `NODE_ENV === "production"`) and from `app/dashboard/(ops)/settings/page.tsx` (server page, `notFound()` in production). `homePriceScript()` (a `postMessage` price-rewriting browser script with no caller) was deleted as dead code in the slice 1 money fix (2026-10-03).
-  - Production state: not live. The static Worker has no `/fx`, so no rates are fetched in production.
+  - Consumers: `loadRates()` is called from `app/fx/route.ts` (`GET /fx`, `force-dynamic`, 404 when `NODE_ENV === "production"`), from `app/dashboard/(ops)/settings/page.tsx` (server page, `notFound()` in production), and through `getRates()` (`lib/data/rates.ts`) from `components/pages/home-page.tsx:59`, which renders `/`, `/ar` and `/es`. `homePriceScript()` (a `postMessage` price-rewriting browser script with no caller) was deleted as dead code in the slice 1 money fix (2026-10-03).
+  - Production state: the static Worker has no `/fx` and fetches nothing per request. The home pages read the feed once at build time (`next build`) and bake those rates in; a refused or unreachable feed gives no rates, and the published prices print as written.
 
 **Newsletter / email contacts (Resend):**
 - Resend Contacts API - `app/newsletter/route.ts` (`POST`, `runtime = "nodejs"`, `force-dynamic`) validates a honeypot list (`HONEYPOT_FIELDS`: `title`, `website`, `company`, `message`, `subject`, `description`, `feedback`, `notes`, `details`, `remarks`, `comments`), reads form field `Email`, and calls `resend.contacts.create({ email, unsubscribed: false })`. Responses: 400 bad input or honeypot hit, 503 missing key, 502 Resend error or missing `data.id`, 200 `{ ok: true, id }`. Returns 404 when `NODE_ENV === "production"`.

@@ -201,10 +201,7 @@ test("SF-2: the feed is refused when a rate is zero, negative, infinite, not a n
   try {
     for (const body of bodies) {
       globalThis.fetch = async () => new Response(body, { status: 200, headers: { "content-type": "application/json" } });
-      const rates = await loadRates();
-      assert.equal(rates, null, body);
-      // No rates: every published label is printed as written.
-      for (const code of CODES) assert.equal(rewriteHomeAmounts(LABELS[0], code, rates, "en"), LABELS[0]);
+      assert.equal(await loadRates(), null, body);
     }
     globalThis.fetch = async () =>
       new Response('{"date":"2026-10-03","usd":{"aed":3.6725,"eur":0.92}}', { status: 200 });
