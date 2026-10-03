@@ -17,6 +17,12 @@ export const FX_URL = "https://latest.currency-api.pages.dev/v1/currencies/usd.j
 
 const TWELVE_HOURS = 12 * 60 * 60 * 1000;
 
+// Sanity band for the daily feed (units per 1 USD). The dirham is pegged to the dollar, so a feed outside
+// these bounds is wrong (swapped, scaled, broken), not a market move; it is refused and the published
+// text stays as written.
+const AED_PER_USD = { min: 3.6, max: 3.75 };
+const EUR_PER_USD = { min: 0.5, max: 1.5 };
+
 export type WrittenCurrency = "USD" | "AED";
 export type SelectedCurrency = "AED" | "USD" | "EUR";
 
@@ -212,6 +218,8 @@ async function readFeed(): Promise<FxRates | null> {
     const eur = record.usd?.eur;
     const date = record.date;
     if (!isRate(aed) || !isRate(eur)) return null;
+    if (aed < AED_PER_USD.min || aed > AED_PER_USD.max) return null;
+    if (eur < EUR_PER_USD.min || eur > EUR_PER_USD.max) return null;
     if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
     return { aed, eur, date };
   } catch {
