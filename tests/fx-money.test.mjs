@@ -222,6 +222,8 @@ test("SF-4/SF-5: a label that cannot convert completely is printed as written, n
     "$3,000-3,500", // a dollar range: its high end carries no "$", so neither end may convert
     "2,000–$3,000", // the high end of a range never converts alone
     "2,000 to $3,000",
+    "From 900–$3,000", // pins NOT_HIGH_END: without it, "From 900–EUR 2,760"
+    "From USD $3,000/person · deposit $500", // pins the "$" check in settled(): "$500" is not a published amount
   ];
   for (const text of cases) {
     for (const code of CODES) {
