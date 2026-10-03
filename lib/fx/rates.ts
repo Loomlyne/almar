@@ -122,6 +122,26 @@ export function rewriteHomeAmounts(
     return text;
   }
   let next = text;
+  // A written AED range ("AED 80,000–90,000", en dash, optional trailing "+") converts at BOTH ends under
+  // one currency code. Only the low end carries the "AED " prefix the rows below match, so without this the
+  // high end stayed in AED under a USD label. A range with an end that cannot convert is left as written.
+  next = next.replace(
+    /AED (\d{1,3}(?:,\d{3})*)–(\d{1,3}(?:,\d{3})*)(\+?)/g,
+    (whole: string, low: string, high: string, plus: string) => {
+      const prefix = `${selected} `;
+      const ends = [low, high].map((digits) => {
+        const amount = convertWrittenAmount(
+          { amount: Number(digits.replace(/,/g, "")), currency: "AED" },
+          selected,
+          rates,
+        );
+        if (amount === null) return null;
+        const shown = formatConverted(selected, amount, locale);
+        return shown.startsWith(prefix) ? shown.slice(prefix.length) : null;
+      });
+      return ends[0] === null || ends[1] === null ? whole : `${prefix}${ends[0]}–${ends[1]}${plus}`;
+    },
+  );
   for (const row of WRITTEN) {
     if (!next.includes(row.source)) continue;
     const amount = convertWrittenAmount(
