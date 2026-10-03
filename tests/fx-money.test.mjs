@@ -279,3 +279,8 @@ test("N5: an amount that is not a safe integer is never read or converted", () =
     }
   }
 });
+
+test("N7: the dead homePriceScript export is gone", async () => {
+  const mod = await import("../lib/fx/rates.ts");
+  assert.equal("homePriceScript" in mod, false);
+});
