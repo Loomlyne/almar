@@ -1,5 +1,7 @@
 import { test, type Page } from "@playwright/test";
-import { LOCALES, WIDTHS, VIEWPORTS, expect, open } from "./_helpers";
+import { JOURNEY_COPY } from "../../lib/copy/journey";
+import { fill, formatGuestSummary } from "../../lib/journey-format";
+import { LOCALES, WIDTHS, VIEWPORTS, expect, open, style } from "./_helpers";
 
 // Seven extensions to existing components, proven in the browser at 390, 834 and 1440 in EN, AR and ES.
 
@@ -245,6 +247,154 @@ for (const viewport of WIDTHS) {
         await open(page, "chip", "dense-toggle", locale, viewport);
         expect(Math.round((await page.getByRole("button", { name: "[Dense toggle]" }).boundingBox())!.height)).toBe(24);
       });
+    });
+
+    test.describe(`JourneyBar ${where}`, () => {
+      const copy = JOURNEY_COPY[locale];
+      const seg = (page: Page, i: number) => page.getByRole("group", { name: copy.bar.label }).locator("button").nth(i);
+      const day = (page: Page, dmy: string) => page.locator(`button[aria-label^="${dmy}"]`);
+
+      // R-6: below the md breakpoint the phone entry and sheet replace the bar, so the bar is
+      // proven at 834 and 1440.
+      if (viewport !== "phone") {
+        test("no onSearch: no submit control of any kind; the wrapper is a group, not a search form", async ({ page }) => {
+          await open(page, "journey-bar-ext", "no-search", locale, viewport);
+          await expect(page.getByRole("button", { name: copy.bar.search })).toHaveCount(0);
+          await expect(page.locator("form")).toHaveCount(0);
+          await expect(page.getByRole("search")).toHaveCount(0);
+          await expect(page.locator("button[type=submit]")).toHaveCount(0);
+          const group = page.getByRole("group", { name: copy.bar.label });
+          await expect(group).toHaveCount(1);
+          await expect(group.locator("button")).toHaveCount(3);
+        });
+
+        test("no onSearch: Where auto-advances to When; the bar fills in; onChange fires", async ({ page }) => {
+          await open(page, "journey-bar-ext", "no-search", locale, viewport);
+          await seg(page, 0).click();
+          await page.getByRole("option", { name: /Cartagena/ }).click();
+          await expect(page.getByRole("group", { name: copy.dates.label })).toBeVisible();
+          await expect(seg(page, 0)).toContainText("Cartagena");
+          if (viewport === "desktop") {
+            await day(page, "12/10/2026").click();
+            await day(page, "17/10/2026").click();
+            await page.getByRole("button", { name: copy.done }).click();
+            await expect(seg(page, 1)).toContainText("12/10/2026 – 17/10/2026");
+            const g = copy.guests;
+            await page.getByRole("button", { name: fill(g.add, { group: g.group.adult }) }).click();
+            await expect(seg(page, 2)).toContainText(
+              formatGuestSummary({ adults: 2, children: 0, infants: 0 }, locale, g.summary),
+            );
+            await page.getByRole("button", { name: copy.done }).click();
+            await expect(page.getByRole("button", { name: copy.bar.search })).toHaveCount(0);
+          }
+          expect(Number(await page.getByTestId("changes").textContent())).toBeGreaterThan(0);
+        });
+
+        test("with onSearch: today's search form and Search button", async ({ page }) => {
+          await open(page, "journey-bar-ext", "with-search", locale, viewport);
+          await expect(page.getByRole("search", { name: copy.bar.label })).toHaveCount(1);
+          await expect(page.getByRole("button", { name: copy.bar.search })).toHaveCount(1);
+          await expect(page.locator("button[type=submit]")).toHaveCount(1);
+        });
+
+        test("lockStay: four segments at 1 / 1.3 / 1.3 / 1; Destination and Stay show the lock and open nothing", async ({ page }) => {
+          await open(page, "journey-bar-ext", "stay-locked", locale, viewport);
+          const group = page.getByRole("group", { name: copy.bar.label });
+          await expect(group.getByText("[Stay]", { exact: true })).toBeVisible();
+          await expect(group.getByText("[Stay name]")).toBeVisible();
+          const stay = group.locator('[data-bar-segment="stay"]');
+          expect(await stay.locator("svg").count()).toBe(1);
+          expect(await seg(page, 0).locator("svg").count()).toBe(1);
+          const widths = [
+            (await seg(page, 0).locator("xpath=..").boundingBox())!.width,
+            (await stay.locator("xpath=..").boundingBox())!.width,
+            (await seg(page, 1).locator("xpath=..").boundingBox())!.width,
+            (await seg(page, 2).locator("xpath=..").boundingBox())!.width,
+          ];
+          expect(widths[1] / widths[0]).toBeCloseTo(1.3, 1);
+          expect(widths[2] / widths[0]).toBeCloseTo(1.3, 1);
+          expect(widths[3] / widths[0]).toBeCloseTo(1, 1);
+          await expect(group.locator("button[type=submit]")).toHaveCount(0);
+          // Click and Enter open nothing.
+          await seg(page, 0).click({ force: true });
+          await stay.click({ force: true });
+          await seg(page, 0).focus();
+          await page.keyboard.press("Enter");
+          await expect(page.getByRole("listbox")).toHaveCount(0);
+          await expect(page.getByRole("group", { name: copy.dates.label })).toHaveCount(0);
+          await expect(seg(page, 0)).toHaveAttribute("aria-disabled", "true");
+        });
+
+        test("lockStay: a blocked date is aria-disabled with a line through it and cannot be picked", async ({ page }) => {
+          await open(page, "journey-bar-ext", "stay-locked", locale, viewport);
+          await seg(page, 1).click();
+          const blocked = day(page, "20/10/2026");
+          if (!(await blocked.isVisible())) {
+            await page.getByRole("button", { name: copy.dates.nextMonth }).click();
+          }
+          await expect(blocked).toHaveAttribute("aria-disabled", "true");
+          expect(await style(blocked, "text-decoration-line")).toContain("line-through");
+          await day(page, "18/10/2026").click();
+          await blocked.click({ force: true });
+          await expect(day(page, "18/10/2026")).toHaveAttribute("aria-label", /./);
+          await expect(blocked).not.toHaveAttribute("aria-label", new RegExp(copy.dates.day.departure));
+        });
+      }
+    });
+
+    test.describe(`JourneySheet ${where}`, () => {
+      const copy = JOURNEY_COPY[locale];
+      // R-6: the sheet is the phone's journey; the bar replaces it from the md breakpoint.
+      if (viewport === "phone") {
+        const entry = (page: Page) => page.getByRole("button", { name: new RegExp(copy.entry.title) });
+        const dialog = (page: Page) => page.getByRole("dialog", { name: copy.sheet.label });
+
+        test("no onSearch: Where, When, Who; the last step ends in Done, no Search; Done closes and keeps the value", async ({ page }) => {
+          await open(page, "journey-sheet-ext", "no-search", locale, viewport);
+          await entry(page).click();
+          await page.getByRole("option", { name: /Cartagena/ }).click();
+          await page.getByRole("button", { name: copy.dates.nextMonth }).click();
+          await page.locator('button[aria-label^="12/10/2026"]').click();
+          await page.locator('button[aria-label^="17/10/2026"]').click();
+          await page.getByRole("button", { name: copy.sheet.next, exact: true }).click();
+          const g = copy.guests;
+          await page.getByRole("button", { name: fill(g.add, { group: g.group.adult }) }).click();
+          await expect(dialog(page).getByRole("button", { name: copy.done, exact: true })).toBeVisible();
+          await expect(dialog(page).getByRole("button", { name: copy.bar.search })).toHaveCount(0);
+          await dialog(page).getByRole("button", { name: copy.done, exact: true }).click();
+          await expect(dialog(page)).toHaveCount(0);
+          const row = page.locator("[data-testid=harness-sheet] > div button").first();
+          await expect(row).toContainText("Cartagena");
+          await expect(row).toContainText("12/10/2026 – 17/10/2026");
+          await expect(row).toContainText(formatGuestSummary({ adults: 2, children: 0, infants: 0 }, locale, g.summary));
+        });
+
+        test("with onSearch: the last step still ends in Search", async ({ page }) => {
+          await open(page, "journey-sheet-ext", "with-search", locale, viewport);
+          await entry(page).click();
+          await page.getByRole("option", { name: /Cartagena/ }).click();
+          await page.getByRole("button", { name: copy.dates.nextMonth }).click();
+          await page.locator('button[aria-label^="12/10/2026"]').click();
+          await page.locator('button[aria-label^="17/10/2026"]').click();
+          await page.getByRole("button", { name: copy.sheet.next, exact: true }).click();
+          await expect(dialog(page).getByRole("button", { name: copy.bar.search })).toBeVisible();
+          await expect(dialog(page).getByRole("button", { name: copy.done, exact: true })).toHaveCount(0);
+        });
+
+        test("stay entry: magnifier, stay line over dates and guests, a 44x44 arrow; the row opens the sheet at When", async ({ page }) => {
+          await open(page, "journey-sheet-ext", "entry-stay", locale, viewport);
+          const row = page.locator("[data-testid=harness-sheet] > div button").first();
+          await expect(row).toContainText("[Cartagena, Stay name]");
+          await expect(row).toContainText(
+            `${copy.bar.dates.empty} · ${formatGuestSummary({ adults: 1, children: 0, infants: 0 }, locale, copy.guests.summary)}`,
+          );
+          expect(await row.locator("> svg").count()).toBe(1);
+          const arrow = (await row.locator("span[aria-hidden=true]").boundingBox())!;
+          expect([Math.round(arrow.width), Math.round(arrow.height)]).toEqual([44, 44]);
+          await row.click();
+          await expect(dialog(page).getByRole("heading", { name: copy.sheet.when })).toBeVisible();
+        });
+      }
     });
   }
 }
