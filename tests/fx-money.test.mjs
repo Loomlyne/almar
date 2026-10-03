@@ -250,11 +250,18 @@ test("N1: with AED selected an AED range is kept byte for byte, never re-formatt
 test("N4: a price that would print empty or as zero leaves the label as written", () => {
   // Finite rates above zero, but far outside any real quote: 3,000 x 1e308 overflows to Infinity (which
   // formats as an empty string) and 80,000 / 1e308 prints as 0.00.
-  for (const rates of [{ aed: 1e308, eur: 1e308 }, { aed: 1e-308, eur: FIXTURE.eur }, { aed: FIXTURE.aed, eur: 1e-308 }]) {
-    for (const label of LABELS) {
+  // [rates, the currencies whose conversion uses an absurd rate]; the others must still convert correctly.
+  const cases = [
+    [{ aed: 1e308, eur: 1e308 }, CODES],
+    [{ aed: 1e-308, eur: FIXTURE.eur }, CODES],
+    [{ aed: FIXTURE.aed, eur: 1e-308 }, ["EUR"]],
+  ];
+  for (const [rates, broken] of cases) {
+    for (const [i, label] of LABELS.entries()) {
       for (const code of CODES) {
+        const want = broken.includes(code) ? label : TODAY[code][i];
         for (const locale of LOCALES) {
-          assert.equal(rewriteHomeAmounts(label, code, rates, locale), label, `${code} ${locale} aed=${rates.aed} eur=${rates.eur}`);
+          assert.equal(rewriteHomeAmounts(label, code, rates, locale), want, `${code} ${locale} aed=${rates.aed} eur=${rates.eur}`);
         }
       }
     }

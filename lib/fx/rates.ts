@@ -127,6 +127,12 @@ export function formatConverted(
   return formatLikeAmount(currency, amount, "en");
 }
 
+/** The converted amount as text, or null when it would print empty (not finite) or as zero. */
+function shownAmount(selected: SelectedCurrency, amount: number, locale: string): string | null {
+  const shown = formatConverted(selected, amount, locale);
+  return shown !== "" && /[1-9]/.test(shown) ? shown : null;
+}
+
 /**
  * True when `out` reads in one currency only: no written dollar amount is left ("$3,000", "US$3,000")
  * and every currency code in it is the selected one.
@@ -163,8 +169,8 @@ export function rewriteHomeAmounts(
           rates,
         );
         if (amount === null || !Number.isFinite(amount) || amount <= 0) return null;
-        const shown = formatConverted(selected, amount, locale);
-        return shown.startsWith(prefix) ? shown.slice(prefix.length) : null;
+        const shown = shownAmount(selected, amount, locale);
+        return shown !== null && shown.startsWith(prefix) ? shown.slice(prefix.length) : null;
       });
       return ends[0] === null || ends[1] === null ? whole : `${prefix}${ends[0]}–${ends[1]}${plus}`;
     },
@@ -178,7 +184,8 @@ export function rewriteHomeAmounts(
       rates,
     );
     if (amount === null) continue;
-    const shown = formatConverted(selected, amount, locale);
+    const shown = shownAmount(selected, amount, locale);
+    if (shown === null) continue;
     next = next.replace(row.pattern, () => shown);
   }
   // All or nothing: a written amount that could not be converted, or a second currency code, means the
