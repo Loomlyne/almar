@@ -127,6 +127,16 @@ export function formatConverted(
   return formatLikeAmount(currency, amount, "en");
 }
 
+/**
+ * True when `out` reads in one currency only: no written dollar amount is left ("$3,000", "US$3,000")
+ * and every currency code in it is the selected one.
+ */
+function settled(out: string, selected: SelectedCurrency): boolean {
+  if (/\$\s?\d/.test(out)) return false;
+  const codes = out.match(/\b(?:AED|USD|EUR)\b/g) ?? [];
+  return codes.every((code) => code === selected);
+}
+
 export function rewriteHomeAmounts(
   text: string,
   selected: SelectedCurrency,
@@ -169,7 +179,9 @@ export function rewriteHomeAmounts(
     const shown = formatConverted(selected, amount, locale);
     next = next.replace(row.pattern, () => shown);
   }
-  return next;
+  // All or nothing: a written amount that could not be converted, or a second currency code, means the
+  // label would mix currencies. Print it exactly as written instead.
+  return settled(next, selected) ? next : text;
 }
 
 async function readFeed(): Promise<FxRates | null> {
