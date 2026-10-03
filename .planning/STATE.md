@@ -123,5 +123,5 @@ From the 3.1 hand-over (open items 1–5): dead controls W6 (Phase 3.2 and 2), g
 ## Session Continuity
 
 Last session: 2026-10-03T15:28:00.000Z
-Stopped at: slice 1 wave 3 merged (84deec2); fixes then plan 08; jobs 07–09 opened for design
+Stopped at: slice 1 fixes and media flip merged (0f33130); plan 08 running; jobs 07–09 designing
 Resume file: .planning/CONTROL-BOARD.md
