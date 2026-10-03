@@ -193,10 +193,13 @@ export function rewriteHomeAmounts(
     AED_RANGE,
     (whole: string, low: string, separator: string, high: string, plus: string) => {
       if (selected === "AED") return whole; // already in AED: keep it byte for byte
+      // A high end below the low end is not money ("AED 80,000 – 7 nights"): leave it, and the low end
+      // alone is then never converted (NOT_LOW_END), so the label prints as written.
+      const lowAmount = writtenNumber(low);
+      const highAmount = writtenNumber(high);
+      if (lowAmount === null || highAmount === null || highAmount < lowAmount) return whole;
       const prefix = `${selected} `;
-      const ends = [low, high].map((digits) => {
-        const written = writtenNumber(digits);
-        if (written === null) return null;
+      const ends = [lowAmount, highAmount].map((written) => {
         const amount = convertWrittenAmount({ amount: written, currency: "AED" }, selected, rates);
         if (amount === null || !Number.isFinite(amount) || amount <= 0) return null;
         const shown = shownAmount(selected, amount, locale);
