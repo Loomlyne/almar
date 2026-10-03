@@ -69,7 +69,7 @@ export function HomeHero({
         ) : null}
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-b from-ink/55 via-ink/15 to-ink/60" />
 
-        <PageShell className="grid gap-12 pb-12 md:pb-16">
+        <PageShell className="grid gap-12 pb-16">
           <h1 id={headingId} className="m-0 max-w-4xl font-display text-hero tracking-display text-ivory text-balance">
             {headline}
           </h1>

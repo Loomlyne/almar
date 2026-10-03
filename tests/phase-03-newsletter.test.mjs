@@ -1,10 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 const routeSource = readFileSync("app/newsletter/route.ts", "utf8");
 const footerSource = readFileSync("components/ui/footer.tsx", "utf8");
-const homeSource = readFileSync("app/route.ts", "utf8");
+// 3.3 plan 04: the home is a React page. Its source is the route file, the page component and the home parts.
+const homeSource = [
+  "app/page.tsx",
+  "components/pages/home-page.tsx",
+  ...readdirSync("components/pages/home").map((name) => `components/pages/home/${name}`),
+]
+  .map((file) => readFileSync(file, "utf8"))
+  .join("\n");
 const envExample = readFileSync(".env.example", "utf8");
 
 test("the newsletter route calls contacts.create", () => {

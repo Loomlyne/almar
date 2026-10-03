@@ -35,7 +35,7 @@ export function HomeNav({
 }) {
   const { selected, choose } = useCurrencyChoice();
   const hrefs = localeHrefsOf(HOME_PATH);
-  return (
+  const nav = (
     <SiteNav
       locale={locale}
       labels={labels}
@@ -49,6 +49,11 @@ export function HomeNav({
       onCurrency={choose}
     />
   );
+  // SiteNav's on-image tone lists both `sticky` and `absolute` in one class string and the stylesheet lets
+  // `sticky` win, so the bar would sit in the flow above the hero instead of over it (measured 2026-10-03:
+  // position sticky, 61px). components/ui/nav.tsx is plan 02's; until it is fixed there, the over-the-hero
+  // bar is taken out of the flow here. The docked planner takes over from it once the hero has scrolled away.
+  return tone === "on-image" ? <div className="absolute inset-x-0 top-0 z-40">{nav}</div> : nav;
 }
 
 export function HomeFrame({
