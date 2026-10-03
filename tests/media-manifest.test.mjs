@@ -1,4 +1,4 @@
-// Tests for the media manifest and its builder (plan 03.3-07, task 1).
+// Tests for the media manifest, its builder and the fetch step (plan 03.3-07, tasks 1 and 2).
 // The manifest is the one list of every image the slice-1 pages render. These tests prove, on the real tree,
 // that its key set equals the fixtures' key set both ways, that every image has an alt record in all three
 // languages, and (once the files are measured) that every entry has a hash, size and dimensions. The red cases
@@ -19,12 +19,15 @@ import {
   collectFixtureImages,
   defaultPaths,
   isWebp,
+  md5,
   readManifest,
   serializeManifest,
+  sha256,
   slice1Documents,
   webpDimensions,
 } from "../scripts/media-lib.mjs";
-import { buildManifest, checkManifest, main as manifestMain } from "../scripts/media-manifest.mjs";
+import { buildManifest, checkManifest, main as manifestMain, syncFixtureDimensions } from "../scripts/media-manifest.mjs";
+import { fetchAll, withFormatWebp } from "../scripts/media-fetch.mjs";
 
 const paths = defaultPaths();
 const manifest = readManifest(paths.manifestPath);
@@ -271,4 +274,144 @@ test("slice1Documents lists the 42 slice-1 documents: 14 per locale, EN at the r
   assert.ok(docs.includes("index.html") && docs.includes("ar/index.html") && docs.includes("es/index.html"));
   assert.ok(docs.includes("private-stays.html") && docs.includes("es/private-stays/getsemani-colonial-house.html"));
   assert.equal(docs.filter((d) => d.startsWith("ar/")).length, 14);
+});
+
+// Task 2: measured fields, the cache, and fetch -------------------------------------------------------------------
+
+const cacheExists = fs.existsSync(paths.cacheDir);
+
+test("every entry is measured: content_type, bytes, sha256, md5, width and height", () => {
+  for (const e of manifest) {
+    assert.equal(e.content_type, "image/webp", `${e.key}: content_type`);
+    assert.ok(Number.isInteger(e.bytes) && e.bytes > 0, `${e.key}: bytes`);
+    assert.match(e.sha256, /^[0-9a-f]{64}$/, `${e.key}: sha256`);
+    assert.match(e.md5, /^[0-9a-f]{32}$/, `${e.key}: md5`);
+    assert.ok(Number.isInteger(e.width) && e.width > 0, `${e.key}: width`);
+    assert.ok(Number.isInteger(e.height) && e.height > 0, `${e.key}: height`);
+  }
+});
+
+test("every fixture image's width and height equal its manifest entry's", () => {
+  const byKey = new Map(manifest.map((e) => [e.key, e]));
+  for (const i of images) {
+    const e = byKey.get(i.media_key);
+    assert.deepEqual({ width: i.width, height: i.height }, { width: e.width, height: e.height }, `${i.file} ${i.path} (${i.media_key})`);
+  }
+});
+
+test(cacheExists ? "every cached file's sha256 equals the manifest" : "every cached file's sha256 equals the manifest (SKIPPED: media-staging/ is absent, as in a clean clone)", { skip: !cacheExists && "media-staging/ is absent" }, () => {
+  for (const e of manifest) {
+    const file = cachePath(e.key, paths.cacheDir);
+    assert.ok(fs.existsSync(file), `${e.key} is not cached`);
+    const buf = fs.readFileSync(file);
+    assert.equal(sha256(buf), e.sha256, e.key);
+    assert.equal(buf.length, e.bytes, e.key);
+  }
+});
+
+function fakeResponse(body, { status = 200, type = "image/webp", url } = {}) {
+  return { status, ok: status >= 200 && status < 300, url, headers: { get: (n) => (n.toLowerCase() === "content-type" ? type : null) }, arrayBuffer: async () => body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) };
+}
+
+test("fetchAll: downloads once, skips a file whose hash matches, never overwrites on a hash mismatch, offline refuses", async () => {
+  const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "almar-media-cache-"));
+  const publicDir = fs.mkdtempSync(path.join(os.tmpdir(), "almar-media-public-"));
+  fs.mkdirSync(path.join(publicDir, "assets", "img"), { recursive: true });
+  const good = vp8(40, 30);
+  const other = vp8(41, 30);
+  fs.writeFileSync(path.join(publicDir, "assets", "img", "aaaa.webp"), good);
+  const entries = [
+    { key: "t/local.webp", source: "/assets/img/aaaa.webp", source_kind: "local", sha256: sha256(good) },
+    { key: "t/remote.webp", source: "https://framerusercontent.com/images/abc.jpg?width=40&height=30", source_kind: "framerusercontent", sha256: sha256(good) },
+  ];
+  const lines = [];
+  let calls = 0;
+  const okFetch = async (url, init) => {
+    calls++;
+    assert.equal(init.headers.Accept, "image/webp");
+    assert.equal(init.headers["User-Agent"], "almar-media-fetch");
+    return fakeResponse(good, { url });
+  };
+  let r = await fetchAll({ manifest: entries, cacheDir, publicDir, fetch: okFetch, log: (l) => lines.push(l) });
+  assert.deepEqual({ cached: r.cached, downloaded: r.downloaded, copied: r.copied, failed: r.failed }, { cached: 0, downloaded: 1, copied: 1, failed: 0 });
+  assert.equal(calls, 1);
+  assert.match(lines.at(-1), /^media-fetch: 2 entries, 0 cached, 1 downloaded, 1 copied, 0 failed, 0\.0 MB in media-staging\/$/);
+  // Second run: nothing to do, no network.
+  r = await fetchAll({ manifest: entries, cacheDir, publicDir, fetch: async () => assert.fail("no network on a warm cache"), log: () => {} });
+  assert.deepEqual({ cached: r.cached, downloaded: r.downloaded, copied: r.copied, failed: r.failed }, { cached: 2, downloaded: 0, copied: 0, failed: 0 });
+  // Corrupt the cached file: --offline reports HASH MISMATCH and fails; online restores it from the source.
+  fs.writeFileSync(path.join(cacheDir, "t", "remote.webp"), other);
+  lines.length = 0;
+  r = await fetchAll({ manifest: entries, cacheDir, publicDir, offline: true, fetch: async () => assert.fail("offline"), log: (l) => lines.push(l) });
+  assert.equal(r.failed, 1);
+  assert.ok(lines.some((l) => l.startsWith("HASH MISMATCH t/remote.webp expected ")), lines.join("\n"));
+  r = await fetchAll({ manifest: entries, cacheDir, publicDir, fetch: okFetch, log: () => {} });
+  assert.equal(r.failed, 0);
+  assert.equal(sha256(fs.readFileSync(path.join(cacheDir, "t", "remote.webp"))), sha256(good));
+  // A source that now serves different bytes fails and leaves the manifest alone (entries are not mutated).
+  fs.rmSync(path.join(cacheDir, "t", "remote.webp"));
+  lines.length = 0;
+  r = await fetchAll({ manifest: entries, cacheDir, publicDir, fetch: async (url) => fakeResponse(other, { url }), log: (l) => lines.push(l) });
+  assert.equal(r.failed, 1);
+  assert.ok(lines.some((l) => l.startsWith("HASH MISMATCH t/remote.webp expected ")));
+  assert.equal(fs.existsSync(path.join(cacheDir, "t", "remote.webp")), false);
+  assert.equal(entries[1].sha256, sha256(good));
+  // A source that does not negotiate to WebP is a hard error naming the key.
+  lines.length = 0;
+  r = await fetchAll({ manifest: entries, cacheDir, publicDir, fetch: async (url) => fakeResponse(Buffer.from([0xff, 0xd8, 0xff]), { url, type: "image/jpeg" }), log: (l) => lines.push(l) });
+  assert.equal(r.failed, 1);
+  assert.ok(lines.some((l) => /t\/remote\.webp/.test(l) && /image\/webp/.test(l)), lines.join("\n"));
+  // An unhashed entry keeps the file and prints UNHASHED.
+  lines.length = 0;
+  const fresh = fs.mkdtempSync(path.join(os.tmpdir(), "almar-media-cache-"));
+  r = await fetchAll({ manifest: [{ key: "t/new.webp", source: "https://framerusercontent.com/images/new.jpg", source_kind: "framerusercontent" }], cacheDir: fresh, publicDir, fetch: okFetch, log: (l) => lines.push(l) });
+  assert.equal(r.failed, 0);
+  assert.ok(lines.includes("UNHASHED t/new.webp"));
+  assert.equal(md5(fs.readFileSync(path.join(fresh, "t", "new.webp"))), md5(good));
+  // A 5xx is retried at most twice, then fails.
+  let tries = 0;
+  lines.length = 0;
+  r = await fetchAll({ manifest: [entries[1]], cacheDir: fs.mkdtempSync(path.join(os.tmpdir(), "almar-media-cache-")), publicDir, fetch: async (url) => (tries++, fakeResponse(Buffer.alloc(0), { url, status: 503 })), retryDelayMs: 0, log: (l) => lines.push(l) });
+  assert.equal(tries, 3);
+  assert.equal(r.failed, 1);
+});
+
+test("fetchAll: when the plain answer is not WebP, one second try adds format=webp to the query", async () => {
+  const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "almar-media-cache-"));
+  const good = vp8(40, 30);
+  const urls = [];
+  const entry = { key: "t/fallback.webp", source: "https://framerusercontent.com/images/abc.jpg?width=40&height=30", source_kind: "framerusercontent", sha256: sha256(good) };
+  const r = await fetchAll({
+    manifest: [entry],
+    cacheDir,
+    fetch: async (url) => {
+      urls.push(url);
+      return new URL(url).searchParams.get("format") === "webp" ? fakeResponse(good, { url }) : fakeResponse(Buffer.from([0xff, 0xd8, 0xff]), { url, type: "image/jpeg" });
+    },
+    log: () => {},
+  });
+  assert.equal(r.failed, 0);
+  assert.equal(r.downloaded, 1);
+  assert.deepEqual(urls, [entry.source, "https://framerusercontent.com/images/abc.jpg?width=40&height=30&format=webp"]);
+  assert.equal(withFormatWebp("https://framerusercontent.com/images/a.png"), "https://framerusercontent.com/images/a.png?format=webp");
+  assert.equal(withFormatWebp("https://framerusercontent.com/images/a.png?format=webp"), "https://framerusercontent.com/images/a.png?format=webp");
+});
+
+test("syncFixtureDimensions rewrites only width and height of a mismatching image, keeping formatting", () => {
+  const root = scratch("sync");
+  const mpath = path.join(root, "lib", "data", "media-manifest.json");
+  const m = JSON.parse(fs.readFileSync(mpath, "utf8"));
+  const target = m.find((e) => e.key === images[0].media_key);
+  target.width = images[0].width + 7;
+  target.height = images[0].height + 3;
+  fs.writeFileSync(mpath, JSON.stringify(m, null, 2) + "\n");
+  const before = fs.readFileSync(path.join(root, "lib", "data", "fixtures", images[0].file), "utf8");
+  const { changes, problems } = syncFixtureDimensions(defaultPaths(root));
+  assert.deepEqual(problems, []);
+  assert.equal(changes.length, 1);
+  const after = fs.readFileSync(path.join(root, "lib", "data", "fixtures", images[0].file), "utf8");
+  const diff = [...before.split("\n").entries()].filter(([i, l]) => l !== after.split("\n")[i]);
+  assert.equal(diff.length, 2);
+  assert.ok(diff.every(([, l]) => /"(width|height)":/.test(l)));
+  assert.equal(syncFixtureDimensions(defaultPaths(root)).changes.length, 0);
 });

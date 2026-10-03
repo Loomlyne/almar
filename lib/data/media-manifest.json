@@ -8,7 +8,13 @@
     ],
     "image_ids": [
       "0f28d1c4-47c9-5251-a4fc-696dc90caa77"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 233316,
+    "sha256": "39ad5a42e1aa4b2773529a7188604535b3e24d43237a26a96034e999188fb8a4",
+    "md5": "b5023a3652e2c51315667981a07f9912",
+    "width": 1600,
+    "height": 1200
   },
   {
     "key": "catalog/cartagena-heritage-tours.webp",
@@ -19,7 +25,13 @@
     ],
     "image_ids": [
       "d7c9d68a-5697-5a17-9530-16250f5a2280"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 340800,
+    "sha256": "c88995f47c8cb72e7b6541d4fdc7cbdf749264695bd93804bac92a9600f038ff",
+    "md5": "0da6db36cfc5640d6e34c65235fdf4d7",
+    "width": 1920,
+    "height": 1433
   },
   {
     "key": "catalog/cartagena-night-experience.webp",
@@ -30,7 +42,13 @@
     ],
     "image_ids": [
       "857186c3-85a9-59d8-8e88-aa046c00438d"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 154706,
+    "sha256": "8df0cbb89a66035cacbc40e517d8720a3de9d7701c79a378b9e44bdf9ec2ce6d",
+    "md5": "89de86fc0a3d80b8ece37752d8af3f3c",
+    "width": 955,
+    "height": 1274
   },
   {
     "key": "catalog/luxury-ground-transport.webp",
@@ -41,7 +59,13 @@
     ],
     "image_ids": [
       "2144b93b-a5c6-5671-893e-5aae8ef47cb8"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 30092,
+    "sha256": "bb5862ae046bae793184687259ed9e14ae4361a25d9b0f5e76575046cb501f2d",
+    "md5": "38d60a24f4849d8f6569b3f8fb79325d",
+    "width": 736,
+    "height": 736
   },
   {
     "key": "catalog/medellin-discovery-tours.webp",
@@ -52,7 +76,13 @@
     ],
     "image_ids": [
       "09dde168-3631-5fb2-aade-99ced23244cf"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 195478,
+    "sha256": "d9780312e6859166bae0e72ee9d2249f215a2167e342ab032597f3dd6a6ef238",
+    "md5": "7a7a3853cb265f432952175ace4ea7ab",
+    "width": 959,
+    "height": 1200
   },
   {
     "key": "catalog/medellin-renaissance.webp",
@@ -63,7 +93,13 @@
     ],
     "image_ids": [
       "49a20a34-c831-544d-b6d2-a1bb80e602a0"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 189460,
+    "sha256": "b8003919bb384fb5cab3f42c2446d702e8acd7aef144181dddd57706b6198470",
+    "md5": "a9a7c732a64d6819cc5b5e2be54843af",
+    "width": 736,
+    "height": 1318
   },
   {
     "key": "catalog/rosario-islands-escape.webp",
@@ -74,7 +110,13 @@
     ],
     "image_ids": [
       "421aa8d8-678f-5607-b708-810365bc1266"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 318778,
+    "sha256": "f18931d21a99aa37f11b45d3af0755241149d90e2c07412eb61f0b6ef26bb2f4",
+    "md5": "d5e764534aa29d0b81d0db9973e5b437",
+    "width": 1200,
+    "height": 1601
   },
   {
     "key": "catalog/vip-airport-meet-greet.webp",
@@ -85,7 +127,13 @@
     ],
     "image_ids": [
       "667fc851-be00-5640-93a2-fa3d89658c29"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 41364,
+    "sha256": "8831c65112f59aa6a561e27c5b0b28661a09a1e371bcd088e0ed44ac6645a18c",
+    "md5": "d1d1c1722ca91c82c6377c6f7da14393",
+    "width": 736,
+    "height": 736
   },
   {
     "key": "catalog/welcome-cocktail.webp",
@@ -96,7 +144,13 @@
     ],
     "image_ids": [
       "8974aa01-5eed-570c-9a95-ab2381f8004b"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 44266,
+    "sha256": "f5d18849681fc266463faf2e4c9913e1899109220c5265abc28375155cecf84d",
+    "md5": "51200c7b7545fe4a85526687acb3e1fe",
+    "width": 736,
+    "height": 1291
   },
   {
     "key": "catalog/yacht-island-charters.webp",
@@ -107,7 +161,13 @@
     ],
     "image_ids": [
       "1e02db5a-5ac1-5415-a05f-66c9b7d81cae"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 144286,
+    "sha256": "1fd6553f711daa2d54d65d3b51beb64130cf93f374c1cc5e3f36d9654d1f93e0",
+    "md5": "d93d9f656cf11ff74c0c9e22e7953615",
+    "width": 736,
+    "height": 1013
   },
   {
     "key": "destinations/cartagena/hero.webp",
@@ -118,7 +178,13 @@
     ],
     "image_ids": [
       "57712fa2-a2e8-5d2c-8b02-e3fd3fb586a3"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 355826,
+    "sha256": "f1efe43d2ffe00be748cc102f0b754d8ff4d619dc36f9680ad0aaf010d82fe99",
+    "md5": "7d8e9825b105201040a10378a7b78907",
+    "width": 1920,
+    "height": 1280
   },
   {
     "key": "destinations/medellin/hero.webp",
@@ -129,7 +195,13 @@
     ],
     "image_ids": [
       "0037bd48-66fa-5e80-b853-e85b23c14458"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 189460,
+    "sha256": "b8003919bb384fb5cab3f42c2446d702e8acd7aef144181dddd57706b6198470",
+    "md5": "a9a7c732a64d6819cc5b5e2be54843af",
+    "width": 736,
+    "height": 1318
   },
   {
     "key": "home/gallery/01.webp",
@@ -140,7 +212,13 @@
     ],
     "image_ids": [
       "9753bc8f-3411-5a1f-bae6-73bea6bcfb8e"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 19898,
+    "sha256": "623754caeceb015380abac5e7b84a24d52aed8ec88cd611415122a8bd0fdb3d0",
+    "md5": "fc646a3022cd08e96fa25d2a4c838cdd",
+    "width": 512,
+    "height": 288
   },
   {
     "key": "home/gallery/02.webp",
@@ -151,7 +229,13 @@
     ],
     "image_ids": [
       "f719ebbb-8175-5eed-b948-9743496bfdee"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 356908,
+    "sha256": "399dd2a32ed69d3cf4b75060ae63cf821c0c109a7b58da41f84d364b2e053488",
+    "md5": "eb87393b04f357a1e8e7eed9fe16f7e3",
+    "width": 1820,
+    "height": 1024
   },
   {
     "key": "home/gallery/03.webp",
@@ -162,7 +246,13 @@
     ],
     "image_ids": [
       "7c106731-d85f-50a4-9800-4538dcd69ead"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 306464,
+    "sha256": "ebffc193fdcd01ba66b4e1ff94dc78ea2119f4efd825d19855d83f922d11ccd1",
+    "md5": "495361a8b38a448e80bbbb7c742ccbd7",
+    "width": 1820,
+    "height": 1024
   },
   {
     "key": "home/gallery/04.webp",
@@ -173,7 +263,13 @@
     ],
     "image_ids": [
       "31c51862-2819-5887-adef-b93a5e8a7067"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 230972,
+    "sha256": "2321e27ffe6a137af14421d39aa69cea0ca8666ee94037c1cc792549e2325ddf",
+    "md5": "10cd0ccd57bc481cb1ab6c13e2dbce6e",
+    "width": 1820,
+    "height": 1024
   },
   {
     "key": "home/gallery/05.webp",
@@ -184,7 +280,13 @@
     ],
     "image_ids": [
       "faeb1647-aff7-5b93-8d59-393a29e2736b"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 115610,
+    "sha256": "1fe8062ea5ccb85323c57a690ae0465e169afe729d99dc3c4eb803e9c18eb3a6",
+    "md5": "f31742be9f113660e504d947e34d9046",
+    "width": 1820,
+    "height": 1024
   },
   {
     "key": "home/gallery/06.webp",
@@ -195,7 +297,13 @@
     ],
     "image_ids": [
       "d6ad2fd2-b58c-5ebf-954a-1bde264d626e"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 433254,
+    "sha256": "d6021798a32b8f22cebfc2faadfada029e27352505c98351114c249453a1142f",
+    "md5": "cdd5fdf278caa04618d2fff792c560e5",
+    "width": 1820,
+    "height": 1024
   },
   {
     "key": "home/gallery/07.webp",
@@ -206,7 +314,13 @@
     ],
     "image_ids": [
       "a4582d8f-320a-5bde-9d66-1c110f2c40cf"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 137400,
+    "sha256": "091d7b90bd10a514bec1a2cb09d6903fcce041d4cb2c995e1af6ee1596b90b12",
+    "md5": "d70024e5783bdeba185b9861fd67cc78",
+    "width": 1536,
+    "height": 1024
   },
   {
     "key": "home/gallery/08.webp",
@@ -217,7 +331,13 @@
     ],
     "image_ids": [
       "56cbd1e8-6d9e-5ead-8803-28e9d33901f3"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 113600,
+    "sha256": "53aa4f08546551ba76f7ff533773effc2fffef19a072830e18ff6635fba32747",
+    "md5": "e6d8e5749dc1655389ff429bb6bd0885",
+    "width": 1536,
+    "height": 1024
   },
   {
     "key": "home/gallery/09.webp",
@@ -228,7 +348,13 @@
     ],
     "image_ids": [
       "a8e812c4-74e1-5f53-95fb-412ffa6c1bc2"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 193860,
+    "sha256": "f74d3606f1387ec56ce2da765f8bb2170cdee0b5f839cc598dc1ee2338648eb6",
+    "md5": "d5d3e282d2e754084eb01000b3ab0541",
+    "width": 1536,
+    "height": 1024
   },
   {
     "key": "home/gallery/10.webp",
@@ -239,7 +365,13 @@
     ],
     "image_ids": [
       "d74b29b8-8330-57ac-96c6-0266f544a8cc"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 303294,
+    "sha256": "6d212e1c170903080b47cdee0cda156fe695b5c17345bddfaacb22fcb6746ab4",
+    "md5": "31ff747fb237f112e82cac7e89609863",
+    "width": 1820,
+    "height": 1024
   },
   {
     "key": "home/gallery/11.webp",
@@ -250,7 +382,13 @@
     ],
     "image_ids": [
       "6732e5ee-5cb4-5535-b3b4-fff4cf5f0715"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 103876,
+    "sha256": "e7a5076c914c130bace1ec55436825dc311dfd785a1648c1b8810383d3ff103c",
+    "md5": "1e6d0b14313e650ceec84ba8eb14d9ec",
+    "width": 1536,
+    "height": 1024
   },
   {
     "key": "home/gallery/12.webp",
@@ -261,7 +399,13 @@
     ],
     "image_ids": [
       "8a1741a5-e7dc-52d4-b5cf-94e31210a5ab"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 180704,
+    "sha256": "6d03f907ae3298d2f1a367f476c3e0344400352256a3b828aa1254ea54bbb6b9",
+    "md5": "d96f8f74aa06f5779921eeae0833d3ca",
+    "width": 1536,
+    "height": 1024
   },
   {
     "key": "home/gallery/13.webp",
@@ -272,7 +416,13 @@
     ],
     "image_ids": [
       "c7dbd229-e8f3-54f4-80bb-095f0c8ee514"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 352044,
+    "sha256": "7b25e70e2733cd2f308de4a99871bdf405a924603765a7910d8290a2ace9b277",
+    "md5": "a1e0a91703e562f9f12b7b54c3251819",
+    "width": 1820,
+    "height": 1024
   },
   {
     "key": "home/gallery/14.webp",
@@ -283,7 +433,13 @@
     ],
     "image_ids": [
       "ba67281f-3ec9-5ee8-a449-4bb77b0c71d2"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 222,
+    "sha256": "d70123313cbfb932ffcb09f3aa14fbd6a8b9f818238c6da530c4410ffca00ae2",
+    "md5": "cbe28f8ee43ca8d7ba45dd14ff451659",
+    "width": 40,
+    "height": 40
   },
   {
     "key": "home/gallery/15.webp",
@@ -294,7 +450,13 @@
     ],
     "image_ids": [
       "9828e26f-0e7c-59fb-aac8-cd9f57e7c366"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 214,
+    "sha256": "3aec220a9543ac04a2c86c3ed1c94b91b58955472f5644fc7965115a52ca7edd",
+    "md5": "dde7482bd89b99d3fa33f315271bc012",
+    "width": 40,
+    "height": 40
   },
   {
     "key": "home/hero/poster.webp",
@@ -305,7 +467,13 @@
     ],
     "image_ids": [
       "a40b3fd4-2bdf-5c57-986c-a01a74eebaac"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 89226,
+    "sha256": "6c3fd367db1e475cf5269fead61e4e0307a5829d8259776db6ff207fe88b2985",
+    "md5": "bd65d3d6b41cf2ce6228e42e0dad9b46",
+    "width": 1920,
+    "height": 1077
   },
   {
     "key": "home/journeys/the-explorer.webp",
@@ -316,7 +484,13 @@
     ],
     "image_ids": [
       "d4c6beca-389d-564b-bfc4-63a818620bf5"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 102932,
+    "sha256": "1e320117f7b8f227ea12a75030d592d94dc879d3f91c99da002f4325c9794dea",
+    "md5": "8460e713c44d2fa8b7f67bdf15662c43",
+    "width": 720,
+    "height": 899
   },
   {
     "key": "home/journeys/the-resident.webp",
@@ -327,7 +501,13 @@
     ],
     "image_ids": [
       "f2f2d6c9-833a-51f8-835d-70ef61b3f755"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 154002,
+    "sha256": "33495f296f2bfdcf4b0a4e6737607b3a641af50ec92a38ee2c90da2990eb3309",
+    "md5": "a88c4238ef2be472666be700343e7e14",
+    "width": 736,
+    "height": 1349
   },
   {
     "key": "home/journeys/the-sovereign.webp",
@@ -338,7 +518,13 @@
     ],
     "image_ids": [
       "2263da97-fe37-5eed-98c2-2f7e15b4d5ae"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 192814,
+    "sha256": "db739b5794cdcb22c0f1f6242cc9db772b1782c4c8a76fa75f916b634afd60af",
+    "md5": "c4a8b3f8a938ed37e0ef97bd258f5ca1",
+    "width": 1080,
+    "height": 1273
   },
   {
     "key": "home/stories/colombias-coffee-triangle-eje-cafetero.webp",
@@ -349,7 +535,13 @@
     ],
     "image_ids": [
       "8b26bd0c-e3cb-59e3-9689-103c57132f03"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 63370,
+    "sha256": "f9129b9699c46355d8f095bd7c6038da3aa34ef46fbd62773df21562f3b0c67c",
+    "md5": "51d53eb956f49809511234eff2e2aec6",
+    "width": 1600,
+    "height": 1200
   },
   {
     "key": "home/stories/discovering-cartagenas-hidden-colonial-courtyards.webp",
@@ -360,7 +552,13 @@
     ],
     "image_ids": [
       "fecf7741-a79b-5436-8c7a-9380bf3e9aa9"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 261896,
+    "sha256": "0c427cf52dda3c34e528617b46a1f5898f53b78a917559176fdc87571e39469c",
+    "md5": "ceca57d86d0cb82666c8f991a13fbe34",
+    "width": 1600,
+    "height": 1067
   },
   {
     "key": "home/stories/why-medellin-is-redefining-luxury-travel.webp",
@@ -371,7 +569,13 @@
     ],
     "image_ids": [
       "d2f69dd4-13a8-5954-b9a5-00f51bcb7b32"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 253652,
+    "sha256": "f2aab06f0b96f0f715abfbca297d9eff49228da4737594c2f0f7a519e8e7dfc2",
+    "md5": "b32c568449b7e6457ac8250bb835ce98",
+    "width": 1600,
+    "height": 1060
   },
   {
     "key": "home/welcome/signature.webp",
@@ -382,7 +586,13 @@
     ],
     "image_ids": [
       "a4f1c1f1-9052-5318-b344-e22521f67d79"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 4432,
+    "sha256": "3642beaf9d66d0a9452cafaab3f3dc13b6bcd36a653d67d72f9c561f4c180a32",
+    "md5": "fe9da9dac22755a5344d17bffd61ad58",
+    "width": 335,
+    "height": 88
   },
   {
     "key": "stays/baru-island-private-villa/gallery-1.webp",
@@ -393,7 +603,13 @@
     ],
     "image_ids": [
       "b0766d08-c3b5-562d-8e8d-7bd88a70ac07"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 151130,
+    "sha256": "f832772afef368064db4050c9a573c2bc8209efa73bc7e97cc07db1d2974a1de",
+    "md5": "f18cf5fc23ac291d9b38fed0145080dd",
+    "width": 1242,
+    "height": 883
   },
   {
     "key": "stays/baru-island-private-villa/gallery-2.webp",
@@ -404,7 +620,13 @@
     ],
     "image_ids": [
       "03a2e80c-cc60-573d-8a36-6cf88657e1c0"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 640470,
+    "sha256": "5c998720317c04789e51bae919efa3c21ae7db0b946a08584241b1a1c13dde7a",
+    "md5": "ce3100cdb79595aef4a7a20aa9d4cace",
+    "width": 1242,
+    "height": 1579
   },
   {
     "key": "stays/baru-island-private-villa/gallery-3.webp",
@@ -415,7 +637,13 @@
     ],
     "image_ids": [
       "d9829c2b-ffe2-5f29-9f32-18fa435896ba"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 72384,
+    "sha256": "03e7134424c9c8fed8908a0ae480d25c9e4cd23f9dfd0a58d30b59f7f280ea08",
+    "md5": "c99d559aa423d1839927ae9e0727e803",
+    "width": 1242,
+    "height": 780
   },
   {
     "key": "stays/baru-island-private-villa/gallery-4.webp",
@@ -426,7 +654,13 @@
     ],
     "image_ids": [
       "9869354b-2b6a-564c-90ed-ca88e85d93d1"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 62568,
+    "sha256": "f7947ff26f966c90b22de169de8a33a523800b255e359a72ab76384af2b0eb8f",
+    "md5": "ab7d23d103e89f2000b491ef97455cf0",
+    "width": 1242,
+    "height": 764
   },
   {
     "key": "stays/baru-island-private-villa/gallery-5.webp",
@@ -437,7 +671,13 @@
     ],
     "image_ids": [
       "b102fdde-ebd8-517c-988c-7b85789ec4d0"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 71892,
+    "sha256": "9a01d16b7ddf5200941f1fa3d85c8dacc74bf78acf2ff437a1858fa27adec1d3",
+    "md5": "e0debf0830faf0dcffbfc441be0d7e23",
+    "width": 1242,
+    "height": 762
   },
   {
     "key": "stays/baru-island-private-villa/gallery-6.webp",
@@ -448,7 +688,13 @@
     ],
     "image_ids": [
       "fd790b40-c42d-5114-bcb2-b9b0d5127fd2"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 218108,
+    "sha256": "5166eb73934705c4d5451b5c9ae68b7e885417f45f1d1f1f7ed265d2df8150aa",
+    "md5": "99979c5b5f5bb6e57bc12e1ced64d6f7",
+    "width": 1242,
+    "height": 766
   },
   {
     "key": "stays/baru-island-private-villa/hero.webp",
@@ -459,7 +705,13 @@
     ],
     "image_ids": [
       "29a2ec34-413a-559d-aca2-ee69c03eaaa2"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 37728,
+    "sha256": "b2cee89aeac989cbdd029e9b172e59a07947c42bcf4e2f02e57d060a98510547",
+    "md5": "eeffe283c82edbdeb687aeff9fb22a73",
+    "width": 1242,
+    "height": 773
   },
   {
     "key": "stays/bocagrande-beach-house/gallery-1.webp",
@@ -470,7 +722,13 @@
     ],
     "image_ids": [
       "3d59a6c7-a56a-5d79-be57-657648ac0068"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 353150,
+    "sha256": "251cf6fdc73f1c1e96c239e42ba2f7442e443817fb2b5053cdb94da54a39d4be",
+    "md5": "36fd9c3663634a9efa8ca47539395e7c",
+    "width": 1600,
+    "height": 1067
   },
   {
     "key": "stays/bocagrande-beach-house/gallery-2.webp",
@@ -481,7 +739,13 @@
     ],
     "image_ids": [
       "63fe8f8a-e172-53a0-b76f-a4d04566b7ab"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 122450,
+    "sha256": "a6e03f25c86ade8465ad4bb2d694d661879852790e76eadd34cc4442d0b2eada",
+    "md5": "274e50ad74bb1aea1820bf1f806ce143",
+    "width": 1040,
+    "height": 693
   },
   {
     "key": "stays/bocagrande-beach-house/gallery-3.webp",
@@ -492,7 +756,13 @@
     ],
     "image_ids": [
       "65d81eeb-a25b-5149-aa43-faf0c261bb85"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 155144,
+    "sha256": "3d4da390c1554e79d7c03d770e4cb83b7187bde4bbb749f282274912aec32762",
+    "md5": "431677ac511bd77c832c2e354c496d9d",
+    "width": 1600,
+    "height": 1067
   },
   {
     "key": "stays/bocagrande-beach-house/gallery-4.webp",
@@ -503,7 +773,13 @@
     ],
     "image_ids": [
       "27b56fd7-507c-543f-bb92-e3df2432ab68"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 142930,
+    "sha256": "e6c6e4eb185a6a2331d5ac08cfbbece1c6aa6539dd87ad6ee1d7452b0982f947",
+    "md5": "a5e6e42db4a1bbc074b839dcc49b12a6",
+    "width": 1600,
+    "height": 1066
   },
   {
     "key": "stays/bocagrande-beach-house/gallery-5.webp",
@@ -514,7 +790,13 @@
     ],
     "image_ids": [
       "5ad509cb-6117-5510-92ca-9a2b5503a43b"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 96072,
+    "sha256": "f772bfd860cc94563236ad54273e98fbf7fe43472a76642e12fe6013453a3add",
+    "md5": "a1655bb3bc40ccf4e6f21a69a0418ed6",
+    "width": 1600,
+    "height": 1066
   },
   {
     "key": "stays/bocagrande-beach-house/gallery-6.webp",
@@ -525,7 +807,13 @@
     ],
     "image_ids": [
       "840d074e-831c-511a-90f3-637dda2a659f"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 125416,
+    "sha256": "f768b25448a36f90c8e2f03d6fe7253287fb65a0100cd315c0e1f461ab64ca4c",
+    "md5": "fdf46c24eda540e229e42c982f19d4de",
+    "width": 1040,
+    "height": 693
   },
   {
     "key": "stays/bocagrande-beach-house/hero.webp",
@@ -536,7 +824,13 @@
     ],
     "image_ids": [
       "cd160525-69aa-50d9-987c-4c8b425eaa3e"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 126664,
+    "sha256": "8388915cb912e62a990c7634997e86e11d5cd92241e72b846d5dd95fe884a13a",
+    "md5": "749ea23f298a7b53cdf6d77f39396930",
+    "width": 1040,
+    "height": 694
   },
   {
     "key": "stays/cartagena-historic-center-house/gallery-1.webp",
@@ -547,7 +841,13 @@
     ],
     "image_ids": [
       "3ff8ff18-d0f2-576e-9a7f-54265d3b341d"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 105906,
+    "sha256": "adc2c59f66edadce68cb1de4435799f7adc7abd70d071ada5013b6a8374b419e",
+    "md5": "91b9442ab5d0fd44bed559a859d559a1",
+    "width": 720,
+    "height": 480
   },
   {
     "key": "stays/cartagena-historic-center-house/gallery-2.webp",
@@ -558,7 +858,13 @@
     ],
     "image_ids": [
       "3a424ac7-20f4-569c-a693-39b4feca5ac2"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 133592,
+    "sha256": "ac60bb3011b7faf4c6db2b1d9658597938618d9de94cf5b9bcdb14175a00ece1",
+    "md5": "6ee43095b6ce24146e5607fb2d7e5c86",
+    "width": 720,
+    "height": 480
   },
   {
     "key": "stays/cartagena-historic-center-house/gallery-3.webp",
@@ -569,7 +875,13 @@
     ],
     "image_ids": [
       "b2fec886-b93d-59c8-96d6-396ac59a1273"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 92452,
+    "sha256": "df4710a621dd910238333da054cab00dd9e0456b4cb5a360e9943ba7b068ee56",
+    "md5": "e8668bee434e09282fadeb2e87b3cb56",
+    "width": 720,
+    "height": 480
   },
   {
     "key": "stays/cartagena-historic-center-house/gallery-4.webp",
@@ -580,7 +892,13 @@
     ],
     "image_ids": [
       "eff7129e-5e40-5dbf-9902-7c59f28337e2"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 65442,
+    "sha256": "09662accc36e4562cdf2b129f987165d5689945e188101a74cecd3be2ecbffbd",
+    "md5": "7ce5c0f4f414201de7a678115e70ab49",
+    "width": 720,
+    "height": 480
   },
   {
     "key": "stays/cartagena-historic-center-house/gallery-5.webp",
@@ -591,7 +909,13 @@
     ],
     "image_ids": [
       "6ef3ac3d-13eb-5380-982f-fdda7b1b41ac"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 93458,
+    "sha256": "0660a159388310a04ee5cb571a5818283beec6e6977d529ea9aacb9bf075c08a",
+    "md5": "8c60eabdba784ecfe7b514c760b3c624",
+    "width": 720,
+    "height": 480
   },
   {
     "key": "stays/cartagena-historic-center-house/gallery-6.webp",
@@ -602,7 +926,13 @@
     ],
     "image_ids": [
       "b8b8ce47-53d4-53d8-8f58-1d893892a8fb"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 95646,
+    "sha256": "578a8b11442b3c4f7f915e472c9d698e5cf64687f1750c59f5b6b0b33ca9a16c",
+    "md5": "b7844618883f5ddfb67374394e8b8cda",
+    "width": 720,
+    "height": 480
   },
   {
     "key": "stays/cartagena-historic-center-house/hero.webp",
@@ -613,7 +943,13 @@
     ],
     "image_ids": [
       "5e0a620e-ae44-50c0-a212-d682c99a938e"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 53162,
+    "sha256": "2669ead174abb6739e521ab1f38b00f3f631c7569747520d100365abe1039436",
+    "md5": "ce4bcea38fd367226420455e410f2ebf",
+    "width": 720,
+    "height": 480
   },
   {
     "key": "stays/casa-jardin-san-diego/gallery-1.webp",
@@ -624,7 +960,13 @@
     ],
     "image_ids": [
       "9f88f7d2-214f-50a1-9adc-b29977af0543"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 133288,
+    "sha256": "ce8e1ef44a1fcf13745c303c6b5661af4803bf1f2cdfc33dbfff553fa30e3ef2",
+    "md5": "6cf6b1f7a22dcfd35eec12ba999d79e4",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-jardin-san-diego/gallery-2.webp",
@@ -635,7 +977,13 @@
     ],
     "image_ids": [
       "51defef1-5a8a-5c59-9ee3-bd008f0994a6"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 131932,
+    "sha256": "fe19fe955d4228987454d384c1b0c475a85a038b25bfb92e38029e312824832f",
+    "md5": "5d35ffdde55605e344642cc474af0a37",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-jardin-san-diego/gallery-3.webp",
@@ -646,7 +994,13 @@
     ],
     "image_ids": [
       "50bcb645-7177-5785-8031-ccf3389bb27c"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 141738,
+    "sha256": "f34485c0e688e7c234aeb6789324640efad50ab46e0ed757c0a261a773f9cdc9",
+    "md5": "8fd40efbe1d37ec7bdbee5a61aa68a2b",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-jardin-san-diego/gallery-4.webp",
@@ -657,7 +1011,13 @@
     ],
     "image_ids": [
       "4de707ac-52ce-5ffa-a9fd-00cc464e0ab0"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 142226,
+    "sha256": "e9f77b1839b2fac1271db611b58bf36ce7d4fd9baa0764047ad51ff854e54910",
+    "md5": "1111ecb64597b48b4af86ec387379b9b",
+    "width": 960,
+    "height": 1280
   },
   {
     "key": "stays/casa-jardin-san-diego/gallery-5.webp",
@@ -668,7 +1028,13 @@
     ],
     "image_ids": [
       "e597a1dc-1b3a-50d2-a5e4-779fe9a744ab"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 138246,
+    "sha256": "34ec8ee0551f2442746cb405dadee0865b2534ce31d07fbca2a18d620dc411e3",
+    "md5": "1bf77fca9b4f278f58ccab7a573db0d3",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-jardin-san-diego/gallery-6.webp",
@@ -679,7 +1045,13 @@
     ],
     "image_ids": [
       "783047ec-519d-58f6-a5e1-2e7ba457aa81"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 98334,
+    "sha256": "e1091a5383f7aa17524bba3128e31c6e5490001abbb0b77d7bd5bd93327689f6",
+    "md5": "6210d087826abfff56d29bf49e8eb7ba",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-jardin-san-diego/hero.webp",
@@ -690,7 +1062,13 @@
     ],
     "image_ids": [
       "d0e7df71-5db5-5839-93e1-52beef528a00"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 84458,
+    "sha256": "d5060ace5c843db4942d465ddbc4dd2e5d2c1b110d5e2267f545b8d9ce339f16",
+    "md5": "bd5b1fcfde77a3594f1cb1ce812b84f0",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-juliana-historic-center/gallery-1.webp",
@@ -701,7 +1079,13 @@
     ],
     "image_ids": [
       "c756daf3-91a8-5b2f-acc9-b3c80662f338"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 109038,
+    "sha256": "e30a5551703907d08b1e7c26cfc88f6c579f56747fb8c8248ad9b7b40e870c24",
+    "md5": "7c4173685b4dc525081d6ab1031f1269",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-juliana-historic-center/gallery-2.webp",
@@ -712,7 +1096,13 @@
     ],
     "image_ids": [
       "528de6c8-69fc-5666-b410-6ae967116f19"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 147452,
+    "sha256": "777a3cab55ade061cc811b7e457051acad0170b5eea343f13613a1d56a744e1e",
+    "md5": "69c1e1279388dec4aad6c0c9eca1780d",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-juliana-historic-center/gallery-3.webp",
@@ -723,7 +1113,13 @@
     ],
     "image_ids": [
       "29b1e68b-e190-5d65-802d-883267362f9d"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 171588,
+    "sha256": "1f930678de7e02ff5200dfeac29304cf6561fffa20a20b6c8a4437e89af28644",
+    "md5": "abf9d8c2ec756efedc71c53af3a0bd71",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-juliana-historic-center/gallery-4.webp",
@@ -734,7 +1130,13 @@
     ],
     "image_ids": [
       "2a227620-6b40-5660-a6bc-2b5927a84d19"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 143436,
+    "sha256": "bb6b5a80c65f19f0579740bd85fb72e11c43754cbf7f33f07cf3748ccfe5bf3c",
+    "md5": "e903c34631b4c8011ca898f855fc5067",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-juliana-historic-center/gallery-5.webp",
@@ -745,7 +1147,13 @@
     ],
     "image_ids": [
       "2909178c-a89e-53a8-8e36-4a7f1b13f28d"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 145972,
+    "sha256": "00de2934a57ff83871956269b53af1a3e0710a4edad0ab8e81b34a16aab62a0e",
+    "md5": "1b0a66743c07da4eed2d8c32883a4b71",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-juliana-historic-center/gallery-6.webp",
@@ -756,7 +1164,13 @@
     ],
     "image_ids": [
       "5be2597b-705c-5b08-bab7-7b7c29a71d20"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 155346,
+    "sha256": "93011028a457408b6d8f2a262c4cf1b4ef756d2ee7ef38d1b6cda49271f5ce19",
+    "md5": "876dacace95c802d3b1756c664a8281f",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-juliana-historic-center/hero.webp",
@@ -767,7 +1181,13 @@
     ],
     "image_ids": [
       "0eb34390-241d-52eb-b2a5-f8e5d321a676"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 146862,
+    "sha256": "a5331d3849d8fb4221ff4b19ddcb885460afdcdb7c26a3e5a1b3e2e98b78867d",
+    "md5": "3d7c3698b2a754ea6a1c401b58c5430e",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/casa-mariana-historic-center/gallery-1.webp",
@@ -778,7 +1198,13 @@
     ],
     "image_ids": [
       "2d0e0b32-cec0-5fb3-8c6f-13ea768c27f2"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 64142,
+    "sha256": "59f07e8fccedd78d1816fa775e8f972a8cca4d8acad5d5afce21d13f0c0ceba0",
+    "md5": "365ce402b62fffcb100d3fa33d4f4857",
+    "width": 1024,
+    "height": 576
   },
   {
     "key": "stays/casa-mariana-historic-center/gallery-2.webp",
@@ -789,7 +1215,13 @@
     ],
     "image_ids": [
       "247910ff-b3b6-5669-8c6d-ea0eb8fc2139"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 60372,
+    "sha256": "1b98221f4ac2700f44595841017a9f557b6d223c212ec0cec1356374954851ea",
+    "md5": "9347fd138f092d12d27df8614c07ddbf",
+    "width": 1024,
+    "height": 576
   },
   {
     "key": "stays/casa-mariana-historic-center/gallery-3.webp",
@@ -800,7 +1232,13 @@
     ],
     "image_ids": [
       "fd62d681-662f-5049-bc37-ccb54586e029"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 55986,
+    "sha256": "27c945fadbc4fe9314e66fd3396b3b8c623994c28f20e34d67ef50242c384381",
+    "md5": "488057e51b833cd7d220f41aa4bf2c06",
+    "width": 1024,
+    "height": 576
   },
   {
     "key": "stays/casa-mariana-historic-center/gallery-4.webp",
@@ -811,7 +1249,13 @@
     ],
     "image_ids": [
       "d238c511-d19e-5837-8eef-a19f5dbc10ec"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 54092,
+    "sha256": "67ce08340a017bfb685453ccecec01ab4f8232c844b8ab76e8ad81c40653b4a7",
+    "md5": "3758508b8e2a57a2ca11ee005dae6272",
+    "width": 1024,
+    "height": 576
   },
   {
     "key": "stays/casa-mariana-historic-center/gallery-5.webp",
@@ -822,7 +1266,13 @@
     ],
     "image_ids": [
       "f754a8d4-ffe5-54a4-b8bd-da9710e28a46"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 50116,
+    "sha256": "f0ea0a9ad7601377178621ee94a5ed209cfe77e58500a8a25a6cc43b138e4fd5",
+    "md5": "b23b30b9527cd8b51bf0561c1bb63978",
+    "width": 1024,
+    "height": 576
   },
   {
     "key": "stays/casa-mariana-historic-center/gallery-6.webp",
@@ -833,7 +1283,13 @@
     ],
     "image_ids": [
       "6107c9da-ca4c-516d-9b5a-eda72687378d"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 49372,
+    "sha256": "ca00f7e6f06418c5760df9e397536b74e320ced6531f0cc0a5e5a3b3a8e5bc49",
+    "md5": "3612d3400186e2567357ff16967223e4",
+    "width": 1024,
+    "height": 576
   },
   {
     "key": "stays/casa-mariana-historic-center/hero.webp",
@@ -844,7 +1300,13 @@
     ],
     "image_ids": [
       "1c01f400-2e1a-5139-8605-dd8b1c40453b"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 77062,
+    "sha256": "011c896fb69b96ce0f045c4bf7aa14de7203a4ff3ecc540713d7f2bfaff974a4",
+    "md5": "d44fa0b294bb817097ee601a02cb7866",
+    "width": 1024,
+    "height": 576
   },
   {
     "key": "stays/getsemani-colonial-house/gallery-1.webp",
@@ -855,7 +1317,13 @@
     ],
     "image_ids": [
       "0c04c4d8-2a45-5955-aee8-6b86e69a1ed8"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 285184,
+    "sha256": "9a8d4e45293519f2ad72ef3806b64a13124aee87212ceb611df781a45bf3fad5",
+    "md5": "8d0e4cae6186d56d5ca9571def290d74",
+    "width": 1600,
+    "height": 1400
   },
   {
     "key": "stays/getsemani-colonial-house/gallery-2.webp",
@@ -866,7 +1334,13 @@
     ],
     "image_ids": [
       "ad83da8f-7ad5-52b6-82db-275d1dccf1ac"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 168372,
+    "sha256": "e3118fc853304e068fae0e60129ab39de7c29719a5a23a57fd6dfcc4d22036f0",
+    "md5": "d2b7ba500406de928fdb124f0ba99041",
+    "width": 1600,
+    "height": 1210
   },
   {
     "key": "stays/getsemani-colonial-house/gallery-3.webp",
@@ -877,7 +1351,13 @@
     ],
     "image_ids": [
       "2433d28e-95c8-5f4c-a811-f76b74eadde4"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 409810,
+    "sha256": "271f0106c0fe07acadebe492a3e32b78bb7c8fecb9a67ad3f1cbff0619fdeb6e",
+    "md5": "88670183af1f9cd62470f45ca9801bdb",
+    "width": 1600,
+    "height": 1245
   },
   {
     "key": "stays/getsemani-colonial-house/gallery-4.webp",
@@ -888,7 +1368,13 @@
     ],
     "image_ids": [
       "a8138d32-dc34-5b4a-91a7-b03abdf00789"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 362414,
+    "sha256": "bcd52554e3baf4f7998d44273c58aa442837331386d2004ddc0ffa63a4c6dc3a",
+    "md5": "82c3fe9e67bc623f36bbd330faa5f3da",
+    "width": 1600,
+    "height": 1522
   },
   {
     "key": "stays/getsemani-colonial-house/hero.webp",
@@ -899,7 +1385,13 @@
     ],
     "image_ids": [
       "bf310a54-f008-5120-bc7a-d30ed3f2586b"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 290262,
+    "sha256": "461fbff5d5e165b857cd7f64b37d9ad5265a815691aadbeb5dee30f9642ab3e0",
+    "md5": "49ebbe8ed55ee9603d192c889abca506",
+    "width": 1600,
+    "height": 1084
   },
   {
     "key": "stays/getsemani-courtyard-residence/gallery-1.webp",
@@ -910,7 +1402,13 @@
     ],
     "image_ids": [
       "f05ecace-f79c-5130-bb58-7fa7f2b9fc90"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 238304,
+    "sha256": "2260137e5f995932ad206f5733d9b14f507efa503c831386dc34398c6bd9d4e4",
+    "md5": "261d93933130e79954f154117ee40112",
+    "width": 1280,
+    "height": 853
   },
   {
     "key": "stays/getsemani-courtyard-residence/gallery-2.webp",
@@ -921,7 +1419,13 @@
     ],
     "image_ids": [
       "5a03c2e0-3b82-5dd2-9b51-0692c20f45af"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 197362,
+    "sha256": "930a7114877d72d76e7affdbe805cea79103db88e4911d75d69d3aeb7b92030c",
+    "md5": "a2a94f94f1d728460ae2a2f915031ed8",
+    "width": 1280,
+    "height": 853
   },
   {
     "key": "stays/getsemani-courtyard-residence/gallery-3.webp",
@@ -932,7 +1436,13 @@
     ],
     "image_ids": [
       "58f37df8-c5c0-5e5b-8cd5-60ecc5569247"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 147214,
+    "sha256": "bd5c135900dec34777bac9147c212439a18cb56e520a29472f5ffa3b1db8f060",
+    "md5": "462d4c21a6894463b11efa6ee7cf3273",
+    "width": 1280,
+    "height": 853
   },
   {
     "key": "stays/getsemani-courtyard-residence/gallery-4.webp",
@@ -943,7 +1453,13 @@
     ],
     "image_ids": [
       "77235106-be8c-502e-bb45-2805da8e76d2"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 193068,
+    "sha256": "6b895c4408fe5bf02f423704cbaef56f0f9c6c12da4876a625f29cbe80ae7fcf",
+    "md5": "3d9ea7d1539a9768e2c1cd83ad862891",
+    "width": 1280,
+    "height": 853
   },
   {
     "key": "stays/getsemani-courtyard-residence/gallery-5.webp",
@@ -954,7 +1470,13 @@
     ],
     "image_ids": [
       "6319d498-cf50-5c7a-a0df-96835e31596d"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 190898,
+    "sha256": "4f1b45b29ee55cd7ccae2a7ea8739e0f9174b6e2bf49122c1bd0805e164cea0b",
+    "md5": "96122fdd9fb202e08fd45abc7112f238",
+    "width": 1280,
+    "height": 853
   },
   {
     "key": "stays/getsemani-courtyard-residence/gallery-6.webp",
@@ -965,7 +1487,13 @@
     ],
     "image_ids": [
       "1687c160-5699-5ea4-b949-3aeb5652791d"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 84026,
+    "sha256": "3593fc36d095ca128c15c1743fa64fc99ba77dc671cc8e64d2cb193d31c52c52",
+    "md5": "14d38833d171815d03ddd1ef34d1da6f",
+    "width": 1280,
+    "height": 856
   },
   {
     "key": "stays/getsemani-courtyard-residence/hero.webp",
@@ -976,7 +1504,13 @@
     ],
     "image_ids": [
       "3cc0aac9-3b4b-5002-aeb0-49053333e657"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 137812,
+    "sha256": "ad751dd963a0cd3cdbafbf1530a49e03ff1cdf5fdecd6b76cfb99ed7fa7c94ad",
+    "md5": "2a4fec10185dea86dc42f16bb34c163f",
+    "width": 1280,
+    "height": 853
   },
   {
     "key": "stays/private-island-cartagena/gallery-1.webp",
@@ -987,7 +1521,13 @@
     ],
     "image_ids": [
       "0ceb68dd-cf5d-545d-a0e5-346c5fc1782a"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 97280,
+    "sha256": "bc4c44f74a9a2ad05b3bba1061e7d46d0eef85ae0c864db8a91373cdf56bd0b8",
+    "md5": "11ce0515173b5d667d434072e4ee3f6b",
+    "width": 576,
+    "height": 1024
   },
   {
     "key": "stays/private-island-cartagena/gallery-2.webp",
@@ -998,7 +1538,13 @@
     ],
     "image_ids": [
       "a7b0c4bb-4a1a-5fc0-b756-b15fc64149e0"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 1579948,
+    "sha256": "4e8b754af1ef2d1f2f4bd782509d5c4b0302cb031ac2d5fabdfae9b182d76b72",
+    "md5": "388bde4f6b39711d504b025493d759b3",
+    "width": 4160,
+    "height": 2774
   },
   {
     "key": "stays/private-island-cartagena/gallery-3.webp",
@@ -1009,7 +1555,13 @@
     ],
     "image_ids": [
       "1c311d67-6fa7-5e88-a604-669494c123d3"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 2227992,
+    "sha256": "237add7ad1805abfe53773be5a8728e9ed6bf238acb385dea6d3714acfabba76",
+    "md5": "9a97be03dc15cbe06aa99f025adeeddc",
+    "width": 4160,
+    "height": 2774
   },
   {
     "key": "stays/private-island-cartagena/gallery-4.webp",
@@ -1020,7 +1572,13 @@
     ],
     "image_ids": [
       "3ea9ef50-f0ae-5183-b638-e551d534d9a3"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 183984,
+    "sha256": "73260ab2cbc4fe339e18cf4eacce305e4f10e1624364f3897ce785222cc797c5",
+    "md5": "34b7eb4cf0dda9938a8d772deee82d14",
+    "width": 829,
+    "height": 1024
   },
   {
     "key": "stays/private-island-cartagena/gallery-5.webp",
@@ -1031,7 +1589,13 @@
     ],
     "image_ids": [
       "fc653b6c-e9cf-587e-8839-f2315787b357"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 135576,
+    "sha256": "50ef22110251694545db26cb8beede5c79f086913c30c404a39069d6d4f0bdc2",
+    "md5": "fcd2c56b70f08693b00575939067bee2",
+    "width": 1024,
+    "height": 576
   },
   {
     "key": "stays/private-island-cartagena/gallery-6.webp",
@@ -1042,7 +1606,13 @@
     ],
     "image_ids": [
       "c54a4845-ecaf-5703-a883-a7df5e1a1bc7"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 2085234,
+    "sha256": "20bfe6d6a1c6e2c1bf30072d4b8f97100a8fabfb7fe9bd20c8b182cae9836709",
+    "md5": "4f865951fb8b69b824cd790d81bade5a",
+    "width": 4160,
+    "height": 2768
   },
   {
     "key": "stays/private-island-cartagena/hero.webp",
@@ -1053,7 +1623,13 @@
     ],
     "image_ids": [
       "039bfa7f-147c-5083-916b-7cdaa8d5a41b"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 299852,
+    "sha256": "9481df381fdb1707b6c46273ecc1c15e10680101a635ac819d698445afc81a61",
+    "md5": "d2fce83cb71e5f42c533256451974f78",
+    "width": 1200,
+    "height": 1600
   },
   {
     "key": "stays/private-island-estate-cartagena/gallery-1.webp",
@@ -1064,7 +1640,13 @@
     ],
     "image_ids": [
       "f1934b3d-193d-54ea-a714-1868da5b7bdf"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 170220,
+    "sha256": "c14890d6bd125c3f22dec7dc3df8ce1abc3f6b1681a7fc5049b1df1024435455",
+    "md5": "0fb0f0b74bc1690d72bdd6540c7c1e5d",
+    "width": 768,
+    "height": 1024
   },
   {
     "key": "stays/private-island-estate-cartagena/gallery-2.webp",
@@ -1075,7 +1657,13 @@
     ],
     "image_ids": [
       "60a4d29d-b722-5467-ad5a-980d2df44442"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 175480,
+    "sha256": "90ad3d4a401f8b1b2d0a581dc345999d68ab56e17dcc47d2c8bbf475626d5730",
+    "md5": "5ff30a4b11cdff5f297a582439207c5c",
+    "width": 1024,
+    "height": 768
   },
   {
     "key": "stays/private-island-estate-cartagena/gallery-3.webp",
@@ -1086,7 +1674,13 @@
     ],
     "image_ids": [
       "47a7a3af-c2d3-503d-b256-6d39e8f40aa9"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 161854,
+    "sha256": "bf1ed2dc62c0c41916ad11c6a472b356980382be12ee2dbd7e6afa532a426ed3",
+    "md5": "e753cf75b4b308831141b41e97cf85ef",
+    "width": 1280,
+    "height": 960
   },
   {
     "key": "stays/private-island-estate-cartagena/gallery-4.webp",
@@ -1097,7 +1691,13 @@
     ],
     "image_ids": [
       "8cff20fc-7735-5945-baf3-e508dd4f6c9a"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 132618,
+    "sha256": "a31ea27f9cc8c0c82dae32d88789f545431429e1d423d1cd43dace1894ee6f66",
+    "md5": "33419adae9a36f41d8bfbf44e44052b1",
+    "width": 1024,
+    "height": 761
   },
   {
     "key": "stays/private-island-estate-cartagena/gallery-5.webp",
@@ -1108,7 +1708,13 @@
     ],
     "image_ids": [
       "8329c69d-b9c7-5fba-9235-97bbc9cae9cd"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 52898,
+    "sha256": "11abc5e612e8d1009901fe9c5f526093eea4ee9e3127df55688fd2134cd110e1",
+    "md5": "ec3cacea2791cabccc25ce4e4cc30325",
+    "width": 1024,
+    "height": 768
   },
   {
     "key": "stays/private-island-estate-cartagena/gallery-6.webp",
@@ -1119,7 +1725,13 @@
     ],
     "image_ids": [
       "33296ffe-41a4-5a12-9170-d4f559abc465"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 188476,
+    "sha256": "7778fc9e1679ec60be138d27c99346a084af4a99832cf43c73886f78f510d270",
+    "md5": "0ed183aefc8e99ee223abb4574f47b9f",
+    "width": 768,
+    "height": 1024
   },
   {
     "key": "stays/private-island-estate-cartagena/hero.webp",
@@ -1130,7 +1742,13 @@
     ],
     "image_ids": [
       "165b5e01-e0e4-5610-9d94-edbc28594c39"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 68380,
+    "sha256": "cc2abe63a367b167b2b7883f2661d8fa4cd7d6f7d24ec13c8125a37cf1c6d926",
+    "md5": "32048876734d2d2412146af47bbaafd9",
+    "width": 768,
+    "height": 1024
   },
   {
     "key": "stays/santa-fe-farm-antioquia/gallery-1.webp",
@@ -1141,7 +1759,13 @@
     ],
     "image_ids": [
       "983c839f-c304-5a4e-a58f-41a2aad93d0a"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 82368,
+    "sha256": "5ecc7fef964f1e4393faad4c38ee1aa92de726b6a80e4a23f9e00209ae1942d8",
+    "md5": "8f18dba3dd638b6555ce16c8bdad7d9b",
+    "width": 960,
+    "height": 1280
   },
   {
     "key": "stays/santa-fe-farm-antioquia/gallery-2.webp",
@@ -1152,7 +1776,13 @@
     ],
     "image_ids": [
       "0180f362-328a-54c0-8bfe-b7e576497801"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 119012,
+    "sha256": "8c2987c919c21e12e7a459b1cf0c0c3223910ce8eb207906cd53b0458ca7fe65",
+    "md5": "d432fddffc8497ccc1aaee550ee61f39",
+    "width": 1200,
+    "height": 1600
   },
   {
     "key": "stays/santa-fe-farm-antioquia/gallery-3.webp",
@@ -1163,7 +1793,13 @@
     ],
     "image_ids": [
       "11c6657f-5493-53b6-8964-ed468a99e813"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 228128,
+    "sha256": "d010763290faf4bcf84241e9063f1811d7f8f1234ea8da982a2117488bf95621",
+    "md5": "2875a2527391a9f0539f9cb4889bac55",
+    "width": 960,
+    "height": 1280
   },
   {
     "key": "stays/santa-fe-farm-antioquia/gallery-4.webp",
@@ -1174,7 +1810,13 @@
     ],
     "image_ids": [
       "6c95ce2e-c397-5876-bc2e-f1fd180adbce"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 355082,
+    "sha256": "948ac870b7be4c9c3a47eda14ed75f6564821b5a6141e7b055c1755821d6d24f",
+    "md5": "5cecbd624c4a157b126319ee9872807d",
+    "width": 1200,
+    "height": 1600
   },
   {
     "key": "stays/santa-fe-farm-antioquia/gallery-5.webp",
@@ -1185,7 +1827,13 @@
     ],
     "image_ids": [
       "d518950c-08d9-57a4-a777-7727846bbfa2"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 365584,
+    "sha256": "12593cbe2b4790abbe8bdcc633635a6761505e45f04a5c4e9d8263206b430b57",
+    "md5": "758e73a5a2b5ffac7adc6fc5c3c14595",
+    "width": 1200,
+    "height": 1600
   },
   {
     "key": "stays/santa-fe-farm-antioquia/gallery-6.webp",
@@ -1196,7 +1844,13 @@
     ],
     "image_ids": [
       "3a3904d4-f936-59ea-a2a2-5ad5a2634bd5"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 160548,
+    "sha256": "13dd2241ed92ef851b4cf749d4cd3edd6e9d77739c6bd0ac2a36d193678905e6",
+    "md5": "10030723e67bff411c0a95c55345d3de",
+    "width": 960,
+    "height": 1280
   },
   {
     "key": "stays/santa-fe-farm-antioquia/hero.webp",
@@ -1207,7 +1861,13 @@
     ],
     "image_ids": [
       "abc7fd4d-8e6b-5803-97a0-4e7f70796f1e"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 53076,
+    "sha256": "0e7bcb1e12c876d907175a79f5c0b6630c65a8dd58b83309ea834362367e2cef",
+    "md5": "16ccbee0c4bbf36852ee6bb09c7b67ae",
+    "width": 960,
+    "height": 1280
   },
   {
     "key": "stays/sopetran-country-estate/gallery-1.webp",
@@ -1218,7 +1878,13 @@
     ],
     "image_ids": [
       "9003acfd-9c1a-51c9-a436-4ad00eb1d261"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 217382,
+    "sha256": "e09b8f3fe2ce9093f8d7d7e85751d26a1112a08a5314be00b53d19bbc2f6a9a7",
+    "md5": "a9c8ef69a188ccd727073880e8666ae6",
+    "width": 1200,
+    "height": 1600
   },
   {
     "key": "stays/sopetran-country-estate/gallery-2.webp",
@@ -1229,7 +1895,13 @@
     ],
     "image_ids": [
       "5cecc6ca-47ac-5b5e-98e0-42b4b98fa343"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 171804,
+    "sha256": "d6a277a8408fd4dc13d38169d6f060eac85c23f30278741f7a9776547593523e",
+    "md5": "af2f5f553aa58727797c68b27048636f",
+    "width": 1024,
+    "height": 768
   },
   {
     "key": "stays/sopetran-country-estate/gallery-3.webp",
@@ -1240,7 +1912,13 @@
     ],
     "image_ids": [
       "8821441b-ae47-5c93-9602-7677ab40d419"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 268554,
+    "sha256": "8e23dec9fd392c74112e29eae0ee6bca11c3878d0e0929f6de54177e1b295b5f",
+    "md5": "67c0ebcee4bc40229f18c2293f69890c",
+    "width": 1200,
+    "height": 1600
   },
   {
     "key": "stays/sopetran-country-estate/gallery-4.webp",
@@ -1251,7 +1929,13 @@
     ],
     "image_ids": [
       "a8660eea-3f59-5252-8611-a298c3a5e80e"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 237844,
+    "sha256": "f1d864361cf612abbe7bcc66db9bc324990545ef3762a6241de456e32aecdc2f",
+    "md5": "0feaa0f928c37d2564cd35e04e858212",
+    "width": 1600,
+    "height": 1200
   },
   {
     "key": "stays/sopetran-country-estate/gallery-5.webp",
@@ -1262,7 +1946,13 @@
     ],
     "image_ids": [
       "1fb3607c-5fd9-5541-8ac8-ee087b4d7975"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 186824,
+    "sha256": "bcaa85413177922442c54317ccf82183062281afc0a7c79cf3b4b85a2ca42a56",
+    "md5": "d7b45fc75484c7a36ba8508687250ff7",
+    "width": 1024,
+    "height": 768
   },
   {
     "key": "stays/sopetran-country-estate/gallery-6.webp",
@@ -1273,7 +1963,13 @@
     ],
     "image_ids": [
       "f317e635-4802-573d-890d-3e0780a4ac56"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 180988,
+    "sha256": "c86bb8a961f031dc5b7784662771d885808d0da1f464dd714b317463ddca937b",
+    "md5": "c39d17722edf991fb62af71d18a0335d",
+    "width": 1024,
+    "height": 768
   },
   {
     "key": "stays/sopetran-country-estate/hero.webp",
@@ -1284,6 +1980,12 @@
     ],
     "image_ids": [
       "063be6e8-a7a1-5a4e-bf7b-ccb0d7e0de6a"
-    ]
+    ],
+    "content_type": "image/webp",
+    "bytes": 145128,
+    "sha256": "ebe46d2903bea7a7e7e420837f2fbfd473e2ba3a646791393e430b68f336380f",
+    "md5": "537ab44becdd01c1a80481d227c98196",
+    "width": 1200,
+    "height": 1600
   }
 ]

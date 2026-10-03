@@ -16,3 +16,4 @@ tests/screens/after/
 .env.*
 !.env.example
 .dev.vars
+/media-staging/
