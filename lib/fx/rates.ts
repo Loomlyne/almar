@@ -75,17 +75,23 @@ function isRate(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
 
+/** The digits of a written amount ("80,000") as a number, or null when they are not a safe integer. */
+function writtenNumber(digits: string): number | null {
+  const amount = Number(digits.replace(/,/g, ""));
+  return Number.isSafeInteger(amount) ? amount : null;
+}
+
 export function parseWrittenAmount(text: string): WrittenAmount | null {
   if (typeof text !== "string") return null;
   const usd = text.match(/^\$(\d{1,3}(?:,\d{3})*)$/);
   if (usd) {
-    const amount = Number(usd[1].replace(/,/g, ""));
-    return Number.isFinite(amount) ? { amount, currency: "USD" } : null;
+    const amount = writtenNumber(usd[1]);
+    return amount === null ? null : { amount, currency: "USD" };
   }
   const aed = text.match(/^AED (\d{1,3}(?:,\d{3})*)$/);
   if (aed) {
-    const amount = Number(aed[1].replace(/,/g, ""));
-    return Number.isFinite(amount) ? { amount, currency: "AED" } : null;
+    const amount = writtenNumber(aed[1]);
+    return amount === null ? null : { amount, currency: "AED" };
   }
   return null;
 }
@@ -163,11 +169,9 @@ export function rewriteHomeAmounts(
       if (selected === "AED") return whole; // already in AED: keep it byte for byte
       const prefix = `${selected} `;
       const ends = [low, high].map((digits) => {
-        const amount = convertWrittenAmount(
-          { amount: Number(digits.replace(/,/g, "")), currency: "AED" },
-          selected,
-          rates,
-        );
+        const written = writtenNumber(digits);
+        if (written === null) return null;
+        const amount = convertWrittenAmount({ amount: written, currency: "AED" }, selected, rates);
         if (amount === null || !Number.isFinite(amount) || amount <= 0) return null;
         const shown = shownAmount(selected, amount, locale);
         return shown !== null && shown.startsWith(prefix) ? shown.slice(prefix.length) : null;
