@@ -192,6 +192,20 @@ test("dockLines in Spanish uses the Spanish empty Dates value", () => {
   assert.ok(lines.line2.startsWith(copy.bar.dates.empty));
 });
 
+test("pickStayJourneyCopy keeps what the bar reads and leaves out add-ons, cart and payment", () => {
+  for (const locale of ["en", "ar", "es"]) {
+    const full = JOURNEY_COPY[locale];
+    const picked = value.pickStayJourneyCopy(full);
+    assert.deepEqual(Object.keys(picked).sort(), ["bar", "dates", "done", "entry", "guests", "menu", "sheet", "steps"]);
+    for (const key of ["bar", "dates", "done", "entry", "guests", "menu", "sheet"]) assert.deepEqual(picked[key], full[key], key);
+    assert.deepEqual(picked.steps, { stay: full.steps.stay });
+    const text = JSON.stringify(picked);
+    for (const gone of [full.addons.add, full.addons.unit.night, full.cart.continue, full.cart.subtotal]) {
+      assert.equal(text.includes(JSON.stringify(gone)), false, `${locale}: ${gone}`);
+    }
+  }
+});
+
 test("the module reads no data layer and no file system", () => {
   const source = readFileSync("components/pages/stay-detail/booking-value.ts", "utf8");
   assert.equal(/lib\/data\/(stays|experiences|fixtures|resolve|media)|readFileSync|node:fs/.test(source), false);

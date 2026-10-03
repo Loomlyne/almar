@@ -106,3 +106,15 @@ export function dockLines(
   const comma = locale === "ar" ? "، " : ", ";
   return { line1: `${names.destinationName}${comma}${names.title}`, line2: `${dates} · ${guests}` };
 }
+
+/**
+ * The part of the journey copy the stay page's bar, sheet and calendar read. The island gets this, not the whole
+ * catalogue: the add-on, cart and payment strings ("Add", "per night", "Continue", "Subtotal") have no business
+ * in a page that offers none of them, and what is serialised into the document is what a byte scan finds.
+ * The components read only these keys (bar, menu, dates, done, guests, entry, sheet), so the narrower object is
+ * passed where the wider type is declared.
+ */
+export function pickStayJourneyCopy(copy: JourneyCopy): JourneyCopy {
+  const { bar, menu, dates, done, guests, entry, sheet, steps } = copy;
+  return { bar, menu, dates, done, guests, entry, sheet, steps: { stay: steps.stay } } as unknown as JourneyCopy;
+}

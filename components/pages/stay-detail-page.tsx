@@ -24,6 +24,7 @@ import { getBlockedDates, getRelatedStays, getStay, getStaySlugs } from "../../l
 import type { CatalogItem, Locale } from "../../lib/data/types";
 import { HOME_COPY } from "../../lib/copy/home";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
+import { pickStayJourneyCopy } from "./stay-detail/booking-value";
 import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
 import { absoluteLocaleUrl, localeAlternates, localePath, siteHref } from "../../lib/locale-path";
 
@@ -121,7 +122,7 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
         destinationName={stay.destination_name}
         title={stay.title}
         blockedDates={blockedDates}
-        copy={JOURNEY_COPY[locale]}
+        copy={pickStayJourneyCopy(JOURNEY_COPY[locale])}
         sampleNote={stay.sample_fields.includes("blocked_dates") ? copy.sampleDatesNote : null}
       >
         <StayChrome
@@ -130,7 +131,15 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
           homeHref={localePath(locale, "/")}
           links={navLinks}
           footerLinks={navLinks}
-          labels={home.nav}
+          labels={{
+            destinations: home.nav.destinations,
+            experiences: home.nav.experiences,
+            about: home.nav.about,
+            contact: home.nav.contact,
+            language: home.nav.language,
+            menu: home.nav.menu,
+            close: home.nav.close,
+          }}
           footerCopy={{
             pages: home.pages,
             contact: home.nav.contact,
