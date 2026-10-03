@@ -59,9 +59,16 @@ test("mediaUrl joins a key onto the base and rejects traversal and host injectio
   }
 });
 
-test("the media base is the pending placeholder until the controller supplies the R2 hostname", () => {
-  assert.equal(mediaMod.MEDIA_BASE_URL, "https://media-pending.invalid");
-  assert.equal(mediaMod.MEDIA_BASE_URL_IS_PLACEHOLDER, true);
+test("the media base is the pending placeholder while the flag is true, and a real https origin once the controller flips it", () => {
+  const url = mediaMod.MEDIA_BASE_URL;
+  if (mediaMod.MEDIA_BASE_URL_IS_PLACEHOLDER) {
+    assert.equal(url, "https://media-pending.invalid");
+  } else {
+    const u = new URL(url);
+    assert.equal(u.protocol, "https:");
+    assert.equal(u.origin, url, "a bare origin: no path, no trailing slash");
+    assert.ok(!u.hostname.endsWith(".invalid"));
+  }
 });
 
 function walk(dir, out = []) {
@@ -75,10 +82,11 @@ function walk(dir, out = []) {
 }
 
 test("the media host literal appears in exactly one source file: lib/data/media.ts", () => {
+  const host = new URL(mediaMod.MEDIA_BASE_URL).hostname; // the placeholder now, the real R2 host after the flip
   const hits = [];
   for (const root of ["lib", "app", "components"]) {
     for (const f of walk(root)) {
-      if (readFileSync(f, "utf8").includes("media-pending.invalid")) hits.push(f.replaceAll("\\", "/"));
+      if (readFileSync(f, "utf8").includes(host)) hits.push(f.replaceAll("\\", "/"));
     }
   }
   assert.deepEqual(hits, ["lib/data/media.ts"]);
