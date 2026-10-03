@@ -173,7 +173,7 @@ test("SF-2: a range converts only when both ends come out finite and above zero"
   }
 });
 
-test("SF-2: the feed is refused when a rate is zero, negative, infinite or not a number", async () => {
+test("SF-2: the feed is refused when a rate is zero, negative, infinite, not a number or outside the sanity band", async () => {
   // A fresh copy of the module, so the 12-hour memory of another test cannot answer for the feed.
   const { loadRates } = await import("../lib/fx/rates.ts?bad-feed");
   const bodies = [
@@ -187,12 +187,24 @@ test("SF-2: the feed is refused when a rate is zero, negative, infinite or not a
     '{"date":"2026-10-03","usd":{"aed":3.6725,"eur":"NaN"}}',
     '{"date":"2026-10-03","usd":{"aed":3.6725,"eur":-1e400}}',
     '{"date":"2026-10-03","usd":{"aed":3.6725}}',
+    // Believable but wrong: the two rates swapped, the dirham x100, the euro at 1e-6. The dirham is pegged
+    // to the dollar, so aed must sit in [3.6, 3.75]; eur must sit in [0.5, 1.5].
+    '{"date":"2026-10-03","usd":{"aed":0.92,"eur":3.6725}}',
+    '{"date":"2026-10-03","usd":{"aed":367.25,"eur":0.92}}',
+    '{"date":"2026-10-03","usd":{"aed":3.6725,"eur":0.000001}}',
+    '{"date":"2026-10-03","usd":{"aed":3.59,"eur":0.92}}',
+    '{"date":"2026-10-03","usd":{"aed":3.76,"eur":0.92}}',
+    '{"date":"2026-10-03","usd":{"aed":3.6725,"eur":0.49}}',
+    '{"date":"2026-10-03","usd":{"aed":3.6725,"eur":1.51}}',
   ];
   const originalFetch = globalThis.fetch;
   try {
     for (const body of bodies) {
       globalThis.fetch = async () => new Response(body, { status: 200, headers: { "content-type": "application/json" } });
-      assert.equal(await loadRates(), null, body);
+      const rates = await loadRates();
+      assert.equal(rates, null, body);
+      // No rates: every published label is printed as written.
+      for (const code of CODES) assert.equal(rewriteHomeAmounts(LABELS[0], code, rates, "en"), LABELS[0]);
     }
     globalThis.fetch = async () =>
       new Response('{"date":"2026-10-03","usd":{"aed":3.6725,"eur":0.92}}', { status: 200 });
@@ -299,4 +311,17 @@ test("N5: an amount that is not a safe integer is never read or converted", () =
 test("N7: the dead homePriceScript export is gone", async () => {
   const mod = await import("../lib/fx/rates.ts");
   assert.equal("homePriceScript" in mod, false);
+});
+
+test("SF-2: the feed is accepted at the edges of the sanity band", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    for (const [i, [aed, eur]] of [[3.6, 0.5], [3.75, 1.5]].entries()) {
+      const { loadRates } = await import(`../lib/fx/rates.ts?band-edge-${i}`);
+      globalThis.fetch = async () => new Response(JSON.stringify({ date: "2026-10-03", usd: { aed, eur } }), { status: 200 });
+      assert.deepEqual(await loadRates(), { aed, eur, date: "2026-10-03" });
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
