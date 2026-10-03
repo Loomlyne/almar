@@ -18,6 +18,7 @@ import type { Locale } from "../../lib/data/types";
 import { HOME_COPY } from "../../lib/copy/home";
 import { HOME_PAGE_COPY } from "../../lib/copy/home-page";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
+import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { absoluteLocaleUrl, localeAlternates, localePath, siteHref } from "../../lib/locale-path";
 
 // The React home: / , /ar/ and /es/ are this one component (design 5.1). Each route file binds its locale
@@ -106,7 +107,7 @@ export async function HomePage({ locale }: { locale: Locale }) {
             locale={locale}
             links={links}
             labels={{ ...nav, currencyNone: nav.currency }}
-            footerCopy={{ ...copy.footer }}
+            footerCopy={SITE_FOOTER_COPY[locale]}
             currencyEnabled={rates !== null}
           >
             <main id="content">

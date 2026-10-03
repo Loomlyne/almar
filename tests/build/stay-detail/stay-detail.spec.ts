@@ -4,6 +4,7 @@ import { MEDIA_BASE_URL } from "../../../lib/data/media";
 import { getBlockedDates, getRelatedStays, getStay } from "../../../lib/data/stays";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
+import { SITE_FOOTER_COPY } from "../../../lib/copy/site-footer";
 import { STAY_DETAIL_COPY } from "../../../lib/copy/stay-detail";
 import { formatDate } from "../../../lib/format";
 import { JOURNEY_CHOICE_KEY, parseJourneyChoice, serializeJourneyChoice } from "../../../lib/journey-choice";
@@ -514,7 +515,7 @@ for (const slug of FOCUS) {
         test(`language @${size.width}: footer row holds this stay's three URLs, the header select goes to Arabic without a redirect`, async ({ page }) => {
           const c = await context(locale, slug);
           const watched = await load(page, c, size);
-          const row = page.getByRole("navigation", { name: c.copy.footer.language });
+          const row = page.getByRole("navigation", { name: SITE_FOOTER_COPY[locale].language });
           const links = row.getByRole("link");
           await expect(links).toHaveCount(3);
           const expected = LOCALES.map((l) => stayUrl(l, slug));

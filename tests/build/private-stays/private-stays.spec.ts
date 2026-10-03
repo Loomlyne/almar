@@ -645,9 +645,16 @@ for (const locale of LOCALES) {
         for (let i = 0; i < 3; i += 1) xs.add(Math.round((await cardLinks(page).nth(i).boundingBox())!.x));
         expect(xs.size, "distinct columns among the first three cards").toBe(viewport.width === 390 ? 1 : viewport.width === 834 ? 2 : 3);
 
-        const rule = page.getByRole("heading", { level: 1 }).locator("xpath=..");
-        expect(await rule.evaluate((el) => getComputedStyle(el).borderTopWidth)).toBe("2px");
-        expect(await rule.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe(await token(page, "gold"));
+        // The h1 sits in a SectionHead: the gold rule is the border of the nearest ancestor that has a top border
+        // (not necessarily its parent), and it must be inside <main>.
+        const rule = await page.getByRole("heading", { level: 1 }).evaluate((h) => {
+          for (let el = h.parentElement; el && el.tagName !== "MAIN"; el = el.parentElement) {
+            const style = getComputedStyle(el);
+            if (parseFloat(style.borderTopWidth) > 0) return { width: style.borderTopWidth, color: style.borderTopColor };
+          }
+          return null;
+        });
+        expect(rule).toEqual({ width: "2px", color: await token(page, "gold") });
 
         const radii = await page.locator("main img, main button").evaluateAll((els) => els.map((el) => getComputedStyle(el).borderRadius));
         expect(radii.length).toBeGreaterThan(12);

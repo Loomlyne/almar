@@ -40,7 +40,8 @@ test("the 12 Framer detail routes are gone: no literal folder shadows [stay]", (
       assert.equal(existsSync(join("app", locale, "private-stays", slug)), false, `app/${locale}/private-stays/${slug}`);
     }
   }
-  assert.ok(existsSync("app/private-stays/route.ts"), "the list page (plan 05) is still one level up");
+  assert.ok(existsSync("app/private-stays/page.tsx"), "the React list page (plan 05) is still one level up");
+  assert.equal(existsSync("app/private-stays/route.ts"), false, "plan 05 replaced the Framer list route");
 });
 
 test("the three [stay] routes bind a locale to the one template and build only the published slugs", () => {
@@ -64,7 +65,8 @@ test("the three [stay] routes bind a locale to the one template and build only t
 
 test("the Mariven sentence is nowhere in shipped source, and nothing is allowed", () => {
   // Job 05 allowed the 12 route.ts files, because it could only hide the sentence. Nothing is allowed now.
-  assert.ok(shipped.length > 100 && shipped.includes("app/route.ts") && shipped.includes("components/pages/stay-detail-page.tsx"), `expected to scan the real tree, scanned ${shipped.length}`);
+  // app/route.ts (the Framer home) was deleted by plan 04; the scan is real while it covers the page template.
+  assert.ok(shipped.length > 100 && shipped.includes("components/pages/stay-detail-page.tsx"), `expected to scan the real tree, scanned ${shipped.length}`);
   const hits = shipped.filter((file) => {
     const text = readFileSync(file, "utf8");
     return /mariven/i.test(text) || text.includes("From cozy beachfront rooms");

@@ -4,7 +4,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { HOME_PAGE_COPY } from "../lib/copy/home-page.ts";
 import { HOME_COPY } from "../lib/copy/home.ts";
-import { FRAMER_SOURCE_COPY } from "../lib/copy/framer-source.ts";
 import { formatPlural } from "../lib/journey-format.ts";
 
 // Plan 03.3-04 Task 1: the home copy file. Same key-tree walk as tests/copy.test.mjs, the live English
@@ -49,7 +48,6 @@ test("the key tree has exactly the sections the page renders", () => {
     "begin",
     "team",
     "gallery",
-    "footer",
   ]);
   assert.deepEqual(Object.keys(HOME_PAGE_COPY.en.stays), ["kicker", "heading", "intro", "viewAll", "count"]);
   assert.deepEqual(Object.keys(HOME_PAGE_COPY.en.journeys), ["heading", "intro", "featured", "ratesOf"]);
@@ -90,7 +88,6 @@ const LIVE = {
   "begin.cta": "Request Consultation",
   "team.kicker": "The People Behind Your Journey",
   "team.heading": "Local insight, personally delivered.",
-  "footer.copyright": "© 2026 ALMAR Private Journeys. All rights reserved.",
 };
 
 const pick = (obj, path) => path.split(".").reduce((o, k) => o[k], obj);
@@ -131,18 +128,8 @@ test("AR and ES reuse the approved lib/copy/home.ts lines where the live English
   }
 });
 
-test("the footer words reuse approved lines and the copyright is the live footer's, byte for byte", () => {
-  for (const locale of LOCALES) {
-    const page = HOME_PAGE_COPY[locale].footer;
-    assert.equal(page.pages, HOME_COPY[locale].pages, `${locale} footer.pages`);
-    assert.equal(page.contact, HOME_COPY[locale].nav.contact, `${locale} footer.contact`);
-    assert.equal(page.language, HOME_COPY[locale].nav.language, `${locale} footer.language`);
-    assert.equal(
-      page.copyright,
-      FRAMER_SOURCE_COPY[locale]["© 2026 ALMAR Private Journeys. All rights reserved."],
-      `${locale} footer.copyright`,
-    );
-  }
+test("the footer strings are not in this file: every page reads lib/copy/site-footer.ts", () => {
+  for (const locale of LOCALES) assert.equal("footer" in HOME_PAGE_COPY[locale], false, `${locale} has its own footer`);
 });
 
 test("nothing in the file contradicts the signed design, carries a price or names a person", () => {

@@ -9,8 +9,8 @@
 // ".invalid" name, which can never resolve (RFC 2606). MEDIA_BASE_URL_IS_PLACEHOLDER = true makes the
 // assemble script refuse a preview or production build. Both constants change in one commit.
 
-export const MEDIA_BASE_URL = "https://media-pending.invalid";
-export const MEDIA_BASE_URL_IS_PLACEHOLDER = true;
+export const MEDIA_BASE_URL = "https://media.almarprivatejourney.com";
+export const MEDIA_BASE_URL_IS_PLACEHOLDER = false;
 
 /** Joins a media key onto the media base URL. Rejects anything that is not a plain relative key. */
 export function mediaUrl(key: string): string {

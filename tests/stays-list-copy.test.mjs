@@ -121,8 +121,10 @@ test("formatPlural: the English and Spanish singular and plural, and the Arabic 
   assert.equal(formatPlural(STAYS_LIST_COPY.ar.count, 12, "ar"), "12 إقامة");
 });
 
-test("the frame strings carry the published copyright line in EN", () => {
-  assert.equal(STAYS_LIST_COPY.en.frame.footer.copyright, "© 2026 ALMAR Private Journeys. All rights reserved.");
+test("the footer strings are not in this file: every page reads lib/copy/site-footer.ts", () => {
+  for (const locale of ["en", "ar", "es"]) {
+    assert.equal("frame" in STAYS_LIST_COPY[locale] || "footer" in STAYS_LIST_COPY[locale], false, `${locale} has its own footer`);
+  }
 });
 
 test("lib/copy/index.ts does not register this file (reconcile R-9: imported directly)", () => {

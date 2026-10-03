@@ -16,6 +16,14 @@ import path from "node:path";
 import { MEDIA_BASE_URL, MEDIA_BASE_URL_IS_PLACEHOLDER } from "../lib/data/media.ts";
 import { FORBIDDEN_HOSTS, REPO_ROOT, defaultPaths, isMain, readStaySlugs, slice1Documents } from "./media-lib.mjs";
 
+/**
+ * The nav wordmarks (Poly_White, Stacked_Charcoal) are brand assets from brand/: the Next build hashes them to
+ * /_next/static/media/<name>.<hash>.svg and the site serves them itself. That one same-origin shape is allowed for
+ * an <img src> or a srcset candidate: a single plain file name under that folder (no deeper path, no "..", no
+ * query, no scheme, no "//"). Everything else, and every og:image, must start with the media base.
+ */
+const SAME_ORIGIN_BRAND_ASSET_RE = /^\/_next\/static\/media\/(?!\.+$)[A-Za-z0-9._-]+$/;
+
 /** The placeholder base is a reserved .invalid name; any such host in a document is a leftover of it. */
 const INVALID_HOST_RE = /[a-z0-9][a-z0-9.-]*\.invalid\b/gi;
 
@@ -113,6 +121,7 @@ export function scanOut(outDir, base, { documents = slice1Documents(readStaySlug
     }
     for (const ref of imageReferences(html)) {
       images++;
+      if (ref.kind !== "og:image" && SAME_ORIGIN_BRAND_ASSET_RE.test(ref.url)) continue;
       if (!ref.url.startsWith(`${base}/`)) {
         violations.push({ document: doc, problem: `${ref.kind} ${JSON.stringify(ref.url.slice(0, 120))} does not start with ${base}/` });
       }

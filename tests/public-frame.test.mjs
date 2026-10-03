@@ -18,9 +18,13 @@ test("every held control is off: no login, no cart, no newsletter, no form", () 
   assert.equal(src.includes("<form"), false);
 });
 
-test("currency is off unless a page turns it on", () => {
+test("currency is off unless a page passes the state its own amounts use", () => {
   assert.match(src, /currency = false/);
-  assert.match(src, /if \(!currency\) nav\.currency = false/);
+  // Controlled: the select reads the page's `selected` and reports a pick through the page's `onChange`.
+  assert.match(src, /currency: currency === false \? false : currency\.selected/);
+  assert.match(src, /nav\.onCurrency = currency\.onChange/);
+  // The old on/off boolean left the select uncontrolled, starting at AED.
+  assert.equal(/currency\?: boolean/.test(src), false);
 });
 
 test("a language switch only goes to a path of this site (T-3.3-04)", () => {
@@ -33,5 +37,7 @@ test("a language switch only goes to a path of this site (T-3.3-04)", () => {
 
 test("the frame carries no invented contact details", () => {
   assert.ok(src.includes("inquiries@almarprivatejourney.com"));
-  assert.ok(src.includes("+971563883302"));
+  // Displayed as the live footer and design 4.1 row 28 print it; the footer builds tel:+971563883302 from the digits.
+  assert.ok(src.includes('phone: "+971 56 388 3302"'));
+  assert.equal(src.includes('phone: "+971563883302"'), false);
 });

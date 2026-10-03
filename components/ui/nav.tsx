@@ -191,7 +191,8 @@ export function SiteNav({
   };
 
   return (
-    <header ref={headerRef} className={nav({ tone })}>
+    // cn() merges the cva string, so the tone's `absolute` replaces the base `sticky` (both are `position`).
+    <header ref={headerRef} className={cn(nav({ tone }))}>
       <div
         className={cn(
           "flex w-full min-w-0 items-center gap-4 px-3 py-2 @6xl:gap-8 @6xl:px-6",

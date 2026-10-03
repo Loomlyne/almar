@@ -102,14 +102,14 @@ test("nothing on the home speaks to a third-party host, plays a video or draws a
   }
 });
 
-test("the chrome has the held controls off: no Login, no cart, no newsletter, a controlled currency", () => {
+test("the chrome is the one PublicFrame (held controls off there), with a currency bound to the saved choice", () => {
   const nav = read("components/pages/home/home-nav.tsx");
-  assert.match(nav, /login=\{false\}/);
-  assert.match(nav, /newsletter=\{false\}/);
-  assert.equal(/\bcart\b/.test(code(nav)), false);
-  assert.match(nav, /currency=\{currencyEnabled \? selected : false\}/);
-  assert.match(nav, /onCurrency=\{choose\}/);
-  assert.equal(/listWithUs/.test(nav), false);
+  assert.match(nav, /<PublicFrame\b/);
+  // No Login, no cart, no newsletter and no "List with us" are switched off once, in components/site/public-frame.tsx
+  // (tests/public-frame.test.mjs); the home must not switch any of them back on.
+  assert.equal(/\bcart\b|login=|newsletter=|listWithUs/.test(code(nav)), false);
+  assert.match(nav, /currency=\{currencyEnabled \? \{ selected, onChange: choose \} : false\}/);
+  assert.match(nav, /useCurrencyChoice\(\)/);
 });
 
 test("the client parts import only types and the stay filter from lib/data", () => {
