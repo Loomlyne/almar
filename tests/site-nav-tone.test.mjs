@@ -33,10 +33,15 @@ test("on-image uses the white wordmark, solid the charcoal one", () => {
   assert.match(render({ ...base, tone: "solid" }), /Stacked_Charcoal\.svg/);
 });
 
-test("the pages no longer wrap the nav in an absolute div to lay it over the hero", async () => {
-  const { readFileSync } = await import("node:fs");
-  for (const file of ["components/pages/home/home-nav.tsx", "components/pages/stay-detail/chrome.tsx"]) {
-    const text = readFileSync(file, "utf8");
-    assert.equal(/<div className="absolute inset-x-0/.test(text), false, `${file} still wraps the nav`);
+test("no page wraps the nav in an absolute div to lay it over the hero", async () => {
+  const { existsSync, readFileSync } = await import("node:fs");
+  // The home and the stay page both reach SiteNav through PublicFrame; the stay page's own chrome file is gone.
+  assert.equal(existsSync("components/pages/stay-detail/chrome.tsx"), false);
+  for (const file of [
+    "components/site/public-frame.tsx",
+    "components/pages/home/home-nav.tsx",
+    "components/pages/stay-detail-page.tsx",
+  ]) {
+    assert.equal(/<div className="absolute inset-x-0/.test(readFileSync(file, "utf8")), false, `${file} wraps the nav`);
   }
 });

@@ -2,7 +2,7 @@
 
 import { CurrencyChoiceProvider } from "../../../components/pages/home/currency-choice";
 import { HomeJourneys, type HomeTier } from "../../../components/pages/home/home-journeys";
-import { HomeNav } from "../../../components/pages/home/home-nav";
+import { HomeFrame } from "../../../components/pages/home/home-nav";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { HOME_PAGE_COPY } from "../../../lib/copy/home-page";
 import type { Scenes, SceneContext } from "../scene-types";
@@ -41,16 +41,18 @@ function Scene({ ctx, rates }: { ctx: SceneContext; rates: typeof RATES | null }
   return (
     <CurrencyChoiceProvider>
       <div data-testid="harness-home-journeys" className="min-h-96 bg-ivory">
-        <HomeNav
+        <HomeFrame
           locale={ctx.locale}
           links={links}
           labels={{ ...nav, currencyNone: nav.currency }}
+          footerCopy={{ ...HOME_PAGE_COPY[ctx.locale].footer }}
           currencyEnabled={rates !== null}
           tone="solid"
-        />
-        <main id="content" className="p-4">
-          <HomeJourneys tiers={tiers(ctx)} rates={rates} copy={HOME_PAGE_COPY[ctx.locale].journeys} locale={ctx.locale} />
-        </main>
+        >
+          <main id="content" className="p-4">
+            <HomeJourneys tiers={tiers(ctx)} rates={rates} copy={HOME_PAGE_COPY[ctx.locale].journeys} locale={ctx.locale} />
+          </main>
+        </HomeFrame>
       </div>
     </CurrencyChoiceProvider>
   );

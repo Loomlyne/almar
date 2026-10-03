@@ -1,6 +1,6 @@
 // The one private-stay detail template for all 12 stays in EN, AR and ES (phase 3.3 plan 06, design 1.3).
 // A server component: every value is read through lib/data and every string through lib/copy. The only client
-// parts are the booking island (state for the bar, the sheet and the dock), the page chrome and the gallery.
+// parts are the booking island (state for the bar, the sheet and the dock), the page frame and the gallery.
 //
 // What this page never does (design 3.9, 4.3):
 //  - show an amount or a minimum stay: those fields are not read here, and the island never gets a Stay;
@@ -9,7 +9,6 @@
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { StayChrome } from "./stay-detail/chrome";
 import { StayBooking, StayBookingBar, StayBookingDock } from "./stay-detail/booking";
 import { StayHero } from "./stay-detail/hero";
 import { MediaCard } from "../ui/card";
@@ -19,6 +18,7 @@ import { Link } from "../ui/link";
 import { PageShell } from "../ui/page-shell";
 import { Section } from "../ui/section";
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
+import { PublicFrame } from "../site/public-frame";
 import { getCatalogForStay } from "../../lib/data/experiences";
 import { getBlockedDates, getRelatedStays, getStay, getStaySlugs } from "../../lib/data/stays";
 import type { CatalogItem, Locale } from "../../lib/data/types";
@@ -125,10 +125,12 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
         copy={pickStayJourneyCopy(JOURNEY_COPY[locale])}
         sampleNote={stay.sample_fields.includes("blocked_dates") ? copy.sampleDatesNote : null}
       >
-        <StayChrome
+        {/* The nav lies over the hero; the WhatsApp float is lifted above the pinned dock. */}
+        <PublicFrame
           locale={locale}
           currentPath={pagePath}
-          homeHref={localePath(locale, "/")}
+          navTone="on-image"
+          whatsappClassName="bottom-dock mb-4"
           links={navLinks}
           footerLinks={navLinks}
           labels={{
@@ -234,7 +236,7 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
               ) : null}
             </PageShell>
           </main>
-        </StayChrome>
+        </PublicFrame>
         <StayBookingDock />
       </StayBooking>
       <script {...ORGANIZATION_JSON_LD_SCRIPT} />
