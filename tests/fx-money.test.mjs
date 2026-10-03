@@ -209,6 +209,10 @@ test("SF-4/SF-5: a label that cannot convert completely is printed as written, n
     "From USD $4,000/person · Est. AED 80,000–90,000", // the per-person amount is not a published one
     "From USD $3,000/person · Est. AED 80,000–90,0001", // the range is not a whole token (SF-1)
     "Prices in AED: $3,000", // a currency code that is not the selected one stays in the text
+    "From USD $3,000/person · Est. AED 80,000 to 90,000", // a range written with "to" is not converted
+    "$3,000-3,500", // a dollar range: its high end carries no "$", so neither end may convert
+    "2,000–$3,000", // the high end of a range never converts alone
+    "2,000 to $3,000",
   ];
   for (const text of cases) {
     for (const code of CODES) {
@@ -218,6 +222,18 @@ test("SF-4/SF-5: a label that cannot convert completely is printed as written, n
         const mixed = codes.size > 1 || /\$\s?\d/.test(out);
         assert.ok(out === text || !mixed, `half converted: ${text} -> ${code} (${locale}): ${out}`);
         if (code !== "AED") assert.equal(out, text, `${text} -> ${code} (${locale})`);
+      }
+    }
+  }
+  // An AED range written with a hyphen, a spaced en dash or an em dash converts at both ends and keeps
+  // its separator; before, only the low end converted ("Est. USD 21,783.53-90,000").
+  for (const sep of ["-", " – ", "—"]) {
+    for (const [i, label] of LABELS.entries()) {
+      const text = label.replace("–", sep);
+      for (const code of CODES) {
+        for (const locale of LOCALES) {
+          assert.equal(rewriteHomeAmounts(text, code, FIXTURE, locale), TODAY[code][i].replace("–", sep), `${text} -> ${code} (${locale})`);
+        }
       }
     }
   }
