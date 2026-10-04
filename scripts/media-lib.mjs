@@ -12,6 +12,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { LOCALES, PUBLIC_PAGES } from "../lib/locale-path.ts";
 
 /** The repo root, resolved from this file so the scripts work from any cwd. */
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -223,6 +224,30 @@ export function slice1Documents(staySlugs = readStaySlugs()) {
     for (const slug of staySlugs) docs.push(`${prefix}private-stays/${slug}.html`);
   }
   return docs;
+}
+
+/** The two pages slice 3 converts. They enter the media guard's list only once they are in PUBLIC_PAGES. */
+export const SLICE3_PAGES = ["/about", "/contact"];
+
+/**
+ * The out/ paths of slice 3's documents (About and Contact in all three locales) that `pages` makes public: nothing
+ * while neither is in PUBLIC_PAGES, six once both are (locale prefix "", "ar/", "es/"; no root, no parameter). Added
+ * beside slice1Documents and not inside it: slice 2's publicDocuments() replaces both when it lands.
+ */
+export function slice3Documents(pages = PUBLIC_PAGES) {
+  const docs = [];
+  for (const locale of LOCALES) {
+    const prefix = locale === "en" ? "" : `${locale}/`;
+    for (const page of SLICE3_PAGES) {
+      if (pages.includes(page)) docs.push(`${prefix}${page.slice(1)}.html`);
+    }
+  }
+  return docs;
+}
+
+/** Every document the media guard scans: slice 1's, then slice 3's that PUBLIC_PAGES has made public. */
+export function guardedDocuments(staySlugs = readStaySlugs(), pages = PUBLIC_PAGES) {
+  return [...slice1Documents(staySlugs), ...slice3Documents(pages)];
 }
 
 /** Bytes as decimal megabytes with one decimal, e.g. "47.3". */
