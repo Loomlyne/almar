@@ -30,27 +30,36 @@ export type StayDetailCopy = {
   };
   inclusionsLabel: string;
   requestInquiry: string;
+  /** DRAFTED UI COPY (AR/ES): the slideshow's names. `{title}` the stay, `{n}` and `{total}` slide numbers. */
   gallery: {
-    /** A tile's accessible name; `{alt}` is the picture's description. */
-    open: string;
+    region: string;
     previous: string;
     next: string;
-    close: string;
-    /** `{n} of {total}` */
-    count: string;
+    /** `{n} of {total}`: a slide's name and the live line. */
+    slide: string;
+    /** A dot's name. */
+    goTo: string;
+    pause: string;
+    play: string;
+  };
+  /** The More Private Stays button, to the list. */
+  relatedViewAll: string;
+  /**
+   * Request on WhatsApp. The message lines are the signed text of 11-DESIGN section 2 (EN); AR and ES are the
+   * designer's drafts, flagged for the owner's review. `button` is DRAFTED UI COPY in AR and ES.
+   */
+  whatsapp: {
+    button: string;
+    greeting: string;
+    dates: string;
+    datesNone: string;
+    guests: string;
+    guestJoin: string;
   };
   /** Board 5i's own footnote, shown while the blocked dates are examples (sample_fields). */
   sampleDatesNote: string;
   metaTitle: string;
   metaDescription: string;
-  footer: {
-    /** Screen-reader suffix for a link that opens in a new tab. */
-    newTab: string;
-    /** Accessible name of the footer's language row. */
-    language: string;
-    /** The footer's last line; the EN text is the live footer's. */
-    copyright: string;
-  };
 };
 
 export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
@@ -74,21 +83,27 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
     inclusionsLabel: "Included with the stay:",
     requestInquiry: "Request Inquiry",
     gallery: {
-      open: "Open {alt}",
+      region: "Photos of {title}",
       previous: "Previous picture",
       next: "Next picture",
-      close: "Close",
-      count: "{n} of {total}",
+      slide: "{n} of {total}",
+      goTo: "Show photo {n}",
+      pause: "Pause slideshow",
+      play: "Play slideshow",
+    },
+    relatedViewAll: "View All Private Stays",
+    whatsapp: {
+      button: "Request on WhatsApp",
+      greeting: "Hello ALMAR, I would like to request {title} ({destination}).",
+      dates: "Dates: {from} to {to} ({nights})",
+      datesNone: "Dates: not chosen yet",
+      guests: "Guests: {guests}",
+      guestJoin: ", ",
     },
     sampleDatesNote: "Blocked dates here are examples.",
     metaTitle: "{title} — private stay in Colombia | ALMAR",
     metaDescription:
       "Book {title} as a private stay in Colombia. ALMAR checks the home, handles staff, and plans your trip.",
-    footer: {
-      newTab: "(opens in a new tab)",
-      language: "Language",
-      copyright: "© 2026 ALMAR Private Journeys. All rights reserved.",
-    },
   },
   ar: {
     about: "نبذة",
@@ -110,21 +125,27 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
     inclusionsLabel: "مشمول مع الإقامة:",
     requestInquiry: "اطلبوا استفساراً",
     gallery: {
-      open: "افتح {alt}",
+      region: "صور {title}",
       previous: "الصورة السابقة",
       next: "الصورة التالية",
-      close: "إغلاق",
-      count: "{n} من {total}",
+      slide: "{n} من {total}",
+      goTo: "عرض الصورة {n}",
+      pause: "إيقاف العرض مؤقتاً",
+      play: "تشغيل العرض",
+    },
+    relatedViewAll: "عرض كل الإقامات الخاصة",
+    whatsapp: {
+      button: "اطلب عبر واتساب",
+      greeting: "مرحباً المار، أودّ طلب {title} ({destination}).",
+      dates: "التواريخ: من {from} إلى {to} ({nights})",
+      datesNone: "التواريخ: لم تُحدَّد بعد",
+      guests: "الضيوف: {guests}",
+      guestJoin: "، ",
     },
     sampleDatesNote: "التواريخ المحجوبة هنا أمثلة.",
     metaTitle: "{title} — إقامة خاصة في كولومبيا | ALMAR",
     metaDescription:
       "احجزوا {title} كإقامة خاصة في كولومبيا. تتحقق ALMAR من المنزل وتتولى شؤون الطاقم وتخطط لرحلتكم.",
-    footer: {
-      newTab: "(يفتح في نافذة جديدة)",
-      language: "اللغة",
-      copyright: "© 2026 ALMAR Private Journeys. جميع الحقوق محفوظة.",
-    },
   },
   es: {
     about: "Acerca de",
@@ -146,20 +167,26 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
     inclusionsLabel: "Incluido en la estancia:",
     requestInquiry: "Solicitar información",
     gallery: {
-      open: "Abrir {alt}",
+      region: "Fotos de {title}",
       previous: "Imagen anterior",
       next: "Imagen siguiente",
-      close: "Cerrar",
-      count: "{n} de {total}",
+      slide: "{n} de {total}",
+      goTo: "Ver foto {n}",
+      pause: "Pausar presentación",
+      play: "Reproducir presentación",
+    },
+    relatedViewAll: "Ver todas las estancias privadas",
+    whatsapp: {
+      button: "Solicitar por WhatsApp",
+      greeting: "Hola ALMAR, me gustaría solicitar {title} ({destination}).",
+      dates: "Fechas: del {from} al {to} ({nights})",
+      datesNone: "Fechas: aún sin elegir",
+      guests: "Huéspedes: {guests}",
+      guestJoin: ", ",
     },
     sampleDatesNote: "Las fechas bloqueadas aquí son ejemplos.",
     metaTitle: "{title} — estancia privada en Colombia | ALMAR",
     metaDescription:
       "Reserven {title} como estancia privada en Colombia. ALMAR revisa la casa, se ocupa del personal y planifica su viaje.",
-    footer: {
-      newTab: "(se abre en una pestaña nueva)",
-      language: "Idioma",
-      copyright: "© 2026 ALMAR Private Journeys. Todos los derechos reservados.",
-    },
   },
 };

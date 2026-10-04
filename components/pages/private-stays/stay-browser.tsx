@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { JourneyCopy } from "../../../lib/copy/journey";
 import type { StaysListCopy } from "../../../lib/copy/stays-list";
 import { formatPlural } from "../../../lib/journey-format";
 import { filterStays, parseStayQuery } from "../../../lib/data/stay-filter";
@@ -14,7 +15,6 @@ import {
   listQuery,
   stateFromQuery,
   toStayFilter,
-  type Carry,
   type ListState,
 } from "./filter-state";
 import { SEARCH_ID, StayFilters } from "./stay-filters";
@@ -31,6 +31,7 @@ export type ListStay = Pick<
   | "bedrooms"
   | "destination_slug"
   | "destination_name"
+  | "blocked_dates"
 > & {
   /** The hero picture, already resolved for this language. Null: the card shows no picture at all. */
   image: { src: string; alt: string } | null;
@@ -56,6 +57,8 @@ export function StayBrowser({
   hrefs,
   basePath,
   copy,
+  journeyCopy,
+  datesNote,
 }: {
   locale: "en" | "ar" | "es";
   stays: readonly ListStay[];
@@ -65,9 +68,12 @@ export function StayBrowser({
   /** This page's own address in this language: where the URL is rewritten to. */
   basePath: string;
   copy: StaysListCopy;
+  /** The journey bar's copy: the calendar's strings, the Dates label and the "Add dates" text. */
+  journeyCopy: JourneyCopy;
+  /** "Blocked dates here are examples." while the blocked dates are sample data; null otherwise. */
+  datesNote: string | null;
 }) {
   const [state, setState] = useState<ListState>(EMPTY_STATE);
-  const [carry, setCarry] = useState<Carry>({});
 
   const maxGuests = useMemo(() => Math.max(0, ...stays.map((s) => s.max_guests ?? 0)), [stays]);
   const results = useMemo(() => filterStays(stays, toStayFilter(state)), [stays, state]);
@@ -83,25 +89,23 @@ export function StayBrowser({
       maxGuests,
     );
     if (isFiltered(next.state)) setState(next.state);
-    if (next.carry.from || next.carry.to) setCarry(next.carry);
     // Read once, when the page opens.
   }, []);
 
-  function writeUrl(nextState: ListState, nextCarry: Carry) {
-    const query = listQuery(nextState, nextCarry);
+  function writeUrl(nextState: ListState) {
+    const query = listQuery(nextState);
     window.history.replaceState(null, "", query ? `${basePath}?${query}` : basePath);
   }
 
   function change(patch: Partial<ListState>) {
     const next = { ...state, ...patch };
     setState(next);
-    // Destination and guests have a key in the handoff URL; search and bedrooms stay in the page.
-    if ("destination" in patch || "guests" in patch) writeUrl(next, carry);
+    // Destination, guests and dates have a key in the handoff URL; search and bedrooms stay in the page.
+    if ("destination" in patch || "guests" in patch || "from" in patch || "to" in patch) writeUrl(next);
   }
 
   function clear() {
     setState(EMPTY_STATE);
-    setCarry({});
     window.history.replaceState(null, "", basePath);
     // The button that was pressed goes away with the filters: keep the keyboard where it can continue.
     document.getElementById(SEARCH_ID)?.focus();
@@ -112,7 +116,21 @@ export function StayBrowser({
   return (
     <div className="grid gap-6">
       <div data-stay-filters="" className="grid gap-6">
-        <StayFilters copy={copy} state={state} onChange={change} destinations={destinations} maxGuests={maxGuests} />
+        <StayFilters
+          copy={copy}
+          state={state}
+          onChange={change}
+          destinations={destinations}
+          maxGuests={maxGuests}
+          locale={locale}
+          datesLabels={{
+            label: journeyCopy.bar.dates.label,
+            empty: journeyCopy.bar.dates.empty,
+            clear: journeyCopy.dates.clear,
+          }}
+          journeyCopy={journeyCopy}
+          datesNote={datesNote}
+        />
       </div>
       <ResultCount
         text={formatPlural(copy.count, results.length, locale)}

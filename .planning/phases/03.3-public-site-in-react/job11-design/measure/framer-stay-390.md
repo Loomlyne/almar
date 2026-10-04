@@ -1,0 +1,126 @@
+# Live Framer https://almarprivatejourney.com/private-stays/casa-jardin-san-diego at 390 px, page height 7907px. Measured 2026-10-04 (GET only).
+
+## Sections (doc top, height, background, padding)
+- Room Type + Image · y 0 · h 844 · rgba(0, 0, 0, 0) · pad 0px
+- About · y 844 · h 856 · rgb(255, 250, 240) · pad 40px 20px
+- Image Gallery · y 1700 · h 196 · rgba(0, 0, 0, 0) · pad 0px 20px
+- null · y 1700 · h 196 · rgba(0, 0, 0, 0) · pad 0px
+- Amenities · y 1896 · h 432 · rgb(255, 250, 240) · pad 40px 20px
+- Policies · y 2347 · h 399 · rgb(255, 250, 240) · pad 40px 20px
+- Available Services · y 2766 · h 1155 · rgb(255, 250, 240) · pad 40px 20px
+- Available Experience · y 3940 · h 1545 · rgb(255, 250, 240) · pad 40px 20px
+- More Private Stays · y 5504 · h 1446 · rgb(255, 250, 240) · pad 40px 20px
+- Phone · y 7014 · h 893 · rgb(255, 250, 240) · pad 0px
+
+## Text (y, x, width, tag, text, font, size, weight, line-height, letter-spacing, transform, colour, align)
+- 323 · 175 · 71 · p · "CARTAGENA" · Lato 12px/18px w400 ls normal  · rgb(249, 246, 243) · start
+- 364 · 20 · 350 · h1 · "Casa Jardín San Diego" · Questa Regular 48px/57.6px w400 ls -0.4px  · rgb(255, 250, 240) · center
+- 499 · 20 · 350 · h6 · "Casa Jardino Calle San Diego" · Questa Regular 18px/25.2px w400 ls -0.36px  · rgb(255, 250, 240) · center
+- 884 · 20 · 350 · h3 · "About" · Questa Regular 32px/38.4px w400 ls -0.15px  · rgb(31, 59, 64) · left
+- 962 · 20 · 40 · p · "Guests" · Inter 12px/14.4px w500 ls normal  · rgb(31, 59, 64) · start
+- 962 · 160 · 62 · p · "Bathrooms" · Inter 12px/14.4px w500 ls normal  · rgb(31, 59, 64) · start
+- 962 · 242 · 58 · p · "Bedrooms" · Inter 12px/14.4px w500 ls normal  · rgb(31, 59, 64) · start
+- 981 · 20 · 120 · p · "Up to 14 Guests" · Inter 16px/19.2px w500 ls normal  · rgb(31, 59, 64) · start
+- 981 · 160 · 10 · p · "6" · Inter 16px/19.2px w500 ls normal  · rgb(31, 59, 64) · start
+- 1020 · 20 · 29 · p · "Beds" · Inter 12px/14.4px w500 ls normal  · rgb(31, 59, 64) · start
+- 1038 · 20 · 193 · p · "3 queen, 2 king, 2 double" · Inter 16px/19.2px w500 ls normal  · rgb(31, 59, 64) · start
+- 1078 · 20 · 82 · p · "Neighborhood" · Inter 12px/14.4px w500 ls normal  · rgb(31, 59, 64) · start
+- 1096 · 20 · 225 · p · "Casa Jardino Calle San Diego" · Inter 16px/19.2px w500 ls normal  · rgb(31, 59, 64) · start
+- 1196 · 20 · 350 · p · "Casa Jardín San Diego is a vetted ALMAR private st" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 1295 · 20 · 350 · p · "Layout: 6 bedrooms, 6 bathrooms, 3 queen, 2 king, " · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 1354 · 20 · 350 · p · "Property highlights include Private pool, tv, inte" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 1413 · 20 · 350 · p · "Included with the stay:" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 1433 · 36 · 334 · p · "Security" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 1452 · 36 · 334 · p · "Staff for breakfast preparation" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 1492 · 20 · 350 · p · "Public rates are quoted on request. ALMAR confirms" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 1626 · 144 · 101 · p · "Request Inquiry" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 1936 · 20 · 350 · h3 · "Amenities" · Questa Regular 32px/38.4px w400 ls -0.15px  · rgb(31, 59, 64) · left
+- 1994 · 20 · 280 · p · "Selected amenities included with this private stay" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · left
+- 2098 · 60 · 71 · p · "Private pool" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 2098 · 240 · 48 · p · "Internet" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 2172 · 60 · 60 · p · "Hot water" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 2172 · 240 · 17 · p · "TV" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 2246 · 60 · 93 · p · "Air conditioning" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 2246 · 240 · 46 · p · "Kitchen" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 2387 · 20 · 350 · h3 · "Policies to check" · Questa Regular 32px/38.4px w400 ls -0.15px  · rgb(31, 59, 64) · left
+- 2487 · 20 · 310 · p · "Stay inclusions and staffing" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 2547 · 20 · 310 · p · "Availability and confirmation" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 2607 · 20 · 310 · p · "Changes and cancellation" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 2667 · 20 · 310 · p · "Occupancy and safety" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 2806 · 20 · 350 · h3 · "Services" · Questa Regular 32px/38.4px w400 ls -0.15px  · rgb(31, 59, 64) · left
+- 2864 · 20 · 280 · p · "Arrangements available with this private stay." · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · left
+- 2919 · 108 · 74 · p · "All Services" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 3310 · 20 · 350 · h5 · "24/7 Private Concierge" · Questa Regular 24px/33.6px w400 ls -0.48px  · rgb(31, 59, 64) · start
+- 3364 · 20 · 350 · p · "Your dedicated ALMAR concierge, reservations, logi" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 3764 · 20 · 350 · h5 · "Luxury Ground Transport" · Questa Regular 24px/33.6px w400 ls -0.48px  · rgb(31, 59, 64) · start
+- 3818 · 20 · 350 · p · "Mercedes S-Class, Range Rover, and VIP sprinter va" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 3980 · 20 · 350 · h3 · "Experiences" · Questa Regular 32px/38.4px w400 ls -0.15px  · rgb(31, 59, 64) · left
+- 4038 · 20 · 280 · p · "Experiences suited to this private stay and its se" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · left
+- 4114 · 97 · 96 · p · "All experiences" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 4608 · 40 · 310 · h5 · "Welcome Cocktail at Sunset" · Questa Regular 24px/33.6px w400 ls -0.48px  · rgb(31, 59, 64) · center
+- 4661 · 45 · 300 · p · "Your first evening in Colombia at a private Cartag" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · center
+- 4765 · 172 · 47 · p · "3 Hours" · Lato 14px/21px w400 ls -0.28px  · rgb(140, 103, 43) · center
+- 5246 · 40 · 310 · h5 · "Cartagena Walled City Night" · Questa Regular 24px/33.6px w400 ls -0.48px  · rgb(31, 59, 64) · center
+- 5300 · 45 · 300 · p · "A curated evening through Cartagena's colonial str" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · center
+- 5404 · 172 · 47 · p · "Evening" · Lato 14px/21px w400 ls -0.28px  · rgb(140, 103, 43) · center
+- 5544 · 20 · 350 · h3 · "More Private Stays" · Questa Regular 32px/38.4px w400 ls -0.15px  · rgb(31, 59, 64) · left
+- 5616 · 135 · 121 · p · "More Private Stays" · Lato 14px/19.6px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 6194 · 52 · 306 · h5 · "Getsemaní Colonial House" · Questa Regular 24px/33.6px w400 ls -0.48px  · rgb(255, 250, 240) · left
+- 6239 · 80 · 47 · p · "5 double" · Lato 12px/18px w400 ls 0.15px  · rgb(255, 250, 240) · start
+- 6239 · 171 · 86 · p · "Up to 10 Guests" · Lato 12px/18px w400 ls 0.15px  · rgb(255, 250, 240) · start
+- 6781 · 52 · 306 · h5 · "Getsemaní Courtyard Residence" · Questa Regular 24px/33.6px w400 ls -0.48px  · rgb(255, 250, 240) · left
+- 6859 · 80 · 136 · p · "3 king beds, 2 queen beds" · Lato 12px/18px w400 ls 0.15px  · rgb(255, 250, 240) · start
+- 6859 · 260 · 86 · p · "Up to 10 Guests" · Lato 12px/18px w400 ls 0.15px  · rgb(255, 250, 240) · start
+- 7182 · 20 · 41 · p · "Explore" · Lato 12px/18px w400 ls normal  · rgb(31, 59, 64) · start
+- 7182 · 140 · 28 · p · "Legal" · Lato 12px/18px w400 ls normal  · rgb(31, 59, 64) · start
+- 7182 · 260 · 45 · p · "Connect" · Lato 12px/18px w400 ls normal  · rgb(31, 59, 64) · start
+- 7224 · 20 · 36 · p · "Home" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 7268 · 20 · 37 · p · "About" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 7312 · 20 · 49 · p · "Services" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 7356 · 20 · 71 · p · "Experiences" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 7400 · 20 · 65 · p · "Blog/News" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 7504 · 20 · 92 · p · "Plan your journey" · Lato 12px/18px w400 ls normal  · rgb(31, 59, 64) · start
+- 7594 · 20 · 277 · p · "Private Colombia inspiration, delivered to your in" · Lato 12px/18px w400 ls normal  · rgb(31, 59, 64) · start
+- 7637 · 283 · 70 · p · "Join the List" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 7638 · 34 · 217 · input · "Your email address" · Lato 15px/21px w400 ls normal  · rgb(31, 59, 64) · start
+- 7785 · 41 · 309 · p · "© 2026 ALMAR Private Journeys. All rights reserved" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 7806 · 142 · 53 · p · "Made by" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+- 7808 · 199 · 49 · a · "Koussay" · Lato 14px/21px w400 ls -0.28px  · rgb(31, 59, 64) · start
+
+## Images (y, x, w, h, fit, alt)
+- 6979 · 20 · 120×36 · contain · 
+- 0 · 0 · 390×844 · cover · Casa Jardín San Diego — hero
+- 1700 · -6424 · 350×196 · cover · Casa Jardín San Diego — gallery 1
+- 1700 · -6066 · 350×196 · cover · Casa Jardín San Diego — gallery 2
+- 1700 · -5708 · 350×196 · cover · Casa Jardín San Diego — gallery 3
+- 1700 · -5350 · 350×196 · cover · Casa Jardín San Diego — gallery 4
+- 1700 · -4992 · 350×196 · cover · Casa Jardín San Diego — gallery 5
+- 1700 · -4634 · 350×196 · cover · Casa Jardín San Diego — gallery 6
+- 1700 · -4276 · 350×196 · cover · Casa Jardín San Diego — amenity 1
+- 1700 · -3918 · 350×196 · cover · Casa Jardín San Diego — amenity 2
+- 1700 · -3560 · 350×196 · cover · Casa Jardín San Diego — amenity 3
+- 1700 · -3202 · 350×196 · cover · Casa Jardín San Diego — amenity 4
+- 1700 · -2844 · 350×196 · cover · Casa Jardín San Diego — amenity 5
+- 1700 · -2486 · 350×196 · cover · Casa Jardín San Diego — amenity 6
+- 1700 · -2128 · 350×196 · cover · Casa Jardín San Diego — amenity 7
+- 1700 · -1770 · 350×196 · cover · Casa Jardín San Diego — amenity 8
+- 1700 · -1412 · 350×196 · cover · Casa Jardín San Diego — amenity 9
+- 1700 · -1054 · 350×196 · cover · Casa Jardín San Diego — amenity 10
+- 1700 · -696 · 350×196 · cover · Casa Jardín San Diego — amenity 11
+- 1700 · -338 · 350×196 · cover · Casa Jardín San Diego — amenity 12
+- 2993 · 20 · 350×233 · cover · 24/7 Private Concierge, ALMAR concierge 
+- 3447 · 20 · 350×233 · cover · 
+- 4188 · 20 · 350×400 · cover · Welcome Cocktail at Sunset, ALMAR privat
+- 4826 · 20 · 350×400 · cover · 
+- 5690 · 20 · 350×600 · cover · Getsemaní Colonial House — hero
+- 6310 · 20 · 350×600 · cover · Getsemaní Courtyard Residence — hero
+- 6971 · 175 · 40×22 · contain · 
+- 7054 · 95 · 200×48 · cover · 
+
+## Thin lines
+- y 1155 · x 20 · 350×1 · rgb(209, 223, 224)
+- y 1571 · x 20 · 350×1 · rgb(209, 223, 224)
+- y 2466 · x 20 · 350×1 · rgb(209, 223, 224)
+- y 6981 · x 0 · 163×1 · rgb(209, 223, 224)
+- y 6981 · x 227 · 163×1 · rgb(209, 223, 224)
+- y 7752 · x 20 · 350×1 · rgb(209, 223, 224)

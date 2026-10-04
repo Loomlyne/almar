@@ -65,7 +65,7 @@ Planned fixes already exist for items 15-17 and the wrangler half of 18 in `.pla
 
 **Dead code and leftovers:**
 - `lib/copy/framer-source.ts` (549 lines): only consumers are `lib/copy/index.ts` and tests; ships into the harness bundle.
-- `lib/fx/rates.ts`: `homePriceScript()` (`:167`, ~100 lines of inline JS in a string), `rewriteHomeAmounts()` (`:113`) and the `WRITTEN` price table have no caller; only `loadRates()` is used (by `app/fx/route.ts` and the settings page).
+- `lib/fx/rates.ts`: `homePriceScript()` (~100 lines of inline JS in a string, no caller) was deleted as dead code in the slice 1 money fix (2026-10-03); `rewriteHomeAmounts()` and the `WRITTEN` price table are now used by `components/ui/amount.tsx`.
 - Unused components: `components/ui/footer.tsx`, `components/ui/checkbox.tsx`, `components/ui/toggle-card.tsx` (imported nowhere); `components/specimens/hero-booker.tsx:89` `GUEST_ROWS`.
 - Dead class hooks with no CSS: `field`, `field-label`, `field-coupon`, `field-control`, `is-password`, `field-error`, `field-hint`, `ui-input`, `ui-button-inline` in `components/ui/field.tsx`; `choice`, `choice-mark` in `checkbox.tsx`; comments claiming "legacy rules" are stale.
 - `data-density="compact"` set on `<html>` at `app/dashboard/(ops)/layout.tsx:91-99`; the only CSS variant is `dense` (`app/globals.css:5`).

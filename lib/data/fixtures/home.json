@@ -7,7 +7,17 @@
       "height": 1077,
       "position": 0
     },
-    "video_url": null
+    "video_key": null
+  },
+  "begin": {
+    "poster": {
+      "id": "1f38ffbc-1180-41da-adc6-766171cca7fc",
+      "media_key": "home/begin/poster.webp",
+      "width": 1920,
+      "height": 1010,
+      "position": 0
+    },
+    "video_key": null
   },
   "welcome": {
     "signature": {
@@ -16,9 +26,7 @@
       "width": 335,
       "height": 88,
       "position": 0
-    }
-  },
-  "gallery": {
+    },
     "images": [
       {
         "id": "9753bc8f-3411-5a1f-bae6-73bea6bcfb8e",
@@ -54,7 +62,11 @@
         "width": 1820,
         "height": 1024,
         "position": 5
-      },
+      }
+    ]
+  },
+  "gallery": {
+    "images": [
       {
         "id": "d6ad2fd2-b58c-5ebf-954a-1bde264d626e",
         "media_key": "home/gallery/06.webp",
@@ -110,20 +122,6 @@
         "width": 1820,
         "height": 1024,
         "position": 13
-      },
-      {
-        "id": "ba67281f-3ec9-5ee8-a449-4bb77b0c71d2",
-        "media_key": "home/gallery/14.webp",
-        "width": 40,
-        "height": 40,
-        "position": 14
-      },
-      {
-        "id": "9828e26f-0e7c-59fb-aac8-cd9f57e7c366",
-        "media_key": "home/gallery/15.webp",
-        "width": 40,
-        "height": 40,
-        "position": 15
       }
     ]
   },

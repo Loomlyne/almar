@@ -142,3 +142,32 @@ export function journeyChoiceToStayQuery(
   if (choice.guests_set) query.guests = choice.adults + choice.children + choice.infants;
   return query;
 }
+
+/**
+ * Where the hero's Search goes: the list address plus `?destination=&from=&to=&guests=` (the order lib/data/stay-filter.ts
+ * toStayQuery writes). Null unless a destination that maps to a slug and both dates are set; the caller then shows the
+ * bar's own missing-step states and goes nowhere. Guests are the whole party. `listHref` carries its own locale prefix.
+ */
+export function searchHref(
+  listHref: string,
+  value: {
+    destinationId: string | null;
+    start: { year: number; month: number; day: number } | null;
+    end: { year: number; month: number; day: number } | null;
+    adults: number;
+    children: number;
+    infants: number;
+  },
+  destinationSlugById: Record<string, string>,
+): string | null {
+  const id = value.destinationId;
+  // Own keys only: an id such as "constructor" must not resolve through the prototype.
+  const slug = id !== null && Object.prototype.hasOwnProperty.call(destinationSlugById, id) ? destinationSlugById[id] : undefined;
+  if (!slug || !value.start || !value.end) return null;
+  const params = new URLSearchParams();
+  params.set("destination", slug);
+  params.set("from", isoOf(value.start));
+  params.set("to", isoOf(value.end));
+  params.set("guests", String(value.adults + value.children + value.infants));
+  return `${listHref}?${params.toString()}`;
+}

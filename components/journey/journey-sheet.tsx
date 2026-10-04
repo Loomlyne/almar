@@ -127,6 +127,11 @@ export type JourneySheetProps = {
    * No Search button is drawn.
    */
   onSearch?: (value: JourneyValue) => void;
+  /**
+   * Private-stay page only: a control shown on step 3 in place of Done, for example Request on WhatsApp. The caller
+   * passes a `w-full whitespace-normal` link that prints its label once. Ignored when onSearch is set (Search wins).
+   */
+  finalAction?: ReactNode;
   copy: JourneyCopy;
   locale: Locale;
   /** Injectable for deterministic tests. */
@@ -159,6 +164,7 @@ function SheetBody({
   value,
   onChange,
   onSearch,
+  finalAction,
   copy,
   locale,
   today,
@@ -333,20 +339,24 @@ function SheetBody({
             <span className="text-caption text-muted truncate">{caption}</span>
           )}
         </div>
-        <Button size="lg" onClick={advance}>
-          {step === 3 ? (
-            onSearch ? (
-              <>
-                <SearchIcon size={20} className="rtl:-scale-x-100" />
-                {copy.bar.search}
-              </>
+        {step === 3 && !onSearch && finalAction ? (
+          <div className="flex min-w-0 flex-1">{finalAction}</div>
+        ) : (
+          <Button size="lg" onClick={advance}>
+            {step === 3 ? (
+              onSearch ? (
+                <>
+                  <SearchIcon size={20} className="rtl:-scale-x-100" />
+                  {copy.bar.search}
+                </>
+              ) : (
+                copy.done
+              )
             ) : (
-              copy.done
-            )
-          ) : (
-            s.next
-          )}
-        </Button>
+              s.next
+            )}
+          </Button>
+        )}
       </div>
     </Dialog.Content>
   );

@@ -4,8 +4,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { HOME_PAGE_COPY } from "../lib/copy/home-page.ts";
 import { HOME_COPY } from "../lib/copy/home.ts";
-import { FRAMER_SOURCE_COPY } from "../lib/copy/framer-source.ts";
-import { formatPlural } from "../lib/journey-format.ts";
 
 // Plan 03.3-04 Task 1: the home copy file. Same key-tree walk as tests/copy.test.mjs, the live English
 // pinned as literals (and, while the Framer home still exists, proven present in its text), the two lines
@@ -49,9 +47,8 @@ test("the key tree has exactly the sections the page renders", () => {
     "begin",
     "team",
     "gallery",
-    "footer",
   ]);
-  assert.deepEqual(Object.keys(HOME_PAGE_COPY.en.stays), ["kicker", "heading", "intro", "viewAll", "count"]);
+  assert.deepEqual(Object.keys(HOME_PAGE_COPY.en.stays), ["kicker", "heading", "intro", "viewAll"]);
   assert.deepEqual(Object.keys(HOME_PAGE_COPY.en.journeys), ["heading", "intro", "featured", "ratesOf"]);
 });
 
@@ -90,7 +87,6 @@ const LIVE = {
   "begin.cta": "Request Consultation",
   "team.kicker": "The People Behind Your Journey",
   "team.heading": "Local insight, personally delivered.",
-  "footer.copyright": "© 2026 ALMAR Private Journeys. All rights reserved.",
 };
 
 const pick = (obj, path) => path.split(".").reduce((o, k) => o[k], obj);
@@ -131,18 +127,8 @@ test("AR and ES reuse the approved lib/copy/home.ts lines where the live English
   }
 });
 
-test("the footer words reuse approved lines and the copyright is the live footer's, byte for byte", () => {
-  for (const locale of LOCALES) {
-    const page = HOME_PAGE_COPY[locale].footer;
-    assert.equal(page.pages, HOME_COPY[locale].pages, `${locale} footer.pages`);
-    assert.equal(page.contact, HOME_COPY[locale].nav.contact, `${locale} footer.contact`);
-    assert.equal(page.language, HOME_COPY[locale].nav.language, `${locale} footer.language`);
-    assert.equal(
-      page.copyright,
-      FRAMER_SOURCE_COPY[locale]["© 2026 ALMAR Private Journeys. All rights reserved."],
-      `${locale} footer.copyright`,
-    );
-  }
+test("the footer strings are not in this file: every page reads lib/copy/site-footer.ts", () => {
+  for (const locale of LOCALES) assert.equal("footer" in HOME_PAGE_COPY[locale], false, `${locale} has its own footer`);
 });
 
 test("nothing in the file contradicts the signed design, carries a price or names a person", () => {
@@ -166,35 +152,22 @@ test("the AR and ES lines that have no live source are drafts marked as such in 
   assert.match(source, /DRAFTED UI COPY/);
 });
 
-test("the result count: one and other in en and es; zero, one, two, few, many in ar; Western digits", () => {
-  const forms = (l) => HOME_PAGE_COPY[l].stays.count;
-  assert.deepEqual([0, 1, 2, 3, 10, 12].map((n) => formatPlural(forms("en"), n, "en")), [
-    "0 stays",
-    "1 stay",
-    "2 stays",
-    "3 stays",
-    "10 stays",
-    "12 stays",
-  ]);
-  assert.deepEqual([0, 1, 2, 3, 10, 12].map((n) => formatPlural(forms("es"), n, "es")), [
-    "0 estancias",
-    "1 estancia",
-    "2 estancias",
-    "3 estancias",
-    "10 estancias",
-    "12 estancias",
-  ]);
-  const ar = [0, 1, 2, 3, 10, 12].map((n) => formatPlural(forms("ar"), n, "ar"));
-  assert.deepEqual(ar, ["لا توجد إقامات", "إقامة واحدة", "إقامتان", "3 إقامات", "10 إقامات", "12 إقامة"]);
-  for (const text of ar) assert.equal(/[٠-٩]/.test(text), false, `Arabic-Indic digit in ${text}`);
-  for (const key of ["zero", "one", "two", "few", "many", "other"]) assert.ok(forms("ar")[key], `ar count.${key}`);
-});
-
 test("the rates line and the gallery labels carry their slots in every language", () => {
   for (const locale of LOCALES) {
     const page = HOME_PAGE_COPY[locale];
     assert.ok(page.journeys.ratesOf.includes("{date}"), `${locale} ratesOf`);
-    assert.ok(page.gallery.open.includes("{alt}"), `${locale} gallery.open`);
-    assert.ok(page.gallery.count.includes("{n}") && page.gallery.count.includes("{total}"), `${locale} gallery.count`);
+    assert.ok(page.gallery.slide.includes("{n}") && page.gallery.slide.includes("{total}"), `${locale} gallery.slide`);
+    assert.ok(page.gallery.goTo.includes("{n}"), `${locale} gallery.goTo`);
   }
+});
+
+test("the gallery has the slider's four labels; the lightbox and the stay count are gone (plan 43)", () => {
+  for (const locale of LOCALES) {
+    assert.deepEqual(Object.keys(HOME_PAGE_COPY[locale].gallery).sort(), ["goTo", "next", "previous", "slide"], locale);
+    assert.equal("count" in HOME_PAGE_COPY[locale].stays, false, `${locale} stays.count`);
+  }
+  assert.equal(HOME_PAGE_COPY.en.gallery.goTo, "Show photo {n}");
+  assert.equal(HOME_PAGE_COPY.ar.gallery.goTo, "عرض الصورة {n}");
+  assert.equal(HOME_PAGE_COPY.es.gallery.goTo, "Ver foto {n}");
+  assert.equal(HOME_PAGE_COPY.en.gallery.slide, "{n} of {total}");
 });

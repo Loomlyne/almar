@@ -1,0 +1,162 @@
+# Live Framer https://almarprivatejourney.com/ at 1440 px, page height 12066px. Measured 2026-10-04 (GET only).
+
+## Sections (doc top, height, background, padding)
+- Hero Section · y 0 · h 900 · rgba(0, 0, 0, 0) · pad 100px 40px 40px
+- Welcome Section · y 900 · h 2539 · rgb(255, 250, 240) · pad 160px 100px 120px
+- Gallery Section · y 3458 · h 962 · rgb(255, 250, 240) · pad 120px 0px
+- null · y 3820 · h 480 · rgba(0, 0, 0, 0) · pad 0px
+- Rooms Section · y 4439 · h 1010 · rgb(255, 250, 240) · pad 0px 100px 100px
+- Services Section · y 5468 · h 1038 · rgb(255, 250, 240) · pad 120px 100px
+- Experiences Section · y 6525 · h 2244 · rgb(255, 250, 240) · pad 120px 100px
+- Blog/ News Section · y 9948 · h 892 · rgb(255, 250, 240) · pad 100px
+- Desktop · y 10839 · h 600 · rgb(255, 250, 240) · pad 0px
+- Meet the Team · y 11166 · h 0 · rgb(255, 250, 240) · pad 120px 100px
+- Desktop · y 11439 · h 627 · rgb(255, 250, 240) · pad 0px
+
+## Text (y, x, width, tag, text, font, size, weight, line-height, letter-spacing, transform, colour, align)
+- 332 · 270 · 900 · h1 · "Colombia, Privately Yours" · Questa Regular 88px/105.6px w400 ls -0.4px  · rgb(255, 250, 240) · center
+- 589 · 639 · 163 · p · "Design your journey" · Lato 18px/25.2px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 2693 · 420 · 600 · p · "Welcome to ALMAR" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · center
+- 2737 · 420 · 600 · h3 · "Where Safety Meets Bespoke Luxury" · Questa Regular 56px/67.2px w400 ls -0.15px  · rgb(31, 59, 64) · center
+- 2904 · 676 · 88 · p · "Dear Traveler," · Lato 14px/21px w400 ls 0.15px  · rgb(31, 59, 64) · center
+- 2949 · 490 · 460 · p · "ALMAR is built for travellers in the UAE and GCC w" · Lato 14px/21px w400 ls 0.15px  · rgb(31, 59, 64) · center
+- 3032 · 490 · 460 · p · "Each journey is personalised with stays, transport" · Lato 14px/21px w400 ls 0.15px  · rgb(31, 59, 64) · center
+- 3115 · 490 · 460 · p · "Our aim is simple: make Colombia easier to experie" · Lato 14px/21px w400 ls 0.15px  · rgb(31, 59, 64) · center
+- 3181 · 664 · 111 · p · "Warmest regards," · Lato 14px/21px w400 ls 0.15px  · rgb(31, 59, 64) · center
+- 3270 · 605 · 230 · h6 · "ALMAR Private Journeys" · Questa Regular 22px/30.8px w400 ls -0.44px  · rgb(31, 59, 64) · center
+- 3301 · 669 · 102 · p · "Founder & Director" · Lato 12px/18px w400 ls normal  · rgb(210, 171, 109) · center
+- 3578 · 623 · 193 · p · "Colombia Through Your Eyes" · Lato 16px/24px w400 ls -0.32px  · rgb(15, 103, 125) · center
+- 3622 · 420 · 600 · h3 · "Colombia, Beautifully Captured" · Questa Regular 56px/67.2px w400 ls -0.15px  · rgb(31, 59, 64) · center
+- 4439 · 100 · 87 · p · "Private Stays" · Lato 16px/24px w400 ls -0.32px  · rgb(15, 103, 125) · center
+- 4483 · 100 · 600 · h3 · "Private Stays, Fully Vetted" · Questa Regular 56px/67.2px w400 ls -0.15px  · rgb(31, 59, 64) · left
+- 4637 · 100 · 806 · p · "Verified private houses, island estates, and count" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · left
+- 4646 · 1135 · 177 · p · "View All Private Stays" · Lato 18px/25.2px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 5197 · 552 · 356 · h5 · "Getsemaní Courtyard Residence" · Questa Regular 32px/44.8px w400 ls -0.64px  · rgb(255, 250, 240) · left
+- 5197 · 972 · 356 · h5 · "Cartagena Historic Center House" · Questa Regular 32px/44.8px w400 ls -0.64px  · rgb(255, 250, 240) · left
+- 5242 · 132 · 356 · h5 · "Getsemaní Colonial House" · Questa Regular 32px/44.8px w400 ls -0.64px  · rgb(255, 250, 240) · left
+- 5296 · 160 · 54 · p · "5 double" · Lato 14px/21px w400 ls 0.15px  · rgb(255, 250, 240) · start
+- 5296 · 258 · 100 · p · "Up to 10 Guests" · Lato 14px/21px w400 ls 0.15px  · rgb(255, 250, 240) · start
+- 5296 · 580 · 159 · p · "3 king beds, 2 queen beds" · Lato 14px/21px w400 ls 0.15px  · rgb(255, 250, 240) · start
+- 5296 · 1000 · 54 · p · "3 double" · Lato 14px/21px w400 ls 0.15px  · rgb(255, 250, 240) · start
+- 5296 · 1098 · 92 · p · "Up to 7 Guests" · Lato 14px/21px w400 ls 0.15px  · rgb(255, 250, 240) · start
+- 5588 · 100 · 154 · p · "Services & Experiences" · Lato 16px/24px w400 ls -0.32px  · rgb(15, 103, 125) · center
+- 5632 · 100 · 600 · h3 · "Everything Handled. Nothing Left to Chance." · Questa Regular 56px/67.2px w400 ls -0.15px  · rgb(31, 59, 64) · left
+- 5787 · 100 · 792 · p · "From private villas to dedicated concierge, ALMAR " · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · left
+- 5796 · 1174 · 138 · p · "View All Services" · Lato 18px/25.2px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 6249 · 100 · 400 · h5 · "24/7 Private Concierge" · Questa Regular 32px/44.8px w400 ls -0.64px  · rgb(31, 59, 64) · start
+- 6249 · 520 · 400 · h5 · "Luxury Ground Transport" · Questa Regular 32px/44.8px w400 ls -0.64px  · rgb(31, 59, 64) · start
+- 6249 · 940 · 400 · h5 · "VIP Airport Meet & Greet" · Questa Regular 32px/44.8px w400 ls -0.64px  · rgb(31, 59, 64) · start
+- 6314 · 100 · 350 · p · "Your dedicated ALMAR concierge, reservations, logi" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 6314 · 520 · 350 · p · "Mercedes S-Class, Range Rover, and VIP sprinter va" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 6314 · 940 · 350 · p · "Fast-track immigration, private lounge access, lug" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 6645 · 650 · 140 · p · "Curated Experiences" · Lato 16px/24px w400 ls -0.32px  · rgb(15, 103, 125) · center
+- 6689 · 420 · 600 · h3 · "Moments Designed for You" · Questa Regular 56px/67.2px w400 ls -0.15px  · rgb(31, 59, 64) · center
+- 6844 · 520 · 400 · p · "From private yacht charters to helicopter tours, e" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · center
+- 6946 · 632 · 175 · p · "Request Consultation" · Lato 18px/25.2px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 7220 · 910 · 240 · h5 · "CARTAGENA" · Questa Regular 32px/44.8px w400 ls -0.64px  · rgb(31, 59, 64) · center
+- 7517 · 880 · 300 · p · "Cartagena is ALMAR's densest verified inventory: c" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · center
+- 7653 · 995 · 70 · p · "3–7 nights" · Lato 16px/24px w400 ls -0.32px  · rgb(140, 103, 43) · center
+- 8020 · 290 · 240 · h5 · "MEDELLÍN" · Questa Regular 32px/44.8px w400 ls -0.64px  · rgb(31, 59, 64) · center
+- 8317 · 260 · 300 · p · "Medellín anchors modern Colombia: secure neighborh" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · center
+- 8453 · 375 · 70 · p · "2–5 nights" · Lato 16px/24px w400 ls -0.32px  · rgb(140, 103, 43) · center
+- 8920 · 120 · 600 · h3 · "Choose Your Journey" · Questa Regular 56px/67.2px w400 ls -0.15px  · rgb(31, 59, 64) · left
+- 9007 · 120 · 960 · p · "Three tiers of privacy, luxury, and Colombia immer" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · left
+- 9129 · 786 · 98 · p · "MOST POPULAR" · Bricolage Grotesque 10px/12px w600 ls 1.8px uppercase · rgb(255, 250, 240) · start
+- 9411 · 144 · 6 · p · "1" · Bricolage Grotesque 11px/13.2px w500 ls 2px uppercase · rgb(15, 103, 125) · start
+- 9411 · 552 · 8 · p · "2" · Bricolage Grotesque 11px/13.2px w500 ls 2px uppercase · rgb(15, 103, 125) · start
+- 9411 · 960 · 9 · p · "3" · Bricolage Grotesque 11px/13.2px w500 ls 2px uppercase · rgb(15, 103, 125) · start
+- 9442 · 144 · 336 · h4 · "The Explorer" · Playfair Display 28px/32.2px w400 ls -0.56px  · rgb(31, 59, 64) · start
+- 9442 · 552 · 336 · h4 · "The Resident" · Playfair Display 28px/32.2px w400 ls -0.56px  · rgb(31, 59, 64) · start
+- 9442 · 960 · 336 · h4 · "The Sovereign" · Playfair Display 28px/32.2px w400 ls -0.56px  · rgb(31, 59, 64) · start
+- 9492 · 144 · 336 · p · "From USD $3,000/person · Est. AED 80,000–90,000" · Bricolage Grotesque 13px/17.55px w600 ls 0.13px  · rgb(15, 103, 125) · start
+- 9492 · 552 · 336 · p · "From USD $3,500/person · Est. AED 120,000–150,000" · Bricolage Grotesque 13px/17.55px w600 ls 0.13px  · rgb(15, 103, 125) · start
+- 9492 · 960 · 336 · p · "From USD $20,000/person · Est. AED 200,000–250,000" · Bricolage Grotesque 13px/17.55px w600 ls 0.13px  · rgb(15, 103, 125) · start
+- 9528 · 144 · 336 · p · "A considered introduction to Colombia, shaped arou" · Bricolage Grotesque 14px/20.3px w400 ls 0.14px  · rgb(31, 59, 64) · start
+- 9528 · 552 · 336 · p · "A deeper multi-city Colombia journey, tailored to " · Bricolage Grotesque 14px/20.3px w400 ls 0.14px  · rgb(31, 59, 64) · start
+- 9545 · 960 · 336 · p · "A high-touch Colombia journey, shaped around confi" · Bricolage Grotesque 14px/20.3px w400 ls 0.14px  · rgb(31, 59, 64) · start
+- 9587 · 163 · 121 · p · "5–7 nights · 1–2 cities" · Bricolage Grotesque 12px/14.4px w500 ls 0.2px  · rgb(31, 59, 64) · start
+- 9587 · 571 · 212 · p · "8–14 nights · up to 2 additional cities" · Bricolage Grotesque 12px/14.4px w500 ls 0.2px  · rgb(31, 59, 64) · start
+- 9604 · 979 · 216 · p · "14–21 nights · up to 3 additional cities" · Bricolage Grotesque 12px/14.4px w500 ls 0.2px  · rgb(31, 59, 64) · start
+- 9638 · 144 · 63 · p · "IDEAL FOR" · Bricolage Grotesque 10px/12px w600 ls 1.4px uppercase · rgb(15, 103, 125) · start
+- 9655 · 960 · 63 · p · "IDEAL FOR" · Bricolage Grotesque 10px/12px w600 ls 1.4px uppercase · rgb(15, 103, 125) · start
+- 9656 · 144 · 336 · p · "First-time visitors, couples, and small groups see" · Bricolage Grotesque 12.5px/16.875px w500 ls normal  · rgb(31, 59, 64) · start
+- 9656 · 552 · 336 · p · "Discerning travelers who want a deeper multi-city " · Bricolage Grotesque 12.5px/16.875px w500 ls normal  · rgb(31, 59, 64) · start
+- 9673 · 960 · 336 · p · "Ultra-high-net-worth families and executives seeki" · Bricolage Grotesque 12.5px/16.875px w500 ls normal  · rgb(31, 59, 64) · start
+- 9708 · 144 · 336 · p · "A private journey framework shaped around your dat" · Bricolage Grotesque 12.5px/18.75px w400 ls normal  · rgb(31, 59, 64) · start
+- 9708 · 552 · 336 · p · "Everything begins with the essentials of a private" · Bricolage Grotesque 12.5px/18.75px w400 ls normal  · rgb(31, 59, 64) · start
+- 9725 · 960 · 336 · p · "A high-touch planning framework for longer, multi-" · Bricolage Grotesque 12.5px/18.75px w400 ls normal  · rgb(31, 59, 64) · start
+- 9763 · 144 · 142 · p · "Discover the Journey" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 9781 · 960 · 142 · p · "Discover the Journey" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 10048 · 100 · 96 · p · "Travel Insights" · Lato 16px/24px w400 ls -0.32px  · rgb(15, 103, 125) · center
+- 10092 · 100 · 600 · h3 · "ALMAR Stories" · Questa Regular 56px/67.2px w400 ls -0.15px  · rgb(31, 59, 64) · left
+- 10164 · 1245 · 67 · p · "Read All" · Lato 18px/25.2px w400 ls 0.25px  · rgb(31, 59, 64) · start
+- 10179 · 100 · 893 · p · "Discover Colombia through our eyes, destination gu" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · left
+- 10545 · 100 · 387 · h6 · "Discovering Cartagena's Hidden Colonial Courtyards" · Questa Regular 22px/30.8px w400 ls -0.44px  · rgb(31, 59, 64) · start
+- 10545 · 527 · 387 · h6 · "Why Medellín Is Redefining Luxury Travel in Latin " · Questa Regular 22px/30.8px w400 ls -0.44px  · rgb(31, 59, 64) · start
+- 10545 · 953 · 387 · h6 · "Colombia's Coffee Triangle: A Journey Through Eje " · Questa Regular 22px/30.8px w400 ls -0.44px  · rgb(31, 59, 64) · start
+- 10626 · 100 · 387 · p · "A private guide to the walled city's most intimate" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · left
+- 10626 · 527 · 387 · p · "How the City of Eternal Spring evolved from a trou" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · left
+- 10626 · 953 · 387 · p · "Coffee estates draped in mist, valleys of wax palm" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · left
+- 10718 · 120 · 72 · p · "Jun 1, 2025" · Lato 14px/21px w400 ls 0.15px  · rgb(31, 59, 64) · start
+- 10718 · 547 · 86 · p · "May 28, 2025" · Lato 14px/21px w400 ls 0.15px  · rgb(31, 59, 64) · start
+- 10718 · 973 · 86 · p · "May 24, 2025" · Lato 14px/21px w400 ls 0.15px  · rgb(31, 59, 64) · start
+- 11006 · 0 · 1440 · h1 · "Begin Your Journey" · Questa Regular 88px/105.6px w400 ls -0.4px  · rgb(255, 250, 240) · center
+- 11105 · 803 · 110 · p · "DESTINATIONS" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11105 · 937 · 100 · p · "EXPERIENCES" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11105 · 1062 · 70 · p · "SERVICES" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11105 · 1164 · 54 · p · "ABOUT" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11105 · 1241 · 73 · p · "CONTACT" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11105 · 1338 · 58 · p · "SIGN IN" · Lato 16px/24px w400 ls -0.32px  · rgba(0, 0, 0, 0.5) · start
+- 11132 · 520 · 400 · p · "Your private Colombia journey begins with a conver" · Lato 16px/24px w400 ls -0.32px  · rgb(255, 250, 240) · center
+- 11607 · 40 · 41 · p · "Explore" · Lato 12px/18px w400 ls normal  · rgb(31, 59, 64) · start
+- 11607 · 361 · 28 · p · "Legal" · Lato 12px/18px w400 ls normal  · rgb(31, 59, 64) · start
+- 11607 · 681 · 45 · p · "Connect" · Lato 12px/18px w400 ls normal  · rgb(31, 59, 64) · start
+- 11607 · 992 · 92 · p · "Plan your journey" · Lato 12px/18px w400 ls normal  · rgb(31, 59, 64) · start
+- 11649 · 40 · 41 · p · "Home" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11693 · 40 · 42 · p · "About" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11737 · 40 · 56 · p · "Services" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11771 · 992 · 277 · p · "Private Colombia inspiration, delivered to your in" · Lato 12px/18px w400 ls normal  · rgb(31, 59, 64) · start
+- 11781 · 40 · 82 · p · "Experiences" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11813 · 1299 · 80 · p · "Join the List" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11815 · 1006 · 258 · input · "Your email address" · Lato 15px/21px w400 ls normal  · rgb(31, 59, 64) · start
+- 11825 · 40 · 74 · p · "Blog/News" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11962 · 40 · 353 · p · "© 2026 ALMAR Private Journeys. All rights reserved" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11962 · 1279 · 61 · p · "Made by" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+- 11964 · 1344 · 56 · a · "Koussay" · Lato 16px/24px w400 ls -0.32px  · rgb(31, 59, 64) · start
+
+## Images (y, x, w, h, fit, alt)
+- 11082 · 44 · 140×70 · contain · 
+- 2641 · 691 · 59×32 · cover · 
+- 3206 · 655 · 130×60 · contain · Signature
+- 1802 · 1060 · 300×360 · cover · close up of a handcrafted-woodendoor wit
+- 1955 · 0 · 300×360 · cover · mid-range-view-of-the-villa-s-private-be
+- 2345 · 1140 · 300×360 · cover · minimalist-living-room-inside-a-mediterr
+- 2604 · 43 · 300×360 · cover · morning breakfast in the garden patio se
+- 3008 · 1060 · 300×360 · cover · flat lay shot of spa amenities by the ba
+- 3820 · 0 · 600×480 · cover · 
+- 3820 · 1280 · 400×480 · cover · 
+- 3820 · 4080 · 480×480 · cover · 
+- 4040 · 20 · 40×40 · fill · 
+- 4749 · 100 · 400×600 · cover · Getsemaní Colonial House — hero
+- 4749 · 520 · 400×600 · cover · Getsemaní Courtyard Residence — hero
+- 4749 · 940 · 400×600 · cover · Cartagena Historic Center House — hero
+- 5899 · 100 · 400×267 · cover · 24/7 Private Concierge, ALMAR concierge 
+- 5899 · 520 · 400×267 · cover · 
+- 5899 · 940 · 400×267 · cover · VIP Airport Meet & Greet, ALMAR concierg
+- 7049 · 100 · 620×800 · cover · Cartagena, Colombia
+- 7281 · 930 · 200×220 · cover · Cartagena, Colombia
+- 7849 · 720 · 620×800 · cover · Medellín, Colombia
+- 8081 · 310 · 200×220 · cover · Antioquia, Colombia
+- 9107 · 120 · 384×280 · cover · Colorful colonial balconies in Cartagena
+- 9107 · 528 · 384×280 · cover · Luxury resort pool framed by tropical mo
+- 9107 · 936 · 384×280 · cover · Private yacht on open water for The Sove
+- 10267 · 100 · 387×258 · cover · Colonial courtyard in Cartagena's walled
+- 10267 · 527 · 387×258 · cover · Medellín city panorama at dusk with ligh
+- 10267 · 953 · 387×258 · cover · Coffee cherries on a branch in Colombia'
+- 11479 · 620 · 200×48 · cover · 
+
+## Thin lines
+- y 9619 · x 144 · 336×1 · rgba(31, 59, 64, 0.14)
+- y 9619 · x 552 · 336×1 · rgba(31, 59, 64, 0.14)
+- y 9636 · x 960 · 336×1 · rgba(31, 59, 64, 0.14)
+- y 11929 · x 40 · 1360×1 · rgb(209, 223, 224)
