@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import { TeamSection } from "../../journey/team-section";
-import { Gallery, type GalleryLabels } from "../../ui/gallery";
 import { MediaCard } from "../../ui/card";
 import { Link } from "../../ui/link";
 import { Section } from "../../ui/section";
-import type { CatalogItem, Destination, HomeBlocks, HomeStory, TeamMember } from "../../../lib/data/types";
+import type { CatalogItem, Destination, HomeStory, TeamMember } from "../../../lib/data/types";
 
 // The server-rendered sections of the home page, in the order the page uses them (design 1.1). Each is built
 // from the shared primitives only: a section never draws a heading or a card that Section or MediaCard
@@ -20,44 +19,6 @@ function twoLines(first: string | null, second: string | null): ReactNode {
       {first ? <span className="block">{first}</span> : null}
       {second ? <span className={first ? "mt-2 block" : "block"}>{second}</span> : null}
     </>
-  );
-}
-
-export function Welcome({ welcome }: { welcome: HomeBlocks["welcome"] }) {
-  return (
-    <Section id="welcome" kicker={welcome.kicker} heading={welcome.heading}>
-      <div className="grid max-w-prose gap-4 text-body text-ink">
-        <p className="m-0">{welcome.salutation}</p>
-        {welcome.paragraphs.map((paragraph, index) => (
-          <p key={index} className="m-0">
-            {paragraph}
-          </p>
-        ))}
-        <p className="m-0">{welcome.sign_off}</p>
-      </div>
-      <div className="grid justify-items-start gap-2">
-        {welcome.signature ? (
-          <img
-            src={welcome.signature.url}
-            alt={welcome.signature.alt}
-            width={welcome.signature.width ?? undefined}
-            height={welcome.signature.height ?? undefined}
-            decoding="async"
-            className="block h-auto w-40"
-          />
-        ) : null}
-        <p className="m-0 font-display text-title text-teal">{welcome.signer}</p>
-        <p className="m-0 text-label text-muted">{welcome.signer_role}</p>
-      </div>
-    </Section>
-  );
-}
-
-export function GallerySection({ gallery, labels }: { gallery: HomeBlocks["gallery"]; labels: GalleryLabels }) {
-  return (
-    <Section id="gallery" kicker={gallery.kicker} heading={gallery.heading}>
-      <Gallery images={gallery.images.map((image) => ({ src: image.url, alt: image.alt }))} labels={labels} />
-    </Section>
   );
 }
 
