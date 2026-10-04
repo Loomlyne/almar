@@ -545,7 +545,8 @@ for (const locale of LOCALES) {
     await page.goto(localePath(locale, "/"));
     await hydrated(page);
     const journey = JOURNEY_COPY[locale];
-    const bar = page.getByRole("region", { name: HOME_PAGE_COPY[locale].hero.barLabel }).getByRole("group", { name: journey.bar.label });
+    // Job 11: with Search wired the hero bar is a role="search" form (plan 03.3-43), no longer a group.
+    const bar = page.getByRole("region", { name: HOME_PAGE_COPY[locale].hero.barLabel }).getByRole("search", { name: journey.bar.label });
     const where = bar.getByRole("button", { name: journey.bar.destination.label });
     const first = (await getDestinations(locale))[0];
 
