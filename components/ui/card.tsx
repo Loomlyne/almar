@@ -1,11 +1,9 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { cn } from "../../lib/cn";
 
 export type MediaCardImage = { src: string; alt: string };
 
-export type MediaCardProps = {
-  /** With href the whole card is one link named by the title. Without it the card is an article. */
-  href?: string;
+type MediaCardBase = {
   image: MediaCardImage;
   title: string;
   /** One muted line under the title. */
@@ -26,6 +24,17 @@ export type MediaCardProps = {
   className?: string;
 };
 
+/**
+ * Three exclusive forms. With href the whole card is one link named by the title; without href or onOpen the card
+ * is an article. With onOpen the title is one button that announces a dialog, stretched over the card, and openRef
+ * receives it so the dialog it opens can hand focus back. href and onOpen together is a type error.
+ */
+export type MediaCardProps = MediaCardBase &
+  (
+    | { href?: string; onOpen?: undefined; openRef?: undefined }
+    | { onOpen: () => void; openRef?: Ref<HTMLButtonElement>; href?: undefined }
+  );
+
 const ROOT = "group grid min-w-0 content-start gap-3 text-ink no-underline";
 const IMAGE = "block w-full object-cover outline outline-1 outline-line -outline-offset-1";
 const TITLE_REST = "text-teal decoration-gold decoration-1 underline-offset-4 group-hover:underline";
@@ -40,6 +49,8 @@ const ZOOM = {
  */
 export function MediaCard({
   href,
+  onOpen,
+  openRef,
   image,
   title,
   detail,
@@ -79,6 +90,33 @@ export function MediaCard({
       {detail ? <span className="text-label text-muted">{detail}</span> : null}
     </span>
   );
+
+  if (onOpen) {
+    // The card opens an overlay and never links: the title is the button and stretches over the card.
+    return (
+      <article className={cn(ROOT, "relative", className)}>
+        {picture}
+        <div className="flex items-start justify-between gap-3">
+          <span className={lineBox}>
+            <button
+              ref={openRef}
+              type="button"
+              aria-haspopup="dialog"
+              onClick={onOpen}
+              className={cn(
+                TITLE,
+                "cursor-pointer border-0 bg-transparent p-0 text-start no-underline after:absolute after:inset-0",
+              )}
+            >
+              {title}
+            </button>
+            {detail ? <span className="text-label text-muted">{detail}</span> : null}
+          </span>
+          {action ? <span className="relative z-10 shrink-0">{action}</span> : null}
+        </div>
+      </article>
+    );
+  }
 
   if (href && !action) {
     return (
