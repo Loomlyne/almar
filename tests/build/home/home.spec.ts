@@ -10,8 +10,9 @@ import { getHomeBlocks } from "../../../lib/data/home";
 import { getStays } from "../../../lib/data/stays";
 import { MEDIA_BASE_URL } from "../../../lib/data/media";
 import { formatDate, formatRange } from "../../../lib/format";
+import { filterStays, toStayQuery } from "../../../lib/data/stay-filter";
 import { rewriteHomeAmounts, type SelectedCurrency } from "../../../lib/fx/rates";
-import { fill, formatGuestSummary, formatPlural } from "../../../lib/journey-format";
+import { fill, formatGuestSummary } from "../../../lib/journey-format";
 import { LOCALES, localeDir, localePath, type Locale } from "../../../lib/locale-path";
 import { routeMedia } from "../../helpers/media-route";
 
@@ -40,24 +41,18 @@ const home = (locale: Locale) => localePath(locale, "/");
 const nameOfCurrency = (locale: Locale, code: string) => JOURNEY_COPY[locale].locale.currency.replace("{code}", code);
 const nameOfLanguage = (locale: Locale) => JOURNEY_COPY[locale].locale.language.replace("{name}", LANGUAGE_NAMES[locale]);
 
-// ---- dates -------------------------------------------------------------------------------------------
-
-const pad = (n: number) => String(n).padStart(2, "0");
-const inDays = (n: number) => {
-  const d = new Date();
-  d.setHours(12, 0, 0, 0);
-  d.setDate(d.getDate() + n);
-  return d;
-};
-const dmy = (d: Date) => formatDate(d.getDate(), d.getMonth() + 1, d.getFullYear());
-const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+/** "Today" for every test: the dates the journey picks are in the future of it and the past days stay unpickable. */
+const FIXED_NOW = "2026-10-04T09:00:00+04:00";
 
 // ---- page helpers ------------------------------------------------------------------------------------
 
 type Visit = { media: Awaited<ReturnType<typeof routeMedia>>; requests: string[] };
 
 /** Open a home page with images routed and every request recorded. Network idle capped at 10 s, then a settle. */
-async function visit(page: Page, locale: Locale, path = home(locale)): Promise<Visit> {
+async function visit(page: Page, locale: Locale, path = home(locale), clock: "fixed" | "install" = "fixed"): Promise<Visit> {
+  // "fixed": only Date.now stands still, timers run. "install": the page's timers are Playwright's too (the strip test).
+  if (clock === "install") await page.clock.install({ time: new Date(FIXED_NOW) });
+  else await page.clock.setFixedTime(FIXED_NOW);
   const media = await routeMedia(page);
   const requests: string[] = [];
   page.on("request", (request) => requests.push(request.url()));
@@ -78,13 +73,6 @@ async function hydrated(page: Page) {
 
 const region = (page: Page, locale: Locale) => page.getByRole("region", { name: HOME_PAGE_COPY[locale].hero.barLabel });
 
-/** The submit-like controls the held list forbids: none may exist, at any moment, anywhere on the page. */
-async function expectNoSubmit(page: Page, locale: Locale) {
-  await expect(page.locator("button[type=submit], input[type=submit], form, [role=search]")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: JOURNEY_COPY[locale].bar.search, exact: true })).toHaveCount(0);
-  await expect(page.getByRole("search")).toHaveCount(0);
-}
-
 /** The currency or language control: from the 1152px container up the nav is a row, below it a Menu. */
 async function navControl(page: Page, locale: Locale, name: string) {
   const control = page.getByRole("combobox", { name });
@@ -94,99 +82,113 @@ async function navControl(page: Page, locale: Locale, name: string) {
   return control;
 }
 
-async function clickDay(page: Page, locale: Locale, date: Date) {
-  const day = page.locator(`button[aria-label^="${dmy(date)}"]`);
-  for (let tries = 0; tries < 3 && !(await day.isVisible()); tries += 1) {
-    await page.getByRole("button", { name: JOURNEY_COPY[locale].dates.nextMonth }).click();
-  }
-  await day.click();
-}
-
 const guestName = (locale: Locale, unit: "adult" | "child" | "infant") =>
   fill(JOURNEY_COPY[locale].guests.add, { group: JOURNEY_COPY[locale].guests.group[unit] });
 
-type Journey = { from: Date; to: Date; destinationName: string; destinationSlug: string };
+// ---- the journey bar: Where -> When -> Who -> Search --------------------------------------------------
+
+/** Where the planner is driven from: the hero's, or the docked one that follows the page. */
+type Scope = "hero" | "docked";
+/** How much of the journey a test fills in before it presses Search. */
+type Fill = "nothing" | "destination" | "all";
+
+const SEARCH_FROM = "2026-10-12";
+const SEARCH_TO = "2026-10-15";
+/** Two guests: the bar starts at one adult, the journey adds one. */
+const SEARCH_GUESTS = 2;
+
+const cartagenaOf = async (locale: Locale) => (await getDestinations(locale)).find((d) => d.slug === "cartagena")!;
+const dayButton = (page: Page, isoDate: string) => page.locator(`[data-date="${isoDate}"]`);
+const planner = (page: Page, locale: Locale, scope: Scope) => (scope === "hero" ? region(page, locale) : page.locator("div.fixed"));
+const searchTarget = (locale: Locale) =>
+  `${localePath(locale, "/private-stays")}?${toStayQuery({ destination: "cartagena", from: SEARCH_FROM, to: SEARCH_TO, guests: SEARCH_GUESTS })}`;
 
 /**
- * Where -> When -> Who with nothing submitted: Medellin, today+9 to today+14, one more adult. Works through
- * the bar from md up and through the entry row and sheet below it. `onStep` runs between steps.
+ * Fill the planner as far as `how` says, without pressing Search. From md up it drives the bar; below it the entry row and the
+ * sheet. Returns the Search button (the bar's, or the sheet's step 3) when everything is filled in, else null. For "destination"
+ * on a phone the sheet is left open on step 2.
  */
-async function planJourney(page: Page, locale: Locale, vp: Viewport, onStep: () => Promise<void>): Promise<Journey> {
+async function fillPlanner(page: Page, locale: Locale, vp: Viewport, scope: Scope, how: Fill) {
   const copy = JOURNEY_COPY[locale];
-  const destinations = await getDestinations(locale);
-  const medellin = destinations.find((d) => d.slug === "medellin")!;
-  const names = destinations.map((d) => d.name);
-  const from = inDays(9);
-  const to = inDays(14);
-  const twoAdults = formatGuestSummary({ adults: 2, children: 0, infants: 0 }, locale, copy.guests.summary);
-  const range = formatRange(dmy(from), dmy(to));
+  const cartagena = await cartagenaOf(locale);
+  const root = planner(page, locale, scope);
 
   if (!isPhone(vp)) {
-    const bar = region(page, locale).getByRole("group", { name: copy.bar.label });
-    const segment = (label: string) => bar.getByRole("button", { name: label });
-    await onStep();
-
-    // Where lists exactly the destinations of the data layer, in the owner's order.
-    await segment(copy.bar.destination.label).click();
-    const options = page.getByRole("listbox", { name: copy.menu.label }).getByRole("option");
-    await expect(options).toHaveCount(names.length);
-    for (const [i, name] of names.entries()) await expect(options.nth(i)).toContainText(name);
-    await onStep();
-
+    const bar = root.getByRole("search", { name: copy.bar.label });
+    if (how === "nothing") return;
+    await bar.getByRole("button", { name: copy.bar.destination.label }).click();
+    await page.getByRole("listbox", { name: copy.menu.label }).getByRole("option").filter({ hasText: cartagena.name }).click();
+    await expect(bar.getByRole("button", { name: copy.bar.destination.label })).toContainText(cartagena.name);
     // Picking a destination opens When by itself (D-39).
-    await options.filter({ hasText: medellin.name }).click();
-    await expect(segment(copy.bar.destination.label)).toContainText(medellin.name);
     await expect(page.getByRole("group", { name: copy.dates.label })).toBeVisible();
-    await expect(page.getByRole("grid")).toHaveCount(vp.width >= 1024 ? 2 : 1);
-    await onStep();
-
-    await clickDay(page, locale, from);
-    await clickDay(page, locale, to);
+    if (how === "destination") {
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("group", { name: copy.dates.label })).toHaveCount(0);
+      return;
+    }
+    await dayButton(page, SEARCH_FROM).click();
+    await dayButton(page, SEARCH_TO).click();
     await page.getByRole("group", { name: copy.dates.label }).getByRole("button", { name: copy.done, exact: true }).click();
-    await expect(segment(copy.bar.dates.label)).toContainText(range);
-    await onStep();
-
+    await expect(bar.getByRole("button", { name: copy.bar.dates.label })).toContainText(formatRange(isoDmy(SEARCH_FROM), isoDmy(SEARCH_TO)));
     // Done moves on to Who.
-    await expect(page.getByRole("group", { name: copy.guests.label })).toBeVisible();
     await page.getByRole("button", { name: guestName(locale, "adult"), exact: true }).click();
-    await expect(segment(copy.bar.guests.label)).toContainText(twoAdults);
+    await expect(bar.getByRole("button", { name: copy.bar.guests.label })).toContainText(
+      formatGuestSummary({ adults: 2, children: 0, infants: 0 }, locale, copy.guests.summary),
+    );
     await page.getByRole("group", { name: copy.guests.label }).getByRole("button", { name: copy.done, exact: true }).click();
     await expect(page.getByRole("group", { name: copy.guests.label })).toHaveCount(0);
-    await onStep();
-  } else {
-    // The region's only visible button: its name changes once the journey is filled in.
-    const entry = region(page, locale).getByRole("button");
-    await expect(entry).toHaveCount(1);
-    const sheet = page.getByRole("dialog", { name: copy.sheet.label });
-    const progress = (n: number) => sheet.getByText(fill(copy.sheet.progress, { n }), { exact: true });
-    await onStep();
-    await entry.click();
-    await expect(sheet).toBeVisible();
-    await expect(progress(1)).toBeVisible();
-    await onStep();
-
-    await sheet.getByRole("option", { name: new RegExp(medellin.name) }).click();
-    await expect(progress(2)).toBeVisible();
-    await onStep();
-
-    await clickDay(page, locale, from);
-    await clickDay(page, locale, to);
-    await sheet.getByRole("button", { name: copy.sheet.next, exact: true }).click();
-    await expect(progress(3)).toBeVisible();
-    await onStep();
-
-    await sheet.getByRole("button", { name: guestName(locale, "adult"), exact: true }).click();
-    // The last step ends in Done, never Search.
-    await expect(sheet.getByRole("button", { name: copy.bar.search, exact: true })).toHaveCount(0);
-    await sheet.getByRole("button", { name: copy.done, exact: true }).click();
-    await expect(sheet).toHaveCount(0);
-    await expect(entry).toContainText(medellin.name);
-    await expect(entry).toContainText(range);
-    await expect(entry).toContainText(twoAdults);
-    await onStep();
+    return;
   }
-  return { from, to, destinationName: medellin.name, destinationSlug: medellin.slug };
+
+  // Phone: the entry row (hero) or the docked row opens the three-step sheet.
+  const entry = scope === "hero" ? root.getByRole("button") : root.getByRole("button", { name: new RegExp(copy.entry.title) });
+  await entry.click();
+  const sheet = page.getByRole("dialog", { name: copy.sheet.label });
+  await expect(sheet).toBeVisible();
+  if (how === "nothing") return;
+  await sheet.getByRole("option", { name: new RegExp(cartagena.name) }).click();
+  await expect(sheet.getByText(fill(copy.sheet.progress, { n: 2 }), { exact: true })).toBeVisible();
+  if (how === "destination") return;
+  await dayButton(page, SEARCH_FROM).click();
+  await dayButton(page, SEARCH_TO).click();
+  await sheet.getByRole("button", { name: copy.sheet.next, exact: true }).click();
+  await expect(sheet.getByText(fill(copy.sheet.progress, { n: 3 }), { exact: true })).toBeVisible();
+  await sheet.getByRole("button", { name: guestName(locale, "adult"), exact: true }).click();
 }
+
+/** The Search control of the planner just filled: the bar's submit button, or the sheet's last-step button. */
+const searchButton = (page: Page, locale: Locale, vp: Viewport, scope: Scope) =>
+  isPhone(vp)
+    ? page.getByRole("dialog", { name: JOURNEY_COPY[locale].sheet.label }).getByRole("button", { name: JOURNEY_COPY[locale].bar.search, exact: true })
+    : planner(page, locale, scope).getByRole("button", { name: JOURNEY_COPY[locale].bar.search, exact: true });
+
+/** DD/MM/YYYY from an ISO day, through the shared formatter. */
+function isoDmy(isoDate: string): string {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  return formatDate(d, m, y);
+}
+
+/** The card titles of the stays list, in order (plan 05's own locator). */
+const listTitles = (page: Page) => page.locator("main ul[role='list'] > li > a > span > span:first-child").allTextContents();
+
+/** The product of an element's opacity and every ancestor's: 1 means it can be seen. */
+const effectiveOpacity = (locator: ReturnType<Page["locator"]>) =>
+  locator.first().evaluate((node) => {
+    let opacity = 1;
+    for (let el: Element | null = node; el; el = el.parentElement) opacity *= Number(getComputedStyle(el).opacity);
+    return opacity;
+  });
+
+/** The home's three published cards with a photo, as the page builds them (first three with a hero image). */
+async function homeStayTitles(locale: Locale): Promise<string[]> {
+  return (await getStays(locale)).filter((stay) => stay.hero_image).map((stay) => stay.title).slice(0, 3);
+}
+
+/** How many of those cards show: three from md, two below it. */
+const shownCards = (vp: Viewport) => (isPhone(vp) ? 2 : 3);
+
+/** The visible card titles of the home's Private Stays section, in order. */
+const homeCardTitles = (page: Page) => page.locator("#stays ul li:visible a > span:last-child > span:first-child").allTextContents();
 
 const sectionText = (page: Page) =>
   page.locator("main").evaluate((root) => {
@@ -223,10 +225,22 @@ for (const vp of VIEWPORTS) {
           await expect(h1).toHaveText(HOME_COPY[locale].heroTitle);
           expect(await bare.evaluate(() => document.documentElement.dir)).toBe(localeDir(locale));
           expect(await bare.evaluate(() => document.documentElement.lang)).toBe(locale);
-          // The heading sits at the inline start: left edge in left-to-right, right edge in Arabic.
+          // The hero headline is centred on the page.
           const box = (await h1.boundingBox())!;
-          if (locale === "ar") expect(box.x + box.width).toBeGreaterThanOrEqual(vp.width - 110);
-          else expect(box.x).toBeLessThanOrEqual(110);
+          expect(Math.abs(box.x + box.width / 2 - vp.width / 2)).toBeLessThanOrEqual(2);
+          // Nothing is hidden by the reveal system without the script: the headline, the Welcome letter, both section heads
+          // and every visible card title are at full opacity.
+          expect(await effectiveOpacity(h1), "h1").toBe(1);
+          expect(await effectiveOpacity(bare.locator("#welcome [data-reveal=letter]")), "Welcome letter").toBe(1);
+          expect(await effectiveOpacity(bare.locator("#gallery h2")), "gallery head").toBe(1);
+          expect(await effectiveOpacity(bare.locator("#stays h2")), "stays head").toBe(1);
+          const titles = bare.locator("#stays ul li:visible a > span:last-child > span:first-child");
+          await expect(titles).toHaveCount(shownCards(vp));
+          for (let i = 0; i < shownCards(vp); i += 1) expect(await effectiveOpacity(titles.nth(i)), `card ${i}`).toBe(1);
+          // The planner is shown as served: the bar from md, the entry row below it.
+          const planner = region(bare, locale);
+          if (isPhone(vp)) await expect(planner.getByRole("button")).toBeVisible();
+          else await expect(planner.getByRole("search", { name: JOURNEY_COPY[locale].bar.label })).toBeVisible();
           expect(await priceTexts(bare)).toEqual(published);
           expect(media.missing).toEqual([]);
         } finally {
@@ -234,10 +248,14 @@ for (const vp of VIEWPORTS) {
         }
       });
 
-      test(`2 section order, one h1, no team block, no video (${where})`, async ({ page }) => {
+      test(`2 section order, one h1, Welcome photos and letter apart, the strip, no team block, no video (${where})`, async ({ page }, testInfo) => {
         const { media } = await visit(page, locale);
+        const blocks = await getHomeBlocks(locale);
         await expect(page.locator("h1")).toHaveCount(1);
         await expect(page.locator("h1")).toHaveText(HOME_COPY[locale].heroTitle);
+        // The computed size of the headline, recorded for the hand-over (owner answer 2; asserted nowhere).
+        const h1Size = await page.locator("h1").evaluate((node) => getComputedStyle(node).fontSize);
+        testInfo.annotations.push({ type: "h1 font-size", description: `${h1Size} at ${vp.width}` });
         const headings = (await page.locator("main h2").allTextContents()).map((text) => text.trim());
         expect(headings).toEqual([
           HOME_COPY[locale].welcomeTitle,
@@ -249,6 +267,51 @@ for (const vp of VIEWPORTS) {
           copy.stories.heading,
           copy.begin.heading,
         ]);
+        for (const [id, text] of [
+          ["welcome", HOME_COPY[locale].welcomeTitle],
+          ["gallery", HOME_COPY[locale].galleryTitle],
+          ["stays", copy.stays.heading],
+        ]) {
+          await expect(page.locator(`#${id}`), `section id ${id}`).toHaveCount(1);
+          await expect(page.locator(`#${id} h2`)).toHaveText(text);
+        }
+
+        // Welcome: five photos from the data, shown from md and not drawn below it (as on the live phone page).
+        expect(blocks.welcome.images).toHaveLength(5);
+        const photos = page.locator("#welcome img[data-scroll=drop]");
+        await expect(photos).toHaveCount(blocks.welcome.images.length);
+        for (let i = 0; i < blocks.welcome.images.length; i += 1) {
+          if (isPhone(vp)) {
+            // The photo layer is display none below md, so no photo is drawn (and none is fetched).
+            expect(await photos.nth(i).evaluate((node) => getComputedStyle(node.parentElement!).display), `photo ${i} layer`).toBe("none");
+            await expect(photos.nth(i), `photo ${i}`).toBeHidden();
+          } else await expect(photos.nth(i), `photo ${i}`).toBeVisible();
+        }
+        if (!isPhone(vp)) {
+          // Scroll through the section in steps: no photo's box ever meets the letter's box (the photos slide with the scroll).
+          const meets = await page.evaluate(async () => {
+            const section = document.querySelector("#welcome") as HTMLElement;
+            const letter = section.querySelector("[data-reveal=letter]") as HTMLElement;
+            const imgs = [...section.querySelectorAll("img[data-scroll=drop]")] as HTMLElement[];
+            const top = section.getBoundingClientRect().top + window.scrollY;
+            const found: string[] = [];
+            const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+            for (let y = Math.max(0, top - window.innerHeight); y <= top + section.offsetHeight; y += 200) {
+              window.scrollTo(0, y);
+              await frame();
+              const a = letter.getBoundingClientRect();
+              imgs.forEach((img, i) => {
+                const b = img.getBoundingClientRect();
+                if (a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top) found.push(`photo ${i + 1} at scroll ${y}`);
+              });
+            }
+            return found;
+          });
+          expect(meets, "a Welcome photo met the letter").toEqual([]);
+        }
+
+        // Gallery: one slide per photo of the data, inside the strip.
+        await expect(page.locator("#gallery [aria-roledescription=slide]")).toHaveCount(blocks.gallery.images.length);
         // Zero published members: neither the kicker nor the heading exists anywhere.
         await expect(page.getByText(copy.team.kicker)).toHaveCount(0);
         await expect(page.getByText(copy.team.heading)).toHaveCount(0);
@@ -256,80 +319,123 @@ for (const vp of VIEWPORTS) {
         expect(media.missing).toEqual([]);
       });
 
-      test(`3 Where, When, Who with no submit anywhere (${where})`, async ({ page }) => {
+      test(`3 Search: Where, When, Who, then Search opens the list with the query and the matching stays (${where})`, async ({ page }) => {
         const { media } = await visit(page, locale);
-        await expectNoSubmit(page, locale);
-        await planJourney(page, locale, vp, () => expectNoSubmit(page, locale));
-        await expectNoSubmit(page, locale);
+        const all = await getStays(locale);
+        const filter = { destination: "cartagena", from: SEARCH_FROM, to: SEARCH_TO, guests: SEARCH_GUESTS };
+        const want = filterStays(all, filter);
+        // Availability is really applied: the sample blocked days take a Cartagena stay out of this set.
+        const withoutDates = filterStays(all, { destination: "cartagena", guests: SEARCH_GUESTS });
+        expect(withoutDates.map((s) => s.slug)).toContain("casa-jardin-san-diego");
+        expect(want.map((s) => s.slug)).not.toContain("casa-jardin-san-diego");
+        expect(want.length).toBeGreaterThan(0);
+
+        await fillPlanner(page, locale, vp, "hero", "all");
+        await searchButton(page, locale, vp, "hero").click();
+        const target = searchTarget(locale);
+        await page.waitForURL((url) => url.pathname + url.search === target);
+        expect(new URL(page.url()).pathname).toBe(localePath(locale, "/private-stays"));
+        expect(new URL(page.url()).search).toBe(`?${toStayQuery({ destination: "cartagena", from: SEARCH_FROM, to: SEARCH_TO, guests: SEARCH_GUESTS })}`);
+        await expect.poll(() => listTitles(page), { message: "the list shows the stays the filter computes" }).toEqual(want.map((s) => s.title));
         expect(media.missing).toEqual([]);
       });
 
-      test(`4 the choice has a visible result: live stays, the carried query, survives a reload (${where})`, async ({ page }) => {
+      test(`3b missing step: Search with a step missing shows the bar's error and goes nowhere (${where})`, async ({ page }) => {
+        const { media } = await visit(page, locale);
+        const copyJ = JOURNEY_COPY[locale];
+        const stay = () => expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe(home(locale));
+        if (!isPhone(vp)) {
+          const root = planner(page, locale, "hero");
+          const alert = root.getByRole("alert");
+          await searchButton(page, locale, vp, "hero").click();
+          await expect(alert).toHaveText(copyJ.bar.error.both);
+          stay();
+          await fillPlanner(page, locale, vp, "hero", "destination");
+          await searchButton(page, locale, vp, "hero").click();
+          await expect(alert).toHaveText(copyJ.bar.error.dates);
+          stay();
+        } else {
+          // The sheet checks each step before it goes on: Where, then When; Search itself is on step 3 and needs both.
+          await fillPlanner(page, locale, vp, "hero", "nothing");
+          const sheet = page.getByRole("dialog", { name: copyJ.sheet.label });
+          await sheet.getByRole("button", { name: copyJ.sheet.next, exact: true }).click();
+          await expect(sheet.getByRole("alert")).toHaveText(copyJ.sheet.warn.where);
+          await sheet.getByRole("option", { name: new RegExp((await cartagenaOf(locale)).name) }).click();
+          await expect(sheet.getByText(fill(copyJ.sheet.progress, { n: 2 }), { exact: true })).toBeVisible();
+          await sheet.getByRole("button", { name: copyJ.sheet.next, exact: true }).click();
+          await expect(sheet.getByRole("alert")).toHaveText(copyJ.sheet.warn.when);
+          await expect(sheet.getByRole("button", { name: copyJ.bar.search, exact: true })).toHaveCount(0);
+          stay();
+        }
+        expect(media.missing).toEqual([]);
+      });
+
+      test(`4 the stay cards are the first ones, fixed: the bar does not filter them (${where})`, async ({ page }) => {
         const { media } = await visit(page, locale);
         const stays = page.locator("#stays");
-        const all = await getStays(locale);
-        await expect(stays.getByRole("link")).toHaveCount(4); // three cards and View All
-        await expect(stays.locator("p[aria-live=polite]")).toHaveText(formatPlural(copy.stays.count, all.length, locale));
+        const first = await homeStayTitles(locale);
+        expect(first).toHaveLength(3);
+        const expectFixed = async (why: string) => {
+          expect(await homeCardTitles(page), why).toEqual(first.slice(0, shownCards(vp)));
+        };
+        await expectFixed("on load");
+        // No count line, no live region: the bar's Search does that job on the list page.
+        await expect(stays.locator("p[aria-live]")).toHaveCount(0);
+        await expect(stays.locator("[aria-live]")).toHaveCount(0);
 
-        const journey = await planJourney(page, locale, vp, async () => undefined);
-        const expected = all.filter((s) => s.destination_slug === "medellin" && (s.max_guests ?? 0) >= 2);
-        expect(expected.map((s) => s.slug).sort()).toEqual(["santa-fe-farm-antioquia", "sopetran-country-estate"]);
-
-        const cards = stays.locator("ul a");
-        await expect(cards).toHaveCount(2);
-        const hrefs = await cards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href")));
-        expect(hrefs.sort()).toEqual(expected.map((s) => localePath(locale, `/private-stays/${s.slug}`)).sort());
-        await expect(stays.locator("p[aria-live=polite]")).toHaveText(formatPlural(copy.stays.count, 2, locale));
-
-        const viewAll = stays.getByRole("link", { name: copy.stays.viewAll });
-        const target = `${localePath(locale, "/private-stays")}?destination=medellin&from=${iso(journey.from)}&to=${iso(journey.to)}&guests=2`;
-        await expect(viewAll).toHaveAttribute("href", target);
-
-        // Back on the home page after a reload, the bar still shows the choice.
-        await page.reload();
-        await hydrated(page);
-        await page.waitForTimeout(200);
-        await expect(stays.locator("ul a")).toHaveCount(2);
+        // Picking a destination in the bar changes nothing under it.
+        const medellin = (await getDestinations(locale)).find((d) => d.slug === "medellin")!;
         const c = JOURNEY_COPY[locale];
         if (!isPhone(vp)) {
-          const bar = region(page, locale).getByRole("group", { name: c.bar.label });
-          await expect(bar.getByRole("button", { name: c.bar.destination.label })).toContainText(journey.destinationName);
-          await expect(bar.getByRole("button", { name: c.bar.dates.label })).toContainText(formatRange(dmy(journey.from), dmy(journey.to)));
+          const bar = region(page, locale).getByRole("search", { name: c.bar.label });
+          await bar.getByRole("button", { name: c.bar.destination.label }).click();
+          await page.getByRole("listbox", { name: c.menu.label }).getByRole("option").filter({ hasText: medellin.name }).click();
+          await expect(bar.getByRole("button", { name: c.bar.destination.label })).toContainText(medellin.name);
+          await page.keyboard.press("Escape");
         } else {
-          const entry = region(page, locale).getByRole("button", { name: new RegExp(journey.destinationName) });
-          await expect(entry).toContainText(formatRange(dmy(journey.from), dmy(journey.to)));
+          await region(page, locale).getByRole("button").click();
+          const sheet = page.getByRole("dialog", { name: c.sheet.label });
+          await sheet.getByRole("option", { name: new RegExp(medellin.name) }).click();
+          await expect(sheet.getByText(fill(c.sheet.progress, { n: 2 }), { exact: true })).toBeVisible();
+          await page.keyboard.press("Escape");
+          await expect(sheet).toHaveCount(0);
         }
+        await expectFixed("after Medellín is picked");
 
-        // The click lands on exactly the carried address.
+        // View All Private Stays is an <a> to the plain list address, never the query.
+        const viewAll = stays.getByRole("link", { name: copy.stays.viewAll, exact: true });
+        expect(await viewAll.evaluate((node) => node.tagName)).toBe("A");
+        await expect(viewAll).toHaveAttribute("href", localePath(locale, "/private-stays"));
+        // Three cards at md and up, two below it, and View All.
+        await expect(stays.locator("a:visible")).toHaveCount(shownCards(vp) + 1);
         await viewAll.click();
-        await page.waitForURL((url) => url.pathname + url.search === target);
+        await page.waitForURL((url) => url.pathname + url.search === localePath(locale, "/private-stays"));
         expect(media.missing).toEqual([]);
       });
 
-      test(`5 docked: the planner follows the page once the hero has scrolled away (${where})`, async ({ page }) => {
+      test(`5 docked: the planner follows the page once the hero has scrolled away, and its Search goes to the list (${where})`, async ({ page }) => {
         const { media } = await visit(page, locale);
         const c = JOURNEY_COPY[locale];
         await page.evaluate(() => window.scrollTo(0, document.querySelector("#welcome")!.getBoundingClientRect().top + window.scrollY));
         const docked = page.locator("div.fixed");
-        await expectNoSubmit(page, locale);
-        if (!isPhone(vp)) {
-          const bar = docked.getByRole("group", { name: c.bar.label });
-          await expect(bar).toBeVisible();
-          await bar.getByRole("button", { name: c.bar.dates.label }).click();
-          await expect(page.getByRole("group", { name: c.dates.label })).toBeVisible();
-        } else {
-          const row = docked.getByRole("button", { name: new RegExp(c.entry.title) });
-          await expect(row).toBeVisible();
-          await row.click();
-          await expect(page.getByRole("dialog", { name: c.sheet.label })).toBeVisible();
-        }
-        await expectNoSubmit(page, locale);
-        // Back at the top the docked planner is gone again.
-        await page.keyboard.press("Escape");
+        if (!isPhone(vp)) await expect(docked.getByRole("search", { name: c.bar.label })).toBeVisible();
+        else await expect(docked.getByRole("button", { name: new RegExp(c.entry.title) })).toBeVisible();
+        await fillPlanner(page, locale, vp, "docked", "all");
+        await searchButton(page, locale, vp, "docked").click();
+        await page.waitForURL((url) => url.pathname + url.search === searchTarget(locale));
+        expect(media.missing).toEqual([]);
+      });
+
+      test(`5b docked: gone again at the top of the page (${where})`, async ({ page }) => {
+        const { media } = await visit(page, locale);
+        const c = JOURNEY_COPY[locale];
+        await page.evaluate(() => window.scrollTo(0, document.querySelector("#welcome")!.getBoundingClientRect().top + window.scrollY));
+        const docked = page.locator("div.fixed");
+        if (!isPhone(vp)) await expect(docked.getByRole("search", { name: c.bar.label })).toBeVisible();
+        else await expect(docked.getByRole("button", { name: new RegExp(c.entry.title) })).toBeVisible();
         await page.evaluate(() => window.scrollTo(0, 0));
-        const dockedAgain = page.locator("div.fixed");
-        if (!isPhone(vp)) await expect(dockedAgain.getByRole("group", { name: c.bar.label })).toHaveCount(0);
-        else await expect(dockedAgain.getByRole("button", { name: new RegExp(c.entry.title) })).toHaveCount(0);
+        if (!isPhone(vp)) await expect(page.locator("div.fixed").getByRole("search", { name: c.bar.label })).toHaveCount(0);
+        else await expect(page.locator("div.fixed").getByRole("button", { name: new RegExp(c.entry.title) })).toHaveCount(0);
         expect(media.missing).toEqual([]);
       });
 
@@ -387,19 +493,50 @@ for (const vp of VIEWPORTS) {
         expect(media.missing).toEqual([]);
       });
 
-      test(`7 gallery lightbox: open, step, Escape returns focus (${where})`, async ({ page }) => {
-        const { media } = await visit(page, locale);
-        const tile = page.locator("#gallery button").first();
-        await tile.click();
-        const dialog = page.getByRole("dialog");
-        await expect(dialog).toBeVisible();
-        const count = (n: number) => fill(copy.gallery.count, { n, total: 15 });
-        await expect(dialog.locator("[aria-live=polite]")).toHaveText(count(1));
-        await page.keyboard.press(locale === "ar" ? "ArrowLeft" : "ArrowRight");
-        await expect(dialog.locator("[aria-live=polite]")).toHaveText(count(2));
-        await page.keyboard.press("Escape");
-        await expect(dialog).toHaveCount(0);
-        await expect(tile).toBeFocused();
+      test(`7 gallery strip: arrows, four dots, swipe, no autoplay (${where})`, async ({ page }) => {
+        const { media } = await visit(page, locale, home(locale), "install");
+        const total = (await getHomeBlocks(locale)).gallery.images.length;
+        const slider = page.locator("#gallery section[aria-roledescription=carousel]");
+        await slider.scrollIntoViewIfNeeded();
+        const dot = (n: number) => slider.getByRole("button", { name: fill(copy.gallery.goTo, { n }), exact: true });
+        const line = (n: number) => fill(copy.gallery.slide, { n, total });
+        const live = slider.locator("[aria-live]");
+        // Four dots for eight photos (one per two), arrows, and the live line starts on photo 1.
+        for (const n of [1, 2, 3, 4]) await expect(dot(n), `dot ${n}`).toHaveCount(1);
+        await expect(dot(5)).toHaveCount(0);
+        await expect(slider.getByRole("button", { name: copy.gallery.previous, exact: true })).toHaveCount(1);
+        await expect(slider.getByRole("button", { name: copy.gallery.next, exact: true })).toHaveCount(1);
+        await expect(live).toHaveText(line(1));
+
+        // No autoplay: five seconds of the page's own clock change nothing.
+        await page.clock.pauseAt(new Date("2026-10-04T09:01:00+04:00"));
+        await page.clock.runFor(5000);
+        await expect(live).toHaveText(line(1));
+        await page.clock.resume();
+
+        await slider.getByRole("button", { name: copy.gallery.next, exact: true }).click();
+        await expect(live).toHaveText(line(2));
+        await dot(4).click();
+        await expect(live).toHaveText(line(7));
+        await dot(1).click();
+        await expect(live).toHaveText(line(1));
+        await slider.getByRole("button", { name: copy.gallery.previous, exact: true }).click();
+        await expect(live).toHaveText(line(total));
+        // Let the slide finish moving before the swipe.
+        await page.waitForTimeout(1600);
+
+        // A 120 px swipe toward the inline start is "next": leftward in en and es, rightward in Arabic.
+        const box = (await slider.boundingBox())!;
+        const y = box.y + box.height / 2;
+        // On the first slide's side (its photo is always there; the strip has empty room beyond the last photo).
+        // The swipe starts and ends on photos: 220 px in from the edge, so a 120 px drag stays clear of the 44 px arrow.
+        const x = locale === "ar" ? box.x + box.width - 220 : box.x + 220;
+        const dx = locale === "ar" ? 120 : -120;
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        await page.mouse.move(x + dx, y, { steps: 8 });
+        await page.mouse.up();
+        await expect(live).toHaveText(line(1));
         expect(media.missing).toEqual([]);
       });
 
@@ -459,10 +596,9 @@ for (const vp of VIEWPORTS) {
         expect(media.missing).toEqual([]);
       });
 
-      test(`9 the held controls are absent (${where})`, async ({ page }) => {
+      test(`9 the held controls are absent; Search is the one submit (${where})`, async ({ page }) => {
         const { media } = await visit(page, locale);
         const names = [
-          JOURNEY_COPY[locale].bar.search,
           HOME_COPY[locale].nav.login,
           HOME_COPY[locale].subscribe,
           HOME_COPY[locale].listTitle,
@@ -475,6 +611,29 @@ for (const vp of VIEWPORTS) {
           (FRAMER_SOURCE_COPY[locale] as Record<string, string>)["Discover the Journey"],
           "See Packages",
         ].filter((name): name is string => typeof name === "string" && name.length > 0);
+        const search = JOURNEY_COPY[locale].bar.search;
+        const searchButtons = page.getByRole("button", { name: search, exact: true });
+
+        // Search: from md up exactly one submit button, inside the hero bar's search form and named Search.
+        if (!isPhone(vp)) {
+          await expect(page.locator("button[type=submit]")).toHaveCount(1);
+          await expect(region(page, locale).locator("button[type=submit]")).toHaveCount(1);
+          await expect(searchButtons).toHaveCount(1);
+          await expect(searchButtons).toHaveAttribute("type", "submit");
+          await expect(page.locator("form")).toHaveCount(1);
+          await expect(region(page, locale).getByRole("search")).toHaveCount(1);
+        } else {
+          // Below md the bar is not drawn: Search lives only on the sheet's last step, a plain button.
+          await expect(searchButtons).toHaveCount(0);
+          await fillPlanner(page, locale, vp, "hero", "all");
+          const sheet = page.getByRole("dialog", { name: JOURNEY_COPY[locale].sheet.label });
+          await expect(sheet.getByRole("button", { name: search, exact: true })).toHaveCount(1);
+          await expect(searchButtons).toHaveCount(1);
+          await expect(searchButtons).toHaveAttribute("type", "button");
+          await page.keyboard.press("Escape");
+          await expect(sheet).toHaveCount(0);
+        }
+
         // The nav menu is closed below 1152px: open it so its controls are on the page too.
         if (vp.width < 1152) await page.getByRole("button", { name: HOME_COPY[locale].nav.menu, exact: true }).click();
         for (const name of names) {
@@ -484,24 +643,37 @@ for (const vp of VIEWPORTS) {
         await expect(page.locator("footer form")).toHaveCount(0);
         await expect(page.getByRole("textbox")).toHaveCount(0);
         await expect(page.locator("input[type=email]")).toHaveCount(0);
-        await expectNoSubmit(page, locale);
-        // The sheet and the docked planner are the other places a Search would hide.
-        if (isPhone(vp)) {
-          await page.keyboard.press("Escape");
-          await region(page, locale).getByRole("button", { name: new RegExp(JOURNEY_COPY[locale].entry.title) }).click();
-          await expectNoSubmit(page, locale);
-        }
         expect(media.missing).toEqual([]);
       });
 
       test(`10 images, hosts, overflow, gold line, square corners (${where})`, async ({ page }) => {
         const { media, requests } = await visit(page, locale);
-        const srcs = await page.locator("img").evaluateAll((nodes) => nodes.map((node) => (node as HTMLImageElement).currentSrc));
-        const outside = srcs.filter((src) => !src.startsWith(`${MEDIA_BASE_URL}/`));
-        expect(outside.length, outside.join(", ")).toBe(1);
-        expect(outside[0]).toMatch(/\/_next\/static\/media\/Poly_White\.[0-9a-f]+\.svg$/);
+        // Scroll through the page once so the lazy pictures on the page are fetched. A picture that is not drawn (the Welcome
+        // photos below md) or that has not been asked for yet (a strip slide far from the visible ones: currentSrc is empty
+        // until the browser starts the fetch) is not checked; one that was asked for and arrived empty is "broken".
+        await page.evaluate(async () => {
+          for (let y = 0; y < document.documentElement.scrollHeight; y += 500) {
+            window.scrollTo(0, y);
+            await new Promise((resolve) => setTimeout(resolve, 60));
+          }
+          window.scrollTo(0, 0);
+        });
+        await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
+        const drawn = await page.locator("img").evaluateAll((nodes) =>
+          nodes
+            .filter((node) => (node as HTMLElement).checkVisibility() && (node as HTMLImageElement).currentSrc !== "")
+            .map((node) => (node as HTMLImageElement).currentSrc),
+        );
+        // Every drawn picture is on the media host, except the nav wordmark (a repo file) and the footer wordmark (a data: URI, plan 41).
+        const outside = drawn.filter((src) => !src.startsWith(`${MEDIA_BASE_URL}/`));
+        expect(outside.length, outside.map((src) => src.slice(0, 80)).join(", ")).toBe(2);
+        expect(outside.filter((src) => /\/_next\/static\/media\/Poly_White\.[0-9a-f]+\.svg$/.test(src))).toHaveLength(1);
+        expect(outside.filter((src) => src.startsWith("data:image/svg+xml"))).toHaveLength(1);
         const broken = await page.locator("img").evaluateAll((nodes) =>
-          nodes.filter((node) => !(node as HTMLImageElement).complete || (node as HTMLImageElement).naturalWidth === 0).map((node) => (node as HTMLImageElement).src),
+          nodes
+            .filter((node) => (node as HTMLElement).checkVisibility() && (node as HTMLImageElement).currentSrc !== "")
+            .filter((node) => !(node as HTMLImageElement).complete || (node as HTMLImageElement).naturalWidth === 0)
+            .map((node) => (node as HTMLImageElement).src),
         );
         expect(broken).toEqual([]);
         expect(requests.filter((url) => FORBIDDEN_HOSTS.test(url))).toEqual([]);
@@ -510,17 +682,20 @@ for (const vp of VIEWPORTS) {
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         expect(overflow).toBeLessThanOrEqual(0);
 
-        // A section head's rule is the gold token, as a line.
-        const rule = await page.locator("#stays > div").first().evaluate((node) => {
+        // Gold is a line only: the View All Private Stays outline button's border is the gold token, 1px.
+        const rule = await page.getByRole("link", { name: copy.stays.viewAll, exact: true }).evaluate((node) => {
           const probe = document.createElement("span");
           probe.style.color = "var(--color-gold)";
           document.body.appendChild(probe);
           const gold = getComputedStyle(probe).color;
           probe.remove();
-          return { border: getComputedStyle(node).borderTopColor, width: getComputedStyle(node).borderTopWidth, gold };
+          const style = getComputedStyle(node);
+          return { border: style.borderTopColor, width: style.borderTopWidth, text: style.color, background: style.backgroundColor, gold };
         });
         expect(rule.border).toBe(rule.gold);
-        expect(rule.width).toBe("2px");
+        expect(rule.width).toBe("1px");
+        expect(rule.text).not.toBe(rule.gold);
+        expect(rule.background).not.toBe(rule.gold);
 
         // Square corners on a card picture, a select, the planner and a Button.
         const radius = (locator: ReturnType<Page["locator"]>) => locator.evaluate((node) => getComputedStyle(node).borderRadius);
@@ -528,7 +703,7 @@ for (const vp of VIEWPORTS) {
         expect(await radius(page.getByRole("combobox").first().or(page.getByRole("button", { name: HOME_COPY[locale].nav.menu, exact: true })).first())).toBe("0px");
         const c = JOURNEY_COPY[locale];
         if (!isPhone(vp)) {
-          const bar = region(page, locale).getByRole("group", { name: c.bar.label });
+          const bar = region(page, locale).getByRole("search", { name: c.bar.label });
           expect(await radius(bar)).toBe("0px");
           await bar.getByRole("button", { name: c.bar.dates.label }).click();
           expect(await radius(page.getByRole("button", { name: c.done, exact: true }))).toBe("0px");

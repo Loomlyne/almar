@@ -4,6 +4,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { HOME_COPY } from "../../../lib/copy/home.ts";
 import { HOME_PAGE_COPY } from "../../../lib/copy/home-page.ts";
+import { JOURNEY_COPY } from "../../../lib/copy/journey.ts";
 import { MEDIA_BASE_URL } from "../../../lib/data/media.ts";
 import { localeAlternates, localeDir } from "../../../lib/locale-path.ts";
 
@@ -93,7 +94,17 @@ for (const [locale, doc] of Object.entries(html)) {
     assert.ok(ogImage.startsWith(`${MEDIA_BASE_URL}/`), ogImage);
   });
 
-  test(`${locale}: no third-party host, no video, no form, no submit, no contradicting line`, () => {
+  test(`${locale}: the bar's search form is the only form and its Search the only submit (plan 03.3-43)`, () => {
+    const forms = doc.match(/<form\b[^>]*>/g) ?? [];
+    assert.equal(forms.length, 1, `${locale}: ${forms.length} forms`);
+    assert.match(forms[0], /role="search"/);
+    assert.equal((doc.match(/type="submit"/g) ?? []).length, 1, `${locale}: submit buttons`);
+    const bar = /<form\b[^>]*role="search"[^>]*>([\s\S]*?)<\/form>/.exec(doc)?.[1] ?? "";
+    assert.ok(bar.includes('type="submit"'), `${locale}: the submit is not inside the search form`);
+    assert.ok(bar.includes(decode(JOURNEY_COPY[locale].bar.search)), `${locale}: the submit is not named Search`);
+  });
+
+  test(`${locale}: no third-party host, no video, no other form, no contradicting line`, () => {
     for (const needle of [
       "framerusercontent",
       "files.catbox.moe",
@@ -101,8 +112,6 @@ for (const [locale, doc] of Object.entries(html)) {
       "videos.pexels.com",
       "pexels",
       "<video",
-      'type="submit"',
-      "<form",
       'type="email"',
       "does not convert",
       "Nothing on this page is sent",
@@ -114,12 +123,13 @@ for (const [locale, doc] of Object.entries(html)) {
     }
   });
 
-  test(`${locale}: every <img src> is on the media host; only the nav wordmark is served from the repo`, () => {
+  test(`${locale}: every <img src> is on the media host; only the nav wordmark (repo file) and the footer wordmark (data: URI) are not`, () => {
     const srcs = [...doc.matchAll(/<img\b[^>]*?\ssrc="([^"]+)"/g)].map((m) => m[1]);
     assert.ok(srcs.length > 30, `only ${srcs.length} images`);
     const outside = srcs.filter((src) => !src.startsWith(`${MEDIA_BASE_URL}/`));
-    assert.equal(outside.length, 1, outside.join(", "));
-    assert.match(outside[0], /^\/_next\/static\/media\/Poly_White\.[0-9a-f]+\.svg$/);
+    assert.equal(outside.length, 2, outside.map((src) => src.slice(0, 80)).join(", "));
+    assert.equal(outside.filter((src) => /^\/_next\/static\/media\/Poly_White\.[0-9a-f]+\.svg$/.test(src)).length, 1);
+    assert.equal(outside.filter((src) => src.startsWith("data:image/svg+xml")).length, 1);
   });
 
   test(`${locale}: the held controls are not in the markup`, () => {
