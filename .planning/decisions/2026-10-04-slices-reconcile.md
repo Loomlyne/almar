@@ -105,3 +105,23 @@ Taken as **his go to build slices 2, 3A and 4**. Controller's changes for speed,
   order stays 2 → 3A → 4, and each later slice merges the earlier one before its hand-over, the earlier lander winning.
 - Job 11 was asked to finish plans 44 and 47 inside the signed scope and hand over at once.
 - Job 10 is handed over (`466ec4c`); it lands after slice 1, after one more merge of `main`.
+
+## Standing word while the owner is away (2026-10-05 ~01:58 +04, controller chat)
+
+His words: "I will put the laptop on charge and I will keep you working. So I want you to keep track on all of
+them. And you take control whenever someone finish, either you achieve or merge or push and deploy and take the
+control, full control."
+
+How the controller applies it, until he is back and says otherwise:
+- **Covered:** when a job hands over, the controller checks it in a clean clone (every gate, both browser suites at
+  4 workers with failed files rerun alone, the media guard, the upload dry run), lands it on `main` (tags, squash,
+  staged tree = checked tree), deploys the preview, browser-checks the preview itself, then deploys production and
+  runs the live checks, with the rollback target written down first. A failed live check is rolled back at once.
+  Landed branches are deleted on GitHub (archive tags first), worktrees removed, sessions archived. Additive R2
+  uploads that a landing needs (new keys only; never an overwrite or a delete) count as part of the deploy.
+- **Not covered, still his word each time:** applying a migration to the live Supabase database, any secret, DNS,
+  Stripe live, an R2 overwrite or delete, any price, rate, legal or policy text, and Phase 2 sign-in going live
+  (it needs his secrets and the live migration). Job 02 may land on `main` only if it stays dormant; it is not
+  deployed without him.
+- His UAT is replaced by the controller's own browser check on the preview, reported as such; he can reopen any
+  landed job when he is back.
