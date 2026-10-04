@@ -2,6 +2,7 @@
 /.next/
 /out/
 /out-preview/
+/.open-next/
 .env*.local
 next-env.d.ts
 *.tsbuildinfo
