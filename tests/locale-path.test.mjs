@@ -99,7 +99,7 @@ test("matchPublicPage matches the three patterns and one [a-z0-9-] segment", () 
   for (const p of ["/private-stays/a/b", "/about", "/private-stays/Bad_Slug", "/private-stays/", "/ar"]) {
     assert.equal(matchPublicPage(p), null, p);
   }
-  assert.deepEqual([...PUBLIC_PAGES], ["/", "/private-stays", "/private-stays/[stay]", "/destinations"]);
+  assert.deepEqual([...PUBLIC_PAGES], ["/", "/private-stays", "/private-stays/[stay]", "/destinations", "/experiences"]);
 });
 
 test("/destinations is a public page in every locale; a destination slug under it is not", () => {
@@ -114,6 +114,18 @@ test("/destinations is a public page in every locale; a destination slug under i
     es: "/es/destinations",
   });
   assert.equal(siteHref("ar", "/about"), "/about");
+});
+
+test("/experiences is a public page in every locale; a slug under it is not; /contact stays English-only", () => {
+  assert.equal(matchPublicPage("/experiences"), "/experiences");
+  assert.equal(matchPublicPage("/experiences/x"), null);
+  assert.equal(siteHref("ar", "/experiences"), "/ar/experiences");
+  assert.equal(siteHref("en", "/experiences"), "/experiences");
+  assert.equal(
+    siteHref("es", "/experiences?type=service&item=vip-airport-meet-greet"),
+    "/es/experiences?type=service&item=vip-airport-meet-greet",
+  );
+  assert.equal(siteHref("ar", "/contact"), "/contact");
 });
 
 test("siteHref localises only pages that exist in every locale", () => {

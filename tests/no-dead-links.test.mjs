@@ -4,7 +4,6 @@ import { pathToFileURL } from "node:url";
 import {
   HIDDEN,
   KNOWN_DEAD,
-  RETIRES_WITH_STAY_PAGES,
   SITE,
   deadKey,
   framerPagePath,
@@ -58,7 +57,5 @@ test("every link without a route is a known one", () => {
 
 test("every known dead link is still linked and still has no route", () => {
   const linked = new Set([...dead.keys()].map(deadKey));
-  const stayPagesGone = !routes.some((file) => /^\/private-stays\/[^/]+$/.test(framerPagePath(file)));
-  const exempt = stayPagesGone ? RETIRES_WITH_STAY_PAGES : [];
-  assert.deepEqual(KNOWN_DEAD.filter((path) => !linked.has(path) && !exempt.includes(path)), []);
+  assert.deepEqual(KNOWN_DEAD.filter((path) => !linked.has(path)), []);
 });

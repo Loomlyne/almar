@@ -556,7 +556,7 @@ for (const vp of VIEWPORTS) {
         const services = await getCatalogItems(locale, { kind: "service" });
         const cases: Array<[string, () => ReturnType<Page["locator"]>, string]> = [
           ["a stay card", () => page.locator("#stays ul a").first(), localePath(locale, `/private-stays/${stays[0].slug}`)],
-          ["View All Services", () => page.getByRole("link", { name: copy.services.viewAll }), "/experiences"],
+          ["View All Services", () => page.getByRole("link", { name: copy.services.viewAll }), localePath(locale, "/experiences")],
           ["Read All", () => page.getByRole("link", { name: copy.stories.readAll }), "/blog"],
           ["Request Consultation (curated)", () => page.locator("#experiences").getByRole("link", { name: copy.moments.cta }), "/contact"],
           ["Request Consultation (begin)", () => page.locator("#begin").getByRole("link", { name: copy.begin.cta }), "/contact"],

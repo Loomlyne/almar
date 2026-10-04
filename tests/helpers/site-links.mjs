@@ -24,33 +24,9 @@ export const HIDDEN = [
 // Phases 3.3 and 6 replace these Framer pages. Remove an entry once it has a route or no link.
 export const KNOWN_DEAD = [
   // No /destinations/<slug> entries: /destinations became React in plan 03.3-13 and its cards are not links.
-  ...[
-    "amazon-rainforest-expedition", "artisan-workshop-experiences", "bogota-art-gastronomy",
-    "cartagena-heritage-tours", "cartagena-historic-center-house", "cartagena-night-experience",
-    "coffee-hacienda-experiences", "coffee-region-immersion", "getsemani-colonial-house",
-    "getsemani-courtyard-residence", "gourmet-food-tours", "helicopter-city-tours",
-    "highland-trekking-experiences", "hot-air-balloon-coffee-region", "medellin-discovery-tours",
-    "medellin-renaissance", "mountain-adventure-excursions", "pastry-dessert-masterclass",
-    "private-beach-experiences", "private-ceremony-colombia", "private-museum-experiences",
-    "private-picnic-experiences", "private-surfing-lessons", "rosario-islands-escape",
-    "rural-farm-nature-visits", "san-andres-diving-escape", "scuba-diving-expeditions",
-    "snorkeling-adventures", "sunrise-yoga-wellness-retreats", "tayrona-coastal-escape",
-    "traditional-cooking-classes", "truffle-foraging-experiences", "vip-cultural-access",
-    "vip-dinner-show-experiences", "welcome-cocktail", "wellness-yoga-retreat",
-    "wine-spirits-tastings", "yacht-island-charters",
-  ].map((slug) => `/experiences/${slug}`),
+  // No /experiences/<slug> entries: /experiences became React in plan 03.3-14, its cards open an overlay and are not links.
   // No /services entries: the seven slugs are answered by the `/services/*` rule of public/_redirects since
   // plan 03.3-12 (owner answer 1, D-64).
-];
-
-/**
- * The three KNOWN_DEAD entries that were linked only from the 12 Framer stay pages. When those pages become
- * React pages (3.3 plan 06) they stop being linked, and the "still linked" test exempts them.
- */
-export const RETIRES_WITH_STAY_PAGES = [
-  "/experiences/getsemani-colonial-house",
-  "/experiences/getsemani-courtyard-residence",
-  "/experiences/cartagena-historic-center-house",
 ];
 
 /** A locale-prefixed href is looked up against the English literals, so the lists are not tripled. */

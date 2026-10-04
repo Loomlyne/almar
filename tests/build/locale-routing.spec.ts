@@ -45,7 +45,7 @@ const STAYS = [
   "santa-fe-farm-antioquia",
   "sopetran-country-estate",
 ];
-const DEFAULT_PATHS = ["/", "/private-stays", "/destinations", ...STAYS.map((s) => `/private-stays/${s}`)];
+const DEFAULT_PATHS = ["/", "/private-stays", "/destinations", "/experiences", ...STAYS.map((s) => `/private-stays/${s}`)];
 const list = (value: string | undefined) => (value ? value.split(",").map((v) => v.trim()).filter(Boolean) : null);
 
 const PATHS = list(process.env.ROUTING_PATHS) ?? DEFAULT_PATHS;
