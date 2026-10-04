@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 import { HELD_PATHS, SERVER_PATHS_OUTSIDE_API, serverPathsFrom } from "../lib/server-routes.ts";
 import { handle } from "../worker/handle.mjs";
@@ -148,4 +150,52 @@ test("handle: an error from Next propagates (Cloudflare answers 500; no page is 
     handle(new Request("https://almarprivatejourney.com/api/health"), env, {}, { serverPaths: new Set(["/api/health"]), nextFetch }),
     /boom/,
   );
+});
+
+// ---- source guards ----------------------------------------------------------------------------------------------
+
+function filesUnder(dir, found = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) filesUnder(full, found);
+    else found.push(full);
+  }
+  return found;
+}
+
+test("app/api/health/route.ts exports exactly dynamic and GET, and reads no environment", () => {
+  const source = readFileSync("app/api/health/route.ts", "utf8");
+  const exported = [...source.matchAll(/^export (?:const|async function|function) (\w+)/gm)].map((m) => m[1]).sort();
+  assert.deepEqual(exported, ["GET", "dynamic"]);
+  assert.match(source, /export const dynamic = "force-dynamic";/);
+  assert.equal(/process\.env/.test(source), false);
+});
+
+test("every app/api route is force-dynamic, so none is prerendered into out/", () => {
+  const files = filesUnder("app/api");
+  const routes = files.filter((f) => /route\.tsx?$/.test(f));
+  assert.ok(routes.length >= 1);
+  for (const file of routes) assert.match(readFileSync(file, "utf8"), /export const dynamic = "force-dynamic";/, file);
+  assert.deepEqual(files.filter((f) => !/route\.tsx?$/.test(f)), [], "only route files under app/api");
+});
+
+test("no file under app/ asks for the edge runtime (OpenNext serves the nodejs runtime only)", () => {
+  const hits = filesUnder("app").filter((f) => /\.tsx?$/.test(f) && /runtime\s*=\s*["']edge["']/.test(readFileSync(f, "utf8")));
+  assert.deepEqual(hits, []);
+});
+
+test("app/newsletter/route.ts no longer gates itself on NODE_ENV (the Worker holds it)", () => {
+  assert.equal(readFileSync("app/newsletter/route.ts", "utf8").includes("NODE_ENV"), false);
+});
+
+test("worker/almar.mjs imports only the OpenNext worker, the generated list and the router", () => {
+  const source = readFileSync("worker/almar.mjs", "utf8");
+  const imports = [...source.matchAll(/^import .* from "([^"]+)";$/gm)].map((m) => m[1]);
+  assert.deepEqual(imports, ["../.open-next/worker.js", "../.open-next/almar-server-routes.json", "./handle.mjs"]);
+});
+
+test("open-next.config.ts sets no cache override and no static export", () => {
+  const source = readFileSync("open-next.config.ts", "utf8");
+  assert.match(source, /export default defineCloudflareConfig\(\{\}\);/);
+  assert.equal(/output\s*:/.test(source), false);
 });
