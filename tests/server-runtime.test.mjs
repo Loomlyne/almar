@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFil
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
-import { HELD_PATHS, SERVER_PATHS_OUTSIDE_API, serverPathsFrom } from "../lib/server-routes.ts";
+import { HELD_PATHS, SERVER_PATHS_OUTSIDE_API, isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { assembleOut, assertNoBundledEnv, assertNoPublicEnv, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
 import { handle } from "../worker/handle.mjs";
 
@@ -138,6 +138,43 @@ test("handle: anything else goes back to the static assets untouched", async () 
   }
   assert.equal(calls.next.length, 0);
   assert.equal(calls.assets.length, paths.length);
+});
+
+test("handle: dot segments are resolved by the URL parser before the decision, so what is decided is what Next gets", async () => {
+  // Cloudflare passes the Worker the same normalised URL that `new Request(url)` holds: `..` and `%2e%2e` segments are
+  // already folded away (an encoded slash or a `;` is not). The router decides on that pathname and forwards that URL.
+  const cases = [
+    // [as sent, pathname handle() sees, goes to Next]
+    ["/api/%2e%2e/dashboard", "/dashboard", false],
+    ["/api/%2E%2E/dashboard", "/dashboard", false],
+    ["/api/.%2e/dashboard", "/dashboard", false],
+    ["/api/health/%2e%2e/%2e%2e/dashboard", "/dashboard", false],
+    ["/api/health/../../login", "/login", false],
+    ["/api\\..\\dashboard", "/dashboard", false],
+    ["/api/health/..", "/api/", false],
+    ["/api/..%2fdashboard", "/api/..%2fdashboard", false],
+    ["/api/..;/dashboard", "/api/..;/dashboard", false],
+    ["/api/health/.", "/api/health/", false],
+    ["/dashboard/../api/health", "/api/health", true],
+    ["/api/./health", "/api/health", true],
+  ];
+  for (const [sent, seen, toNext] of cases) {
+    const { calls, run } = harness();
+    assert.equal(new URL(`https://almarprivatejourney.com${sent}`).pathname, seen, `${sent}: the pathname Cloudflare would pass`);
+    const res = await run(sent);
+    if (toNext) {
+      assert.deepEqual(calls.next.map((c) => c.path), [seen], sent);
+      assert.deepEqual(calls.assets, [], sent);
+      assert.equal(res.headers.get("x-robots-tag"), "noindex", sent);
+    } else {
+      assert.deepEqual(calls.next, [], `${sent}: nothing is forwarded to Next`);
+      assert.deepEqual(calls.assets, [seen], sent);
+      assert.equal(res.status, 404, sent);
+      assert.equal(res.headers.get("x-robots-tag"), null, sent);
+    }
+    // Whatever was forwarded is a server path, and exactly the path that was decided on; no held section ever is.
+    for (const call of calls.next) assert.ok(call.path === "/api/health" && !isHeldPath(call.path), sent);
+  }
 });
 
 test("handle: Next never sees a visitor's x-forwarded-host, and x-forwarded-for comes from Cloudflare only", async () => {
