@@ -12,6 +12,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { LOCALES, PUBLIC_PAGES } from "../lib/locale-path.ts";
 
 /** The repo root, resolved from this file so the scripts work from any cwd. */
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -212,17 +213,34 @@ export function readStaySlugs(fixturesDir = defaultPaths().fixturesDir) {
   return stays.filter((s) => s.is_published !== false).map((s) => s.slug);
 }
 
+/** The public pages slice 1 shipped. Slice 1's own document list (42 files) is publicDocuments(slugs, SLICE1_PAGES). */
+export const SLICE1_PAGES = ["/", "/private-stays", "/private-stays/[stay]"];
+
 /**
- * The out/ paths of the slice-1 documents: for each of "", "ar/", "es/": the locale root, the list page and one
- * page per stay. 3 x (2 + 12) = 42. The EN root is index.html; a locale root is <locale>/index.html (design 5.4).
+ * The out/ path of every public React document, computed from PUBLIC_PAGES (lib/locale-path.ts): for each locale
+ * (no prefix for en, "<locale>/" otherwise) and each pattern in order, "/" is `<prefix>index.html`, a static path is
+ * `<prefix><path>.html` and a `[stay]` pattern gives one document per published stay slug. Slices 3 and 4 add a
+ * pattern to PUBLIC_PAGES and nothing here changes; a new dynamic parameter needs its enumerator here and in
+ * tests/helpers/site-links.mjs reactPublicRoutes.
  */
-export function slice1Documents(staySlugs = readStaySlugs()) {
+export function publicDocuments(staySlugs = readStaySlugs(), pages = PUBLIC_PAGES) {
   const docs = [];
-  for (const prefix of ["", "ar/", "es/"]) {
-    docs.push(`${prefix}index.html`, `${prefix}private-stays.html`);
-    for (const slug of staySlugs) docs.push(`${prefix}private-stays/${slug}.html`);
+  for (const locale of LOCALES) {
+    const prefix = locale === "en" ? "" : `${locale}/`;
+    for (const pattern of pages) {
+      const params = pattern.match(/\[[^\]]+\]/g) ?? [];
+      for (const p of params) if (p !== "[stay]") throw new Error(`no enumerator for ${p}`);
+      if (pattern === "/") docs.push(`${prefix}index.html`);
+      else if (params.length === 0) docs.push(`${prefix}${pattern.slice(1)}.html`);
+      else for (const slug of staySlugs) docs.push(`${prefix}${pattern.slice(1).replace("[stay]", slug)}.html`);
+    }
   }
   return docs;
+}
+
+/** Kept as a one-line wrapper only because tests/media-manifest.test.mjs (plan 10) imports it; no script calls it. */
+export function slice1Documents(staySlugs = readStaySlugs()) {
+  return publicDocuments(staySlugs, SLICE1_PAGES);
 }
 
 /** Bytes as decimal megabytes with one decimal, e.g. "47.3". */
