@@ -301,6 +301,73 @@ test("scanOut allows the same-origin nav wordmarks under /_next/static/media/, a
   assert.deepEqual(og, [`index.html: og:image ${JSON.stringify(BRAND)} does not start with ${GOOD_BASE}/`]);
 });
 
+// The light footer's wordmark is not a file: components/ui/footer.tsx writes the brand SVG markup into the <img src> as
+// `data:image/svg+xml;charset=utf-8,<encodeURIComponent(markup)>`. Inline markup is no network request, so it may pass
+// the guard, but only while it names nothing outside itself.
+const WORDMARK_SVG = fs.readFileSync(path.join(REPO_ROOT, "brand", "Logo Typography", "Poly_Black.svg"), "utf8");
+const inlineSvgSrc = (markup) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
+/** As React writes an attribute value into the document. */
+const reactAttr = (value) => value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("'", "&#x27;");
+
+test("scanOut allows the inline brand SVG of the light footer on an <img src>, counts it, and nothing else of that form", () => {
+  const root = scratchTree("scan-inline");
+  const docs = slice1Documents(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const reportOf = (src, { as = "img" } = {}) => {
+    writeDocs(root, GOOD_BASE, {
+      mutate: (doc, html) => {
+        if (doc !== "index.html") return html;
+        if (as === "og") return html.replace(`content="${GOOD_BASE}/home/hero/poster.webp"`, `content="${reactAttr(src)}"`);
+        if (as === "srcset") return html.replace("srcset=", `srcset="${reactAttr(src)}" data-x=`);
+        return html.replace("<img ", `<img alt="ALMAR" src="${reactAttr(src)}"><img `);
+      },
+    });
+    const r = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
+    return { ...r, text: r.violations.map((v) => `${v.document}: ${v.problem}`).join("\n") };
+  };
+
+  // the real wordmark, as the footer writes it, on every document
+  writeDocs(root, GOOD_BASE, { mutate: (doc, html) => html.replace("<img ", `<img alt="ALMAR" src="${reactAttr(inlineSvgSrc(WORDMARK_SVG))}"><img `) });
+  const ok = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
+  assert.deepEqual(ok.violations, []);
+  assert.equal(ok.images, 42 * 5, "the inline wordmark is counted and checked, not skipped");
+
+  // an inline SVG that pulls an image off the network is a violation, whatever host it names
+  const catbox = reportOf(inlineSvgSrc('<svg xmlns="http://www.w3.org/2000/svg"><image href="https://files.catbox.moe/x.png"/></svg>'));
+  assert.match(catbox.text, /^index\.html: img src "data:image\/svg\+xml;charset=utf-8,.*" is an inline SVG that /m, catbox.text);
+  assert.match(catbox.text, /^index\.html: contains files\.catbox\.moe$/m, "the host scan still sees it");
+  assert.equal(catbox.violations.filter((v) => v.document !== "index.html").length, 0);
+
+  // every other way out of the document is a violation, each with its own reason
+  const bad = {
+    "an xlink:href to a host": '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><use xlink:href="https://cdn.example.test/s.svg#a"/></svg>',
+    "an href to a relative file": '<svg xmlns="http://www.w3.org/2000/svg"><image href="/assets/img/hero.webp"/></svg>',
+    "a protocol-relative href": '<svg xmlns="http://www.w3.org/2000/svg"><image href="//cdn.example.test/x.png"/></svg>',
+    "an @import": '<svg xmlns="http://www.w3.org/2000/svg"><style>@import "x.css";</style></svg>',
+    "a url() off the document": '<svg xmlns="http://www.w3.org/2000/svg"><rect style="fill:url(x.svg#p)"/></svg>',
+    "a url() to a host": '<svg xmlns="http://www.w3.org/2000/svg"><rect style="fill:url(\'https://cdn.example.test/p.svg#p\')"/></svg>',
+    "an http URL in text": '<svg xmlns="http://www.w3.org/2000/svg"><text>http://cdn.example.test/x.png</text></svg>',
+    "a numeric character reference": '<svg xmlns="http://www.w3.org/2000/svg"><image href="&#104;ttps://cdn.example.test/x.png"/></svg>',
+    "an entity declaration": '<!DOCTYPE svg [<!ENTITY x SYSTEM "x.svg">]><svg xmlns="http://www.w3.org/2000/svg">&x;</svg>',
+    "a base64 payload": "data:image/svg+xml;base64,PHN2Zy8+",
+    "a bad percent escape": "data:image/svg+xml;charset=utf-8,%E0%A4%A",
+  };
+  for (const [label, body] of Object.entries(bad)) {
+    const src = body.startsWith("data:") ? body : inlineSvgSrc(body);
+    const r = reportOf(src);
+    assert.match(r.text, /^index\.html: img src "data:image\/svg\+xml.*" is an inline SVG that /m, `${label} must be reported:\n${r.text}`);
+    assert.equal(r.violations.filter((v) => v.document !== "index.html").length, 0, label);
+  }
+
+  // the exception is for <img src> only, and only SVG
+  const png = reportOf("data:image/png;base64,iVBORw0KGgo=");
+  assert.match(png.text, /^index\.html: img src "data:image\/png;base64,iVBORw0KGgo=" does not start with /m, png.text);
+  const og = reportOf(inlineSvgSrc(WORDMARK_SVG), { as: "og" });
+  assert.match(og.text, /^index\.html: og:image "data:image\/svg\+xml;charset=utf-8,.*" does not start with /m, og.text);
+  const set = reportOf(inlineSvgSrc(WORDMARK_SVG), { as: "srcset" });
+  assert.match(set.text, /^index\.html: srcset "data:image\/svg\+xml;charset=utf-8" does not start with /m, set.text);
+  assert.ok(!set.text.includes("img src"), "a srcset candidate of that form is its own violation, not an img src");
+});
+
 test("imageReferences reads attributes in any order, with single or double quotes", () => {
   const refs = imageReferences(`<IMG alt='' SRC='https://h.test/a.webp' srcset='https://h.test/a.webp 1x,https://h.test/b.webp 2x'><meta content='https://h.test/o.webp' property='og:image'><meta property="og:title" content="x"><source srcset="https://h.test/s.webp"><img data-src="x">`);
   assert.deepEqual(refs.map((r) => `${r.kind}=${r.url}`), [

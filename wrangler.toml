@@ -1,10 +1,20 @@
 name = "almar"
 account_id = "f1d9a1fa3abdda98c15161b00b40385c"
 compatibility_date = "2026-09-23"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+# Static first (job 10): a request for a file in ./out is answered with no Worker call, and run_worker_first sends
+# /api/* to the script. A miss reaches the 404 page without the Worker only for browser navigations
+# (Sec-Fetch-Mode: navigate); curl, fetch, bots and scanners that miss do invoke the script, which still answers the
+# static 404 and counts toward the Free plan's 100k Worker requests a day. worker/almar.mjs forwards only
+# lib/server-routes.ts paths to Next.
+main = "worker/almar.mjs"
 workers_dev = false
+preview_urls = false
 
 [assets]
 directory = "./out"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
 
