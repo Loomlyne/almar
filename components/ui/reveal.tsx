@@ -3,7 +3,7 @@ import { cn } from "../../lib/cn";
 
 // The reveal system (11-DESIGN section 3, plan 41). A page declares motion with markup only:
 //   <Reveal kind="heading">...</Reveal>
-// The hidden start state sits behind the `pre-reveal` variant (app/globals.css), which matches only while <html> carries
+// The hidden start state sits behind the `pre-reveal` variant (app/globals.css), which matches only while the root element carries
 // data-motion="on" (set by the boot script, never with reduced motion) and the element has no data-revealed. With
 // JavaScript off, or with reduced motion, nothing is ever hidden. MotionController sets data-revealed once.
 //

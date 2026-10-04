@@ -66,6 +66,19 @@ for (const locale of LOCALES) {
           await expect(phone).toHaveCount(1);
           await expect(phone).toHaveAttribute("href", "tel:+971563883302");
           await expect(phone).toHaveText("+971 56 388 3302");
+          // The number reads left to right in every language: "+" is left of the final "2" (plan 41; in Arabic it was backwards).
+          const order = await phone.evaluate((node) => {
+            const text = node.firstChild as Text;
+            const rect = (index: number) => {
+              const range = document.createRange();
+              range.setStart(text, index);
+              range.setEnd(text, index + 1);
+              return range.getBoundingClientRect().left;
+            };
+            return { plus: rect(0), last: rect(text.length - 1), dir: getComputedStyle(node).direction };
+          });
+          expect(order.dir).toBe("ltr");
+          expect(order.plus).toBeLessThan(order.last);
         });
       }
 
@@ -116,10 +129,61 @@ for (const locale of LOCALES) {
           await expect(footer.getByRole("navigation", { name: copy.language })).toBeVisible();
           await expect(footer.getByRole("link", { name: `${copy.instagram} ${copy.newTab}` })).toHaveCount(1);
           await expect(footer.locator("address")).toContainText(copy.contact);
+          await expect(footer.getByRole("img", { name: copy.brand })).toHaveCount(1);
+          await expect(footer).toContainText(copy.madeBy);
+          await expect(footer).toContainText("Koussay");
           texts.push(await footer.innerText());
         }
         expect(texts[1], "list page footer text equals the home's").toBe(texts[0]);
         expect(texts[2], "stay page footer text equals the home's").toBe(texts[0]);
+      });
+
+      test(`6 Made by Koussay opens https://koussay.com in a new tab (${where})`, async ({ page }) => {
+        await routeMedia(page);
+        // Nothing leaves this Mac: the one external request is answered here.
+        const external: string[] = [];
+        await page.context().route("https://koussay.com/**", async (route) => {
+          external.push(route.request().url());
+          await route.fulfill({ status: 200, contentType: "text/html", body: "<title>stub</title>" });
+        });
+        for (const path of [HOMES[locale], localePath(locale, "/private-stays"), localePath(locale, STAY)]) {
+          await page.goto(path);
+          const copy = SITE_FOOTER_COPY[locale];
+          const link = page.locator("footer").getByRole("link", { name: `Koussay ${copy.newTab}` });
+          await expect(link).toHaveCount(1);
+          await expect(link).toHaveAttribute("href", "https://koussay.com");
+          await expect(link).toHaveAttribute("target", "_blank");
+          await expect(link).toHaveAttribute("rel", /noopener/);
+          const [popup] = await Promise.all([page.waitForEvent("popup"), link.click()]);
+          await popup.waitForLoadState("domcontentloaded");
+          expect(popup.url()).toMatch(/^https:\/\/koussay\.com\/?$/);
+          await popup.close();
+        }
+        expect(external.length).toBe(3);
+      });
+
+      test(`7 the footer is light: ivory ground, the diamond is a gold outline and never a fill (${where})`, async ({ page }) => {
+        await routeMedia(page);
+        for (const path of [HOMES[locale], localePath(locale, "/private-stays"), localePath(locale, STAY)]) {
+          await page.goto(path);
+          const footer = page.locator("footer");
+          const look = await footer.evaluate((node) => {
+            const diamond = node.querySelector('[aria-hidden="true"] > span.rotate-45') as HTMLElement;
+            const style = getComputedStyle(diamond);
+            return {
+              ground: getComputedStyle(node).backgroundColor,
+              diamondBorder: style.borderTopColor,
+              diamondWidth: style.borderTopWidth,
+              diamondFill: style.backgroundColor,
+              line: getComputedStyle(diamond.previousElementSibling as HTMLElement).backgroundColor,
+            };
+          });
+          expect(look.ground, "ivory token").toBe("rgb(255, 250, 240)");
+          expect(look.diamondBorder, "gold token").toBe("rgb(212, 186, 138)");
+          expect(look.diamondWidth).toBe("1px");
+          expect(look.diamondFill, "ivory centre, never gold").toBe("rgb(255, 250, 240)");
+          expect(look.line, "teal-tint token").toBe("rgb(209, 223, 224)");
+        }
       });
 
       test(`4 the WhatsApp float: lifted above the dock on a stay page, at the corner on the list page (${where})`, async ({ page }) => {

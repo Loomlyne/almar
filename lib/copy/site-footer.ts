@@ -9,6 +9,10 @@
 //   instagram                 the brand name, as the live footer prints it, in every language
 //   newTab                    DRAFTED UI COPY, no live source: the screen-reader suffix of a link that opens a
 //                             new tab. The AR and ES wording is a draft for the owner's review.
+//   brand, madeBy (plan 41)   brand is the wordmark's alt text; madeBy is the "Made by" label before the studio's name.
+//                             EN is the live footer's wording ("Made by"); the AR and ES values of both keys are
+//                             DRAFTS for the owner's review. The name "Koussay" and https://koussay.com are
+//                             constants in components/site/public-frame.tsx, not copy.
 
 export type SiteFooterLocale = "en" | "ar" | "es";
 
@@ -25,6 +29,10 @@ export type SiteFooterCopy = {
   language: string;
   /** The copyright line. */
   copyright: string;
+  /** The wordmark's alt text. */
+  brand: string;
+  /** The label before the studio's name: "Made by". */
+  madeBy: string;
 };
 
 export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
@@ -35,6 +43,8 @@ export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
     newTab: "(opens in a new tab)",
     language: "Language",
     copyright: "© 2026 ALMAR Private Journeys. All rights reserved.",
+    brand: "ALMAR Private Journeys",
+    madeBy: "Made by",
   },
   ar: {
     pages: "الصفحات",
@@ -43,6 +53,8 @@ export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
     newTab: "(يفتح في تبويب جديد)",
     language: "اللغة",
     copyright: "© 2026 المار للرحلات الخاصة. كل الحقوق محفوظة.",
+    brand: "المار للرحلات الخاصة",
+    madeBy: "صُمّم بواسطة",
   },
   es: {
     pages: "Páginas",
@@ -51,5 +63,7 @@ export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
     newTab: "(se abre en una pestaña nueva)",
     language: "Idioma",
     copyright: "© 2026 ALMAR Private Journeys. Todos los derechos reservados.",
+    brand: "ALMAR Private Journeys",
+    madeBy: "Hecho por",
   },
 };

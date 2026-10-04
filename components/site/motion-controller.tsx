@@ -6,7 +6,7 @@ import { dropOffset, fadeOpacity } from "../../lib/motion";
 // Runs the reveal system (plan 41, 11-DESIGN section 3). Mounted once by PublicFrame; renders nothing.
 //  - [data-reveal] elements get data-revealed once: on load for data-reveal-on="load", on entering the viewport for the rest.
 //  - [data-scroll="fade"] gets opacity from the scroll; [data-scroll="drop"] gets a translate that follows the scroll.
-// Nothing here runs unless the boot script set <html data-motion="on"> (so never with reduced motion), and it sets
+// Nothing here runs unless the boot script set data-motion="on" on the root element (so never with reduced motion), and it sets
 // data-motion-ready first so the boot script's 3 s safety reveal stands down.
 
 const REVEAL = "[data-reveal]:not([data-revealed])";

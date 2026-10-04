@@ -13,10 +13,10 @@ import { STAY_DETAIL_COPY } from "../lib/copy/stay-detail.ts";
 // stays list and the stay page all read. Before, each page file carried its own copy and the Arabic drifted.
 
 const LOCALES = ["en", "ar", "es"];
-const KEYS = ["contact", "copyright", "instagram", "language", "newTab", "pages"];
+const KEYS = ["brand", "contact", "copyright", "instagram", "language", "madeBy", "newTab", "pages"];
 const LIVE_COPYRIGHT = "© 2026 ALMAR Private Journeys. All rights reserved.";
 
-test("one table, three locales, the same six non-empty strings in each", () => {
+test("one table, three locales, the same eight non-empty strings in each", () => {
   assert.deepEqual(Object.keys(SITE_FOOTER_COPY).sort(), ["ar", "en", "es"]);
   for (const locale of LOCALES) {
     assert.deepEqual(Object.keys(SITE_FOOTER_COPY[locale]).sort(), KEYS, locale);
@@ -34,6 +34,17 @@ test("the words are the approved lines: pages, contact and language from lib/cop
     assert.equal(footer.instagram, "Instagram", `${locale} instagram: the brand name, as the live footer prints it`);
   }
   assert.equal(SITE_FOOTER_COPY.en.copyright, LIVE_COPYRIGHT);
+});
+
+test("plan 41 keys: brand (the wordmark's alt) and madeBy; the English is the live footer's, AR and ES are marked drafts", () => {
+  assert.equal(SITE_FOOTER_COPY.en.brand, "ALMAR Private Journeys");
+  assert.equal(SITE_FOOTER_COPY.en.madeBy, "Made by");
+  assert.equal(SITE_FOOTER_COPY.ar.madeBy, "صُمّم بواسطة");
+  assert.equal(SITE_FOOTER_COPY.es.madeBy, "Hecho por");
+  const header = readFileSync("lib/copy/site-footer.ts", "utf8").split("export type")[0];
+  assert.match(header, /brand/);
+  assert.match(header, /madeBy/);
+  assert.match(header, /draft/i);
 });
 
 test("no page copy file has a footer of its own any more", () => {
