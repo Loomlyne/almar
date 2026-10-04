@@ -4,7 +4,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { authSigningKey, createSupabaseAdmin, createSupabaseServer } from "../../../lib/supabase/clients";
 import { RETURN_COOKIE, safeReturnPath } from "../../../lib/auth/rules";
-import { checkContinue, isConfirmType, LINK_NONCE_COOKIE } from "../../../lib/auth/continue";
+import { checkContinue, isConfirmType, linkNonceCookieName } from "../../../lib/auth/continue";
 import { isTokenHashShape, limiterHash, visitorIpKey } from "../../../lib/auth/limit";
 import { SHELL_HEADER } from "../../../lib/host";
 
@@ -47,7 +47,7 @@ export async function confirmSignIn(_previous: ConfirmState, form: FormData): Pr
   const email = text(form.get("email")) ?? "";
   const verdict = checkContinue({
     key: authSigningKey("continue"),
-    nonce: store.get(LINK_NONCE_COOKIE)?.value,
+    nonce: store.get(linkNonceCookieName())?.value,
     tokenHash,
     b: text(form.get("b")),
     e: text(form.get("e")),

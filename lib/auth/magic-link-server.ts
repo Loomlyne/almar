@@ -7,7 +7,7 @@ import { GUEST_COPY } from "../copy/guest";
 import { sendMagicLink, type SendLinkResult } from "./send-link";
 import {
   isLinkNonce,
-  LINK_NONCE_COOKIE,
+  linkNonceCookieName,
   LINK_NONCE_MAX_AGE,
   maskEmail,
   newLinkNonce,
@@ -38,10 +38,11 @@ export async function requestOrigin(): Promise<string> {
  */
 async function browserNonce(): Promise<string> {
   const store = await cookies();
-  const existing = store.get(LINK_NONCE_COOKIE)?.value;
-  if (isLinkNonce(existing)) return existing;
-  const nonce = newLinkNonce();
-  store.set(LINK_NONCE_COOKIE, nonce, {
+  const name = linkNonceCookieName();
+  const existing = store.get(name)?.value;
+  // A valid nonce is reused and set again, so every request gives it a fresh hour.
+  const nonce = isLinkNonce(existing) ? existing : newLinkNonce();
+  store.set(name, nonce, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

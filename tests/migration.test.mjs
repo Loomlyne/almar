@@ -109,7 +109,7 @@ test("claim_link_slot is security definer, pinned, and only the service role run
   assert.match(body, /interval '60 seconds'/);
   assert.match(body, /\) >= 5 then/);
   assert.match(body, /\) >= 20 then/);
-  assert.match(body, /created_at < now\(\) - interval '1 day'/);
+  assert.match(body, /interval '1 day'/);
   assert.equal(/\bfrom (?!public\.)\w/.test(body.replace(/\bfrom public\./g, "")), false);
   assert.ok(sql.includes("revoke execute on function public.claim_link_slot(text, text) from public, anon, authenticated;"));
   assert.ok(sql.includes("grant execute on function public.claim_link_slot(text, text) to service_role;"));
@@ -122,6 +122,15 @@ test("claim_link_slot takes the email lock first, then the IP lock; created_at i
   const ip = body.indexOf("pg_advisory_xact_lock(hashtextextended(p_ip_hash, 0))");
   assert.ok(email > -1 && ip > email);
   assert.match(sql, /auth_link_requests_created_idx on public\.auth_link_requests \(created_at\)/);
+});
+
+test("claim_link_slot deletes only old rows for the two locked keys; a full cleanup is a proposal", () => {
+  const body = fnBody("claim_link_slot");
+  assert.match(body, /delete from public\.auth_link_requests\s+where email_hash = p_email_hash and created_at < now\(\) - interval '1 day'/);
+  assert.match(body, /delete from public\.auth_link_requests\s+where ip_hash = p_ip_hash and created_at < now\(\) - interval '1 day'/);
+  assert.equal(/delete from public\.auth_link_requests\s+where created_at/.test(body), false);
+  const raw = readFileSync("supabase/migrations/20260925120000_platform_spine.sql", "utf8");
+  assert.equal(raw.split("scheduled job (proposal, not built)").length - 1, 2);
 });
 
 test("auth_confirm_attempts: closed to every API role, RLS on, indexed", () => {
@@ -141,7 +150,8 @@ test("claim_confirm_slot: boolean, security definer, pinned, IP lock, thirty an 
   assert.match(body, /pg_advisory_xact_lock\(hashtextextended\(p_ip_key, 0\)\)/);
   assert.match(body, /interval '1 hour'/);
   assert.match(body, /\) >= 30 then/);
-  assert.match(body, /created_at < now\(\) - interval '1 day'/);
+  assert.match(body, /where ip_key = p_ip_key and created_at < now\(\) - interval '1 day'/);
+  assert.equal(/delete from public\.auth_confirm_attempts\s+where created_at/.test(body), false);
   assert.equal(/\bfrom (?!public\.)\w/.test(body.replace(/\bfrom public\./g, "")), false);
   assert.ok(sql.includes("revoke execute on function public.claim_confirm_slot(text) from public, anon, authenticated;"));
   assert.ok(sql.includes("grant execute on function public.claim_confirm_slot(text) to service_role;"));

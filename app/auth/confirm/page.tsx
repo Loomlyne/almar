@@ -3,7 +3,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { authSigningKey } from "../../../lib/supabase/clients";
 import { ContinueScreen } from "./continue-screen";
-import { continueMode, isConfirmType, LINK_NONCE_COOKIE, verifyContinue } from "../../../lib/auth/continue";
+import { continueMode, isConfirmType, linkNonceCookieName, verifyContinue } from "../../../lib/auth/continue";
 import { SHELL_HEADER } from "../../../lib/host";
 import { requestLocale } from "../../../lib/request-locale";
 
@@ -34,7 +34,7 @@ export default async function ConfirmPage({ searchParams }: { searchParams: Prom
   // (another browser, a forward, no `b`) = the same page with the email check. No key = nothing to prove: the
   // no-email page, and the button fails closed.
   const b = one(query.b);
-  const mode = continueMode(key, (await cookies()).get(LINK_NONCE_COOKIE)?.value, tokenHash, b);
+  const mode = continueMode(key, (await cookies()).get(linkNonceCookieName())?.value, tokenHash, b);
 
   return (
     <ContinueScreen

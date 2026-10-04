@@ -88,3 +88,22 @@ for (const width of [390, 834, 1440]) {
     });
   }
 }
+
+// Plan 02-26 third review: the form's action is the server action itself, so it posts without JavaScript.
+// The harness scenes mount on the client after hydration, so this uses the real server-rendered page. With no
+// Supabase here the action does not complete (the response is not a success); the proof is the POST to the page.
+test.describe("no JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("the real /auth/confirm page posts the Continue form to the server action", async ({ page }) => {
+    await page.goto(`/auth/confirm?token_hash=${"a".repeat(40)}&type=magiclink`);
+    const form = page.locator("main form");
+    await expect(form.getByRole("button", { name: BUTTON.en })).toBeVisible();
+    // A server action form carries React's hidden action fields; a client function action renders none.
+    await expect(form.locator('input[type=hidden][name^="$ACTION_"]').first()).toBeAttached();
+    const posted = page.waitForResponse((response) => response.request().method() === "POST");
+    await form.getByRole("button", { name: BUTTON.en }).click();
+    const response = await posted;
+    expect(response.url()).toContain("/auth/confirm");
+  });
+});

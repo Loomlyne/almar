@@ -45,8 +45,14 @@ export function verifyContinue(
 // Plan 02-26 task 2: the forwarded-link check. `b` ties the link to the browser that asked for it (a cookie nonce);
 // `e` lets the server compare a typed email with the link's email without the link carrying it.
 
-/** The cookie that holds the browser nonce: httpOnly, one hour, set when a link is requested. */
-export const LINK_NONCE_COOKIE = "almar-link-nonce";
+/**
+ * The cookie that holds the browser nonce: httpOnly, one hour, set when a link is requested. In production
+ * the name carries the `__Host-` prefix (browsers then require Secure, path "/" and no Domain attribute);
+ * plain http dev cannot set a Secure cookie, so it gets the plain name. Every reader and writer uses this.
+ */
+export function linkNonceCookieName(env: string | undefined = process.env.NODE_ENV): string {
+  return env === "production" ? "__Host-almar-link-nonce" : "almar-link-nonce";
+}
 export const LINK_NONCE_MAX_AGE = 60 * 60;
 
 /** 32 random bytes, base64url (43 characters). */

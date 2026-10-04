@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { useFormState, useFormStatus } from "react-dom";
 import { Button } from "../../../components/ui/button";
 import { Field } from "../../../components/ui/field";
 import { GUEST_COPY } from "../../../lib/copy/guest";
@@ -48,8 +48,12 @@ export function ContinueScreen({
   initialEmail?: string;
 }) {
   const [locale, setLocale] = useState<DocumentLocale>(initialLocale);
-  const [state, setState] = useState<ConfirmState>(
-    initialWrong ? { status: "wrong-email", email: initialEmail } : { status: "idle" },
+  // The form's action is the server action itself (via useFormState), so a tap before hydration or with
+  // JavaScript off still posts to the server. Next's App Router bundles React 19, where this hook exists;
+  // the installed react-dom types expose it as useFormState.
+  const [state, formAction] = useFormState(
+    confirmSignIn,
+    initialWrong ? { status: "wrong-email" as const, email: initialEmail } : ({ status: "idle" } as ConfirmState),
   );
   const [email, setEmail] = useState(initialEmail);
   const copy = GUEST_COPY[locale].auth.continue;
@@ -58,13 +62,9 @@ export function ContinueScreen({
   const wrong = state.status === "wrong-email";
   const showEmail = askEmail || wrong;
 
-  async function submit(form: FormData) {
-    setState(await confirmSignIn(state, form));
-  }
-
   return (
     <AuthFrame locale={locale} onLocaleChange={setLocale}>
-      <form action={submit} className="grid w-full max-w-108 gap-6">
+      <form action={formAction} className="grid w-full max-w-108 gap-6">
         <input type="hidden" name="token_hash" value={tokenHash} />
         <input type="hidden" name="type" value={type} />
         {browserProof ? <input type="hidden" name="b" value={browserProof} /> : null}

@@ -6,6 +6,7 @@ import {
   continueMode,
   isConfirmType,
   isLinkNonce,
+  linkNonceCookieName,
   maskEmail,
   newLinkNonce,
   signBrowser,
@@ -190,7 +191,7 @@ test("confirmSignIn: shape, then slot, then the check, then verifyOtp; a wrong e
 
 test("the page and the button read the cookie nonce, the hidden b and e; the screen posts them", () => {
   const page = readFileSync("app/auth/confirm/page.tsx", "utf8");
-  assert.ok(page.includes("continueMode(") && page.includes("LINK_NONCE_COOKIE"));
+  assert.ok(page.includes("continueMode(") && page.includes("linkNonceCookieName()"));
   assert.equal(page.includes("verifyOtp"), false);
   const screen = readFileSync("app/auth/confirm/continue-screen.tsx", "utf8");
   for (const name of ['name="b"', 'name="e"', 'name="email"', "copy.why", "copy.wrongEmail"]) assert.ok(screen.includes(name), name);
@@ -198,9 +199,23 @@ test("the page and the button read the cookie nonce, the hidden b and e; the scr
 
 test("both sign-in actions get the nonce cookie from the shared sender: httpOnly, Lax, Secure in production, 1 hour", () => {
   const server = readFileSync("lib/auth/magic-link-server.ts", "utf8");
-  assert.match(server, /store\.set\(LINK_NONCE_COOKIE, nonce, \{[^}]*httpOnly: true[^}]*sameSite: "lax"[^}]*secure: process\.env\.NODE_ENV === "production"[^}]*path: "\/"[^}]*maxAge: LINK_NONCE_MAX_AGE/s);
-  assert.ok(server.includes("isLinkNonce(existing)"));
+  assert.match(server, /store\.set\(name, nonce, \{[^}]*httpOnly: true[^}]*sameSite: "lax"[^}]*secure: process\.env\.NODE_ENV === "production"[^}]*path: "\/"[^}]*maxAge: LINK_NONCE_MAX_AGE/s);
+  assert.ok(server.includes("isLinkNonce(existing) ? existing : newLinkNonce()"));
+  assert.ok(server.includes("linkNonceCookieName()"));
   for (const file of ["app/login/actions.ts", "app/dashboard/actions.ts"]) {
     assert.ok(readFileSync(file, "utf8").includes("sendLinkFromRequest"), file);
   }
+});
+
+test("the nonce cookie is __Host- prefixed in production only; every reader and writer uses the helper", () => {
+  assert.equal(linkNonceCookieName("production"), "__Host-almar-link-nonce");
+  assert.equal(linkNonceCookieName("development"), "almar-link-nonce");
+  assert.equal(linkNonceCookieName(undefined), "almar-link-nonce");
+  for (const file of ["lib/auth/magic-link-server.ts", "app/auth/confirm/page.tsx", "app/auth/confirm/actions.ts"]) {
+    const source = readFileSync(file, "utf8");
+    assert.ok(source.includes("linkNonceCookieName"), file);
+    assert.equal(/["'`](__Host-)?almar-link-nonce/.test(source), false, file);
+  }
+  const screen = readFileSync("app/auth/confirm/continue-screen.tsx", "utf8");
+  assert.ok(screen.includes("action={formAction}") && /useFormState\(\s*confirmSignIn/.test(screen));
 });
