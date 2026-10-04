@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import test from "node:test";
+import { MEDIA_BASE_URL } from "../../lib/data/media.ts";
 import { SITE_ORIGIN, localeAlternates, localeDir, matchPublicPage, stripLocale } from "../../lib/locale-path.ts";
 import { HIDDEN, KNOWN_DEAD, deadKey, resolveInOut } from "../helpers/site-links.mjs";
 
@@ -112,7 +113,8 @@ for (const { file, html } of reactDocs) {
       return out;
     };
     for (const [, body] of blocks) {
-      for (const u of urls(JSON.parse(body))) assert.ok(u.startsWith(`${SITE_ORIGIN}/`), u);
+      // A BlogPosting's `image` is the post cover, on the media host (plan 03.3-33); every other URL is the real domain.
+      for (const u of urls(JSON.parse(body))) assert.ok(u.startsWith(`${SITE_ORIGIN}/`) || u.startsWith(`${MEDIA_BASE_URL}/`), u);
     }
     assert.equal(html.includes("framer.website"), false);
   });
