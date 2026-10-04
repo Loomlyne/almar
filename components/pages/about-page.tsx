@@ -33,7 +33,7 @@ const PAGE_LINKS = [
 /**
  * /about, /ar/about and /es/about (design 12.1): the Framer page on job 11's parts. Hero, the scroll-tied intro collage,
  * the wide still, Our Story, a divider, Our Values, the team (nothing until a member is published), Get In Touch, and
- * job 11's light footer from the frame. No form and no newsletter inside <main>.
+ * job 11's light footer from the frame. Nothing that cannot work is drawn inside <main>.
  */
 export async function AboutPage({ locale }: { locale: Locale }) {
   const copy = ABOUT_PAGE_COPY[locale];
