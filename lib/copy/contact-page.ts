@@ -1,7 +1,7 @@
 // Copy for the /contact page (phase 3.3 slice 3, plan 24).
 //
-// EN is the published text of the live Framer contact page, verbatim (app/contact/route.ts before plan 24 deleted
-// it), with one change: the sub-label `Inquiry Line` drops the live text's colon (`Inquiry Line:`), a label and not a
+// EN is the published text of the live Framer contact page, verbatim (the Framer route file that plan 24 deleted),
+// with one change: the sub-label `Inquiry Line` drops the live text's colon (`Inquiry Line:`), a label and not a
 // sentence. The live team line `A dedicated local team will listen first, then plan every detail around you.` is not
 // carried: TeamSection takes no intro and renders nothing today (D-55).
 // AR is the draft the owner saw on the signed pictures (s3-pictures/mock.py T["ar"], and mock2.py for the Phone label

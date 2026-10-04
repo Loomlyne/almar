@@ -5,7 +5,7 @@ import { CONTACT_PATH } from "./contact-links";
 
 /**
  * Title, description, canonical and (once /contact is in PUBLIC_PAGES) the four hreflang links. No og:image: the live
- * page's was on framerusercontent.com and this page carries no photo. localeAlternates throws for a path that is not a
+ * page's was on a Framer CDN host and this page carries no photo. localeAlternates throws for a path that is not a
  * public page, so it is called only inside the matchPublicPage branch: the page builds before plan 25 adds the line
  * and gains its hreflang links the moment that line lands, with no edit here.
  */
