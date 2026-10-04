@@ -8,8 +8,10 @@ import {
   isoOf,
   journeyChoiceToStayQuery,
   parseJourneyChoice,
+  searchHref,
   serializeJourneyChoice,
 } from "../lib/journey-choice.ts";
+import { toStayQuery } from "../lib/data/stay-filter.ts";
 
 const choice = {
   destination_id: "cartagena",
@@ -170,4 +172,42 @@ test("journeyChoiceToStayQuery: an id with no slug, and prototype names, add no 
     ),
     {},
   );
+});
+
+// Plan 03.3-43: where the hero's Search goes.
+const cal = (y, m, d) => ({ year: y, month: m, day: d });
+const searchValue = {
+  destinationId: "d-cartagena",
+  start: cal(2026, 10, 12),
+  end: cal(2026, 10, 15),
+  adults: 2,
+  children: 1,
+  infants: 1,
+};
+const slugById = { "d-cartagena": "cartagena", "d-medellin": "medellin" };
+
+test("searchHref: the list address plus the stay query, guests are the whole party", () => {
+  assert.equal(
+    searchHref("/private-stays", searchValue, slugById),
+    "/private-stays?" + toStayQuery({ destination: "cartagena", from: "2026-10-12", to: "2026-10-15", guests: 4 }),
+  );
+  assert.equal(
+    searchHref("/private-stays", searchValue, slugById),
+    "/private-stays?destination=cartagena&from=2026-10-12&to=2026-10-15&guests=4",
+  );
+});
+
+test("searchHref keeps the locale prefix of the list address", () => {
+  for (const base of ["/ar/private-stays", "/es/private-stays"]) {
+    assert.ok(searchHref(base, searchValue, slugById).startsWith(`${base}?destination=cartagena`), base);
+  }
+});
+
+test("searchHref is null for a missing destination, start or end, and for an id with no slug", () => {
+  assert.equal(searchHref("/private-stays", { ...searchValue, destinationId: null }, slugById), null);
+  assert.equal(searchHref("/private-stays", { ...searchValue, start: null }, slugById), null);
+  assert.equal(searchHref("/private-stays", { ...searchValue, end: null }, slugById), null);
+  assert.equal(searchHref("/private-stays", { ...searchValue, destinationId: "d-bogota" }, slugById), null);
+  assert.equal(searchHref("/private-stays", { ...searchValue, destinationId: "constructor" }, slugById), null);
+  assert.equal(searchHref("/private-stays", { ...searchValue, destinationId: "__proto__" }, {}), null);
 });
