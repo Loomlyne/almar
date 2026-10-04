@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderStaticNotFound } from "../lib/not-found-document.ts";
@@ -7,6 +8,7 @@ import { LOCALES, isLocale, localePath, matchPublicPage, stripLocale } from "../
 import { isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { assertPublicClean, assertTargetFiles, outDirNameFor, parseTarget, writeTargetFiles } from "./crawl-files.mjs";
 import { assertMediaReady } from "./media-guard.mjs";
+import { assertWorkerSize } from "./worker-size.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -201,6 +203,27 @@ export function writeServerPaths({ manifestFile, openNextDir }) {
 }
 
 /**
+ * Job 10 review: bundle the Worker the way `wrangler deploy` would, with `--dry-run` (nothing is uploaded, no login is
+ * used), into a temporary folder, and fail when its gzip size is over the limit in scripts/worker-size.mjs. Wrangler
+ * reads the assets folder and .open-next/, so this runs after both are written. Returns the size in KiB.
+ */
+function assertBuiltWorkerSize(config) {
+  const bundleDir = fs.mkdtempSync(path.join(os.tmpdir(), "almar-worker-bundle-"));
+  try {
+    execFileSync("./node_modules/.bin/wrangler", ["deploy", "--dry-run", "--config", config, "--outdir", bundleDir], {
+      cwd: root,
+      stdio: "inherit",
+      env: { ...process.env, WRANGLER_SEND_METRICS: "false" },
+    });
+    const kib = assertWorkerSize(bundleDir);
+    if (kib === null) throw new Error(`the dry run wrote no Worker bundle for ${config}`);
+    return kib;
+  } finally {
+    fs.rmSync(bundleDir, { recursive: true, force: true });
+  }
+}
+
+/**
  * node scripts/assemble-cloudflare.mjs [--target=local|preview|production]
  *
  *   local (default)  out/          production crawl files; no media check, so the check set can build
@@ -221,7 +244,8 @@ function main(argv = process.argv.slice(2)) {
   if (target !== "local") assertMediaReady();
   // Job 10: OpenNext runs the project's `next build` (standalone) and bundles the server into .open-next/. The
   // prerendered pages below come from that same build, so the static folder and the Worker script always match.
-  execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", target === "preview" ? "wrangler.preview.toml" : "wrangler.toml"], {
+  const config = target === "preview" ? "wrangler.preview.toml" : "wrangler.toml";
+  execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
     cwd: root,
     stdio: "inherit",
     env: { ...process.env, WRANGLER_SEND_METRICS: "false" },
@@ -245,11 +269,12 @@ function main(argv = process.argv.slice(2)) {
     manifestFile: path.join(root, ".next/server/app-paths-manifest.json"),
     openNextDir: path.join(root, ".open-next"),
   });
+  const workerKiB = assertBuiltWorkerSize(config);
   const r = report.react;
   console.log(
     `assembled ${report.total} html files into ${folder}/ (target: ${target}): ${report.framer.length} Framer, ` +
       `React en ${r.en.length} / ar ${r.ar.length} / es ${r.es.length}, ${report.notFound.length} 404s; ` +
-      `server paths: ${serverPaths.join(", ") || "none"}`,
+      `server paths: ${serverPaths.join(", ") || "none"}; Worker ${Math.round(workerKiB)} KiB gzip`,
   );
 }
 
