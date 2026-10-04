@@ -1,8 +1,10 @@
 // Worker entry for `almar` and `almar-preview` (job 10, plan 02-20; `main` in wrangler.toml and
-// wrangler.preview.toml). Cloudflare runs it only for paths in `run_worker_first` (["/api/*"] plus any path outside
-// /api that lib/server-routes.ts serves); every other request is a static file or the static 404 with no Worker
-// call. Both .open-next files it imports are written by `node scripts/assemble-cloudflare.mjs`. No Durable Object,
-// queue or cache class is exported: none is bound.
+// wrangler.preview.toml). Cloudflare runs it first for paths in `run_worker_first` (["/api/*"] plus any path outside
+// /api that lib/server-routes.ts serves). A request for a file in the assets folder runs no Worker. A miss reaches
+// the static 404 without the Worker only for browser navigations (Sec-Fetch-Mode: navigate); curl, fetch, bots and
+// scanners that miss invoke this script, which hands them to the assets for the same 404 (and they count toward the
+// Free plan's 100k Worker requests a day). Both .open-next files it imports are written by
+// `node scripts/assemble-cloudflare.mjs`. No Durable Object, queue or cache class is exported: none is bound.
 import openNext from "../.open-next/worker.js";
 import serverPaths from "../.open-next/almar-server-routes.json";
 import { SERVER_PATHS_OUTSIDE_API, isHeldPath } from "../lib/server-routes.ts";

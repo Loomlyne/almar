@@ -1,6 +1,8 @@
-// The request router of Worker `almar` (job 10, plan 02-20). Cloudflare runs it only for the `run_worker_first`
-// paths in wrangler.toml (["/api/*"] today), so every public page and every other miss is answered by the static
-// layer before this code is reached.
+// The request router of Worker `almar` (job 10, plan 02-20). Cloudflare runs it first for the `run_worker_first`
+// paths in wrangler.toml (["/api/*"] today). A request for a file in the assets folder never reaches it, and a miss
+// reaches the static 404 without it only for browser navigations (Sec-Fetch-Mode: navigate); curl, fetch, bots and
+// scanners that miss are handed to it, so it must answer them (below) and they count toward the Free plan's 100k
+// Worker requests a day.
 //
 // Deny by default: a request goes to Next only when its exact, raw pathname (never decoded, query ignored) is a
 // server path; anything else goes back to the static assets, which answer today's branded 404 (or 405 for a
