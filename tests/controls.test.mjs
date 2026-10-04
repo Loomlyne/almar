@@ -22,7 +22,8 @@ test("button: teal primary, ivory label, hover and press steps, cva sizes (D-13)
   for (const c of ["bg-teal", "text-ivory", "hover:bg-teal-hover", "active:bg-teal-press"]) {
     assert.ok(s.includes(c), `button.tsx missing ${c}`);
   }
-  assert.doesNotMatch(s, /(?:bg|border|text)-gold/);
+  // Gold is a line only: the outline and ivory variants may draw it as a border, never as a fill or as text.
+  assert.doesNotMatch(s, /(?:bg|text)-gold/);
   for (const c of ["h-control px-6", "h-action px-8", "h-bar w-search", "h-bar-docked w-40"]) {
     assert.ok(s.includes(c), `button.tsx missing size ${c}`);
   }

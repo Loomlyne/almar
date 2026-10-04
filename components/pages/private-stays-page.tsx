@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { HOME_COPY } from "../../lib/copy/home";
+import { JOURNEY_COPY } from "../../lib/copy/journey";
+import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
+import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { STAYS_LIST_COPY } from "../../lib/copy/stays-list";
 import { getDestinations } from "../../lib/data/destinations";
 import { getStays } from "../../lib/data/stays";
@@ -7,6 +10,7 @@ import { absoluteLocaleUrl, localeAlternates, localePath, siteHref, type Locale 
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
 import { PublicFrame, type PublicFrameLink } from "../site/public-frame";
 import { PageShell } from "../ui/page-shell";
+import { SectionHead } from "../ui/section";
 import { StayBrowser, type ListStay } from "./private-stays/stay-browser";
 
 /** The English path of this page. localePath turns it into the address in each language. */
@@ -41,6 +45,7 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
     bedrooms: stay.bedrooms,
     destination_slug: stay.destination_slug,
     destination_name: stay.destination_name,
+    blocked_dates: stay.blocked_dates,
     image: stay.hero_image ? { src: stay.hero_image.url, alt: stay.hero_image.alt } : null,
   }));
 
@@ -56,7 +61,7 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
       currentPath={PATH}
       links={links}
       footerLinks={links}
-      footerCopy={copy.frame.footer}
+      footerCopy={SITE_FOOTER_COPY[locale]}
       labels={nav}
     >
       <script {...ORGANIZATION_JSON_LD_SCRIPT} />
@@ -65,11 +70,8 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
       </noscript>
       <main id="content">
         <PageShell className="grid gap-6 pb-16 pt-12">
-          {/* The page h1 in board 5h's head: SectionHead takes levels 2 to 4 only, so the same gold rule,
-              padding and teal Questa are written here once. */}
-          <div className="max-w-3xl border-t-2 border-gold pt-6">
-            <h1 className="m-0 font-display text-display text-teal">{copy.heading}</h1>
-          </div>
+          {/* The page's one h1, in board 5h's head: the gold rule, 24px padding and teal Questa at the display size. */}
+          <SectionHead heading={copy.heading} headingLevel={1} headingSize="display" />
           <StayBrowser
             locale={locale}
             stays={listStays}
@@ -77,6 +79,8 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
             hrefs={hrefs}
             basePath={localePath(locale, PATH)}
             copy={copy}
+            journeyCopy={JOURNEY_COPY[locale]}
+            datesNote={stays.some((s) => s.sample_fields.includes("blocked_dates")) ? STAY_DETAIL_COPY[locale].sampleDatesNote : null}
           />
         </PageShell>
       </main>

@@ -36,6 +36,7 @@ export const TOKEN_GROUPS = {
     "row",
     "row-dense",
     "chip-dense",
+    "section",
   ],
   container: ["column", "menu", "calendar", "rail", "dialog", "sidebar"],
 } as const;

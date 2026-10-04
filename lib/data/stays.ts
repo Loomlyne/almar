@@ -3,6 +3,7 @@
 // Server only: reads the fixtures at build time. Phase 3.2 swaps readFixture for a Supabase query here;
 // every field of StayFilter then becomes a `where` clause and no component changes.
 
+import { amenityIcon } from "./amenity-icon";
 import { filterStays } from "./stay-filter";
 import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
 import type { IsoDate, Locale, Stay, StayFilter } from "./types";
@@ -67,8 +68,17 @@ function resolveStay(base: StayBase, locale: Locale): Stay {
     "destination-translations",
   ).filter((t) => t.destination_id === dest.id);
   const destName = (destT.find((t) => t.locale === locale) ?? destT.find((t) => t.locale === "en"))?.name ?? dest.slug;
+  // One icon per amenity, from the English label at the same index (an icon is a data fact, not a language).
+  const en = own.find((t) => t.locale === "en");
+  if (!en) throw new Error(`stay ${base.slug}: no en record`);
+  if (row.amenities.length !== en.amenities.length) {
+    throw new Error(`stay ${base.slug}: ${row.locale} has ${row.amenities.length} amenities, en has ${en.amenities.length}`);
+  }
   return {
     ...row,
+    amenity_icons: en.amenities.map(amenityIcon),
+    // Headings only until real policy text exists in the dashboard (owner, 2026-10-04).
+    policy_bodies: null,
     destination_slug: dest.slug,
     destination_name: destName,
     hero_image: image(base.hero_image, locale),

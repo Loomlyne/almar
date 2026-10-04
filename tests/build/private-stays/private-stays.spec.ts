@@ -4,11 +4,13 @@ import { expect, test as base, type Locator, type Page } from "@playwright/test"
 import { BEDROOM_BUCKETS } from "../../../components/pages/private-stays/filter-state";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
+import { STAY_DETAIL_COPY } from "../../../lib/copy/stay-detail";
 import { STAYS_LIST_COPY } from "../../../lib/copy/stays-list";
 import { getDestinations } from "../../../lib/data/destinations";
 import { MEDIA_BASE_URL } from "../../../lib/data/media";
 import { filterStays, toStayQuery } from "../../../lib/data/stay-filter";
 import { getStays } from "../../../lib/data/stays";
+import { formatDate, formatRange } from "../../../lib/format";
 import { formatPlural } from "../../../lib/journey-format";
 import { SITE_ORIGIN, localePath, type Locale } from "../../../lib/locale-path";
 import { routeMedia, type MediaRoute } from "../../helpers/media-route";
@@ -22,6 +24,8 @@ import { routeMedia, type MediaRoute } from "../../helpers/media-route";
 //   node scripts/assemble-cloudflare.mjs
 //   PW_PORT=<free> npx playwright test -c playwright.build.config.ts tests/build/private-stays --workers=1
 // The images are served by routeMedia (plan 07), so it needs no media download and no network.
+// Plan 46 added the Dates filter (tests 8, 12, 14 updated; 16, 17, 18 new); the clock is fixed at FIXED_NOW so
+// "today" and the unpickable past days are the same on every run.
 
 const LOCALES: Locale[] = ["en", "ar", "es"];
 const VIEWPORTS = [
@@ -30,6 +34,7 @@ const VIEWPORTS = [
   { width: 1440, height: 900 },
 ];
 const PATH = "/private-stays";
+const FIXED_NOW = "2026-10-04T09:00:00+04:00";
 const FORBIDDEN_HOSTS = ["framerusercontent.com", "files.catbox.moe", "videos.pexels.com"];
 const HIDDEN_STAYS = ["baru-house", "corona-island", "yury-house-cartagena"];
 const NEXT_LOCALE: Record<Locale, Locale> = { en: "ar", ar: "es", es: "en" };
@@ -48,6 +53,7 @@ async function load(locale: Locale) {
     copy: STAYS_LIST_COPY[locale],
     nav: HOME_COPY[locale].nav,
     journey: JOURNEY_COPY[locale],
+    datesNote: STAY_DETAIL_COPY[locale].sampleDatesNote,
   };
 }
 const data = (locale: Locale): Promise<Data> => {
@@ -108,6 +114,11 @@ async function hydrated(page: Page) {
   });
 }
 
+async function visitAt(page: Page, url: string) {
+  await page.clock.setFixedTime(FIXED_NOW);
+  await visit(page, url);
+}
+
 /** goto, network idle capped at 10 s, hydration, a short settle (00-common-rules.md). */
 async function visit(page: Page, url: string) {
   await page.goto(url, { waitUntil: "load" });
@@ -128,6 +139,33 @@ const countLine = (page: Page) => page.locator("main p[aria-live='polite']");
 const searchBox = (page: Page, d: Data) => page.getByRole("searchbox", { name: d.copy.search.label, exact: true });
 const group = (page: Page, name: string) => page.getByRole("group", { name, exact: true });
 const clearButtons = (page: Page, d: Data) => page.getByRole("button", { name: d.copy.clear, exact: true });
+const datesGroup = (page: Page, d: Data) => group(page, d.journey.bar.dates.label);
+const datesTrigger = (page: Page, d: Data) => datesGroup(page, d).getByRole("button").first();
+const datesClear = (page: Page, d: Data) => datesGroup(page, d).getByRole("button", { name: d.journey.dates.clear, exact: true });
+const panel = (page: Page, d: Data) => group(page, d.journey.dates.label);
+const day = (page: Page, iso: string) => page.locator(`[data-date="${iso}"]`);
+const guestsValue = (page: Page, d: Data) => group(page, d.copy.guests.label).locator("span[aria-live]");
+
+/** DD/MM/YYYY – DD/MM/YYYY · N nights, from the shared formatters and the journey copy, never typed. */
+function rangeText(d: Data, from: string, to: string): string {
+  const parts = (iso: string) => {
+    const [y, m, dd] = iso.split("-").map(Number);
+    return formatDate(dd, m, y);
+  };
+  const nights = Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+  return `${formatRange(parts(from), parts(to))} · ${formatPlural(d.journey.dates.nights, nights, d.locale)}`;
+}
+
+/** Opens the calendar, picks both days, and closes it with Done (focus goes back to the trigger). */
+async function pickRange(page: Page, d: Data, from: string, to: string) {
+  await datesTrigger(page, d).click();
+  await expect(panel(page, d)).toBeVisible();
+  await day(page, from).click();
+  await day(page, to).click();
+  await page.getByRole("button", { name: d.journey.done, exact: true }).click();
+  await expect(panel(page, d)).toHaveCount(0);
+}
+
 const titlesOf = (page: Page) => page.locator("main ul[role='list'] > li > a > span > span:first-child").allTextContents();
 
 async function expectGrid(page: Page, d: Data, filter: Parameters<typeof filterStays>[1], why = "") {
@@ -379,6 +417,7 @@ for (const locale of LOCALES) {
         expect(await pressedOf(group(page, d.copy.destination.label).getByRole("button"))).toEqual([d.copy.destination.all]);
         expect(await pressedOf(group(page, d.copy.bedrooms.label).getByRole("button"))).toEqual([d.copy.bedrooms.options.any]);
         await expect(group(page, d.copy.guests.label).locator("span[aria-live]")).toHaveText("0");
+        await expect(datesTrigger(page, d)).toHaveText(d.journey.bar.dates.empty);
         await expect(page.locator("#stay-search")).toBeFocused();
         expect(new URL(page.url()).pathname).toBe(d.path);
         expect(new URL(page.url()).search).toBe("");
@@ -397,27 +436,51 @@ for (const locale of LOCALES) {
         await expect(page.locator("#stay-search")).toBeFocused();
       });
 
-      test("8. handoff: the hero bar's URL opens with the choice applied; bad input is ignored", async ({ page }) => {
+      test("8. arrival from the home Search: every filter shown as set and the list already filtered", async ({ page }) => {
         const d = await data(locale);
-        const query = "destination=cartagena&from=2026-10-12&to=2026-10-17&guests=2";
-        await visit(page, `${d.path}?${query}`);
+        const [from, to] = ["2026-10-12", "2026-10-15"];
+        await visitAt(page, `${d.path}?${toStayQuery({ destination: "cartagena", from, to, guests: 2 })}`);
         const chips = group(page, d.copy.destination.label).getByRole("button");
         const cartagena = d.destinations.find((x) => x.slug === "cartagena")!;
         const medellin = d.destinations.find((x) => x.slug === "medellin")!;
         await expect(chips.filter({ hasText: new RegExp(`^${escapeRegExp(cartagena.name)}$`) })).toHaveAttribute("aria-pressed", "true");
-        await expect(group(page, d.copy.guests.label).locator("span[aria-live]")).toHaveText("2");
-        await expectGrid(page, d, { destination: "cartagena", guests: 2 }, "after the handoff");
+        expect(await pressedOf(chips)).toEqual([cartagena.name]);
+        await expect(guestsValue(page, d)).toHaveText("2");
+        await expect(datesTrigger(page, d)).toHaveText(rangeText(d, from, to));
+        await expect(datesClear(page, d)).toHaveCount(1);
+        const want = await expectGrid(page, d, { destination: "cartagena", guests: 2, from, to }, "after the arrival");
+        expect(want.length, "the arrival leaves a real list").toBeGreaterThan(0);
+        await expect(clearButtons(page, d)).toHaveCount(1);
 
+        // Each of the four is changeable; the URL follows in toStayQuery order.
         await chips.filter({ hasText: new RegExp(`^${escapeRegExp(medellin.name)}$`) }).click();
-        await expectGrid(page, d, { destination: "medellin", guests: 2 }, "after choosing Medellín");
-        expect(new URL(page.url()).search).toBe(`?${toStayQuery({ destination: "medellin", guests: 2, from: "2026-10-12", to: "2026-10-17" })}`);
+        await expectGrid(page, d, { destination: "medellin", guests: 2, from, to }, "after choosing Medellín");
+        expect(new URL(page.url()).search).toBe(`?${toStayQuery({ destination: "medellin", from, to, guests: 2 })}`);
+        await group(page, d.copy.guests.label).getByRole("button", { name: d.copy.guests.add, exact: true }).click();
+        await expect(guestsValue(page, d)).toHaveText("3");
+        expect(new URL(page.url()).search).toBe(`?${toStayQuery({ destination: "medellin", from, to, guests: 3 })}`);
+        await datesClear(page, d).click();
+        await expect(datesTrigger(page, d)).toHaveText(d.journey.bar.dates.empty);
+        await expectGrid(page, d, { destination: "medellin", guests: 3 }, "after clearing the dates");
+        expect(new URL(page.url()).search).toBe(`?${toStayQuery({ destination: "medellin", guests: 3 })}`);
 
-        // Bad input: an unknown destination, a bad guests value, an impossible date. Never an error.
-        await visit(page, `${d.path}?destination=bogota&guests=-1&from=2026-13-40`);
-        await expect(cardLinks(page)).toHaveCount(12);
-        expect(await pressedOf(group(page, d.copy.destination.label).getByRole("button"))).toEqual([d.copy.destination.all]);
-        await expect(group(page, d.copy.guests.label).locator("span[aria-live]")).toHaveText("0");
-        await expect(clearButtons(page, d)).toHaveCount(0);
+        // Bad input is ignored, never an error: unknown destination, bad guests, impossible, reversed, equal or one-sided dates.
+        for (const bad of [
+          "destination=bogota&guests=-1&from=2026-13-40",
+          "destination=%3Cscript%3E&guests=abc",
+          `from=${to}&to=${from}`,
+          `from=${from}&to=${from}`,
+          `from=${from}`,
+          `to=${to}`,
+          "guests=0",
+        ]) {
+          await visitAt(page, `${d.path}?${bad}`);
+          await expect(cardLinks(page), bad).toHaveCount(12);
+          expect(await pressedOf(group(page, d.copy.destination.label).getByRole("button")), bad).toEqual([d.copy.destination.all]);
+          await expect(guestsValue(page, d), bad).toHaveText("0");
+          await expect(datesTrigger(page, d), bad).toHaveText(d.journey.bar.dates.empty);
+          await expect(clearButtons(page, d), bad).toHaveCount(0);
+        }
       });
 
       test("9. language switch: header select and footer row navigate to the page in that language; filters reset", async ({ page }) => {
@@ -472,7 +535,7 @@ for (const locale of LOCALES) {
         await searchBox(page, d).focus();
         const destinationLabels = [d.copy.destination.all, ...d.destinations.map((x) => x.name)];
         const o = d.copy.bedrooms.options;
-        const expectedBefore = [...destinationLabels, d.copy.guests.remove, d.copy.guests.add, o.any, o["1-4"], o["5-8"], o["9+"]];
+        const expectedBefore = [...destinationLabels, d.copy.guests.remove, d.copy.guests.add, o.any, o["1-4"], o["5-8"], o["9+"], d.journey.bar.dates.empty];
         const left: number[] = [];
         for (const [i, label] of expectedBefore.entries()) {
           await page.keyboard.press("Tab");
@@ -495,7 +558,7 @@ for (const locale of LOCALES) {
         await page.keyboard.press("Space");
         await expect(chip).toHaveAttribute("aria-pressed", "true");
         await expectGrid(page, d, { destination: "medellin" }, "after Space on the Medellín chip");
-        const afterChip = [d.copy.guests.remove, d.copy.guests.add, o.any, o["1-4"], o["5-8"], o["9+"], d.copy.clear];
+        const afterChip = [d.copy.guests.remove, d.copy.guests.add, o.any, o["1-4"], o["5-8"], o["9+"], d.journey.bar.dates.empty, d.copy.clear];
         for (const [i, label] of afterChip.entries()) {
           await page.keyboard.press("Tab");
           expect(await names(), `Tab stop after the chip ${i + 1}`).toBe(label);
@@ -512,7 +575,7 @@ for (const locale of LOCALES) {
         const d = await data(locale);
         await visit(page, d.path);
         await expect(searchBox(page, d)).toHaveAccessibleName(d.copy.search.label);
-        for (const name of [d.copy.filtersLabel, d.copy.destination.label, d.copy.guests.label, d.copy.bedrooms.label]) {
+        for (const name of [d.copy.filtersLabel, d.copy.destination.label, d.copy.guests.label, d.copy.bedrooms.label, d.journey.bar.dates.label]) {
           await expect(group(page, name), `group ${name}`).toHaveCount(1);
         }
         const check = async (box: Locator, labels: string[]) => {
@@ -529,6 +592,9 @@ for (const locale of LOCALES) {
         const guests = group(page, d.copy.guests.label);
         await expect(guests.getByRole("button", { name: d.copy.guests.add, exact: true })).toHaveAccessibleName(d.copy.guests.add);
         await expect(guests.getByRole("button", { name: d.copy.guests.remove, exact: true })).toHaveAccessibleName(d.copy.guests.remove);
+        await expect(datesTrigger(page, d)).toHaveAccessibleName(d.journey.bar.dates.empty);
+        await expect(datesTrigger(page, d)).toHaveAttribute("aria-expanded", "false");
+        await expect(datesClear(page, d), "no × while no dates are set").toHaveCount(0);
         for (const [i, stay] of d.stays.entries()) {
           await expect(cardLinks(page).nth(i)).toHaveAccessibleName(new RegExp(escapeRegExp(stay.title)));
         }
@@ -544,6 +610,11 @@ for (const locale of LOCALES) {
           .filter((line) => /^\s*- (link|button|searchbox|textbox|combobox|checkbox|switch|slider|spinbutton)\b/.test(line))
           .filter((line) => !/^\s*- \w+ "[^"]+"/.test(line));
         expect(unnamed, "an interactive element in <main> has no accessible name").toEqual([]);
+
+        // With dates set the trigger names the range and the × is a named button.
+        await visitAt(page, `${d.path}?from=2026-10-12&to=2026-10-15`);
+        await expect(datesTrigger(page, d)).toHaveAccessibleName(rangeText(d, "2026-10-12", "2026-10-15"));
+        await expect(datesClear(page, d)).toHaveAccessibleName(d.journey.dates.clear);
       });
 
       test("13. held controls (design 4.3 #1 to #8) are absent, and so are the currency select, a submit, sort and pagination", async ({ page }) => {
@@ -620,6 +691,8 @@ for (const locale of LOCALES) {
           await expect(links.nth(i)).toHaveAttribute("href", localePath(locale, `${PATH}/${stay.slug}`));
         }
         await expect(page.locator("[data-stay-filters]")).toBeHidden();
+        await expect(page.getByText(d.journey.bar.dates.empty, { exact: true }), "the Dates control").toBeHidden();
+        await expect(page.getByText(d.datesNote, { exact: true }), "the Dates note").toBeHidden();
         await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
 
         if (locale === "ar") {
@@ -645,9 +718,16 @@ for (const locale of LOCALES) {
         for (let i = 0; i < 3; i += 1) xs.add(Math.round((await cardLinks(page).nth(i).boundingBox())!.x));
         expect(xs.size, "distinct columns among the first three cards").toBe(viewport.width === 390 ? 1 : viewport.width === 834 ? 2 : 3);
 
-        const rule = page.getByRole("heading", { level: 1 }).locator("xpath=..");
-        expect(await rule.evaluate((el) => getComputedStyle(el).borderTopWidth)).toBe("2px");
-        expect(await rule.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe(await token(page, "gold"));
+        // The h1 sits in a SectionHead: the gold rule is the border of the nearest ancestor that has a top border
+        // (not necessarily its parent), and it must be inside <main>.
+        const rule = await page.getByRole("heading", { level: 1 }).evaluate((h) => {
+          for (let el = h.parentElement; el && el.tagName !== "MAIN"; el = el.parentElement) {
+            const style = getComputedStyle(el);
+            if (parseFloat(style.borderTopWidth) > 0) return { width: style.borderTopWidth, color: style.borderTopColor };
+          }
+          return null;
+        });
+        expect(rule).toEqual({ width: "2px", color: await token(page, "gold") });
 
         const radii = await page.locator("main img, main button").evaluateAll((els) => els.map((el) => getComputedStyle(el).borderRadius));
         expect(radii.length).toBeGreaterThan(12);
@@ -660,6 +740,115 @@ for (const locale of LOCALES) {
           expect(img.startsWith(`${MEDIA_BASE_URL}/`), img).toBe(true);
         }
         for (const host of FORBIDDEN_HOSTS) expect([...watch.hosts]).not.toContain(host);
+      });
+
+      test("16. dates: a range picked in the calendar keeps only stays free on every night", async ({ page }) => {
+        const d = await data(locale);
+        const [from, to] = ["2026-10-14", "2026-10-17"];
+        await visitAt(page, d.path);
+        await expect(datesTrigger(page, d)).toHaveText(d.journey.bar.dates.empty);
+        await datesTrigger(page, d).click();
+        await expect(datesTrigger(page, d)).toHaveAttribute("aria-expanded", "true");
+        await expect(panel(page, d)).toBeVisible();
+        // Two months from 1024 px, one below.
+        await expect(panel(page, d).locator('[role="grid"]')).toHaveCount(viewport.width >= 1024 ? 2 : 1);
+        // Past days are unpickable.
+        await expect(day(page, "2026-10-3")).toHaveAttribute("aria-disabled", "true");
+
+        await day(page, from).click();
+        await expectGrid(page, d, {}, "after the arrival day only: nothing filters yet");
+        await day(page, to).click();
+        const want = await expectGrid(page, d, { from, to }, `nights ${from} to ${to}`);
+        const slugs = want.map((s) => s.slug);
+        expect(want.length).toBeLessThan(12);
+        expect(slugs, "booked on 14 to 16 October: out").not.toContain("casa-jardin-san-diego");
+        expect(slugs, "blocked from the 17th, the departure day: still in").toContain("getsemani-colonial-house");
+        expect(new URL(page.url()).search).toBe(`?${toStayQuery({ from, to })}`);
+        await expect(clearButtons(page, d)).toHaveCount(1);
+
+        await page.getByRole("button", { name: d.journey.done, exact: true }).click();
+        await expect(panel(page, d)).toHaveCount(0);
+        await expect(datesTrigger(page, d)).toBeFocused();
+        await expect(datesTrigger(page, d)).toHaveText(rangeText(d, from, to));
+        await expect(datesClear(page, d)).toHaveCount(1);
+
+        // A later pick replaces the range.
+        const [from2, to2] = ["2026-10-20", "2026-10-22"];
+        await pickRange(page, d, from2, to2);
+        await expectGrid(page, d, { from: from2, to: to2 }, `nights ${from2} to ${to2}`);
+        expect(new URL(page.url()).search).toBe(`?${toStayQuery({ from: from2, to: to2 })}`);
+      });
+
+      test("17. dates: × clears them, Clear filters resets all five, the note is the copy's", async ({ page }) => {
+        const d = await data(locale);
+        await visitAt(page, d.path);
+        const sample = d.stays.some((s) => s.sample_fields.includes("blocked_dates"));
+        expect(sample, "the fixture's blocked dates are sample data").toBe(true);
+        await expect(page.getByText(d.datesNote, { exact: true })).toHaveCount(1);
+        await expect(page.getByText(d.datesNote, { exact: true })).toBeVisible();
+
+        const [from, to] = ["2026-10-14", "2026-10-17"];
+        await pickRange(page, d, from, to);
+        await expectGrid(page, d, { from, to }, "dates set");
+        await datesClear(page, d).click();
+        await expect(datesTrigger(page, d)).toHaveText(d.journey.bar.dates.empty);
+        await expect(datesClear(page, d)).toHaveCount(0);
+        await expectGrid(page, d, {}, "after ×");
+        await expect(cardLinks(page)).toHaveCount(12);
+        expect(new URL(page.url()).search).toBe("");
+
+        // All five set, then Clear filters.
+        const medellinOrCartagena = d.destinations[0];
+        await searchBox(page, d).fill("casa");
+        await group(page, d.copy.destination.label).getByRole("button", { name: medellinOrCartagena.name, exact: true }).click();
+        await group(page, d.copy.guests.label).getByRole("button", { name: d.copy.guests.add, exact: true }).click();
+        await group(page, d.copy.bedrooms.label).getByRole("button", { name: d.copy.bedrooms.options["1-4"], exact: true }).click();
+        await pickRange(page, d, from, to);
+        await expect(clearButtons(page, d)).toHaveCount(1);
+        await expect(datesTrigger(page, d)).toHaveText(rangeText(d, from, to));
+        expect(new URL(page.url()).search).toBe(`?${toStayQuery({ destination: medellinOrCartagena.slug, from, to, guests: 1 })}`);
+
+        await clearButtons(page, d).click();
+        await expect(searchBox(page, d)).toHaveValue("");
+        expect(await pressedOf(group(page, d.copy.destination.label).getByRole("button"))).toEqual([d.copy.destination.all]);
+        expect(await pressedOf(group(page, d.copy.bedrooms.label).getByRole("button"))).toEqual([d.copy.bedrooms.options.any]);
+        await expect(guestsValue(page, d)).toHaveText("0");
+        await expect(datesTrigger(page, d)).toHaveText(d.journey.bar.dates.empty);
+        await expect(datesClear(page, d)).toHaveCount(0);
+        await expect(cardLinks(page)).toHaveCount(12);
+        expect(new URL(page.url()).search).toBe("");
+        await expect(clearButtons(page, d)).toHaveCount(0);
+        await expect(page.locator("#stay-search")).toBeFocused();
+        await expect(page.getByText(d.datesNote, { exact: true })).toBeVisible();
+      });
+
+      test("18. dates by keyboard and in Arabic: Enter opens, Escape closes and focus returns, digits stay Western", async ({ page }) => {
+        const d = await data(locale);
+        const [from, to] = ["2026-10-12", "2026-10-15"];
+        await visitAt(page, `${d.path}?${toStayQuery({ from, to })}`);
+        const trigger = datesTrigger(page, d);
+        await trigger.focus();
+        await page.keyboard.press("Enter");
+        await expect(panel(page, d)).toBeVisible();
+        await expect(trigger).toHaveAttribute("aria-expanded", "true");
+        expect(await panel(page, d).evaluate((el) => getComputedStyle(el).direction)).toBe(locale === "ar" ? "rtl" : "ltr");
+        await page.keyboard.press("Escape");
+        await expect(panel(page, d)).toHaveCount(0);
+        await expect(trigger).toBeFocused();
+        await expect(trigger).toHaveAttribute("aria-expanded", "false");
+        // Escape changes nothing.
+        await expectGrid(page, d, { from, to }, "after Escape");
+
+        // The trigger's dates are Western digits in a left-to-right run, in every language.
+        const bdi = trigger.locator("bdi");
+        await expect(bdi).toHaveAttribute("dir", "ltr");
+        await expect(bdi).toHaveText(rangeText(d, from, to).split(" · ")[0]);
+        expect(await trigger.innerText()).not.toMatch(/[\u0660-\u0669\u06F0-\u06F9]/);
+        await page.keyboard.press("Space");
+        await expect(panel(page, d)).toBeVisible();
+        await page.keyboard.press("Escape");
+        await expect(panel(page, d)).toHaveCount(0);
+        await expect(trigger).toBeFocused();
       });
     });
   }

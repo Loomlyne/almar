@@ -9,12 +9,27 @@ import {
   localePath,
   type Locale,
 } from "../../lib/locale-path";
+import { clickClearOfDock } from "../helpers/click-clear-of-dock";
+import { routeMedia } from "../helpers/media-route";
 
 // The per-locale route matrix on the assembled out/, served by local wrangler (the Cloudflare asset rules).
 // Plans 04, 05 and 06 narrow it to their own path:
 //   ROUTING_PATHS=/private-stays ROUTING_LOCALES=ar,es PW_PORT=<free> \
 //     npx playwright test -c playwright.build.config.ts -g "server routing|language links" --workers=1
 // Every test title starts with its group name and contains the path, so -g can select one path.
+//
+// The "language links" hang. 10 of 108 of these tests (always `ar /private-stays/<slug>`) timed out at 30 s in the
+// controller's run, and about 1 in 15 hangs at any machine load: the click on a footer language link never lands.
+// Measured cause (call log of the stuck click): the stay page pins an 88 px dock over the bottom of the screen, the
+// page's height is still changing when the link is scrolled to the bottom edge (not isolated; the Arabic font swap is the
+// likely cause), so the link ends up behind the dock, and Playwright, which counts it as "in view", retries the same
+// position until the timeout. The fix is in how the
+// test clicks: clickClearOfDock() centres the link on every attempt (0 failures in 60 clicks, at most 2 attempts).
+// Three smaller changes, none of which weakens an assertion, make the file cheaper on a busy Mac:
+//   - "language links" is one test per target language (about four page loads each instead of eight) and, like
+//     "language select", is test.slow() (three times the 30 s budget);
+//   - images are answered by routeMedia (plan 07), as in every other build spec, so no load waits on the live media host.
+// Neither of those two cured the hang by itself (it recurred with both), so they are not the fix.
 
 const STAYS = [
   "getsemani-colonial-house",
@@ -57,7 +72,11 @@ async function withoutScript<T>(
 ): Promise<T> {
   const context = await browser.newContext({ baseURL, viewport, javaScriptEnabled: false });
   try {
-    return await run(await context.newPage());
+    const page = await context.newPage();
+    const media = await routeMedia(page);
+    const result = await run(page);
+    expect(media.missing, "image keys the manifest does not know (no-script page)").toEqual([]);
+    return result;
   } finally {
     await context.close();
   }
@@ -73,7 +92,7 @@ async function switchByLink(page: Page, from: Locale, target: Locale, path: stri
   const landed = page.waitForResponse(
     (r) => r.request().isNavigationRequest() && new URL(r.url()).pathname === expected,
   );
-  await page.locator(`a[hreflang="${target}"]`).click();
+  await clickClearOfDock(page.locator(`a[hreflang="${target}"]`));
   const response = await landed;
   expect(response.status(), `${from} -> ${target}`).toBe(200);
   expect(statuses.filter((s) => s >= 300 && s < 400), `${from} -> ${target} must not redirect`).toEqual([]);
@@ -93,6 +112,7 @@ for (const viewport of VIEWPORTS) {
         const dir = localeDir(locale);
 
         test(`server routing: ${locale} ${path} at ${viewport.width}`, async ({ page, request, browser, baseURL }) => {
+          const media = await routeMedia(page);
           const response = await page.goto(url);
           expect(response?.status()).toBe(200);
           expect(response?.request().redirectedFrom()).toBeNull();
@@ -131,32 +151,38 @@ for (const viewport of VIEWPORTS) {
               expect(new URL(slashed.headers()["location"], "http://x").pathname).toBe(url);
             }
           }
+          expect(media.missing, "image keys the manifest does not know").toEqual([]);
         });
 
-        test(`language links: ${locale} ${path} at ${viewport.width}`, async ({ page, browser, baseURL }) => {
-          await page.goto(url);
-          const links = page.locator("a[hreflang]");
-          await expect(links).toHaveCount(3);
-          const found: Record<string, string | null> = {};
-          for (const el of await links.all()) {
-            const code = (await el.getAttribute("hreflang")) ?? "";
-            found[code] = await el.getAttribute("href");
-            expect(await el.getAttribute("lang"), `lang on the ${code} link`).toBeTruthy();
-          }
-          expect(found).toEqual(localeHrefs(path));
-
-          for (const target of LOCALES.filter((l) => l !== locale)) {
+        for (const target of LOCALES.filter((l) => l !== locale)) {
+          test(`language links: ${locale} ${path} at ${viewport.width} to ${target}`, async ({ page, browser, baseURL }) => {
+            test.slow();
+            const media = await routeMedia(page);
             await page.goto(url);
+            const links = page.locator("a[hreflang]");
+            await expect(links).toHaveCount(3);
+            const found: Record<string, string | null> = {};
+            for (const el of await links.all()) {
+              const code = (await el.getAttribute("hreflang")) ?? "";
+              found[code] = await el.getAttribute("href");
+              expect(await el.getAttribute("lang"), `lang on the ${code} link`).toBeTruthy();
+            }
+            expect(found).toEqual(localeHrefs(path));
+
+            // With JavaScript on, then with it off in a fresh context: the same click, the same landing.
             await switchByLink(page, locale, target, path);
             await withoutScript(browser, baseURL!, viewport, async (bare) => {
               await bare.goto(url);
               await switchByLink(bare, locale, target, path);
             });
-          }
-        });
+            expect(media.missing, "image keys the manifest does not know").toEqual([]);
+          });
+        }
 
         // The header LocaleSelect (plan 02's SiteNav). Runs on the real pages only, not in the probe run.
         test(`language select: ${locale} ${path} at ${viewport.width}`, async ({ page, context }) => {
+          test.slow();
+          const media = await routeMedia(page);
           for (const target of LOCALES.filter((l) => l !== locale)) {
             await page.goto(url);
             if (viewport.width < 1152) await page.locator("header button[aria-expanded]").first().click();
@@ -181,6 +207,7 @@ for (const viewport of VIEWPORTS) {
             expect(cookie?.value).toBe(target);
             page.removeAllListeners("response");
           }
+          expect(media.missing, "image keys the manifest does not know").toEqual([]);
         });
       }
     }

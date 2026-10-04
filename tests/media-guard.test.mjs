@@ -259,6 +259,45 @@ test("scanOut: 42 clean documents have no violations and 4 image references each
   assert.equal(r.images, 42 * 4, "one img src, two srcset candidates, one og:image per document; data-src is not an image src");
 });
 
+test("scanOut allows the same-origin nav wordmarks under /_next/static/media/, and only that shape", () => {
+  const root = scratchTree("scan-brand");
+  const docs = slice1Documents(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const BRAND = "/_next/static/media/Poly_White.3f2a9c1d.svg";
+  const CHARCOAL = "/_next/static/media/Stacked_Charcoal.7b41e0aa.svg";
+  // the nav wordmark is one <img src> on every document, as the build writes it
+  writeDocs(root, GOOD_BASE, { mutate: (doc, html) => html.replace("<img ", `<img alt="ALMAR" src="${doc === "index.html" ? CHARCOAL : BRAND}"><img `) });
+  const ok = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
+  assert.deepEqual(ok.violations, []);
+  assert.equal(ok.images, 42 * 5, "the wordmark is counted and checked, not skipped");
+
+  // every other same-origin or foreign shape keeps failing
+  const bad = {
+    "index.html": "/assets/img/hero.webp",
+    "ar/index.html": "/_next/static/media/../../secret.svg",
+    "es/index.html": "//cdn.example.test/_next/static/media/x.svg",
+    "private-stays.html": "/_next/static/media/deeper/x.svg",
+    "ar/private-stays.html": "/_next/static/media/x.svg?v=1",
+    "es/private-stays.html": "/_next/static/media/..",
+    "private-stays/casa-jardin-san-diego.html": "https://cdn.example.test/_next/static/media/x.svg",
+    "ar/private-stays/casa-jardin-san-diego.html": "_next/static/media/x.svg",
+  };
+  writeDocs(root, GOOD_BASE, { mutate: (doc, html) => (bad[doc] ? html.replace("<img ", `<img alt="" src="${bad[doc]}"><img `) : html) });
+  const text = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs }).violations.map((v) => `${v.document}: ${v.problem}`).join("\n");
+  for (const [doc, url] of Object.entries(bad)) {
+    assert.ok(text.includes(`${doc}: img src ${JSON.stringify(url)} does not start with`), `${doc} ${url} must still be reported:\n${text}`);
+  }
+
+  // an og:image or a srcset candidate: og:image must be on the media host; a srcset candidate may be the wordmark
+  writeDocs(root, GOOD_BASE, {
+    mutate: (doc, html) =>
+      doc === "index.html"
+        ? html.replace(`content="${GOOD_BASE}/home/hero/poster.webp"`, `content="${BRAND}"`).replace("srcset=", `srcset="${BRAND} 1x" data-x=`)
+        : html,
+  });
+  const og = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs }).violations.map((v) => `${v.document}: ${v.problem}`);
+  assert.deepEqual(og, [`index.html: og:image ${JSON.stringify(BRAND)} does not start with ${GOOD_BASE}/`]);
+});
+
 test("imageReferences reads attributes in any order, with single or double quotes", () => {
   const refs = imageReferences(`<IMG alt='' SRC='https://h.test/a.webp' srcset='https://h.test/a.webp 1x,https://h.test/b.webp 2x'><meta content='https://h.test/o.webp' property='og:image'><meta property="og:title" content="x"><source srcset="https://h.test/s.webp"><img data-src="x">`);
   assert.deepEqual(refs.map((r) => `${r.kind}=${r.url}`), [

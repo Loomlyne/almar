@@ -1,0 +1,91 @@
+STILL y=0 h=110 x=0 w=1440 div "DESTINATIONS DESTINATIONS EXPERIENCES EX" o=1 ty=0
+y=0 h=900 x=0 w=1440 div[BG Video<Hero Section] (img) start o=1 ty=0 tx=0 s=1
+    burst t=1620 scroll=450 vt=-450 dur=0 n=1 -> o=0.999606 ty=0 tx=0 s=1 | 10%:o1.00/y0 25%:o1.00/y0 50%:o1.00/y0 75%:o1.00/y0
+    burst t=3234 scroll=900 vt=-900 dur=0 n=1 -> o=0.822371 ty=0 tx=0 s=1 | 10%:o0.82/y0 25%:o0.82/y0 50%:o0.82/y0 75%:o0.82/y0
+    burst t=4833 scroll=1350 vt=-1350 dur=0 n=1 -> o=0.645136 ty=0 tx=0 s=1 | 10%:o0.65/y0 25%:o0.65/y0 50%:o0.65/y0 75%:o0.65/y0
+    burst t=6433 scroll=1800 vt=-1800 dur=0 n=1 -> o=0.467901 ty=0 tx=0 s=1 | 10%:o0.47/y0 25%:o0.47/y0 50%:o0.47/y0 75%:o0.47/y0
+    burst t=8035 scroll=2250 vt=-2250 dur=0 n=1 -> o=0.290666 ty=0 tx=0 s=1 | 10%:o0.29/y0 25%:o0.29/y0 50%:o0.29/y0 75%:o0.29/y0
+    burst t=9652 scroll=2700 vt=-2700 dur=0 n=1 -> o=0.11343 ty=0 tx=0 s=1 | 10%:o0.11/y0 25%:o0.11/y0 50%:o0.11/y0 75%:o0.11/y0
+    burst t=11251 scroll=3150 vt=-3150 dur=0 n=1 -> o=0 ty=0 tx=0 s=1 | 10%:o0.00/y0 25%:o0.00/y0 50%:o0.00/y0 75%:o0.00/y0
+STILL y=332 h=211 x=270 w=900 div[Hero headline<Header Title<Content<Hero Section] "Colombia, Privately Yours" o=1 ty=0
+STILL y=575 h=53 x=611 w=219 div[Content] "Design your journey" o=1 ty=0
+y=1343 h=415 x=490 w=460 div[Introduction<Content<Welcome<Sticky] "Dear Traveler, ALMAR is built for travel" start o=0 ty=20 tx=0 s=1
+    burst t=3449 scroll=900 vt=442 dur=1016 n=62 -> o=1 ty=0 tx=0 s=1 | 10%:o0.42/y11.6 25%:o0.73/y5.5 50%:o0.93/y1.4 75%:o0.98/y0.4
+y=1442 h=360 x=1060 w=300 div[Wrap<Desktop] (img) start o=1 ty=-360 tx=0 s=1
+    burst t=4833 scroll=1350 vt=452 dur=0 n=1 -> o=1 ty=0 tx=0 s=1 | 10%:o1.00/y0 25%:o1.00/y0 50%:o1.00/y0 75%:o1.00/y0
+y=1595 h=360 x=0 w=300 div[Wrap<Desktop] (img) start o=1 ty=-360 tx=0 s=1
+    burst t=4833 scroll=1350 vt=540 dur=0 n=1 -> o=1 ty=-65 tx=0 s=1 | 10%:o1.00/y-65 25%:o1.00/y-65 50%:o1.00/y-65 75%:o1.00/y-65
+    burst t=6433 scroll=1800 vt=155 dur=0 n=1 -> o=1 ty=0 tx=0 s=1 | 10%:o1.00/y0 25%:o1.00/y0 50%:o1.00/y0 75%:o1.00/y0
+y=1985 h=360 x=1140 w=300 div[Wrap<Desktop] (img) start o=1 ty=-360 tx=0 s=1
+    burst t=6433 scroll=1800 vt=540 dur=0 n=1 -> o=1 ty=-5 tx=0 s=1 | 10%:o1.00/y-5 25%:o1.00/y-5 50%:o1.00/y-5 75%:o1.00/y-5
+    burst t=8035 scroll=2250 vt=95 dur=0 n=1 -> o=1 ty=0 tx=0 s=1 | 10%:o1.00/y0 25%:o1.00/y0 50%:o1.00/y0 75%:o1.00/y0
+y=2244 h=360 x=43 w=300 div[Wrap<Desktop] (img) start o=1 ty=-360 tx=0 s=1
+    burst t=6433 scroll=1800 vt=539 dur=0 n=1 -> o=1 ty=-265 tx=0 s=1 | 10%:o1.00/y-265 25%:o1.00/y-265 50%:o1.00/y-265 75%:o1.00/y-265
+    burst t=8035 scroll=2250 vt=354 dur=0 n=1 -> o=1 ty=0 tx=0 s=1 | 10%:o1.00/y0 25%:o1.00/y0 50%:o1.00/y0 75%:o1.00/y0
+y=2648 h=360 x=1060 w=300 div[Wrap<Desktop] (img) start o=1 ty=-360 tx=0 s=1
+    burst t=8035 scroll=2250 vt=540 dur=0 n=1 -> o=1 ty=-218 tx=0 s=1 | 10%:o1.00/y-218 25%:o1.00/y-218 50%:o1.00/y-218 75%:o1.00/y-218
+    burst t=9652 scroll=2700 vt=308 dur=0 n=1 -> o=1 ty=0 tx=0 s=1 | 10%:o1.00/y0 25%:o1.00/y0 50%:o1.00/y0 75%:o1.00/y0
+y=3588 h=24 x=0 w=1440 div[Variant 1<Header] "Colombia Through Your Eyes" start o=0 ty=10 tx=0 s=1
+    burst t=9866 scroll=2700 vt=887 dur=1066 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.35/y6.5 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=3632 h=134 x=0 w=1440 div[Center<Header] "Colombia, Beautifully Captured" start o=0 ty=10 tx=0 s=1
+    burst t=11565 scroll=3150 vt=481 dur=1066 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.35/y6.5 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=3860 h=480 x=0 w=1440 div[Container<Gallery Section] (img) start o=0 ty=40 tx=0 s=1
+    burst t=13066 scroll=3600 vt=259 dur=1183 n=72 -> o=1 ty=0 tx=0 s=1 | 10%:o0.46/y21.5 25%:o0.80/y8.1 50%:o0.96/y1.6 75%:o0.99/y0
+STILL y=4080 h=40 x=20 w=40 button (img) o=0 ty=0
+STILL y=4302 h=28 x=676 w=88 div (img) o=1 ty=0
+y=4449 h=24 x=100 w=87 div[Variant 1<Header] "Private Stays" start o=0 ty=10 tx=0 s=1
+    burst t=13066 scroll=3600 vt=849 dur=1065 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.35/y6.5 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=4459 h=246 x=1107 w=233 div[Button Wrap<Header Wrap<Container<Rooms Section] "View All Private Stays" start o=0 ty=20 tx=0 s=1
+    burst t=14865 scroll=4050 vt=408 dur=884 n=54 -> o=1 ty=0 tx=0 s=1 | 10%:o0.45/y11 25%:o0.80/y4 50%:o0.97/y0.7 75%:o0.99/y0
+y=4493 h=202 x=100 w=1007 div[Left<Header] "Private Stays, Fully Vetted Verified pri" start o=0 ty=10 tx=0 s=1
+    burst t=14765 scroll=4050 vt=443 dur=1067 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.37/y6.3 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=5598 h=24 x=100 w=154 div[Variant 1<Header] "Services & Experiences" start o=0 ty=10 tx=0 s=1
+    burst t=17881 scroll=4950 vt=648 dur=1068 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.36/y6.4 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=5608 h=246 x=1090 w=250 div[Button Wrap<Header Wrap<Container<Services Section] "View All Services" start o=0 ty=20 tx=0 s=1
+    burst t=18082 scroll=4950 vt=658 dur=883 n=54 -> o=1 ty=0 tx=0 s=1 | 10%:o0.44/y11.1 25%:o0.80/y4 50%:o0.96/y0.8 75%:o0.99/y0
+y=5642 h=202 x=100 w=990 div[Left<Header] "Everything Handled. Nothing Left to Chan" start o=0 ty=10 tx=0 s=1
+    burst t=17982 scroll=4950 vt=692 dur=1067 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.36/y6.4 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=6655 h=24 x=650 w=140 div[Variant 1<Header] "Curated Experiences" start o=0 ty=10 tx=0 s=1
+    burst t=21082 scroll=5850 vt=805 dur=1066 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.37/y6.3 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=6699 h=202 x=200 w=1040 div[Center<Header] "Moments Designed for You From private ya" start o=0 ty=10 tx=0 s=1
+    burst t=22782 scroll=6300 vt=399 dur=1066 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.36/y6.4 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=6952 h=53 x=604 w=231 div[Button Wrap<Header Wrap<Container<Experiences Section] "Request Consultation" start o=0 ty=20 tx=0 s=1
+    burst t=22882 scroll=6300 vt=651 dur=883 n=54 -> o=1 ty=0 tx=0 s=1 | 10%:o0.45/y11.1 25%:o0.80/y4 50%:o0.97/y0.7 75%:o0.99/y0
+y=8920 h=111 x=120 w=1200 div[Wrapper<Desktop] "Choose Your Journey Three tiers of priva" start o=0 ty=20 tx=0 s=1
+    burst t=28898 scroll=8100 vt=819 dur=400 n=25 -> o=1 ty=0 tx=0 s=1 | 10%:o0.32/y13.5 25%:o0.83/y3.4 50%:o1.00/y-0.3 75%:o1.00/y-0.1
+    burst t=32098 scroll=9000 vt=-99 dur=400 n=25 -> o=0 ty=20 tx=0 s=1 | 10%:o0.68/y6.5 25%:o0.18/y16.5 50%:o0.00/y20.3 75%:o0.00/y20.1
+y=8930 h=111 x=120 w=1200 div[Left<Wrapper<Desktop] "Choose Your Journey Three tiers of priva" start o=0 ty=10 tx=0 s=1
+    burst t=29198 scroll=8100 vt=810 dur=1067 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.37/y6.3 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=9107 h=726 x=120 w=1200 div[Cards List<Wrapper<Desktop] "1 The Explorer From USD $3,000/person · " start o=0 ty=40 tx=0 s=1
+    burst t=30698 scroll=8550 vt=555 dur=400 n=25 -> o=1 ty=0 tx=0 s=1 | 10%:o0.32/y27 25%:o0.83/y6.8 50%:o1.00/y-0.5 75%:o1.00/y-0.2
+    burst t=35515 scroll=9900 vt=-831 dur=399 n=25 -> o=0 ty=40 tx=0 s=1 | 10%:o0.68/y13 25%:o0.17/y33.2 50%:o0.00/y40.5 75%:o0.00/y40.2
+STILL y=9528 h=41 x=144 w=336 div[Content<Package Card<Cards List] "A considered introduction to Colombia, s" o=0.68 ty=0
+STILL y=9528 h=41 x=552 w=336 div[Content<Package Card<Cards List] "A deeper multi-city Colombia journey, ta" o=0.68 ty=0
+STILL y=9545 h=41 x=960 w=336 div[Content<Package Card<Cards List] "A high-touch Colombia journey, shaped ar" o=0.68 ty=0
+STILL y=9587 h=14 x=163 w=121 div[Content] "5–7 nights · 1–2 cities" o=0.78 ty=0
+STILL y=9587 h=14 x=571 w=212 div[Content] "8–14 nights · up to 2 additional cities" o=0.78 ty=0
+STILL y=9604 h=14 x=979 w=216 div[Content] "14–21 nights · up to 3 additional cities" o=0.78 ty=0
+STILL y=9656 h=34 x=144 w=336 div[Display Note<Content<Package Card] "First-time visitors, couples, and small " o=0.72 ty=0
+STILL y=9656 h=34 x=552 w=336 div[Display Note<Content<Package Card] "Discerning travelers who want a deeper m" o=0.72 ty=0
+STILL y=9673 h=34 x=960 w=336 div[Display Note<Content<Package Card] "Ultra-high-net-worth families and execut" o=0.72 ty=0
+STILL y=9708 h=38 x=144 w=336 div[Content<Package Card<Cards List] "A private journey framework shaped aroun" o=0.58 ty=0
+STILL y=9708 h=38 x=552 w=336 div[Content<Package Card<Cards List] "Everything begins with the essentials of" o=0.58 ty=0
+STILL y=9725 h=38 x=960 w=336 div[Content<Package Card<Cards List] "A high-touch planning framework for long" o=0.58 ty=0
+y=10058 h=24 x=100 w=96 div[Variant 1<Header] "Travel Insights" start o=0 ty=10 tx=0 s=1
+    burst t=33915 scroll=9450 vt=608 dur=1066 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.36/y6.4 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=10068 h=155 x=1217 w=123 div[Button Wrap<Header Wrap<Container<Blog/ News Section] "Read All" start o=0 ty=20 tx=0 s=1
+    burst t=34115 scroll=9450 vt=617 dur=882 n=54 -> o=1 ty=0 tx=0 s=1 | 10%:o0.44/y11.1 25%:o0.80/y4.1 50%:o0.96/y0.8 75%:o0.99/y0
+y=10102 h=111 x=100 w=1117 div[Left<Header] "ALMAR Stories Discover Colombia through " start o=0 ty=10 tx=0 s=1
+    burst t=34015 scroll=9450 vt=652 dur=1065 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.36/y6.4 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=10307 h=472 x=100 w=387 a[Container] "Discovering Cartagena's Hidden Colonial " start o=0 ty=40 tx=0 s=1
+    burst t=35515 scroll=9900 vt=406 dur=1183 n=72 -> o=1 ty=0 tx=0 s=1 | 10%:o0.46/y21.7 25%:o0.80/y8.1 50%:o0.96/y1.6 75%:o0.99/y0
+y=10307 h=472 x=527 w=387 a[Container] "Why Medellín Is Redefining Luxury Travel" start o=0 ty=40 tx=0 s=1
+    burst t=35515 scroll=9900 vt=406 dur=1183 n=72 -> o=1 ty=0 tx=0 s=1 | 10%:o0.47/y21.4 25%:o0.80/y8.1 50%:o0.96/y1.6 75%:o0.99/y0
+y=10307 h=472 x=953 w=387 a[Container] "Colombia's Coffee Triangle: A Journey Th" start o=0 ty=40 tx=0 s=1
+    burst t=35515 scroll=9900 vt=406 dur=1183 n=72 -> o=1 ty=0 tx=0 s=1 | 10%:o0.46/y21.7 25%:o0.80/y8.1 50%:o0.96/y1.6 75%:o0.99/y0
+STILL y=11006 h=267 x=0 w=1440 div[Contact<Container<Desktop] "Begin Your Journey Your private Colombia" o=1 ty=-133.4
+STILL y=11673 h=24 x=40 w=41 div[Label<Small] "Home" o=0 ty=0
+STILL y=11717 h=24 x=40 w=42 div[Label<Small] "About" o=0 ty=0
+STILL y=11761 h=24 x=40 w=56 div[Label<Small] "Services" o=0 ty=0
+STILL y=11805 h=24 x=40 w=82 div[Label<Small] "Experiences" o=0 ty=0
+STILL y=11849 h=24 x=40 w=74 div[Label<Small] "Blog/News" o=0 ty=0

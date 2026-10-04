@@ -15,6 +15,7 @@ type DestinationBase = {
   is_sample: boolean;
   sample_fields: string[];
   hero_image: RawImage | null;
+  inset_image: RawImage | null;
   is_published: boolean;
   position: number;
 };
@@ -38,7 +39,11 @@ function resolve(base: DestinationBase, locale: Locale): Destination {
     (t) => t.destination_id === base.id,
   );
   const row = resolveRow(base, own, locale);
-  return { ...row, hero_image: image(base.hero_image, locale) } as Destination;
+  return {
+    ...row,
+    hero_image: image(base.hero_image, locale),
+    inset_image: image(base.inset_image, locale),
+  } as Destination;
 }
 
 /** The slugs of the destinations that have at least one published stay. */

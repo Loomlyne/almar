@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useSelectedLayoutSegments } from "next/navigation";
 import { isLocale, localeDir, type Locale } from "../../lib/locale-path";
+import { MOTION_BOOT_SRC } from "../../lib/motion";
 
 /**
  * The only <html> and <body> in the app. lang, dir and the Arabic font classes come from the route's first
@@ -30,7 +31,13 @@ export function LocaleDocument({
       lang={locale}
       dir={localeDir(locale)}
       className={`${latinFontClass} antialiased${locale === "ar" ? ` ${arabicFontClass}` : ""}`}
+      // The boot script sets data-motion before hydration.
+      suppressHydrationWarning
     >
+      <head>
+        {/* Synchronous on purpose (no async, no defer): it must run before the first paint. A static, hashed file, never inline. */}
+        <script src={MOTION_BOOT_SRC} />
+      </head>
       <body>
         <a className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-70 focus:bg-teal focus:px-4 focus:py-3 focus:text-ivory" href="#content">
           {skipLabels[locale]}

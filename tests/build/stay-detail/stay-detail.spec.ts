@@ -4,16 +4,20 @@ import { MEDIA_BASE_URL } from "../../../lib/data/media";
 import { getBlockedDates, getRelatedStays, getStay } from "../../../lib/data/stays";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
+import { SITE_FOOTER_COPY } from "../../../lib/copy/site-footer";
 import { STAY_DETAIL_COPY } from "../../../lib/copy/stay-detail";
 import { formatDate } from "../../../lib/format";
 import { JOURNEY_CHOICE_KEY, parseJourneyChoice, serializeJourneyChoice } from "../../../lib/journey-choice";
 import { fill, formatGuestSummary } from "../../../lib/journey-format";
-import { localePath, type Locale } from "../../../lib/locale-path";
+import { absoluteLocaleUrl, localePath, type Locale } from "../../../lib/locale-path";
+import { buildStayRequestMessage, stayRequestHref } from "../../../lib/whatsapp-request";
+import { clickClearOfDock } from "../../helpers/click-clear-of-dock";
 import { FIXED_NOW, FOCUS, LOCALES, WIDTHS, openStay, stayUrl, watch } from "./_helpers";
 
-// Plan 03.3-06 task 4. Behaviour of the stay page on the real build: gallery, facts, locked segments, calendar with
-// blocked days, guests, phone sheet, pinned dock, pre-fill, related stays, Request Inquiry, language, RTL from first
-// paint, no JavaScript, media host, sample note.
+// Plan 03.3-06 task 4, rebuilt by plan 03.3-45. Behaviour of the stay page on the real build: Request on WhatsApp,
+// slideshow, facts, policies, amenities, locked segments, calendar with blocked days, guests, phone sheet, pinned
+// dock, pre-fill, related stays, Request Inquiry, language, RTL from first paint, no JavaScript, media host, sample
+// note. wa.me is answered by the test (route), so nothing leaves the Mac.
 //
 // Matrix: 3 stays x en, ar, es x the widths each behaviour applies to. Every expected value comes from lib/data,
 // lib/copy, lib/journey-format and lib/format inside this file, never typed by hand. The clock is fixed so past days
@@ -132,63 +136,327 @@ async function noProblems(watched: Awaited<ReturnType<typeof watch>>) {
   expect(watched.media.missing, "every image key is in the media manifest").toEqual([]);
 }
 
+// ---- request on WhatsApp ----------------------------------------------------------------------------------------
+
+type Pick = { from: string; to: string } | null;
+
+/** The link the page must carry for these dates and guests: the same builder, fed from the data and the copy. */
+function expectedRequest(c: Ctx, dates: Pick, adults: number, children = 0, infants = 0) {
+  const day = (iso: string) => {
+    const [year, month, d] = parts(iso);
+    return { year, month, day: d };
+  };
+  const message = buildStayRequestMessage(
+    {
+      locale: c.locale,
+      title: c.stay.title,
+      destinationName: c.stay.destination_name,
+      start: dates ? day(dates.from) : null,
+      end: dates ? day(dates.to) : null,
+      adults,
+      children,
+      infants,
+      pageUrl: absoluteLocaleUrl(c.locale, `/private-stays/${c.slug}`),
+    },
+    c.copy.whatsapp,
+    { nights: c.journey.dates.nights, guests: c.journey.guests.summary },
+  );
+  return { message, href: stayRequestHref(message) };
+}
+
+const requestLinks = (scope: Locator | Page, c: Ctx) => scope.getByRole("link", { name: new RegExp(`^${escape(c.copy.whatsapp.button)}`) });
+
+/** wa.me is answered here: a popup to it must never leave the Mac. */
+async function answerWhatsApp(page: Page) {
+  await page.context().route("https://wa.me/**", (route) => route.fulfill({ status: 200, contentType: "text/html", body: "<title>wa</title>" }));
+}
+
+const carousel = (page: Page) => page.locator('section[aria-roledescription="carousel"]');
+const dotsOf = (page: Page, c: Ctx) => carousel(page).getByRole("button", { name: new RegExp(`^${escape(c.copy.gallery.goTo.split("{")[0])}`) });
+/** The 0-based number of the photo whose dot is current. */
+async function currentDot(page: Page, c: Ctx) {
+  const dots = dotsOf(page, c);
+  const flags = await dots.evaluateAll((els) => els.map((el) => el.getAttribute("aria-current") === "true"));
+  expect(flags.filter(Boolean), "exactly one dot is current").toHaveLength(1);
+  return flags.indexOf(true);
+}
+
+/** A load whose clock is installed first and paused once the page has settled; reveals need real frames, so nothing here reads opacity. */
+async function loadWithClock(page: Page, c: Ctx, size: Size, reducedMotion: "reduce" | "no-preference" = "no-preference") {
+  await page.emulateMedia({ reducedMotion });
+  const watched = await watch(page);
+  await page.setViewportSize(size);
+  await page.clock.install({ time: new Date(FIXED_NOW) });
+  await openStay(page, c.locale, c.slug);
+  await carousel(page).scrollIntoViewIfNeeded();
+  await page.clock.pauseAt(new Date("2026-10-03T09:10:00+04:00"));
+  return watched;
+}
+
 // ---- the matrix ------------------------------------------------------------------------------------------------
 
 for (const slug of FOCUS) {
   for (const locale of LOCALES) {
     test.describe(`${locale} ${slug}`, () => {
-      // ---- gallery -------------------------------------------------------------------------------------------
+      // ---- request on WhatsApp -------------------------------------------------------------------------------
       for (const size of ALL) {
-        test(`gallery @${size.width}: tiles, lightbox, count, next, arrows, wrap, Escape returns focus`, async ({ page }) => {
+        test(`request @${size.width}: one WhatsApp request, the exact message with and without dates, a new tab, never blocked`, async ({ page }) => {
           const c = await context(locale, slug);
+          await answerWhatsApp(page);
           const watched = await load(page, c, size);
-          const total = c.stay.gallery.length;
-          const tiles = page.locator("main button:has(> img)");
-          await expect(tiles).toHaveCount(total);
-          for (let i = 0; i < total; i++) {
-            const name = c.copy.gallery.open.replace("{alt}", c.stay.gallery[i].alt);
-            await expect(tiles.nth(i), `tile ${i + 1} is named by the data's alt`).toHaveAttribute("aria-label", name);
-            await expect(tiles.nth(i).locator("img")).toHaveAttribute("src", c.stay.gallery[i].url);
+          const phone = size.width < MD;
+          await expect(page.locator('a[aria-label="WhatsApp"]'), "the green float is not drawn on a stay page").toHaveCount(0);
+
+          const base = expectedRequest(c, null, 1);
+          const dockLink = requestLinks(dockOf(page), c);
+          const barLink = phone ? null : requestLinks(barOf(page, c), c);
+          await expect(dockLink).toHaveCount(1);
+          await expect(dockLink).toHaveAttribute("href", base.href);
+          expect(base.href.startsWith("https://wa.me/971563883302?text=")).toBe(true);
+          if (barLink) {
+            await expect(barLink).toHaveCount(1);
+            await expect(barLink).toHaveAttribute("href", base.href);
+          }
+          for (const link of barLink ? [dockLink, barLink] : [dockLink]) {
+            await expect(link).toHaveAttribute("target", "_blank");
+            await expect(link).toHaveAttribute("rel", /noopener/);
+            await expect(link).not.toHaveAttribute("aria-disabled", /.+/);
+            await expect(link).toBeEnabled();
           }
 
-          const countText = (n: number) => c.copy.gallery.count.replace("{n}", String(n)).replace("{total}", String(total));
-          await tiles.nth(1).click();
-          const dialog = page.getByRole("dialog");
-          await expect(dialog).toBeVisible();
-          await expect(dialog.getByText(countText(2), { exact: true })).toBeVisible();
-          const src = await tiles.nth(1).locator("img").getAttribute("src");
-          await expect(dialog.locator("img")).toHaveAttribute("src", src!);
-          expect(src!.startsWith(MEDIA_BASE_URL)).toBe(true);
+          const { from, to } = freeWindow(c.blocked, c.blocked[0], 3);
+          const win = { from, to };
+          let live: Locator;
+          if (!phone) {
+            const bar = barOf(page, c);
+            await segment(bar, c.journey.bar.dates.label).click();
+            await showDay(page, from, c.journey.dates.nextMonth);
+            await cellOf(page, from).click();
+            await cellOf(page, to).click();
+            await page.getByRole("button", { name: c.journey.done }).click();
+            await expect(page.getByRole("group", { name: c.journey.guests.label })).toBeVisible();
+            await page.getByRole("button", { name: fill(c.journey.guests.add, { group: c.journey.guests.group.adult }) }).click();
+            await page.getByRole("button", { name: fill(c.journey.guests.add, { group: c.journey.guests.group.child }) }).click();
+            await page.keyboard.press("Escape");
+            live = barLink!;
+          } else {
+            await page.getByRole("button", { name: line1Of(c) }).click();
+            const sheet = page.getByRole("dialog", { name: c.journey.sheet.label });
+            await expect(sheet).toBeVisible();
+            await showDay(page, from, c.journey.dates.nextMonth);
+            await cellOf(page, from).click();
+            await cellOf(page, to).click();
+            await sheet.getByRole("button", { name: c.journey.sheet.next, exact: true }).click();
+            await expect(sheet.getByRole("heading", { name: c.journey.sheet.who })).toBeVisible();
+            await sheet.getByRole("button", { name: fill(c.journey.guests.add, { group: c.journey.guests.group.adult }) }).click();
+            await sheet.getByRole("button", { name: fill(c.journey.guests.add, { group: c.journey.guests.group.child }) }).click();
+            live = requestLinks(sheet, c);
+            // The label is printed once, in at most two lines, and the button sits inside the phone's width.
+            await expect(live).toHaveCount(1);
+            expect(((await live.textContent()) ?? "").split(c.copy.whatsapp.button).length - 1, "the label is printed once").toBe(1);
+            const fit = await live.evaluate((el) => {
+              const box = el.getBoundingClientRect();
+              const span = el.querySelector("span")!;
+              const line = parseFloat(getComputedStyle(span).lineHeight);
+              return { left: box.left, right: box.right, lines: Math.round(span.getBoundingClientRect().height / line), overflow: el.scrollHeight > el.clientHeight + 1 };
+            });
+            expect(fit.left).toBeGreaterThanOrEqual(0);
+            expect(fit.right).toBeLessThanOrEqual(size.width);
+            expect(fit.lines).toBeLessThanOrEqual(2);
+            expect(fit.overflow, "the label does not overflow its button").toBe(false);
+            await expect(sheet.getByRole("button", { name: c.journey.done })).toHaveCount(0);
+            await expect(sheet.getByRole("button", { name: c.journey.bar.search })).toHaveCount(0);
+          }
 
-          const next = dialog.getByRole("button", { name: c.copy.gallery.next });
-          await next.click();
-          await expect(dialog.getByText(countText(3), { exact: true })).toBeVisible();
-          const arrow = locale === "ar" ? "ArrowLeft" : "ArrowRight";
-          await page.keyboard.press(arrow);
-          await expect(dialog.getByText(countText(4), { exact: true })).toBeVisible();
-          // up to the last picture, then wrap: next is never disabled
-          for (let n = 4; n < total; n++) await next.click();
-          await expect(dialog.getByText(countText(total), { exact: true })).toBeVisible();
-          await expect(next).toBeEnabled();
-          await next.click();
-          await expect(dialog.getByText(countText(1), { exact: true })).toBeVisible();
+          const full = expectedRequest(c, win, 2, 1);
+          expect(full.message).toContain(rangeOf(from, to).split(" – ")[0]);
+          await expect(live).toHaveAttribute("href", full.href);
+          // (by CSS, not by role: while the phone sheet is open the page behind it is aria-hidden)
+          await expect(dockOf(page).locator("a"), "the dock follows the bar and the sheet").toHaveAttribute("href", full.href);
 
-          await page.keyboard.press("Escape");
-          await expect(dialog).toHaveCount(0);
-          await expect(tiles.nth(1), "focus returns to the tile that opened it").toBeFocused();
+          // Clicking opens a new tab at wa.me whose text is the message; the page itself stays.
+          const pageUrl = page.url();
+          const [popup] = await Promise.all([page.waitForEvent("popup"), live.click()]);
+          await popup.waitForURL(/wa\.me/);
+          const opened = new URL(popup.url());
+          expect(opened.hostname).toBe("wa.me");
+          expect(opened.pathname).toBe("/971563883302");
+          expect(opened.searchParams.get("text")).toBe(full.message);
+          expect(page.url()).toBe(pageUrl);
+          await popup.close();
+          await noProblems(watched);
+        });
+      }
+
+      // ---- slideshow -----------------------------------------------------------------------------------------
+      for (const size of ALL) {
+        test(`slideshow @${size.width}: peeks the neighbours, arrows wrap, a dot per photo, swipe goes next`, async ({ page }) => {
+          const c = await context(locale, slug);
+          await page.emulateMedia({ reducedMotion: "reduce" }); // no autoplay here: the timers have their own tests
+          const watched = await load(page, c, size);
+          const region = carousel(page);
+          const total = c.stay.gallery.length;
+          await region.scrollIntoViewIfNeeded();
+          await expect(region).toHaveAttribute("aria-label", fill(c.copy.gallery.region, { title: c.stay.title }));
+          await expect(dotsOf(page, c)).toHaveCount(total);
+          expect(await currentDot(page, c)).toBe(0);
+          const slides = region.locator('[aria-roledescription="slide"]');
+          await expect(slides).toHaveCount(total);
+          for (let i = 0; i < total; i++) await expect(slides.nth(i).locator("img")).toHaveAttribute("src", c.stay.gallery[i].url);
+
+          // peek: the next photo shows at the inline end (the left edge in Arabic), and the side padding is kept at the start
+          const first = (await slides.nth(0).boundingBox())!;
+          const second = (await slides.nth(1).boundingBox())!;
+          const side = size.width >= MD ? 64 : 16;
+          if (locale === "ar") {
+            expect(size.width - (first.x + first.width), "start padding").toBeCloseTo(side, 0);
+            expect(second.x + second.width, "the next photo peeks in at the left edge").toBeGreaterThan(0);
+          } else {
+            expect(first.x, "start padding").toBeCloseTo(side, 0);
+            expect(second.x, "the next photo peeks in at the right edge").toBeLessThan(size.width);
+          }
+
+          const previous = region.getByRole("button", { name: c.copy.gallery.previous, exact: true });
+          const next = region.getByRole("button", { name: c.copy.gallery.next, exact: true });
+          await previous.click();
+          expect(await currentDot(page, c), "previous wraps to the last photo").toBe(total - 1);
+          await next.click();
+          expect(await currentDot(page, c), "next wraps to the first").toBe(0);
+          await next.click();
+          expect(await currentDot(page, c)).toBe(1);
+          await clickClearOfDock(dotsOf(page, c).nth(2)); // the dots sit at the photo's foot, where the pinned dock can cover them
+          expect(await currentDot(page, c), "a dot goes to its photo").toBe(2);
+
+          // swipe toward the inline start goes next (mirrored in Arabic); 220px in from the edge so the pointer is on a photo
+          const box = (await region.boundingBox())!;
+          const y = box.y + box.height / 2;
+          const dx = locale === "ar" ? 160 : -160;
+          const startX = box.x + box.width / 2 - dx / 2;
+          await page.mouse.move(startX, y);
+          await page.mouse.down();
+          await page.mouse.move(startX + dx / 2, y, { steps: 5 });
+          await page.mouse.move(startX + dx, y, { steps: 5 });
+          await page.mouse.up();
+          expect(await currentDot(page, c), "a swipe toward the start goes to the next photo").toBe(3);
+          await noProblems(watched);
+        });
+      }
+
+      for (const size of sizes(390, 1440)) {
+        test(`slideshow timers @${size.width}: moves every 2 s, stops on hover, on Pause and on reduced motion`, async ({ page }) => {
+          const c = await context(locale, slug);
+          const total = c.stay.gallery.length;
+          const watched = await loadWithClock(page, c, size);
+          const region = carousel(page);
+          const settle = () => page.waitForTimeout(150); // real time: React flushes its effects, the paused clock does not
+          const pause = region.getByRole("button", { name: c.copy.gallery.pause, exact: true });
+          const play = region.getByRole("button", { name: c.copy.gallery.play, exact: true });
+          await expect(pause, "a real Pause button").toBeVisible();
+
+          let at = await currentDot(page, c);
+          await page.clock.runFor(2000);
+          await settle();
+          expect(await currentDot(page, c), "after 2 s the next photo").toBe((at + 1) % total);
+
+          // hover stops it
+          await region.hover({ position: { x: 200, y: 100 } });
+          await settle();
+          at = await currentDot(page, c);
+          await page.clock.runFor(4000);
+          await settle();
+          expect(await currentDot(page, c), "hover: unchanged after 4 s").toBe(at);
+
+          // Pause: the name becomes Play, and with the pointer away it stays still
+          await pause.click();
+          await expect(play).toBeVisible();
+          await expect(pause).toHaveCount(0);
+          await page.mouse.move(2, 2);
+          await settle();
+          at = await currentDot(page, c);
+          await page.clock.runFor(4000);
+          await settle();
+          expect(await currentDot(page, c), "paused: unchanged after 4 s").toBe(at);
+
+          // Play moves it again
+          await play.click();
+          await page.mouse.move(2, 2);
+          await settle();
+          at = await currentDot(page, c);
+          await page.clock.runFor(2000);
+          await settle();
+          expect(await currentDot(page, c), "played: moves again").toBe((at + 1) % total);
+          await noProblems(watched);
+        });
+
+        test(`slideshow reduced motion @${size.width}: no Pause button and it never moves`, async ({ page }) => {
+          const c = await context(locale, slug);
+          const watched = await loadWithClock(page, c, size, "reduce");
+          const region = carousel(page);
+          await expect(region.getByRole("button", { name: c.copy.gallery.pause, exact: true })).toHaveCount(0);
+          await expect(region.getByRole("button", { name: c.copy.gallery.play, exact: true })).toHaveCount(0);
+          await page.clock.runFor(6000);
+          await page.waitForTimeout(150);
+          expect(await currentDot(page, c), "still on photo 1").toBe(0);
+          await noProblems(watched);
+        });
+      }
+
+      // ---- policies: headings only ---------------------------------------------------------------------------
+      for (const size of ALL) {
+        test(`policies @${size.width}: the four headings in this language, nothing opens`, async ({ page }) => {
+          const c = await context(locale, slug);
+          const watched = await load(page, c, size);
+          const rows = page.locator("#policies li");
+          await expect(rows).toHaveCount(4);
+          expect(await rows.evaluateAll((els) => els.map((el) => el.textContent?.trim()))).toEqual(c.stay.policy_headings);
+          await expect(page.locator("#policies").locator("details, summary, button, a, [aria-expanded], [role=button]")).toHaveCount(0);
+          const before = await page.locator("#policies").innerText();
+          await rows.nth(1).click();
+          await page.keyboard.press("Enter");
+          expect(await page.locator("#policies").innerText(), "a click and Enter change nothing").toBe(before);
+          expect(/PRIVADA|CAMARERA/.test(await page.content()), "no placeholder text in the document").toBe(false);
+          // Framer's layout: heading on one side, rows on the other, thin lines between
+          const layout = await page.evaluate(() => {
+            const h = document.querySelector("#policies h2")!.getBoundingClientRect();
+            const li = document.querySelector("#policies li")!.getBoundingClientRect();
+            return { hRight: h.right, hLeft: h.left, hBottom: h.bottom, liLeft: li.left, liRight: li.right, liTop: li.top };
+          });
+          if (size.width >= MD) {
+            if (locale === "ar") expect(layout.liRight).toBeLessThan(layout.hLeft + 1);
+            else expect(layout.liLeft).toBeGreaterThan(layout.hRight - 1);
+          } else {
+            expect(layout.liTop, "stacked under the heading").toBeGreaterThanOrEqual(layout.hBottom);
+          }
+          await noProblems(watched);
+        });
+      }
+
+      // ---- amenities -----------------------------------------------------------------------------------------
+      for (const size of ALL) {
+        test(`amenities @${size.width}: one row per amenity with an icon, in two columns`, async ({ page }) => {
+          const c = await context(locale, slug);
+          const watched = await load(page, c, size);
+          const rows = page.locator("#amenities li");
+          await expect(rows).toHaveCount(c.stay.amenities.length);
+          expect(await rows.evaluateAll((els) => els.map((el) => el.textContent?.trim()))).toEqual(c.stay.amenities);
+          for (let i = 0; i < c.stay.amenities.length; i++) await expect(rows.nth(i).locator("svg")).toHaveCount(1);
+          const columns = await rows.evaluateAll((els) => new Set(els.map((el) => Math.round(el.getBoundingClientRect().left))).size);
+          // Framer shows two columns at 390 as well as at 1440
+          expect(columns).toBe(Math.min(2, c.stay.amenities.length));
+          await expect(page.locator("#amenities")).toContainText(c.copy.amenitiesIntro);
           await noProblems(watched);
         });
       }
 
       // ---- fact strip ----------------------------------------------------------------------------------------
       for (const size of ALL) {
-        test(`facts @${size.width}: the non-null published fields, in order, 44px rows`, async ({ page }) => {
+        test(`facts @${size.width}: the non-null published fields, in Framer's order, each label above its value`, async ({ page }) => {
           const c = await context(locale, slug);
           const watched = await load(page, c, size);
           const expected = [
             [c.copy.facts.guests, c.stay.guests_label],
-            [c.copy.facts.bedrooms, c.stay.bedrooms === null ? null : String(c.stay.bedrooms)],
             [c.copy.facts.bathrooms, c.stay.bathrooms_label],
+            [c.copy.facts.bedrooms, c.stay.bedrooms === null ? null : String(c.stay.bedrooms)],
             [c.copy.facts.beds, c.stay.beds_label],
             [c.copy.facts.neighborhood, c.stay.neighborhood],
           ].filter(([, value]) => value !== null && value !== "") as string[][];
@@ -202,17 +470,16 @@ for (const slug of FOCUS) {
                 label: dt.textContent?.trim(),
                 value: dd.textContent?.trim(),
                 height: row.getBoundingClientRect().height,
-                labelX: dt.getBoundingClientRect().x,
-                valueX: dd.getBoundingClientRect().x,
+                labelY: dt.getBoundingClientRect().y,
+                valueY: dd.getBoundingClientRect().y,
               };
             }),
           );
           expect(rows.map((r) => [r.label, r.value])).toEqual(expected);
+          expect(await list.evaluate((dl) => dl.closest("#about") !== null), "the facts sit in About").toBe(true);
           for (const row of rows) {
-            expect(row.height, `${row.label} row height`).toBeGreaterThanOrEqual(44);
-            // the label comes first in reading order: left of the value in LTR, right of it in RTL
-            if (locale === "ar") expect(row.labelX).toBeGreaterThan(row.valueX);
-            else expect(row.labelX).toBeLessThan(row.valueX);
+            // Framer's facts row: the small label sits above its value
+            expect(row.labelY).toBeLessThan(row.valueY);
           }
           await noProblems(watched);
         });
@@ -320,7 +587,7 @@ for (const slug of FOCUS) {
 
       // ---- phone sheet ---------------------------------------------------------------------------------------
       for (const size of PHONE) {
-        test(`sheet @${size.width}: opens at When with the stay locked, a range, Who, Done; no Search`, async ({ page }) => {
+        test(`sheet @${size.width}: opens at When with the stay locked, a range, Who, ends with the request link; no Done, no Search`, async ({ page }) => {
           const c = await context(locale, slug);
           const watched = await load(page, c, size);
           const entry = page.getByRole("button", { name: line1Of(c) });
@@ -350,7 +617,13 @@ for (const slug of FOCUS) {
           await expect(sheet.getByText(fill(c.journey.sheet.progress, { n: 3 }))).toBeVisible();
           await sheet.getByRole("button", { name: fill(c.journey.guests.add, { group: c.journey.guests.group.adult }) }).click();
           await expect(sheet.getByRole("button", { name: c.journey.bar.search })).toHaveCount(0);
-          await sheet.getByRole("button", { name: c.journey.done }).click();
+          // The last step ends with the request link: no Done, no Search, no Next.
+          await expect(sheet.getByRole("button", { name: c.journey.done })).toHaveCount(0);
+          await expect(sheet.getByRole("button", { name: c.journey.sheet.next, exact: true })).toHaveCount(0);
+          const last = requestLinks(sheet, c);
+          await expect(last).toHaveCount(1);
+          await expect(last).toHaveAttribute("href", expectedRequest(c, { from, to }, 2).href);
+          await page.keyboard.press("Escape");
           await expect(sheet).toHaveCount(0);
 
           const line2 = `${rangeOf(from, to)} · ${guests(2, 0, 0, c)}`;
@@ -362,7 +635,7 @@ for (const slug of FOCUS) {
 
       // ---- the pinned dock -----------------------------------------------------------------------------------
       for (const size of ALL) {
-        test(`dock @${size.width}: pinned, 88px, clears the footer and WhatsApp, a summary with no control`, async ({ page }) => {
+        test(`dock @${size.width}: pinned, 88px, clears the footer, its one control is the request link`, async ({ page }) => {
           const c = await context(locale, slug);
           const watched = await load(page, c, size);
           const dock = dockOf(page);
@@ -377,7 +650,9 @@ for (const slug of FOCUS) {
           const [first, second] = await dockLines(page);
           expect(first).toBe(line1Of(c));
           expect(second).toBe(`${c.journey.bar.dates.empty} · ${guests(1, 0, 0, c)}`);
-          await expect(dock.locator("button, a, [role=button], [role=link]")).toHaveCount(0);
+          await expect(dock.locator("button, [role=button]"), "no button in the dock").toHaveCount(0);
+          await expect(dock.locator("a, [role=link]"), "exactly one link: the request").toHaveCount(1);
+          await expect(requestLinks(dock, c)).toHaveCount(1);
 
           await page.mouse.wheel(0, 100_000);
           await page.waitForTimeout(400);
@@ -385,10 +660,7 @@ for (const slug of FOCUS) {
           expect(Math.abs(b.y + b.height - size.height), "still pinned at the end of the page").toBeLessThanOrEqual(1);
           const lastLink = (await page.locator("footer a").last().boundingBox())!;
           expect(lastLink.y + lastLink.height, "the last footer link is fully above the dock").toBeLessThanOrEqual(b.y);
-          const whatsapp = (await page.getByRole("link", { name: "WhatsApp" }).boundingBox())!;
-          const overlap =
-            whatsapp.x < b.x + b.width && whatsapp.x + whatsapp.width > b.x && whatsapp.y < b.y + b.height && whatsapp.y + whatsapp.height > b.y;
-          expect(overlap, "the WhatsApp float does not sit on the dock").toBe(false);
+          await expect(page.locator('a[aria-label="WhatsApp"]'), "no green float on a stay page").toHaveCount(0);
           await noProblems(watched);
         });
       }
@@ -449,14 +721,20 @@ for (const slug of FOCUS) {
       }
 
       // ---- related stays -------------------------------------------------------------------------------------
-      for (const size of sizes(390, 1440)) {
-        test(`related @${size.width}: three, never this stay, same destination first, each one link, click goes there`, async ({ page }) => {
+      for (const size of ALL) {
+        test(`related @${size.width}: three cards from md and two below, never this stay, same destination first, each one link, click goes there`, async ({ page }) => {
           const c = await context(locale, slug);
           const watched = await load(page, c, size);
           const related = await getRelatedStays(locale, slug, { limit: 3 });
-          const cards = page.locator("#related a");
+          const cards = page.locator("#related ul a");
           await expect(cards).toHaveCount(related.length);
           expect(related.length).toBe(3);
+          const shown = await cards.evaluateAll((els) => els.filter((el) => el.getClientRects().length > 0).length);
+          expect(shown, "three cards from md, two below").toBe(size.width >= MD ? 3 : 2);
+          // View All Private Stays goes to the list in this language
+          const all = page.locator("#related").getByRole("link", { name: c.copy.relatedViewAll, exact: true });
+          await expect(all).toHaveCount(1);
+          await expect(all).toHaveAttribute("href", localePath(locale, "/private-stays"));
           const hrefs = await cards.evaluateAll((els) => els.map((el) => el.getAttribute("href")));
           expect(hrefs).toEqual(related.map((r) => localePath(locale, `/private-stays/${r.slug}`)));
           for (const href of hrefs) expect(href!.endsWith(`/${slug}`)).toBe(false);
@@ -472,22 +750,27 @@ for (const slug of FOCUS) {
       }
 
       // ---- services and experiences: content cards, the data's counts -----------------------------------------
-      test(`catalogue: services and experiences are cards, as many as the data lists, none a link or a button`, async ({ page }) => {
-        const c = await context(locale, slug);
-        const watched = await load(page, c, WIDTHS[2]);
-        const catalog = await getCatalogForStay(locale, slug);
-        for (const [id, items] of [
-          ["services", catalog.services],
-          ["experiences", catalog.experiences],
-        ] as const) {
-          const section = page.locator(`#${id}`);
-          await expect(section.locator("article")).toHaveCount(items.length);
-          await expect(section.locator("a, button")).toHaveCount(0);
-          for (const item of items) await expect(section).toContainText(item.name);
-        }
-        expect(catalog.experiences.length).toBeGreaterThan(0);
-        await noProblems(watched);
-      });
+      for (const size of ALL) {
+        test(`catalogue @${size.width}: services and experiences are cards, three from md and two below, none a link or a button`, async ({ page }) => {
+          const c = await context(locale, slug);
+          const watched = await load(page, c, size);
+          const catalog = await getCatalogForStay(locale, slug);
+          for (const [id, items] of [
+            ["services", catalog.services],
+            ["experiences", catalog.experiences],
+          ] as const) {
+            const section = page.locator(`#${id}`);
+            const listed = items.filter((item) => item.image).slice(0, 3);
+            await expect(section.locator("article")).toHaveCount(listed.length);
+            await expect(section.locator("a, button")).toHaveCount(0);
+            for (const item of listed) await expect(section).toContainText(item.name);
+            const shown = await section.locator("article").evaluateAll((els) => els.filter((el) => el.getClientRects().length > 0).length);
+            expect(shown, `${id} cards shown`).toBe(Math.min(listed.length, size.width >= MD ? 3 : 2));
+          }
+          expect(catalog.experiences.length).toBeGreaterThan(0);
+          await noProblems(watched);
+        });
+      }
 
       // ---- Request Inquiry -----------------------------------------------------------------------------------
       for (const size of PHONE) {
@@ -514,7 +797,7 @@ for (const slug of FOCUS) {
         test(`language @${size.width}: footer row holds this stay's three URLs, the header select goes to Arabic without a redirect`, async ({ page }) => {
           const c = await context(locale, slug);
           const watched = await load(page, c, size);
-          const row = page.getByRole("navigation", { name: c.copy.footer.language });
+          const row = page.getByRole("navigation", { name: SITE_FOOTER_COPY[locale].language });
           const links = row.getByRole("link");
           await expect(links).toHaveCount(3);
           const expected = LOCALES.map((l) => stayUrl(l, slug));
@@ -594,7 +877,7 @@ for (const slug of FOCUS) {
         await expect(page.locator("#policies li")).toHaveCount(c.stay.policy_headings.length);
         expect(c.stay.policy_headings.length).toBe(4);
         for (const heading of c.stay.policy_headings) await expect(page.locator("#policies")).toContainText(heading);
-        await expect(page.locator("main button:has(> img) img")).toHaveCount(c.stay.gallery.length);
+        await expect(carousel(page).locator("img")).toHaveCount(c.stay.gallery.length);
         expect(media.media.missing).toEqual([]);
         await context0.close();
       });

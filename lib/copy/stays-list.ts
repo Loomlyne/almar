@@ -27,17 +27,6 @@ export type StaysListCopy = {
   count: PluralForms;
   empty: string;
   clear: string;
-  /** The page frame's own strings (nav labels come from lib/copy/home.ts, the frame is shared). */
-  frame: {
-    footer: {
-      pages: string;
-      contact: string;
-      instagram: string;
-      newTab: string;
-      language: string;
-      copyright: string;
-    };
-  };
 };
 
 export const STAYS_LIST_COPY: Record<StaysListLocale, StaysListCopy> = {
@@ -64,16 +53,6 @@ export const STAYS_LIST_COPY: Record<StaysListLocale, StaysListCopy> = {
     count: { one: "# stay", other: "# stays" },
     empty: "No stays match these filters.",
     clear: "Clear filters",
-    frame: {
-      footer: {
-        pages: "Pages",
-        contact: "Contact",
-        instagram: "Instagram",
-        newTab: "(opens in a new tab)",
-        language: "Language",
-        copyright: "© 2026 ALMAR Private Journeys. All rights reserved.",
-      },
-    },
   },
   ar: {
     meta: {
@@ -105,16 +84,6 @@ export const STAYS_LIST_COPY: Record<StaysListLocale, StaysListCopy> = {
     },
     empty: "لا توجد إقامات تطابق هذه المرشّحات.",
     clear: "مسح المرشّحات",
-    frame: {
-      footer: {
-        pages: "الصفحات",
-        contact: "تواصل",
-        instagram: "إنستغرام",
-        newTab: "(يُفتح في علامة تبويب جديدة)",
-        language: "اللغة",
-        copyright: "© 2026 ALMAR Private Journeys. جميع الحقوق محفوظة.",
-      },
-    },
   },
   es: {
     meta: {
@@ -139,15 +108,5 @@ export const STAYS_LIST_COPY: Record<StaysListLocale, StaysListCopy> = {
     count: { one: "# estancia", other: "# estancias" },
     empty: "Ninguna estancia coincide con estos filtros.",
     clear: "Borrar filtros",
-    frame: {
-      footer: {
-        pages: "Páginas",
-        contact: "Contacto",
-        instagram: "Instagram",
-        newTab: "(se abre en una pestaña nueva)",
-        language: "Idioma",
-        copyright: "© 2026 ALMAR Private Journeys. Todos los derechos reservados.",
-      },
-    },
   },
 };

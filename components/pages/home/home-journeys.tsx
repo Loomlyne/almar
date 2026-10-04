@@ -1,8 +1,9 @@
 "use client";
 
 import { Amount } from "../../ui/amount";
-import { Chip } from "../../ui/chip";
-import { FactList } from "../../ui/fact-list";
+import { CalendarIcon } from "../../icons/icons";
+import { Divider } from "../../ui/divider";
+import { Reveal } from "../../ui/reveal";
 import { Section } from "../../ui/section";
 import { formatDate } from "../../../lib/format";
 import type { FxRates } from "../../../lib/fx/rates";
@@ -58,46 +59,64 @@ export function HomeJourneys({
 
   return (
     <div id="journeys" {...fx}>
-      <Section heading={copy.heading} intro={copy.intro}>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {tiers.map((tier) => (
-            <article key={tier.slug} className="grid min-w-0 content-start gap-4">
-              {tier.image ? (
-                <img
-                  src={tier.image.src}
-                  alt={tier.image.alt}
-                  width={tier.image.width ?? undefined}
-                  height={tier.image.height ?? undefined}
-                  decoding="async"
-                  className="block aspect-4/3 w-full object-cover outline outline-1 outline-line -outline-offset-1"
-                />
-              ) : null}
-              <div className="flex flex-wrap items-center gap-3">
-                <h3 className="m-0 font-display text-title text-teal">{tier.name}</h3>
-                {tier.is_featured ? (
-                  <Chip interactive={false} size="dense">
-                    {copy.featured}
-                  </Chip>
-                ) : null}
-              </div>
-              <p data-price={tier.slug} className="m-0 font-display text-title text-teal">
-                <Amount text={tier.price_label} selected={selected} rates={rates} locale={locale} />
-              </p>
-              {tier.tagline ? <p className="m-0 text-body text-ink">{tier.tagline}</p> : null}
-              {tier.duration_label ? <p className="m-0 text-label text-muted">{tier.duration_label}</p> : null}
-              {tier.ideal_for_label && tier.ideal_for ? (
-                <FactList items={[{ label: tier.ideal_for_label, value: tier.ideal_for }]} />
-              ) : null}
-              {tier.body ? <p className="m-0 text-label text-muted">{tier.body}</p> : null}
-            </article>
-          ))}
-        </div>
+      <Divider />
+      <Section variant="page" heading={copy.heading} intro={copy.intro}>
+        <Reveal kind="row">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {tiers.map((tier, index) => (
+              <article key={tier.slug} className="grid min-w-0 content-start border border-line bg-surface">
+                <div className="relative">
+                  {tier.image ? (
+                    <img
+                      src={tier.image.src}
+                      alt={tier.image.alt}
+                      width={tier.image.width ?? undefined}
+                      height={tier.image.height ?? undefined}
+                      decoding="async"
+                      className="block aspect-48/35 w-full object-cover"
+                    />
+                  ) : null}
+                  {tier.is_featured ? (
+                    <span className="absolute end-4 top-4 bg-teal px-3 py-1 text-caption uppercase tracking-kicker text-ivory ar:normal-case ar:tracking-normal">
+                      {copy.featured}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="grid gap-4 p-6">
+                  <p className="m-0 text-caption text-teal">{String(index + 1).padStart(2, "0")}</p>
+                  <h3 className="m-0 font-display text-heading text-teal">{tier.name}</h3>
+                  <p data-price={tier.slug} className="m-0 text-label text-teal md:text-body">
+                    <Amount text={tier.price_label} selected={selected} rates={rates} locale={locale} />
+                  </p>
+                  {tier.tagline ? <p className="m-0 text-body text-ink">{tier.tagline}</p> : null}
+                  {tier.duration_label ? (
+                    <p className="m-0 flex items-center gap-2 text-caption text-ink">
+                      <CalendarIcon size={16} />
+                      {tier.duration_label}
+                    </p>
+                  ) : null}
+                  <div className="border-t border-line" />
+                  {tier.ideal_for_label && tier.ideal_for ? (
+                    <>
+                      <p className="m-0 text-caption uppercase tracking-kicker text-teal ar:normal-case ar:tracking-normal">
+                        {tier.ideal_for_label}
+                      </p>
+                      <p className="m-0 text-label text-ink">{tier.ideal_for}</p>
+                    </>
+                  ) : null}
+                  {tier.body ? <p className="m-0 text-label text-muted">{tier.body}</p> : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        </Reveal>
         {selected && rates ? (
           <p data-testid="rates-line" aria-live="polite" className="m-0 text-label text-muted">
             {ratesLine(copy.ratesOf, rates.date)}
           </p>
         ) : null}
       </Section>
+      <Divider />
     </div>
   );
 }
