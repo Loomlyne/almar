@@ -71,7 +71,7 @@ test("middleware reads Host, sets the shell header itself, and drops a client co
 
 test("no /ops route exists and wrangler files name no ops host", () => {
   assert.equal(existsSync("app/ops"), false);
-  for (const path of ["wrangler.toml", "wrangler.server.jsonc"]) {
+  for (const path of ["wrangler.toml", "wrangler.preview.toml"]) {
     assert.equal(/dashboard\./.test(readFileSync(path, "utf8")), false, path);
   }
 });
