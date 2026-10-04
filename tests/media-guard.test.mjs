@@ -3,7 +3,8 @@
 //      framerusercontent.com, files.catbox.moe or videos.pexels.com; fixtures hold keys, never URLs; the placeholder
 //      host lives in lib/data/media.ts only.
 //   2. Constants: lib/data/media.ts is coherent (placeholder iff flag true; otherwise an https origin).
-//   3. out/ scan (only with MEDIA_CHECK_OUT=1): the 42 slice-1 documents point at the media base and nowhere else.
+//   3. out/ scan (only with MEDIA_CHECK_OUT=1): every public React document the guard lists (slice 1's, plus About and Contact once they are in PUBLIC_PAGES)
+//      points at the media base and nowhere else.
 //   4. assertMediaReady() and the `--deploy` CLI the controller runs before every deploy.
 // The red cases run on scratch copies in os.tmpdir(); the scan functions below are this file's own, so the guard
 // cannot go silent because the script it also tests changed.
@@ -13,7 +14,8 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { REPO_ROOT, collectFixtureImages, readStaySlugs, slice1Documents } from "../scripts/media-lib.mjs";
+import { REPO_ROOT, collectFixtureImages, guardedDocuments, readStaySlugs, slice1Documents, slice3Documents } from "../scripts/media-lib.mjs";
+import { PUBLIC_PAGES } from "../lib/locale-path.ts";
 import { assertMediaReady, imageReferences, main as guardMain, readMediaConstants, scanOut } from "../scripts/media-guard.mjs";
 
 const THIRD_PARTY = ["framerusercontent.com", "files.catbox.moe", "videos.pexels.com"];
@@ -119,7 +121,7 @@ const GOOD_BASE = "https://media.example.test";
 
 function writeDocs(root, base, { out = "out", mutate } = {}) {
   const slugs = readStaySlugs(path.join(root, "lib", "data", "fixtures"));
-  for (const doc of slice1Documents(slugs)) {
+  for (const doc of guardedDocuments(slugs)) {
     const file = path.join(root, out, ...doc.split("/"));
     fs.mkdirSync(path.dirname(file), { recursive: true });
     let html = `<!doctype html><html><head><meta content="${base}/home/hero/poster.webp" property="og:image"/></head><body>` +
@@ -213,13 +215,13 @@ test("RED: a media.ts with the flag false and an .invalid URL, a path, a trailin
 
 const checkOut = process.env.MEDIA_CHECK_OUT === "1";
 
-test(checkOut ? "out/: the 42 slice-1 documents point at the media base and nowhere else" : "out/: the 42 slice-1 documents point at the media base and nowhere else (SKIPPED: set MEDIA_CHECK_OUT=1)", { skip: !checkOut && "set MEDIA_CHECK_OUT=1 after the assembler has written out/" }, () => {
+test(checkOut ? "out/: every guarded document points at the media base and nowhere else" : "out/: every guarded document points at the media base and nowhere else (SKIPPED: set MEDIA_CHECK_OUT=1)", { skip: !checkOut && "set MEDIA_CHECK_OUT=1 after the assembler has written out/" }, () => {
   const outDir = path.join(REPO_ROOT, "out");
   assert.ok(fs.existsSync(outDir), "out/ is missing: run the assembler first (with MEDIA_CHECK_OUT=1 a missing out/ is a failure)");
   const { base } = readMediaConstants(REPO_ROOT);
   const r = scanOut(outDir, base);
   assert.deepEqual(r.violations, []);
-  assert.equal(r.documents, 42);
+  assert.equal(r.documents, guardedDocuments().length);
   assert.ok(r.images > 0);
 });
 
@@ -250,25 +252,26 @@ test("assertMediaReady on scratch roots: placeholder, bad base, good base", () =
   assert.throws(() => assertMediaReady({ root }), /exactly once each/);
 });
 
-test("scanOut: 42 clean documents have no violations and 4 image references each", () => {
+test("scanOut: clean documents have no violations and 4 image references each", () => {
   const root = scratchTree("scan-ok");
   writeDocs(root, GOOD_BASE);
-  const r = scanOut(path.join(root, "out"), GOOD_BASE, { documents: slice1Documents(readStaySlugs(path.join(root, "lib", "data", "fixtures"))) });
+  const docs = guardedDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const r = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
   assert.deepEqual(r.violations, []);
-  assert.equal(r.documents, 42);
-  assert.equal(r.images, 42 * 4, "one img src, two srcset candidates, one og:image per document; data-src is not an image src");
+  assert.equal(r.documents, docs.length);
+  assert.equal(r.images, docs.length * 4, "one img src, two srcset candidates, one og:image per document; data-src is not an image src");
 });
 
 test("scanOut allows the same-origin nav wordmarks under /_next/static/media/, and only that shape", () => {
   const root = scratchTree("scan-brand");
-  const docs = slice1Documents(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const docs = guardedDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
   const BRAND = "/_next/static/media/Poly_White.3f2a9c1d.svg";
   const CHARCOAL = "/_next/static/media/Stacked_Charcoal.7b41e0aa.svg";
   // the nav wordmark is one <img src> on every document, as the build writes it
   writeDocs(root, GOOD_BASE, { mutate: (doc, html) => html.replace("<img ", `<img alt="ALMAR" src="${doc === "index.html" ? CHARCOAL : BRAND}"><img `) });
   const ok = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
   assert.deepEqual(ok.violations, []);
-  assert.equal(ok.images, 42 * 5, "the wordmark is counted and checked, not skipped");
+  assert.equal(ok.images, docs.length * 5, "the wordmark is counted and checked, not skipped");
 
   // every other same-origin or foreign shape keeps failing
   const bad = {
@@ -312,7 +315,7 @@ test("imageReferences reads attributes in any order, with single or double quote
 
 test("RED: a document with a framerusercontent src, a placeholder host, a foreign srcset candidate, a foreign og:image or no file is reported", () => {
   const root = scratchTree("scan-red");
-  const docs = slice1Documents(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const docs = guardedDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
   writeDocs(root, GOOD_BASE, {
     mutate: (doc, html) => {
       if (doc === "index.html") return html.replace(`src="${GOOD_BASE}/stays/a/hero.webp"`, 'src="https://framerusercontent.com/images/x.jpg"');
@@ -334,14 +337,54 @@ test("RED: a document with a framerusercontent src, a placeholder host, a foreig
   assert.match(text, /^es\/private-stays\.html: document is missing$/m);
 });
 
+test("RED: About and Contact documents with a third-party host, a framer img or no file are reported (the six documents of slice 3)", () => {
+  const root = scratchTree("scan-slice3");
+  const pages = [...PUBLIC_PAGES, "/about", "/contact"];
+  const docs = guardedDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures")), pages);
+  const six = ["about.html", "ar/about.html", "es/about.html", "contact.html", "ar/contact.html", "es/contact.html"];
+  for (const d of six) assert.ok(docs.includes(d), `${d} is guarded once /about and /contact are public`);
+  // writeDocs follows the real PUBLIC_PAGES, so write every document of this list here
+  for (const doc of docs) {
+    const file = path.join(root, "out", ...doc.split("/"));
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    let html = `<!doctype html><html><head><meta content="${GOOD_BASE}/home/hero/poster.webp" property="og:image"/></head><body><img alt="" src="${GOOD_BASE}/about/hero.webp"></body></html>`;
+    if (doc === "about.html") html = html.replace("<img", '<video src="https://videos.pexels.com/v.mp4"></video><img');
+    if (doc === "ar/about.html") html = html.replace("<img", '<a href="https://files.catbox.moe/h.mp4">v</a><img');
+    if (doc === "es/contact.html") html = html.replace(`src="${GOOD_BASE}/about/hero.webp"`, 'src="https://framerusercontent.com/images/c.jpg"');
+    fs.writeFileSync(file, html);
+  }
+  fs.rmSync(path.join(root, "out", "contact.html"));
+  const { violations } = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
+  const text = violations.map((v) => `${v.document}: ${v.problem}`);
+  assert.deepEqual(text.sort(), [
+    "about.html: contains videos.pexels.com",
+    "ar/about.html: contains files.catbox.moe",
+    "contact.html: document is missing",
+    'es/contact.html: contains framerusercontent.com',
+    'es/contact.html: img src "https://framerusercontent.com/images/c.jpg" does not start with ' + GOOD_BASE + "/",
+  ].sort());
+});
+
+test("slice3Documents follows PUBLIC_PAGES: nothing until /about and /contact are public, exactly six after", () => {
+  assert.deepEqual(slice3Documents(["/", "/private-stays", "/private-stays/[stay]"]), []);
+  assert.deepEqual(slice3Documents([...PUBLIC_PAGES, "/about", "/contact"]), [
+    "about.html", "contact.html", "ar/about.html", "ar/contact.html", "es/about.html", "es/contact.html",
+  ]);
+  assert.equal(slice3Documents(["/about"]).length, 3);
+  const slugs = readStaySlugs();
+  assert.equal(guardedDocuments(slugs, [...PUBLIC_PAGES, "/about", "/contact"]).length, slice1Documents(slugs).length + 6);
+  assert.deepEqual(guardedDocuments(slugs, PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact")), slice1Documents(slugs));
+});
+
 test("main --deploy: exit 0 and the OK line for a good scratch root; exit 1 for a bad document, a missing out/, a placeholder", () => {
   const root = scratchTree("cli");
   setMedia(root, { base: GOOD_BASE, placeholder: false });
   const logs = [];
   const log = (l) => logs.push(l);
   writeDocs(root, GOOD_BASE);
+  const n = guardedDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures"))).length;
   assert.equal(guardMain(["--deploy", "--root", root], { log }), 0, logs.join("\n"));
-  assert.equal(logs.at(-1), `media-guard: OK ${GOOD_BASE}, 42 documents, 168 image references`);
+  assert.equal(logs.at(-1), `media-guard: OK ${GOOD_BASE}, ${n} documents, ${n * 4} image references`);
   // another output folder (the preview build writes out-preview/)
   writeDocs(root, GOOD_BASE, { out: "out-preview" });
   logs.length = 0;

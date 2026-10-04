@@ -21,13 +21,18 @@ import {
   isWebp,
   md5,
   readManifest,
+  guardedDocuments,
+  readStaySlugs,
   serializeManifest,
   sha256,
   slice1Documents,
+  slice3Documents,
   webpDimensions,
 } from "../scripts/media-lib.mjs";
 import { buildManifest, checkManifest, main as manifestMain, syncFixtureDimensions } from "../scripts/media-manifest.mjs";
 import { fetchAll, withFormatWebp } from "../scripts/media-fetch.mjs";
+import { assembleOut } from "../scripts/assemble-cloudflare.mjs";
+import { PUBLIC_PAGES, matchPublicPage } from "../lib/locale-path.ts";
 
 const paths = defaultPaths();
 const manifest = readManifest(paths.manifestPath);
@@ -274,6 +279,53 @@ test("slice1Documents lists the 42 slice-1 documents: 14 per locale, EN at the r
   assert.ok(docs.includes("index.html") && docs.includes("ar/index.html") && docs.includes("es/index.html"));
   assert.ok(docs.includes("private-stays.html") && docs.includes("es/private-stays/getsemani-colonial-house.html"));
   assert.equal(docs.filter((d) => d.startsWith("ar/")).length, 14);
+});
+
+// The guarded document list and the assembler agree (plan 03.3-22) ------------------------------------------------
+
+/** assembleOut's input layout for an out/ document: a locale home is <locale>.html, every other page keeps its path. */
+function assemblerInput(doc) {
+  return doc.replace(/^(ar|es)\/index\.html$/, "$1.html");
+}
+
+test("the guarded documents are exactly the React documents assembleOut ships, About and Contact included once public", () => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), "almar-guarded-docs-"));
+  const slugs = readStaySlugs();
+  // One React .html per document the guard could ever list, plus the six About/Contact ones, whether or not they are public.
+  const all = [...guardedDocuments(slugs, [...PUBLIC_PAGES, "/about", "/contact"])];
+  for (const doc of all) {
+    const file = path.join(base, "app", assemblerInput(doc));
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, `<html>${doc}</html>`);
+  }
+  // A page outside PUBLIC_PAGES ships in neither list.
+  fs.writeFileSync(path.join(base, "app", "dashboard.html"), "<html>dashboard</html>");
+  fs.mkdirSync(path.join(base, "static", "css"), { recursive: true });
+  fs.writeFileSync(path.join(base, "static", "css", "x.css"), "body{}");
+  fs.mkdirSync(path.join(base, "public"), { recursive: true });
+  fs.writeFileSync(path.join(base, "_headers"), "/*\n  X-Test: 1\n");
+  const report = assembleOut({
+    appDir: path.join(base, "app"),
+    staticDir: path.join(base, "static"),
+    outDir: path.join(base, "out"),
+    publicDir: path.join(base, "public"),
+    headersFile: path.join(base, "_headers"),
+  });
+  const shipped = [...report.react.en, ...report.react.ar, ...report.react.es].sort();
+  assert.deepEqual(shipped, [...guardedDocuments(slugs)].sort());
+  assert.equal(shipped.includes("about.html"), matchPublicPage("/about") !== null, "about.html ships iff /about is in PUBLIC_PAGES");
+  assert.equal(shipped.includes("contact.html"), matchPublicPage("/contact") !== null);
+  assert.ok(!shipped.includes("dashboard.html"));
+});
+
+test("adding /about and /contact to PUBLIC_PAGES grows the guarded list by exactly six", () => {
+  const slugs = readStaySlugs();
+  const before = guardedDocuments(slugs, PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact"));
+  const after = guardedDocuments(slugs, [...PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact"), "/about", "/contact"]);
+  assert.equal(after.length, before.length + 6);
+  const added = after.filter((d) => !before.includes(d)).sort();
+  assert.deepEqual(added, ["about.html", "ar/about.html", "ar/contact.html", "contact.html", "es/about.html", "es/contact.html"]);
+  assert.deepEqual(slice3Documents(["/about", "/contact"]).sort(), added);
 });
 
 // Task 2: measured fields, the cache, and fetch -------------------------------------------------------------------
