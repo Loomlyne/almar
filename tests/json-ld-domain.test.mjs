@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
-import { englishReactRoutes, framerRoutes } from "./helpers/site-links.mjs";
+import { framerRoutes, siteInventory } from "./helpers/site-links.mjs";
 
 // Job 04 item 12: the JSON-LD on every Framer page names the real domain, never Framer's.
 const DOMAIN = "https://almarprivatejourney.com/";
@@ -18,11 +18,13 @@ function urls(value, out = []) {
 
 const routes = framerRoutes();
 
-// The 26 English pages are Framer route handlers plus React pages (3.3 converts 14 of them). The per-page
-// JSON-LD check below runs on the Framer ones; the React documents are checked in the built output by
-// tests/build/assembled-site.test.mjs.
-test("the 26 English pages are all accounted for", () => {
-  assert.equal(routes.length + englishReactRoutes().length, 26);
+// The English pages are Framer route handlers plus React pages. The per-page JSON-LD check below runs on the
+// Framer ones; the React documents are checked in the built output by tests/build/assembled-site.test.mjs.
+test("every English page is counted once and every job-04 address still answers", (t) => {
+  const inv = siteInventory();
+  t.diagnostic(`${inv.framer.length} Framer + ${inv.englishReact.length} React English pages, ${inv.redirected.length} redirected addresses`);
+  assert.deepEqual(inv.doubled, []);
+  assert.deepEqual(inv.unanswered, []);
 });
 
 for (const file of routes) {

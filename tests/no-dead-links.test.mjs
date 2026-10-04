@@ -1,7 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, statSync } from "node:fs";
-import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
   HIDDEN,
@@ -11,8 +9,11 @@ import {
   deadKey,
   framerPagePath,
   framerRoutes,
-  englishReactRoutes,
+  hasRoute,
+  readRedirects,
   reactPublicRoutes,
+  siteInventory,
+  sitePages,
 } from "./helpers/site-links.mjs";
 
 // Job 04 item 11: no Framer page links to a path that has no route.
@@ -20,9 +21,8 @@ import {
 // KNOWN_DEAD lists live in tests/helpers/site-links.mjs, shared with the built-output check.
 
 const routes = framerRoutes();
-const reactRoutes = reactPublicRoutes();
-const pages = new Set([...routes.map(framerPagePath), ...reactRoutes.map((p) => (p.length > 1 ? p.replace(/\/$/, "") : p))]);
-const hasRoute = (path) => pages.has(path) || (existsSync(join("public", path)) && statSync(join("public", path)).isFile());
+const pages = sitePages();
+const rules = readRedirects().rules;
 
 // path -> pages that link to it, for every internal link with no route
 const dead = new Map();
@@ -34,14 +34,15 @@ for (const file of routes) {
     const url = new URL(href.replaceAll("&amp;", "&"), SITE + framerPagePath(file));
     if (url.origin !== SITE) continue;
     const path = url.pathname === "/" ? "/" : url.pathname.replace(/\/$/, "");
-    if (!hasRoute(path)) dead.set(path, [...(dead.get(path) ?? []), framerPagePath(file)]);
+    if (!hasRoute(path, { pages, rules })) dead.set(path, [...(dead.get(path) ?? []), framerPagePath(file)]);
   }
 }
 
-const englishReact = englishReactRoutes();
-
-test("the 26 English pages are all accounted for", () => {
-  assert.equal(routes.length + englishReact.length, 26);
+test("every English page is counted once and every job-04 address still answers", (t) => {
+  const inv = siteInventory();
+  t.diagnostic(`${inv.framer.length} Framer + ${inv.englishReact.length} React English pages, ${inv.redirected.length} redirected addresses`);
+  assert.deepEqual(inv.doubled, []);
+  assert.deepEqual(inv.unanswered, []);
 });
 
 test("no page links to the paths hidden by job 04", () => {
