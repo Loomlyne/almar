@@ -67,11 +67,12 @@ type RemovableProps = {
  */
 export function Chip(props: ToggleProps | RemovableProps) {
   if (props.onRemove) {
+    const { onRemove, removeLabel } = props;
     return (
       <button
         type="button"
-        aria-label={props.removeLabel}
-        onClick={props.onRemove}
+        aria-label={removeLabel}
+        onClick={onRemove}
         className="ui-chip relative inline-flex h-chip w-max max-w-full shrink-0 cursor-pointer items-center gap-2 rounded-none border-0 bg-teal-tint ps-4 pe-3 font-body text-label text-teal after:absolute after:-inset-y-0.5 after:inset-x-0"
       >
         <span>{props.children}</span>
