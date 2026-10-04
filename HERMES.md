@@ -50,7 +50,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - Node built-in test runner (`node --test tests/*.test.mjs`) - source-text and pure-function checks (27 `.test.mjs` files).
 - Playwright 1.63.0 (`@playwright/test`, chromium project only) - `tests/*.spec.ts` and `tests/journey/*.spec.ts`. Config `playwright.config.ts`: `testDir: "tests"`, snapshots at `{testDir}/{arg}{ext}`, zero-pixel-diff screenshots, dev server on `127.0.0.1:${PW_PORT ?? 3010}` with `ALMAR_HARNESS=1`, `reuseExistingServer: false`.
 - `next dev` / `next build` / `next start` - `package.json` scripts `dev`, `build`, `start`.
-- Wrangler 4.141.0 - Cloudflare deploys. `npm run host:cloudflare` = `node scripts/assemble-cloudflare.mjs && wrangler deploy`.
+- Wrangler 4.141.0 - Cloudflare deploys, run by hand with the ALMAR login: `HOME=/Users/koss/.almar-cloudflare CLOUDFLARE_ACCOUNT_ID=f1d9a1fa3abdda98c15161b00b40385c ./node_modules/.bin/wrangler deploy` (preview: add `-c wrangler.preview.toml` after `node scripts/assemble-cloudflare.mjs --target=preview`). No `package.json` script deploys.
 - `@opennextjs/cloudflare` 1.20.6 - installed (peer: Next >=15.5.24 <16, wrangler ^4.125) but NOT configured: no `open-next.config.ts`, no `.open-next/`, no worker `main` in `wrangler.toml`, no script that calls `opennextjs-cloudflare`. The Next server runtime on Cloudflare does not exist yet.
 - esbuild 0.25.4 - hoisted transitive dependency (of `@opennextjs/aws`), not declared. Used only by the dev-only route `app/embed/hero-booker/route.ts`, which shells out to `node_modules/esbuild/bin/esbuild`.
 - `scripts/generate-theme.mjs` - `npm run tokens` writes `tokens.json` into the block between `/* GENERATED:THEME:START */` and `/* GENERATED:THEME:END */` in `app/globals.css`; `npm run tokens:check` fails if it is out of date.
@@ -87,7 +87,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - Checks before a hand-over (see `.planning/CONTROL-BOARD.md`): `npx tsc --noEmit`, `node --test tests/*.test.mjs`, `npm run tokens:check`, `npm run build`, `npx playwright test`.
 - Fonts and brand assets are read from `brand/` (committed) and images from `public/assets/img` (300 files) and `public/assets/fonts`.
 - Cloudflare Worker `almar` (static assets from `out/`) on the Cloudflare account "Almar Private Journey" (`f1d9a1fa...`, since 2026-10-02). Live domains: `almarprivatejourney.com`, `www.almarprivatejourney.com`, plus `almar.almar-private-journey.workers.dev`.
-- Deploy is manual: `npm run host:cloudflare`, run with the ALMAR-only wrangler login and `CLOUDFLARE_ACCOUNT_ID` set (the default `~/.wrangler` login sees only the Vamos account; `wrangler.toml` has no `account_id` yet). Only on the owner's explicit word.
+- Deploy is manual: build with `node scripts/assemble-cloudflare.mjs`, then the ALMAR-login `wrangler deploy` command above (plain `wrangler` uses the Vamos login on this Mac; `wrangler.toml` pins `account_id`). Only on the owner's explicit word. Runbook: `.planning/phases/02-platform-spine/02-RUNTIME-DEPLOY.md`.
 - The Next server runtime (OpenNext) is not configured, so production serves only what `scripts/assemble-cloudflare.mjs` puts in `out/`: the Framer static pages, `public/`, `404.html`, `_headers`.
 - No CI (`.github/` absent).
 <!-- GSD:stack-end -->
@@ -240,7 +240,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - Used by: `scripts/assemble-cloudflare.mjs`, Worker static assets.
 - Note: the header comment in `app/route.ts` mentions `routeHandler()` in `lib/nextjs-export.ts`; that file does not exist.
 - Purpose: Turn the Next build into the `out/` folder the Worker serves.
-- Location: `scripts/assemble-cloudflare.mjs`, `wrangler.toml`, `_headers`, `package.json` script `host:cloudflare`.
+- Location: `scripts/assemble-cloudflare.mjs`, `wrangler.toml`, `_headers`, `package.json` scripts `build:cloudflare` and `build:preview`.
 - Depends on: `next build`, `lib/not-found-document.ts`, `brand/Logo Monogram/Curves_black.svg`.
 - Needs Node >= 22.18 because the script imports a `.ts` file directly.
 - Purpose: One token set feeds Tailwind v4 `@theme`.
@@ -302,9 +302,9 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - Location: `app/route.ts` (home) and the other 25 `route.ts` Framer handlers.
 - Triggers: Cloudflare request for the path (production) or `next dev`/`next start`.
 - Responsibilities: Return the Framer HTML.
-- Location: `scripts/assemble-cloudflare.mjs` (`npm run host:cloudflare`).
+- Location: `scripts/assemble-cloudflare.mjs` (`npm run build:cloudflare`, `npm run build:preview`).
 - Triggers: The controller session, by hand.
-- Responsibilities: Build, assemble `out/`, deploy.
+- Responsibilities: Build, assemble `out/`. It never deploys; the ALMAR-login `wrangler deploy` is run by hand.
 - Location: `scripts/generate-theme.mjs` (`npm run tokens`, `npm run tokens:check`).
 - Triggers: After a `tokens.json` change; CI-style check in the controller's clean-clone run.
 - Location: `scripts/screens-diff.mjs`.
