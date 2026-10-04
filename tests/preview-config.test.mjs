@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
@@ -30,14 +29,22 @@ function topLevel(text) {
   return out;
 }
 
-test("wrangler.preview.toml: the Worker, the account, the date and no runtime", () => {
+// Job 10 (plan 02-20) gave both Worker files the same server runtime on purpose: main, flags, preview_urls and the
+// ASSETS binding. Everything else in this file is plan 08's, unchanged.
+const RUNTIME_LINES = [
+  'compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]',
+  'main = "worker/almar.mjs"',
+];
+
+test("wrangler.preview.toml: the Worker, the account, the date and the job 10 runtime", () => {
   assert.deepEqual(topLevel(preview), [
     'name = "almar-preview"',
     'account_id = "f1d9a1fa3abdda98c15161b00b40385c"',
     'compatibility_date = "2026-09-23"',
+    ...RUNTIME_LINES,
     "workers_dev = false",
+    "preview_urls = false",
   ]);
-  assert.equal(/^main\s*=/m.test(preview), false, "no main: static assets only");
   assert.equal(/^\[vars\]|^\[\[.*(bindings|kv|r2|d1|queues|services)/im.test(preview), false, "no vars and no binding");
 });
 
@@ -49,7 +56,7 @@ test("wrangler.preview.toml: the compatibility date and the account are wrangler
 test("wrangler.preview.toml: [assets] is wrangler.toml's, except that it serves out-preview/", () => {
   const previewAssets = block(preview, "[assets]");
   const liveAssets = block(live, "[assets]");
-  assert.deepEqual(liveAssets, ['directory = "./out"', 'html_handling = "auto-trailing-slash"', 'not_found_handling = "404-page"']);
+  assert.deepEqual(liveAssets, ['directory = "./out"', 'binding = "ASSETS"', 'html_handling = "auto-trailing-slash"', 'not_found_handling = "404-page"']);
   assert.deepEqual(previewAssets, ['directory = "./out-preview"', ...liveAssets.slice(1)]);
 });
 
@@ -64,24 +71,24 @@ test("wrangler.toml still serves out/ for the live Worker and its two custom dom
     'name = "almar"',
     'account_id = "f1d9a1fa3abdda98c15161b00b40385c"',
     'compatibility_date = "2026-09-23"',
+    ...RUNTIME_LINES,
     "workers_dev = false",
+    "preview_urls = false",
   ]);
   assert.equal((live.match(/^\[\[routes\]\]$/gm) ?? []).length, 2);
   assert.ok(live.includes('pattern = "almarprivatejourney.com"'));
   assert.ok(live.includes('pattern = "www.almarprivatejourney.com"'));
   assert.ok(live.includes('directory = "./out"'));
-  assert.equal(/preview/i.test(live), false, "wrangler.toml names neither preview nor almar-preview");
-  assert.equal(/^main\s*=/m.test(live), false);
+  // `preview_urls` holds the word on purpose (job 10); the preview Worker and host never appear.
+  assert.equal(/almar-preview|preview\.almarprivatejourney/i.test(live), false, "wrangler.toml names neither the preview host nor almar-preview");
 });
 
-test("wrangler.toml is byte-identical to origin/main (skipped where origin/main is not a ref)", (t) => {
-  try {
-    execFileSync("git", ["rev-parse", "--verify", "--quiet", "origin/main"], { stdio: "ignore" });
-  } catch {
-    t.skip("origin/main is not a ref here");
-    return;
-  }
-  execFileSync("git", ["diff", "--exit-code", "origin/main", "--", "wrangler.toml"], { stdio: "pipe" });
+test("wrangler.toml: exactly the live routes, the account and no workers.dev address (job 10 replaced the origin/main identity check)", () => {
+  assert.deepEqual(block(live, "[[routes]]"), ['pattern = "almarprivatejourney.com"', "custom_domain = true"]);
+  const routes = live.split("\n").filter((l) => l.startsWith("pattern = "));
+  assert.deepEqual(routes, ['pattern = "almarprivatejourney.com"', 'pattern = "www.almarprivatejourney.com"']);
+  assert.match(live, /^account_id = "f1d9a1fa3abdda98c15161b00b40385c"$/m);
+  assert.match(live, /^workers_dev = false$/m);
 });
 
 test("the repo-root _headers (served by production) carries no robots header", () => {

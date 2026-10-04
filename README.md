@@ -38,7 +38,11 @@ Design tokens live in `tokens.json`; `npm run tokens` regenerates the theme bloc
 static page body from `.next/server/app` as `.html`, the branded `404.html` and `_headers`.
 
 Worker `almar` (`wrangler.toml`) serves `out/` as static assets on the Cloudflare account "Almar Private
-Journey", pinned by `account_id`. There is no server code in production.
+Journey", pinned by `account_id`. Since job 10 the Worker also runs `worker/almar.mjs`, but only when no file
+matches: it forwards the exact paths in `lib/server-routes.ts` (every `app/api` route) to Next through OpenNext,
+and everything else gets the static 404. `npm run build:cloudflare` (or `build:preview`) builds both; it never
+deploys.
 
-Only the ALMAR control session deploys, and only on the owner's word (`npm run host:cloudflare` with
-the ALMAR Cloudflare login). Work sessions never deploy. There is no Vercel, Netlify or Docker path.
+Only the ALMAR control session deploys, and only on the owner's word, with the ALMAR Cloudflare login and the
+commands in `.planning/phases/02-platform-spine/02-RUNTIME-DEPLOY.md`. Work sessions never deploy. There is no
+Vercel, Netlify or Docker path.

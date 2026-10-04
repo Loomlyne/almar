@@ -215,6 +215,62 @@ test("writeServerPaths: writes the sorted list next to the OpenNext worker; refu
   assert.throws(() => writeServerPaths({ manifestFile: join(empty, "app-paths-manifest.json"), openNextDir: join(empty, ".open-next") }), /did not finish/);
 });
 
+// ---- the two Worker files, the scripts, .gitignore -----------------------------------------------------------
+
+const WORKER_FILES = ["wrangler.toml", "wrangler.preview.toml"];
+
+function topKey(text, key) {
+  const m = new RegExp(`^${key} = (.*)$`, "m").exec(text.split(/^\[/m)[0]);
+  return m ? m[1] : undefined;
+}
+
+test("both Worker files run the same script with the same flags, date and ASSETS binding", () => {
+  const [live, preview] = WORKER_FILES.map((f) => readFileSync(f, "utf8"));
+  for (const key of ["main", "compatibility_flags", "compatibility_date", "account_id", "workers_dev", "preview_urls"]) {
+    assert.ok(topKey(live, key) !== undefined, `wrangler.toml ${key}`);
+    assert.equal(topKey(preview, key), topKey(live, key), key);
+  }
+  assert.equal(topKey(live, "main"), '"worker/almar.mjs"');
+  assert.equal(topKey(live, "compatibility_flags"), '["nodejs_compat", "global_fetch_strictly_public"]');
+  assert.equal(topKey(live, "preview_urls"), "false");
+  for (const text of [live, preview]) {
+    assert.match(text, /^binding = "ASSETS"$/m);
+    assert.match(text, /^html_handling = "auto-trailing-slash"$/m);
+    assert.match(text, /^not_found_handling = "404-page"$/m);
+  }
+  assert.match(live, /^directory = "\.\/out"$/m);
+  assert.match(preview, /^directory = "\.\/out-preview"$/m);
+});
+
+test("neither Worker file runs the script first, or binds a variable, store, queue, service or object", () => {
+  for (const file of WORKER_FILES) {
+    const text = readFileSync(file, "utf8");
+    assert.equal(/run_worker_first/.test(text), false, file);
+    assert.equal(/^\[vars\]|^\[\[?(kv_namespaces|r2_buckets|d1_databases|durable_objects|services|queues|hyperdrive|vectorize|ai|browser|images|analytics_engine_datasets|send_email|secrets_store_secrets)/m.test(text), false, file);
+    assert.equal(/eyJ|re_[A-Za-z0-9]{8,}|sk_(live|test)_/.test(text), false, `${file} holds something that looks like a key`);
+  }
+});
+
+test("wrangler.toml keeps its two custom domains and never names the preview Worker or host", () => {
+  const live = readFileSync("wrangler.toml", "utf8");
+  assert.deepEqual(live.split("\n").filter((l) => l.startsWith("pattern = ")), ['pattern = "almarprivatejourney.com"', 'pattern = "www.almarprivatejourney.com"']);
+  assert.equal(/almar-preview|preview\.almarprivatejourney/i.test(live), false);
+});
+
+test("no package.json script deploys or uploads; the two build scripts only build", () => {
+  const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+  for (const [name, command] of Object.entries(pkg.scripts)) {
+    assert.equal(/wrangler\s+(deploy|versions\s+upload|secret)|opennextjs-cloudflare\s+(deploy|upload|preview)|vercel/.test(command), false, `${name}: ${command}`);
+  }
+  assert.equal(pkg.scripts["host:cloudflare"], undefined);
+  assert.equal(pkg.scripts["build:cloudflare"], "node scripts/assemble-cloudflare.mjs --target=production");
+  assert.equal(pkg.scripts["build:preview"], "node scripts/assemble-cloudflare.mjs --target=preview");
+});
+
+test(".gitignore keeps the OpenNext build out of git", () => {
+  assert.ok(readFileSync(".gitignore", "utf8").split("\n").includes("/.open-next/"));
+});
+
 // ---- source guards ----------------------------------------------------------------------------------------------
 
 function filesUnder(dir, found = []) {
