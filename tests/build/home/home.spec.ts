@@ -6,7 +6,7 @@ import { FRAMER_SOURCE_COPY } from "../../../lib/copy/framer-source";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { getDestinations } from "../../../lib/data/destinations";
 import { getCatalogItems } from "../../../lib/data/experiences";
-import { getHomeBlocks } from "../../../lib/data/home";
+import { getHomeBlocks, getJourneyTiers } from "../../../lib/data/home";
 import { getStays } from "../../../lib/data/stays";
 import { MEDIA_BASE_URL } from "../../../lib/data/media";
 import { formatDate, formatRange } from "../../../lib/format";
@@ -316,6 +316,15 @@ for (const vp of VIEWPORTS) {
         await expect(page.getByText(copy.team.kicker)).toHaveCount(0);
         await expect(page.getByText(copy.team.heading)).toHaveCount(0);
         await expect(page.locator("video")).toHaveCount(0);
+
+        // The second half: card counts and Begin's box (plan 44). Begin is the viewport's full width.
+        await expect(page.locator("#services ul li:visible")).toHaveCount(shownCards(vp));
+        await expect(page.locator("#stories ul li:visible")).toHaveCount(blocks.stories.length);
+        expect(blocks.stories).toHaveLength(3);
+        const begin = await page.locator("#begin").boundingBox();
+        expect(begin!.x).toBe(0);
+        expect(Math.round(begin!.width)).toBe(vp.width);
+        expect(begin!.height).toBeGreaterThanOrEqual(isPhone(vp) ? 360 : 600);
         expect(media.missing).toEqual([]);
       });
 
@@ -713,6 +722,85 @@ for (const vp of VIEWPORTS) {
           await entry.click();
           expect(await radius(page.getByRole("button", { name: c.sheet.next, exact: true }))).toBe("0px");
         }
+      });
+
+      test(`12 Moments: photo and panel alternate and mirror in Arabic; the inset photo shows from md; nights in grey; no link (${where})`, async ({ page }) => {
+        const { media } = await visit(page, locale);
+        const destinations = await getDestinations(locale);
+        const articles = page.locator("#experiences article");
+        await expect(articles).toHaveCount(destinations.length);
+        const muted = await page.evaluate(() => {
+          const probe = document.createElement("span");
+          probe.style.color = "var(--color-muted)";
+          document.body.appendChild(probe);
+          const color = getComputedStyle(probe).color;
+          probe.remove();
+          return color;
+        });
+        for (let i = 0; i < destinations.length; i += 1) {
+          const article = articles.nth(i);
+          const destination = destinations[i];
+          await expect(article.locator("a")).toHaveCount(0);
+          const inset = article.locator("img").nth(1);
+          if (destination.inset_image) {
+            expect(await inset.getAttribute("src")).toBe(destination.inset_image.url);
+            if (isPhone(vp)) await expect(inset).toBeHidden();
+            else await expect(inset).toBeVisible();
+          }
+          if (destination.nights_label) {
+            const nights = article.getByText(destination.nights_label, { exact: true });
+            expect(await nights.evaluate((node) => getComputedStyle(node).color)).toBe(muted);
+          }
+          if (!isPhone(vp)) {
+            const photo = (await article.locator("> img").boundingBox())!;
+            const panel = (await article.locator("> div").boundingBox())!;
+            const photoFirst = i % 2 === 0;
+            const startsLeft = locale !== "ar";
+            const photoIsLeft = photo.x < panel.x;
+            expect(photoIsLeft, `row ${i + 1}`).toBe(photoFirst === startsLeft);
+          }
+        }
+        expect(media.missing).toEqual([]);
+      });
+
+      test(`13 Choose Your Journey: three cards, published prices, badge on the featured tier, dividers, no Discover the Journey (${where})`, async ({ page }) => {
+        const { media } = await visit(page, locale);
+        const tiers = await getJourneyTiers(locale);
+        const cards = page.locator("#journeys article");
+        await expect(cards).toHaveCount(3);
+        expect(await priceTexts(page)).toEqual(tiers.map((tier) => tier.price_label));
+        const featured = tiers.filter((tier) => tier.is_featured).length;
+        await expect(page.locator("#journeys article", { hasText: copy.journeys.featured })).toHaveCount(featured);
+        for (let i = 0; i < tiers.length; i += 1) {
+          expect(await cards.nth(i).getByText(copy.journeys.featured, { exact: true }).count(), tiers[i].slug).toBe(tiers[i].is_featured ? 1 : 0);
+        }
+        await expect(page.locator("#journeys > div[aria-hidden=true]")).toHaveCount(2);
+        const body = (await page.locator("body").textContent()) ?? "";
+        expect(body).not.toContain("Discover the Journey");
+        expect(media.missing).toEqual([]);
+      });
+
+      test(`14 Begin: full-bleed band on its still photo, centred heading, the ivory Request Consultation to /contact (${where})`, async ({ page }) => {
+        const { media } = await visit(page, locale);
+        const blocks = await getHomeBlocks(locale);
+        const begin = page.locator("#begin");
+        expect(blocks.begin.video_url).toBeNull();
+        expect(await begin.locator("img").first().getAttribute("src")).toBe(blocks.begin.poster!.url);
+        await expect(begin.locator("video")).toHaveCount(0);
+        const box = (await begin.locator("h2").boundingBox())!;
+        expect(Math.abs(box.x + box.width / 2 - vp.width / 2)).toBeLessThanOrEqual(1);
+        const link = begin.getByRole("link", { name: copy.begin.cta });
+        expect(await link.getAttribute("href")).toBe("/contact");
+        const colors = await link.evaluate((node) => {
+          const probe = document.createElement("span");
+          probe.style.color = "var(--color-ivory)";
+          document.body.appendChild(probe);
+          const ivory = getComputedStyle(probe).color;
+          probe.remove();
+          return { background: getComputedStyle(node).backgroundColor, ivory };
+        });
+        expect(colors.background).toBe(colors.ivory);
+        expect(media.missing).toEqual([]);
       });
     });
   }
