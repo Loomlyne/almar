@@ -28,7 +28,7 @@ login), never `opennextjs-cloudflare deploy`, never an `npm run` deploy (there i
 1. `node scripts/assemble-cloudflare.mjs --target=preview`
    Expected last line: `assembled 57 html files into out-preview/ (target: preview) … server paths: /api/health;
    Worker N KiB gzip` (the page count grows as slices land). The assembler has already bundled the Worker with a
-   dry run and refused to finish above 2,560 KiB gzipped (`scripts/worker-size.mjs`); N was 1,651 on 2026-10-05.
+   dry run and refused to finish above 2,560 KiB gzipped (`scripts/worker-size.mjs`); N was 1,644 on 2026-10-05.
 2. What will run (security review 2026-10-04): `git status --short` prints nothing, and
    `cat .open-next/almar-server-routes.json` prints exactly `["/api/health"]` (plus any path a later landed job added
    on purpose). Anything else: STOP and rebuild. (The Worker also refuses to start with a held path in that file.)
@@ -39,7 +39,7 @@ login), never `opennextjs-cloudflare deploy`, never an `npm run` deploy (there i
    ```
 
    Expected: `Total Upload: … / gzip: N KiB` with N under 3,072 (Workers Free plan; job 10 measured 1,627, and
-   1,651 on 2026-10-05; the same N the assembler printed). Bindings: `env.ASSETS` only.
+   1,644 on 2026-10-05; the same N the assembler printed). Bindings: `env.ASSETS` only.
 3. Deploy:
 
    ```
