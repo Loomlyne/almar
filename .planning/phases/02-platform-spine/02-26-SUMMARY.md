@@ -76,3 +76,16 @@ Signed by the owner (last row of `02-JOB02-DECISIONS.md`). The signed draft scen
 ## Not verified
 - The real cookie round trip in a browser, the Supabase rpc and `verifyOtp` (no Supabase/Resend contact, no live link). The screen's submit path is covered by source-order and harness tests only.
 - No build or assembler run.
+
+## Third review follow-up
+
+Commits: d7e1d93 (migration), f002606 (cookie, form, tests).
+
+1. Nonce cookie name: `linkNonceCookieName()` in `lib/auth/continue.ts` returns `__Host-almar-link-nonce` in production (the cookie already is Secure, path `/`, no Domain) and `almar-link-nonce` otherwise. It replaces the `LINK_NONCE_COOKIE` constant; `magic-link-server.ts`, `app/auth/confirm/page.tsx` and `actions.ts` all call it, and a test fails if any of them spells the name out.
+2. A valid reused nonce is set again with a fresh 1-hour `maxAge` on every link request.
+3. Continue form without JavaScript: done. The form's `action` is now the server action through `useFormState(confirmSignIn, ...)` from `react-dom`. The installed `@types/react-dom/canary.d.ts` already types `useFormState` (no shim, no cast, `package.json` untouched), and Next's bundled React 19 canary (`19.2.0-canary-0bdb9206`) exports it at runtime. The controlled email input and the wrong-email error line still work (email-ask / email-wrong specs pass at 390/834/1440 EN+AR).
+   - Proof: Playwright with `javaScriptEnabled: false` on the real `/auth/confirm` page (the harness scenes mount on the client after hydration, so they render nothing without JavaScript). The form carries React's hidden `$ACTION_*` fields and a click sends a POST to `/auth/confirm`. In this environment (no Supabase) the response is a 500, which the test does not assert.
+   - Found, not fixed: that 500 is `TypeError: Invalid URL, input 'null'` in Next's action handling. Likely cause (not confirmed): the page sets `referrer: no-referrer`, and Chromium sends `Origin: null` on a form POST under that policy, which Next cannot parse. If so, a no-JS submit may fail in Chromium in production too, until the page uses a policy that still sends Origin (for example `same-origin`). The no-referrer policy was signed earlier, so it is left for the owner to decide.
+4. Migration: `claim_link_slot` deletes old rows only for the email key and for the IP key it locked; `claim_confirm_slot` only for its key. Both carry a comment that a full cleanup belongs to a scheduled job (proposal, not built). `tests/migration.test.mjs` checks this. No SQL was run.
+
+Verification: `npx tsc --noEmit` clean. `node --test tests/*.test.mjs`: 693 tests, 689 pass, 0 fail, 4 skipped. Playwright `auth-continue` + `auth-i18n`, `PW_PORT=3065`, `--workers=1`: 35 passed. Not verified: a real cookie round trip, a real no-JS submit that succeeds, the migration on a database. No build or assembler.
