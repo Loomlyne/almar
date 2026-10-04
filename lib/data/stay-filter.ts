@@ -10,7 +10,18 @@ import type { IsoDate, Stay, StayFilter } from "./types";
 export type StayFilterable = Pick<
   Stay,
   "destination_slug" | "destination_name" | "title" | "neighborhood" | "max_guests" | "bedrooms"
->;
+> & {
+  /** Booked or blocked days (D-63). A card or object that does not carry them is treated as free. */
+  blocked_dates?: readonly IsoDate[];
+};
+
+/**
+ * True when no blocked date d satisfies from <= d < to: the nights from arrival to the night before
+ * departure are all free. The departure day itself may be blocked. ISO dates compare as strings.
+ */
+export function isFreeBetween(blocked: readonly IsoDate[], from: IsoDate, to: IsoDate): boolean {
+  return !blocked.some((d) => d >= from && d < to);
+}
 
 /** Lower-cases and strips combining marks: "Getsemaní" -> "getsemani", "MEDELLÍN" -> "medellin". */
 export function foldText(s: string): string {
@@ -27,6 +38,9 @@ export function matchesStayFilter(stay: StayFilterable, filter: StayFilter = {})
     if (stay.bedrooms === null) return false;
     if (filter.bedroomsMin !== undefined && stay.bedrooms < filter.bedroomsMin) return false;
     if (filter.bedroomsMax !== undefined && stay.bedrooms > filter.bedroomsMax) return false;
+  }
+  if (filter.from && filter.to && filter.from < filter.to) {
+    if (!isFreeBetween(stay.blocked_dates ?? [], filter.from, filter.to)) return false;
   }
   const q = filter.query ? foldText(filter.query.trim()) : "";
   if (q) {
@@ -74,8 +88,8 @@ export function toStayQuery(v: {
 export function parseStayQuery(
   params: URLSearchParams,
   opts: { destinations?: readonly string[] } = {},
-): StayFilter & { from?: IsoDate; to?: IsoDate } {
-  const out: StayFilter & { from?: IsoDate; to?: IsoDate } = {};
+): StayFilter {
+  const out: StayFilter = {};
   const destination = params.get("destination");
   if (destination && SLUG.test(destination) && (!opts.destinations || opts.destinations.includes(destination))) {
     out.destination = destination;
@@ -84,7 +98,10 @@ export function parseStayQuery(
   if (guests && /^\d{1,3}$/.test(guests) && Number(guests) > 0) out.guests = Number(guests);
   const from = validDate(params.get("from"));
   const to = validDate(params.get("to"));
-  if (from) out.from = from;
-  if (to) out.to = to;
+  // A date range is a pair: one date alone, or an arrival that is not before the departure, is ignored.
+  if (from && to && from < to) {
+    out.from = from;
+    out.to = to;
+  }
   return out;
 }

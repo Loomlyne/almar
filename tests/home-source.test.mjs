@@ -28,8 +28,8 @@ test("the eleven sections render in the live order and no other", () => {
   const source = read("components/pages/home-page.tsx");
   const order = [
     "<HomeHero",
-    "<Welcome",
-    "<GallerySection",
+    "<HomeWelcome",
+    "<HomeGallery",
     "<HomeStays",
     "<Services",
     "<Moments",
@@ -46,7 +46,7 @@ test("the eleven sections render in the live order and no other", () => {
   }
   // The footer is the frame's; nothing else is rendered between the sections.
   assert.match(source, /<HomeFrame\b/);
-  const sections = [...source.matchAll(/<(Welcome|GallerySection|HomeStays|Services|Moments|HomeJourneys|Stories|Begin|Team|HomeHero)\b/g)];
+  const sections = [...source.matchAll(/<(HomeWelcome|HomeGallery|HomeStays|Services|Moments|HomeJourneys|Stories|Begin|Team|HomeHero)\b/g)];
   assert.equal(sections.length, 10);
 });
 
@@ -81,13 +81,14 @@ test("no home file reads the two lines that contradict the signed design, or the
   assert.deepEqual([...page.matchAll(/HOME_COPY\[locale\]\.(\w+)/g)].map((m) => m[1]), ["nav"]);
 });
 
+// onSearch is allowed in the hero since plan 03.3-43 (Search lands on the stays list); the form, the submit button and the
+// video live in components/journey and components/ui, so no home file may carry them.
 test("nothing on the home speaks to a third-party host, plays a video or draws a held control", () => {
   const FORBIDDEN = [
     /framerusercontent/,
     /catbox/,
     /pexels/,
     /<video/,
-    /onSearch/,
     /type="submit"/,
     /<form/,
     /type="email"/,
@@ -135,8 +136,8 @@ test("links to the pages that stay English-only go through siteHref, and the sta
 test("the destination cards are not links: the live cards are not and /destinations/<slug> has no page", () => {
   const sections = code(read("components/pages/home/home-sections.tsx"));
   const moments = sections.slice(sections.indexOf("export function Moments"), sections.indexOf("export function Stories"));
-  const cards = moments.match(/<MediaCard[\s\S]*?\/>/g) ?? [];
-  assert.equal(cards.length, 1);
-  assert.equal(/href=/.test(cards[0]), false);
-  assert.match(moments, /<MediaCard\s+image=/);
+  const articles = moments.match(/<article[\s\S]*?<\/article>/g) ?? [];
+  assert.equal(articles.length, 1);
+  assert.equal(/href=|<a\b|<MediaCard/.test(articles[0]), false);
+  assert.match(articles[0], /destination\.name/);
 });

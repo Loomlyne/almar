@@ -6,6 +6,7 @@ import { cn } from "../../lib/cn";
 import { CloseIcon } from "../icons/icons";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { LocaleSelect } from "./locale-select";
+import { revealProps } from "./reveal";
 import charcoalLogo from "../../brand/Logo Typography/Stacked_Charcoal.svg";
 import whiteLogo from "../../brand/Logo Typography/Poly_White.svg";
 
@@ -65,6 +66,7 @@ export function SiteNav({
   localeHrefs,
   currentPath,
   login: loginProp,
+  reveal = false,
 }: {
   locale: Locale;
   /** Optional on pages whose language switch is a navigation (see localeHrefs). */
@@ -97,6 +99,8 @@ export function SiteNav({
   login?: false;
   /** The cart is not live: there is no cart UI, so only false (the default) is accepted. */
   cart?: false;
+  /** The nav fades in from 10 px above on load (design A2). Off by default: pages that do not run the motion controller keep it still. */
+  reveal?: boolean;
 }) {
   const text: NavLabels = { ...DEFAULT_LABELS, ...labels };
   const links: NavLink[] = linksProp ?? [
@@ -186,13 +190,15 @@ export function SiteNav({
   const localeCopy = JOURNEY_COPY[locale].locale;
   const tools = onImage ? "on-image" : "default";
   const login = cn(LINK, "@6xl:ms-2");
+  const motion = reveal ? revealProps("nav", "load") : null;
+  const headerProps = { ...motion, className: cn(nav({ tone }), motion?.className) };
   const closeMenuIfOpen = () => {
     if (open) closeMenu();
   };
 
   return (
     // cn() merges the cva string, so the tone's `absolute` replaces the base `sticky` (both are `position`).
-    <header ref={headerRef} className={cn(nav({ tone }))}>
+    <header ref={headerRef} {...headerProps}>
       <div
         className={cn(
           "flex w-full min-w-0 items-center gap-4 px-3 py-2 @6xl:gap-8 @6xl:px-6",

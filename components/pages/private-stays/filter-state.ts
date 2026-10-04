@@ -1,27 +1,27 @@
-// The /private-stays list's filter state, as pure functions (phase 3.3 plan 05).
+// The /private-stays list's filter state, as pure functions (phase 3.3 plans 05 and 46).
 //
 // No React and no "use client": node tests load this file directly. It holds no filter RULE: the rules live
 // once, in lib/data/stay-filter.ts, which filterStays applies on the server (getStays) and in the browser.
 // This file only maps the list's controls (a search box, a destination chip, a guests stepper, a bedroom
-// chip) to a StayFilter, and the hero bar's handoff URL to the controls.
+// chip, a date range) to a StayFilter, and the home Search's handoff URL to the controls.
 
 import type { IsoDate, StayFilter } from "../../../lib/data/types";
 import { toStayQuery } from "../../../lib/data/stay-filter";
 
 export type BedroomChoice = "any" | "1-4" | "5-8" | "9+";
 
-/** What the four controls hold. "" is "All destinations", 0 is "Any number of guests". */
+/** What the five controls hold. "" is "All destinations", 0 is "Any number of guests", "" dates are no dates. */
 export type ListState = {
   query: string;
   destination: string;
   guests: number;
   bedrooms: BedroomChoice;
+  /** Arrival and departure as YYYY-MM-DD: both set or both empty. */
+  from: IsoDate | "";
+  to: IsoDate | "";
 };
 
-/** The hero bar's dates, carried through the page untouched so the URL keeps them while a filter changes. */
-export type Carry = { from?: IsoDate; to?: IsoDate };
-
-export const EMPTY_STATE: ListState = { query: "", destination: "", guests: 0, bedrooms: "any" };
+export const EMPTY_STATE: ListState = { query: "", destination: "", guests: 0, bedrooms: "any", from: "", to: "" };
 
 /** The bedroom chips. The top bucket is open: 9 and more. */
 export const BEDROOM_BUCKETS: Record<Exclude<BedroomChoice, "any">, Pick<StayFilter, "bedroomsMin" | "bedroomsMax">> = {
@@ -30,7 +30,7 @@ export const BEDROOM_BUCKETS: Record<Exclude<BedroomChoice, "any">, Pick<StayFil
   "9+": { bedroomsMin: 9 },
 };
 
-/** Every empty control is left out, so an unfiltered list is the filter {}. */
+/** Every empty control is left out, so an unfiltered list is the filter {}. Dates count only as a pair. */
 export function toStayFilter(state: ListState): StayFilter {
   const filter: StayFilter = {};
   const query = state.query.trim();
@@ -38,13 +38,21 @@ export function toStayFilter(state: ListState): StayFilter {
   if (state.destination) filter.destination = state.destination;
   if (state.guests > 0) filter.guests = state.guests;
   if (state.bedrooms !== "any") Object.assign(filter, BEDROOM_BUCKETS[state.bedrooms]);
+  if (state.from && state.to) {
+    filter.from = state.from;
+    filter.to = state.to;
+  }
   return filter;
 }
 
 /** True while any control narrows the list. A blank search box does not. */
 export function isFiltered(state: ListState): boolean {
   return (
-    state.query.trim() !== "" || state.destination !== "" || state.guests > 0 || state.bedrooms !== "any"
+    state.query.trim() !== "" ||
+    state.destination !== "" ||
+    state.guests > 0 ||
+    state.bedrooms !== "any" ||
+    (state.from !== "" && state.to !== "")
   );
 }
 
@@ -60,13 +68,14 @@ function bucketOf(filter: StayFilter): BedroomChoice {
 /**
  * Turns parseStayQuery's result (already stripped of bad input) into the list's controls. A destination is kept
  * only if it is a chip the page renders; guests are clamped to the largest capacity on offer; a bedroom range
- * counts only when it is exactly one of the three buckets.
+ * counts only when it is exactly one of the three buckets; dates count only as a pair with arrival before
+ * departure.
  */
 export function stateFromQuery(
-  parsed: StayFilter & { from?: IsoDate; to?: IsoDate },
+  parsed: StayFilter,
   destinationSlugs: readonly string[],
   maxGuests: number,
-): { state: ListState; carry: Carry } {
+): { state: ListState } {
   const state: ListState = { ...EMPTY_STATE };
   if (parsed.destination && destinationSlugs.includes(parsed.destination)) state.destination = parsed.destination;
   if (parsed.guests !== undefined && Number.isFinite(parsed.guests) && parsed.guests > 0) {
@@ -74,21 +83,23 @@ export function stateFromQuery(
   }
   state.bedrooms = bucketOf(parsed);
   if (parsed.query) state.query = parsed.query;
-  const carry: Carry = {};
-  if (parsed.from) carry.from = parsed.from;
-  if (parsed.to) carry.to = parsed.to;
-  return { state, carry };
+  if (parsed.from && parsed.to && parsed.from < parsed.to) {
+    state.from = parsed.from;
+    state.to = parsed.to;
+  }
+  return { state };
 }
 
 /**
- * The query string the page writes back with history.replaceState: destination, the carried dates and guests.
- * Search and bedrooms have no key in the handoff URL, so they stay in the page.
+ * The query string the page writes back with history.replaceState: destination, dates and guests, in
+ * toStayQuery's order. Search and bedrooms have no key in the handoff URL, so they stay in the page.
  */
-export function listQuery(state: ListState, carry: Carry): string {
+export function listQuery(state: ListState): string {
+  const dates = state.from !== "" && state.to !== "";
   return toStayQuery({
     destination: state.destination || undefined,
+    from: dates ? state.from : undefined,
+    to: dates ? state.to : undefined,
     guests: state.guests || undefined,
-    from: carry.from,
-    to: carry.to,
   });
 }

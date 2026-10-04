@@ -5,7 +5,7 @@
 // lib/copy/index.ts (controller reconcile R-9, 2026-10-03).
 //
 // EN is the live home text, verbatim, except the strings marked DRAFTED UI COPY below: they have no live
-// source (the live page has no result count, no rate note, no lightbox and no named planner region). Each
+// source (the live page has no rate note, no slider control names and no named planner region). Each
 // of those is interface wording for the owner to review. None of them is a price or legal text.
 //
 // AR and ES are DRAFTS for the owner's review, written from the EN in the practice of lib/copy/journey.ts
@@ -14,8 +14,6 @@
 //
 // Not in this file on purpose: any amount, any currency code, any person's name. The three journey prices
 // come from lib/data (published text, never retyped here).
-
-import type { PluralForms } from "../journey-format";
 
 export type HomePageLocale = "en" | "ar" | "es";
 
@@ -30,8 +28,6 @@ export type HomePageCopy = {
     heading: string;
     intro: string;
     viewAll: string;
-    /** DRAFTED UI COPY: the live result line under the planner. Same forms as the list page's count. */
-    count: PluralForms;
   };
   services: { kicker: string; heading: string; intro: string; viewAll: string };
   moments: { kicker: string; heading: string; intro: string; cta: string };
@@ -45,8 +41,11 @@ export type HomePageCopy = {
   stories: { kicker: string; heading: string; intro: string; readAll: string };
   begin: { heading: string; intro: string; cta: string };
   team: { kicker: string; heading: string };
-  /** DRAFTED UI COPY: the lightbox. `{alt}`, `{n}` and `{total}` are slots. */
-  gallery: { open: string; previous: string; next: string; close: string; count: string };
+  /**
+   * DRAFTED UI COPY: the gallery strip's controls (plan 43; the lightbox is gone). `slide` names a slide and the live line
+   * (`{n}` of `{total}`), `goTo` names a dot (`{n}`).
+   */
+  gallery: { previous: string; next: string; slide: string; goTo: string };
 };
 
 export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
@@ -63,7 +62,6 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
       intro:
         "Verified private houses, island estates, and countryside retreats across Cartagena and Antioquia — each selected for security, staff readiness, and total discretion.",
       viewAll: "View All Private Stays",
-      count: { one: "# stay", other: "# stays" },
     },
     services: {
       kicker: "Services & Experiences",
@@ -100,11 +98,10 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
     },
     team: { kicker: "The People Behind Your Journey", heading: "Local insight, personally delivered." },
     gallery: {
-      open: "Open {alt}",
       previous: "Previous image",
       next: "Next image",
-      close: "Close",
-      count: "{n} of {total}",
+      slide: "{n} of {total}",
+      goTo: "Show photo {n}",
     },
   },
   ar: {
@@ -120,14 +117,6 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
       intro:
         "بيوت خاصة موثّقة وعزب جزر ومنتجعات ريفية في كارتاخينا وأنتيوكيا — اختيرت كلٌّ منها للأمان وجاهزية الطاقم والخصوصية التامة.",
       viewAll: "عرض كل الإقامات الخاصة",
-      count: {
-        zero: "لا توجد إقامات",
-        one: "إقامة واحدة",
-        two: "إقامتان",
-        few: "# إقامات",
-        many: "# إقامة",
-        other: "# إقامة",
-      },
     },
     services: {
       kicker: "التجارب والخدمات",
@@ -160,11 +149,10 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
     },
     team: { kicker: "الأشخاص وراء رحلتكم", heading: "معرفة محلية، تُقدَّم شخصياً." },
     gallery: {
-      open: "فتح {alt}",
       previous: "الصورة السابقة",
       next: "الصورة التالية",
-      close: "إغلاق",
-      count: "{n} من {total}",
+      slide: "{n} من {total}",
+      goTo: "عرض الصورة {n}",
     },
   },
   es: {
@@ -180,7 +168,6 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
       intro:
         "Casas privadas verificadas, fincas de isla y retiros de campo en Cartagena y Antioquia, cada una elegida por seguridad, personal preparado y total discreción.",
       viewAll: "Ver todas las estancias privadas",
-      count: { one: "# estancia", other: "# estancias" },
     },
     services: {
       kicker: "Experiencias y servicios",
@@ -218,11 +205,10 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
     },
     team: { kicker: "Las personas detrás de su viaje", heading: "Conocimiento local, entregado en persona." },
     gallery: {
-      open: "Abrir {alt}",
       previous: "Imagen anterior",
       next: "Imagen siguiente",
-      close: "Cerrar",
-      count: "{n} de {total}",
+      slide: "{n} de {total}",
+      goTo: "Ver foto {n}",
     },
   },
 };

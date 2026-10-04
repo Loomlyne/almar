@@ -246,14 +246,16 @@ test("catalogue: 3 services, 7 experiences, split per stay, every item has an im
   assert.equal((await expMod.getCatalogItem("ar", "welcome-cocktail")).translation_status, "draft");
 });
 
-test("getTeam returns [] and home blocks carry hero, welcome, 15 gallery images, 3 tiers, 3 stories", async () => {
+test("getTeam returns [] and home blocks carry hero, welcome (5 photos), 8 gallery images, 3 tiers, 3 stories", async () => {
   assert.deepEqual(await teamMod.getTeam("en"), []);
   const h = await homeMod.getHomeBlocks("en");
   assert.equal(h.hero.headline, "Colombia, Privately Yours");
   assert.equal(h.hero.video_url, null);
   assert.ok(h.hero.poster.url.endsWith("/home/hero/poster.webp"));
   assert.equal(h.welcome.paragraphs.length, 3);
-  assert.equal(h.gallery.images.length, 15);
+  assert.equal(h.welcome.images.length, 5);
+  assert.ok(h.welcome.images.every((i) => i.alt.length > 0));
+  assert.equal(h.gallery.images.length, 8);
   assert.ok(h.gallery.images.every((i) => i.alt.length > 0));
   assert.equal(h.tiers.length, 3);
   assert.equal(h.tiers.filter((t) => t.is_featured).map((t) => t.name).join(), "The Resident");
@@ -271,6 +273,39 @@ test("getTeam returns [] and home blocks carry hero, welcome, 15 gallery images,
   assert.equal(ar.hero.headline, homeCopy.HOME_COPY.ar.heroTitle);
   assert.equal(ar.stories[0].translation_status, "draft");
   assert.deepEqual((await homeMod.getJourneyTiers("es")).map((t) => t.name), ["The Explorer", "The Resident", "The Sovereign"]);
+});
+
+test("job 11: Welcome photos split from the gallery, Begin still, video keys, destination insets", async () => {
+  for (const locale of ["en", "ar", "es"]) {
+    const h = await homeMod.getHomeBlocks(locale);
+    const keys = (list) => list.map((i) => i.url.slice(mediaMod.MEDIA_BASE_URL.length + 1));
+    assert.deepEqual(keys(h.welcome.images), [1, 2, 3, 4, 5].map((n) => `home/gallery/0${n}.webp`), locale);
+    assert.ok(h.welcome.images.every((i) => i.alt.trim().length > 0), `${locale} welcome alts`);
+    assert.deepEqual(keys(h.gallery.images), [6, 7, 8, 9, 10, 11, 12, 13].map((n) => `home/gallery/${String(n).padStart(2, "0")}.webp`), locale);
+    assert.equal(h.hero.video_url, null);
+    assert.equal(h.begin.video_url, null);
+    assert.ok(h.begin.poster.url.startsWith(mediaMod.MEDIA_BASE_URL) && h.begin.poster.url.endsWith("home/begin/poster.webp"));
+    assert.ok(h.begin.poster.alt.trim().length > 0, `${locale} begin poster alt`);
+    const dests = await destMod.getDestinations(locale);
+    for (const slug of ["cartagena", "medellin"]) {
+      const d = dests.find((x) => x.slug === slug);
+      assert.ok(d.inset_image.url.startsWith(mediaMod.MEDIA_BASE_URL) && d.inset_image.url.endsWith(`destinations/${slug}/inset.webp`), `${locale} ${slug} inset`);
+      assert.ok(d.inset_image.alt.trim().length > 0);
+    }
+  }
+  const en = await destMod.getDestinations("en");
+  assert.equal(en.find((d) => d.slug === "cartagena").inset_image.alt, "Cartagena, Colombia");
+  assert.equal(en.find((d) => d.slug === "medellin").inset_image.alt, "Antioquia, Colombia");
+});
+
+test("job 11: the two 40px arrow icons are gone from every fixture and from the manifest", () => {
+  for (const f of ["home.json", "image-translations.json", "../media-manifest.json"]) {
+    const text = readFileSync(join("lib/data/fixtures", f), "utf8");
+    assert.ok(!/gallery\/1[45]\.webp/.test(text), `${f} still names gallery 14 or 15`);
+  }
+  const ids = ["ba67281f-3ec9-5ee8-a449-4bb77b0c71d2", "9828e26f-0e7c-59fb-aac8-cd9f57e7c366"];
+  const alts = readFileSync("lib/data/fixtures/image-translations.json", "utf8");
+  for (const id of ids) assert.ok(!alts.includes(id), `alt records of ${id} remain`);
 });
 
 test("getRates returns null, not a throw, when the feed fails", async () => {

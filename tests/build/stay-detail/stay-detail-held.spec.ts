@@ -77,7 +77,13 @@ async function assertHeld(page: Page, s: Setup, where: string) {
     await expect(named(role, s.journey.cart.continue), say("no Continue")).toHaveCount(0);
     await expect(named(role, s.journey.addons.continue), say("no Continue to travelers")).toHaveCount(0);
   }
-  await expect(page.locator("div.fixed.bottom-0").locator("button, a"), say("the dock has no button and no link")).toHaveCount(0);
+  // The dock's one control is Request on WhatsApp (plan 45): a link to wa.me, never a button.
+  await expect(page.locator("div.fixed.bottom-0").locator("button"), say("the dock has no button")).toHaveCount(0);
+  await expect(page.locator("div.fixed.bottom-0").locator("a"), say("the dock has exactly one link")).toHaveCount(1);
+  await expect(page.locator("div.fixed.bottom-0").locator("a"), say("and it is the request")).toHaveAttribute(
+    "href",
+    /^https:\/\/wa\.me\/971563883302\?text=/,
+  );
 
   // 4.3 rows 2-3 and 4.1 row 6: no cart, no Login, no currency; the one combobox is the language
   await expect(page.getByRole("button", { name: CART }), say("no cart button")).toHaveCount(0);
@@ -174,7 +180,9 @@ for (const slug of FOCUS) {
           await expect(sheet.getByRole("heading", { name: s.journey.sheet.who })).toBeVisible();
           await expect(sheet.getByText(fill(s.journey.sheet.progress, { n: 3 }))).toBeVisible();
           await assertHeld(page, s, "with the sheet open at Who");
-          await sheet.getByRole("button", { name: s.journey.done }).click();
+          // The last step ends with the request link, not Done (plan 45): the sheet closes with Escape.
+          await expect(sheet.getByRole("button", { name: s.journey.done })).toHaveCount(0);
+          await page.keyboard.press("Escape");
           await expect(sheet).toHaveCount(0);
         }
         await assertHeld(page, s, "after the panels closed");
