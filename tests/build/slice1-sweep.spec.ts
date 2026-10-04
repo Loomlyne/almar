@@ -586,7 +586,7 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     expect(missing.headers()["x-robots-tag"]).toBeUndefined();
   });
 
-  test("sitemap.xml lists 42 documents with alternates and every address answers 200 without a redirect", async ({ request }) => {
+  test("sitemap.xml lists the React documents with alternates and every address answers 200 without a redirect", async ({ request }) => {
     test.setTimeout(120_000);
     const response = await request.get("/sitemap.xml");
     expect(response.status()).toBe(200);
@@ -594,7 +594,7 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     const xml = await response.text();
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(new Set(locs).size, "no address twice").toBe(locs.length);
-    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "42 documents carry alternates").toBe(42);
+    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "54 documents carry alternates").toBe(DOCUMENTS.length + 12); // slice 1's 42 plus the 12 blog documents (plan 03.3-33)
 
     // The 42 documents of this slice are all listed, once each, at the address the locale helper builds.
     for (const doc of DOCUMENTS) expect(locs, doc.url).toContain(SITE_ORIGIN + doc.url);
