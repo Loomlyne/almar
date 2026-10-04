@@ -13,6 +13,13 @@
       "height": 1280,
       "position": 0
     },
+    "inset_image": {
+      "id": "2c67f906-588f-4577-ab20-a0b43f09c85d",
+      "media_key": "destinations/cartagena/inset.webp",
+      "width": 735,
+      "height": 989,
+      "position": 0
+    },
     "is_published": true,
     "position": 1
   },
@@ -28,6 +35,13 @@
       "media_key": "destinations/medellin/hero.webp",
       "width": 736,
       "height": 1318,
+      "position": 0
+    },
+    "inset_image": {
+      "id": "40ddd3d0-4e53-4ff0-8ed3-f58d9cbf6e81",
+      "media_key": "destinations/medellin/inset.webp",
+      "width": 719,
+      "height": 901,
       "position": 0
     },
     "is_published": true,

@@ -4,6 +4,7 @@
 // ALMAR Stories cards. They are not catalogue entities, but they sit behind the same door so Phase 3.2 can
 // move them into the CMS (CMS-04, Content > Pages) without touching the page.
 
+import { mediaUrl } from "./media";
 import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
 import type { HomeBlocks, HomeStory, JourneyTier, Locale } from "./types";
 
@@ -24,8 +25,10 @@ type TierBase = RowBase & {
   is_featured: boolean;
 };
 type HomeFixture = {
-  hero: { poster: RawImage | null; video_url: string | null };
-  welcome: { signature: RawImage | null };
+  /** `video_key` is a media key (the owner's upload) or null; the data layer turns it into a URL. */
+  hero: { poster: RawImage | null; video_key: string | null };
+  begin: { poster: RawImage | null; video_key: string | null };
+  welcome: { signature: RawImage | null; images: RawImage[] };
   gallery: { images: RawImage[] };
   tiers: TierBase[];
   stories: RowBase[];
@@ -59,6 +62,9 @@ type HomeTranslations = {
   >;
   stories: Array<Rec & { story_id: string; title: string; excerpt: string; date_label: string }>;
 };
+
+/** A media key becomes the media-host URL; null stays null (the owner's videos are not uploaded yet). */
+const videoUrl = (key: string | null): string | null => (key ? mediaUrl(key) : null);
 
 const home = () => readFixture<HomeFixture>("home");
 const homeT = () => readFixture<HomeTranslations>("home-translations");
@@ -109,7 +115,11 @@ export async function getHomeBlocks(locale: Locale): Promise<HomeBlocks> {
     hero: {
       headline: block(t.hero, locale).headline,
       poster: image(h.hero.poster, locale),
-      video_url: h.hero.video_url,
+      video_url: videoUrl(h.hero.video_key),
+    },
+    begin: {
+      poster: image(h.begin.poster, locale),
+      video_url: videoUrl(h.begin.video_key),
     },
     welcome: {
       kicker: welcome.kicker,
@@ -120,6 +130,7 @@ export async function getHomeBlocks(locale: Locale): Promise<HomeBlocks> {
       signer: welcome.signer,
       signer_role: welcome.signer_role,
       signature: image(h.welcome.signature, locale),
+      images: h.welcome.images.map((i) => image(i, locale)!).sort((a, b) => a.position - b.position),
     },
     gallery: {
       kicker: gallery.kicker,

@@ -187,6 +187,23 @@
     "height": 1280
   },
   {
+    "key": "destinations/cartagena/inset.webp",
+    "source": "/assets/img/b844304421a80c18.webp",
+    "source_kind": "local",
+    "used_by": [
+      "8990190e-2836-58e4-9eb0-3ac94c24632a"
+    ],
+    "image_ids": [
+      "2c67f906-588f-4577-ab20-a0b43f09c85d"
+    ],
+    "content_type": "image/webp",
+    "bytes": 202634,
+    "sha256": "f180696655bbf9dda4bfe390fc5111db86d80c35272d8f137ad5ddb25d26675a",
+    "md5": "dd7f993d73a68629ce20de45e191150a",
+    "width": 735,
+    "height": 989
+  },
+  {
     "key": "destinations/medellin/hero.webp",
     "source": "/assets/img/61f0185cb8d5387c.webp",
     "source_kind": "local",
@@ -204,11 +221,45 @@
     "height": 1318
   },
   {
+    "key": "destinations/medellin/inset.webp",
+    "source": "/assets/img/f6a811dfddea79fb.webp",
+    "source_kind": "local",
+    "used_by": [
+      "e34e5839-d6a1-5930-a061-512e7e6bc8f1"
+    ],
+    "image_ids": [
+      "40ddd3d0-4e53-4ff0-8ed3-f58d9cbf6e81"
+    ],
+    "content_type": "image/webp",
+    "bytes": 136652,
+    "sha256": "9285021c6ffcfd56e6d5de6839e5289163d200a7d5698a5b638c3cae9ad1c90c",
+    "md5": "8b11b54d2639baedf73d613037d2f3f4",
+    "width": 719,
+    "height": 901
+  },
+  {
+    "key": "home/begin/poster.webp",
+    "source": "/assets/img/3484e51613dcadfa.webp",
+    "source_kind": "local",
+    "used_by": [
+      "home:begin"
+    ],
+    "image_ids": [
+      "1f38ffbc-1180-41da-adc6-766171cca7fc"
+    ],
+    "content_type": "image/webp",
+    "bytes": 41422,
+    "sha256": "9a54027891404ab568d9a812d8187f8900a0ab38865851c85c53311aeffce215",
+    "md5": "473188ee4bc5c4e7ec9784ac0278a8e6",
+    "width": 1920,
+    "height": 1010
+  },
+  {
     "key": "home/gallery/01.webp",
     "source": "/assets/img/7f7264439c6d0776.webp",
     "source_kind": "local",
     "used_by": [
-      "home:gallery"
+      "home:welcome"
     ],
     "image_ids": [
       "9753bc8f-3411-5a1f-bae6-73bea6bcfb8e"
@@ -225,7 +276,7 @@
     "source": "/assets/img/1fc4deb624086a13.webp",
     "source_kind": "local",
     "used_by": [
-      "home:gallery"
+      "home:welcome"
     ],
     "image_ids": [
       "f719ebbb-8175-5eed-b948-9743496bfdee"
@@ -242,7 +293,7 @@
     "source": "/assets/img/4d62ca4792adaf59.webp",
     "source_kind": "local",
     "used_by": [
-      "home:gallery"
+      "home:welcome"
     ],
     "image_ids": [
       "7c106731-d85f-50a4-9800-4538dcd69ead"
@@ -259,7 +310,7 @@
     "source": "/assets/img/bb7ae32200d3cfeb.webp",
     "source_kind": "local",
     "used_by": [
-      "home:gallery"
+      "home:welcome"
     ],
     "image_ids": [
       "31c51862-2819-5887-adef-b93a5e8a7067"
@@ -276,7 +327,7 @@
     "source": "/assets/img/7be54fdf64a2e281.webp",
     "source_kind": "local",
     "used_by": [
-      "home:gallery"
+      "home:welcome"
     ],
     "image_ids": [
       "faeb1647-aff7-5b93-8d59-393a29e2736b"
@@ -423,40 +474,6 @@
     "md5": "a1e0a91703e562f9f12b7b54c3251819",
     "width": 1820,
     "height": 1024
-  },
-  {
-    "key": "home/gallery/14.webp",
-    "source": "/assets/img/e40e814fd05f620a.webp",
-    "source_kind": "local",
-    "used_by": [
-      "home:gallery"
-    ],
-    "image_ids": [
-      "ba67281f-3ec9-5ee8-a449-4bb77b0c71d2"
-    ],
-    "content_type": "image/webp",
-    "bytes": 222,
-    "sha256": "d70123313cbfb932ffcb09f3aa14fbd6a8b9f818238c6da530c4410ffca00ae2",
-    "md5": "cbe28f8ee43ca8d7ba45dd14ff451659",
-    "width": 40,
-    "height": 40
-  },
-  {
-    "key": "home/gallery/15.webp",
-    "source": "/assets/img/31b41ff01ed8b7b0.webp",
-    "source_kind": "local",
-    "used_by": [
-      "home:gallery"
-    ],
-    "image_ids": [
-      "9828e26f-0e7c-59fb-aac8-cd9f57e7c366"
-    ],
-    "content_type": "image/webp",
-    "bytes": 214,
-    "sha256": "3aec220a9543ac04a2c86c3ed1c94b91b58955472f5644fc7965115a52ca7edd",
-    "md5": "dde7482bd89b99d3fa33f315271bc012",
-    "width": 40,
-    "height": 40
   },
   {
     "key": "home/hero/poster.webp",

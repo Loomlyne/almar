@@ -94,6 +94,8 @@ export type Destination = RowMeta & {
   /** "3-7 nights" - published text, not a computed range. */
   nights_label: string | null;
   hero_image: ImageRef | null;
+  /** The small photo inside the home Moments panel. Null when the destination has none. */
+  inset_image: ImageRef | null;
   is_published: boolean;
   /** The owner's own order in Dashboard > Catalog > Destinations. */
   position: number;
@@ -296,6 +298,8 @@ export type HomeBlocks = {
     /** The media-host URL of the owner's video, or null until it is uploaded. Components play it when present. */
     video_url: string | null;
   };
+  /** The Begin section: its still photo (Framer's poster of the Begin video) and the video, null until uploaded. */
+  begin: { poster: ImageRef | null; video_url: string | null };
   welcome: {
     kicker: string;
     heading: string;
@@ -305,6 +309,8 @@ export type HomeBlocks = {
     signer: string;
     signer_role: string;
     signature: ImageRef | null;
+    /** The five Welcome photos, in order. */
+    images: ImageRef[];
   };
   gallery: { kicker: string; heading: string; images: ImageRef[] };
   tiers: JourneyTier[];
