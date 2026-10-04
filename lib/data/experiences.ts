@@ -2,7 +2,7 @@
 //
 // Server only. Experiences and services are one table with a `kind` discriminator (D-64, D-89).
 
-import { foldText } from "./stay-filter";
+import { filterCatalog } from "./catalog-filter";
 import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
 import type { CatalogItem, CatalogKind, CatalogUnit, Locale } from "./types";
 
@@ -38,17 +38,24 @@ function published(): CatalogBase[] {
     .sort((a, b) => a.position - b.position);
 }
 
+function slugsOf(table: "destinations" | "stays", ids: string[], itemSlug: string): string[] {
+  const rows = readFixture<Array<{ id: string; slug: string }>>(table);
+  return ids.map((id) => {
+    const hit = rows.find((r) => r.id === id);
+    if (!hit) throw new Error(`catalog ${itemSlug}: unknown ${table === "stays" ? "stay" : "destination"} ${id}`);
+    return hit.slug;
+  });
+}
+
 function resolveItem(base: CatalogBase, locale: Locale): CatalogItem {
   const own = readFixture<CatalogTranslation[]>("catalog-translations").filter((t) => t.item_id === base.id);
   const row = resolveRow(base, own, locale);
-  return { ...row, image: image(base.image, locale) } as CatalogItem;
-}
-
-function idOfDestination(slug: string): string | null {
-  return readFixture<Array<{ id: string; slug: string }>>("destinations").find((d) => d.slug === slug)?.id ?? null;
-}
-function idOfStay(slug: string): string | null {
-  return readFixture<Array<{ id: string; slug: string }>>("stays").find((s) => s.slug === slug)?.id ?? null;
+  return {
+    ...row,
+    destination_slugs: slugsOf("destinations", base.destination_ids, base.slug),
+    stay_slugs: slugsOf("stays", base.stay_ids, base.slug),
+    image: image(base.image, locale),
+  } as CatalogItem;
 }
 
 export async function getCatalogItems(
@@ -56,23 +63,19 @@ export async function getCatalogItems(
   opts?: {
     kind?: CatalogKind;
     destinationSlug?: string;
+    destinationSlugs?: string[];
     staySlug?: string;
+    staySlugs?: string[];
     query?: string;
   },
 ): Promise<CatalogItem[]> {
-  let rows = published();
-  if (opts?.kind) rows = rows.filter((c) => c.kind === opts.kind);
-  if (opts?.destinationSlug) {
-    const id = idOfDestination(opts.destinationSlug);
-    rows = rows.filter((c) => id !== null && c.destination_ids.includes(id));
-  }
-  if (opts?.staySlug) {
-    const id = idOfStay(opts.staySlug);
-    rows = rows.filter((c) => id !== null && c.stay_ids.includes(id));
-  }
-  const items = rows.map((c) => resolveItem(c, locale));
-  const q = opts?.query ? foldText(opts.query.trim()) : "";
-  return q ? items.filter((i) => foldText(i.name).includes(q) || foldText(i.summary ?? "").includes(q)) : items;
+  const items = published().map((c) => resolveItem(c, locale));
+  return filterCatalog(items, {
+    kind: opts?.kind,
+    destinations: [...(opts?.destinationSlug ? [opts.destinationSlug] : []), ...(opts?.destinationSlugs ?? [])],
+    stays: [...(opts?.staySlug ? [opts.staySlug] : []), ...(opts?.staySlugs ?? [])],
+    query: opts?.query,
+  });
 }
 
 export async function getCatalogItem(locale: Locale, slug: string): Promise<CatalogItem | null> {
