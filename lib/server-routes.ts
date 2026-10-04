@@ -76,6 +76,9 @@ export function serverPathsFrom(manifestKeys: readonly string[], extra: readonly
       throw new Error(`${key}: only route handlers may live under app/api, never a page`);
     }
     const path = key.slice(0, -"/route".length) || "/";
+    if (path === "/api") {
+      throw new Error(`${key}: app/api/route.ts is not served (run_worker_first covers /api/*, not /api)`);
+    }
     if (path.split("/").some((s) => /^[\[(@]/.test(s))) {
       throw new Error(`${key}: dynamic, catch-all, grouped and parallel segments under app/api are not served`);
     }

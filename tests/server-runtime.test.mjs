@@ -43,6 +43,10 @@ test("serverPathsFrom: a page under app/api stops the build", () => {
   assert.throws(() => serverPathsFrom(["/api/x/page"]), /\/api\/x\/page/);
 });
 
+test("serverPathsFrom: app/api/route.ts itself (/api) stops the build: run_worker_first covers /api/* only", () => {
+  assert.throws(() => serverPathsFrom(["/api/route"]), /\/api\/route/);
+});
+
 test("serverPathsFrom: dynamic, catch-all, grouped and parallel segments under /api stop the build", () => {
   for (const key of ["/api/[id]/route", "/api/x/[...rest]/route", "/api/(group)/x/route", "/api/@slot/route"]) {
     assert.throws(() => serverPathsFrom([key]), new RegExp(key.replace(/[[\]().*+?^$|\\]/g, "\\$&")));
