@@ -193,7 +193,12 @@ begin
   perform pg_advisory_xact_lock(hashtextextended(p_email_hash, 0));
   perform pg_advisory_xact_lock(hashtextextended(p_ip_hash, 0));
 
-  delete from public.auth_link_requests where created_at < now() - interval '1 day';
+  -- Only old rows for the keys locked above: a delete that touches other keys' rows would race with their
+  -- locks. A full cleanup of every old row belongs to a scheduled job (proposal, not built).
+  delete from public.auth_link_requests
+  where email_hash = p_email_hash and created_at < now() - interval '1 day';
+  delete from public.auth_link_requests
+  where ip_hash = p_ip_hash and created_at < now() - interval '1 day';
 
   if exists (
     select 1 from public.auth_link_requests
@@ -247,7 +252,9 @@ as $$
 begin
   perform pg_advisory_xact_lock(hashtextextended(p_ip_key, 0));
 
-  delete from public.auth_confirm_attempts where created_at < now() - interval '1 day';
+  -- Only this key's old rows (the one locked above). A full cleanup belongs to a scheduled job (proposal, not built).
+  delete from public.auth_confirm_attempts
+  where ip_key = p_ip_key and created_at < now() - interval '1 day';
 
   if (
     select count(*) from public.auth_confirm_attempts
