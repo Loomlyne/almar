@@ -1,6 +1,6 @@
 # v1 backend — the plans on one page (job 12)
 
-For the owner's signature: one per phase. From his answers of 2026-10-04 22:10 – 2026-10-05 00:20 (+04)
+**Signed by the owner 2026-10-05 ~01:16 (+04), question form: "Sign 3.2", "Sign Phase 4", "Sign minimal ops".** From his answers of 2026-10-04 22:10 – 2026-10-05 00:20 (+04)
 (`04-book-and-pay/V1-BACKEND-DISCUSSION-LOG.md`, 27 answers). Decisions: `03.2-…/03.2-CONTEXT.md`,
 `04-book-and-pay/04-CONTEXT.md`, `05-ops-os/05-CONTEXT.md`. Every plan was checked by an Opus plan checker, fixed,
 and re-checked. Build starts Oct 7, after job 02 (sign-in) lands; executors Sonnet, an Opus reviewer after every
