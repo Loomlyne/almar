@@ -180,3 +180,78 @@ test("FactList icon may be a node", () => {
   assert.match(html, /NODE-ICON/);
   assert.equal(/<svg/.test(html), false, "no default check mark when a node is given");
 });
+
+// ---- Slider, BackgroundMedia ------------------------------------------------------------------------------------
+
+const labels = {
+  region: "Photos of Casa Verde",
+  previous: "Previous photo",
+  next: "Next photo",
+  goTo: "Go to photo {n}",
+  slide: "Photo {n} of {total}",
+  pause: "Pause",
+  play: "Play",
+};
+const photos = Array.from({ length: 8 }, (_, i) => ({ src: `/p${i}.jpg`, alt: `Photo alt ${i + 1}` }));
+
+test("slideOffset: left to right, right to left, and index 0 is 0 in both", async () => {
+  const { slideOffset, AUTOPLAY_MS } = await loadModule(`export { slideOffset, AUTOPLAY_MS } from "./components/ui/slider";`);
+  assert.equal(AUTOPLAY_MS, 2000);
+  const ltr = [
+    { offsetLeft: 0, offsetWidth: 600 },
+    { offsetLeft: 640, offsetWidth: 600 },
+    { offsetLeft: 1280, offsetWidth: 400 },
+  ];
+  const rtl = [
+    { offsetLeft: 840, offsetWidth: 600 },
+    { offsetLeft: 200, offsetWidth: 600 },
+    { offsetLeft: -240, offsetWidth: 400 },
+  ];
+  assert.equal(slideOffset(ltr, 2, false), -1280);
+  assert.equal(slideOffset(rtl, 2, true), 1280);
+  assert.ok(Object.is(slideOffset(ltr, 0, false), 0), "no negative zero");
+  assert.equal(slideOffset(rtl, 0, true), 0);
+  assert.equal(slideOffset([], 3, false), 0);
+});
+
+test("Slider served HTML: a region, every slide and image, a scroll-snap track and no control", async () => {
+  const render = await loadRenderer("components/ui/slider.tsx", "Slider");
+  for (const layout of ["strip", "peek"]) {
+    const html = render({ images: photos, labels, layout, dotsEvery: 2, autoplay: true });
+    assert.match(html, /<section\b[^>]*aria-roledescription="carousel"[^>]*aria-label="Photos of Casa Verde"/);
+    assert.equal(count(html, /role="group"/g), 8);
+    assert.equal(count(html, /<img\b/g), 8);
+    for (const photo of photos) assert.ok(html.includes(`alt="${photo.alt}"`));
+    assert.match(html, /aria-label="Photo 3 of 8"/);
+    assert.ok(html.includes("overflow-x-auto") && html.includes("snap-x") && html.includes("snap-mandatory") && html.includes("snap-start"));
+    assert.equal(count(html, /<button\b/g), 0, "controls appear only after mount");
+    assert.equal(/aria-live|<video/.test(html), false);
+    assert.equal(count(html, /loading="eager"/g), 1, "only the first image is eager");
+    assert.equal(count(html, /loading="lazy"/g), 7);
+  }
+  const strip = render({ images: photos, labels, layout: "strip" });
+  assert.ok(strip.includes("h-70 w-75 md:h-120 md:w-150") && strip.includes("gap-8"));
+  const peek = render({ images: photos, labels, layout: "peek" });
+  assert.ok(peek.includes("w-full aspect-video") && peek.includes("gap-2") && peek.includes("px-4 md:px-16"));
+});
+
+test("Slider source: the transformed track uses the slide token and the reveal ease, and stops for reduced motion", () => {
+  const source = readFileSync("components/ui/slider.tsx", "utf8");
+  for (const needle of ["duration-slide", "ease-reveal", "motion-reduce:transition-none", "touch-pan-y", "prefers-reduced-motion", "AUTOPLAY_MS"]) {
+    assert.ok(source.includes(needle), needle);
+  }
+  assert.match(source, /rtl:-scale-x-100/);
+});
+
+test("BackgroundMedia serves the poster image and never a video; with nothing set it is only the wrapper", async () => {
+  const render = await loadRenderer("components/ui/background-media.tsx", "BackgroundMedia");
+  const withVideo = render({ poster: { src: "/poster.webp", alt: "A poster" }, videoUrl: "https://media.example/v.mp4" });
+  assert.match(withVideo, /<img\b[^>]*src="\/poster\.webp"[^>]*alt="A poster"/);
+  assert.equal(/<video/.test(withVideo), false);
+  assert.ok(withVideo.includes("absolute inset-0 size-full object-cover"));
+  const urlOnly = render({ poster: "/poster.webp" });
+  assert.match(urlOnly, /<img\b[^>]*alt=""/);
+  const nothing = render({ poster: null, videoUrl: null });
+  assert.equal(/<img|<video/.test(nothing), false);
+  assert.match(nothing, /^<div\b/);
+});
