@@ -137,7 +137,7 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
   const article = (
     <article
       {...(fallback ? { lang: "en", dir: "ltr" } : {})}
-      className="mx-auto grid w-full max-w-180 justify-items-center gap-8 text-center"
+      className="mx-auto grid w-full min-w-0 max-w-180 justify-items-center gap-8 text-center"
     >
       {headings.length >= 2 ? (
         <OnThisPage label={copy.onThisPage} items={headings} className="w-full text-start" />
@@ -179,7 +179,7 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
             <PageShell className="grid justify-items-center gap-8 py-16 md:py-section">
               {fallback ? <p className="m-0 text-label text-muted">{copy.englishOnly}</p> : null}
               {article}
-              <div className="grid justify-items-center gap-6 text-center">
+              <div className="flex w-full min-w-0 flex-col items-center gap-6 text-center">
                 <LinkButton href={siteHref(locale, "/contact")} size="lg">
                   {copy.cta}
                 </LinkButton>
