@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { JourneyCopy } from "../../../lib/copy/journey";
 import type { StaysListCopy } from "../../../lib/copy/stays-list";
 import { formatPlural } from "../../../lib/journey-format";
 import { filterStays, parseStayQuery } from "../../../lib/data/stay-filter";
@@ -30,6 +31,7 @@ export type ListStay = Pick<
   | "bedrooms"
   | "destination_slug"
   | "destination_name"
+  | "blocked_dates"
 > & {
   /** The hero picture, already resolved for this language. Null: the card shows no picture at all. */
   image: { src: string; alt: string } | null;
@@ -55,6 +57,8 @@ export function StayBrowser({
   hrefs,
   basePath,
   copy,
+  journeyCopy,
+  datesNote,
 }: {
   locale: "en" | "ar" | "es";
   stays: readonly ListStay[];
@@ -64,6 +68,10 @@ export function StayBrowser({
   /** This page's own address in this language: where the URL is rewritten to. */
   basePath: string;
   copy: StaysListCopy;
+  /** The journey bar's copy: the calendar's strings, the Dates label and the "Add dates" text. */
+  journeyCopy: JourneyCopy;
+  /** "Blocked dates here are examples." while the blocked dates are sample data; null otherwise. */
+  datesNote: string | null;
 }) {
   const [state, setState] = useState<ListState>(EMPTY_STATE);
 
@@ -108,7 +116,21 @@ export function StayBrowser({
   return (
     <div className="grid gap-6">
       <div data-stay-filters="" className="grid gap-6">
-        <StayFilters copy={copy} state={state} onChange={change} destinations={destinations} maxGuests={maxGuests} />
+        <StayFilters
+          copy={copy}
+          state={state}
+          onChange={change}
+          destinations={destinations}
+          maxGuests={maxGuests}
+          locale={locale}
+          datesLabels={{
+            label: journeyCopy.bar.dates.label,
+            empty: journeyCopy.bar.dates.empty,
+            clear: journeyCopy.dates.clear,
+          }}
+          journeyCopy={journeyCopy}
+          datesNote={datesNote}
+        />
       </div>
       <ResultCount
         text={formatPlural(copy.count, results.length, locale)}
