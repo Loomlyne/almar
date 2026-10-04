@@ -2122,5 +2122,257 @@
     "locale": "es",
     "alt": "Empiecen su viaje",
     "status": "draft"
+  },
+  {
+    "image_id": "db3c31d3-d6ae-5e4a-a0a7-72f7dc85cf74",
+    "locale": "en",
+    "alt": "nfinity pool blending into the ocean view, minimalist sun loungers in soft neutral fabric, curved architecture",
+    "status": "published"
+  },
+  {
+    "image_id": "db3c31d3-d6ae-5e4a-a0a7-72f7dc85cf74",
+    "locale": "ar",
+    "alt": "مسبح لا متناهي الحافة يمتزج مع إطلالة المحيط، وكراسي تشمّس بسيطة بقماش محايد ناعم، وعمارة منحنية",
+    "status": "draft"
+  },
+  {
+    "image_id": "db3c31d3-d6ae-5e4a-a0a7-72f7dc85cf74",
+    "locale": "es",
+    "alt": "Piscina infinita que se funde con la vista al océano, tumbonas minimalistas en tela neutra suave y arquitectura curva",
+    "status": "draft"
+  },
+  {
+    "image_id": "7e0793f0-d705-50a7-af26-a2cde2580463",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "7e0793f0-d705-50a7-af26-a2cde2580463",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "7e0793f0-d705-50a7-af26-a2cde2580463",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "94ffea10-71fa-5bd9-a4b3-291b2ff7047a",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "94ffea10-71fa-5bd9-a4b3-291b2ff7047a",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "94ffea10-71fa-5bd9-a4b3-291b2ff7047a",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "3df5047a-17e8-5df3-9dcc-2f6d6904f75f",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "3df5047a-17e8-5df3-9dcc-2f6d6904f75f",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "3df5047a-17e8-5df3-9dcc-2f6d6904f75f",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "ee95b930-35d5-52a8-9c5c-566b464ebf7a",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "ee95b930-35d5-52a8-9c5c-566b464ebf7a",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "ee95b930-35d5-52a8-9c5c-566b464ebf7a",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "785783d1-8c16-5778-8938-d56b32a818a0",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "785783d1-8c16-5778-8938-d56b32a818a0",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "785783d1-8c16-5778-8938-d56b32a818a0",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "ed7466de-f9a3-51b7-a170-987601defa6d",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "ed7466de-f9a3-51b7-a170-987601defa6d",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "ed7466de-f9a3-51b7-a170-987601defa6d",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "1e06f20e-03da-5c9f-b6f9-eea7cde2b73f",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "1e06f20e-03da-5c9f-b6f9-eea7cde2b73f",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "1e06f20e-03da-5c9f-b6f9-eea7cde2b73f",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "b42c46da-536d-5cc7-8bd1-2cca4a021e43",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "b42c46da-536d-5cc7-8bd1-2cca4a021e43",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "b42c46da-536d-5cc7-8bd1-2cca4a021e43",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "1493a030-7ae7-5c4c-949d-1dffeb451b9b",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "1493a030-7ae7-5c4c-949d-1dffeb451b9b",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "1493a030-7ae7-5c4c-949d-1dffeb451b9b",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "0ef47bf1-b746-598d-9180-3fc172e4914b",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "0ef47bf1-b746-598d-9180-3fc172e4914b",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "0ef47bf1-b746-598d-9180-3fc172e4914b",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "87bed148-2b68-55ee-96ed-de615e445b43",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "87bed148-2b68-55ee-96ed-de615e445b43",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "87bed148-2b68-55ee-96ed-de615e445b43",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "3293b75c-05a3-5c9e-87ad-a10800211432",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "3293b75c-05a3-5c9e-87ad-a10800211432",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "3293b75c-05a3-5c9e-87ad-a10800211432",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "b7011d5f-d9d9-5e4f-8e1a-86f16c65ecfe",
+    "locale": "en",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "b7011d5f-d9d9-5e4f-8e1a-86f16c65ecfe",
+    "locale": "ar",
+    "alt": "",
+    "status": "published"
+  },
+  {
+    "image_id": "b7011d5f-d9d9-5e4f-8e1a-86f16c65ecfe",
+    "locale": "es",
+    "alt": "",
+    "status": "published"
   }
 ]
