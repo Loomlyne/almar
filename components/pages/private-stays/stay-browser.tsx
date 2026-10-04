@@ -14,7 +14,6 @@ import {
   listQuery,
   stateFromQuery,
   toStayFilter,
-  type Carry,
   type ListState,
 } from "./filter-state";
 import { SEARCH_ID, StayFilters } from "./stay-filters";
@@ -67,7 +66,6 @@ export function StayBrowser({
   copy: StaysListCopy;
 }) {
   const [state, setState] = useState<ListState>(EMPTY_STATE);
-  const [carry, setCarry] = useState<Carry>({});
 
   const maxGuests = useMemo(() => Math.max(0, ...stays.map((s) => s.max_guests ?? 0)), [stays]);
   const results = useMemo(() => filterStays(stays, toStayFilter(state)), [stays, state]);
@@ -83,25 +81,23 @@ export function StayBrowser({
       maxGuests,
     );
     if (isFiltered(next.state)) setState(next.state);
-    if (next.carry.from || next.carry.to) setCarry(next.carry);
     // Read once, when the page opens.
   }, []);
 
-  function writeUrl(nextState: ListState, nextCarry: Carry) {
-    const query = listQuery(nextState, nextCarry);
+  function writeUrl(nextState: ListState) {
+    const query = listQuery(nextState);
     window.history.replaceState(null, "", query ? `${basePath}?${query}` : basePath);
   }
 
   function change(patch: Partial<ListState>) {
     const next = { ...state, ...patch };
     setState(next);
-    // Destination and guests have a key in the handoff URL; search and bedrooms stay in the page.
-    if ("destination" in patch || "guests" in patch) writeUrl(next, carry);
+    // Destination, guests and dates have a key in the handoff URL; search and bedrooms stay in the page.
+    if ("destination" in patch || "guests" in patch || "from" in patch || "to" in patch) writeUrl(next);
   }
 
   function clear() {
     setState(EMPTY_STATE);
-    setCarry({});
     window.history.replaceState(null, "", basePath);
     // The button that was pressed goes away with the filters: keep the keyboard where it can continue.
     document.getElementById(SEARCH_ID)?.focus();

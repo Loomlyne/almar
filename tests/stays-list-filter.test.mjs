@@ -10,6 +10,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { loadTs } from "./helpers/load-ts.mjs";
 import { STAYS_LIST_COPY } from "../lib/copy/stays-list.ts";
+import { JOURNEY_COPY } from "../lib/copy/journey.ts";
+import { STAY_DETAIL_COPY } from "../lib/copy/stay-detail.ts";
 
 const staysMod = await loadTs("lib/data/stays.ts");
 const destinationsMod = await loadTs("lib/data/destinations.ts");
@@ -27,6 +29,13 @@ const slugs = (list) => list.map((s) => s.slug);
 const destinationSlugs = (await getDestinations("en")).map((d) => d.slug);
 const maxGuests = Math.max(...(await getStays("en")).map((s) => s.max_guests ?? 0));
 
+// Three ranges for the Dates filter (plan 46): one that clears a blocked day, one that ends on one, one wide.
+const DATE_RANGES = [
+  ["2026-10-14", "2026-10-17"],
+  ["2026-10-12", "2026-10-15"],
+  ["2026-11-01", "2026-12-15"],
+];
+
 // The fixed matrix of filters (plan 05 Task 2).
 const MATRIX = [
   { name: "none", filter: {} },
@@ -35,6 +44,15 @@ const MATRIX = [
   ...Object.entries(BEDROOM_BUCKETS).map(([b, f]) => ({ name: `bedrooms ${b}`, filter: { ...f } })),
   ...["getsemani", "GETSEMANÍ", "cartagena", "zzzz"].map((q) => ({ name: `query ${q}`, filter: { query: q } })),
   { name: "medellin + guests 20", filter: { destination: "medellin", guests: 20 } },
+  ...DATE_RANGES.map(([from, to]) => ({ name: `dates ${from}..${to}`, filter: { from, to } })),
+  ...DATE_RANGES.flatMap(([from, to]) =>
+    destinationSlugs.flatMap((destination) =>
+      [0, 6].map((guests) => ({
+        name: `dates ${from}..${to} + ${destination} + guests ${guests}`,
+        filter: { from, to, destination, ...(guests ? { guests } : {}) },
+      })),
+    ),
+  ),
   { name: "cartagena + bedrooms 5-8 + query casa", filter: { destination: "cartagena", ...BEDROOM_BUCKETS["5-8"], query: "casa" } },
 ];
 
@@ -58,8 +76,11 @@ for (const locale of LOCALES) {
       { query: "", destination: "", guests: 0, bedrooms: "5-8" },
       { query: "casa", destination: "cartagena", guests: 6, bedrooms: "5-8" },
       { query: "", destination: "", guests: 0, bedrooms: "9+" },
+      { query: "", destination: "", guests: 0, bedrooms: "any", from: "2026-10-14", to: "2026-10-17" },
+      { query: "", destination: "cartagena", guests: 2, bedrooms: "any", from: "2026-10-12", to: "2026-10-15" },
+      { query: "", destination: "medellin", guests: 0, bedrooms: "any", from: "2026-11-02", to: "2026-11-09" },
     ];
-    for (const state of states) {
+    for (const state of states.map((x) => ({ from: "", to: "", ...x }))) {
       const filter = toStayFilter(state);
       assert.deepEqual(slugs(filterStays(all, filter)), slugs(await getStays(locale, filter)), JSON.stringify(state));
     }
@@ -121,6 +142,16 @@ test("toStayFilter omits every empty key and trims the query", () => {
   });
   assert.deepEqual(toStayFilter({ ...EMPTY_STATE, bedrooms: "9+" }), { bedroomsMin: 9 });
   assert.deepEqual(toStayFilter({ ...EMPTY_STATE, bedrooms: "1-4" }), { bedroomsMin: 1, bedroomsMax: 4 });
+  assert.deepEqual(EMPTY_STATE, { query: "", destination: "", guests: 0, bedrooms: "any", from: "", to: "" });
+});
+
+test("toStayFilter adds from and to only when both are set", () => {
+  assert.deepEqual(toStayFilter({ ...EMPTY_STATE, from: "2026-10-12", to: "2026-10-15" }), {
+    from: "2026-10-12",
+    to: "2026-10-15",
+  });
+  assert.deepEqual(toStayFilter({ ...EMPTY_STATE, from: "2026-10-12" }), {});
+  assert.deepEqual(toStayFilter({ ...EMPTY_STATE, to: "2026-10-15" }), {});
 });
 
 test("isFiltered is true for each single filter and false for the empty state", () => {
@@ -130,24 +161,43 @@ test("isFiltered is true for each single filter and false for the empty state", 
   assert.equal(isFiltered({ ...EMPTY_STATE, destination: "cartagena" }), true);
   assert.equal(isFiltered({ ...EMPTY_STATE, guests: 1 }), true);
   assert.equal(isFiltered({ ...EMPTY_STATE, bedrooms: "5-8" }), true);
+  assert.equal(isFiltered({ ...EMPTY_STATE, from: "2026-10-12", to: "2026-10-15" }), true, "dates alone");
 });
 
-test("handoff: the hero bar's URL opens Cartagena, 2 guests, and carries the dates", () => {
-  const parsed = parseStayQuery(new URLSearchParams("destination=cartagena&from=2026-10-12&to=2026-10-17&guests=2"));
-  const { state, carry } = stateFromQuery(parsed, destinationSlugs, maxGuests);
-  assert.deepEqual(state, { query: "", destination: "cartagena", guests: 2, bedrooms: "any" });
-  assert.deepEqual(carry, { from: "2026-10-12", to: "2026-10-17" });
+test("handoff: the home Search's URL sets destination, guests and dates", () => {
+  const parsed = parseStayQuery(
+    new URLSearchParams("destination=cartagena&from=2026-10-12&to=2026-10-15&guests=2"),
+  );
+  const { state } = stateFromQuery(parsed, destinationSlugs, maxGuests);
+  assert.deepEqual(state, {
+    query: "",
+    destination: "cartagena",
+    guests: 2,
+    bedrooms: "any",
+    from: "2026-10-12",
+    to: "2026-10-15",
+  });
 });
 
 test("handoff: an unknown destination, a bad guests value and a bad date are ignored, never an error", () => {
   const parsed = parseStayQuery(new URLSearchParams("destination=bogota&guests=-1&from=2026-13-40"));
-  const { state, carry } = stateFromQuery(parsed, destinationSlugs, maxGuests);
+  const { state } = stateFromQuery(parsed, destinationSlugs, maxGuests);
   assert.deepEqual(state, EMPTY_STATE);
-  assert.deepEqual(carry, {});
-  for (const q of ["guests=abc", "guests=1.5", "destination=../../x", "destination=CARTAGENA", "from=nope&to=2026-02-30", ""]) {
+  for (const q of [
+    "guests=abc",
+    "guests=0",
+    "guests=1.5",
+    "destination=../../x",
+    "destination=CARTAGENA",
+    "from=nope&to=2026-02-30",
+    "from=2026-10-15&to=2026-10-12",
+    "from=2026-10-12&to=2026-10-12",
+    "from=2026-10-12",
+    "to=2026-10-15",
+    "",
+  ]) {
     const out = stateFromQuery(parseStayQuery(new URLSearchParams(q)), destinationSlugs, maxGuests);
     assert.deepEqual(out.state, EMPTY_STATE, q);
-    assert.deepEqual(out.carry, {}, q);
   }
 });
 
@@ -173,26 +223,40 @@ test("stateFromQuery maps bedrooms only on an exact bucket match, and keeps a qu
   assert.equal(map({ query: "getsemani" }).query, "getsemani");
 });
 
-test("listQuery writes destination, dates and guests only; search and bedrooms never reach the URL", () => {
-  assert.equal(listQuery(EMPTY_STATE, {}), "");
+test("listQuery writes destination, dates and guests in toStayQuery order; search and bedrooms never reach the URL", () => {
+  assert.equal(listQuery(EMPTY_STATE), "");
   assert.equal(
-    listQuery({ query: "x", destination: "cartagena", guests: 2, bedrooms: "5-8" }, { from: "2026-10-12", to: "2026-10-17" }),
+    listQuery({
+      query: "x",
+      destination: "cartagena",
+      guests: 2,
+      bedrooms: "5-8",
+      from: "2026-10-12",
+      to: "2026-10-17",
+    }),
     "destination=cartagena&from=2026-10-12&to=2026-10-17&guests=2",
   );
-  assert.equal(listQuery({ ...EMPTY_STATE, guests: 3 }, {}), "guests=3");
-  assert.equal(listQuery({ ...EMPTY_STATE, query: "getsemani", bedrooms: "9+" }, {}), "");
+  assert.equal(listQuery({ ...EMPTY_STATE, guests: 3 }), "guests=3");
+  assert.equal(listQuery({ ...EMPTY_STATE, from: "2026-10-12", to: "2026-10-15" }), "from=2026-10-12&to=2026-10-15");
+  assert.equal(listQuery({ ...EMPTY_STATE, from: "2026-10-12" }), "", "a one-sided range is never written");
+  assert.equal(listQuery({ ...EMPTY_STATE, query: "getsemani", bedrooms: "9+" }), "");
   assert.equal(
-    listQuery({ ...EMPTY_STATE, destination: "medellin", guests: 2 }, { from: "2026-10-12", to: "2026-10-17" }),
+    listQuery({ ...EMPTY_STATE, destination: "medellin", guests: 2, from: "2026-10-12", to: "2026-10-17" }),
     toStayQuery({ destination: "medellin", guests: 2, from: "2026-10-12", to: "2026-10-17" }),
   );
 });
 
 test("the URL the list writes reads back to the same state", () => {
-  const state = { query: "", destination: "medellin", guests: 4, bedrooms: "any" };
-  const carry = { from: "2026-10-12", to: "2026-10-17" };
-  const back = stateFromQuery(parseStayQuery(new URLSearchParams(listQuery(state, carry))), destinationSlugs, maxGuests);
+  const state = {
+    query: "",
+    destination: "medellin",
+    guests: 4,
+    bedrooms: "any",
+    from: "2026-10-12",
+    to: "2026-10-17",
+  };
+  const back = stateFromQuery(parseStayQuery(new URLSearchParams(listQuery(state))), destinationSlugs, maxGuests);
   assert.deepEqual(back.state, state);
-  assert.deepEqual(back.carry, carry);
 });
 
 // ---- the static HTML of the list (what a visitor with JavaScript off sees, and what hydration must match) ----
@@ -237,6 +301,7 @@ async function listProps(locale, mutate = (x) => x) {
       bedrooms: s.bedrooms,
       destination_slug: s.destination_slug,
       destination_name: s.destination_name,
+      blocked_dates: s.blocked_dates,
       image: s.hero_image ? { src: s.hero_image.url, alt: s.hero_image.alt } : null,
     }),
   );
@@ -247,6 +312,8 @@ async function listProps(locale, mutate = (x) => x) {
     hrefs: Object.fromEntries(all.map((s) => [s.slug, `/private-stays/${s.slug}`])),
     basePath: "/private-stays",
     copy: STAYS_LIST_COPY[locale],
+    journeyCopy: JOURNEY_COPY[locale],
+    datesNote: STAY_DETAIL_COPY[locale].sampleDatesNote,
     all,
   };
 }
