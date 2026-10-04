@@ -88,3 +88,20 @@ every 3.3 page.
    branch (`6264c59`), built with `--target=preview` (noindex header, disallow-all robots, no sitemap; media
    guard OK, 42 documents). First attempt 16:19: the ALMAR Wrangler login had expired (token expiry
    2026-10-04 03:21 UTC, refresh failed); his one terminal step re-logs it in, then the controller deploys.
+
+## Speed-up (owner, controller chat, 2026-10-04 ~20:10)
+
+His words: "contact all of them to finalize them yalla i need to continue fast and go ahead of this yalla".
+Taken as **his go to build slices 2, 3A and 4**. Controller's changes for speed, sent to each session:
+- They do not wait for slice 1 on `main`: each starts when the controller announces that job 11 is merged into
+  `gsd/phase-3.3-slice-1`, merges that branch, and builds. Each precondition "slice 1 on `origin/main`" reads
+  "slice 1 with job 11 on `origin/gsd/phase-3.3-slice-1`".
+- They build at the same time. Measured overlap of their `files_modified`: all three edit `lib/data/types.ts`,
+  `lib/locale-path.ts`, `scripts/media-lib.mjs`, `tests/build/home/home.spec.ts`, `tests/build/locale-routing.spec.ts`,
+  `tests/locale-path.test.mjs`, `tests/media-guard.test.mjs`; 2 and 3 share the media manifest, image translations,
+  `scripts/media-guard.mjs` and five specs; 2 and 4 share `components/ui/card.tsx`, `tests/data-contract.test.mjs`,
+  `tests/helpers/site-links.mjs`; 3 and 4 share two blog specs. Rule for this run, replacing "two jobs never edit
+  the same file at once" for these files only: edits there are additive (append, never reorder or rewrite); landing
+  order stays 2 → 3A → 4, and each later slice merges the earlier one before its hand-over, the earlier lander winning.
+- Job 11 was asked to finish plans 44 and 47 inside the signed scope and hand over at once.
+- Job 10 is handed over (`466ec4c`); it lands after slice 1, after one more merge of `main`.
