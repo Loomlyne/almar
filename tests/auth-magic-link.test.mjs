@@ -154,11 +154,11 @@ test("sign-in screen: one email field, no password, no create tab", () => {
   assert.match(screen, /requestSignIn/);
 });
 
-test("confirm route verifies the token and reads no redirect from the query", () => {
-  const route = code("app/auth/confirm/route.ts");
-  assert.match(route, /verifyOtp/);
-  assert.equal(/searchParams\.get\("(next|redirect|redirect_to|returnTo)"\)/.test(route), false);
-  assert.match(route, /safeReturnPath/);
+test("confirm action verifies the token and reads no redirect from the form", () => {
+  const action = code("app/auth/confirm/actions.ts");
+  assert.match(action, /verifyOtp/);
+  assert.equal(/form\.get\("(next|redirect|redirect_to|returnTo)"\)/.test(action), false);
+  assert.match(action, /safeReturnPath/);
 });
 
 test("login page reads the return key from a fixed list only", () => {
