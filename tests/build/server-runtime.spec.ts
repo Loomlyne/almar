@@ -133,6 +133,36 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(post.headers()["x-robots-tag"]).toBe("noindex");
   });
 
+  test("4. headers only Next's own layers set, sent by a visitor, change nothing on /api/health", async ({ request }) => {
+    // Pre-landing review 2026-10-05: Next and OpenNext read x-matched-path, x-middleware-rewrite, x-now-route-matches
+    // and RSC to route a request they believe an earlier layer already handled. A visitor can send all of them; the
+    // answer must stay the health JSON, never a dashboard or login page.
+    const probes: Array<Record<string, string>> = [
+      { "x-matched-path": "/dashboard/home" },
+      { "x-matched-path": "/login" },
+      { "x-middleware-rewrite": "/login" },
+      { "x-middleware-rewrite": "https://almarprivatejourney.com/dashboard/home" },
+      { "x-now-route-matches": "1" },
+      { RSC: "1" },
+      {
+        "x-matched-path": "/dashboard/home",
+        "x-middleware-rewrite": "/login",
+        "x-now-route-matches": "1",
+        RSC: "1",
+      },
+    ];
+    for (const headers of probes) {
+      const label = JSON.stringify(headers);
+      const res = await request.get("/api/health", { headers, maxRedirects: 0 });
+      expect(res.status(), label).toBe(200);
+      const text = await res.text();
+      expect(text, label).toBe('{"ok":true}');
+      expect(text.toLowerCase(), label).not.toMatch(/dashboard|login|<html/);
+      expect(res.headers()["content-type"], label).toMatch(/^application\/json/);
+      expect(res.headers()["x-robots-tag"], label).toBe("noindex");
+    }
+  });
+
   test("4. a browser navigation reaches /api/health, and still gets the 404 on a held path", async ({ request }) => {
     // Security review 2026-10-04: without run_worker_first, Cloudflare answers navigation misses from the assets
     // layer and the Worker never sees them. The Playwright request API sends no Sec-Fetch-Mode unless told to.
