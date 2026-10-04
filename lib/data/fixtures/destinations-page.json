@@ -1,0 +1,25 @@
+{
+  "hero": [
+    {
+      "id": "bf7b9a70-9beb-51d1-bf9e-a7dbc25082d3",
+      "media_key": "home/gallery/03.webp",
+      "width": 1820,
+      "height": 1024,
+      "position": 1
+    },
+    {
+      "id": "c2d5f871-6ce2-5486-88a9-ea8a09b2deeb",
+      "media_key": "destinations/page/hero-2.webp",
+      "width": 1820,
+      "height": 1024,
+      "position": 2
+    },
+    {
+      "id": "338e83be-3378-55e2-851c-c0a741183b2e",
+      "media_key": "destinations/page/hero-3.webp",
+      "width": 1820,
+      "height": 1024,
+      "position": 3
+    }
+  ]
+}

@@ -278,7 +278,9 @@ test("slice1Documents lists the 42 slice-1 documents: 14 per locale, EN at the r
 
 // Task 2: measured fields, the cache, and fetch -------------------------------------------------------------------
 
-const cacheExists = fs.existsSync(paths.cacheDir);
+// Entries whose cache file exists. A partial media-staging/ is normal until plan 16 fetches the rest (S2-6).
+const cachedEntries = fs.existsSync(paths.cacheDir) ? manifest.filter((e) => fs.existsSync(cachePath(e.key, paths.cacheDir))) : [];
+const cacheExists = cachedEntries.length > 0;
 
 test("every entry is measured: content_type, bytes, sha256, md5, width and height", () => {
   for (const e of manifest) {
@@ -299,14 +301,15 @@ test("every fixture image's width and height equal its manifest entry's", () => 
   }
 });
 
-test(cacheExists ? "every cached file's sha256 equals the manifest" : "every cached file's sha256 equals the manifest (SKIPPED: media-staging/ is absent, as in a clean clone)", { skip: !cacheExists && "media-staging/ is absent" }, () => {
-  for (const e of manifest) {
-    const file = cachePath(e.key, paths.cacheDir);
-    assert.ok(fs.existsSync(file), `${e.key} is not cached`);
-    const buf = fs.readFileSync(file);
+test(cacheExists ? "every cached file's sha256 equals the manifest" : "every cached file's sha256 equals the manifest (SKIPPED: media-staging/ is absent or empty, as in a clean clone)", { skip: !cacheExists && "media-staging/ is absent or holds no manifest entry" }, () => {
+  let checked = 0;
+  for (const e of cachedEntries) {
+    const buf = fs.readFileSync(cachePath(e.key, paths.cacheDir));
     assert.equal(sha256(buf), e.sha256, e.key);
     assert.equal(buf.length, e.bytes, e.key);
+    checked++;
   }
+  assert.ok(checked >= 1, "at least one cached entry was checked");
 });
 
 function fakeResponse(body, { status = 200, type = "image/webp", url } = {}) {

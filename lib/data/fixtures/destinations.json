@@ -46,5 +46,59 @@
     },
     "is_published": true,
     "position": 2
+  },
+  {
+    "id": "8f446e7f-412f-537c-9910-1135dadd421c",
+    "created_at": "2026-10-05T00:00:00+00:00",
+    "updated_at": "2026-10-05T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "bogota",
+    "hero_image": {
+      "id": "bffe05fb-a5fd-52d5-9151-6c60388479e2",
+      "media_key": "destinations/bogota/hero.webp",
+      "width": 736,
+      "height": 1318,
+      "position": 0
+    },
+    "inset_image": null,
+    "is_published": true,
+    "position": 3
+  },
+  {
+    "id": "9b70fbde-8d84-5cba-bf16-c5690f6c1607",
+    "created_at": "2026-10-05T00:00:00+00:00",
+    "updated_at": "2026-10-05T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "san-andres",
+    "hero_image": {
+      "id": "3c3794eb-59e4-5531-a80c-f3d04f5a3edd",
+      "media_key": "destinations/san-andres/hero.webp",
+      "width": 736,
+      "height": 920,
+      "position": 0
+    },
+    "inset_image": null,
+    "is_published": true,
+    "position": 4
+  },
+  {
+    "id": "37171873-91c7-5acc-8d67-6a616202fa2d",
+    "created_at": "2026-10-05T00:00:00+00:00",
+    "updated_at": "2026-10-05T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "cocora-valley",
+    "hero_image": {
+      "id": "83ed6607-36a8-5e27-9b01-dd3c58af9e3a",
+      "media_key": "destinations/cocora-valley/hero.webp",
+      "width": 736,
+      "height": 920,
+      "position": 0
+    },
+    "inset_image": null,
+    "is_published": true,
+    "position": 5
   }
 ]
