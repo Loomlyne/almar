@@ -9,7 +9,7 @@ import { routeMedia } from "../../helpers/media-route";
 //  1. the logo goes to this language's home ("/", "/ar/", "/es/"), never to the page's own address
 //  2. the footer prints the phone as designed and dials the digits
 //  3. the currency select is controlled by the page's own saved choice (the home), and absent where a page has no amount
-//  4. the WhatsApp float takes the page's class (lifted above the pinned dock on a stay page, at the corner elsewhere)
+//  4. the WhatsApp float is not drawn on a stay page (plan 45: the request button is the one WhatsApp control) and sits at the corner elsewhere
 //  5. (item f) the footer reads one table: the home, the list and a stay page print the same footer text in a language
 
 const LOCALES: Locale[] = ["en", "ar", "es"];
@@ -186,16 +186,12 @@ for (const locale of LOCALES) {
         }
       });
 
-      test(`4 the WhatsApp float: lifted above the dock on a stay page, at the corner on the list page (${where})`, async ({ page }) => {
+      test(`4 the WhatsApp float: none on a stay page (the request button is the one), at the corner on the list page (${where})`, async ({ page }) => {
         await routeMedia(page);
         await page.goto(localePath(locale, STAY));
-        const float = page.getByRole("link", { name: "WhatsApp" });
-        await expect(float).toHaveCount(1);
-        await expect(float).toHaveClass(/\bbottom-dock\b/);
-        const dock = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spacing-dock")));
-        expect(dock).toBe(88);
-        const lifted = await float.evaluate((node) => parseFloat(getComputedStyle(node).bottom) + parseFloat(getComputedStyle(node).marginBottom));
-        expect(lifted, "the float sits at least the dock's height above the bottom").toBeGreaterThanOrEqual(dock);
+        // 11-DESIGN section 1: one WhatsApp button on a stay page. The green float is not drawn; the request link is.
+        await expect(page.locator('a[aria-label="WhatsApp"]')).toHaveCount(0);
+        await expect(page.locator('a[href^="https://wa.me/971563883302?text="]').first()).toBeAttached();
 
         await page.goto(localePath(locale, "/private-stays"));
         const corner = page.getByRole("link", { name: "WhatsApp" });
