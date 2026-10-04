@@ -48,7 +48,6 @@ type StayTranslation = {
   amenities: string[];
   inclusions: string[];
   policy_headings: string[];
-  policy_bodies: string[];
 };
 
 function published(): StayBase[] {
@@ -78,6 +77,8 @@ function resolveStay(base: StayBase, locale: Locale): Stay {
   return {
     ...row,
     amenity_icons: en.amenities.map(amenityIcon),
+    // Headings only until real policy text exists in the dashboard (owner, 2026-10-04).
+    policy_bodies: null,
     destination_slug: dest.slug,
     destination_name: destName,
     hero_image: image(base.hero_image, locale),

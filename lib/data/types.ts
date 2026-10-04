@@ -157,10 +157,11 @@ export type Stay = RowMeta & {
   /** The four published policy headings. */
   policy_headings: string[];
   /**
-   * The text each policy row opens, lifted from the live page 2026-10-04; same order and length as
-   * policy_headings. EN is published; AR and ES are drafts (the record's own status says so).
+   * The text each policy row will open, same order and length as policy_headings, once real text is written in the
+   * dashboard. Null until then: the owner decided on 2026-10-04 that Policies show headings only and nothing opens
+   * (Framer's bodies were one CMS placeholder, identical on all 12 stays). The data layer returns null today.
    */
-  policy_bodies: string[];
+  policy_bodies: string[] | null;
 
   /** NO SOURCE EXISTS. Null means "not set" (STAY-06). */
   min_nights: number | null;

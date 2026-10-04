@@ -67,14 +67,15 @@ test("rules are ordered, first match wins, and the fallback is check", () => {
 });
 
 for (const locale of ["en", "ar", "es"]) {
-  test(`every stay has one icon per amenity and four policy bodies (${locale})`, async () => {
+  test(`every stay has one icon per amenity, four policy headings and no policy bodies (${locale})`, async () => {
     const stays = await getStays(locale);
     assert.equal(stays.length, 12);
     for (const s of stays) {
       assert.equal(s.amenity_icons.length, s.amenities.length, `${locale} ${s.slug}`);
       assert.equal(s.policy_headings.length, 4, `${locale} ${s.slug}`);
-      assert.equal(s.policy_bodies.length, s.policy_headings.length, `${locale} ${s.slug}`);
-      assert.ok(s.policy_bodies.every((b) => b.trim().length > 0), `${locale} ${s.slug} empty body`);
+      // Owner, 2026-10-04: headings only, nothing opens, until real text is written in the dashboard.
+      assert.equal(s.policy_bodies, null, `${locale} ${s.slug}`);
+      assert.doesNotMatch(JSON.stringify(s), /PRIVADA|CAMARERA/, `${locale} ${s.slug} placeholder text`);
     }
   });
 }
