@@ -167,9 +167,15 @@ function fileViolations(file) {
   // One exemption, approved by the controller 2026-10-03: JSON-LD cannot be rendered without raw HTML
   // (React escapes a <script> text child). Allowed only while the file's payload is a fixed literal.
   const JSON_LD_FILE = "components/site/organization-json-ld.ts";
+  const BLOG_JSON_LD_FILE = "components/site/blog-posting-json-ld.ts";
   if (/dangerouslySetInnerHTML/.test(text)) {
     const fixedLiteral = /export const ORGANIZATION_JSON_LD =\s*'[^'`$]*';/.test(text) && !/[`]|\$\{/.test(text);
-    if (file !== JSON_LD_FILE || !fixedLiteral) out.push("dangerouslySetInnerHTML");
+    if (file === BLOG_JSON_LD_FILE) {
+      // Plan 32: the post's BlogPosting carries data, so it is allowed only while every "<" of the JSON text is escaped
+      // (JSON.stringify(...).replace(/</g, "\\u003c")) and nothing is assigned through innerHTML.
+      const escaped = text.includes('.replace(/</g, "\\\\u003c")') && !/\.innerHTML\s*=/.test(text);
+      if (!escaped) out.push("dangerouslySetInnerHTML without the < escape");
+    } else if (file !== JSON_LD_FILE || !fixedLiteral) out.push("dangerouslySetInnerHTML");
   }
   if (/\.(tsx|ts)$/.test(file)) {
     for (const token of classTokens(text, file)) out.push(...tokenViolations(token, file));

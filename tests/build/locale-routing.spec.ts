@@ -1,14 +1,16 @@
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import {
   LOCALES,
+  PUBLIC_PAGES,
   localeAlternates,
   localeDir,
   localeHrefs,
   localePath,
   type Locale,
 } from "../../lib/locale-path";
+import { framerRoutes } from "../helpers/site-links.mjs";
 import { clickClearOfDock } from "../helpers/click-clear-of-dock";
 import { routeMedia } from "../helpers/media-route";
 
@@ -45,6 +47,10 @@ const STAYS = [
   "santa-fe-farm-antioquia",
   "sopetran-country-estate",
 ];
+// The published posts (lib/data/fixtures/posts.json), for the inventory below.
+const POSTS = (JSON.parse(readFileSync("lib/data/fixtures/posts.json", "utf8")) as Array<{ slug: string; is_published: boolean }>)
+  .filter((p) => p.is_published)
+  .map((p) => p.slug);
 const DEFAULT_PATHS = ["/", "/private-stays", ...STAYS.map((s) => `/private-stays/${s}`)];
 const list = (value: string | undefined) => (value ? value.split(",").map((v) => v.trim()).filter(Boolean) : null);
 
@@ -224,15 +230,24 @@ function htmlFiles(dir: string, found: string[] = []): string[] {
   return found;
 }
 
-// Once, no viewport. Runs at the end of the slice (all 14 pages converted), with the default PATHS and locales.
-test("slice inventory: out/ holds exactly 42 React documents, 12 Framer documents and three 404s", async () => {
+// Once, no viewport. The inventory is derived, so the next slice that converts a page changes no literal: the React
+// documents are every PUBLIC_PAGES pattern (with [stay] and [post] expanded to the published slugs) in the three
+// locales; the Framer documents are the route.ts files that still serve a Framer export (English only).
+test("slice inventory: out/ holds every React document, every remaining Framer document and three 404s", async () => {
   test.skip(
     Boolean(process.env.ROUTING_PATHS || process.env.ROUTING_LOCALES),
-    "the inventory is for the full 14 pages x 3 locales, not a narrowed run",
+    "the inventory is for every page x 3 locales, not a narrowed run",
   );
   const files = htmlFiles("out").sort();
+  const paths = PUBLIC_PAGES.flatMap((pattern) =>
+    pattern === "/private-stays/[stay]"
+      ? STAYS.map((s) => `/private-stays/${s}`)
+      : pattern === "/blog/[post]"
+        ? POSTS.map((s) => `/blog/${s}`)
+        : [pattern],
+  );
   const react = LOCALES.flatMap((l) =>
-    PATHS.map((p) => {
+    paths.map((p) => {
       const url = localePath(l, p);
       return url.endsWith("/") ? `${url.slice(1)}index.html` : `${url.slice(1)}.html`;
     }),
@@ -240,7 +255,7 @@ test("slice inventory: out/ holds exactly 42 React documents, 12 Framer document
   const notFound = ["404.html", "ar/404.html", "es/404.html"];
   const rest = files.filter((f) => !react.includes(f) && !notFound.includes(f));
   expect(react.filter((f) => !files.includes(f)), "missing React documents").toEqual([]);
-  expect(react).toHaveLength(42);
+  expect(react).toHaveLength(LOCALES.length * paths.length);
   expect(notFound.filter((f) => !files.includes(f))).toEqual([]);
-  expect(rest, "12 Framer documents and nothing else").toHaveLength(12);
+  expect(rest, "the Framer documents that remain, and nothing else").toHaveLength(framerRoutes("app").length);
 });
