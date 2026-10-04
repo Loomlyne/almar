@@ -13,7 +13,7 @@ test("no storage and no password column", () => {
 });
 
 test("RLS is on for every table", () => {
-  for (const table of ["profiles", "site_settings", "host_handoff"]) {
+  for (const table of ["profiles", "site_settings", "host_handoff", "auth_link_requests"]) {
     assert.match(sql, new RegExp(`alter table public\\.${table} enable row level security`));
   }
 });
@@ -50,4 +50,55 @@ test("the handoff stores a hash, never the raw token", () => {
 test("the public settings view leaves the logo bytes out", () => {
   const view = sql.slice(sql.indexOf("create or replace view public.site_settings_public"));
   assert.equal(view.slice(0, view.indexOf(";")).includes("logo_bytes"), false);
+});
+
+function fnBody(name) {
+  const at = sql.indexOf(`function public.${name}`);
+  const rest = sql.slice(at);
+  return rest.slice(0, rest.indexOf("$$;", rest.indexOf("$$") + 2));
+}
+
+test("a profile exists only for a confirmed email, and the owner role only on that path", () => {
+  const body = fnBody("handle_new_auth_user");
+  assert.match(body, /new\.email_confirmed_at is not null/);
+  assert.match(body, /on conflict \(id\) do nothing/);
+  assert.match(body, /'maria@almarprivatejourney\.com' then 'owner'/);
+  assert.match(sql, /create trigger on_auth_user_confirmed\s+after update of email_confirmed_at on auth\.users\s+for each row\s+when \(old\.email_confirmed_at is null and new\.email_confirmed_at is not null\)\s+execute function public\.handle_new_auth_user\(\)/);
+  assert.match(sql, /drop trigger if exists on_auth_user_confirmed on auth\.users/);
+  assert.match(sql, /where u\.email is not null and u\.email_confirmed_at is not null/);
+});
+
+test("profiles carry length and phone checks that match the app rules", () => {
+  assert.match(sql, /drop constraint if exists profiles_first_name_length;\s*alter table public\.profiles add constraint profiles_first_name_length check \(char_length\(first_name\) <= 80\)/);
+  assert.match(sql, /add constraint profiles_last_name_length check \(char_length\(last_name\) <= 80\)/);
+  assert.match(sql, /add constraint profiles_phone_shape check \(phone is null or phone ~ '\^\\\+\?\[0-9\]\{6,15\}\$'\)/);
+});
+
+test("the trigger functions cannot be called through the API", () => {
+  for (const fn of ["handle_new_auth_user()", "handle_auth_email_change()"]) {
+    assert.ok(sql.includes(`revoke execute on function public.${fn} from public, anon, authenticated;`), fn);
+  }
+});
+
+test("auth_link_requests is closed to every API role and indexed", () => {
+  assert.match(sql, /revoke all on public\.auth_link_requests from public, anon, authenticated;/);
+  assert.match(sql, /on public\.auth_link_requests \(email_hash, created_at\)/);
+  assert.match(sql, /on public\.auth_link_requests \(ip_hash, created_at\)/);
+  assert.equal(/grant[^;]*auth_link_requests/i.test(sql), false);
+});
+
+test("claim_link_slot is security definer, pinned, and only the service role runs it", () => {
+  const body = fnBody("claim_link_slot");
+  assert.match(body, /returns boolean/);
+  assert.match(body, /security definer/);
+  assert.match(body, /set search_path = ''/);
+  assert.match(body, /pg_advisory_xact_lock\(hashtextextended\(p_email_hash, 0\)\)/);
+  assert.match(body, /interval '60 seconds'/);
+  assert.match(body, /\) >= 5 then/);
+  assert.match(body, /\) >= 20 then/);
+  assert.match(body, /created_at < now\(\) - interval '1 day'/);
+  assert.equal(/\bfrom (?!public\.)\w/.test(body.replace(/\bfrom public\./g, "")), false);
+  assert.ok(sql.includes("revoke execute on function public.claim_link_slot(text, text) from public, anon, authenticated;"));
+  assert.ok(sql.includes("grant execute on function public.claim_link_slot(text, text) to service_role;"));
+  assert.equal(/grant execute on function public\.claim_link_slot[^;]*(anon|authenticated|public)/.test(sql), false);
 });
