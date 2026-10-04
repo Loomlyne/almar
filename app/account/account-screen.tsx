@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition, type FormEvent } from "react";
+import { pageLinks } from "../../components/site/page-links";
 import { SiteNav } from "../../components/ui/nav";
 import { Button } from "../../components/ui/button";
 import { Field } from "../../components/ui/field";
@@ -67,6 +68,7 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
         currency={currency}
         onCurrency={(next) => storePreferences(locale, next)}
         labels={{ ...nav, bookings: copy.bookings, account: copy.account, signOut: copy.signOut, profile: hub.profile, preferences: hub.preferences, accountMenu: hub.menuLabel }}
+        links={pageLinks(locale, nav)}
         loginHref="/login"
         markCurrent={false}
         account={account}

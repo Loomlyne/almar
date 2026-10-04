@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { NavAccount } from "../../components/ui/account-menu";
 import { GUEST_COPY } from "../../lib/copy/guest";
+import { pageLinks } from "../../components/site/page-links";
 import { SiteNav } from "../../components/ui/nav";
 import { Link } from "../../components/ui/link";
 import { WhatsApp } from "../../components/ui/whatsapp";
@@ -27,6 +28,8 @@ export function BookingsScreen({ initialLocale, account }: { initialLocale: Docu
         locale={locale}
         onLocale={chooseLocale}
         labels={{ ...HOME_COPY[locale].nav, bookings: copy.bookings, account: copy.account, signOut: copy.signOut, profile: copy.hub.profile, preferences: copy.hub.preferences, accountMenu: copy.hub.menuLabel }}
+        links={pageLinks(locale, HOME_COPY[locale].nav)}
+        currency={false}
         loginHref="/login"
         markCurrent={false}
         account={account}
