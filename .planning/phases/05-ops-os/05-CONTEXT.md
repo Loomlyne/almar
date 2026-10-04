@@ -47,6 +47,9 @@ Driver assigned / Flights booked, guest cancellation requests, passport upload, 
 - **O-08:** Settings money fields: VAT %, deposit %, balance due days. Deposit % in force is copied onto each
   booking when it is created, so a later change never alters a paid booking (PAY-04 subset).
 
+- **O-09 (owner, 2026-10-05):** The ops screens are reached at `dashboard.almarprivatejourney.com` on the second
+  Worker `almar-ops` (03.2 C-20). Depends on job 02's ops host and his DNS step by Oct 10.
+
 ### Claude's Discretion
 - List page size, search matching, how "upcoming first" sorts ties.
 </decisions>

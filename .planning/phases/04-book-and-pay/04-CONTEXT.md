@@ -82,6 +82,16 @@ Not in v1 (owner): damage hold (PAY-13), coupons (PAY-05), attached PDF receipt,
   `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`), set from his terminal. Switching accounts must be a key
   change, nothing in code.
 
+### Added 2026-10-05 00:05–00:20 (+04), owner, question form
+- **B-20 (owner):** Turn on Stripe's local-currency choice (Adaptive Pricing) where the account offers it: the
+  guest may switch to their currency in the payment form and pays Stripe's own conversion fee only if they
+  switch; ALMAR receives AED. Research: it works only with Checkout Sessions in `ui_mode: "elements"` (Payment
+  Element on our page), not with PaymentIntents. If the account lacks it, the form shows AED only.
+- **B-21 (owner):** If arrival is sooner than the balance due days, **full payment only** in v1 ("later we can do
+  deposit"): the Deposit card shows unavailable with the reason.
+- **B-22 (owner, see 03.2 C-20):** Ops lives on `dashboard.almarprivatejourney.com`, Worker `almar-ops`. Guest
+  checkout APIs and the Stripe webhook stay on the public Worker `almar` under `/api/*`.
+
 ### Claude's Discretion
 - Payment Element with PaymentIntents or with the Checkout Sessions API in custom UI mode, whichever gives B-03's
   local-currency display on a branded page; the researcher decides with evidence.

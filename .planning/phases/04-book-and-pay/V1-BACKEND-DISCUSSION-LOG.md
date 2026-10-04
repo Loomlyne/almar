@@ -32,3 +32,12 @@ agents read are in `03.2-CONTEXT.md`, `04-CONTEXT.md`, `05-CONTEXT.md`.
 
 Interpretations recorded (his words in quotes above): #22 also sets the payment methods to card and Apple Pay
 (Link off). #9 + #16 + #20: the charge is AED; local-currency display is Stripe's; no FX lock built.
+
+## Second sitting, 2026-10-05 00:05–00:20 (+04), after the research
+
+| # | Question | Options (recommended first) | His answer |
+|---|---|---|---|
+| 24 | Where is the dashboard in v1 | dashboard.almarprivatejourney.com · almarprivatejourney.com/dashboard | **dashboard.almarprivatejourney.com** |
+| 25 | Stripe local-currency choice (Adaptive Pricing) | Yes, guest may choose · No, AED only | **Yes** |
+| 26 | Arrival sooner than balance due days | Full payment only · Deposit still allowed | **"for now full payment but later we can do deposit"** |
+| 27 | How the dashboard address is served | Second Worker `almar-ops` · Same Worker, all requests through code | **Second Worker `almar-ops`** |
