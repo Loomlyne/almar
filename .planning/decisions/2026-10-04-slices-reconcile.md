@@ -42,3 +42,49 @@ Each slice's base is `84deec2`; slice 1 then changed files these plans name. Tas
 - Plan 08: `scripts/assemble-cloudflare.mjs --target=local|preview|production`, preview builds into
   `out-preview/`, `scripts/crawl-files.mjs`, `wrangler.preview.toml`.
 A plan step that no longer applies is reported in its summary, not forced.
+
+## Slice 1 UAT, 2026-10-04 ~15:40 (+04): two problems, three answers
+
+On the local preview (`http://127.0.0.1:3090`, slice 1 at `693c21a`, production build) the owner answered
+"its working but there different problems: 1. the booking bar doesn't have the button to search 2. the design
+below the hero section is nothing same as the framer design and animation". Measured by the controller at 1440
+(live Framer vs React, full page): home 12,066 px vs 7,587 px with the same 11 sections in the same order, but
+small left-aligned headings in a narrow column instead of centred large ones, landscape cards with captions
+below instead of portrait cards with the name on the photo, a photo grid instead of the sliding gallery, no
+divider lines, a dark footer instead of Framer's light one, and 0 animated elements against Framer's 35. The
+stays list lost its photo hero and the stay page its two-column About and sliding gallery. Pictures:
+`03.3-public-site-in-react/uat-2026-10-04/compare-{home,private-stays,stay-page}.png` on the slice branch.
+
+His answers (question form, 2026-10-04 ~15:55):
+1. **Home Search**: "Opens the stays list, filtered" — Search takes the guest to `/private-stays` (per locale)
+   showing only stays in the chosen destination, free on the chosen nights, that sleep the guests.
+2. **Stay page button**: "Request on WhatsApp" — opens WhatsApp to `+971 56 388 3302` with the stay, the
+   dates and the guests already written, in the page's language.
+3. **Framer match**: "Match Framer on all 3 pages" — home, `/private-stays` and the stay page rebuilt section
+   by section to the live Framer look and animations, EN/AR/ES at 390/834/1440; signed rules still win (nav
+   order, square corners, gold as a line only, no fake controls). Pictures first for his signature, then code.
+   **Slice 1 Ship waits for it.**
+   **Narrowed by the owner minutes later (chat, with the `/private-stays` comparison attached): "no match framer
+   for 2 the second one … this one dont match it keep it as you did it".** So the Framer match covers the home
+   page and the stay page only; `/private-stays` keeps the React layout as built (search, filters, landscape
+   cards, its header), and gains only the filtered arrival from the home Search (answer 1).
+
+These two buttons replace the "journey bar final submit is not rendered until Phase 4" rule for these two bars
+only; Phase 4 still brings checkout. Job 11 carries all three (`prompts/11-slice-1-framer-match.md`).
+Consequence for slices 2–4: they build on the same components, so each lead re-checks its signed design
+against the matching live Framer page before code; the owner is asked once whether "match Framer" applies to
+every 3.3 page.
+
+## Framer match for slices 2–4, and the preview site (owner, question form, 2026-10-04 ~16:15)
+
+1. **"Yes, except list pages."** `/destinations`, `/about`, `/contact` and the three blog posts match the live
+   Framer look and animations, like home and the stay page in job 11. The two filter-and-search list pages,
+   `/experiences` (services folded in) and `/blog`, keep a React list layout like `/private-stays`.
+   Each lead re-checks its signed design against the live Framer page for its matched pages, shows him the
+   pictures (Framer beside the proposal, 390 and 1440, EN and AR) and gets his signature again before code;
+   plans change only where the pictures change them. They reuse job 11's components (cards, galleries,
+   dividers, animations) once it lands, and do not build their own.
+2. **"Yes, create it now."** Worker `almar-preview` at `preview.almarprivatejourney.com` from the slice 1
+   branch (`6264c59`), built with `--target=preview` (noindex header, disallow-all robots, no sitemap; media
+   guard OK, 42 documents). First attempt 16:19: the ALMAR Wrangler login had expired (token expiry
+   2026-10-04 03:21 UTC, refresh failed); his one terminal step re-logs it in, then the controller deploys.
