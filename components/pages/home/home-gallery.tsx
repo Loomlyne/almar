@@ -12,7 +12,7 @@ import type { HomePageCopy } from "../../../lib/copy/home-page";
 export function HomeGallery({ gallery, labels }: { gallery: HomeBlocks["gallery"]; labels: HomePageCopy["gallery"] }) {
   const headingId = useId();
   return (
-    <section id="gallery" aria-labelledby={headingId} className="grid gap-12 py-16 md:py-section">
+    <section id="gallery" aria-labelledby={headingId} className="grid grid-cols-1 gap-12 py-16 md:py-section">
       <PageShell>
         <SectionHead tone="plain" align="center" kicker={gallery.kicker} heading={gallery.heading} headingId={headingId} />
       </PageShell>
