@@ -56,6 +56,16 @@ code.
 
 Recorded in slice 2 `job07-framer/S2-FRAMER.md`.
 
+## Sizes (third plan check, 2026-10-04)
+
+The 88 / 48 and 32 / 24 px above are Framer's measurements, not new sizes. The owner's answer 2 to job 11 ("keep
+the signed scale 12·14·16·20·32·48·64, no new size token") is site-wide:
+- the `<h1>` is `hero` 64 from tablet up and `display` 48 on phone;
+- card names are `heading` 32 and `title` 20 on phone;
+- the region line is `label` 14 and `caption` 12.
+
+Reconcile S2-20.
+
 ## Alt text for the three hero photos (plan check, 2026-10-04)
 
 Framer's published `alt` text is wrong for two of the three photos.
