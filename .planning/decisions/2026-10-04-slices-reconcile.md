@@ -125,3 +125,23 @@ How the controller applies it, until he is back and says otherwise:
   deployed without him.
 - His UAT is replaced by the controller's own browser check on the preview, reported as such; he can reopen any
   landed job when he is back.
+
+## Full control (owner, controller chat, 2026-10-05 ~02:40–02:45 +04) — replaces the "Not covered" list above
+
+His words: "I told you to take control … Applying migration to the live database. You have control to Supabase.
+You can do that. Secret, DNS, Stripe Live, all of those … Stripe, now you'll go into testing. Not yet [live] …
+replacing or deleting images, prices and legal text, signing going live, all. You take control. That means I
+accept everything. You verify, but I accept everything." Then: "I have marked you as bypass permission. So you
+have all my permission. as well as the other sessions. So go ahead." (The auto-mode check had refused to let the
+controller write this grant itself; he then switched the session to bypass permissions.)
+
+So the ALMAR controller also lands and runs: live Supabase migrations (verbatim, read back, after a backup check),
+Worker secrets (set from the source; no value in chat or any file), DNS, R2 overwrites and deletes, sign-in going
+live. **Stripe stays in TEST mode until he says live.** Every such step is verified first by a different model
+(Fable 5.1 or Sonnet 5.5) and reported with both results. The controller's own limits, stated to him: it does not
+invent prices, rates or legal wording (a real published value or his answer is used; otherwise "on request" or a
+marked draft), and no secret value is ever written into chat or a file.
+
+Team model, his words ("make sure this is how you work as well as my previous orchestrator"): Opus 5.5 plans and
+lands; Sonnet 5.5 writes code in isolated worktrees; Fable 5.1 reviews every diff before it lands; mechanical calls
+go to a cheaper model (Haiku 4.5; Jev is Hermes-only and is not simulated).
