@@ -328,3 +328,116 @@ test("no image in any read result carries a locale-keyed alt map or a raw media_
   assert.equal("status" in stay, false);
   assert.equal("stay_id" in stay, false);
 });
+
+// ---- plan 03.3-30: posts (one data door for the blog; the home stories read from it) ----
+const postsMod = await loadTs("lib/data/posts.ts");
+const POST_SLUGS = [
+  "discovering-cartagenas-hidden-colonial-courtyards",
+  "why-medellin-is-redefining-luxury-travel",
+  "colombias-coffee-triangle-eje-cafetero",
+];
+// Published EN text (the live post pages' text at 84deec2), kept as literals so this survives the route deletion.
+const LIVE_EN = {
+  [POST_SLUGS[0]]: {
+    body: "Beyond the bustling plazas of the walled city lie Cartagena’s hidden colonial courtyards — flower-filled patios, private plazas, and centuries of quiet history. ALMAR opens doors that stay closed to most travelers, with private access and expert local guides who know every stone and story.",
+    seo_title: "Discovering Cartagena’s Hidden Colonial Courtyards",
+    seo_description: "Step beyond the walls into Cartagena’s hidden colonial courtyards — private plazas, flower-filled patios, and centuries of quiet history.",
+  },
+  [POST_SLUGS[1]]: {
+    body: "From design hotels in El Poblado to mountain escapes minutes from the city, Medellín is redefining luxury travel in Colombia. Discover world-class dining, private art collections, and hillside villas — with ALMAR’s private drivers, bilingual guides, and concierge on call.",
+    seo_title: "Why Medellín Is Redefining Luxury Travel",
+    seo_description: "Why Medellín is redefining luxury travel — design hotels, world-class dining, and mountain escapes just minutes from the city.",
+  },
+  [POST_SLUGS[2]]: {
+    body: "Colombia’s Coffee Triangle — Eje Cafetero — is a landscape of rolling fincas, misty valleys, and award-winning growers. ALMAR arranges private tastings, barista workshops, and stays among the plantations — fully vetted lodges with mountain views and private chefs.",
+    seo_title: "Colombia’s Coffee Triangle — Eje Cafetero",
+    seo_description: "Eje Cafetero: Colombia’s coffee triangle — rolling fincas, tastings with award-winning growers, and private stays among the plantations.",
+  },
+};
+
+test("posts: getPostSlugs and getPosts('en') return the three posts newest first, every field present", async () => {
+  assert.deepEqual(await postsMod.getPostSlugs(), POST_SLUGS);
+  const posts = await postsMod.getPosts("en");
+  assert.deepEqual(posts.map((p) => p.slug), POST_SLUGS);
+  assert.deepEqual(posts.map((p) => p.published_at.slice(0, 10)), ["2025-06-01", "2025-05-28", "2025-05-24"]);
+  assert.deepEqual(posts.map((p) => p.date_label), ["Jun 1, 2025", "May 28, 2025", "May 24, 2025"]);
+  assert.deepEqual((await postsMod.getPosts("en", { limit: 2 })).map((p) => p.slug), POST_SLUGS.slice(0, 2));
+  for (const p of posts) {
+    for (const k of ["id", "created_at", "updated_at", "locale", "translation_status", "is_sample", "sample_fields", "slug", "title", "excerpt", "body", "seo_title", "seo_description", "published_at", "date_label", "reading_minutes", "destination_id", "destination_slug", "destination_name", "featured_stay_slug", "featured_experience_slug", "cover_image", "is_published"]) {
+      assert.ok(k in p, `${p.slug} lacks ${k}`);
+    }
+    for (const k of ["featured_stay_id", "featured_experience_id", "translations", "status", "post_id"]) assert.equal(k in p, false);
+    assert.equal(p.translation_status, "published");
+    assert.equal(p.reading_minutes, 1);
+    assert.equal(p.is_sample, false);
+    assert.deepEqual(p.sample_fields, []);
+    assert.ok(p.cover_image.url.startsWith(`${mediaMod.MEDIA_BASE_URL}/home/stories/`) && p.cover_image.alt.length > 0);
+    assert.deepEqual(p.body.map((b) => b.type), ["paragraph"]);
+  }
+  assert.deepEqual(posts.map((p) => p.id), ["9616c101-0b63-58c5-a525-9eb1c910765a", "544d5a28-0412-53ca-8822-5ab420600aac", "26cb9d6c-202e-518e-8892-281f854eff5c"]);
+});
+
+test("posts: AR and ES are drafts with the drafted body; title and excerpt equal the home story drafts", async () => {
+  const fx = JSON.parse(readFileSync(join(process.cwd(), "lib/data/fixtures/post-translations.json"), "utf8"));
+  for (const locale of ["ar", "es"]) {
+    const posts = await postsMod.getPosts(locale);
+    const stories = (await homeMod.getHomeBlocks(locale)).stories;
+    for (const [i, p] of posts.entries()) {
+      assert.equal(p.translation_status, "draft");
+      assert.equal(p.locale, locale);
+      assert.equal(p.title, stories[i].title);
+      assert.equal(p.excerpt, stories[i].excerpt);
+      assert.equal(p.body[0].text, fx.find((r) => r.post_id === p.id && r.locale === locale).body[0].text);
+    }
+  }
+  assert.ok((await postsMod.getPost("ar", POST_SLUGS[0])).body[0].text.startsWith("خلف الساحات الصاخبة في المدينة المسوّرة"));
+  assert.ok((await postsMod.getPost("es", POST_SLUGS[2])).body[0].text.startsWith("El Triángulo del Café de Colombia, el Eje Cafetero"));
+});
+
+test("posts: getPost by slug in each locale; unknown slug is null", async () => {
+  assert.equal(await postsMod.getPost("en", "no-such-post"), null);
+  for (const l of ["en", "ar", "es"]) for (const s of POST_SLUGS) assert.equal((await postsMod.getPost(l, s)).slug, s);
+});
+
+test("posts: joins to destination, featured stay and featured experience (coffee post has none)", async () => {
+  const [c, m, k] = await postsMod.getPosts("en");
+  assert.deepEqual([c.destination_slug, c.destination_name, c.featured_stay_slug, c.featured_experience_slug],
+    ["cartagena", (await destMod.getDestination("en", "cartagena")).name, "getsemani-colonial-house", "cartagena-heritage-tours"]);
+  assert.deepEqual([m.destination_slug, m.featured_stay_slug, m.featured_experience_slug],
+    ["medellin", "santa-fe-farm-antioquia", "medellin-discovery-tours"]);
+  assert.deepEqual([k.destination_id, k.destination_slug, k.destination_name, k.featured_stay_slug, k.featured_experience_slug],
+    [null, null, null, null, null]);
+  const ar = await postsMod.getPost("ar", POST_SLUGS[0]);
+  assert.equal(ar.destination_name, (await destMod.getDestination("ar", "cartagena")).name);
+});
+
+test("posts: related excludes the asked slug, newest first, limit honoured", async () => {
+  assert.deepEqual((await postsMod.getRelatedPosts("en", POST_SLUGS[0])).map((p) => p.slug), POST_SLUGS.slice(1));
+  assert.equal((await postsMod.getRelatedPosts("en", POST_SLUGS[0], { limit: 1 })).length, 1);
+  for (const s of POST_SLUGS) assert.ok(!(await postsMod.getRelatedPosts("en", s)).some((p) => p.slug === s));
+});
+
+test("posts: a future or unpublished post is not live", () => {
+  const now = new Date("2026-10-05T00:00:00Z");
+  assert.equal(postsMod.isLive({ is_published: true, published_at: "2025-06-01T00:00:00+00:00" }, now), true);
+  assert.equal(postsMod.isLive({ is_published: true, published_at: "2027-01-01T00:00:00+00:00" }, now), false);
+  assert.equal(postsMod.isLive({ is_published: false, published_at: "2025-06-01T00:00:00+00:00" }, now), false);
+});
+
+test("posts: EN body, seo_title and seo_description equal the live text", async () => {
+  for (const s of POST_SLUGS) {
+    const p = await postsMod.getPost("en", s);
+    assert.equal(p.body[0].text, LIVE_EN[s].body);
+    assert.equal(p.seo_title, LIVE_EN[s].seo_title);
+    assert.equal(p.seo_description, LIVE_EN[s].seo_description);
+    const file = join(process.cwd(), "app", "blog", s, "route.ts");
+    let src = null;
+    try { src = readFileSync(file, "utf8"); } catch { /* route removed by plan 32: the literals above stand */ }
+    if (src) {
+      const html = JSON.parse(src.match(/const HTML = (".*");\n/)[1]);
+      assert.equal(html.match(/<title>(.*?)<\/title>/)[1], `${p.seo_title} | ALMAR`);
+      assert.equal(html.match(/<meta name="description" content="(.*?)"/)[1], `${p.seo_description} | ALMAR`);
+      assert.ok(html.includes(p.body[0].text));
+    }
+  }
+});
