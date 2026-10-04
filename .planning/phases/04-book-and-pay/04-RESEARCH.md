@@ -698,15 +698,25 @@ Removed: none. Flagged suspicious: none.
 1. **How does the owner reach `/dashboard` in v1?** It is held, and the ops host is not on the Worker (02-23).
    The controller must pick: open `dashboard.almarprivatejourney.com` on Worker `almar` (DNS and route: owner
    gate), or serve the ops screens on the marketing host behind `requireOwner`. This blocks ops UAT.
+   **RESOLVED (2026-10-05):** B-22 / C-20 / O-09 — `dashboard.almarprivatejourney.com` on a second Worker `almar-ops`
+   (03.2-03); checkout APIs and the webhook stay on `almar`.
 2. **Adaptive Pricing on his account:** one read-only look at `dashboard.stripe.com/settings/adaptive-pricing`
    in TEST. Also: is he fine with guests paying Stripe's 2–4 % FX markup when they accept local currency?
+   **RESOLVED (2026-10-05):** B-20 — Adaptive Pricing on where offered; the guest pays Stripe's conversion fee only if
+   they switch. Whether his account offers it is checked in 04-04's owner step 4 and 04-07 (A1).
 3. **Balance due days N, and a late booking** (arrival sooner than N days): full payment only? Pricing/policy
    question for him (A7).
-4. **Resend domain status** for `inquiries@almarprivatejourney.com` (shared with job 02).
+   **RESOLVED for the late booking (2026-10-05):** B-21 — full payment only in v1. N itself is still his value, owed by
+   Oct 9 (04-07 step a).
+4. **Resend domain status** for `inquiries@almarprivatejourney.com` (shared with job 02). **Still open:** an owner
+   step (job 02's gate; 04-05 owner step 2).
 5. **Webhook endpoint per host:** preview (`https://preview.almarprivatejourney.com/api/stripe/webhook`, TEST)
-   and production get separate `whsec_` values. Owner steps.
+   and production get separate `whsec_` values. Owner steps. **RESOLVED as owner steps:** 04-04 owner step 3 (preview,
+   TEST); production at the live switch.
 6. **3.2 schema names** for rates, ranges, blocks, add-on prices and stay access: Phase 4's RPCs join them. The
-   planner sequences the 3.2 migration first or agrees the names in both plans.
+   planner sequences the 3.2 migration first or agrees the names in both plans. **RESOLVED (2026-10-05):**
+   `03.2-API-CONTRACT.md` is the source of names; 04-02 runs after 03.2-01 and uses `stay_night_rates` /
+   `stay_ops_blocked_days`.
 
 ## Environment Availability
 
