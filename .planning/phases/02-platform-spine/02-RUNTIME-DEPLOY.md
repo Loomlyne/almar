@@ -48,6 +48,9 @@ login), never `opennextjs-cloudflare deploy`, never an `npm run` deploy (there i
    Expected: `Uploaded almar-preview`, `Deployed almar-preview triggers`, `preview.almarprivatejourney.com (custom
    domain)`, and a new version id. Write it down.
 
+   An upload refused with error 10021 means the startup guard in `worker/almar.mjs` fired (the generated route list
+   holds a path the Worker may not run): rebuild with `node scripts/assemble-cloudflare.mjs`, never force the upload.
+
 ## 2. Preview checks (GET only)
 
 1. In a second terminal, before the first request, open the log (it shows a CPU-limit error a later call could hide):
@@ -63,6 +66,10 @@ login), never `opennextjs-cloudflare deploy`, never an `npm run` deploy (there i
    Expected: 20 lines `{"ok":true} 200`. **Stop rule (owner D-SR-02):** any other status, a `1102`, a `503`, or
    "Exceeded CPU" / "exceededCpu" in the tail: roll preview back (section 5) and put the upgrade question to the owner
    (Workers Paid). Production does not start.
+   These 20 calls prove one warm isolate on one network, nothing more. So also run the same loop from a second
+   network (the phone on mobile data, not the Wi-Fi), repeat the whole check after every `wrangler secret put` (each
+   one makes a new version, which starts cold), and keep `wrangler tail` open for the first day, watching for
+   `exceededCpu`.
 4. Held sections answer 404 with the branded page:
    `for p in /dashboard /account /login /booking/trip /bookings /fx /newsletter /embed/hero-booker /__harness /ar/login; do curl -s -o /dev/null -w "$p %{http_code}\n" https://preview.almarprivatejourney.com$p; done`
    Expected: every line `404`.
@@ -88,19 +95,26 @@ login), never `opennextjs-cloudflare deploy`, never an `npm run` deploy (there i
    ```
 
    Expected: `Uploaded almar`, triggers `almarprivatejourney.com (custom domain)` and
-   `www.almarprivatejourney.com (custom domain)`, a new version id. Write it down.
+   `www.almarprivatejourney.com (custom domain)`, a new version id. Write it down. Error 10021: see 1.3, rebuild,
+   never force.
 
 ## 4. Live checks, with the tail open (`… wrangler tail --config wrangler.toml --format pretty`)
 
 For `https://almarprivatejourney.com` and `https://www.almarprivatejourney.com`:
 
-1. `/api/health` 20 times: 20 × `{"ok":true} 200`. Same stop rule as 2.3, rollback with section 5.
+1. `/api/health` 20 times: 20 × `{"ok":true} 200`. Same stop rule as 2.3, rollback with section 5. The same caveat
+   holds: also run the loop from a second network, repeat it after every `wrangler secret put`, and keep the tail
+   open for `exceededCpu` the whole first day.
    Also open https://almarprivatejourney.com/api/health in a browser tab: `{"ok":true}`.
 2. The held list of 2.4: every line `404`, the body the branded "Page not found".
 3. Every public page `200` with **no** `x-robots-tag` header.
 4. Same bytes: `curl -s https://almarprivatejourney.com/ | cmp - out/index.html`, and the same for `/ar/` against
    `out/ar/index.html`, `/es/` against `out/es/index.html`, `/about` against `out/about.html`. Expected: no output.
 5. `/robots.txt` allows and names the sitemap; `/sitemap.xml` is `200`.
+6. Watch the daily Worker request count (dashboard, Workers & Pages, `almar`, Metrics, Requests), at the end of day one
+   and again after a week. Bots and scanners that miss a file invoke the Worker (only browser navigations get the
+   404 page without it), and the Free plan allows 100,000 Worker requests a day. If the count nears that, put the
+   Workers Paid question to the owner; do not wait for the limit to answer errors.
 
 ## 5. Rollback (one command per Worker)
 
@@ -112,7 +126,19 @@ HOME=/Users/koss/.almar-cloudflare CLOUDFLARE_ACCOUNT_ID=f1d9a1fa3abdda98c15161b
 Then repeat section 4's page checks (items 2 to 5). A rollback returns the static-only Worker; nothing else needs
 undoing: no route, DNS record, binding or secret was created by this job.
 
-## 6. After a good deploy
+## 6. Precondition for slice 3 plan 26 (`/api/contact`)
+
+Not part of this deploy. Before `/api/contact` (or any route that reads a POST body) is switched on, prove on the
+built Worker, locally with `wrangler dev` and then on `almar-preview`, that two POSTs in a row keep their bodies.
+Why it is open: `worker/handle.mjs` forwards `new Request(request, { headers })`. OpenNext's `init.js` replaces
+`globalThis.Request` with its own subclass on the first request it serves; from the second request on, that
+expression builds the subclass, whose constructor redefines `body` on the init object it is given (it is `{ headers }`
+here, so `body` becomes an own `undefined`, not the original body). Job 10 sends only GETs
+(`/api/health` reads no body), so nothing has shown yet that the second POST still carries its body. The test is two
+POSTs with different bodies, in one session, and the route echoing a length or hash of what it read; if the second
+one arrives empty, change `handle.mjs` to pass the body explicitly before the route ships.
+
+## 7. After a good deploy
 
 - The owner's secret steps (in `HANDOVER-job-10.md`) may run. Each secret he sets makes a new version of the
   code already live, so the next job reads its rollback target again.
