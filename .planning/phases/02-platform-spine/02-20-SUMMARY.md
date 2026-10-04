@@ -35,7 +35,7 @@ executors: the code is small and every line of it is on the security boundary.
 | `package.json` | `host:cloudflare` removed; `build:cloudflare`, `build:preview` (build only). No dependency change; `package-lock.json` untouched |
 | `.gitignore` | `/.open-next/` |
 | `README.md` | how the Worker routes now; deploy points at the runbook |
-| `tests/server-runtime.test.mjs` | 37 cases: the list, the router (path tricks included), the assembler's three refusals, the two Worker files, the scripts, source guards |
+| `tests/server-runtime.test.mjs` | 29 cases: the list, the router (path tricks included), the assembler's three refusals, the two Worker files, the scripts, source guards |
 | `tests/preview-config.test.mjs` (plan 08's) | runtime lines added on purpose; the "no main" and "identical to origin/main" checks replaced; its "no preview" regex narrowed to the preview Worker and host (`preview_urls` holds the word) |
 | `tests/assemble-target.test.mjs` (plan 08's) | follows the new build command (lookup text and ENOENT refusal) |
 | `tests/harness-gate.test.mjs` | one named exemption: `lib/server-routes.ts` (a deny entry) |
