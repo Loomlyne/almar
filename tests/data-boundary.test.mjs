@@ -6,8 +6,9 @@
 //   1. No import of lib/data/fixtures, lib/data/resolve or lib/data/media.
 //   2. No `*_en` / `*_ar` / `*_es` field suffix and no `translations` identifier.
 //   3. Under components/ui, components/journey, components/icons and components/site, the only lib/data
-//      imports are `types` and `stay-filter` (those components take props).
-//   4. A file whose first statement is "use client" imports only `types` and `stay-filter` from lib/data.
+//      imports are `types`, `stay-filter` and `catalog-filter` (those components take props).
+//   4. A file whose first statement is "use client" imports only `types`, `stay-filter` and `catalog-filter`
+//      from lib/data.
 // components/pages/** and app/** server files may import the read modules: they pass props down.
 //
 // ALMAR_DATA_ROOT points the scan at a scratch copy so a deliberate violation can be shown red.
@@ -22,7 +23,7 @@ const FORBIDDEN_IMPORT = /lib\/data\/(?:fixtures\b|resolve\b|media\b(?!-))/;
 const FIELD_SUFFIX = /\b[a-z]+_(?:en|ar|es)\b/;
 const TRANSLATIONS = /\btranslations\b/;
 const PROPS_ONLY_DIRS = ["components/ui/", "components/journey/", "components/icons/", "components/site/"];
-const ALLOWED_FROM_CLIENT = new Set(["types", "stay-filter"]);
+const ALLOWED_FROM_CLIENT = new Set(["types", "stay-filter", "catalog-filter"]);
 
 /** The module specifiers a source file imports (static, side-effect, dynamic and require). */
 export function specifiers(src) {
@@ -109,6 +110,9 @@ test("the analyzer allows what the contract allows (green cases)", () => {
   assert.deepEqual(analyze('import { getStays } from "@/lib/data/stays";', "components/pages/p.tsx"), []);
   assert.deepEqual(analyze('import { getStays } from "@/lib/data/stays";', "app/private-stays/page.tsx"), []);
   assert.deepEqual(analyze('import { x } from "@/lib/data/media-manifest.json";', "app/x/page.tsx"), []);
+  assert.deepEqual(analyze('"use client";\nimport { filterCatalog } from "@/lib/data/catalog-filter";', "components/pages/c.tsx"), []);
+  assert.deepEqual(analyze('import { filterCatalog } from "../../lib/data/catalog-filter";', "components/ui/a.tsx"), []);
+  assert.equal(analyze('"use client";\nimport { getCatalogItems } from "@/lib/data/experiences";', "components/pages/c.tsx").length > 0, true);
   assert.deepEqual(analyze("const price_estimate = 1; const base_url = 2;", "app/x/page.tsx"), []);
 });
 

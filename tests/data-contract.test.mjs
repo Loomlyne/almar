@@ -129,6 +129,34 @@ test("stay-filter.ts is pure: no fs, no import but types", () => {
   assert.doesNotMatch(src, /node:fs|require\(|readFileSync/);
 });
 
+test("catalog-filter.ts is pure: type-only imports from ./types plus foldText from ./stay-filter", () => {
+  const src = readFileSync("lib/data/catalog-filter.ts", "utf8");
+  const imports = [...src.matchAll(/^import\s+(.*?)\s+from\s+["']([^"']+)["']/gm)];
+  assert.ok(imports.length >= 2);
+  for (const [, what, from] of imports) {
+    if (from === "./stay-filter") assert.equal(what, "{ foldText }");
+    else {
+      assert.equal(from, "./types");
+      assert.match(what, /^type\b/, `catalog-filter imports a value from ${from}`);
+    }
+  }
+  assert.doesNotMatch(src, /node:fs|require\(|readFileSync|window|document/);
+});
+
+test("every catalogue item carries destination_slugs and stay_slugs joined in id order", async () => {
+  const dSlug = new Map(JSON.parse(readFileSync("lib/data/fixtures/destinations.json", "utf8")).map((d) => [d.id, d.slug]));
+  const sSlug = new Map(JSON.parse(readFileSync("lib/data/fixtures/stays.json", "utf8")).map((s) => [s.id, s.slug]));
+  const rows = JSON.parse(readFileSync("lib/data/fixtures/catalog.json", "utf8"));
+  const expMod = await loadTs("lib/data/experiences.ts");
+  for (const l of ["en", "ar"]) {
+    for (const i of await expMod.getCatalogItems(l)) {
+      const row = rows.find((r) => r.slug === i.slug);
+      assert.deepEqual(i.destination_slugs, row.destination_ids.map((x) => dSlug.get(x)));
+      assert.deepEqual(i.stay_slugs, row.stay_ids.map((x) => sSlug.get(x)));
+    }
+  }
+});
+
 test("getStays: 12 published stays in position order, English", async () => {
   const stays = await staysMod.getStays("en");
   assert.equal(stays.length, 12);
