@@ -45,3 +45,34 @@ Task 1 only (no new screen). Task 2 (forwarded-link email check) is not started:
 - No build or assembler run.
 
 ## Self-Check: PASSED
+
+# Task 2 - forwarded-link email check
+
+Signed by the owner (last row of `02-JOB02-DECISIONS.md`). The signed draft scene is reproduced exactly and deleted.
+
+## Commits
+- 4b62a49 feat(02-26): forwarded-link email check
+- 4e3cbe4 test(02-26): helpers, action order, cookie and screen checks, Playwright states
+
+## What changed
+- `lib/auth/continue.ts`: `LINK_NONCE_COOKIE` (`almar-link-nonce`), `newLinkNonce` (32 bytes base64url), `isLinkNonce`, `signBrowser`/`verifyBrowser` (`b` = HMAC(continue key, "almar-browser-v1\n" nonce "\n" token_hash)), `signEmail`/`verifyEmail` (`e` = HMAC(..., "almar-email-v1\n" normalised email "\n" token_hash)), `continueMode` (browser / email / closed), `checkContinue` (ok / wrong-email / closed). Constant-time compares.
+- The nonce cookie (httpOnly, Lax, Secure in production, path `/`, 1 hour; an existing valid one is reused) is set in `sendLinkFromRequest` (`lib/auth/magic-link-server.ts`), the one function both `requestSignIn` and `opsSignIn` call, so both hosts get it from one place. The link gains `b` and `e` via `continueProof`; `m`/`s` unchanged. The link never carries the email.
+- Page: cookie nonce verifies against `b` goes to the earlier signed page (no field); no cookie, mismatch or missing `b` goes to the email-check state. No continue key: the no-email page, and the button redirects to expired (fails closed).
+- `confirmSignIn(state, form)`: shape, `claim_confirm_slot`, `checkContinue`, then `verifyOtp`. Wrong or empty email returns `{status: "wrong-email", email}`: no `verifyOtp`, the slot already counted. The screen re-renders with the error line, no reload.
+- Copy: `auth.continue.why` and `auth.continue.wrongEmail` (EN/AR/ES as in the draft), additions only. Field label is `GUEST_COPY[locale].email`.
+- Harness states `email-ask` and `email-wrong` on `tests/journey/scenes/auth-continue.tsx` render the real `ContinueScreen`.
+
+## Verification
+- `npx tsc --noEmit`: clean.
+- `node --test tests/*.test.mjs`: 691 tests, 687 pass, 0 fail, 4 skipped (existing).
+- Playwright `auth-continue`, `auth-i18n`, `phase-02-guest-nav`, `account-select`, `PW_PORT=3065`, `--workers=1`: 45 passed (new: email-ask, email-wrong, signed-unchanged at 390/834/1440 EN+AR).
+- Node: b/e round trip, wrong nonce, wrong email, tampered token_hash, no-key, URL carries no email, action source order (shape < slot < check < verifyOtp, one verifyOtp), cookie flags.
+
+## Deviations
+- The cookie is set in `sendLinkFromRequest`, not separately in `requestSignIn` and `opsSignIn` (both reach it; one place, no drift).
+- React 18.3 types have no `useActionState`: the form uses `action={submit}` with local state (the `app/login` pattern). A function form action needs JavaScript, as the login form already does. The email input is controlled so it survives the form reset.
+- A link with no `e` and no browser match can only show the email field and always refuse; only links from before this task lack `e` (none live).
+
+## Not verified
+- The real cookie round trip in a browser, the Supabase rpc and `verifyOtp` (no Supabase/Resend contact, no live link). The screen's submit path is covered by source-order and harness tests only.
+- No build or assembler run.
