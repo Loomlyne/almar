@@ -255,3 +255,40 @@ test("BackgroundMedia serves the poster image and never a video; with nothing se
   assert.equal(/<img|<video/.test(nothing), false);
   assert.match(nothing, /^<div\b/);
 });
+
+// ---- JourneyBar action slot, JourneySheet final action -------------------------------------------------------------
+
+test("JourneyBar action: no onSearch keeps a group and draws the action after Guests; onSearch wins; neither is today's bar", async () => {
+  const { bar } = await loadModule(`
+    import { createElement } from "react";
+    import { renderToStaticMarkup } from "react-dom/server";
+    import { JourneyBar } from "./components/journey/journey-bar";
+    import { JOURNEY_COPY } from "./lib/copy/journey";
+    const value = { destinationId: null, start: null, end: null, adults: 2, children: 0, infants: 0 };
+    export const bar = (props) =>
+      renderToStaticMarkup(createElement(JourneyBar, { size: "hero", destinations: [], value, onChange() {}, copy: JOURNEY_COPY.en, locale: "en", ...props }));
+  `);
+  const withAction = bar({ action: "REQUEST-LINK" });
+  assert.match(withAction, /role="group"/);
+  assert.equal(/<form|type="submit"/.test(withAction), false);
+  assert.ok(withAction.indexOf("REQUEST-LINK") > withAction.indexOf("Guests"), "after the Guests segment");
+  assert.match(withAction, /<div class="flex shrink-0">[^]*REQUEST-LINK/);
+
+  const searching = bar({ onSearch() {}, action: "REQUEST-LINK" });
+  assert.match(searching, /<form\b[^>]*role="search"/);
+  assert.match(searching, /type="submit"/);
+  assert.equal(/REQUEST-LINK/.test(searching), false, "Search wins over the action");
+
+  const neither = bar({});
+  assert.match(neither, /role="group"/);
+  assert.equal(/<form|type="submit"|class="flex shrink-0"/.test(neither), false);
+  assert.equal(neither, bar({ action: undefined }));
+});
+
+test("JourneySheet finalAction: step 3 without onSearch shows it in a flex-1 box instead of Done; Next and Search are unchanged", () => {
+  const source = readFileSync("components/journey/journey-sheet.tsx", "utf8");
+  assert.match(source, /finalAction\?: ReactNode;/);
+  assert.match(source, /step === 3 && !onSearch && finalAction \?\s*\(\s*<div className="flex min-w-0 flex-1">\{finalAction\}<\/div>/);
+  // The Button branch is the old one: Search with onSearch, Done without, Next before step 3.
+  assert.match(source, /<Button size="lg" onClick=\{advance\}>[^]*copy\.bar\.search[^]*copy\.done[^]*s\.next/);
+});
