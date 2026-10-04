@@ -51,7 +51,7 @@ test("TOUCHWORD: only an owner profile gets the handoff link", () => {
   assert.match(nav, /isOwnerProfile\(profile\) \? \{ opsHref: HANDOFF_START \}/);
   assert.match(nav, /HANDOFF_START = "\/auth\/handoff\/start"/);
   const menu = code("components/ui/account-menu.tsx");
-  const anchor = menu.slice(menu.indexOf("account.opsHref ? ("), menu.indexOf("TOUCHWORD") + 40);
+  const anchor = menu.slice(menu.indexOf("account.opsHref && opsHandoffOpen("), menu.indexOf("TOUCHWORD") + 40);
   assert.match(anchor, /target="_blank"/);
   assert.match(anchor, /rel="noopener noreferrer"/);
   assert.equal(/dashboard/i.test(anchor), false);

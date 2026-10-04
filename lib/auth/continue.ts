@@ -19,18 +19,18 @@ export function maskEmail(email: string): string {
   return `${first}•••@${value.slice(at + 1)}`;
 }
 
-function mac(key: string, tokenHash: string, masked: string): Buffer {
+function mac(key: string | Buffer, tokenHash: string, masked: string): Buffer {
   return createHmac("sha256", key).update(`almar-continue-v1\n${tokenHash}\n${masked}`).digest();
 }
 
 /** base64url HMAC-SHA256, or undefined when there is no key (the page then shows the no-email line). */
-export function signContinue(key: string | undefined, tokenHash: string, masked: string): string | undefined {
+export function signContinue(key: string | Buffer | null | undefined, tokenHash: string, masked: string): string | undefined {
   if (!key) return undefined;
   return mac(key, tokenHash, masked).toString("base64url");
 }
 
 export function verifyContinue(
-  key: string | undefined,
+  key: string | Buffer | null | undefined,
   tokenHash: string,
   masked: string,
   signature: string | null | undefined,

@@ -49,6 +49,13 @@ alter table public.profiles add constraint profiles_last_name_length check (char
 alter table public.profiles drop constraint if exists profiles_phone_shape;
 alter table public.profiles add constraint profiles_phone_shape check (phone is null or phone ~ '^\+?[0-9]{6,15}$');
 
+-- Names also refuse control characters and < > " & (never narrower than the app's letters rule, which allows
+-- letters, marks, spaces, hyphens and apostrophes only). Null passes a check, as before.
+alter table public.profiles drop constraint if exists profiles_first_name_chars;
+alter table public.profiles add constraint profiles_first_name_chars check (first_name !~ '[[:cntrl:]<>"&]');
+alter table public.profiles drop constraint if exists profiles_last_name_chars;
+alter table public.profiles add constraint profiles_last_name_chars check (last_name !~ '[[:cntrl:]<>"&]');
+
 -- Confirmed auth user -> profile row. An address that was never confirmed has no profile. The owner
 -- email gets role owner, and only here, where the email is confirmed.
 create or replace function public.handle_new_auth_user()
@@ -65,7 +72,7 @@ begin
       lower(new.email),
       case when lower(new.email) = 'maria@almarprivatejourney.com' then 'owner' else 'guest' end
     )
-    on conflict (id) do nothing;
+    on conflict do nothing;
   end if;
   return new;
 end;
@@ -115,7 +122,7 @@ select
   case when lower(u.email) = 'maria@almarprivatejourney.com' then 'owner' else 'guest' end
 from auth.users u
 where u.email is not null and u.email_confirmed_at is not null
-on conflict (id) do nothing;
+on conflict do nothing;
 
 -- Site settings: a singleton. Nobody but the service role writes it.
 create table if not exists public.site_settings (
@@ -168,6 +175,7 @@ create table if not exists public.auth_link_requests (
 
 create index if not exists auth_link_requests_email_idx on public.auth_link_requests (email_hash, created_at);
 create index if not exists auth_link_requests_ip_idx on public.auth_link_requests (ip_hash, created_at);
+create index if not exists auth_link_requests_created_idx on public.auth_link_requests (created_at);
 
 alter table public.auth_link_requests enable row level security;
 revoke all on public.auth_link_requests from public, anon, authenticated;
@@ -181,7 +189,9 @@ security definer
 set search_path = ''
 as $$
 begin
+  -- Email first, then IP, always in this order: two requests cannot wait on each other.
   perform pg_advisory_xact_lock(hashtextextended(p_email_hash, 0));
+  perform pg_advisory_xact_lock(hashtextextended(p_ip_hash, 0));
 
   delete from public.auth_link_requests where created_at < now() - interval '1 day';
 
@@ -213,3 +223,43 @@ $$;
 
 revoke execute on function public.claim_link_slot(text, text) from public, anon, authenticated;
 grant execute on function public.claim_link_slot(text, text) to service_role;
+
+-- Continue-button limit (plan 02-26): thirty token attempts per IP per hour, counted before the token is spent.
+-- A sibling table, so claim_link_slot's counts stay as they are. The key is a keyed hash made by the server.
+create table if not exists public.auth_confirm_attempts (
+  id bigint generated always as identity primary key,
+  ip_key text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists auth_confirm_attempts_ip_idx on public.auth_confirm_attempts (ip_key, created_at);
+create index if not exists auth_confirm_attempts_created_idx on public.auth_confirm_attempts (created_at);
+
+alter table public.auth_confirm_attempts enable row level security;
+revoke all on public.auth_confirm_attempts from public, anon, authenticated;
+
+create or replace function public.claim_confirm_slot(p_ip_key text)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform pg_advisory_xact_lock(hashtextextended(p_ip_key, 0));
+
+  delete from public.auth_confirm_attempts where created_at < now() - interval '1 day';
+
+  if (
+    select count(*) from public.auth_confirm_attempts
+    where ip_key = p_ip_key and created_at > now() - interval '1 hour'
+  ) >= 30 then
+    return false;
+  end if;
+
+  insert into public.auth_confirm_attempts (ip_key) values (p_ip_key);
+  return true;
+end;
+$$;
+
+revoke execute on function public.claim_confirm_slot(text) from public, anon, authenticated;
+grant execute on function public.claim_confirm_slot(text) to service_role;

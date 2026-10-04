@@ -110,9 +110,13 @@ test("the limit is not touched for an invalid email or an ops refusal", async ()
   assert.equal(ops.calls.claim.length, 0);
 });
 
-test("the server hashes the email and IP, fails closed and never logs them", () => {
+test("the server hashes the email and IP with the derived limiter key, fails closed and never logs them", () => {
   const server = code("lib/auth/magic-link-server.ts");
-  assert.match(server, /createHash\("sha256"\)/);
+  assert.match(server, /authSigningKey\("limit"\)/);
+  assert.match(server, /limiterHash\(limitKey, "email"/);
+  assert.match(server, /limiterHash\(limitKey, "ip"/);
+  assert.match(server, /!admin \|\| !resendKey \|\| !limitKey/);
+  assert.equal(/createHash|SUPABASE_SERVICE_ROLE_KEY/.test(server), false);
   assert.match(server, /rpc\("claim_link_slot"/);
   assert.match(server, /x-forwarded-for/);
   assert.match(server, /typeof data !== "boolean"/);

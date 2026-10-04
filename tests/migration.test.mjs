@@ -61,7 +61,8 @@ function fnBody(name) {
 test("a profile exists only for a confirmed email, and the owner role only on that path", () => {
   const body = fnBody("handle_new_auth_user");
   assert.match(body, /new\.email_confirmed_at is not null/);
-  assert.match(body, /on conflict \(id\) do nothing/);
+  assert.match(body, /on conflict do nothing/);
+  assert.equal(/on conflict \(/.test(body), false);
   assert.match(body, /'maria@almarprivatejourney\.com' then 'owner'/);
   assert.match(sql, /create trigger on_auth_user_confirmed\s+after update of email_confirmed_at on auth\.users\s+for each row\s+when \(old\.email_confirmed_at is null and new\.email_confirmed_at is not null\)\s+execute function public\.handle_new_auth_user\(\)/);
   assert.match(sql, /drop trigger if exists on_auth_user_confirmed on auth\.users/);
@@ -72,6 +73,18 @@ test("profiles carry length and phone checks that match the app rules", () => {
   assert.match(sql, /drop constraint if exists profiles_first_name_length;\s*alter table public\.profiles add constraint profiles_first_name_length check \(char_length\(first_name\) <= 80\)/);
   assert.match(sql, /add constraint profiles_last_name_length check \(char_length\(last_name\) <= 80\)/);
   assert.match(sql, /add constraint profiles_phone_shape check \(phone is null or phone ~ '\^\\\+\?\[0-9\]\{6,15\}\$'\)/);
+});
+
+test("the profile backfill insert also ignores any conflict", () => {
+  const at = sql.indexOf("insert into public.profiles (id, email, role)\nselect");
+  assert.ok(at > -1);
+  const backfill = sql.slice(at);
+  assert.match(backfill.slice(0, backfill.indexOf(";")), /on conflict do nothing$/);
+});
+
+test("names refuse control characters and < > \" & in the database, null still allowed", () => {
+  assert.match(sql, /add constraint profiles_first_name_chars check \(first_name !~ '\[\[:cntrl:\]<>"&\]'\)/);
+  assert.match(sql, /add constraint profiles_last_name_chars check \(last_name !~ '\[\[:cntrl:\]<>"&\]'\)/);
 });
 
 test("the trigger functions cannot be called through the API", () => {
@@ -101,4 +114,36 @@ test("claim_link_slot is security definer, pinned, and only the service role run
   assert.ok(sql.includes("revoke execute on function public.claim_link_slot(text, text) from public, anon, authenticated;"));
   assert.ok(sql.includes("grant execute on function public.claim_link_slot(text, text) to service_role;"));
   assert.equal(/grant execute on function public\.claim_link_slot[^;]*(anon|authenticated|public)/.test(sql), false);
+});
+
+test("claim_link_slot takes the email lock first, then the IP lock; created_at is indexed", () => {
+  const body = fnBody("claim_link_slot");
+  const email = body.indexOf("pg_advisory_xact_lock(hashtextextended(p_email_hash, 0))");
+  const ip = body.indexOf("pg_advisory_xact_lock(hashtextextended(p_ip_hash, 0))");
+  assert.ok(email > -1 && ip > email);
+  assert.match(sql, /auth_link_requests_created_idx on public\.auth_link_requests \(created_at\)/);
+});
+
+test("auth_confirm_attempts: closed to every API role, RLS on, indexed", () => {
+  assert.match(sql, /alter table public\.auth_confirm_attempts enable row level security/);
+  assert.match(sql, /revoke all on public\.auth_confirm_attempts from public, anon, authenticated;/);
+  assert.match(sql, /on public\.auth_confirm_attempts \(ip_key, created_at\)/);
+  assert.match(sql, /auth_confirm_attempts_created_idx on public\.auth_confirm_attempts \(created_at\)/);
+  assert.equal(/grant[^;]*auth_confirm_attempts/i.test(sql), false);
+});
+
+test("claim_confirm_slot: boolean, security definer, pinned, IP lock, thirty an hour, service role only", () => {
+  const body = fnBody("claim_confirm_slot");
+  assert.match(body, /\(p_ip_key text\)/);
+  assert.match(body, /returns boolean/);
+  assert.match(body, /security definer/);
+  assert.match(body, /set search_path = ''/);
+  assert.match(body, /pg_advisory_xact_lock\(hashtextextended\(p_ip_key, 0\)\)/);
+  assert.match(body, /interval '1 hour'/);
+  assert.match(body, /\) >= 30 then/);
+  assert.match(body, /created_at < now\(\) - interval '1 day'/);
+  assert.equal(/\bfrom (?!public\.)\w/.test(body.replace(/\bfrom public\./g, "")), false);
+  assert.ok(sql.includes("revoke execute on function public.claim_confirm_slot(text) from public, anon, authenticated;"));
+  assert.ok(sql.includes("grant execute on function public.claim_confirm_slot(text) to service_role;"));
+  assert.equal(/grant execute on function public\.claim_confirm_slot[^;]*(anon|authenticated|public)/.test(sql), false);
 });

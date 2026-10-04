@@ -28,11 +28,13 @@ export async function saveProfile(form: FormData): Promise<SaveState> {
   const { data } = await supabase.auth.getUser();
   if (!data.user) return { status: "failed" };
 
-  const { error } = await supabase
+  // Zero rows updated (no profile row, or RLS hid it) is a failure, never a silent "saved".
+  const { data: updated, error } = await supabase
     .from("profiles")
     .update({ first_name: input.firstName, last_name: input.lastName, phone: input.phone || null })
-    .eq("id", data.user.id);
-  return error ? { status: "failed" } : { status: "saved" };
+    .eq("id", data.user.id)
+    .select("id");
+  return error || !updated || updated.length === 0 ? { status: "failed" } : { status: "saved" };
 }
 
 /** Language and currency follow her account (D-21, D-22). */

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseAdmin, readSessionProfile } from "../../../../lib/supabase/clients";
 import { isOwnerProfile } from "../../../../lib/auth/rules";
 import { handoffExpiry, hashHandoffToken, newHandoffToken } from "../../../../lib/auth/handoff";
-import { opsOrigin, SHELL_HEADER } from "../../../../lib/host";
+import { opsHandoffOpen, opsOrigin, SHELL_HEADER } from "../../../../lib/host";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +15,8 @@ const NO_TRACE = { "Referrer-Policy": "no-referrer", "Cache-Control": "no-store"
  */
 export async function GET(request: NextRequest) {
   const home = NextResponse.redirect(new URL("/", request.nextUrl.origin), { status: 303, headers: NO_TRACE });
+  // Until the ops host is live this route does nothing in production: before any session read or write.
+  if (!opsHandoffOpen(process.env.NODE_ENV)) return home;
   if (request.headers.get(SHELL_HEADER) === "ops") return home;
 
   const profile = await readSessionProfile();

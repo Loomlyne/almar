@@ -117,7 +117,7 @@ test("SiteNav shows the account menu only from a session, never a hardcoded flag
 test("TOUCHWORD lives only in the account menu, in capitals, behind opsHref, in a new tab", () => {
   const menu = readFileSync("components/ui/account-menu.tsx", "utf8");
   assert.match(menu, />\s*TOUCHWORD\s*</);
-  assert.match(menu, /opsHref \?/);
+  assert.match(menu, /opsHref && opsHandoffOpen\(process\.env\.NODE_ENV\) \?/);
   assert.match(menu, /target="_blank"/);
   assert.match(menu, /rel="noopener noreferrer"/);
   for (const path of PUBLIC_SOURCE_FILES) {

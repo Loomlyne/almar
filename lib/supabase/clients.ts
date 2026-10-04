@@ -4,6 +4,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { createHmac } from "node:crypto";
 
 function publicSettings(): { url: string; anonKey: string } | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
@@ -40,6 +41,17 @@ export function createSupabaseAdmin(): SupabaseClient | null {
   return createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+}
+
+/**
+ * Keys for our own signatures, derived from the service-role key so the key itself is never used as an HMAC
+ * key and each use has its own label. Null when the key is not set (the callers fail closed or sign nothing).
+ * This is the only place the service-role key is read for signing.
+ */
+export function authSigningKey(label: "continue" | "limit"): Buffer | null {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (!serviceKey) return null;
+  return createHmac("sha256", serviceKey).update(`almar-${label}-v1`).digest();
 }
 
 export type SessionProfile = {

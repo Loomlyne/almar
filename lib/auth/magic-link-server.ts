@@ -1,14 +1,14 @@
 // Wires sendMagicLink to Supabase admin and Resend (plan 02-02; reused by the ops sign-in, 02-04).
-import { createHash } from "node:crypto";
 import { Resend } from "resend";
 import { headers } from "next/headers";
-import { createSupabaseAdmin } from "../supabase/clients";
+import { authSigningKey, createSupabaseAdmin } from "../supabase/clients";
 import { renderMagicLinkEmail } from "../email/magic-link";
 import { GUEST_COPY } from "../copy/guest";
 import { sendMagicLink, type SendLinkResult } from "./send-link";
 import { maskEmail, signContinue } from "./continue";
 import { isEmail, OWNER_EMAIL, type AuthLocale } from "./rules";
 import { linkOrigin } from "./allowed-origin";
+import { limiterHash, visitorIpKey } from "./limit";
 import { SHELL_HEADER } from "../host";
 
 const FROM = "ALMAR Private Journey <inquiries@almarprivatejourney.com>";
@@ -16,16 +16,6 @@ const FROM = "ALMAR Private Journey <inquiries@almarprivatejourney.com>";
 function retryAfter(message: string | undefined): number | undefined {
   const match = message?.match(/(\d+)\s*seconds?/i);
   return match ? Number(match[1]) : undefined;
-}
-
-function sha256(value: string): string {
-  return createHash("sha256").update(value).digest("hex");
-}
-
-/** The visitor IP the Worker set from cf-connecting-ip: the first x-forwarded-for entry, else "none". */
-function visitorIp(forwardedFor: string | null): string {
-  const first = forwardedFor?.split(",")[0]?.trim();
-  return first || "none";
 }
 
 export async function requestOrigin(): Promise<string> {
@@ -51,12 +41,14 @@ export async function sendLinkFromRequest({
 
   const admin = createSupabaseAdmin();
   const resendKey = process.env.RESEND_API_KEY?.trim();
-  if (!admin || !resendKey) {
+  // No limiter key means no limiter: fail closed, the same answer as any missing setting.
+  const limitKey = authSigningKey("limit");
+  if (!admin || !resendKey || !limitKey) {
     return isEmail(email.trim().toLowerCase()) ? { status: "unavailable" } : { status: "invalid" };
   }
   const resend = new Resend(resendKey);
   const copy = GUEST_COPY[locale];
-  const ipHash = sha256(visitorIp((await headers()).get("x-forwarded-for")));
+  const ipHash = limiterHash(limitKey, "ip", visitorIpKey((await headers()).get("x-forwarded-for")));
 
   return sendMagicLink(
     { email, origin: await requestOrigin(), host, ownerEmail: OWNER_EMAIL, isEmail },
@@ -64,7 +56,7 @@ export async function sendLinkFromRequest({
       async claimSlot(address) {
         // Hashes only leave this function. A failed call throws, and sendMagicLink fails closed.
         const { data, error } = await admin.rpc("claim_link_slot", {
-          p_email_hash: sha256(address),
+          p_email_hash: limiterHash(limitKey, "email", address),
           p_ip_hash: ipHash,
         });
         if (error || typeof data !== "boolean") throw new Error("claim_link_slot failed");
@@ -87,7 +79,7 @@ export async function sendLinkFromRequest({
       },
       continueProof(tokenHash, address) {
         const m = maskEmail(address);
-        const s = m ? signContinue(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(), tokenHash, m) : undefined;
+        const s = m ? signContinue(authSigningKey("continue"), tokenHash, m) : undefined;
         return m && s ? { m, s } : undefined;
       },
       async sendEmail({ to, href, kind }) {

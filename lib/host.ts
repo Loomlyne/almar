@@ -72,3 +72,15 @@ export function opsOrigin(publicHost: string | null | undefined, nodeEnv: string
   }
   return `https://${OPS_HOSTNAME}`;
 }
+
+/**
+ * The ops host (dashboard.almarprivatejourney.com) is not live yet. Until it is, TOUCHWORD and
+ * /auth/handoff/start stay off in production; development is unchanged (dashboard.localhost). Flip this to
+ * true in the commit that puts the ops host on its own Worker route.
+ */
+export const OPS_HOST_LIVE = false;
+
+/** True when the handoff to the ops host may be offered: always outside production, else only once the host is live. */
+export function opsHandoffOpen(nodeEnv: string | undefined): boolean {
+  return OPS_HOST_LIVE || nodeEnv !== "production";
+}

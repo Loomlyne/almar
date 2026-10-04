@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { authSigningKey } from "../../../lib/supabase/clients";
 import { ContinueScreen } from "./continue-screen";
 import { isConfirmType, verifyContinue } from "../../../lib/auth/continue";
 import { SHELL_HEADER } from "../../../lib/host";
@@ -27,7 +28,7 @@ export default async function ConfirmPage({ searchParams }: { searchParams: Prom
   if (!tokenHash || !isConfirmType(type)) redirect(ops ? "/sign-in?expired=1" : "/login?expired=1");
 
   const masked = one(query.m) ?? "";
-  const proven = verifyContinue(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(), tokenHash, masked, one(query.s));
+  const proven = verifyContinue(authSigningKey("continue"), tokenHash, masked, one(query.s));
 
   return (
     <ContinueScreen

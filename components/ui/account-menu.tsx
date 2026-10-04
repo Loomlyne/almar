@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { DropdownMenu } from "radix-ui";
 import { cn } from "../../lib/cn";
 import { ChevronIcon } from "../icons/icons";
+import { opsHandoffOpen } from "../../lib/host";
 
 export type NavAccount = {
   /** Her name, or her email while the name is empty (board 6e). */
@@ -74,7 +75,7 @@ export function AccountMenu({
               {labels.preferences}
             </a>
           </DropdownMenu.Item>
-          {account.opsHref ? (
+          {account.opsHref && opsHandoffOpen(process.env.NODE_ENV) ? (
             <DropdownMenu.Item asChild className={cn(ITEM, "uppercase tracking-kicker")}>
               <a href={account.opsHref} target="_blank" rel="noopener noreferrer" onClick={onNavigate}>
                 TOUCHWORD
