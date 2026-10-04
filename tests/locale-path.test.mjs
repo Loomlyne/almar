@@ -17,7 +17,7 @@ import {
 } from "../lib/locale-path.ts";
 
 const STAY = "/private-stays/getsemani-colonial-house";
-const PATHS = ["/", "/private-stays", STAY];
+const PATHS = ["/", "/private-stays", STAY, "/blog", "/blog/why-medellin-is-redefining-luxury-travel"];
 
 test("localePath: English is unchanged", () => {
   for (const p of PATHS) assert.equal(localePath("en", p), p);
@@ -99,7 +99,10 @@ test("matchPublicPage matches the three patterns and one [a-z0-9-] segment", () 
   for (const p of ["/private-stays/a/b", "/about", "/private-stays/Bad_Slug", "/private-stays/", "/ar"]) {
     assert.equal(matchPublicPage(p), null, p);
   }
-  assert.deepEqual([...PUBLIC_PAGES], ["/", "/private-stays", "/private-stays/[stay]"]);
+  assert.equal(matchPublicPage("/blog/why-medellin-is-redefining-luxury-travel"), "/blog/[post]");
+  assert.equal(matchPublicPage("/blog/a/b"), null);
+  assert.equal(siteHref("ar", "/blog"), "/ar/blog");
+  assert.deepEqual([...PUBLIC_PAGES], ["/", "/private-stays", "/private-stays/[stay]", "/blog", "/blog/[post]"]);
 });
 
 test("siteHref localises only pages that exist in every locale", () => {
