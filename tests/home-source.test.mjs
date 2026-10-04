@@ -141,3 +141,25 @@ test("the destination cards are not links: the live cards are not and /destinati
   assert.equal(/href=|<a\b|<MediaCard/.test(articles[0]), false);
   assert.match(articles[0], /destination\.name/);
 });
+
+// S2-2 (plan 03.3-10 Task 4): after slice 2 the catalogue holds ten services; the signed home shows three, by slug.
+test("the home keeps its three signed services, chosen by slug and in that order, never by position", async () => {
+  const source = read("components/pages/home-page.tsx");
+  assert.match(
+    source,
+    /export const HOME_SERVICE_SLUGS = \["24-7-private-concierge", "luxury-ground-transport", "vip-airport-meet-greet"\] as const/,
+  );
+  // The read itself is unchanged (pinned above); the Services section receives the derived list, not the raw read.
+  assert.match(source, /HOME_SERVICE_SLUGS\.(?:map|flatMap)\(/);
+  assert.match(source, /items=\{services\}/);
+  assert.match(source, /allServices/);
+  assert.match(source, /home: no published service \$\{slug\}/);
+  const { loadTs } = await import("./helpers/load-ts.mjs");
+  const { getCatalogItems } = await loadTs("lib/data/experiences.ts");
+  for (const locale of ["en", "ar", "es"]) {
+    const services = await getCatalogItems(locale, { kind: "service" });
+    for (const slug of ["24-7-private-concierge", "luxury-ground-transport", "vip-airport-meet-greet"]) {
+      assert.ok(services.some((s) => s.slug === slug), `${locale}: ${slug} is a published service`);
+    }
+  }
+});
