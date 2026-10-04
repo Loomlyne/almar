@@ -186,3 +186,73 @@ for (const viewport of WIDTHS) {
     });
   }
 }
+
+// MediaRow: the About Our Values row. Title and body at the inline start, the photo at the inline end from md.
+// Gap G2 of plan 21: job 11 has no such row in components/ui.
+
+/** The computed font size of a text token, so a test never hand-types a size. */
+const sizeOf = (page: Page, token: string) =>
+  page.evaluate((name) => {
+    const probe = document.createElement("span");
+    probe.style.fontSize = `var(--text-${name})`;
+    document.body.appendChild(probe);
+    const value = getComputedStyle(probe).fontSize;
+    probe.remove();
+    return value;
+  }, token);
+
+for (const viewport of WIDTHS) {
+  for (const locale of LOCALES) {
+    const { width } = VIEWPORTS[viewport];
+    const wide = width >= MD;
+
+    test.describe(`MediaRow ${locale} ${width}`, () => {
+      test("layout: one column on a phone, text at the inline start and photo at the inline end from md", async ({ page }) => {
+        await open(page, "media-row", "row", locale, viewport);
+        const row = page.getByTestId("harness-media-row");
+        const text = (await row.locator("p").locator("xpath=..").boundingBox())!;
+        const photo = (await row.locator("img").boundingBox())!;
+        if (!wide) {
+          expect(text.y + text.height).toBeLessThanOrEqual(photo.y + 1);
+        } else {
+          // The row's columns sit side by side: the text block's middle is above the photo's top and bottom edges.
+          expect(Math.abs(text.y + text.height / 2 - (photo.y + photo.height / 2))).toBeLessThanOrEqual(photo.height / 2);
+          const textFirst = text.x < photo.x;
+          expect(textFirst).toBe(locale !== "ar");
+          expect(text.x + text.width <= photo.x || photo.x + photo.width <= text.x).toBe(true);
+        }
+      });
+
+      test("sizes: photo 3:2 at most 480 wide, text block at most 360 wide", async ({ page }) => {
+        await open(page, "media-row", "row", locale, viewport);
+        const row = page.getByTestId("harness-media-row");
+        const photo = (await row.locator("img").boundingBox())!;
+        expect(Math.abs(photo.height / photo.width - 2 / 3)).toBeLessThan(0.02);
+        expect(photo.width).toBeLessThanOrEqual(480.5);
+        const text = (await row.locator("p").locator("xpath=..").boundingBox())!;
+        expect(text.width).toBeLessThanOrEqual(360.5);
+      });
+
+      test("type: title at job 11's card title size, body at the body size", async ({ page }) => {
+        await open(page, "media-row", "row", locale, viewport);
+        const row = page.getByTestId("harness-media-row");
+        const title = row.getByText("[Value]", { exact: true });
+        await expect(title).toHaveCount(1);
+        expect(await style(title, "font-size")).toBe(await sizeOf(page, "heading"));
+        expect(await style(title, "font-size")).toBe(wide ? "32px" : "24px");
+        const body = row.locator("p");
+        await expect(body).toContainText("[Body paragraph of one value");
+        expect(await style(body, "font-size")).toBe(await sizeOf(page, "body"));
+      });
+
+      test("plain: nothing focusable, square corners, the photo keeps its empty alt", async ({ page }) => {
+        await open(page, "media-row", "row", locale, viewport);
+        const row = page.getByTestId("harness-media-row");
+        await expect(row.locator('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])')).toHaveCount(0);
+        const photo = row.locator("img");
+        await expect(photo).toHaveAttribute("alt", "");
+        expect(await style(photo, "border-radius")).toBe("0px");
+      });
+    });
+  }
+}
