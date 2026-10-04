@@ -1,17 +1,19 @@
 "use client";
 
 import { useId } from "react";
+import type { JourneyCopy } from "../../../lib/copy/journey";
 import type { StaysListCopy } from "../../../lib/copy/stays-list";
 import { ChipGroup } from "../../ui/chip-group";
 import { Field } from "../../ui/field";
 import { Stepper } from "../../ui/stepper";
+import { DatesFilter, type DatesFilterLabels } from "./dates-filter";
 import type { BedroomChoice, ListState } from "./filter-state";
 
 /** The search field's id. The Clear control moves focus here, because the button it was pressed on goes away. */
 export const SEARCH_ID = "stay-search";
 
 /**
- * The four filter controls, controlled by the page: search, destination, guests, bedrooms. Every string arrives
+ * The five filter controls, controlled by the page: search, destination, guests, bedrooms, dates. Every string arrives
  * through `copy`. It holds no filter rule and no state: the page applies the one StayFilter.
  */
 export function StayFilters({
@@ -20,6 +22,10 @@ export function StayFilters({
   onChange,
   destinations,
   maxGuests,
+  locale,
+  datesLabels,
+  journeyCopy,
+  datesNote,
 }: {
   copy: StaysListCopy;
   state: ListState;
@@ -28,6 +34,12 @@ export function StayFilters({
   destinations: readonly { slug: string; name: string }[];
   /** The largest capacity on offer: the guests stepper stops here. */
   maxGuests: number;
+  locale: "en" | "ar" | "es";
+  datesLabels: DatesFilterLabels;
+  /** The journey bar's copy: the calendar's own strings and the night count. */
+  journeyCopy: JourneyCopy;
+  /** The sample-data note under Dates, or null. */
+  datesNote: string | null;
 }) {
   const guestsLabelId = useId();
   const destinationOptions = [
@@ -84,6 +96,14 @@ export function StayFilters({
           options={bedroomOptions}
           value={state.bedrooms}
           onChange={(bedrooms) => onChange({ bedrooms: bedrooms as BedroomChoice })}
+        />
+        <DatesFilter
+          value={{ from: state.from, to: state.to }}
+          onChange={(dates) => onChange({ from: dates.from as ListState["from"], to: dates.to as ListState["to"] })}
+          labels={datesLabels}
+          journeyCopy={journeyCopy}
+          locale={locale}
+          note={datesNote}
         />
       </div>
     </div>

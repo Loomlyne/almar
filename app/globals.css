@@ -3,6 +3,7 @@
 
 @custom-variant ar (&:where(:lang(ar), :lang(ar) *));
 @custom-variant dense (&:where([data-density="dense"], [data-density="dense"] *));
+@custom-variant pre-reveal (&:where([data-motion="on"] *):not([data-revealed]));
 
 /* GENERATED:THEME:START */
 @theme static {
@@ -51,6 +52,7 @@
   --spacing-row: 56px;
   --spacing-row-dense: 44px;
   --spacing-chip-dense: 24px;
+  --spacing-section: 120px;
   --container-column: 1240px;
   --container-menu: 440px;
   --container-calendar: 760px;
@@ -66,8 +68,17 @@
   --shadow-rule-today: inset 0 -2px 0 var(--color-teal);
   --shadow-selected: inset 0 0 0 2px var(--color-teal);
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);
   --transition-duration-fast: 150ms;
   --transition-duration-mid: 250ms;
+  --transition-duration-reveal-photo: 1600ms;
+  --transition-duration-reveal-nav: 1000ms;
+  --transition-duration-reveal-headline: 900ms;
+  --transition-duration-reveal-heading: 1070ms;
+  --transition-duration-reveal-button: 880ms;
+  --transition-duration-reveal-row: 1180ms;
+  --transition-duration-slide: 1400ms;
+  --transition-duration-hover: 400ms;
   --animate-panel-in: panel-in 250ms var(--ease-standard) both;
   --animate-sheet-in: sheet-in 250ms var(--ease-standard) both;
   --animate-dock-in: dock-in 150ms var(--ease-standard) both;

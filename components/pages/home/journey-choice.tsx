@@ -7,15 +7,13 @@ import {
   JOURNEY_CHOICE_KEY,
   choiceFromValue,
   isoOf,
-  journeyChoiceToStayQuery,
   parseJourneyChoice,
   serializeJourneyChoice,
-  type JourneyStayQuery,
 } from "../../../lib/journey-choice";
 
 // The hero bar's Where / When / Who, held once for the whole home page and kept in sessionStorage so it
-// survives a reload and the trip to the list page (design 4.2). The bar has no submit: this value is what
-// gives every choice a visible result (the Private Stays section filters on it, View All carries it).
+// survives a reload and the trip to the list page (design 4.2). The bar's Search reads this value and goes to the
+// stays list with it as a query (lib/journey-choice.ts searchHref); nothing on the home filters by it any more.
 //
 // First render, on the server and in the browser, is the bar's empty default, so the two agree; the saved
 // value is read in an effect. A stored value that is malformed, impossible or already in the past is dropped,
@@ -37,8 +35,6 @@ type JourneyChoiceContext = {
   /** True once the Who step was changed: only then do guests become a filter. */
   guestsSet: boolean;
   setValue: (next: JourneyValue) => void;
-  /** The stay-list filter this choice stands for: destination slug, dates, guests when set. */
-  query: JourneyStayQuery;
 };
 
 const Context = createContext<JourneyChoiceContext | null>(null);
@@ -110,13 +106,9 @@ export function JourneyChoiceProvider({
     }
   }, []);
 
-  const query = useMemo(
-    () => journeyChoiceToStayQuery(choiceFromValue(state.value, state.guestsSet), destinationSlugById),
-    [state, destinationSlugById],
-  );
   const context = useMemo(
-    () => ({ value: state.value, guestsSet: state.guestsSet, setValue, query }),
-    [state, setValue, query],
+    () => ({ value: state.value, guestsSet: state.guestsSet, setValue }),
+    [state, setValue],
   );
   return <Context.Provider value={context}>{children}</Context.Provider>;
 }

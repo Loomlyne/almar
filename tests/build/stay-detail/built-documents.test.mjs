@@ -95,6 +95,40 @@ for (const { name, root, present } of ROOTS) {
     }
   });
 
+  test(`${name}: each of the 36 documents holds the default request link, and no placeholder policy text`, run, async () => {
+    const { buildStayRequestMessage, stayRequestHref } = await loadTs("lib/whatsapp-request.ts");
+    const { STAY_DETAIL_COPY } = await loadTs("lib/copy/stay-detail.ts");
+    const { JOURNEY_COPY } = await loadTs("lib/copy/journey.ts");
+    const { absoluteLocaleUrl } = await loadTs("lib/locale-path.ts");
+    const { getStay } = await loadTs("lib/data/stays.ts");
+    for (const { prefix, slug, file } of stayDocuments(root)) {
+      const locale = prefix === "" ? "en" : prefix.slice(0, -1);
+      const stay = await getStay(locale, slug);
+      const href = stayRequestHref(
+        buildStayRequestMessage(
+          {
+            locale,
+            title: stay.title,
+            destinationName: stay.destination_name,
+            start: null,
+            end: null,
+            adults: 1,
+            children: 0,
+            infants: 0,
+            pageUrl: absoluteLocaleUrl(locale, `/private-stays/${slug}`),
+          },
+          STAY_DETAIL_COPY[locale].whatsapp,
+          { nights: JOURNEY_COPY[locale].dates.nights, guests: JOURNEY_COPY[locale].guests.summary },
+        ),
+      );
+      const text = Buffer.from(readFileSync(file)).toString("utf8");
+      // React escapes & and ' inside an attribute.
+      const attr = href.replace(/&/g, "&amp;").replace(/'/g, "&#x27;");
+      assert.ok(text.includes(`href="${attr}"`), `${file} lacks the default request link`);
+      assert.equal(/PRIVADA|CAMARERA/.test(text), false, `${file} carries placeholder policy text`);
+    }
+  });
+
   test(`${name}: no image from the Framer CDN, catbox or pexels in the 36 documents`, run, () => {
     for (const { file } of stayDocuments(root)) {
       const text = bytes(file);
@@ -108,9 +142,10 @@ for (const { name, root, present } of ROOTS) {
     for (const { file } of stayDocuments(root)) {
       const text = bytes(file);
       const sources = [...text.matchAll(/<img\b[^>]*?\ssrc="([^"]*)"/g)].map((m) => m[1]);
-      // The one image that is not content is the nav wordmark, a repo-owned brand file bundled under /_next/static/media/.
-      const content = sources.filter((src) => !src.startsWith("/_next/static/media/"));
-      assert.ok(sources.length - content.length <= 1, `${file}: only the wordmark is a bundled image`);
+      // The images that are not content are repo-owned brand files: the nav wordmark (bundled under /_next/static/media/)
+      // and the footer's, inlined as a data: URI (plan 41). Two at most.
+      const content = sources.filter((src) => !src.startsWith("/_next/static/media/") && !src.startsWith("data:image/svg+xml"));
+      assert.ok(sources.length - content.length <= 2, `${file}: only the two wordmarks are bundled images`);
       assert.ok(content.length >= 10, `${file}: expected the hero, the gallery and the cards, found ${content.length}`);
       for (const src of content) assert.ok(src.startsWith(`${MEDIA_BASE_URL}/`), `${file}: <img src="${src}">`);
       const share = /<meta property="og:image" content="([^"]*)"/.exec(text);

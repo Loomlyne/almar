@@ -2,6 +2,7 @@
 
 import type { ComponentProps, ReactNode } from "react";
 import { SiteFooter, type FooterCopy } from "../ui/footer";
+import { MotionController } from "./motion-controller";
 import { SiteNav, type NavLabels } from "../ui/nav";
 import { WhatsApp } from "../ui/whatsapp";
 import type { SelectedCurrency } from "../../lib/fx/rates";
@@ -35,6 +36,9 @@ export const SITE_CONTACT = {
   instagram: "https://www.instagram.com/almarprivatejourney/",
 } as const;
 
+/** The studio credit in the footer: a name and an address, not copy. The "Made by" label is footerCopy.madeBy. */
+const MADE_BY = { name: "Koussay", href: "https://koussay.com" } as const;
+
 /** Language names are never translated: each language is named in itself. */
 const LANGUAGE_NAMES: Record<Locale, string> = { en: "English", ar: "العربية", es: "Español" };
 
@@ -60,6 +64,7 @@ export function PublicFrame({
   navTone = "solid",
   currency = false,
   whatsappClassName,
+  whatsapp = true,
   children,
 }: {
   locale: Locale;
@@ -84,6 +89,8 @@ export function PublicFrame({
   currency?: false | PublicFrameCurrency;
   /** Merged onto the WhatsApp float, for a page with a pinned bar that the float must clear. */
   whatsappClassName?: string;
+  /** The green WhatsApp float. false: none, for a page whose own button already is the one WhatsApp action. */
+  whatsapp?: boolean;
   children: ReactNode;
 }) {
   const hrefs = localeHrefs ?? (matchPublicPage(currentPath) ? localeHrefsOf(currentPath) : undefined);
@@ -99,6 +106,7 @@ export function PublicFrame({
     currentPath,
     login: false,
     currency: currency === false ? false : currency.selected,
+    reveal: true,
   };
   if (currency !== false) nav.onCurrency = currency.onChange;
 
@@ -121,8 +129,11 @@ export function PublicFrame({
             : []
         }
         newsletter={false}
+        tone="light"
+        madeBy={{ label: footerCopy.madeBy ?? "", name: MADE_BY.name, href: MADE_BY.href }}
       />
-      {whatsappClassName ? <WhatsApp className={whatsappClassName} /> : <WhatsApp />}
+      {whatsapp ? whatsappClassName ? <WhatsApp className={whatsappClassName} /> : <WhatsApp /> : null}
+      <MotionController />
     </>
   );
 }

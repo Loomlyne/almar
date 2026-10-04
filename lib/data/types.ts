@@ -65,6 +65,22 @@ export type ImageRef = {
 // Destinations (design 3.2)
 // ---------------------------------------------------------------------------------------------
 
+/** The icon drawn beside a stay amenity. Derived from the English label by amenityIcon() (lib/data/amenity-icon.ts). */
+export type AmenityIcon =
+  | "pool"
+  | "wifi"
+  | "water"
+  | "tv"
+  | "air"
+  | "kitchen"
+  | "grill"
+  | "security"
+  | "parking"
+  | "outdoor"
+  | "lounge"
+  | "service"
+  | "check";
+
 export type Destination = RowMeta & {
   slug: string;
   /** "Cartagena" */
@@ -78,6 +94,8 @@ export type Destination = RowMeta & {
   /** "3-7 nights" - published text, not a computed range. */
   nights_label: string | null;
   hero_image: ImageRef | null;
+  /** The small photo inside the home Moments panel. Null when the destination has none. */
+  inset_image: ImageRef | null;
   is_published: boolean;
   /** The owner's own order in Dashboard > Catalog > Destinations. */
   position: number;
@@ -132,10 +150,18 @@ export type Stay = RowMeta & {
   /** The About paragraphs, in order. */
   description: string[];
   amenities: string[];
+  /** One icon per amenity, same order and length as `amenities`; computed from the English amenity at the same index. */
+  amenity_icons: AmenityIcon[];
   /** "Included with the stay:" - present on 7 of 12, so this is often empty. */
   inclusions: string[];
-  /** The four published policy headings. Their bodies are not published anywhere (design 7.3). */
+  /** The four published policy headings. */
   policy_headings: string[];
+  /**
+   * The text each policy row will open, same order and length as policy_headings, once real text is written in the
+   * dashboard. Null until then: the owner decided on 2026-10-04 that Policies show headings only and nothing opens
+   * (Framer's bodies were one CMS placeholder, identical on all 12 stays). The data layer returns null today.
+   */
+  policy_bodies: string[] | null;
 
   /** NO SOURCE EXISTS. Null means "not set" (STAY-06). */
   min_nights: number | null;
@@ -166,6 +192,12 @@ export type StayFilter = {
   bedroomsMax?: number;
   /** Matches title, neighborhood and destination_name, case- and accent-insensitive. */
   query?: string;
+  /**
+   * Arrival and departure, as a pair (from < to). Keeps a stay only when none of its blocked_dates d
+   * satisfies from <= d < to: the departure day itself may be blocked. Ignored unless both are set.
+   */
+  from?: IsoDate;
+  to?: IsoDate;
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -264,8 +296,11 @@ export type HomeBlocks = {
     headline: string;
     /** The poster image. See design 7.6 on the third-party background video. */
     poster: ImageRef | null;
+    /** The media-host URL of the owner's video, or null until it is uploaded. Components play it when present. */
     video_url: string | null;
   };
+  /** The Begin section: its still photo (Framer's poster of the Begin video) and the video, null until uploaded. */
+  begin: { poster: ImageRef | null; video_url: string | null };
   welcome: {
     kicker: string;
     heading: string;
@@ -275,6 +310,8 @@ export type HomeBlocks = {
     signer: string;
     signer_role: string;
     signature: ImageRef | null;
+    /** The five Welcome photos, in order. */
+    images: ImageRef[];
   };
   gallery: { kicker: string; heading: string; images: ImageRef[] };
   tiers: JourneyTier[];

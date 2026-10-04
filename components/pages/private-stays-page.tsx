@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { HOME_COPY } from "../../lib/copy/home";
+import { JOURNEY_COPY } from "../../lib/copy/journey";
+import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { STAYS_LIST_COPY } from "../../lib/copy/stays-list";
 import { getDestinations } from "../../lib/data/destinations";
@@ -36,6 +38,7 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
     bedrooms: stay.bedrooms,
     destination_slug: stay.destination_slug,
     destination_name: stay.destination_name,
+    blocked_dates: stay.blocked_dates,
     image: stay.hero_image ? { src: stay.hero_image.url, alt: stay.hero_image.alt } : null,
   }));
 
@@ -66,6 +69,8 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
             hrefs={hrefs}
             basePath={localePath(locale, PATH)}
             copy={copy}
+            journeyCopy={JOURNEY_COPY[locale]}
+            datesNote={stays.some((s) => s.sample_fields.includes("blocked_dates")) ? STAY_DETAIL_COPY[locale].sampleDatesNote : null}
           />
         </PageShell>
       </main>

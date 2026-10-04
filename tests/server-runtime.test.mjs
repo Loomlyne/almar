@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import test from "node:test";
 import { HELD_PATHS, SERVER_PATHS_OUTSIDE_API, isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { JOB02_SERVER_PATHS } from "../lib/auth/server-paths.ts";
-import { assembleOut, assertNoBundledEnv, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
+import { assembleOut, assertNoBundledEnv, assertNoPublicEnv, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
 import { handle } from "../worker/handle.mjs";
 
 // Job 10 (plan 02-20): what may run on the server, and the Worker's request router. No build and no wrangler here;
@@ -160,6 +160,77 @@ test("handle: anything else goes back to the static assets untouched", async () 
   assert.equal(calls.assets.length, paths.length);
 });
 
+test("handle: dot segments are resolved by the URL parser before the decision, so what is decided is what Next gets", async () => {
+  // Cloudflare passes the Worker the same normalised URL that `new Request(url)` holds: `..` and `%2e%2e` segments are
+  // already folded away (an encoded slash or a `;` is not). The router decides on that pathname and forwards that URL.
+  const cases = [
+    // [as sent, pathname handle() sees, goes to Next]
+    ["/api/%2e%2e/dashboard", "/dashboard", false],
+    ["/api/%2E%2E/dashboard", "/dashboard", false],
+    ["/api/.%2e/dashboard", "/dashboard", false],
+    ["/api/health/%2e%2e/%2e%2e/dashboard", "/dashboard", false],
+    ["/api/health/../../login", "/login", false],
+    ["/api\\..\\dashboard", "/dashboard", false],
+    ["/api/health/..", "/api/", false],
+    ["/api/..%2fdashboard", "/api/..%2fdashboard", false],
+    ["/api/..;/dashboard", "/api/..;/dashboard", false],
+    ["/api/health/.", "/api/health/", false],
+    ["/dashboard/../api/health", "/api/health", true],
+    ["/api/./health", "/api/health", true],
+  ];
+  for (const [sent, seen, toNext] of cases) {
+    const { calls, run } = harness();
+    assert.equal(new URL(`https://almarprivatejourney.com${sent}`).pathname, seen, `${sent}: the pathname Cloudflare would pass`);
+    const res = await run(sent);
+    if (toNext) {
+      assert.deepEqual(calls.next.map((c) => c.path), [seen], sent);
+      assert.deepEqual(calls.assets, [], sent);
+      assert.equal(res.headers.get("x-robots-tag"), "noindex", sent);
+    } else {
+      assert.deepEqual(calls.next, [], `${sent}: nothing is forwarded to Next`);
+      assert.deepEqual(calls.assets, [seen], sent);
+      assert.equal(res.status, 404, sent);
+      assert.equal(res.headers.get("x-robots-tag"), null, sent);
+    }
+    // Whatever was forwarded is a server path, and exactly the path that was decided on; no held section ever is.
+    for (const call of calls.next) assert.ok(call.path === "/api/health" && !isHeldPath(call.path), sent);
+  }
+});
+
+test("handle: with job 02's six sign-in paths on the list, dot segments fold first and only the exact path goes to Next", async () => {
+  // Same rule as above (decide on the pathname the URL parser holds, forward that URL), now that /login, /account and
+  // the rest are server paths: a dot segment may land on one of them, never on a held section or a near miss.
+  const cases = [
+    // [as sent, pathname handle() sees, goes to Next]
+    ["/api/%2e%2e/login", "/login", true],
+    ["/dashboard/../account", "/account", true],
+    ["/api/health/../../bookings", "/bookings", true],
+    ["/auth/./confirm", "/auth/confirm", true],
+    ["/api/%2e%2e/dashboard", "/dashboard", false],
+    ["/login/../dashboard", "/dashboard", false],
+    ["/auth/handoff/start/..", "/auth/handoff/", false],
+    ["/auth/confirm/..", "/auth/", false],
+    ["/login/.", "/login/", false],
+    ["/login%2F", "/login%2F", false],
+    ["/auth/..%2fconfirm", "/auth/..%2fconfirm", false],
+  ];
+  for (const [sent, seen, toNext] of cases) {
+    const { calls, run } = harness(["/api/health", ...JOB02_SERVER_PATHS]);
+    assert.equal(new URL(`https://almarprivatejourney.com${sent}`).pathname, seen, `${sent}: the pathname Cloudflare would pass`);
+    const res = await run(sent);
+    if (toNext) {
+      assert.deepEqual(calls.next.map((c) => c.path), [seen], sent);
+      assert.deepEqual(calls.assets, [], sent);
+      assert.equal(res.headers.get("x-robots-tag"), "noindex", sent);
+    } else {
+      assert.deepEqual(calls.next, [], `${sent}: nothing is forwarded to Next`);
+      assert.deepEqual(calls.assets, [seen], sent);
+      assert.equal(res.headers.get("x-robots-tag"), null, sent);
+    }
+    for (const call of calls.next) assert.ok(!isHeldPath(call.path), sent);
+  }
+});
+
 test("handle: Next never sees a visitor's x-forwarded-host, and x-forwarded-for comes from Cloudflare only", async () => {
   const { calls, run } = harness();
   await run("/api/health", {
@@ -256,6 +327,22 @@ test("assertNoBundledEnv: empty blocks pass; any value in any mode stops the bui
     return true;
   });
   assert.throws(() => assertNoBundledEnv(join(ok, "missing.mjs")), /did not finish/);
+});
+
+test("assertNoPublicEnv: a NEXT_PUBLIC_* variable in the build shell stops the build, naming the variable only", () => {
+  // The build shell's environment is handed to OpenNext; Next would inline every NEXT_PUBLIC_* value into the browser bundle.
+  assertNoPublicEnv({});
+  assertNoPublicEnv({ PATH: "/usr/bin", HOME: "/Users/x", PUBLIC_NEXT: "1", next_public_lower: "1", XNEXT_PUBLIC_A: "1" });
+  assert.throws(
+    () => assertNoPublicEnv({ PATH: "/usr/bin", NEXT_PUBLIC_B: "value-xyz", NEXT_PUBLIC_A: "value-abc" }),
+    (error) => {
+      assert.match(error.message, /^NEXT_PUBLIC_\* in the build shell would be inlined into the browser bundle: NEXT_PUBLIC_A, NEXT_PUBLIC_B$/);
+      assert.equal(error.message.includes("value-"), false, "the value is never printed");
+      return true;
+    },
+  );
+  // An empty value is still inlined (as an empty string), so it stops the build too.
+  assert.throws(() => assertNoPublicEnv({ NEXT_PUBLIC_EMPTY: "" }), /NEXT_PUBLIC_EMPTY/);
 });
 
 test("writeServerPaths: writes the sorted list next to the OpenNext worker; refuses without the worker", () => {
