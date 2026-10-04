@@ -83,7 +83,7 @@ export function HomeHero({
             <BackgroundMedia poster={poster ? { src: poster.src, alt: poster.alt } : null} videoUrl={videoUrl} />
           </Reveal>
         </div>
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-b from-ink/55 via-ink/15 to-ink/60" />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-b from-ink/55 via-ink/30 to-ink/60" />
 
         <PageShell className="grid justify-items-center gap-8 text-center">
           <Reveal kind="headline">
