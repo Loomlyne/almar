@@ -60,11 +60,13 @@ Recorded in slice 2 `job07-framer/S2-FRAMER.md`.
 
 The 88 / 48 and 32 / 24 px above are Framer's measurements, not new sizes. The owner's answer 2 to job 11 ("keep
 the signed scale 12·14·16·20·32·48·64, no new size token") is site-wide:
-- the `<h1>` is `hero` 64 from tablet up and `display` 48 on phone;
-- card names are `heading` 32 and `title` 20 on phone;
-- the region line is `label` 14 and `caption` 12.
+- the `<h1>` uses job 11's home heading size: 64 px from tablet up, 40 px on phone;
+- card names use job 11's card: 32 px, and 24 px on phone (Framer's own 24);
+- the region line is 14 px.
 
-Reconcile S2-20.
+Gaps: Framer's 40 / 20 px become our nearest allowed spacing, 32 / 16 px. The layout stays the same: two
+columns, square cards, Cocora Valley centred. Reconcile S2-20 and S2-23 (corrected after the fourth plan
+check).
 
 ## Alt text for the three hero photos (plan check, 2026-10-04)
 
