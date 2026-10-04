@@ -21,8 +21,9 @@ import { routeMedia } from "../helpers/media-route";
 // The "language links" hang. 10 of 108 of these tests (always `ar /private-stays/<slug>`) timed out at 30 s in the
 // controller's run, and about 1 in 15 hangs at any machine load: the click on a footer language link never lands.
 // Measured cause (call log of the stuck click): the stay page pins an 88 px dock over the bottom of the screen, the
-// page is still growing when the link is scrolled to the bottom edge (Arabic fonts reflow it), so the link ends up behind
-// the dock, and Playwright, which counts it as "in view", retries the same position until the timeout. The fix is in how the
+// page's height is still changing when the link is scrolled to the bottom edge (not isolated; the Arabic font swap is the
+// likely cause), so the link ends up behind the dock, and Playwright, which counts it as "in view", retries the same
+// position until the timeout. The fix is in how the
 // test clicks: clickClearOfDock() centres the link on every attempt (0 failures in 60 clicks, at most 2 attempts).
 // Three smaller changes, none of which weakens an assertion, make the file cheaper on a busy Mac:
 //   - "language links" is one test per target language (about four page loads each instead of eight) and, like

@@ -3,10 +3,11 @@ import { expect, type Locator } from "@playwright/test";
 /**
  * Click a link that may sit at the bottom edge of the screen.
  *
- * A stay page pins an 88 px dock over the bottom of the viewport, and the page keeps growing for a moment after the
- * load event (the Arabic fonts reflow it). A link that Playwright scrolled to the bottom edge is then pushed behind
- * the dock. Playwright counts a link inside the viewport as "in view", never scrolls it clear, and retries the same
- * position until the test times out: measured on /ar/private-stays/<slug> with JavaScript off, about 1 click in 15,
+ * A stay page pins an 88 px dock over the bottom of the viewport, and the page's height is still changing for a moment
+ * after the load event (what changes it was not isolated; the Arabic font swap is the likely cause, and only `ar` pages
+ * showed the hang). A link that Playwright scrolled to the bottom edge is then pushed behind the dock. Playwright
+ * counts a link inside the viewport as "in view", never scrolls it clear, and retries the same position until the test
+ * times out: measured on /ar/private-stays/<slug> with JavaScript off, about 1 click in 15,
  * with the click log "<span> from the fixed dock subtree intercepts pointer events". It is an interaction between a
  * pinned bar and the tool, not a defect a visitor meets by scrolling (the footer clears the dock at the end of the
  * page); the product-side remedy, scroll-padding-bottom on the root, is proposed in HANDOVER.md.
