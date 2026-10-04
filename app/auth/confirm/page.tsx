@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { authSigningKey } from "../../../lib/supabase/clients";
 import { ContinueScreen } from "./continue-screen";
-import { isConfirmType, verifyContinue } from "../../../lib/auth/continue";
+import { continueMode, isConfirmType, LINK_NONCE_COOKIE, verifyContinue } from "../../../lib/auth/continue";
 import { SHELL_HEADER } from "../../../lib/host";
 import { requestLocale } from "../../../lib/request-locale";
 
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   referrer: "no-referrer",
 };
 
-type Query = { token_hash?: string | string[]; type?: string | string[]; m?: string | string[]; s?: string | string[] };
+type Query = { token_hash?: string | string[]; type?: string | string[]; m?: string | string[]; s?: string | string[]; b?: string | string[]; e?: string | string[] };
 
 const one = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
 
@@ -28,7 +28,13 @@ export default async function ConfirmPage({ searchParams }: { searchParams: Prom
   if (!tokenHash || !isConfirmType(type)) redirect(ops ? "/sign-in?expired=1" : "/login?expired=1");
 
   const masked = one(query.m) ?? "";
-  const proven = verifyContinue(authSigningKey("continue"), tokenHash, masked, one(query.s));
+  const key = authSigningKey("continue");
+  const proven = verifyContinue(key, tokenHash, masked, one(query.s));
+  // Plan 02-26: this browser asked for the link (cookie nonce matches `b`) = the signed page. Anything else
+  // (another browser, a forward, no `b`) = the same page with the email check. No key = nothing to prove: the
+  // no-email page, and the button fails closed.
+  const b = one(query.b);
+  const mode = continueMode(key, (await cookies()).get(LINK_NONCE_COOKIE)?.value, tokenHash, b);
 
   return (
     <ContinueScreen
@@ -36,6 +42,9 @@ export default async function ConfirmPage({ searchParams }: { searchParams: Prom
       maskedEmail={proven ? masked : undefined}
       tokenHash={tokenHash}
       type={type}
+      askEmail={mode === "email"}
+      browserProof={b}
+      emailProof={one(query.e)}
       signInHref={ops ? "/sign-in" : "/login"}
     />
   );

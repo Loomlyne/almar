@@ -1,11 +1,20 @@
 // Wires sendMagicLink to Supabase admin and Resend (plan 02-02; reused by the ops sign-in, 02-04).
 import { Resend } from "resend";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { authSigningKey, createSupabaseAdmin } from "../supabase/clients";
 import { renderMagicLinkEmail } from "../email/magic-link";
 import { GUEST_COPY } from "../copy/guest";
 import { sendMagicLink, type SendLinkResult } from "./send-link";
-import { maskEmail, signContinue } from "./continue";
+import {
+  isLinkNonce,
+  LINK_NONCE_COOKIE,
+  LINK_NONCE_MAX_AGE,
+  maskEmail,
+  newLinkNonce,
+  signBrowser,
+  signContinue,
+  signEmail,
+} from "./continue";
 import { isEmail, OWNER_EMAIL, type AuthLocale } from "./rules";
 import { linkOrigin } from "./allowed-origin";
 import { limiterHash, visitorIpKey } from "./limit";
@@ -21,6 +30,25 @@ function retryAfter(message: string | undefined): number | undefined {
 export async function requestOrigin(): Promise<string> {
   const list = await headers();
   return linkOrigin(list.get("host"), process.env.NODE_ENV);
+}
+
+/**
+ * The browser nonce behind the link's `b`: the cookie's value when it is a valid one (two requests from one
+ * browser keep working), else a new one set now. httpOnly, Lax, Secure in production, one hour.
+ */
+async function browserNonce(): Promise<string> {
+  const store = await cookies();
+  const existing = store.get(LINK_NONCE_COOKIE)?.value;
+  if (isLinkNonce(existing)) return existing;
+  const nonce = newLinkNonce();
+  store.set(LINK_NONCE_COOKIE, nonce, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: LINK_NONCE_MAX_AGE,
+  });
+  return nonce;
 }
 
 /**
@@ -46,6 +74,7 @@ export async function sendLinkFromRequest({
   if (!admin || !resendKey || !limitKey) {
     return isEmail(email.trim().toLowerCase()) ? { status: "unavailable" } : { status: "invalid" };
   }
+  const nonce = await browserNonce();
   const resend = new Resend(resendKey);
   const copy = GUEST_COPY[locale];
   const ipHash = limiterHash(limitKey, "ip", visitorIpKey((await headers()).get("x-forwarded-for")));
@@ -78,9 +107,15 @@ export async function sendLinkFromRequest({
         };
       },
       continueProof(tokenHash, address) {
+        const key = authSigningKey("continue");
+        if (!key) return undefined;
         const m = maskEmail(address);
-        const s = m ? signContinue(authSigningKey("continue"), tokenHash, m) : undefined;
-        return m && s ? { m, s } : undefined;
+        const s = m ? signContinue(key, tokenHash, m) : undefined;
+        return {
+          ...(m && s ? { m, s } : {}),
+          b: signBrowser(key, nonce, tokenHash),
+          e: signEmail(key, address, tokenHash),
+        };
       },
       async sendEmail({ to, href, kind }) {
         const message = renderMagicLinkEmail({

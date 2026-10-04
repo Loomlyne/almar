@@ -36,6 +36,9 @@ export type GuestCopy = {
       leadNoEmail: string;
       button: string;
       other: string;
+      /** Plan 02-26: shown with the email field when the link was opened in another browser. */
+      why: string;
+      wrongEmail: string;
     };
   };
   /** Plan 02-02, canvas board 6b (Account hub): only the parts that work in Phase 2. */
@@ -113,6 +116,8 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
         leadNoEmail: "Continue to sign in to ALMAR.",
         button: "Continue",
         other: "Not you? Use a different email",
+        why: "This link was opened in a different browser. To protect your account, type the email you used.",
+        wrongEmail: "This email does not match the link.",
       },
     },
     hub: {
@@ -185,6 +190,8 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
         leadNoEmail: "تابع لتسجيل الدخول إلى ALMAR.",
         button: "متابعة",
         other: "لست أنت؟ استخدم بريدًا إلكترونيًا آخر",
+        why: "فُتح هذا الرابط في متصفح آخر. لحماية حسابك، اكتب البريد الإلكتروني الذي استخدمته.",
+        wrongEmail: "هذا البريد الإلكتروني لا يطابق الرابط.",
       },
     },
     hub: {
@@ -257,6 +264,8 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
         leadNoEmail: "Continúa para iniciar sesión en ALMAR.",
         button: "Continuar",
         other: "¿No eres tú? Usa otro correo",
+        why: "Este enlace se abrió en otro navegador. Para proteger tu cuenta, escribe el correo que usaste.",
+        wrongEmail: "Este correo no coincide con el enlace.",
       },
     },
     hub: {
