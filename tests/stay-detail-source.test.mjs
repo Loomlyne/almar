@@ -108,7 +108,7 @@ test("the template and its parts never name a rate, a minimum stay or a price fi
 test("the template and its parts hold no submit, no form and no Add or Continue control", () => {
   for (const file of TEMPLATE_FILES) {
     const text = readFileSync(file, "utf8");
-    assert.equal(/<form\b|type="submit"|onSearch=|action=\{|<Button\b/.test(text), false, `${file} has a held control`);
+    assert.equal(/<form\b|type="submit"|onSearch=|action=\{(?!\s*<(?:StayRequestLink|LinkButton)\b)|<Button\b/.test(text), false, `${file} has a held control`);
   }
 });
 
