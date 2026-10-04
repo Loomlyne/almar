@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { expect, test } from "@playwright/test";
+import { JOB02_SERVER_PATHS } from "../../lib/auth/server-paths";
 import { HELD_PATHS } from "../../lib/server-routes";
 
 // Job 10 (plan 02-21): the server runtime on the BUILT Worker, through local `wrangler dev` (workerd, never --remote).
@@ -16,28 +17,43 @@ const CONFIG_TEXT = readFileSync(CONFIG, "utf8");
 const FOLDER = /^directory = "\.\/([^"]+)"$/m.exec(CONFIG_TEXT)?.[1] ?? "";
 const IS_PREVIEW = /^name = "almar-preview"$/m.test(CONFIG_TEXT);
 
-// The prompt's nine held sections, pinned here on purpose: changing HELD_PATHS breaks this spec until the spec is
-// changed in the same commit (lib/server-routes.ts, step 3 of its how-to).
-const PINNED_HELD = ["/dashboard", "/account", "/login", "/booking", "/bookings", "/fx", "/newsletter", "/embed", "/__harness"];
+// The six sections still held (the prompt's nine minus /login, /account and /bookings, opened by plan 02-23 task 3),
+// pinned here on purpose: changing HELD_PATHS breaks this spec until the spec is changed in the same commit
+// (lib/server-routes.ts, step 3 of its how-to). The six opened paths are proven in tests/build/auth-paths.spec.ts.
+const PINNED_HELD = ["/dashboard", "/booking", "/fx", "/newsletter", "/embed", "/__harness"];
 
 const HELD_PROBES = [
   "/dashboard",
   "/dashboard/home",
   "/dashboard/catalog/stays",
-  "/account",
-  "/login",
+  "/booking",
   "/booking/trip",
-  "/bookings",
   "/fx",
   "/newsletter",
   "/embed/hero-booker",
   "/embed/font/x.woff2",
   "/__harness",
   "/ar/dashboard",
-  "/es/login",
+  "/es/booking",
 ];
 // Not held sections, but never served by Next either: they get the static 404 too.
-const OTHER_MISSES = ["/api/health/", "/api/nope", "/_next/image?url=%2Fx.png&w=64&q=75", "/API/health"];
+// Also the near misses of the six opened sign-in paths: a locale prefix, a child path, the ops-host handoff.
+const OTHER_MISSES = [
+  "/api/health/",
+  "/api/nope",
+  "/_next/image?url=%2Fx.png&w=64&q=75",
+  "/API/health",
+  "/ar/login",
+  "/es/account",
+  "/ar/bookings",
+  "/login/x",
+  "/account/x",
+  "/bookings/x",
+  "/auth/handoff",
+  "/auth/confirm/x",
+  "/auth/sign-out/x",
+  "/auth/handoff/start/x",
+];
 
 function htmlFiles(dir: string): string[] {
   const found: string[] = [];
@@ -68,7 +84,7 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(["out", "out-preview"]).toContain(FOLDER);
     expect(FOLDER === "out-preview").toBe(IS_PREVIEW);
     expect(existsSync(join(FOLDER, "index.html"))).toBe(true);
-    expect(JSON.parse(readFileSync(".open-next/almar-server-routes.json", "utf8"))).toEqual(["/api/health"]);
+    expect(JSON.parse(readFileSync(".open-next/almar-server-routes.json", "utf8"))).toEqual(["/api/health", ...[...JOB02_SERVER_PATHS].sort()].sort());
   });
 
   test("1. same bytes: every page answers 200 at its address with exactly the file's bytes", async ({ request }) => {
@@ -82,7 +98,7 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     }
   });
 
-  test("2. the held list is the prompt's nine sections, and every one is probed", () => {
+  test("2. the held list is the six sections still held, and every one is probed", () => {
     expect([...HELD_PATHS]).toEqual(PINNED_HELD);
     for (const entry of PINNED_HELD) {
       const probed = HELD_PROBES.some((p) => {
@@ -133,14 +149,14 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(post.headers()["x-robots-tag"]).toBe("noindex");
   });
 
-  test("4. a browser navigation reaches /api/health, and still gets the 404 on a held path", async ({ request }) => {
+  test("4. a browser navigation reaches /api/health, and still gets the 404 on a held path or near miss", async ({ request }) => {
     // Security review 2026-10-04: without run_worker_first, Cloudflare answers navigation misses from the assets
     // layer and the Worker never sees them. The Playwright request API sends no Sec-Fetch-Mode unless told to.
     const nav = { "sec-fetch-mode": "navigate", "sec-fetch-dest": "document", accept: "text/html" };
     const health = await request.get("/api/health", { headers: nav, maxRedirects: 0 });
     expect(health.status()).toBe(200);
     expect(await health.text()).toBe('{"ok":true}');
-    for (const path of ["/login", "/dashboard", "/ar/account", "/newsletter", "/api/nope", "/wp-login.php"]) {
+    for (const path of ["/ar/login", "/dashboard", "/es/account", "/newsletter", "/api/nope", "/wp-login.php"]) {
       const res = await request.get(path, { headers: nav, maxRedirects: 0 });
       expect(res.status(), path).toBe(404);
       expect(Buffer.compare(await res.body(), nearest404(path)), path).toBe(0);

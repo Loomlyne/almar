@@ -3,7 +3,8 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFil
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
-import { HELD_PATHS, SERVER_PATHS_OUTSIDE_API, serverPathsFrom } from "../lib/server-routes.ts";
+import { HELD_PATHS, SERVER_PATHS_OUTSIDE_API, isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
+import { JOB02_SERVER_PATHS } from "../lib/auth/server-paths.ts";
 import { assembleOut, assertNoBundledEnv, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
 import { handle } from "../worker/handle.mjs";
 
@@ -30,13 +31,13 @@ const TODAY = [
 ];
 
 test("serverPathsFrom: only the static app/api routes, without the /route suffix", () => {
-  assert.deepEqual(serverPathsFrom(TODAY), ["/api/health"]);
-  assert.deepEqual(serverPathsFrom(["/api/b/route", "/api/a/b/route", "/api/b/route"]), ["/api/a/b", "/api/b"]);
+  assert.deepEqual(serverPathsFrom(TODAY, []), ["/api/health"]);
+  assert.deepEqual(serverPathsFrom(["/api/b/route", "/api/a/b/route", "/api/b/route"], []), ["/api/a/b", "/api/b"]);
 });
 
 test("serverPathsFrom: pages, Framer routes and held handlers outside /api are ignored", () => {
-  assert.deepEqual(serverPathsFrom(["/newsletter/route", "/fx/route", "/embed/hero-booker/route", "/about/route", "/login/page"]), []);
-  assert.deepEqual(serverPathsFrom(["/apiary/route"]), []);
+  assert.deepEqual(serverPathsFrom(["/newsletter/route", "/fx/route", "/embed/hero-booker/route", "/about/route", "/login/page"], []), []);
+  assert.deepEqual(serverPathsFrom(["/apiary/route"], []), []);
 });
 
 test("serverPathsFrom: a page under app/api stops the build", () => {
@@ -53,14 +54,33 @@ test("serverPathsFrom: dynamic, catch-all, grouped and parallel segments under /
   }
 });
 
-test("HELD_PATHS is the prompt's nine sections; SERVER_PATHS_OUTSIDE_API is empty in job 10", () => {
-  assert.deepEqual([...HELD_PATHS], ["/dashboard", "/account", "/login", "/booking", "/bookings", "/fx", "/newsletter", "/embed", "/__harness"]);
-  assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], []);
+test("HELD_PATHS is the six sections still held; SERVER_PATHS_OUTSIDE_API is job 02's six sign-in paths (02-23 task 3)", () => {
+  assert.deepEqual([...HELD_PATHS], ["/dashboard", "/booking", "/fx", "/newsletter", "/embed", "/__harness"]);
+  assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], ["/login", "/auth/confirm", "/auth/sign-out", "/auth/handoff/start", "/account", "/bookings"]);
+});
+
+test("three places agree: JOB02_SERVER_PATHS, SERVER_PATHS_OUTSIDE_API and run_worker_first in both Worker files; none is held", () => {
+  assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], [...JOB02_SERVER_PATHS]);
+  for (const file of ["wrangler.toml", "wrangler.preview.toml"]) {
+    const line = readFileSync(file, "utf8").split("\n").find((l) => l.startsWith("run_worker_first"));
+    const list = JSON.parse(line.replace(/^run_worker_first = /, ""));
+    assert.deepEqual(list.slice(1), [...JOB02_SERVER_PATHS], file);
+    assert.equal(list[0], "/api/*", file);
+  }
+  for (const path of JOB02_SERVER_PATHS) {
+    assert.equal(isHeldPath(path), false, path);
+    assert.equal(isHeldPath(`/ar${path}`), false, `/ar${path}`);
+  }
+  // Only the exact path opens: a child, a locale prefix or the ops-host handoff stay out of the list.
+  for (const path of ["/login/x", "/account/x", "/auth/handoff", "/auth/confirm/x", "/ar/login", "/es/account"]) {
+    assert.equal(SERVER_PATHS_OUTSIDE_API.includes(path), false, path);
+  }
 });
 
 test("serverPathsFrom: an extra path outside /api is added; one under a held section stops the build", () => {
   assert.deepEqual(serverPathsFrom(TODAY, ["/subscribe"]), ["/api/health", "/subscribe"]);
-  for (const held of ["/newsletter", "/login", "/dashboard/home", "/booking/trip", "/ar/login", "/es/dashboard", "/__harness"]) {
+  assert.deepEqual(serverPathsFrom(TODAY), ["/api/health", ...[...JOB02_SERVER_PATHS].sort()].sort());
+  for (const held of ["/newsletter", "/dashboard/home", "/booking/trip", "/es/dashboard", "/ar/booking", "/__harness"]) {
     assert.throws(() => serverPathsFrom(TODAY, [held]), /held/);
   }
 });
@@ -73,7 +93,7 @@ test("serverPathsFrom: a malformed extra path stops the build", () => {
 
 test("serverPathsFrom: an app/api route can never shadow a held section", () => {
   // Not reachable from a real manifest today, but the guard holds whatever the list says.
-  assert.throws(() => serverPathsFrom([], ["/bookings/export"]), /held/);
+  assert.throws(() => serverPathsFrom([], ["/booking/export"]), /held/);
 });
 
 // ---- handle -----------------------------------------------------------------------------------------------------
@@ -126,8 +146,8 @@ test("handle: every method on a server path goes to Next (Next answers 405 itsel
 test("handle: anything else goes back to the static assets untouched", async () => {
   const { calls, run } = harness();
   const paths = [
-    "/dashboard", "/dashboard/home", "/account", "/login", "/booking/trip", "/bookings", "/fx", "/newsletter",
-    "/embed/hero-booker", "/ar/login", "/nope", "/api/nope", "/api/health/", "/API/health", "/api/health%2F",
+    "/dashboard", "/dashboard/home", "/booking/trip", "/booking", "/fx", "/newsletter", "/login/x", "/account/x",
+    "/auth/handoff", "/auth/confirm/x", "/embed/hero-booker", "/ar/login", "/es/account", "/nope", "/api/nope", "/api/health/", "/API/health", "/api/health%2F",
     "/api%2Fhealth", "/api/%68ealth", "//api/health", "/_next/image", "/cdn-cgi/image/x",
   ];
   for (const p of paths) {
@@ -193,7 +213,7 @@ function assembleFixture(appFiles) {
 }
 
 test("assembleOut: a held-section HTML source is still skipped silently", () => {
-  const run = assembleFixture(["index.html", "login.html", "dashboard/home.html", "account.html"]);
+  const run = assembleFixture(["index.html", "booking.html", "dashboard/home.html", "fx.html"]);
   const report = run();
   assert.deepEqual(report.react.en, ["index.html"]);
 });
@@ -212,7 +232,7 @@ test("assembleOut: a prerendered file under /api or a held section stops the bui
 });
 
 test("assembleOut: a public/ file under /api or a held section stops the build before out/ is written", () => {
-  for (const f of ["api/health", "api/x.json", "login.html", "dashboard/index.html", "ar/account.html", "embed/x.js"]) {
+  for (const f of ["api/health", "api/x.json", "booking.html", "dashboard/index.html", "ar/booking.html", "embed/x.js"]) {
     const base = scratchDir({ [`public/${f}`]: "x", "app/index.html": "home", "static/css/x.css": "body{}" });
     const outDir = join(base, "out");
     assert.throws(
@@ -243,8 +263,9 @@ test("writeServerPaths: writes the sorted list next to the OpenNext worker; refu
     "app-paths-manifest.json": JSON.stringify({ "/api/health/route": "x", "/about/route": "x", "/page": "x" }),
     ".open-next/worker.js": "export default {}",
   });
-  assert.deepEqual(writeServerPaths({ manifestFile: join(base, "app-paths-manifest.json"), openNextDir: join(base, ".open-next") }), ["/api/health"]);
-  assert.equal(readFileSync(join(base, ".open-next/almar-server-routes.json"), "utf8"), '["/api/health"]\n');
+  const want = ["/api/health", ...JOB02_SERVER_PATHS].sort();
+  assert.deepEqual(writeServerPaths({ manifestFile: join(base, "app-paths-manifest.json"), openNextDir: join(base, ".open-next") }), want);
+  assert.equal(readFileSync(join(base, ".open-next/almar-server-routes.json"), "utf8"), `${JSON.stringify(want)}\n`);
   const empty = scratchDir({ "app-paths-manifest.json": "{}" });
   assert.throws(() => writeServerPaths({ manifestFile: join(empty, "app-paths-manifest.json"), openNextDir: join(empty, ".open-next") }), /did not finish/);
 });
