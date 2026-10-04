@@ -81,6 +81,7 @@ function catalogCards(items: CatalogItem[], ratio: number, centered: boolean) {
           title={item.name}
           ratio={ratio}
           titleSize="heading"
+          className="gap-6"
           align={centered ? "center" : "start"}
           detail={
             <>
@@ -202,9 +203,15 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
               <SplitSection id="about" heading={copy.about}>
                 <Reveal kind="row" className="grid gap-8">
                   {facts.length > 0 ? (
-                    <div className="border-b border-teal-tint pb-6">
-                      <FactList items={facts} layout="inline" />
-                    </div>
+                    // Framer's facts row: each fact is its small label over its value, the five in one row from md.
+                    <dl className="m-0 flex flex-wrap gap-x-8 gap-y-4 border-b border-teal-tint pb-6">
+                      {facts.map((fact) => (
+                        <div key={fact.label} className="grid min-w-0 content-start gap-1">
+                          <dt className="text-caption text-muted">{fact.label}</dt>
+                          <dd className="m-0 text-label md:text-body text-ink">{fact.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
                   ) : null}
                   <div className="grid gap-4">
                     {stay.description.map((paragraph, index) => (
@@ -257,6 +264,7 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
                     <FactList
                       layout="plain"
                       columns={2}
+                      className="grid-cols-2 gap-x-4 gap-y-6 md:gap-x-8"
                       items={stay.amenities.map((value, index) => {
                         const Icon = AMENITY_ICONS[stay.amenity_icons[index] ?? "check"];
                         return { value, icon: <Icon size={20} aria-hidden="true" /> };

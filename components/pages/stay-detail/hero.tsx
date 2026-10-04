@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PinIcon } from "../../icons/icons";
 import { PageShell } from "../../ui/page-shell";
 import { Reveal } from "../../ui/reveal";
 
@@ -41,14 +42,21 @@ export function StayHero({
           ) : null}
         </Reveal>
       </div>
-      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-b from-ink/55 via-ink/30 to-ink/60" />
-      <PageShell className="flex flex-1 items-center justify-center">
-        <Reveal kind="bar" className="grid justify-items-center gap-3 text-center text-ivory">
-          <p className="m-0 text-caption uppercase tracking-kicker text-ivory ar:normal-case ar:tracking-normal">{eyebrow}</p>
+      {/* Framer's veil: an even dark wash over the photo, a little deeper at the foot under the bar. */}
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-ink/45" />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-t from-ink/30 to-transparent" />
+      {/* The title block is centred on the whole hero, as on the live page, not on the room left by the bar. */}
+      <div className="pointer-events-none absolute inset-0 grid place-items-center px-4 md:px-8">
+        <Reveal kind="bar" className="pointer-events-auto grid max-w-column justify-items-center gap-3 text-center text-ivory">
+          <p className="m-0 inline-flex items-center gap-2 text-caption uppercase tracking-kicker text-ivory ar:normal-case ar:tracking-normal">
+            <PinIcon size={16} aria-hidden="true" />
+            {eyebrow}
+          </p>
           <h1 className="m-0 font-display text-hero tracking-display text-ivory text-balance">{title}</h1>
           {subtitle ? <p className="m-0 font-display text-title text-ivory">{subtitle}</p> : null}
         </Reveal>
-      </PageShell>
+      </div>
+      <div />
       <PageShell className="pb-8">{children}</PageShell>
     </div>
   );

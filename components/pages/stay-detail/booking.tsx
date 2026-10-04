@@ -190,7 +190,7 @@ export function StayRequestLink({ size }: { size: "bar" | "sheet" | "dock" }) {
       target="_blank"
       rel="noopener noreferrer"
       size={size === "bar" ? "bar-auto" : size === "sheet" ? "lg" : "md"}
-      className={size === "sheet" ? "w-full whitespace-normal text-center" : undefined}
+      className={size === "sheet" ? "w-full whitespace-normal px-3 text-center tracking-normal" : undefined}
     >
       <WhatsAppIcon size={20} aria-hidden="true" />
       <span className={size === "dock" ? "sr-only md:not-sr-only" : undefined}>{s.requestLabel}</span>

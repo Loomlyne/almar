@@ -158,7 +158,7 @@ export function Slider({
     move(index + (forward ? 1 : -1));
   }
 
-  function onPointerUp(event: PointerEvent<HTMLDivElement>) {
+  function onPointerUp(event: PointerEvent<HTMLElement>) {
     const start = press.current;
     press.current = null;
     if (!start) return;
@@ -200,6 +200,24 @@ export function Slider({
       aria-roledescription="carousel"
       aria-label={labels.region}
       onKeyDown={enhanced ? onKeyDown : undefined}
+      // Swipe is read on the whole region, not on the photos' track: at the last slide the track ends before the region
+      // does, and a swipe that starts in the empty strip beside it must still go (plan 45). A press that starts on a
+      // button (arrow, dot, Pause) is a click, not a swipe.
+      onPointerDown={
+        enhanced
+          ? (event) => {
+              press.current = (event.target as Element).closest("button") ? null : { x: event.clientX, y: event.clientY };
+            }
+          : undefined
+      }
+      onPointerUp={enhanced ? onPointerUp : undefined}
+      onPointerCancel={
+        enhanced
+          ? () => {
+              press.current = null;
+            }
+          : undefined
+      }
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={(event) => {
@@ -208,19 +226,12 @@ export function Slider({
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
       }}
-      className={cn("relative w-full overflow-hidden", className)}
+      className={cn("relative w-full touch-pan-y overflow-hidden", className)}
     >
       {enhanced ? (
         <div className={cn(layout === "peek" && "px-4 md:px-16")}>
           <div
             ref={track}
-            onPointerDown={(event) => {
-              press.current = { x: event.clientX, y: event.clientY };
-            }}
-            onPointerUp={onPointerUp}
-            onPointerCancel={() => {
-              press.current = null;
-            }}
             style={{ translate: `${offset}px 0` }}
             className={cn(
               "relative flex touch-pan-y transition-transform duration-slide ease-reveal motion-reduce:transition-none",
@@ -253,7 +264,9 @@ export function Slider({
             <ChevronIcon size={20} className="rtl:-scale-x-100" />
           </button>
           {dotCount > 1 ? (
-            <div className="absolute inset-x-0 bottom-4 z-10 flex justify-center">
+            // A dark strip behind the dots, so they read on a light photo too (an ivory outline alone vanished).
+            <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center px-4">
+              <div className="pointer-events-auto flex max-w-full flex-wrap justify-center bg-ink/50 px-2 py-1">
               {Array.from({ length: dotCount }, (_, dot) => (
                 <button
                   key={dot}
@@ -266,6 +279,7 @@ export function Slider({
                   <span aria-hidden="true" className={cn("block size-2 border border-ivory", dot === activeDot && "bg-ivory")} />
                 </button>
               ))}
+              </div>
             </div>
           ) : null}
           {autoplayAllowed && !reduced ? (
