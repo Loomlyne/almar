@@ -11,6 +11,7 @@ import {
 } from "../../lib/locale-path";
 import { clickClearOfDock } from "../helpers/click-clear-of-dock";
 import { routeMedia } from "../helpers/media-route";
+import { framerRoutes } from "../helpers/site-links.mjs";
 
 // The per-locale route matrix on the assembled out/, served by local wrangler (the Cloudflare asset rules).
 // Plans 04, 05 and 06 narrow it to their own path:
@@ -45,7 +46,7 @@ const STAYS = [
   "santa-fe-farm-antioquia",
   "sopetran-country-estate",
 ];
-const DEFAULT_PATHS = ["/", "/private-stays", ...STAYS.map((s) => `/private-stays/${s}`)];
+const DEFAULT_PATHS = ["/", "/private-stays", ...STAYS.map((s) => `/private-stays/${s}`), "/about", "/contact"];
 const list = (value: string | undefined) => (value ? value.split(",").map((v) => v.trim()).filter(Boolean) : null);
 
 const PATHS = list(process.env.ROUTING_PATHS) ?? DEFAULT_PATHS;
@@ -224,11 +225,12 @@ function htmlFiles(dir: string, found: string[] = []): string[] {
   return found;
 }
 
-// Once, no viewport. Runs at the end of the slice (all 14 pages converted), with the default PATHS and locales.
-test("slice inventory: out/ holds exactly 42 React documents, 12 Framer documents and three 404s", async () => {
+// Once, no viewport. With the default PATHS and locales: one React document per path and locale, one document per
+// remaining Framer route (computed, so a slice that converts a page changes nothing here), and three 404s.
+test("slice inventory: out/ holds the React documents of PATHS x LOCALES, one document per remaining Framer route, and three 404s", async () => {
   test.skip(
     Boolean(process.env.ROUTING_PATHS || process.env.ROUTING_LOCALES),
-    "the inventory is for the full 14 pages x 3 locales, not a narrowed run",
+    "the inventory is for the default paths x 3 locales, not a narrowed run",
   );
   const files = htmlFiles("out").sort();
   const react = LOCALES.flatMap((l) =>
@@ -240,7 +242,7 @@ test("slice inventory: out/ holds exactly 42 React documents, 12 Framer document
   const notFound = ["404.html", "ar/404.html", "es/404.html"];
   const rest = files.filter((f) => !react.includes(f) && !notFound.includes(f));
   expect(react.filter((f) => !files.includes(f)), "missing React documents").toEqual([]);
-  expect(react).toHaveLength(42);
+  expect(react).toHaveLength(3 * PATHS.length);
   expect(notFound.filter((f) => !files.includes(f))).toEqual([]);
-  expect(rest, "12 Framer documents and nothing else").toHaveLength(12);
+  expect(rest, "one Framer document per remaining Framer route and nothing else").toHaveLength(framerRoutes().length);
 });
