@@ -6,6 +6,7 @@ import { HOME_COPY } from "../../lib/copy/home";
 import { HOME_PAGE_COPY } from "../../lib/copy/home-page";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
 import { getDestinations } from "../../lib/data/destinations";
 import { LOCALES, SITE_ORIGIN, localeAlternates, localeDir, localePath, siteHref, type Locale } from "../../lib/locale-path";
 import { clickClearOfDock } from "../helpers/click-clear-of-dock";
@@ -23,6 +24,12 @@ import { routeMedia } from "../helpers/media-route";
 // Part 2: the controls that no other build spec clicks on a real page (design 4.1 rows 1, 3, 4, 7 and 28).
 // Part 3: the crawl files as the Workers rules serve them (production variant) and every sitemap address answering 200.
 //
+// Job 11 (plan 03.3-47) changed two held-control rows and one slice-wide row, and nothing else:
+//   - the home documents carry ONE submit button, the locale's Search (the hero bar is a role=search form); list and stay
+//     documents still carry none, and Search is still a held NAME on them;
+//   - the stay documents carry the Request on WhatsApp link (wa.me ... ?text=) and no WhatsApp float; home and list keep the float;
+//   - every document carries the one light footer (ivory, wordmark, signed content only, Made by Koussay).
+//
 // Every expected string comes from lib/copy, lib/locale-path or the fixtures, never typed in English for AR or ES.
 
 const VIEWPORTS = [
@@ -38,6 +45,9 @@ const SHOTS = path.join("test-results", "slice1");
 const SLUGS: string[] = (JSON.parse(fs.readFileSync("lib/data/fixtures/stays.json", "utf8")) as Array<{ slug: string; is_published?: boolean }>)
   .filter((stay) => stay.is_published !== false)
   .map((stay) => stay.slug);
+
+type Kind = "home" | "list" | "stay";
+const kindOf = (name: string): Kind => (name === "home" ? "home" : name === "private-stays" ? "list" : "stay");
 
 const PAGES = [
   { name: "home", path: "/" },
@@ -86,10 +96,10 @@ function boardWord(key: string, locale: Locale): string {
   return (JSON.parse(found[1]) as Record<Locale, string>)[locale];
 }
 
-function heldNames(locale: Locale): string[] {
+function heldNames(locale: Locale, kind: Kind): string[] {
   const source = FRAMER_SOURCE_COPY[locale] as Record<string, string>;
   const names = [
-    JOURNEY_COPY[locale].bar.search, //            1  Search (journey bar and sheet)
+    ...(kind === "home" ? [] : [JOURNEY_COPY[locale].bar.search]), // 1 Search: live on the home (job 11), held on list and stay
     boardWord("k26", locale), //                   2  cart
     HOME_COPY[locale].nav.login, //                3  Login
     boardWord("k27", locale),
@@ -107,12 +117,69 @@ function heldNames(locale: Locale): string[] {
   return [...new Set(names.filter((name): name is string => typeof name === "string" && name.length > 0))];
 }
 
-async function expectNoHeldControls(page: Page, locale: Locale, when: string) {
-  await expect(page.locator("button[type=submit], input[type=submit]"), `button[type=submit] (${when})`).toHaveCount(0);
+async function expectNoHeldControls(page: Page, locale: Locale, when: string, kind: Kind) {
+  const submits = page.locator("button[type=submit], input[type=submit]");
+  if (kind === "home") {
+    // Job 11: the hero bar is the one form on the home and its Search the one submit, in the locale's own word.
+    await expect(submits, `exactly one submit (${when})`).toHaveCount(1);
+    // (Read from the text, not the accessible name: below md the desktop bar is display:none and has no accessible name.)
+    await expect(submits).toHaveText(JOURNEY_COPY[locale].bar.search);
+  } else {
+    await expect(submits, `button[type=submit] (${when})`).toHaveCount(0);
+  }
   await expect(page.locator("input[type=email]"), `input[type=email] (${when})`).toHaveCount(0);
-  for (const name of heldNames(locale)) {
+  for (const name of heldNames(locale, kind)) {
     await expect(page.getByRole("button", { name, exact: true }), `button "${name}" (${when})`).toHaveCount(0);
     await expect(page.getByRole("link", { name, exact: true }), `link "${name}" (${when})`).toHaveCount(0);
+  }
+}
+
+// ---- job 11: the light footer and the WhatsApp surface, asserted on every document ---------------------------------------
+
+async function expectLightFooter(page: Page, locale: Locale) {
+  const copy = SITE_FOOTER_COPY[locale];
+  const footer = page.locator("footer");
+  await expect(footer, "one footer").toHaveCount(1);
+  await expect(footer, "ivory ground").toHaveCSS("background-color", "rgb(255, 250, 240)");
+  const mark = footer.getByRole("img", { name: copy.brand });
+  await expect(mark, "the wordmark").toHaveCount(1);
+  expect(await mark.getAttribute("src"), "Poly_Black is inlined as a data: SVG").toMatch(/^data:image\/svg\+xml/);
+  await expect(footer.getByRole("navigation", { name: copy.pages }).getByRole("link"), "Pages").toHaveCount(4);
+  await expect(footer.locator("address"), "Contact").toContainText(copy.contact);
+  await expect(footer.getByRole("navigation", { name: copy.language }).getByRole("link"), "language links").toHaveCount(3);
+  await expect(footer, "copyright").toContainText(copy.copyright);
+  const made = footer.getByRole("link", { name: `Koussay ${copy.newTab}` });
+  await expect(made, "Made by Koussay").toHaveCount(1);
+  await expect(made).toHaveAttribute("href", "https://koussay.com");
+  await expect(made).toHaveAttribute("target", "_blank");
+  await expect(made).toHaveAttribute("rel", /noopener/);
+  await expect(footer).toContainText(copy.madeBy);
+  // The signed content only: 4 pages, mail, phone, Instagram, 3 languages, Made by.
+  await expect(footer.getByRole("link"), "11 links: no legal, no social but Instagram").toHaveCount(11);
+  const hrefs = await footer.locator("a").evaluateAll((nodes) => nodes.map((n) => n.getAttribute("href") ?? ""));
+  for (const href of hrefs) expect(href, "forbidden footer link").not.toMatch(/facebook|youtube|tiktok|legal|privacy|terms|newsletter/i);
+  await expect(footer.locator("input, form, textarea"), "no newsletter, no email field").toHaveCount(0);
+  // The phone is a left-to-right island in every language (in Arabic it used to read backwards).
+  const phone = footer.locator('address a[href^="tel:"]');
+  await expect(phone).toHaveAttribute("dir", "ltr");
+  await expect(phone).toHaveCSS("direction", "ltr");
+  await expect(phone).toHaveText("+971 56 388 3302");
+}
+
+/** Home and list: the float, nowhere a request link. Stay: the request link (never the float). */
+async function expectWhatsAppSurface(page: Page, locale: Locale, kind: Kind) {
+  const float = page.getByRole("link", { name: "WhatsApp", exact: true });
+  // The link's name is the label plus the screen-reader "opens in a new tab" note, so match the label as a substring.
+  const request = page.getByRole("link", { name: STAY_DETAIL_COPY[locale].whatsapp.button });
+  if (kind === "stay") {
+    await expect(float, "no float on a stay page").toHaveCount(0);
+    expect(await request.count(), "the request link exists").toBeGreaterThan(0);
+    for (const href of await request.evaluateAll((nodes) => nodes.map((n) => n.getAttribute("href") ?? ""))) {
+      expect(href, "request href").toMatch(/^https:\/\/wa\.me\/971563883302\?text=/);
+    }
+  } else {
+    await expect(float, "the float on home and list").toHaveCount(1);
+    await expect(request, "no request link outside a stay page").toHaveCount(0);
   }
 }
 
@@ -177,16 +244,25 @@ test.describe("sweep", () => {
         expect(alternates, "four hreflang links").toHaveLength(4);
         expect(Object.fromEntries(alternates)).toEqual(localeAlternates(doc.locale, doc.path).languages);
 
+        // Job 11: a picture with no box (the Welcome photos below md) and a lazy strip or slideshow photo the browser has not
+        // asked for yet (off to the side of its track) cannot be "unpainted"; every other picture must have painted.
         const unpainted = await page
           .locator("img")
-          .evaluateAll((nodes) => nodes.filter((n) => !(n as HTMLImageElement).complete || (n as HTMLImageElement).naturalWidth === 0).map((n) => (n as HTMLImageElement).src));
+          .evaluateAll((nodes) =>
+            (nodes as HTMLImageElement[])
+              .filter((n) => n.getClientRects().length > 0 && !(n.loading === "lazy" && !n.currentSrc))
+              .filter((n) => !n.complete || n.naturalWidth === 0)
+              .map((n) => n.src),
+          );
         expect(unpainted, "images that did not paint").toEqual([]);
         expect(media.missing, "image keys the manifest does not know").toEqual([]);
 
         const html = await page.content();
         for (const host of FORBIDDEN_HOSTS) expect(html.includes(host), `${host} in the DOM`).toBe(false);
 
-        await expectNoHeldControls(page, doc.locale, "Menu closed");
+        await expectNoHeldControls(page, doc.locale, "Menu closed", kindOf(doc.name));
+        await expectLightFooter(page, doc.locale);
+        await expectWhatsAppSurface(page, doc.locale, kindOf(doc.name));
 
         const file = path.join(SHOTS, doc.locale, `${doc.name}-${viewport.width}.png`);
         await page.screenshot({ path: file, fullPage: true, animations: "disabled" });
@@ -194,7 +270,7 @@ test.describe("sweep", () => {
         // Below the nav row's width Login and the cart would hide inside the Menu: open it and look again.
         if (viewport.width < NAV_ROW_MIN) {
           await page.getByRole("button", { name: HOME_COPY[doc.locale].nav.menu, exact: true }).click();
-          await expectNoHeldControls(page, doc.locale, "Menu open");
+          await expectNoHeldControls(page, doc.locale, "Menu open", kindOf(doc.name));
         }
         expect(problems, "page errors and console errors").toEqual([]);
       });
@@ -330,8 +406,34 @@ for (const locale of LOCALES) {
         expect(await page.evaluate(() => !!document.activeElement?.closest("main#content")), "the next Tab stop is inside <main id=content>").toBe(true);
       });
 
-      // Row 7: the WhatsApp float.
-      for (const width of [390, 1440]) {
+      // Row 7 on a stay page (job 11): no float; the Request on WhatsApp link opens wa.me with the page's message in a new tab.
+      for (const width of under.kind === "stay" ? [390, 834, 1440] : []) {
+        test(`row 7 request link: no float, wa.me ?text= in a new tab (${where} at ${width})`, async ({ page, context }) => {
+          await page.setViewportSize({ width, height: 900 });
+          await routeMedia(page);
+          const requested: string[] = [];
+          await context.route("https://wa.me/**", (route) => {
+            requested.push(route.request().url());
+            return route.fulfill({ status: 200, contentType: "text/html", body: "<title>wa</title>" });
+          });
+          await page.goto(here);
+          await hydrated(page);
+          await expect(page.getByRole("link", { name: "WhatsApp", exact: true }), "no float").toHaveCount(0);
+          const request = page.getByRole("link", { name: STAY_DETAIL_COPY[locale].whatsapp.button }).first();
+          await expect(request).toBeVisible();
+          await expect(request).toHaveAttribute("href", /^https:\/\/wa\.me\/971563883302\?text=/);
+          await expect(request).toHaveAttribute("target", "_blank");
+          await expect(request).toHaveAttribute("rel", /noopener/);
+          const [popup] = await Promise.all([page.waitForEvent("popup"), request.click()]);
+          await popup.waitForLoadState("domcontentloaded");
+          expect(popup.url()).toMatch(/^https:\/\/wa\.me\/971563883302\?text=/);
+          expect(requested).toHaveLength(1);
+          expect(new URL(page.url()).pathname, "the page itself did not navigate").toBe(here);
+        });
+      }
+
+      // Row 7: the WhatsApp float (home and list).
+      for (const width of under.kind === "stay" ? [] : [390, 1440]) {
         test(`row 7 WhatsApp float: one link to the owner's number, opening in a new tab (${where} at ${width})`, async ({ page, context }) => {
           await page.setViewportSize({ width, height: 900 });
           await routeMedia(page);
@@ -406,6 +508,32 @@ for (const locale of LOCALES) {
         expect(instagramRequests).toEqual(["https://www.instagram.com/almarprivatejourney/"]);
       });
     });
+  }
+}
+
+// Row 28b (job 11): the light footer on home, list and one stay, in each locale, at a phone and a desktop width, and the
+// Made by link opened for real.
+for (const locale of LOCALES) {
+  for (const under of UNDER_TEST) {
+    for (const width of [390, 1440]) {
+      test(`row 28b footer: light, signed content only, Made by Koussay, phone left to right (${locale} ${under.kind} at ${width})`, async ({ page, context }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await routeMedia(page);
+        const requested: string[] = [];
+        await context.route("https://koussay.com/**", (route) => {
+          requested.push(route.request().url());
+          return route.fulfill({ status: 200, contentType: "text/html", body: "<title>k</title>" });
+        });
+        await page.goto(localePath(locale, under.path));
+        await hydrated(page);
+        await expectLightFooter(page, locale);
+        const made = page.locator("footer").getByRole("link", { name: `Koussay ${SITE_FOOTER_COPY[locale].newTab}` });
+        const [popup] = await Promise.all([page.waitForEvent("popup"), clickClearOfDock(made)]);
+        await popup.waitForLoadState("domcontentloaded");
+        expect(popup.url()).toMatch(/^https:\/\/koussay\.com\/?$/);
+        expect(requested).toHaveLength(1);
+      });
+    }
   }
 }
 
