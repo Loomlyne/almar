@@ -586,7 +586,7 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     expect(missing.headers()["x-robots-tag"]).toBeUndefined();
   });
 
-  test("sitemap.xml lists 42 documents with alternates and every address answers 200 without a redirect", async ({ request }) => {
+  test("sitemap.xml lists every document with alternates, the 42 of this slice among them, and every address answers 200 without a redirect", async ({ request }) => {
     test.setTimeout(120_000);
     const response = await request.get("/sitemap.xml");
     expect(response.status()).toBe(200);
@@ -594,7 +594,9 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     const xml = await response.text();
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(new Set(locs).size, "no address twice").toBe(locs.length);
-    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "42 documents carry alternates").toBe(42);
+    // Plan 25 (slice 3) adds About and Contact in three locales: 42 + 3 x 2 documents carry alternates (one x-default
+    // each); the Framer documents are listed without any. The 42 of this slice are among them.
+    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "every React document carries alternates").toBe(DOCUMENTS.length + 3 * 2);
 
     // The 42 documents of this slice are all listed, once each, at the address the locale helper builds.
     for (const doc of DOCUMENTS) expect(locs, doc.url).toContain(SITE_ORIGIN + doc.url);
