@@ -173,6 +173,20 @@ export function assertNoBundledEnv(file) {
 }
 
 /**
+ * Job 10 review: assertNoBundledEnv only sees the project's .env files. The build also inherits the shell it runs in,
+ * and Next inlines every NEXT_PUBLIC_* value it finds there into the browser bundle. No such variable may be set.
+ * Only the names are reported, never the values. `env` is process.env in the build, a plain object in the test.
+ */
+export function assertNoPublicEnv(env) {
+  const names = Object.keys(env)
+    .filter((name) => name.startsWith("NEXT_PUBLIC_"))
+    .sort();
+  if (names.length > 0) {
+    throw new Error(`NEXT_PUBLIC_* in the build shell would be inlined into the browser bundle: ${names.join(", ")}`);
+  }
+}
+
+/**
  * Job 10: the exact server paths worker/almar.mjs forwards to Next, computed from Next's route manifest by
  * lib/server-routes.ts and written to .open-next/almar-server-routes.json. Returns the list.
  */
@@ -199,6 +213,8 @@ export function writeServerPaths({ manifestFile, openNextDir }) {
  */
 function main(argv = process.argv.slice(2)) {
   const target = parseTarget(argv);
+  // Before anything is built or removed, like the target check above.
+  assertNoPublicEnv(process.env);
   process.chdir(root);
   assertPublicClean(root);
   // Before the build and before any folder is wiped: a refused run leaves the previous output intact.

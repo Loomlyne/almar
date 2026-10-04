@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { HELD_PATHS, SERVER_PATHS_OUTSIDE_API, serverPathsFrom } from "../lib/server-routes.ts";
-import { assembleOut, assertNoBundledEnv, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
+import { assembleOut, assertNoBundledEnv, assertNoPublicEnv, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
 import { handle } from "../worker/handle.mjs";
 
 // Job 10 (plan 02-20): what may run on the server, and the Worker's request router. No build and no wrangler here;
@@ -236,6 +236,22 @@ test("assertNoBundledEnv: empty blocks pass; any value in any mode stops the bui
     return true;
   });
   assert.throws(() => assertNoBundledEnv(join(ok, "missing.mjs")), /did not finish/);
+});
+
+test("assertNoPublicEnv: a NEXT_PUBLIC_* variable in the build shell stops the build, naming the variable only", () => {
+  // The build shell's environment is handed to OpenNext; Next would inline every NEXT_PUBLIC_* value into the browser bundle.
+  assertNoPublicEnv({});
+  assertNoPublicEnv({ PATH: "/usr/bin", HOME: "/Users/x", PUBLIC_NEXT: "1", next_public_lower: "1", XNEXT_PUBLIC_A: "1" });
+  assert.throws(
+    () => assertNoPublicEnv({ PATH: "/usr/bin", NEXT_PUBLIC_B: "value-xyz", NEXT_PUBLIC_A: "value-abc" }),
+    (error) => {
+      assert.match(error.message, /^NEXT_PUBLIC_\* in the build shell would be inlined into the browser bundle: NEXT_PUBLIC_A, NEXT_PUBLIC_B$/);
+      assert.equal(error.message.includes("value-"), false, "the value is never printed");
+      return true;
+    },
+  );
+  // An empty value is still inlined (as an empty string), so it stops the build too.
+  assert.throws(() => assertNoPublicEnv({ NEXT_PUBLIC_EMPTY: "" }), /NEXT_PUBLIC_EMPTY/);
 });
 
 test("writeServerPaths: writes the sorted list next to the OpenNext worker; refuses without the worker", () => {
