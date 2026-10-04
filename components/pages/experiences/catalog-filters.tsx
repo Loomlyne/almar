@@ -120,7 +120,7 @@ export function CatalogFilters({
           className="w-full max-w-none"
         />
         <div className="flex flex-wrap items-center gap-4">
-          <Button id={FILTERS_BUTTON_ID} variant="secondary" aria-haspopup="dialog" onClick={() => setSheetOpen(true)}>
+          <Button id={FILTERS_BUTTON_ID} variant="secondary" onClick={() => setSheetOpen(true)}>
             {copy.filters.button}
             <CountBadge count={badge} label={formatPlural(copy.badge, badge, locale)} />
           </Button>
