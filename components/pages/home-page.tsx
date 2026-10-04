@@ -31,6 +31,9 @@ import { absoluteLocaleUrl, localeAlternates, localePath, siteHref } from "../..
 
 const HOME = "/";
 
+// The three services the signed home shows (slice 1, owner-signed); chosen by slug, not position — S2-2.
+export const HOME_SERVICE_SLUGS = ["24-7-private-concierge", "luxury-ground-transport", "vip-airport-meet-greet"] as const;
+
 export async function homeMetadata(locale: Locale): Promise<Metadata> {
   const { meta } = HOME_PAGE_COPY[locale];
   const { hero } = await getHomeBlocks(locale);
@@ -52,7 +55,7 @@ export async function homeMetadata(locale: Locale): Promise<Metadata> {
 }
 
 export async function HomePage({ locale }: { locale: Locale }) {
-  const [blocks, tiers, stays, services, destinations, team, rates] = await Promise.all([
+  const [blocks, tiers, stays, allServices, destinations, team, rates] = await Promise.all([
     getHomeBlocks(locale),
     getJourneyTiers(locale),
     getStays(locale),
@@ -61,6 +64,11 @@ export async function HomePage({ locale }: { locale: Locale }) {
     getTeam(locale),
     getRates(),
   ]);
+  const services = HOME_SERVICE_SLUGS.map((slug) => {
+    const item = allServices.find((s) => s.slug === slug);
+    if (!item) throw new Error(`home: no published service ${slug}`);
+    return item;
+  });
   const copy = HOME_PAGE_COPY[locale];
   const nav = HOME_COPY[locale].nav;
 
