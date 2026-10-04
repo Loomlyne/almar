@@ -74,3 +74,17 @@ only; Phase 4 still brings checkout. Job 11 carries all three (`prompts/11-slice
 Consequence for slices 2–4: they build on the same components, so each lead re-checks its signed design
 against the matching live Framer page before code; the owner is asked once whether "match Framer" applies to
 every 3.3 page.
+
+## Framer match for slices 2–4, and the preview site (owner, question form, 2026-10-04 ~16:15)
+
+1. **"Yes, except list pages."** `/destinations`, `/about`, `/contact` and the three blog posts match the live
+   Framer look and animations, like home and the stay page in job 11. The two filter-and-search list pages,
+   `/experiences` (services folded in) and `/blog`, keep a React list layout like `/private-stays`.
+   Each lead re-checks its signed design against the live Framer page for its matched pages, shows him the
+   pictures (Framer beside the proposal, 390 and 1440, EN and AR) and gets his signature again before code;
+   plans change only where the pictures change them. They reuse job 11's components (cards, galleries,
+   dividers, animations) once it lands, and do not build their own.
+2. **"Yes, create it now."** Worker `almar-preview` at `preview.almarprivatejourney.com` from the slice 1
+   branch (`6264c59`), built with `--target=preview` (noindex header, disallow-all robots, no sitemap; media
+   guard OK, 42 documents). First attempt 16:19: the ALMAR Wrangler login had expired (token expiry
+   2026-10-04 03:21 UTC, refresh failed); his one terminal step re-logs it in, then the controller deploys.
