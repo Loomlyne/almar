@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { HOME_PAGE_COPY } from "../../../lib/copy/home-page";
@@ -560,10 +560,19 @@ for (const vp of VIEWPORTS) {
           ["Read All", () => page.getByRole("link", { name: copy.stories.readAll }), "/blog"],
           ["Request Consultation (curated)", () => page.locator("#experiences").getByRole("link", { name: copy.moments.cta }), "/contact"],
           ["Request Consultation (begin)", () => page.locator("#begin").getByRole("link", { name: copy.begin.cta }), "/contact"],
-          ["a service card", () => page.locator("#services ul a").first(), `/services/${services[0].slug}`],
+          ["a service card", () => page.locator("#services ul a").first(), "/experiences"],
           ["a story card", () => page.locator("#stories ul a").first(), `/blog/${blocks.stories[0].slug}`],
           ["the wordmark", () => page.getByRole("link", { name: "ALMAR Private Journeys home" }), home(locale)],
         ];
+        // The service card links /services/<slug>; public/_redirects sends it one hop to /experiences with a search.
+        const redirectRules = readFileSync("public/_redirects", "utf8")
+          .split("\n")
+          .filter((line) => line.trim() !== "" && !line.startsWith("#"))
+          .map((line) => line.trim().split(/\s+/));
+        const serviceRule =
+          redirectRules.find(([from]) => from === `/services/${services[0].slug}`) ??
+          redirectRules.find(([from]) => from === "/services/*");
+        const serviceSearch = new URL(serviceRule![1], "https://almarprivatejourney.com").search;
         for (const [label, locate, path] of cases) {
           await page.goto(home(locale));
           await hydrated(page);
@@ -572,6 +581,7 @@ for (const vp of VIEWPORTS) {
           await link.click();
           await page.waitForURL((url) => url.pathname === path, { timeout: 15_000 });
           expect(new URL(page.url()).pathname, label).toBe(path);
+          if (label === "a service card") expect(new URL(page.url()).search, label).toBe(serviceSearch);
         }
 
         // Every distinct same-origin address on the page answers 200. The stay list and stay pages of the

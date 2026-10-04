@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import {
@@ -224,11 +224,23 @@ function htmlFiles(dir: string, found: string[] = []): string[] {
   return found;
 }
 
-// Once, no viewport. Runs at the end of the slice (all 14 pages converted), with the default PATHS and locales.
-test("slice inventory: out/ holds exactly 42 React documents, 12 Framer documents and three 404s", async () => {
+// Once, no viewport. Runs at the end of the slice (all pages converted), with the default PATHS and locales.
+// Counts are computed: React documents = LOCALES x PATHS; Framer documents = every app route.ts holding a Framer export.
+function framerDocuments(dir = "app", out: string[] = []): string[] {
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) framerDocuments(full, out);
+    else if (name === "route.ts" && readFileSync(full, "utf8").includes('const HTML = "')) {
+      out.push(`${full.replace(/^app\//, "").replace(/\/?route\.ts$/, "")}.html`);
+    }
+  }
+  return out;
+}
+
+test("slice inventory: out/ holds every public React document in three locales, the remaining Framer documents and three 404s", async () => {
   test.skip(
     Boolean(process.env.ROUTING_PATHS || process.env.ROUTING_LOCALES),
-    "the inventory is for the full 14 pages x 3 locales, not a narrowed run",
+    "the inventory is for the full page set x 3 locales, not a narrowed run",
   );
   const files = htmlFiles("out").sort();
   const react = LOCALES.flatMap((l) =>
@@ -240,7 +252,7 @@ test("slice inventory: out/ holds exactly 42 React documents, 12 Framer document
   const notFound = ["404.html", "ar/404.html", "es/404.html"];
   const rest = files.filter((f) => !react.includes(f) && !notFound.includes(f));
   expect(react.filter((f) => !files.includes(f)), "missing React documents").toEqual([]);
-  expect(react).toHaveLength(42);
+  expect(react.length).toBe(LOCALES.length * PATHS.length);
   expect(notFound.filter((f) => !files.includes(f))).toEqual([]);
-  expect(rest, "12 Framer documents and nothing else").toHaveLength(12);
+  expect(rest, "the Framer documents and nothing else").toEqual(framerDocuments().sort());
 });

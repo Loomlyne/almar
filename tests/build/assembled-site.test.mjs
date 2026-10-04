@@ -3,7 +3,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import test from "node:test";
 import { SITE_ORIGIN, localeAlternates, localeDir, matchPublicPage, stripLocale } from "../../lib/locale-path.ts";
-import { HIDDEN, KNOWN_DEAD, deadKey, resolveInOut } from "../helpers/site-links.mjs";
+import { HIDDEN, KNOWN_DEAD, deadKey, readRedirects, resolveInOut } from "../helpers/site-links.mjs";
 
 // Invariants of the assembled out/ folder, true at every stage of the slice (no React page yet, some pages,
 // all pages). The exact 42-document inventory is asserted in tests/build/locale-routing.spec.ts.
@@ -155,7 +155,8 @@ for (const { file, html, kind } of docs) {
         continue;
       }
       const result = resolveInOut(OUT, pathname);
-      if (result === "redirect") bad.push(`${raw}: costs a redirect (${pathname})`);
+      if (result === "rule-broken") bad.push(`${raw}: _redirects rule leads nowhere (${pathname})`);
+      else if (result === "redirect") bad.push(`${raw}: costs a redirect (${pathname})`);
       else if (result === "missing" && !(kind === "framer" && KNOWN_DEAD.includes(key))) {
         bad.push(`${raw}: no file in out/ for ${pathname}`);
       }
@@ -163,3 +164,19 @@ for (const { file, html, kind } of docs) {
     assert.deepEqual(bad, []);
   });
 }
+
+test("out/_redirects is public/_redirects, byte for byte", () => {
+  assert.equal(readFileSync(join(OUT, "_redirects"), "utf8"), readFileSync("public/_redirects", "utf8"));
+});
+
+test("no _redirects source is served as a document", () => {
+  const { rules } = readRedirects(join(OUT, "_redirects"));
+  assert.ok(rules.length > 0, "out/_redirects holds no rules");
+  for (const r of rules.filter((x) => !x.splat)) {
+    const p = r.from.replace(/\/$/, "");
+    assert.equal(existsSync(join(OUT, `${p.slice(1)}.html`)), false, `${r.from} is also served as ${p.slice(1)}.html`);
+    assert.equal(existsSync(join(OUT, p.slice(1), "index.html")), false, `${r.from} is also served as a folder index`);
+  }
+  assert.equal(existsSync(join(OUT, "services.html")), false);
+  assert.equal(existsSync(join(OUT, "services")), false);
+});
