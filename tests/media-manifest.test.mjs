@@ -67,20 +67,25 @@ test("every manifest entry points at its fixture image ids (image_ids, sorted)",
 
 // 2. Alt records --------------------------------------------------------------------------------------------------
 
-test("every manifest image_id has an en, ar and es alt record (the manifest never copies alt text)", () => {
-  const have = new Set(alts.filter((a) => a.alt && a.alt.trim()).map((a) => `${a.image_id}|${a.locale}`));
+test("every manifest image_id has an en, ar and es alt record: three non-empty, or all three exactly empty (decorative)", (t) => {
+  const rec = new Map(alts.map((a) => [`${a.image_id}|${a.locale}`, a.alt]));
   let checked = 0;
+  let decorative = 0;
   for (const e of manifest) {
     assert.ok(e.image_ids.length > 0, `${e.key} has no image_ids`);
     assert.equal("alt" in e, false, `${e.key}: the manifest must not hold alt text`);
     for (const id of e.image_ids) {
-      for (const locale of ["en", "ar", "es"]) {
-        assert.ok(have.has(`${id}|${locale}`), `${e.key}: no ${locale} alt record for image ${id}`);
-        checked++;
-      }
+      const three = ["en", "ar", "es"].map((locale) => rec.get(`${id}|${locale}`));
+      for (const [i, alt] of three.entries()) assert.equal(typeof alt, "string", `${e.key}: no ${["en", "ar", "es"][i]} alt record for image ${id}`);
+      const empty = three.filter((a) => a === "").length;
+      if (empty === 3) decorative++;
+      else assert.ok(three.every((a) => a.trim().length > 0), `${e.key}: image ${id} is empty in ${empty} language(s) and not in all, or holds only spaces`);
+      checked += 3;
     }
   }
   assert.ok(checked >= 300);
+  assert.ok(decorative >= 1, "the About photos are decorative, so at least one image has empty alt in all three languages");
+  t.diagnostic(`${decorative} decorative image id(s) of ${checked / 3}`);
 });
 
 // 3. Key, source and host rules -----------------------------------------------------------------------------------
@@ -254,13 +259,15 @@ test("RED: a duplicate key, a bad key, a catbox source and a missing alt record 
   fs.writeFileSync(mpath, JSON.stringify(copy, null, 2) + "\n");
   const apath = path.join(root, "lib", "data", "fixtures", "image-translations.json");
   const a = JSON.parse(fs.readFileSync(apath, "utf8"));
-  fs.writeFileSync(apath, JSON.stringify(a.filter((r) => !(r.image_id === images[5].id && r.locale === "ar")), null, 2) + "\n");
+  // the first image whose English alt is non-empty, so the case holds whatever order the fixtures list their images in
+  const target = images.find((i) => a.some((r) => r.image_id === i.id && r.locale === "en" && r.alt.trim().length > 0));
+  fs.writeFileSync(apath, JSON.stringify(a.filter((r) => !(r.image_id === target.id && r.locale === "ar")), null, 2) + "\n");
   const { problems } = buildManifest(defaultPaths(root));
   const text = problems.join("\n");
   assert.match(text, /duplicate key/);
   assert.match(text, /catbox\.moe/);
   assert.match(text, /bad key "Stays\/BAD key\.webp"/);
-  assert.match(text, new RegExp(`no ar alt record for image ${images[5].id}`));
+  assert.match(text, new RegExp(`no ar alt record for image ${target.id}`));
 });
 
 test("RED: a manifest that differs from the computed one by one byte fails --check", () => {
@@ -326,6 +333,77 @@ test("adding /about and /contact to PUBLIC_PAGES grows the guarded list by exact
   const added = after.filter((d) => !before.includes(d)).sort();
   assert.deepEqual(added, ["about.html", "ar/about.html", "ar/contact.html", "contact.html", "es/about.html", "es/contact.html"]);
   assert.deepEqual(slice3Documents(["/about", "/contact"]).sort(), added);
+});
+
+// The decorative rule (plan 03.3-22): all three languages exactly "" passes; nothing else got looser ---------------
+
+function altProblems(mutate) {
+  const root = scratch("decor");
+  const apath = path.join(root, "lib", "data", "fixtures", "image-translations.json");
+  const a = JSON.parse(fs.readFileSync(apath, "utf8"));
+  const target = images.find((i) => a.some((r) => r.image_id === i.id && r.locale === "en" && r.alt.trim().length > 0));
+  const all = a;
+  mutate(a.filter((r) => r.image_id === target.id), target, all);
+  fs.writeFileSync(apath, JSON.stringify(all, null, 2) + "\n");
+  const { problems } = buildManifest(defaultPaths(root));
+  return { target, text: problems.filter((p) => /alt record|decorative/.test(p) && p.includes(target.id)).join("\n") };
+}
+
+test("decorative: an image with en, ar and es alt exactly empty passes the alt rule", () => {
+  const { text } = altProblems((recs) => recs.forEach((r) => (r.alt = "")));
+  assert.equal(text, "");
+});
+
+test("RED: an image empty in one or two languages and not in the others is reported as decorative in some languages only", () => {
+  const one = altProblems((recs) => (recs.find((r) => r.locale === "en").alt = ""));
+  assert.match(one.text, new RegExp(`image ${one.target.id} \\(${one.target.media_key}\\) is decorative in some languages and not in others`));
+  const two = altProblems((recs) => recs.filter((r) => r.locale !== "es").forEach((r) => (r.alt = "")));
+  assert.match(two.text, /is decorative in some languages and not in others/);
+});
+
+test("RED: a whitespace-only alt is still a missing record, and so is a missing one", () => {
+  const spaces = altProblems((recs) => (recs.find((r) => r.locale === "ar").alt = "  "));
+  assert.match(spaces.text, new RegExp(`no ar alt record for image ${spaces.target.id}`));
+  const spacesAll = altProblems((recs) => recs.forEach((r) => (r.alt = "  ")));
+  for (const l of ["en", "ar", "es"]) assert.match(spacesAll.text, new RegExp(`no ${l} alt record for image`));
+  const missing = altProblems((recs, target, all) => all.splice(0, all.length, ...all.filter((r) => !(r.image_id === target.id && r.locale === "es"))));
+  assert.match(missing.text, /no es alt record for image/);
+});
+
+// The About photos (plan 03.3-22) ----------------------------------------------------------------------------------
+
+test("the twelve About entries: local sources, image/webp, measured, bytes and size as measured on 2026-10-03/04", () => {
+  const expected = {
+    "about/hero.webp": [334666, 1820, 1024],
+    "about/intro/01.webp": [239106, 1820, 1024],
+    "about/intro/03.webp": [359042, 1820, 1024],
+    "about/intro/04.webp": [405880, 1820, 1024],
+    "about/intro/05.webp": [366790, 1820, 1024],
+    "about/story/designed-with-heart.webp": [106852, 1920, 1277],
+    "about/story/bridging-curiosity-and-confidence.webp": [199496, 992, 1200],
+    "about/story/a-vision-that-grows.webp": [134190, 1408, 768],
+    "about/values/intentional-hospitality.webp": [100554, 1536, 1024],
+    "about/values/bilingual-trip-support.webp": [112474, 1536, 1024],
+    "about/values/privacy-and-discreet-coordination.webp": [169264, 1536, 1024],
+    "about/cta/band.webp": [41422, 1920, 1010],
+  };
+  const about = manifest.filter((e) => e.key.startsWith("about/"));
+  assert.deepEqual(about.map((e) => e.key).sort(), Object.keys(expected).sort());
+  for (const e of about) {
+    assert.equal(e.source_kind, "local", e.key);
+    assert.equal(e.content_type, "image/webp", e.key);
+    assert.deepEqual([e.bytes, e.width, e.height], expected[e.key], e.key);
+    assert.match(e.sha256, /^[0-9a-f]{64}$/, e.key);
+  }
+  assert.equal(about.reduce((n, e) => n + e.bytes, 0), 2569736);
+});
+
+test("the two reused photos carry two image ids and the about:intro use, and keep their bytes", () => {
+  for (const [key, use] of [["home/gallery/13.webp", "home:gallery"], ["home/hero/poster.webp", "home:hero"]]) {
+    const e = manifest.find((x) => x.key === key);
+    assert.equal(e.image_ids.length, 2, `${key}: image ids`);
+    assert.deepEqual(e.used_by, ["about:intro", use].sort(), `${key}: used_by`);
+  }
 });
 
 // Task 2: measured fields, the cache, and fetch -------------------------------------------------------------------
