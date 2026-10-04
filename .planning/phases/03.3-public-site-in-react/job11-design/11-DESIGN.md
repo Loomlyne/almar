@@ -101,3 +101,15 @@ sides at 390; thin lines in `teal-tint`; the section divider is a line with a sm
 
 `tokens.json` and `app/globals.css` (the new sizes, motion tokens), `lib/copy/*.ts` (button labels, WhatsApp text, Dates
 filter). No `package.json` change.
+
+## 7. Owner's answers, 2026-10-04 (question form, this chat)
+
+1. Footer: **one light footer** on all three pages (home, stay page, `/private-stays`).
+2. Sizes: **keep the signed scale** 12·14·16·20·32·48·64. Framer's 88 / 56 headings become `hero` 64 / `display` 48 at
+   1440; at 390 Framer's 48 / 32 are `display` / `heading` already; card titles 32 → `heading`, 24 → `title`; 22 → `title`;
+   18 → `body`. No new size token.
+3. Videos: **copy both videos to our media host** at ship (one numbered step for him). The data carries `video_url`
+   (null until then); the page plays it when present, poster first, still with reduced motion.
+4. Design: **signed, build it**. Owner, same chat: "When I sign them, write the plans and build straight away, no
+   separate plan signature." Plans 03.3-40 onwards are written, checked by an Opus plan checker, and executed without a
+   plan stop.

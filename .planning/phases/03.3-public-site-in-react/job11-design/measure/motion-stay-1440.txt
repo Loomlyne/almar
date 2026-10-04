@@ -1,0 +1,42 @@
+STILL y=0 h=102 x=0 w=1440 div "DESTINATIONS DESTINATIONS EXPERIENCES EX" o=1 ty=0
+y=0 h=900 x=0 w=1440 div[BG<Room Type + Image<Main] (img) start o=1 ty=0 tx=0 s=1
+    burst t=1610 scroll=450 vt=-450 dur=0 n=1 -> o=0.998726 ty=0 tx=0 s=1 | 10%:o1.00/y0 25%:o1.00/y0 50%:o1.00/y0 75%:o1.00/y0
+    burst t=3223 scroll=900 vt=-900 dur=0 n=1 -> o=0.425478 ty=0 tx=0 s=1 | 10%:o0.43/y0 25%:o0.43/y0 50%:o0.43/y0 75%:o0.43/y0
+    burst t=4823 scroll=1350 vt=-1350 dur=0 n=1 -> o=0 ty=0 tx=0 s=1 | 10%:o0.00/y0 25%:o0.00/y0 50%:o0.00/y0 75%:o0.00/y0
+y=1040 h=585 x=100 w=1240 div[Container<About<Main] "About Guests Up to 14 Guests Bathrooms 6" start o=0 ty=40 tx=0 s=1
+    burst t=1822 scroll=450 vt=589 dur=1183 n=72 -> o=1 ty=0 tx=0 s=1 | 10%:o0.45/y21.8 25%:o0.80/y8.1 50%:o0.96/y1.8 75%:o0.99/y0
+y=1050 h=67 x=100 w=496 div[Left<Title] "About" start o=0 ty=10 tx=0 s=1
+    burst t=1921 scroll=450 vt=584 dur=1067 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.35/y6.5 25%:o0.76/y2.4 50%:o0.96/y0.4 75%:o0.99/y0
+y=1685 h=718 x=-23104 w=1280 ul (img) start o=1 ty=0 tx=-23184 s=1
+    burst t=5240 scroll=1350 vt=335 dur=1432 n=83 -> o=1 ty=0 tx=-24472 s=1 | 10%:o1.00/y0 25%:o1.00/y0 50%:o1.00/y0 75%:o1.00/y0
+    burst t=7239 scroll=1800 vt=-115 dur=1433 n=83 -> o=1 ty=0 tx=-25760 s=1 | 10%:o1.00/y0 25%:o1.00/y0 50%:o1.00/y0 75%:o1.00/y0
+    burst t=9240 scroll=2250 vt=-565 dur=1449 n=84 -> o=1 ty=0 tx=-27048 s=1 | 10%:o1.00/y0 25%:o1.00/y0 50%:o1.00/y0 75%:o1.00/y0
+STILL y=1705 h=678 x=100 w=1240 div (img) o=1 ty=0
+STILL y=2379 h=18 x=592 w=256 div (img) o=1 ty=0
+y=2543 h=212 x=100 w=1240 div[Container<Amenities<Main] "Amenities Selected amenities included wi" start o=0 ty=40 tx=0 s=1
+    burst t=6639 scroll=1800 vt=742 dur=1183 n=72 -> o=1 ty=0 tx=0 s=1 | 10%:o0.47/y21.4 25%:o0.80/y8 50%:o0.96/y1.7 75%:o0.99/y0
+y=2553 h=111 x=100 w=496 div[Left<Title] "Amenities Selected amenities included wi" start o=0 ty=10 tx=0 s=1
+    burst t=6739 scroll=1800 vt=736 dur=1066 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.37/y6.3 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=2944 h=67 x=100 w=400 div[Left<Header] "Policies to check" start o=0 ty=10 tx=0 s=1
+    burst t=8338 scroll=2250 vt=694 dur=1067 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.36/y6.4 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=2974 h=262 x=596 w=744 div[Container<Policies] "Stay inclusions and staffing Availabilit" start o=0 ty=40 tx=0 s=1
+    burst t=8239 scroll=2250 vt=723 dur=1183 n=72 -> o=1 ty=0 tx=0 s=1 | 10%:o0.47/y21.4 25%:o0.80/y8 50%:o0.96/y1.6 75%:o0.99/y0
+y=2995 h=65 x=596 w=744 div[Variant 1] "Stay inclusions and staffing" start o=0 ty=20 tx=0 s=1
+    burst t=8239 scroll=2250 vt=743 dur=1183 n=72 -> o=1 ty=0 tx=0 s=1 | 10%:o0.47/y10.7 25%:o0.80/y4 50%:o0.96/y0.8 75%:o0.99/y0
+y=3060 h=65 x=596 w=744 div[Variant 1] "Availability and confirmation" start o=0 ty=20 tx=0 s=1
+    burst t=8338 scroll=2250 vt=793 dur=1184 n=72 -> o=1 ty=0 tx=0 s=1 | 10%:o0.47/y10.7 25%:o0.80/y4 50%:o0.96/y0.8 75%:o0.99/y0
+y=3125 h=65 x=596 w=744 div[Variant 1] "Changes and cancellation" start o=0 ty=20 tx=0 s=1
+    burst t=8705 scroll=2250 vt=838 dur=1184 n=72 -> o=1 ty=0 tx=0 s=1 | 10%:o0.47/y10.6 25%:o0.80/y4 50%:o0.96/y0.8 75%:o0.99/y0
+y=3191 h=65 x=596 w=744 div[Variant 1] "Occupancy and safety" start o=0 ty=20 tx=0 s=1
+    burst t=10138 scroll=2700 vt=450 dur=1183 n=72 -> o=1 ty=0 tx=0 s=1 | 10%:o0.47/y10.7 25%:o0.80/y4 50%:o0.96/y0.9 75%:o0.99/y0
+y=3425 h=111 x=100 w=990 div[Left<Header] "Services Arrangements available with thi" start o=0 ty=10 tx=0 s=1
+    burst t=9939 scroll=2700 vt=725 dur=1066 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.37/y6.3 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=4282 h=111 x=100 w=990 div[Left<Header] "Experiences Experiences suited to this p" start o=0 ty=10 tx=0 s=1
+    burst t=13155 scroll=3600 vt=682 dur=1066 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.37/y6.3 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+y=5366 h=67 x=100 w=990 div[Left<Header] "More Private Stays" start o=0 ty=10 tx=0 s=1
+    burst t=16355 scroll=4500 vt=866 dur=1067 n=65 -> o=1 ty=0 tx=0 s=1 | 10%:o0.37/y6.3 25%:o0.77/y2.3 50%:o0.96/y0.4 75%:o0.99/y0
+STILL y=6461 h=24 x=40 w=41 div[Label<Small] "Home" o=0 ty=0
+STILL y=6505 h=24 x=40 w=42 div[Label<Small] "About" o=0 ty=0
+STILL y=6549 h=24 x=40 w=56 div[Label<Small] "Services" o=0 ty=0
+STILL y=6593 h=24 x=40 w=82 div[Label<Small] "Experiences" o=0 ty=0
+STILL y=6637 h=24 x=40 w=74 div[Label<Small] "Blog/News" o=0 ty=0
