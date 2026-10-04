@@ -159,25 +159,35 @@ export function MediaCard({
 export type PortraitFact = { icon: ReactNode; text: string };
 
 export type PortraitCardProps = {
-  href: string;
+  /** The link. Absent (slice 2, /destinations): the card is an `<article>`, no link, no hover zoom. */
+  href?: string;
   image: MediaCardImage;
   title: string;
   /** An icon row on the photo, for example guests, bedrooms, bathrooms. */
   facts?: PortraitFact[];
+  /** "portrait" (default) is 2:3. "square" is 7:12 below md and a square from md (the /destinations card). */
+  ratio?: "portrait" | "square";
+  /** Capitals for a Latin-script title. A title in Arabic script is never transformed. */
+  uppercase?: boolean;
   className?: string;
 };
+
+const ARABIC_SCRIPT = /[֐-ࣿ]/;
 
 /**
  * The Framer stay card: one link, a 2:3 photo, the title and an icon facts row on the photo over a dark gradient.
  * The photo zooms 1.05x on hover over the hover duration with the reveal ease (not under reduced motion).
+ * Without href it is an article with no zoom; `ratio` and `uppercase` are opt-in and change nothing when absent.
  */
-export function PortraitCard({ href, image, title, facts = [], className }: PortraitCardProps) {
-  return (
-    <a href={href} className={cn("group relative block aspect-2/3 min-w-0 overflow-hidden text-ivory no-underline", className)}>
-      <img src={image.src} alt={image.alt} decoding="async" className={cn("absolute inset-0 size-full object-cover", ZOOM.md)} />
+export function PortraitCard({ href, image, title, facts = [], ratio = "portrait", uppercase = false, className }: PortraitCardProps) {
+  const shape = ratio === "square" ? "aspect-7/12 md:aspect-square" : "aspect-2/3";
+  const capitals = uppercase && !ARABIC_SCRIPT.test(title);
+  const body = (
+    <>
+      <img src={image.src} alt={image.alt} decoding="async" className={cn("absolute inset-0 size-full object-cover", href && ZOOM.md)} />
       <span aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-ink/70 via-ink/10 to-transparent" />
       <span className="absolute inset-x-0 bottom-0 flex flex-col gap-3 px-6 pb-6 md:px-8 md:pb-8">
-        <span className="font-display text-heading text-ivory">{title}</span>
+        <span className={cn("font-display text-heading text-ivory", capitals && "uppercase")}>{title}</span>
         {facts.length > 0 ? (
           <span className="flex flex-wrap gap-x-6 gap-y-2 text-label text-ivory">
             {facts.map((fact, index) => (
@@ -189,6 +199,14 @@ export function PortraitCard({ href, image, title, facts = [], className }: Port
           </span>
         ) : null}
       </span>
+    </>
+  );
+  if (!href) {
+    return <article className={cn("relative block", shape, "min-w-0 overflow-hidden text-ivory", className)}>{body}</article>;
+  }
+  return (
+    <a href={href} className={cn("group relative block", shape, "min-w-0 overflow-hidden text-ivory no-underline", className)}>
+      {body}
     </a>
   );
 }

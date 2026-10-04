@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { ChevronIcon, PauseIcon, PlayIcon } from "../icons/icons";
 import { cn } from "../../lib/cn";
+import { Reveal } from "./reveal";
 
 export type SliderImage = { src: string; alt: string };
 
@@ -48,6 +49,7 @@ const REDUCED = "(prefers-reduced-motion: reduce)";
 const SLIDE = {
   strip: "h-70 w-75 md:h-120 md:w-150",
   peek: "w-full aspect-video",
+  hero: "h-120 w-full md:h-svh",
 } as const;
 
 const ARROW =
@@ -61,6 +63,9 @@ const ARROW =
  * - "strip": fixed-size slides in a full-bleed clip (the home gallery); no side padding.
  * - "peek": 16:9 slides with the page's side padding inside the clip, so the neighbours show at both edges (the stay
  *   gallery).
+ * - "hero": full-width, full-height slides with no gap and no previous/next arrows (dots and Pause only). The caller's
+ *   `children` sit centred over the photos under a shade (the /destinations kicker and h1). The photos enter with the
+ *   "photo" reveal; every slide loads eagerly, so each is a real image in the served HTML.
  * `dotsEvery` 2 draws one dot per two slides (dot i shows slide 2i). `autoplay` moves one slide every AUTOPLAY_MS while
  * not hovered, not keyboard-focused and the tab is visible; any manual input stops it for good, a Pause/Play button is
  * offered, and under prefers-reduced-motion it never moves and the button is not drawn.
@@ -72,14 +77,18 @@ export function Slider({
   dotsEvery = 1,
   autoplay = false,
   className,
+  children,
 }: {
   images: SliderImage[];
   labels: SliderLabels;
-  layout: "strip" | "peek";
+  layout: "strip" | "peek" | "hero";
   dotsEvery?: number;
   autoplay?: boolean;
   className?: string;
+  /** Hero layout only: the overlay drawn over the photos. */
+  children?: ReactNode;
 }) {
+  const hero = layout === "hero";
   const total = images.length;
   const [enhanced, setEnhanced] = useState(false);
   const [index, setIndex] = useState(0);
@@ -173,7 +182,7 @@ export function Slider({
   const dotCount = Math.ceil(total / Math.max(1, dotsEvery));
   const activeDot = Math.floor(index / Math.max(1, dotsEvery));
   const near = (i: number) => i === index || i === (index + 1) % total || i === (index - 1 + total) % total;
-  const gap = layout === "strip" ? "gap-8" : "gap-2";
+  const gap = layout === "strip" ? "gap-8" : hero ? "gap-0" : "gap-2";
 
   const slides = images.map((image, i) => (
     <div
@@ -186,13 +195,40 @@ export function Slider({
       <img
         src={image.src}
         alt={image.alt}
-        loading={i === 0 || (enhanced && near(i)) ? "eager" : "lazy"}
+        loading={hero || i === 0 || (enhanced && near(i)) ? "eager" : "lazy"}
         decoding="async"
         draggable={false}
         className="block size-full object-cover"
       />
     </div>
   ));
+
+  const photos = enhanced ? (
+    <div className={cn(layout === "peek" && "px-4 md:px-16")}>
+      <div
+        ref={track}
+        style={{ translate: `${offset}px 0` }}
+        className={cn(
+          "relative flex touch-pan-y transition-transform duration-slide ease-reveal motion-reduce:transition-none",
+          gap,
+        )}
+      >
+        {slides}
+      </div>
+    </div>
+  ) : (
+    // Served HTML and no JavaScript: every photo, reached by scrolling. Focusable so a keyboard can scroll it.
+    <div
+      tabIndex={0}
+      className={cn(
+        "flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain",
+        layout === "peek" && "px-4 md:px-16 scroll-px-4 md:scroll-px-16",
+        gap,
+      )}
+    >
+      {slides}
+    </div>
+  );
 
   return (
     <section
@@ -228,41 +264,28 @@ export function Slider({
       }}
       className={cn("relative w-full touch-pan-y overflow-hidden", className)}
     >
-      {enhanced ? (
-        <div className={cn(layout === "peek" && "px-4 md:px-16")}>
-          <div
-            ref={track}
-            style={{ translate: `${offset}px 0` }}
-            className={cn(
-              "relative flex touch-pan-y transition-transform duration-slide ease-reveal motion-reduce:transition-none",
-              gap,
-            )}
-          >
-            {slides}
-          </div>
-        </div>
-      ) : (
-        // Served HTML and no JavaScript: every photo, reached by scrolling. Focusable so a keyboard can scroll it.
-        <div
-          tabIndex={0}
-          className={cn(
-            "flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain",
-            layout === "peek" && "px-4 md:px-16 scroll-px-4 md:scroll-px-16",
-            gap,
-          )}
-        >
-          {slides}
-        </div>
-      )}
+      {hero ? <Reveal kind="photo">{photos}</Reveal> : photos}
+      {hero ? (
+        <>
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-linear-to-b from-ink/55 via-ink/30 to-ink/60" />
+          {children ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 md:px-8">{children}</div>
+          ) : null}
+        </>
+      ) : null}
 
       {enhanced && total > 1 ? (
         <>
-          <button type="button" aria-label={labels.previous} onClick={() => move(index - 1)} className={cn(ARROW, "start-4")}>
-            <ChevronIcon size={20} className="-scale-x-100 rtl:scale-x-100" />
-          </button>
-          <button type="button" aria-label={labels.next} onClick={() => move(index + 1)} className={cn(ARROW, "end-4")}>
-            <ChevronIcon size={20} className="rtl:-scale-x-100" />
-          </button>
+          {hero ? null : (
+            <>
+              <button type="button" aria-label={labels.previous} onClick={() => move(index - 1)} className={cn(ARROW, "start-4")}>
+                <ChevronIcon size={20} className="-scale-x-100 rtl:scale-x-100" />
+              </button>
+              <button type="button" aria-label={labels.next} onClick={() => move(index + 1)} className={cn(ARROW, "end-4")}>
+                <ChevronIcon size={20} className="rtl:-scale-x-100" />
+              </button>
+            </>
+          )}
           {dotCount > 1 ? (
             // A dark strip behind the dots, so they read on a light photo too (an ivory outline alone vanished).
             <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center px-4">
