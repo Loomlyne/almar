@@ -1926,42 +1926,6 @@
     "status": "draft"
   },
   {
-    "image_id": "ba67281f-3ec9-5ee8-a449-4bb77b0c71d2",
-    "locale": "en",
-    "alt": "Colombia, Beautifully Captured — 14",
-    "status": "draft"
-  },
-  {
-    "image_id": "ba67281f-3ec9-5ee8-a449-4bb77b0c71d2",
-    "locale": "ar",
-    "alt": "كولومبيا، كما تُرى — 14",
-    "status": "draft"
-  },
-  {
-    "image_id": "ba67281f-3ec9-5ee8-a449-4bb77b0c71d2",
-    "locale": "es",
-    "alt": "Colombia, bien mirada — 14",
-    "status": "draft"
-  },
-  {
-    "image_id": "9828e26f-0e7c-59fb-aac8-cd9f57e7c366",
-    "locale": "en",
-    "alt": "Colombia, Beautifully Captured — 15",
-    "status": "draft"
-  },
-  {
-    "image_id": "9828e26f-0e7c-59fb-aac8-cd9f57e7c366",
-    "locale": "ar",
-    "alt": "كولومبيا، كما تُرى — 15",
-    "status": "draft"
-  },
-  {
-    "image_id": "9828e26f-0e7c-59fb-aac8-cd9f57e7c366",
-    "locale": "es",
-    "alt": "Colombia, bien mirada — 15",
-    "status": "draft"
-  },
-  {
     "image_id": "a40b3fd4-2bdf-5c57-986c-a01a74eebaac",
     "locale": "en",
     "alt": "Colonial courtyard in Cartagena’s walled city",
@@ -2103,6 +2067,60 @@
     "image_id": "8b26bd0c-e3cb-59e3-9689-103c57132f03",
     "locale": "es",
     "alt": "Cerezas de café en una rama en la región del Eje Cafetero de Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "2c67f906-588f-4577-ab20-a0b43f09c85d",
+    "locale": "en",
+    "alt": "Cartagena, Colombia",
+    "status": "published"
+  },
+  {
+    "image_id": "2c67f906-588f-4577-ab20-a0b43f09c85d",
+    "locale": "ar",
+    "alt": "كارتاخينا، كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "2c67f906-588f-4577-ab20-a0b43f09c85d",
+    "locale": "es",
+    "alt": "Cartagena, Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "40ddd3d0-4e53-4ff0-8ed3-f58d9cbf6e81",
+    "locale": "en",
+    "alt": "Antioquia, Colombia",
+    "status": "published"
+  },
+  {
+    "image_id": "40ddd3d0-4e53-4ff0-8ed3-f58d9cbf6e81",
+    "locale": "ar",
+    "alt": "أنتيوكيا، كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "40ddd3d0-4e53-4ff0-8ed3-f58d9cbf6e81",
+    "locale": "es",
+    "alt": "Antioquia, Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "1f38ffbc-1180-41da-adc6-766171cca7fc",
+    "locale": "en",
+    "alt": "Begin Your Journey",
+    "status": "draft"
+  },
+  {
+    "image_id": "1f38ffbc-1180-41da-adc6-766171cca7fc",
+    "locale": "ar",
+    "alt": "ابدأوا رحلتكم",
+    "status": "draft"
+  },
+  {
+    "image_id": "1f38ffbc-1180-41da-adc6-766171cca7fc",
+    "locale": "es",
+    "alt": "Empiecen su viaje",
     "status": "draft"
   }
 ]

@@ -37,6 +37,11 @@ export type JourneyBarProps = {
    * role="group", not a search form). A page with nowhere to send the search does this.
    */
   onSearch?: (value: JourneyValue) => void;
+  /**
+   * Private-stay page only: a control at the bar's end, for example Request on WhatsApp. Ignored when onSearch is set
+   * (Search wins). The bar stays a role="group": no form and no submit.
+   */
+  action?: ReactNode;
   copy: JourneyCopy;
   locale: Locale;
   /** Injectable for deterministic tests. */
@@ -136,6 +141,7 @@ export function JourneyBar({
   value,
   onChange,
   onSearch,
+  action,
   copy,
   locale,
   today,
@@ -344,6 +350,8 @@ export function JourneyBar({
               <SearchIcon size={20} className="rtl:-scale-x-100" />
               {b.search}
             </Button>
+          ) : action ? (
+            <div className="flex shrink-0">{action}</div>
           ) : null}
         </Wrapper>
 

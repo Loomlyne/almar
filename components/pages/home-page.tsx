@@ -7,7 +7,9 @@ import { JourneyChoiceProvider } from "./home/journey-choice";
 import { HomeHero } from "./home/home-hero";
 import { HomeStays, type HomeStayCard } from "./home/home-stays";
 import { HomeJourneys } from "./home/home-journeys";
-import { Begin, GallerySection, Moments, Services, Stories, Team, Welcome } from "./home/home-sections";
+import { HomeWelcome } from "./home/home-welcome";
+import { HomeGallery } from "./home/home-gallery";
+import { Begin, Moments, Services, Stories, Team } from "./home/home-sections";
 import { getCatalogItems } from "../../lib/data/experiences";
 import { getDestinations } from "../../lib/data/destinations";
 import { getHomeBlocks, getJourneyTiers } from "../../lib/data/home";
@@ -18,6 +20,7 @@ import type { Locale } from "../../lib/data/types";
 import { HOME_COPY } from "../../lib/copy/home";
 import { HOME_PAGE_COPY } from "../../lib/copy/home-page";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
+import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { absoluteLocaleUrl, localeAlternates, localePath, siteHref } from "../../lib/locale-path";
 
 // The React home: / , /ar/ and /es/ are this one component (design 5.1). Each route file binds its locale
@@ -71,24 +74,24 @@ export async function HomePage({ locale }: { locale: Locale }) {
   ];
   const contactHref = siteHref(locale, "/contact");
 
-  const stayCards: HomeStayCard[] = stays.flatMap((stay) =>
-    stay.hero_image
-      ? [
-          {
-            slug: stay.slug,
-            title: stay.title,
-            destination_slug: stay.destination_slug,
-            destination_name: stay.destination_name,
-            neighborhood: stay.neighborhood,
-            max_guests: stay.max_guests,
-            bedrooms: stay.bedrooms,
-            href: localePath(locale, `/private-stays/${stay.slug}`),
-            detail: [stay.neighborhood, stay.guests_label].filter(Boolean).join(" · "),
-            image: { src: stay.hero_image.url, alt: stay.hero_image.alt },
-          },
-        ]
-      : [],
-  );
+  // The first three published stays with a photo, fixed: the hero bar does not filter them (Search does that on the list page).
+  const stayCards: HomeStayCard[] = stays
+    .flatMap((stay) =>
+      stay.hero_image
+        ? [
+            {
+              slug: stay.slug,
+              title: stay.title,
+              href: localePath(locale, `/private-stays/${stay.slug}`),
+              image: { src: stay.hero_image.url, alt: stay.hero_image.alt },
+              beds: stay.beds_label,
+              guests: stay.guests_label,
+            },
+          ]
+        : [],
+    )
+    .slice(0, 3);
+  const listHref = localePath(locale, "/private-stays");
 
   const barDestinations = destinations.map((destination) => ({
     id: destination.id,
@@ -106,7 +109,7 @@ export async function HomePage({ locale }: { locale: Locale }) {
             locale={locale}
             links={links}
             labels={{ ...nav, currencyNone: nav.currency }}
-            footerCopy={{ ...copy.footer }}
+            footerCopy={SITE_FOOTER_COPY[locale]}
             currencyEnabled={rates !== null}
           >
             <main id="content">
@@ -122,20 +125,20 @@ export async function HomePage({ locale }: { locale: Locale }) {
                       }
                     : null
                 }
+                videoUrl={blocks.hero.video_url}
                 destinations={barDestinations}
+                destinationSlugById={destinationSlugById}
+                listHref={listHref}
                 journeyCopy={JOURNEY_COPY[locale]}
                 locale={locale}
                 barLabel={copy.hero.barLabel}
               />
-              <PageShell className="grid pb-16">
-                <Welcome welcome={blocks.welcome} />
-                <GallerySection gallery={blocks.gallery} labels={copy.gallery} />
-                <HomeStays
-                  stays={stayCards}
-                  listHref={localePath(locale, "/private-stays")}
-                  copy={copy.stays}
-                  locale={locale}
-                />
+              <HomeWelcome welcome={blocks.welcome} />
+              <HomeGallery gallery={blocks.gallery} labels={copy.gallery} />
+              <PageShell>
+                <HomeStays stays={stayCards} listHref={listHref} copy={copy.stays} />
+              </PageShell>
+              <PageShell className="grid">
                 <Services
                   items={services}
                   hrefs={Object.fromEntries(services.map((item) => [item.slug, siteHref(locale, `/services/${item.slug}`)]))}
@@ -168,7 +171,9 @@ export async function HomePage({ locale }: { locale: Locale }) {
                   readAllHref={siteHref(locale, "/blog")}
                   copy={copy.stories}
                 />
-                <Begin contactHref={contactHref} copy={copy.begin} />
+              </PageShell>
+              <Begin contactHref={contactHref} copy={copy.begin} media={blocks.begin} />
+              <PageShell>
                 <Team members={team} copy={copy.team} />
               </PageShell>
             </main>

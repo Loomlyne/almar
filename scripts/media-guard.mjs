@@ -9,12 +9,72 @@
 // assembler calls assertMediaReady() for the preview and production targets. It exits 1 while the placeholder is
 // set, while the media base is not an https origin, or while any of the 42 slice-1 documents in the output folder
 // holds the placeholder, a third-party image host, or an <img> src / srcset / og:image that does not start with the
-// media base.
+// media base. Two same-site shapes are let through for an <img src>: the nav wordmark files under /_next/static/media/
+// and the light footer's inline brand SVG (a data:image/svg+xml URL whose markup names nothing outside itself).
 
 import fs from "node:fs";
 import path from "node:path";
 import { MEDIA_BASE_URL, MEDIA_BASE_URL_IS_PLACEHOLDER } from "../lib/data/media.ts";
 import { FORBIDDEN_HOSTS, REPO_ROOT, defaultPaths, isMain, readStaySlugs, slice1Documents } from "./media-lib.mjs";
+
+/**
+ * The nav wordmarks (Poly_White, Stacked_Charcoal) are brand assets from brand/: the Next build hashes them to
+ * /_next/static/media/<name>.<hash>.svg and the site serves them itself. That one same-origin shape is allowed for
+ * an <img src> or a srcset candidate: a single plain file name under that folder (no deeper path, no "..", no
+ * query, no scheme, no "//"). Everything else, and every og:image, must start with the media base.
+ */
+const SAME_ORIGIN_BRAND_ASSET_RE = /^\/_next\/static\/media\/(?!\.+$)[A-Za-z0-9._-]+$/;
+
+/**
+ * The light footer's wordmark is not a file: components/ui/footer.tsx writes the brand SVG markup into its <img src>
+ * as `data:image/svg+xml;charset=utf-8,<encodeURIComponent(markup)>`. Inline markup is no network request, so it
+ * cannot reach a forbidden host, and the guard lets it through, but only for an <img src> (never an og:image, never a
+ * srcset candidate) and only while the decoded markup names nothing outside itself. The only accepted form is the
+ * plain percent-encoded one (no ;base64, no other parameter).
+ */
+const INLINE_SVG_RE = /^data:image\/svg\+xml(?:;charset=utf-8)?,([\s\S]*)$/;
+
+/**
+ * Parts of an SVG that look like URLs but are names, not requests: the xmlns declarations and the W3C SVG 1.1
+ * DOCTYPE the brand files carry. They are removed before the markup is searched for references. An xmlns value may
+ * not contain markup, so a declaration cannot be used to hide a reference.
+ */
+const INERT_SVG_PARTS = [
+  /<!DOCTYPE\s+svg\s+PUBLIC\s+"[^"<>[\]]*"\s+"http:\/\/www\.w3\.org\/Graphics\/SVG\/[^"<>[\]]*"\s*>/i,
+  /\sxmlns(?::[A-Za-z_][\w.-]*)?\s*=\s*(?:"[^"<>]*"|'[^'<>]*')/g,
+];
+
+/** What, in SVG markup, points outside the document or could be hiding such a pointer. First match is reported. */
+const SVG_EXTERNAL_REFERENCES = [
+  [/https?:/i, "names an http(s) URL"],
+  [/\/\//, 'has a "//" (a protocol-relative URL)'],
+  [/@import/i, "has an @import"],
+  [/\bhref\s*=\s*(?:"(?!#)|'(?!#)|(?!["'#]))/i, "has an href that is not a fragment of its own document"],
+  [/url\(\s*(?:["']\s*)?(?!#)/i, "has a url() that points off-document"],
+  [/<!(?:DOCTYPE|ENTITY)/i, "has a DOCTYPE or ENTITY other than the W3C SVG 1.1 one"],
+  [/&#/, "has a numeric character reference"],
+  [/\\/, "has a backslash escape"],
+];
+
+/**
+ * Why an <img src> that starts with `data:image/svg+xml` is not allowed, as a clause that follows "is an inline SVG
+ * that", or null when it is a self-contained, percent-encoded SVG.
+ */
+export function inlineSvgProblem(url) {
+  const m = url.match(INLINE_SVG_RE);
+  if (!m) return "is not plain percent-encoded markup (only ;charset=utf-8, no ;base64)";
+  let markup;
+  try {
+    markup = decodeURIComponent(m[1]);
+  } catch {
+    return "has a bad percent-escape";
+  }
+  for (const part of INERT_SVG_PARTS) markup = markup.replace(part, "");
+  for (const [re, why] of SVG_EXTERNAL_REFERENCES) {
+    if (re.test(markup)) return why;
+  }
+  return null;
+}
 
 /** The placeholder base is a reserved .invalid name; any such host in a document is a leftover of it. */
 const INVALID_HOST_RE = /[a-z0-9][a-z0-9.-]*\.invalid\b/gi;
@@ -113,6 +173,12 @@ export function scanOut(outDir, base, { documents = slice1Documents(readStaySlug
     }
     for (const ref of imageReferences(html)) {
       images++;
+      if (ref.kind !== "og:image" && SAME_ORIGIN_BRAND_ASSET_RE.test(ref.url)) continue;
+      if (ref.kind === "img src" && ref.url.startsWith("data:image/svg+xml")) {
+        const why = inlineSvgProblem(ref.url);
+        if (why) violations.push({ document: doc, problem: `img src ${JSON.stringify(ref.url.slice(0, 120))} is an inline SVG that ${why}` });
+        continue;
+      }
       if (!ref.url.startsWith(`${base}/`)) {
         violations.push({ document: doc, problem: `${ref.kind} ${JSON.stringify(ref.url.slice(0, 120))} does not start with ${base}/` });
       }

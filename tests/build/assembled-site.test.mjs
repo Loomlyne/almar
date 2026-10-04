@@ -123,7 +123,9 @@ for (const { file, html } of reactDocs) {
       ...linkTags(html).map((l) => attr(l, "href")),
     ].filter((r) => r && r.startsWith("/_next/static/"));
     for (const r of refs) {
-      const p = r.split(/[?#]/)[0];
+      // The URL is percent-encoded (the [stay] folder is /%5Bstay%5D/ in the page); the file is on disk under its
+      // decoded name, and Cloudflare's asset matcher decodes the request path the same way.
+      const p = decodeURIComponent(r.split(/[?#]/)[0]);
       assert.ok(existsSync(join(OUT, p)), `${file} references ${r}, which is not in out/`);
     }
   });
