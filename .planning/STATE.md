@@ -123,5 +123,5 @@ From the 3.1 hand-over (open items 1–5): dead controls W6 (Phase 3.2 and 2), g
 ## Session Continuity
 
 Last session: 2026-10-03T15:28:00.000Z
-Stopped at: slice 1 UAT found two problems; job 11 (Framer match on home and stay page, Search and WhatsApp buttons) opened; slice 1 Ship waits; slices 2–4 signed; job 10 running
+Stopped at: Phase 3.3 slice 1 shipped and live 2026-10-05 01:36 (main 7902a7d, Worker almar b691c089); next job 10 lands, then slices 2, 3A, 4
 Resume file: .planning/CONTROL-BOARD.md

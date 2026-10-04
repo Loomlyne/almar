@@ -5,9 +5,15 @@ gates and his test, hand over. Phase 3.2 needs 02-08 (server runtime) and 02-04 
 
 Read `.planning/prompts/00-common-rules.md` first and follow it.
 
-STARTS after job 04 (repo tidy) has landed and the owner says go.
+STARTS NOW (owner, 2026-10-04 ~22:05: v1 in ten days, `decisions/2026-10-04-ten-day-v1.md`). Target: hand-over
+by Oct 8.
 
-Folder `.claude/worktrees/phase-02-auth`, branch `gsd/phase-02-auth-chain`, cut from `origin/main`.
+Your app-made worktree, branch `gsd/phase-02-auth-chain`, cut from **`origin/gsd/phase-02-server-runtime`** (job 10,
+`466ec4c`, handed over, lands after slice 1). Job 10 already did 02-08 (OpenNext on Worker `almar`, deny-by-default
+server paths in `lib/server-routes.ts`): **skip the cloud `f10f765`**; its 02-08 is superseded. Every new server
+path you open goes through job 10's allow-list, and the 404 list stays 404 until your gates pass. Before the
+hand-over merge `origin/main` (slice 1 and job 10 will be there); `main` wins on layout and pages.
+`git fetch origin && git switch -c gsd/phase-02-auth-chain origin/gsd/phase-02-server-runtime`
 Lead: Opus 5.5 (sign-in, database and security). Executors: Sonnet, one at a time. After every change
 to sign-in or the database, a fresh Opus reviewer agent reads the diff before the hand-over.
 
@@ -23,7 +29,7 @@ WHAT IS ON THE OLD BRANCH (tip `3e2d58c`, kept on GitHub until this job lands)
 
 STEPS
 1. `/gsd-progress` to confirm Phase 2 position, then move the work:
-   `git cherry-pick $(git rev-list --no-merges --reverse archive/ship-3.1..origin/claude/project-thread-8h6bed)`.
+   `git cherry-pick $(git rev-list --no-merges --reverse archive/ship-3.1..origin/claude/project-thread-8h6bed | grep -v '^f10f765')` (resolve the short id to the full one first).
    Expected conflicts: `app/account`, `app/login`, `components/ui/nav.tsx`, the ops layout,
    `tests/phase-03-*`. `main` wins on 3.1 styling and structure; job 02 wins on sign-in behaviour. List
    every conflict and how you solved it in the hand-over.
