@@ -15,6 +15,7 @@ const code = (path) =>
 test("ops sign-in refuses a guest email without calling Supabase", async () => {
   let calls = 0;
   const deps = {
+    claimSlot: async () => true,
     accountExists: async () => true,
     generateLink: async () => (calls++, { ok: true, tokenHash: "x", verificationType: "magiclink" }),
     sendEmail: async () => true,

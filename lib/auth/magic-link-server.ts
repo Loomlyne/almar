@@ -1,4 +1,5 @@
 // Wires sendMagicLink to Supabase admin and Resend (plan 02-02; reused by the ops sign-in, 02-04).
+import { createHash } from "node:crypto";
 import { Resend } from "resend";
 import { headers } from "next/headers";
 import { createSupabaseAdmin } from "../supabase/clients";
@@ -14,6 +15,16 @@ const FROM = "ALMAR Private Journey <inquiries@almarprivatejourney.com>";
 function retryAfter(message: string | undefined): number | undefined {
   const match = message?.match(/(\d+)\s*seconds?/i);
   return match ? Number(match[1]) : undefined;
+}
+
+function sha256(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+/** The visitor IP the Worker set from cf-connecting-ip: the first x-forwarded-for entry, else "none". */
+function visitorIp(forwardedFor: string | null): string {
+  const first = forwardedFor?.split(",")[0]?.trim();
+  return first || "none";
 }
 
 export async function requestOrigin(): Promise<string> {
@@ -44,10 +55,20 @@ export async function sendLinkFromRequest({
   }
   const resend = new Resend(resendKey);
   const copy = GUEST_COPY[locale];
+  const ipHash = sha256(visitorIp((await headers()).get("x-forwarded-for")));
 
   return sendMagicLink(
     { email, origin: await requestOrigin(), host, ownerEmail: OWNER_EMAIL, isEmail },
     {
+      async claimSlot(address) {
+        // Hashes only leave this function. A failed call throws, and sendMagicLink fails closed.
+        const { data, error } = await admin.rpc("claim_link_slot", {
+          p_email_hash: sha256(address),
+          p_ip_hash: ipHash,
+        });
+        if (error || typeof data !== "boolean") throw new Error("claim_link_slot failed");
+        return data;
+      },
       async accountExists(address) {
         const { data } = await admin.from("profiles").select("id").eq("email", address).maybeSingle();
         return Boolean(data);

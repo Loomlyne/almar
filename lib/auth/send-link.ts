@@ -4,6 +4,11 @@
 export type LinkKind = "sign-in" | "confirm";
 
 export type SendLinkDeps = {
+  /**
+   * Counts this request against the per-email and per-IP limits. False means over the limit.
+   * A thrown error means the limiter could not answer: the result is "unavailable" (fail closed).
+   */
+  claimSlot(email: string): Promise<boolean>;
   /** True when a profiles row exists for this (normalised) email. */
   accountExists(email: string): Promise<boolean>;
   /**
@@ -41,6 +46,16 @@ export async function sendMagicLink(
 
   // The ops host only ever signs the owner in (02-04). Nothing is called for anyone else.
   if (input.host === "ops" && !owner) return { status: "refused" };
+
+  // Over the limit still says "sent" and sends nothing, so the page leaks nothing. If the limiter
+  // itself fails, nothing is sent and the visitor is told it is unavailable.
+  let allowed: boolean;
+  try {
+    allowed = await deps.claimSlot(email);
+  } catch {
+    return { status: "unavailable" };
+  }
+  if (!allowed) return { status: "sent" };
 
   const exists = await deps.accountExists(email);
   // The owner account is made in the Supabase dashboard, never by a link (D-42, D-44). If it is
