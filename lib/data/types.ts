@@ -65,6 +65,22 @@ export type ImageRef = {
 // Destinations (design 3.2)
 // ---------------------------------------------------------------------------------------------
 
+/** The icon drawn beside a stay amenity. Derived from the English label by amenityIcon() (lib/data/amenity-icon.ts). */
+export type AmenityIcon =
+  | "pool"
+  | "wifi"
+  | "water"
+  | "tv"
+  | "air"
+  | "kitchen"
+  | "grill"
+  | "security"
+  | "parking"
+  | "outdoor"
+  | "lounge"
+  | "service"
+  | "check";
+
 export type Destination = RowMeta & {
   slug: string;
   /** "Cartagena" */
@@ -132,10 +148,17 @@ export type Stay = RowMeta & {
   /** The About paragraphs, in order. */
   description: string[];
   amenities: string[];
+  /** One icon per amenity, same order and length as `amenities`; computed from the English amenity at the same index. */
+  amenity_icons: AmenityIcon[];
   /** "Included with the stay:" - present on 7 of 12, so this is often empty. */
   inclusions: string[];
-  /** The four published policy headings. Their bodies are not published anywhere (design 7.3). */
+  /** The four published policy headings. */
   policy_headings: string[];
+  /**
+   * The text each policy row opens, lifted from the live page 2026-10-04; same order and length as
+   * policy_headings. EN is published; AR and ES are drafts (the record's own status says so).
+   */
+  policy_bodies: string[];
 
   /** NO SOURCE EXISTS. Null means "not set" (STAY-06). */
   min_nights: number | null;
@@ -166,6 +189,12 @@ export type StayFilter = {
   bedroomsMax?: number;
   /** Matches title, neighborhood and destination_name, case- and accent-insensitive. */
   query?: string;
+  /**
+   * Arrival and departure, as a pair (from < to). Keeps a stay only when none of its blocked_dates d
+   * satisfies from <= d < to: the departure day itself may be blocked. Ignored unless both are set.
+   */
+  from?: IsoDate;
+  to?: IsoDate;
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -264,6 +293,7 @@ export type HomeBlocks = {
     headline: string;
     /** The poster image. See design 7.6 on the third-party background video. */
     poster: ImageRef | null;
+    /** The media-host URL of the owner's video, or null until it is uploaded. Components play it when present. */
     video_url: string | null;
   };
   welcome: {
