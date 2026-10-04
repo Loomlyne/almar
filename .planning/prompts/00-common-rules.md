@@ -106,8 +106,8 @@ the stack before rerunning**.
 ## Hand-over
 1. Run the full check set on the final commit:
    `npm ci`, `npx tsc --noEmit`, `node --test tests/*.test.mjs`, `npm run tokens:check`,
-   `npm run build`, then `npx playwright test --workers=1` (set `PW_PORT` if port 3010 is taken). Not
-   `npm test`: it runs Playwright with parallel workers. Agents run only the tests they touched; the lead
+   `npm run build`, then `npx playwright test --workers=4` (set `PW_PORT` if port 3010 is taken); every failed
+   file is rerun alone at `--workers=1` and both results are reported (owner, 2026-10-04). Not `npm test`. Agents run only the tests they touched; the lead
    runs the full set once. A page-load timeout under heavy Mac load: rerun that file and report both.
 2. Write `HANDOVER.md` in your phase or quick folder: branch and final commit; folder clean; every
    check with its result on that commit; what was NOT verified, in plain words; each migration and
