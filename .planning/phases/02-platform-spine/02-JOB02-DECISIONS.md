@@ -16,3 +16,10 @@ Proposed for `.planning/decisions/` at ship (work sessions do not write there).
   64-character password and does not consult "Allow new users to sign up" (`supabase/auth`
   `internal/api/mail.go` `adminGenerateLink` → `validateSignupParams`, read 2026-10-04). So gate "sign-ups off,
   password provider off" does not stop guest accounts made by the link, and the random password is unusable.
+
+## 2026-10-05 (+04), question form, job 02 work session
+
+| Question | His answer |
+|---|---|
+| Continue page design (drafts EN/AR/ES at 390/834/1440: split layout as /login, "One more step", "Continue to sign in to ALMAR as l•••@gmail.com", Continue, "Not you? Use a different email") | **Signed**: build as drawn; the shown email is the real one, masked, proven by the server so a forged link cannot fake it (plan 02-24) |
+| Plan 02-25 (W6 Profile sign-out wired, W7 real nav links on /account and /bookings, W8 currency hidden on /bookings, kept on /account) | **Signed** |
