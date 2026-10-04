@@ -136,8 +136,8 @@ test("links to the pages that stay English-only go through siteHref, and the sta
 test("the destination cards are not links: the live cards are not and /destinations/<slug> has no page", () => {
   const sections = code(read("components/pages/home/home-sections.tsx"));
   const moments = sections.slice(sections.indexOf("export function Moments"), sections.indexOf("export function Stories"));
-  const cards = moments.match(/<MediaCard[\s\S]*?\/>/g) ?? [];
-  assert.equal(cards.length, 1);
-  assert.equal(/href=/.test(cards[0]), false);
-  assert.match(moments, /<MediaCard\s+image=/);
+  const articles = moments.match(/<article[\s\S]*?<\/article>/g) ?? [];
+  assert.equal(articles.length, 1);
+  assert.equal(/href=|<a\b|<MediaCard/.test(articles[0]), false);
+  assert.match(articles[0], /destination\.name/);
 });

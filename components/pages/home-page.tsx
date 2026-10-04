@@ -138,7 +138,7 @@ export async function HomePage({ locale }: { locale: Locale }) {
               <PageShell>
                 <HomeStays stays={stayCards} listHref={listHref} copy={copy.stays} />
               </PageShell>
-              <PageShell className="grid pb-16">
+              <PageShell className="grid">
                 <Services
                   items={services}
                   hrefs={Object.fromEntries(services.map((item) => [item.slug, siteHref(locale, `/services/${item.slug}`)]))}
@@ -171,7 +171,9 @@ export async function HomePage({ locale }: { locale: Locale }) {
                   readAllHref={siteHref(locale, "/blog")}
                   copy={copy.stories}
                 />
-                <Begin contactHref={contactHref} copy={copy.begin} />
+              </PageShell>
+              <Begin contactHref={contactHref} copy={copy.begin} media={blocks.begin} />
+              <PageShell>
                 <Team members={team} copy={copy.team} />
               </PageShell>
             </main>
