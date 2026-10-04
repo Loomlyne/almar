@@ -99,7 +99,21 @@ test("matchPublicPage matches the three patterns and one [a-z0-9-] segment", () 
   for (const p of ["/private-stays/a/b", "/about", "/private-stays/Bad_Slug", "/private-stays/", "/ar"]) {
     assert.equal(matchPublicPage(p), null, p);
   }
-  assert.deepEqual([...PUBLIC_PAGES], ["/", "/private-stays", "/private-stays/[stay]"]);
+  assert.deepEqual([...PUBLIC_PAGES], ["/", "/private-stays", "/private-stays/[stay]", "/destinations"]);
+});
+
+test("/destinations is a public page in every locale; a destination slug under it is not", () => {
+  assert.equal(matchPublicPage("/destinations"), "/destinations");
+  assert.equal(matchPublicPage("/destinations/cartagena"), null);
+  assert.equal(siteHref("ar", "/destinations"), "/ar/destinations");
+  assert.equal(siteHref("es", "/destinations"), "/es/destinations");
+  assert.equal(siteHref("en", "/destinations"), "/destinations");
+  assert.deepEqual(localeHrefs("/destinations"), {
+    en: "/destinations",
+    ar: "/ar/destinations",
+    es: "/es/destinations",
+  });
+  assert.equal(siteHref("ar", "/about"), "/about");
 });
 
 test("siteHref localises only pages that exist in every locale", () => {

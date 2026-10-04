@@ -23,9 +23,7 @@ export const HIDDEN = [
 // Card links that answer 404 today. Owner, 2026-10-02 (job 04): list them, fix later, when
 // Phases 3.3 and 6 replace these Framer pages. Remove an entry once it has a route or no link.
 export const KNOWN_DEAD = [
-  ...["bogota", "cartagena", "cocora-valley", "eje-cafetero", "medellin", "san-andres", ":Xe5Bq7q06"].map(
-    (slug) => `/destinations/${slug}`,
-  ),
+  // No /destinations/<slug> entries: /destinations became React in plan 03.3-13 and its cards are not links.
   ...[
     "amazon-rainforest-expedition", "artisan-workshop-experiences", "bogota-art-gastronomy",
     "cartagena-heritage-tours", "cartagena-historic-center-house", "cartagena-night-experience",
