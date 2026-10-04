@@ -105,5 +105,19 @@ test.describe("no JavaScript", () => {
     await form.getByRole("button", { name: BUTTON.en }).click();
     const response = await posted;
     expect(response.url()).toContain("/auth/confirm");
+    expect(response.status()).toBeLessThan(500);
+    // No Supabase here: the action fails closed to the expired sign-in.
+    await expect(page).toHaveURL(/\/login\?expired=1$/);
   });
+});
+
+// The same real page with JavaScript: the server action is reached (no Origin: null 500) and fails closed.
+test("the real /auth/confirm page with JavaScript posts Continue and fails closed without Supabase", async ({ page }) => {
+  await page.goto(`/auth/confirm?token_hash=${"a".repeat(40)}&type=magiclink`);
+  const form = page.locator("main form");
+  const posted = page.waitForResponse((response) => response.request().method() === "POST");
+  await form.getByRole("button", { name: BUTTON.en }).click();
+  const response = await posted;
+  expect(response.status()).toBeLessThan(500);
+  await expect(page).toHaveURL(/\/login\?expired=1$/);
 });

@@ -12,7 +12,9 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Continue",
   robots: { index: false, follow: false },
-  referrer: "no-referrer",
+  // same-origin, not no-referrer: no-referrer makes the browser send `Origin: null` on the Continue POST, which
+  // Next's server-action origin check cannot parse. same-origin still never sends the token to another site.
+  referrer: "same-origin",
 };
 
 type Query = { token_hash?: string | string[]; type?: string | string[]; m?: string | string[]; s?: string | string[]; b?: string | string[]; e?: string | string[] };
