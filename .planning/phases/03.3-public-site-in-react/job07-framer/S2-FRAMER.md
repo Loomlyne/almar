@@ -32,5 +32,14 @@ code.
 | 17 hand-over | The `/destinations` owner steps check the slideshow (dots, pause, reduced motion) and the card animations. |
 | 11, 12, 14, 15 | No change. |
 
-The sentence under the hero is his question 1. If he keeps it, plan 13 carries it verbatim in EN, with AR/ES
-drafts.
+## Owner's answers, 2026-10-04 (question form, ~17:00–17:06 +04)
+
+| # | Question | His answer | What it changes |
+|---|---|---|---|
+| 1 | The sentence under the hero ("Three exclusive packages … Eje Cafetero …") | **"Leave it out"** | Plan 13 renders no intro sentence. The page goes from the hero straight to the five cards. |
+| 2 | Sign the `/destinations` pictures (`79b0dc8`) | **"i sign it but the footer i want similar to framer i wnat it to have social media icons and newsletter place as well and teh rest all good signed"** | **Signed**, except the footer. He wants the footer like Framer's, with social icons and the newsletter box. The footer is one shared frame on every page, so slice 2 builds none of it. Job 11 builds the light footer look. Slice 3's plan 27 (signed; part B, after job 10's server runtime) makes the newsletter box real on every React page; until then it is not shown, because it would send nothing. |
+| 3 | Which social accounts exist | **"Instagram only for now"** | One social icon: Instagram, linking to `https://www.instagram.com/almarprivatejourney/` (the address already in `components/site/public-frame.tsx`). No icon links to a bare facebook.com, youtube.com or tiktok.com. Others appear when he gives their addresses. |
+
+**For the controller and job 11 (one line, for the owner to pass on):** the owner wants the shared footer to look
+like Framer's, with social icons (Instagram only for now, `instagram.com/almarprivatejourney`) and the
+newsletter box, which slice 3 plan 27 makes real after job 10. Recorded in slice 2 `job07-framer/S2-FRAMER.md`.
