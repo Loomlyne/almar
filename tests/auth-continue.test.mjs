@@ -219,3 +219,10 @@ test("the nonce cookie is __Host- prefixed in production only; every reader and 
   const screen = readFileSync("app/auth/confirm/continue-screen.tsx", "utf8");
   assert.ok(screen.includes("action={formAction}") && /useFormState\(\s*confirmSignIn/.test(screen));
 });
+
+test("Continue screen: a no-JavaScript wrong-email answer keeps what she typed; the sign-in link sends no referrer", () => {
+  const screen = readFileSync("app/auth/confirm/continue-screen.tsx", "utf8");
+  assert.match(screen, /useState\(state\.status === "wrong-email" \? state\.email : initialEmail\)/);
+  // The page URL holds token_hash: the link back to sign-in must not carry it as Referer.
+  assert.match(screen, /<a href=\{signInHref\} rel="noreferrer"/);
+});
