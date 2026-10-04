@@ -19,6 +19,11 @@ export type SendLinkDeps = {
     | { ok: true; tokenHash: string; verificationType: string }
     | { ok: false; retryAfterSeconds?: number }
   >;
+  /**
+   * Plan 02-24: the masked email `m` and its signature `s` for the Continue page. Undefined when
+   * there is no signing key: the link then carries neither and the page shows no email.
+   */
+  continueProof?(tokenHash: string, email: string): { m: string; s: string } | undefined;
   sendEmail(input: { to: string; href: string; kind: LinkKind }): Promise<boolean>;
 };
 
@@ -73,6 +78,11 @@ export async function sendMagicLink(
   const href = new URL("/auth/confirm", input.origin);
   href.searchParams.set("token_hash", link.tokenHash);
   href.searchParams.set("type", link.verificationType);
+  const proof = deps.continueProof?.(link.tokenHash, email);
+  if (proof) {
+    href.searchParams.set("m", proof.m);
+    href.searchParams.set("s", proof.s);
+  }
 
   const sent = await deps.sendEmail({ to: email, href: href.toString(), kind: exists ? "sign-in" : "confirm" });
   return sent ? { status: "sent" } : { status: "unavailable" };

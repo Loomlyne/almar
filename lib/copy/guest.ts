@@ -29,6 +29,14 @@ export type GuestCopy = {
     cannotUseEmail: string;
     tagline: string;
     imageAlt: string;
+    /** Plan 02-24: the page the sign-in link opens. `lead` is followed by the masked email; `leadNoEmail` stands alone. */
+    continue: {
+      heading: string;
+      lead: string;
+      leadNoEmail: string;
+      button: string;
+      other: string;
+    };
   };
   /** Plan 02-02, canvas board 6b (Account hub): only the parts that work in Phase 2. */
   hub: {
@@ -99,6 +107,13 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
       cannotUseEmail: "This email cannot be used here.",
       tagline: "Colombia, Privately Yours",
       imageAlt: "Colonial courtyard in Cartagena’s walled city",
+      continue: {
+        heading: "One more step",
+        lead: "Continue to sign in to ALMAR as",
+        leadNoEmail: "Continue to sign in to ALMAR.",
+        button: "Continue",
+        other: "Not you? Use a different email",
+      },
     },
     hub: {
       profile: "Profile",
@@ -164,6 +179,13 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
       cannotUseEmail: "لا يمكن استخدام هذا البريد هنا.",
       tagline: "كولومبيا، لكم بخصوصية",
       imageAlt: "فناء استعماري في مدينة قرطاجنة المسوّرة",
+      continue: {
+        heading: "خطوة أخيرة",
+        lead: "تابع لتسجيل الدخول إلى ALMAR باسم",
+        leadNoEmail: "تابع لتسجيل الدخول إلى ALMAR.",
+        button: "متابعة",
+        other: "لست أنت؟ استخدم بريدًا إلكترونيًا آخر",
+      },
     },
     hub: {
       profile: "الملف الشخصي",
@@ -229,6 +251,13 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
       cannotUseEmail: "Este correo no se puede usar aquí.",
       tagline: "Colombia, en privado",
       imageAlt: "Patio colonial en la ciudad amurallada de Cartagena",
+      continue: {
+        heading: "Un paso más",
+        lead: "Continúa para iniciar sesión en ALMAR como",
+        leadNoEmail: "Continúa para iniciar sesión en ALMAR.",
+        button: "Continuar",
+        other: "¿No eres tú? Usa otro correo",
+      },
     },
     hub: {
       profile: "Perfil",

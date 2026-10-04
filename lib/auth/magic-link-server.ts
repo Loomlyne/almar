@@ -6,6 +6,7 @@ import { createSupabaseAdmin } from "../supabase/clients";
 import { renderMagicLinkEmail } from "../email/magic-link";
 import { GUEST_COPY } from "../copy/guest";
 import { sendMagicLink, type SendLinkResult } from "./send-link";
+import { maskEmail, signContinue } from "./continue";
 import { isEmail, OWNER_EMAIL, type AuthLocale } from "./rules";
 import { linkOrigin } from "./allowed-origin";
 import { SHELL_HEADER } from "../host";
@@ -83,6 +84,11 @@ export async function sendLinkFromRequest({
           tokenHash: data.properties.hashed_token,
           verificationType: data.properties.verification_type,
         };
+      },
+      continueProof(tokenHash, address) {
+        const m = maskEmail(address);
+        const s = m ? signContinue(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(), tokenHash, m) : undefined;
+        return m && s ? { m, s } : undefined;
       },
       async sendEmail({ to, href, kind }) {
         const message = renderMagicLinkEmail({
