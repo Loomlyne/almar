@@ -5,6 +5,7 @@
 // move them into the CMS (CMS-04, Content > Pages) without touching the page.
 
 import { mediaUrl } from "./media";
+import { getPosts } from "./posts";
 import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
 import type { HomeBlocks, HomeStory, JourneyTier, Locale } from "./types";
 
@@ -31,7 +32,6 @@ type HomeFixture = {
   welcome: { signature: RawImage | null; images: RawImage[] };
   gallery: { images: RawImage[] };
   tiers: TierBase[];
-  stories: RowBase[];
 };
 type Rec = { locale: Locale; status: StoredStatus };
 type HomeTranslations = {
@@ -60,7 +60,6 @@ type HomeTranslations = {
       body: string | null;
     }
   >;
-  stories: Array<Rec & { story_id: string; title: string; excerpt: string; date_label: string }>;
 };
 
 /** A media key becomes the media-host URL; null stays null (the owner's videos are not uploaded yet). */
@@ -91,19 +90,25 @@ export async function getJourneyTiers(locale: Locale): Promise<JourneyTier[]> {
     });
 }
 
+/** The three newest posts, as the home cards. The posts module is the one source (plan 03.3-30). */
 async function getHomeStories(locale: Locale): Promise<HomeStory[]> {
-  const records = homeT().stories;
-  return home()
-    .stories.filter((s) => s.is_published)
-    .sort((a, b) => a.position - b.position)
-    .map((s) => {
-      const row = resolveRow(
-        s,
-        records.filter((r) => r.story_id === s.id),
-        locale,
-      );
-      return { ...row, image: image(s.image, locale) } as HomeStory;
-    });
+  const posts = await getPosts(locale, { limit: 3 });
+  return posts.map((p, index) => ({
+    id: p.id,
+    created_at: p.created_at,
+    updated_at: p.updated_at,
+    locale: p.locale,
+    translation_status: p.translation_status,
+    is_sample: p.is_sample,
+    sample_fields: p.sample_fields,
+    slug: p.slug,
+    title: p.title,
+    excerpt: p.excerpt,
+    date_label: p.date_label,
+    image: p.cover_image,
+    is_published: p.is_published,
+    position: index + 1,
+  }));
 }
 
 export async function getHomeBlocks(locale: Locale): Promise<HomeBlocks> {
