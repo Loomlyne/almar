@@ -34,11 +34,22 @@ Design tokens live in `tokens.json`; `npm run tokens` regenerates the theme bloc
 
 ## Build and deploy
 
-`node scripts/assemble-cloudflare.mjs` runs `npm run build`, then writes `out/`: `public/`, every
-static page body from `.next/server/app` as `.html`, the branded `404.html` and `_headers`.
+`node scripts/assemble-cloudflare.mjs` runs the OpenNext build (`opennextjs-cloudflare build`, which runs
+`next build`) into `.open-next/`, then writes `out/`: `public/`, every static page body from
+`.next/server/app` as `.html`, the branded `404.html` and `_headers`, plus `.open-next/almar-server-routes.json`.
+It refuses to start when a `NEXT_PUBLIC_*` variable is set in the shell, and refuses to finish when a `.env`
+value would be bundled into the Worker or when the Worker bundle is over 2,560 KiB gzipped (measured with
+`wrangler deploy --dry-run`, which uploads nothing; `scripts/worker-size.mjs`).
 
 Worker `almar` (`wrangler.toml`) serves `out/` as static assets on the Cloudflare account "Almar Private
-Journey", pinned by `account_id`. There is no server code in production.
+Journey", pinned by `account_id`. Since job 10 the Worker also runs `worker/almar.mjs`. A request for a file in
+`out/` runs no Worker. The script runs first for `/api/*` and, when no file matches, for every request except a
+browser navigation (`Sec-Fetch-Mode: navigate`, which gets the 404 page without it). So curl, fetch, bots and
+scanners that miss do invoke the Worker, and they count toward the Free plan's 100k Worker requests a day. The
+script forwards the exact paths in `lib/server-routes.ts` (every `app/api` route) to Next through OpenNext, and
+everything else gets the static 404. `npm run build:cloudflare` (or `build:preview`) builds both; it never
+deploys.
 
-Only the ALMAR control session deploys, and only on the owner's word (`npm run host:cloudflare` with
-the ALMAR Cloudflare login). Work sessions never deploy. There is no Vercel, Netlify or Docker path.
+Only the ALMAR control session deploys, and only on the owner's word, with the ALMAR Cloudflare login and the
+commands in `.planning/phases/02-platform-spine/02-RUNTIME-DEPLOY.md`. Work sessions never deploy. There is no
+Vercel, Netlify or Docker path.
