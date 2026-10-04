@@ -1,0 +1,71 @@
+<!doctype html><html lang="en" dir="ltr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><style>
+@font-face{font-family:Questa;src:url('../../../../brand/Font/questa-webfont/2-Questa_Regular.woff') format('woff')}
+@font-face{font-family:Lato;src:url('../../../../brand/Font/lato/Lato-Regular.ttf');font-weight:400}
+@font-face{font-family:Lato;src:url('../../../../brand/Font/lato/Lato-Bold.ttf');font-weight:700}
+:root{--ivory:#fffaf0;--surface:#fff;--teal:#1f3b40;--tint:#d1dfe0;--gold:#d4ba8a;--ink:#262626;--muted:#63615f;--line:rgb(38 38 38/.16);--wa:#25D366;
+--fd:Questa,Georgia,serif;--fb:Lato,Arial,sans-serif;--lh:1.5;--tk:.12em}
+:lang(ar){--fd:'Noto Naskh Arabic',Questa,Georgia,serif;--fb:'Noto Sans Arabic',Lato,Arial,sans-serif;--lh:1.7;--tk:normal}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--ivory);color:var(--teal);font:14px/var(--lh) var(--fb)}@media(min-width:768px){body{font-size:16px}}
+a{color:inherit}.wrap{max-width:1240px;margin:0 auto;padding:0 20px}@media(min-width:768px){.wrap{padding:0 32px}}@media(min-width:1300px){.wrap{padding:0}}
+h1,h2,h3{font-family:var(--fd);font-weight:400;color:var(--teal);margin:0;line-height:1.1}
+.h88{font-size:48px}.h56{font-size:32px}.h32{font-size:24px}@media(min-width:768px){.h88{font-size:88px}.h56{font-size:56px}.h32{font-size:32px}}
+.kick{margin:0}.lead{max-width:400px;margin:0 auto}
+.sec{padding:64px 0 40px}@media(min-width:768px){.sec{padding:120px 0}}
+.center{text-align:center;display:grid;gap:16px;justify-items:center}
+.div{position:relative;height:1px;background:var(--tint);margin:0 20px}.div:after{content:'';position:absolute;left:50%;top:-6px;width:10px;height:10px;border:1px solid var(--gold);background:var(--ivory);transform:translateX(-50%) rotate(45deg)}
+/* nav: job 11 / slice 1 SiteNav */
+.nav{height:72px}@media(min-width:1152px){.nav{height:96px}}.nav .wrap{height:100%;display:flex;align-items:center;gap:24px}.nav img{width:112px;max-height:56px;object-fit:contain;object-position:left}:lang(ar) .nav img{object-position:right}@media(min-width:1152px){.nav img{width:150px}}
+.nav.on{position:absolute;inset-inline:0;top:0;color:var(--ivory);z-index:2}
+.links{display:none;gap:32px}.links a{font-size:12px;text-transform:uppercase;letter-spacing:var(--tk);text-decoration:none}:lang(ar) .links a{text-transform:none;font-size:14px}.links a.cur{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
+.sel,.menu{margin-inline-start:auto;height:44px;padding:0 16px;border:1px solid currentColor;display:inline-flex;align-items:center;font-size:14px}.sel{display:none}
+@media(min-width:1152px){.links{display:flex}.sel{display:inline-flex}.menu{display:none}}
+/* buttons: Framer's outlined button, gold as a line */
+.btn{height:48px;padding:0 24px;border:1px solid var(--gold);background:var(--ivory);color:var(--teal);font:16px var(--fb);display:inline-flex;align-items:center;gap:8px;text-decoration:none;width:max-content}
+@media(min-width:768px){.btn{font-size:18px}}.btn.solid{background:var(--teal);color:var(--ivory);border-color:var(--teal)}
+/* about */
+.hero{position:relative;height:640px;overflow:hidden}@media(min-width:768px){.hero{height:900px}}
+.hero>img,.band>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:after,.band:after{content:'';position:absolute;inset:0;background:rgb(38 38 38/.35)}
+.hero .center,.band .center{position:relative;z-index:1;height:100%;align-content:center;color:var(--ivory)}.hero h1,.band h2{color:var(--ivory)}
+.collage{position:relative;height:1500px}@media(min-width:768px){.collage{height:2300px}}
+.collage .st{position:sticky;top:42vh;max-width:400px;margin:0 auto;text-align:center;padding:0 20px;z-index:1}
+.collage img{position:absolute;width:170px;aspect-ratio:5/6;object-fit:cover}@media(min-width:768px){.collage img{width:300px}}
+.collage .i1{top:120px;inset-inline-end:6%}.collage .i2{top:520px;inset-inline-start:0}.collage .i3{top:860px;inset-inline-end:0}.collage .i4{top:1150px;inset-inline-start:3%}.collage .i5{top:1300px;inset-inline-end:6%}
+@media(min-width:768px){.collage .i2{top:700px}.collage .i3{top:1100px}.collage .i4{top:1500px}.collage .i5{top:1800px}}
+.still{width:100%;height:420px;object-fit:cover;display:block}@media(min-width:768px){.still{height:900px}}
+.cards{display:grid;gap:48px;margin-top:48px;text-align:start}@media(min-width:768px){.cards{grid-template-columns:repeat(3,1fr);gap:80px}}
+.cards img{width:100%;aspect-ratio:1/1.08;object-fit:cover;display:block;margin-bottom:24px}.cards p{margin:12px 0 0}
+.rows{display:grid;gap:48px;margin-top:48px;text-align:start}.row{display:grid;gap:24px;align-items:center}@media(min-width:768px){.row{grid-template-columns:1fr 1fr;gap:80px}.row img{justify-self:end}}
+.row img{width:100%;max-width:480px;aspect-ratio:3/2;object-fit:cover;display:block}.row p{margin:12px 0 0;max-width:360px}
+.band{position:relative;height:560px;overflow:hidden}@media(min-width:768px){.band{height:900px}}
+/* contact */
+.two{display:grid;gap:48px}@media(min-width:900px){.two{grid-template-columns:1fr 1fr;gap:64px}}
+.det{display:grid;gap:12px;align-content:start}.grp{display:grid;gap:4px;margin-top:12px}.grp b{font-weight:400;font-size:18px;display:flex;gap:8px;align-items:center}
+.grp small{font-size:14px;color:var(--teal)}.grp a{text-decoration:none}.grp a:after{content:' ↗';font-size:12px}:lang(ar) .grp a:after{content:' ↖'}
+.box{border:1px solid var(--teal);padding:24px;display:grid;gap:16px;align-content:start}@media(min-width:768px){.box{padding:48px}}
+.f{display:grid;gap:8px}.f label{font-size:14px}.f input,.f select,.f textarea{height:48px;border:1px solid var(--teal);background:var(--ivory);padding:0 16px;font:16px var(--fb);width:100%;border-radius:0;color:var(--teal)}
+.f textarea{height:96px;padding:12px 16px}.f2{display:grid;gap:16px}@media(min-width:768px){.f2{grid-template-columns:1fr 1fr}}.req{color:var(--muted);font-size:12px}
+.acts{display:flex;flex-wrap:wrap;gap:12px}
+/* footer: job 11's light footer, our signed content */
+footer{border-top:1px solid var(--tint);padding:64px 0 32px}.cols{display:grid;gap:32px}@media(min-width:768px){.cols{grid-template-columns:repeat(4,1fr)}}
+.cols p.h{font-size:12px;margin:0 0 8px}.cols a{display:flex;min-height:40px;align-items:center;text-decoration:none}
+.news input{height:48px;border:1px solid var(--teal);background:var(--ivory);padding:0 16px;width:100%;font:16px var(--fb)}
+.bot{margin-top:48px;border-top:1px solid var(--tint);padding-top:24px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;font-size:14px}
+.wa{position:fixed;inset-inline-end:16px;bottom:16px;width:44px;height:44px;background:var(--wa);display:grid;place-items:center;z-index:5}
+</style></head><body><header class="nav"><div class="wrap"><img src="../../../../brand/Logo Typography/Stacked_Charcoal.svg" alt="ALMAR"><nav class="links"><a class="" href="#">Destinations</a><a class="" href="#">Experiences</a><a class="" href="#">About</a><a class="cur" href="#">Contact</a></nav><span class="sel">EN ▾</span><span class="menu">Menu</span></div></header><main>
+<section class="sec"><div class="wrap center"><p class="kick">Private Journeys</p><h1 class="h88">Plan Your Journey</h1><p class="lead">Your private Colombia journey begins with a message. Share your vision and our team will craft every detail.</p></div></section>
+<div class="div"></div>
+<section class="sec"><div class="wrap two"><div class="det"><h2 class="h56">ALMAR Private Journeys</h2>
+<div class="grp"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Location</b><a href="#">Bogotá, Colombia</a></div>
+<div class="grp"><b>☏ Phone</b><small>Inquiry line</small><a href="#"><bdi>+971 56 388 3302</bdi></a><small>WhatsApp</small><a href="#"><bdi>+971 56 388 3302</bdi></a></div>
+<div class="grp"><b>✉ Email</b><a href="#"><bdi>inquiries@almarprivatejourney.com</bdi></a></div></div><form class="box" id="inquiry"><div class="f2"><div class="f"><label>Your Name<span class="req"> · required</span></label><input></div><div class="f"><label>Phone / WhatsApp</label><input type="tel"></div></div>
+<div class="f"><label>Email<span class="req"> · required</span></label><input type="email"></div><div class="f"><label>Journey Type<span class="req"> · required</span></label><select><option>Select type</option><option>Experiences</option><option>Services</option><option>Full Journey</option><option>Group Event</option><option>General Question</option></select></div>
+<div class="f"><label>Tell Us About Your Journey<span class="req"> · required</span></label><textarea></textarea></div>
+<div class="acts"><span class="btn solid">Request Consultation</span><a class="btn" href="#">Message on WhatsApp</a></div></form></div></section>
+<section class="sec"><div class="wrap center"><h2 class="h56">Travel With Confidence</h2><p class="lead">Every journey is planned with selected local partners, private transfer coordination, bilingual trip support, and a 24/7 emergency contact. Additional security, insurance, and medical arrangements are confirmed before booking.</p><a class="btn" href="#inquiry">Start Your Inquiry</a></div></section><div class="div"></div>
+</main><footer><div class="wrap"><div class="cols">
+<nav><p class="h">Pages</p><a href="#">Destinations</a><a href="#">Experiences</a><a href="#">About</a><a href="#">Contact</a></nav>
+<div><p class="h">Contact</p><a href="#"><bdi>inquiries@almarprivatejourney.com</bdi></a><a href="#"><bdi>+971 56 388 3302</bdi></a><a href="#">Instagram</a></div>
+<div></div>
+<div class="news"><p class="h">Newsletter</p><p style="font-size:12px;margin:0 0 8px">Private Colombia inspiration, delivered to your inbox.</p><input placeholder=""><p style="margin:12px 0 0"><span class="btn">Join the List</span></p></div>
+</div><div class="bot"><span>© 2026 ALMAR Private Journeys. All rights reserved.</span><span>English · العربية · Español</span></div></div></footer>
+<a class="wa"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#262626" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/></svg></a></body></html>
