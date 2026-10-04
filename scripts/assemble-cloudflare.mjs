@@ -1,9 +1,10 @@
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderStaticNotFound } from "../lib/not-found-document.ts";
 import { LOCALES, isLocale, localePath, matchPublicPage, stripLocale } from "../lib/locale-path.ts";
+import { isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { assertPublicClean, assertTargetFiles, outDirNameFor, parseTarget, writeTargetFiles } from "./crawl-files.mjs";
 import { assertMediaReady } from "./media-guard.mjs";
 
@@ -55,6 +56,11 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile 
     const urlPath = rel === "index" ? "/" : isLocale(rel) && rel !== "en" ? `/${rel}/` : `/${rel}`;
     const { locale, path: pagePath } = stripLocale(urlPath);
     if (isHtml && matchPublicPage(pagePath) === null) continue;
+    // Job 10: nothing under /api or a held section may ship as a static file. A route that lost
+    // `force-dynamic` would be prerendered here and served before the Worker could hold it.
+    if (pagePath === "/api" || pagePath.startsWith("/api/") || isHeldPath(pagePath)) {
+      throw new Error(`${file} would ship as a static file under ${pagePath}: it must be force-dynamic (lib/server-routes.ts)`);
+    }
     const dest = rel === "index" ? "index.html" : isLocale(rel) && rel !== "en" ? `${rel}/index.html` : `${rel}.html`;
     if (taken.has(dest)) {
       throw new Error(`two sources for out/${dest}: ${taken.get(dest)} and ${file}`);
@@ -135,6 +141,40 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile 
 }
 
 /**
+ * Job 10: OpenNext copies every value of the project's .env files into .open-next/cloudflare/next-env.mjs, which is
+ * bundled into the uploaded Worker. No value may travel that way: secrets are Worker secrets, set by the owner.
+ * The file holds one `export const <mode> = <JSON>;` line per mode; each must be `{}`.
+ */
+export function assertNoBundledEnv(file) {
+  if (!fs.existsSync(file)) throw new Error(`missing ${file}: the OpenNext build did not finish`);
+  const modes = {};
+  for (const line of fs.readFileSync(file, "utf8").split("\n")) {
+    const m = /^export const (\w+) = (.*);$/.exec(line.trim());
+    if (m) modes[m[1]] = JSON.parse(m[2]);
+  }
+  if (!("production" in modes)) throw new Error(`${file} has no production block`);
+  const filled = Object.entries(modes).filter(([, values]) => Object.keys(values).length > 0);
+  if (filled.length > 0) {
+    const names = filled.map(([mode, values]) => `${mode}: ${Object.keys(values).join(", ")}`).join("; ");
+    throw new Error(`a .env file would be bundled into the Worker (${names}); move these to Worker secrets`);
+  }
+}
+
+/**
+ * Job 10: the exact server paths worker/almar.mjs forwards to Next, computed from Next's route manifest by
+ * lib/server-routes.ts and written to .open-next/almar-server-routes.json. Returns the list.
+ */
+export function writeServerPaths({ manifestFile, openNextDir }) {
+  if (!fs.existsSync(path.join(openNextDir, "worker.js"))) {
+    throw new Error(`missing ${path.join(openNextDir, "worker.js")}: the OpenNext build did not finish`);
+  }
+  const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+  const paths = serverPathsFrom(Object.keys(manifest));
+  fs.writeFileSync(path.join(openNextDir, "almar-server-routes.json"), `${JSON.stringify(paths)}\n`);
+  return paths;
+}
+
+/**
  * node scripts/assemble-cloudflare.mjs [--target=local|preview|production]
  *
  *   local (default)  out/          production crawl files; no media check, so the check set can build
@@ -151,7 +191,14 @@ function main(argv = process.argv.slice(2)) {
   assertPublicClean(root);
   // Before the build and before any folder is wiped: a refused run leaves the previous output intact.
   if (target !== "local") assertMediaReady();
-  execSync("npm run build", { cwd: root, stdio: "inherit" });
+  // Job 10: OpenNext runs the project's `next build` (standalone) and bundles the server into .open-next/. The
+  // prerendered pages below come from that same build, so the static folder and the Worker script always match.
+  execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", target === "preview" ? "wrangler.preview.toml" : "wrangler.toml"], {
+    cwd: root,
+    stdio: "inherit",
+    env: { ...process.env, WRANGLER_SEND_METRICS: "false" },
+  });
+  assertNoBundledEnv(path.join(root, ".open-next/cloudflare/next-env.mjs"));
   const folder = outDirNameFor(target);
   const outDir = path.join(root, folder);
   const report = assembleOut({
@@ -166,10 +213,15 @@ function main(argv = process.argv.slice(2)) {
     .map((f) => f.rel);
   writeTargetFiles({ outDir, target, root, htmlFiles });
   assertTargetFiles(outDir, target, { root });
+  const serverPaths = writeServerPaths({
+    manifestFile: path.join(root, ".next/server/app-paths-manifest.json"),
+    openNextDir: path.join(root, ".open-next"),
+  });
   const r = report.react;
   console.log(
     `assembled ${report.total} html files into ${folder}/ (target: ${target}): ${report.framer.length} Framer, ` +
-      `React en ${r.en.length} / ar ${r.ar.length} / es ${r.es.length}, ${report.notFound.length} 404s`,
+      `React en ${r.en.length} / ar ${r.ar.length} / es ${r.es.length}, ${report.notFound.length} 404s; ` +
+      `server paths: ${serverPaths.join(", ") || "none"}`,
   );
 }
 

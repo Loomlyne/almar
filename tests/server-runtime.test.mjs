@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import test from "node:test";
 import { HELD_PATHS, SERVER_PATHS_OUTSIDE_API, serverPathsFrom } from "../lib/server-routes.ts";
+import { assembleOut, assertNoBundledEnv, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
 import { handle } from "../worker/handle.mjs";
 
 // Job 10 (plan 02-20): what may run on the server, and the Worker's request router. No build and no wrangler here;
@@ -150,6 +152,67 @@ test("handle: an error from Next propagates (Cloudflare answers 500; no page is 
     handle(new Request("https://almarprivatejourney.com/api/health"), env, {}, { serverPaths: new Set(["/api/health"]), nextFetch }),
     /boom/,
   );
+});
+
+// ---- the assembler's job 10 refusals -------------------------------------------------------------------------
+
+function scratchDir(files) {
+  const base = mkdtempSync(join(tmpdir(), "almar-runtime-"));
+  for (const [rel, text] of Object.entries(files)) {
+    mkdirSync(dirname(join(base, rel)), { recursive: true });
+    writeFileSync(join(base, rel), text);
+  }
+  return base;
+}
+
+function assembleFixture(appFiles) {
+  const files = { "static/css/x.css": "body{}" };
+  for (const f of appFiles) files[`app/${f}`] = `source:${f}`;
+  const base = scratchDir(files);
+  return () =>
+    assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir: join(base, "out"), publicDir: join(base, "public") });
+}
+
+test("assembleOut: a held-section HTML source is still skipped silently", () => {
+  const run = assembleFixture(["index.html", "login.html", "dashboard/home.html", "account.html"]);
+  const report = run();
+  assert.deepEqual(report.react.en, ["index.html"]);
+});
+
+test("assembleOut: a prerendered file under /api or a held section stops the build before out/ is written", () => {
+  for (const f of ["api/x.body", "api/health.body", "fx.body", "newsletter.body", "embed/hero-booker.body", "ar/api/x.body"]) {
+    const base = scratchDir({ [`app/${f}`]: "x", "app/index.html": "home", "static/css/x.css": "body{}" });
+    const outDir = join(base, "out");
+    assert.throws(
+      () => assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir, publicDir: join(base, "public") }),
+      /must be force-dynamic/,
+      f,
+    );
+    assert.equal(existsSync(outDir), false, f);
+  }
+});
+
+test("assertNoBundledEnv: empty blocks pass; any value in any mode stops the build, naming the variable only", () => {
+  const ok = scratchDir({ "next-env.mjs": "export const production = {};\nexport const development = {};\nexport const test = {};\n" });
+  assertNoBundledEnv(join(ok, "next-env.mjs"));
+  const bad = scratchDir({ "next-env.mjs": 'export const production = {"SECRET_NAME":"value-xyz"};\nexport const development = {};\n' });
+  assert.throws(() => assertNoBundledEnv(join(bad, "next-env.mjs")), (error) => {
+    assert.match(error.message, /SECRET_NAME/);
+    assert.equal(error.message.includes("value-xyz"), false, "the value is never printed");
+    return true;
+  });
+  assert.throws(() => assertNoBundledEnv(join(ok, "missing.mjs")), /did not finish/);
+});
+
+test("writeServerPaths: writes the sorted list next to the OpenNext worker; refuses without the worker", () => {
+  const base = scratchDir({
+    "app-paths-manifest.json": JSON.stringify({ "/api/health/route": "x", "/about/route": "x", "/page": "x" }),
+    ".open-next/worker.js": "export default {}",
+  });
+  assert.deepEqual(writeServerPaths({ manifestFile: join(base, "app-paths-manifest.json"), openNextDir: join(base, ".open-next") }), ["/api/health"]);
+  assert.equal(readFileSync(join(base, ".open-next/almar-server-routes.json"), "utf8"), '["/api/health"]\n');
+  const empty = scratchDir({ "app-paths-manifest.json": "{}" });
+  assert.throws(() => writeServerPaths({ manifestFile: join(empty, "app-paths-manifest.json"), openNextDir: join(empty, ".open-next") }), /did not finish/);
 });
 
 // ---- source guards ----------------------------------------------------------------------------------------------
