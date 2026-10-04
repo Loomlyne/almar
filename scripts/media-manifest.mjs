@@ -113,11 +113,22 @@ export function buildManifest({ fixturesDir, manifestPath, cacheDir } = {}) {
   }
 
   // 3. Alt records: the manifest points at the record, it never copies the text.
+  // An image is decorative when its en, ar and es records all exist and are exactly "": design 3.3 publishes the About
+  // intro photos, the still and the card photos, and S3-25 the Get In Touch still, with alt="" in every language.
+  // Decorative is decorative in all three or in none; a whitespace-only alt is still no record.
   const altSet = new Set();
+  const rawAlt = new Map();
   for (const a of alts) {
-    if (typeof a.alt === "string" && a.alt.trim().length > 0) altSet.add(`${a.image_id}|${a.locale}`);
+    if (typeof a.alt !== "string") continue;
+    rawAlt.set(`${a.image_id}|${a.locale}`, a.alt);
+    if (a.alt.trim().length > 0) altSet.add(`${a.image_id}|${a.locale}`);
   }
   for (const [id, key] of keyById) {
+    if (LOCALES.every((l) => rawAlt.get(`${id}|${l}`) === "")) continue;
+    if (LOCALES.some((l) => rawAlt.get(`${id}|${l}`) === "") && LOCALES.some((l) => altSet.has(`${id}|${l}`))) {
+      problems.push(`image ${id} (${key}) is decorative in some languages and not in others`);
+      continue;
+    }
     for (const locale of LOCALES) {
       if (!altSet.has(`${id}|${locale}`)) problems.push(`no ${locale} alt record for image ${id} (${key})`);
     }
