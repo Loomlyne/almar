@@ -166,3 +166,15 @@ test("server read = client filter over the matrix, all locales", async () => {
     }
   }
 });
+
+test("EN facts on the full catalogue", async () => {
+  const all = await getCatalogItems("en");
+  assert.equal(all.length, 45);
+  assert.equal((await getCatalogItems("en", { kind: "experience" })).length, 35);
+  assert.equal((await getCatalogItems("en", { kind: "service" })).length, 10);
+  assert.deepEqual(slugs(filterCatalog(all, { destinations: ["bogota", "san-andres"] })), ["bogota-art-gastronomy", "san-andres-diving-escape", "helicopter-city-tours", "private-city-guides"]);
+  assert.deepEqual(slugs(filterCatalog(all, { stays: ["santa-fe-farm-antioquia"] })), ["welcome-cocktail", "medellin-renaissance", "medellin-discovery-tours", "24-7-private-concierge", "luxury-ground-transport", "vip-airport-meet-greet"]);
+  assert.deepEqual(slugs(filterCatalog(all, { destinations: ["cartagena"], stays: ["santa-fe-farm-antioquia"] })), ["welcome-cocktail", "24-7-private-concierge", "luxury-ground-transport", "vip-airport-meet-greet"]);
+  assert.deepEqual(slugs(filterCatalog(all, { query: "MEDELLÍN" })), ["private-ceremony-colombia", "medellin-renaissance", "medellin-discovery-tours", "helicopter-city-tours", "gourmet-food-tours", "helicopter-transfers", "private-city-guides"]);
+  assert.deepEqual(filterCatalog(all, { destinations: ["cocora-valley"], kind: "service" }), []);
+});
