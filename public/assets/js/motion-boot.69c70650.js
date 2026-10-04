@@ -1,0 +1,1 @@
+(function(){var d=document.documentElement;try{if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return}catch(e){return}d.setAttribute("data-motion","on");setTimeout(function(){if(!d.hasAttribute("data-motion-ready"))d.setAttribute("data-motion","off")},3000)})();
