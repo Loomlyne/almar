@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import { cn } from "../../lib/cn";
+import { FILTER_LEGEND } from "./checkbox-group";
 import { Chip } from "./chip";
 
 export type ChipGroupOption = { value: string; label: string };
@@ -13,6 +14,9 @@ export type ChipGroupOption = { value: string; label: string };
  *
  * Chips touch: each chip but the first pulls in by one border width on the inline start side (a logical
  * margin, so the row mirrors in Arabic), and the pressed chip is lifted so its teal edge is not covered.
+ *
+ * `orientation="vertical"` stacks full-width 44px toggles 8px apart under a 12px uppercase label (the
+ * catalogue filter rail). It ignores `size`. Same single-pressed rule and same aria.
  */
 export function ChipGroup({
   label,
@@ -20,6 +24,7 @@ export function ChipGroup({
   value,
   onChange,
   size = "default",
+  orientation = "horizontal",
   className,
 }: {
   /** Visible label and the group's accessible name. */
@@ -28,22 +33,31 @@ export function ChipGroup({
   value: string;
   onChange: (next: string) => void;
   size?: "default" | "dense";
+  orientation?: "horizontal" | "vertical";
   className?: string;
 }) {
   const labelId = useId();
+  const vertical = orientation === "vertical";
   return (
     <div className={cn("grid min-w-0 gap-2", className)}>
-      <span id={labelId} className="text-label text-muted">
+      <span id={labelId} className={vertical ? FILTER_LEGEND : "text-label text-muted"}>
         {label}
       </span>
-      <div role="group" aria-labelledby={labelId} className="flex flex-wrap">
+      <div role="group" aria-labelledby={labelId} className={vertical ? "flex flex-col gap-2" : "flex flex-wrap"}>
         {options.map((option, index) => {
           const on = option.value === value;
           return (
-            <span key={option.value} className={cn("relative inline-flex max-w-full", index > 0 && "-ms-px", on && "z-10")}>
+            <span
+              key={option.value}
+              className={cn(
+                "relative inline-flex max-w-full",
+                vertical ? "w-full" : cn(index > 0 && "-ms-px", on && "z-10"),
+              )}
+            >
               <Chip
                 on={on}
-                size={size}
+                size={vertical ? "default" : size}
+                block={vertical}
                 onClick={() => {
                   if (!on) onChange(option.value);
                 }}
