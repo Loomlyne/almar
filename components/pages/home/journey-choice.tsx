@@ -37,17 +37,51 @@ type JourneyChoiceContext = {
   setValue: (next: JourneyValue) => void;
 };
 
+type StoredChoice = NonNullable<ReturnType<typeof parseJourneyChoice>>;
+
+/**
+ * The state after restoring a stored choice. With an initial destination it stays (When and Who come from storage);
+ * without one, the stored destination is kept only when it is a known id. Exported for tests/journey-choice-initial.test.mjs.
+ */
+export function restoreState(
+  stored: StoredChoice | null,
+  initialDestinationId: string | null | undefined,
+  known: (id: string) => boolean,
+): JourneyChoiceState {
+  const initial = initialDestinationId ?? null;
+  if (!stored) return { value: { ...EMPTY_JOURNEY, destinationId: initial }, guestsSet: false };
+  const storedDestination = stored.destination_id != null && known(stored.destination_id) ? stored.destination_id : null;
+  return {
+    value: {
+      destinationId: initial ?? storedDestination,
+      start: stored.from ? parseDate(stored.from) : null,
+      end: stored.to ? parseDate(stored.to) : null,
+      adults: stored.adults,
+      children: stored.children,
+      infants: stored.infants,
+    },
+    guestsSet: stored.guests_set,
+  };
+}
+
 const Context = createContext<JourneyChoiceContext | null>(null);
 
 export function JourneyChoiceProvider({
   destinationSlugById,
+  initialDestinationId,
   children,
 }: {
   /** The bar's destination id mapped to the slug the list page filters on. */
   destinationSlugById: Record<string, string>;
+  /** Pre-fills Where on the server and on the first client render; the visitor can change it. Nothing is stored until they do. */
+  initialDestinationId?: string | null;
   children: ReactNode;
 }) {
-  const [state, setState] = useState<JourneyChoiceState>({ value: EMPTY_JOURNEY, guestsSet: false });
+  const [state, setState] = useState<JourneyChoiceState>(
+    initialDestinationId
+      ? { value: { ...EMPTY_JOURNEY, destinationId: initialDestinationId }, guestsSet: false }
+      : { value: EMPTY_JOURNEY, guestsSet: false },
+  );
   const latest = useRef(state);
   const slugs = useRef(destinationSlugById);
 
@@ -61,7 +95,6 @@ export function JourneyChoiceProvider({
     }
     if (text === null) return;
     const choice = parseJourneyChoice(text, isoOf(today(getLocalTimeZone())));
-    const known = choice?.destination_id != null && Object.hasOwn(slugs.current, choice.destination_id);
     if (!choice) {
       try {
         window.sessionStorage.removeItem(JOURNEY_CHOICE_KEY);
@@ -71,17 +104,7 @@ export function JourneyChoiceProvider({
       return;
     }
     try {
-      const restored: JourneyChoiceState = {
-        value: {
-          destinationId: known ? choice.destination_id : null,
-          start: choice.from ? parseDate(choice.from) : null,
-          end: choice.to ? parseDate(choice.to) : null,
-          adults: choice.adults,
-          children: choice.children,
-          infants: choice.infants,
-        },
-        guestsSet: choice.guests_set,
-      };
+      const restored = restoreState(choice, initialDestinationId, (id) => Object.hasOwn(slugs.current, id));
       latest.current = restored;
       setState(restored);
     } catch {
