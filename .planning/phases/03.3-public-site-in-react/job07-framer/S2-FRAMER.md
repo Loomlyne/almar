@@ -40,6 +40,32 @@ code.
 | 2 | Sign the `/destinations` pictures (`79b0dc8`) | **"i sign it but the footer i want similar to framer i wnat it to have social media icons and newsletter place as well and teh rest all good signed"** | **Signed**, except the footer. He wants the footer like Framer's, with social icons and the newsletter box. The footer is one shared frame on every page, so slice 2 builds none of it. Job 11 builds the light footer look. Slice 3's plan 27 (signed; part B, after job 10's server runtime) makes the newsletter box real on every React page; until then it is not shown, because it would send nothing. |
 | 3 | Which social accounts exist | **"Instagram only for now"** | One social icon: Instagram, linking to `https://www.instagram.com/almarprivatejourney/` (the address already in `components/site/public-frame.tsx`). No icon links to a bare facebook.com, youtube.com or tiktok.com. Others appear when he gives their addresses. |
 
-**For the controller and job 11 (one line, for the owner to pass on):** the owner wants the shared footer to look
-like Framer's, with social icons (Instagram only for now, `instagram.com/almarprivatejourney`) and the
-newsletter box, which slice 3 plan 27 makes real after job 10. Recorded in slice 2 `job07-framer/S2-FRAMER.md`.
+**For the controller and job 11 (for the owner to pass on):**
+1. **Footer.** The owner wants the shared footer to look like Framer's, with social icons and the newsletter box.
+   - Social icons: Instagram only for now (`instagram.com/almarprivatejourney`).
+   - Newsletter box: slice 3 plan 27 makes it real after job 10.
+2. **Slideshow.** `/destinations` needs job 11's slider to also work as a **full-width hero**.
+   - The kicker and `<h1>` sit on top (A1/A3).
+   - One dot per photo, and a pause control.
+   - It stops on hover or focus and is still with reduced motion.
+   - Every slide is a static `<img>` in the served HTML.
+
+   Job 11's design today has one still hero photo; its only slider is the stay gallery (A11). If job 11 adds
+   the hero mode, plan 13 uses it. If not, plan 13 adds that mode to job 11's slider, never a second slider
+   (reconcile S2-17).
+
+Recorded in slice 2 `job07-framer/S2-FRAMER.md`.
+
+## Alt text for the three hero photos (plan check, 2026-10-04)
+
+Framer's published `alt` text is wrong for two of the three photos.
+- `4d62ca4792adaf59.webp` is a living room. Framer says "arched wooden door".
+- `63ab3e6e8d9dec4a.webp` is a black marble bathroom with a freestanding tub and a sea view. Framer says
+  "infinity pool".
+
+What we use:
+- **hero-1:** the alt the home gallery already publishes for the same file, "Minimalist living room inside a
+  Mediterranean villa" (AR and ES as published there).
+- **hero-2:** a plain description, "Black marble bathroom with a freestanding bathtub and a sea view". It is
+  new wording, marked for his review in the slice 2 hand-over.
+- **hero-3:** Framer's words, reordered: "Arched hallway inside a Mediterranean modern hotel".
