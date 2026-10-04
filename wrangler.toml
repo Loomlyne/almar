@@ -11,7 +11,7 @@ preview_urls = false
 [assets]
 directory = "./out"
 binding = "ASSETS"
-run_worker_first = ["/api/*"]
+run_worker_first = ["/api/*", "/login", "/auth/confirm", "/auth/sign-out", "/auth/handoff/start", "/account", "/bookings"]
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
 
