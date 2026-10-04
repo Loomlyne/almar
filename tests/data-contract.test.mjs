@@ -148,7 +148,7 @@ test("every catalogue item carries destination_slugs and stay_slugs joined in id
   const sSlug = new Map(JSON.parse(readFileSync("lib/data/fixtures/stays.json", "utf8")).map((s) => [s.id, s.slug]));
   const rows = JSON.parse(readFileSync("lib/data/fixtures/catalog.json", "utf8"));
   const expMod = await loadTs("lib/data/experiences.ts");
-  for (const l of ["en", "ar"]) {
+  for (const l of ["en", "ar", "es"]) {
     for (const i of await expMod.getCatalogItems(l)) {
       const row = rows.find((r) => r.slug === i.slug);
       assert.deepEqual(i.destination_slugs, row.destination_ids.map((x) => dSlug.get(x)));

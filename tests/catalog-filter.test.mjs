@@ -3,7 +3,9 @@
 // filter agree over a fixed matrix in all three locales.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync, cpSync, mkdtempSync, mkdirSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { loadTs } from "./helpers/load-ts.mjs";
 
 const filterMod = await loadTs("lib/data/catalog-filter.ts");
@@ -114,6 +116,16 @@ test("every catalogue item carries destination_slugs and stay_slugs in id order;
   assert.equal(wc.stay_slugs.length, 12);
   const mr = await getCatalogItem("en", "medellin-renaissance");
   assert.deepEqual(mr.stay_slugs, ["santa-fe-farm-antioquia", "sopetran-country-estate"]);
+  const cht = await getCatalogItem("en", "cartagena-heritage-tours");
+  assert.deepEqual(cht.stay_slugs, [
+    "getsemani-colonial-house",
+    "getsemani-courtyard-residence",
+    "cartagena-historic-center-house",
+    "casa-jardin-san-diego",
+    "casa-juliana-historic-center",
+    "casa-mariana-historic-center",
+    "bocagrande-beach-house",
+  ]);
   const forStay = await getCatalogForStay("en", "santa-fe-farm-antioquia");
   assert.ok(forStay.experiences.every((e) => Array.isArray(e.destination_slugs)));
 });
@@ -153,8 +165,14 @@ test("server read = client filter over the matrix, all locales", async () => {
     { query: "zzzz" },
     { query: "  spa " },
   ];
+  const MIXED = { destinationSlug: "cartagena", destinationSlugs: ["bogota"] };
   for (const l of LOCALES) {
     const all = await getCatalogItems(l);
+    assert.deepEqual(
+      slugs(await getCatalogItems(l, MIXED)),
+      slugs(filterCatalog(all, { destinations: ["cartagena", "bogota"] })),
+      `${l} mixed single + list`,
+    );
     for (const f of MATRIX) {
       const server = await getCatalogItems(l, {
         kind: f.kind,
@@ -177,4 +195,26 @@ test("EN facts on the full catalogue", async () => {
   assert.deepEqual(slugs(filterCatalog(all, { destinations: ["cartagena"], stays: ["santa-fe-farm-antioquia"] })), ["welcome-cocktail", "24-7-private-concierge", "luxury-ground-transport", "vip-airport-meet-greet"]);
   assert.deepEqual(slugs(filterCatalog(all, { query: "MEDELLÍN" })), ["private-ceremony-colombia", "medellin-renaissance", "medellin-discovery-tours", "helicopter-city-tours", "gourmet-food-tours", "helicopter-transfers", "private-city-guides"]);
   assert.deepEqual(filterCatalog(all, { destinations: ["cocora-valley"], kind: "service" }), []);
+});
+
+test("slugsOf throws on an unknown destination or stay id (isolated fixture copy)", async () => {
+  const BAD = "00000000-0000-4000-8000-000000000000";
+  const root = process.cwd();
+  for (const [field, word] of [["destination_ids", "destination"], ["stay_ids", "stay"]]) {
+    const tmp = mkdtempSync(join(tmpdir(), "almar-fx-"));
+    mkdirSync(join(tmp, "lib", "data"), { recursive: true });
+    cpSync(join(root, "lib", "data", "fixtures"), join(tmp, "lib", "data", "fixtures"), { recursive: true });
+    const file = join(tmp, "lib", "data", "fixtures", "catalog.json");
+    const rows = JSON.parse(readFileSync(file, "utf8"));
+    const row = rows.find((r) => r.is_published);
+    row[field] = [...row[field], BAD];
+    writeFileSync(file, JSON.stringify(rows));
+    try {
+      const fresh = await loadTs("lib/data/experiences.ts");
+      process.chdir(tmp);
+      await assert.rejects(() => fresh.getCatalogItems("en"), new RegExp(`catalog .*: unknown ${word}`));
+    } finally {
+      process.chdir(root);
+    }
+  }
 });
