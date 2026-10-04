@@ -33,10 +33,15 @@ Not re-opened: "full server job now, OpenNext on Worker `almar`" (owner, 2026-10
 
 1. `out/` (and `out-preview/`) stays the static-assets folder, built by the same assembler, so every public byte is
    unchanged. `.open-next/` holds the server bundle only; its own `assets/` folder is never served.
-2. `wrangler.toml` and `wrangler.preview.toml` gain `main = "worker/almar.mjs"`, an `ASSETS` binding and the
-   `nodejs_compat` flags. No `run_worker_first`: a request that matches a file never runs the Worker.
-3. `worker/almar.mjs` runs only on an asset miss. It forwards a request to OpenNext **only** when its exact path is
+2. `wrangler.toml` and `wrangler.preview.toml` gain `main = "worker/almar.mjs"`, an `ASSETS` binding, the
+   `nodejs_compat` flags and `run_worker_first = ["/api/*"]` (added after the security review: without it every
+   asset miss ran the Worker, spending the Free plan's daily requests, and a browser navigation to `/api/health`
+   got the static 404 because Cloudflare answers navigation misses from the assets layer). Every page and every
+   other miss is answered by the static layer with no Worker call, exactly as today.
+3. `worker/almar.mjs` runs only for `/api/*`. It forwards a request to OpenNext **only** when its exact path is
    a server path; every other request goes back to `env.ASSETS.fetch(request)`, which is today's branded 404.
+   Before forwarding it drops `x-forwarded-host` and sets `x-forwarded-for` from `cf-connecting-ip` (a visitor can
+   send both, and Next trusts them). At startup it re-checks the generated list and refuses to start on a held path.
    Deny by default: `/dashboard`, `/account`, `/login`, `/booking/*`, `/bookings`, `/fx`, `/newsletter`,
    `/embed/*`, `/__harness` never reach Next, even though OpenNext compiles them.
 4. Server paths = every static `app/api/**/route.ts` (read from Next's `app-paths-manifest.json` at assemble time)
@@ -44,7 +49,8 @@ Not re-opened: "full server job now, OpenNext on Worker `almar`" (owner, 2026-10
    `app/api/`, a dynamic segment under `app/api/`, or a held path in the list stops the assembler.
 5. The one way for a slice to add an endpoint: add `app/api/<name>/route.ts` (`dynamic = "force-dynamic"`, no
    `runtime = "edge"`). Nothing else. A path outside `/api` (the newsletter's `/newsletter`, Phase 2's `/login`)
-   also needs one line in `lib/server-routes.ts` and leaves the held list there.
+   also needs one line in `lib/server-routes.ts`, the same path in `run_worker_first` of both Worker files, and
+   leaves the held list; a node test checks the three agree.
 6. Server responses carry `x-robots-tag: noindex` (added by the wrapper) and `cache-control` set by the route.
 7. Secrets are read from `process.env` on the server only. Named here, never valued: `RESEND_API_KEY` (slice 3
    plans 26, 27, 29), `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -65,7 +71,9 @@ Not re-opened: "full server job now, OpenNext on Worker `almar`" (owner, 2026-10
 - **Slice 3 plan 27** (`/newsletter`) posts to the existing `/newsletter` handler. This job removes that handler's
   production gate (plan 27's precondition) but keeps `/newsletter` held at the Worker, as the prompt requires.
   Proposed amendment for the controller: plan 27 adds `"/newsletter"` to `SERVER_PATHS_OUTSIDE_API` and removes it
-  from `HELD_PATHS` in `lib/server-routes.ts`, and flips its entry in `tests/build/server-runtime.spec.ts`.
+  from `HELD_PATHS` in `lib/server-routes.ts`, adds it to `run_worker_first` in both Worker files, and flips its
+  entries in `tests/build/server-runtime.spec.ts`. Before that the handler needs what the security review found
+  missing: an Origin check, rate limiting, and no Resend contact `id` in its response.
 - **Job 02** (Phase 2 auth, cloud branch `claude/project-thread-8h6bed`): drop `f10f765`'s `wrangler.server.jsonc`,
   `host:server`, `preview:server` and its three gate tests when it is rebased. Middleware runs only for forwarded
   requests (never on an asset hit): Phase 2 lists `/login`, `/auth/confirm`, `/account`… in

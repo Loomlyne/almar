@@ -85,7 +85,7 @@ function harness(serverPaths = ["/api/health"]) {
     },
   };
   const nextFetch = async (request, e, ctx) => {
-    calls.next.push({ path: new URL(request.url).pathname, env: e, ctx });
+    calls.next.push({ path: new URL(request.url).pathname, env: e, ctx, headers: new Headers(request.headers), body: await request.text() });
     return new Response('{"ok":true}', { status: 200, statusText: "OK", headers: { "content-type": "application/json", "cache-control": "no-store" } });
   };
   const run = (url, init) => handle(new Request(`https://almarprivatejourney.com${url}`, init), env, { id: "ctx" }, { serverPaths: new Set(serverPaths), nextFetch });
@@ -134,6 +134,21 @@ test("handle: anything else goes back to the static assets untouched", async () 
   }
   assert.equal(calls.next.length, 0);
   assert.equal(calls.assets.length, paths.length);
+});
+
+test("handle: Next never sees a visitor's x-forwarded-host, and x-forwarded-for comes from Cloudflare only", async () => {
+  const { calls, run } = harness();
+  await run("/api/health", {
+    method: "POST",
+    body: "a=1",
+    headers: { "x-forwarded-host": "evil.example", "x-forwarded-for": "6.6.6.6", "cf-connecting-ip": "203.0.113.7", "content-type": "text/plain" },
+  });
+  await run("/api/health", { headers: { "x-forwarded-for": "6.6.6.6" } });
+  assert.equal(calls.next[0].headers.get("x-forwarded-host"), null);
+  assert.equal(calls.next[0].headers.get("x-forwarded-for"), "203.0.113.7");
+  assert.equal(calls.next[0].headers.get("content-type"), "text/plain");
+  assert.equal(calls.next[0].body, "a=1", "the body still reaches Next");
+  assert.equal(calls.next[1].headers.get("x-forwarded-for"), null, "no Cloudflare address: none at all");
 });
 
 test("handle: a POST to a held path also goes to the static assets", async () => {
@@ -192,6 +207,21 @@ test("assembleOut: a prerendered file under /api or a held section stops the bui
   }
 });
 
+test("assembleOut: a public/ file under /api or a held section stops the build before out/ is written", () => {
+  for (const f of ["api/health", "api/x.json", "login.html", "dashboard/index.html", "ar/account.html", "embed/x.js"]) {
+    const base = scratchDir({ [`public/${f}`]: "x", "app/index.html": "home", "static/css/x.css": "body{}" });
+    const outDir = join(base, "out");
+    assert.throws(
+      () => assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir, publicDir: join(base, "public") }),
+      /only the Worker may answer/,
+      f,
+    );
+    assert.equal(existsSync(outDir), false, f);
+  }
+  const ok = scratchDir({ "public/assets/x.webp": "x", "public/apiary.txt": "x", "app/index.html": "home", "static/css/x.css": "body{}" });
+  assembleOut({ appDir: join(ok, "app"), staticDir: join(ok, "static"), outDir: join(ok, "out"), publicDir: join(ok, "public") });
+});
+
 test("assertNoBundledEnv: empty blocks pass; any value in any mode stops the build, naming the variable only", () => {
   const ok = scratchDir({ "next-env.mjs": "export const production = {};\nexport const development = {};\nexport const test = {};\n" });
   assertNoBundledEnv(join(ok, "next-env.mjs"));
@@ -242,10 +272,18 @@ test("both Worker files run the same script with the same flags, date and ASSETS
   assert.match(preview, /^directory = "\.\/out-preview"$/m);
 });
 
-test("neither Worker file runs the script first, or binds a variable, store, queue, service or object", () => {
+test("both Worker files run the script first only for /api/* and the paths served outside /api", () => {
+  const want = JSON.stringify(["/api/*", ...SERVER_PATHS_OUTSIDE_API]);
+  for (const file of WORKER_FILES) {
+    const lines = readFileSync(file, "utf8").split("\n").filter((l) => l.startsWith("run_worker_first"));
+    assert.equal(lines.length, 1, file);
+    assert.equal(JSON.stringify(JSON.parse(lines[0].replace(/^run_worker_first = /, ""))), want, file);
+  }
+});
+
+test("neither Worker file binds a variable, store, queue, service or object", () => {
   for (const file of WORKER_FILES) {
     const text = readFileSync(file, "utf8");
-    assert.equal(/run_worker_first/.test(text), false, file);
     assert.equal(/^\[vars\]|^\[\[?(kv_namespaces|r2_buckets|d1_databases|durable_objects|services|queues|hyperdrive|vectorize|ai|browser|images|analytics_engine_datasets|send_email|secrets_store_secrets)/m.test(text), false, file);
     assert.equal(/eyJ|re_[A-Za-z0-9]{8,}|sk_(live|test)_/.test(text), false, `${file} holds something that looks like a key`);
   }
@@ -307,10 +345,12 @@ test("app/newsletter/route.ts no longer gates itself on NODE_ENV (the Worker hol
   assert.equal(readFileSync("app/newsletter/route.ts", "utf8").includes("NODE_ENV"), false);
 });
 
-test("worker/almar.mjs imports only the OpenNext worker, the generated list and the router", () => {
+test("worker/almar.mjs imports only the OpenNext worker, the generated list, the held list and the router", () => {
   const source = readFileSync("worker/almar.mjs", "utf8");
   const imports = [...source.matchAll(/^import .* from "([^"]+)";$/gm)].map((m) => m[1]);
-  assert.deepEqual(imports, ["../.open-next/worker.js", "../.open-next/almar-server-routes.json", "./handle.mjs"]);
+  assert.deepEqual(imports, ["../.open-next/worker.js", "../.open-next/almar-server-routes.json", "../lib/server-routes.ts", "./handle.mjs"]);
+  // The startup check runs before the list becomes the Set the router uses.
+  assert.ok(source.indexOf("isHeldPath(path)") > -1 && source.indexOf("isHeldPath(path)") < source.indexOf("new Set(serverPaths)"));
 });
 
 test("open-next.config.ts sets no cache override and no static export", () => {

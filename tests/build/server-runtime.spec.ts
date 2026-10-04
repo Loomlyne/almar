@@ -133,6 +133,20 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(post.headers()["x-robots-tag"]).toBe("noindex");
   });
 
+  test("4. a browser navigation reaches /api/health, and still gets the 404 on a held path", async ({ request }) => {
+    // Security review 2026-10-04: without run_worker_first, Cloudflare answers navigation misses from the assets
+    // layer and the Worker never sees them. The Playwright request API sends no Sec-Fetch-Mode unless told to.
+    const nav = { "sec-fetch-mode": "navigate", "sec-fetch-dest": "document", accept: "text/html" };
+    const health = await request.get("/api/health", { headers: nav, maxRedirects: 0 });
+    expect(health.status()).toBe(200);
+    expect(await health.text()).toBe('{"ok":true}');
+    for (const path of ["/login", "/dashboard", "/ar/account", "/newsletter", "/api/nope", "/wp-login.php"]) {
+      const res = await request.get(path, { headers: nav, maxRedirects: 0 });
+      expect(res.status(), path).toBe(404);
+      expect(Buffer.compare(await res.body(), nearest404(path)), path).toBe(0);
+    }
+  });
+
   test("5. pages, caching and crawl files are the static host's, per config", async ({ request }) => {
     for (const path of ["/", "/about", "/ar/", "/es/"]) {
       const res = await request.get(path, { maxRedirects: 0 });

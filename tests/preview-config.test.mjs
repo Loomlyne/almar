@@ -56,7 +56,7 @@ test("wrangler.preview.toml: the compatibility date and the account are wrangler
 test("wrangler.preview.toml: [assets] is wrangler.toml's, except that it serves out-preview/", () => {
   const previewAssets = block(preview, "[assets]");
   const liveAssets = block(live, "[assets]");
-  assert.deepEqual(liveAssets, ['directory = "./out"', 'binding = "ASSETS"', 'html_handling = "auto-trailing-slash"', 'not_found_handling = "404-page"']);
+  assert.deepEqual(liveAssets, ['directory = "./out"', 'binding = "ASSETS"', 'run_worker_first = ["/api/*"]', 'html_handling = "auto-trailing-slash"', 'not_found_handling = "404-page"']);
   assert.deepEqual(previewAssets, ['directory = "./out-preview"', ...liveAssets.slice(1)]);
 });
 

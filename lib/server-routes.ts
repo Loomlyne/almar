@@ -1,11 +1,13 @@
 // What may run on the server behind Worker `almar` (job 10, plan 02-20). Everything else is a static file or the
-// branded 404: worker/almar.mjs forwards a request to Next only when its exact path is in the list
-// scripts/assemble-cloudflare.mjs builds with serverPathsFrom().
+// branded 404: Cloudflare runs the Worker only for the run_worker_first paths, and worker/almar.mjs forwards a
+// request to Next only when its exact path is in the list scripts/assemble-cloudflare.mjs builds with
+// serverPathsFrom().
 //
 // How a slice adds a server endpoint:
 // 1. Add app/api/<name>/route.ts with `export const dynamic = "force-dynamic"` and no `runtime = "edge"`. It is
 //    served from the next build; nothing else to edit.
-// 2. A path outside /api also goes in SERVER_PATHS_OUTSIDE_API, and leaves HELD_PATHS in the same commit.
+// 2. A path outside /api also goes in SERVER_PATHS_OUTSIDE_API and in `run_worker_first` of wrangler.toml and
+//    wrangler.preview.toml, and leaves HELD_PATHS, in the same commit (tests/server-runtime.test.mjs checks all three).
 // 3. tests/build/server-runtime.spec.ts lists what must stay 404; flip its entry in the same commit.
 //
 // A leaf module (no imports): the assembler, the node tests and the build spec load it directly.

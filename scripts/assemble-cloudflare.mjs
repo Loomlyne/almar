@@ -69,6 +69,18 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile 
     plan.push({ src: full, dest, kind: isBody ? "framer" : "react", locale, pagePath });
   }
 
+  // Job 10: public/ is copied as it is, so it may not hold a file under /api or a held section either (it would be
+  // served as a static file ahead of the Worker).
+  if (publicDir && fs.existsSync(publicDir)) {
+    for (const { rel } of listFiles(publicDir)) {
+      const address = `/${rel.replace(/(^|\/)index\.html$/, "").replace(/\.html$/, "")}`.replace(/\/$/, "") || "/";
+      const { path: bare } = stripLocale(address);
+      if (bare === "/api" || bare.startsWith("/api/") || isHeldPath(bare)) {
+        throw new Error(`public/${rel} would be served under ${address}, which only the Worker may answer (lib/server-routes.ts)`);
+      }
+    }
+  }
+
   // 2. Parity checks on the plan, so a half-localised build cannot be assembled.
   const react = { en: [], ar: [], es: [] };
   for (const item of plan) if (item.kind === "react") react[item.locale].push(item);

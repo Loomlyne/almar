@@ -2,8 +2,8 @@ name = "almar"
 account_id = "f1d9a1fa3abdda98c15161b00b40385c"
 compatibility_date = "2026-09-23"
 compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
-# Static first: a request that matches a file in ./out never runs this script. worker/almar.mjs forwards only
-# lib/server-routes.ts paths to Next (job 10); everything else gets the static 404.
+# Static first (job 10): the script runs only for the run_worker_first paths below; every page and every other miss
+# is answered by ./out with no Worker call. worker/almar.mjs forwards only lib/server-routes.ts paths to Next.
 main = "worker/almar.mjs"
 workers_dev = false
 preview_urls = false
@@ -11,6 +11,7 @@ preview_urls = false
 [assets]
 directory = "./out"
 binding = "ASSETS"
+run_worker_first = ["/api/*"]
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
 
