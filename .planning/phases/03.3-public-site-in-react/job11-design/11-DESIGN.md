@@ -27,7 +27,7 @@ arrival from Search.
 | Stay hero | No bar | Locked bar (Destination, Stay) + Dates + Guests + **Request on WhatsApp**; the pinned dock carries the same button; the green float hides on this page so there is one WhatsApp button | Owner answer 2 |
 | Stay About facts | Inter | Lato | Tokens only |
 | Stay gallery | Moves every 2 s | Moves every 2 s; stops on hover, focus or swipe; pause button; still with reduced motion | Accessibility (auto-moving content needs a pause) |
-| Stay Policies | Accordion | Same; each row opens the text published on the live page (AR, ES as drafts) | Our data had the headings only |
+| Stay Policies | Accordion | Same layout; the four headings as a plain list, nothing opens (owner, 2026-10-04) | Framer's bodies are one placeholder for all 12 stays |
 | Stay More Private Stays | Cards open `/experiences/<stay>` (broken) | Cards open the stay page | No dead links |
 | Footer, all three pages | Light; Legal links, Facebook, YouTube, TikTok, newsletter | Light look (question 1); our signed content: pages, email, phone, Instagram, languages, ©, "Made by Koussay" | Those controls do not work today |
 | Footer, Arabic | — | The phone number reads left to right (today's slice-1 footer shows it backwards) | Bug fix |
@@ -113,3 +113,5 @@ filter). No `package.json` change.
 4. Design: **signed, build it**. Owner, same chat: "When I sign them, write the plans and build straight away, no
    separate plan signature." Plans 03.3-40 onwards are written, checked by an Opus plan checker, and executed without a
    plan stop.
+5. Policies (asked after plan 40 found Framer's bodies are one placeholder on all 12 stays, "PRIVADA … 1 CAMARERA"):
+   **headings only, nothing opens**, until real text is written in the dashboard.
