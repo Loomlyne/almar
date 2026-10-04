@@ -6,6 +6,7 @@ import { cn } from "../../lib/cn";
 import { CloseIcon } from "../icons/icons";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { LocaleSelect } from "./locale-select";
+import { revealProps } from "./reveal";
 import charcoalLogo from "../../brand/Logo Typography/Stacked_Charcoal.svg";
 import whiteLogo from "../../brand/Logo Typography/Poly_White.svg";
 
@@ -22,6 +23,8 @@ const DEFAULT_LABELS = {
   bookings: "Bookings",
   account: "Account",
   signOut: "Sign out",
+  /** Shown in the currency control while no currency has been chosen. */
+  currencyNone: "Currency",
 } as const;
 
 export type NavLabels = { [K in keyof typeof DEFAULT_LABELS]: string };
@@ -45,6 +48,8 @@ const nav = cva("@container sticky top-0 z-40 w-full border-b", {
   defaultVariants: { tone: "solid" },
 });
 
+export type NavLink = { label: string; href: string };
+
 export function SiteNav({
   locale,
   onLocale,
@@ -56,30 +61,58 @@ export function SiteNav({
   signedIn = false,
   onSignOut,
   tone = "solid",
+  links: linksProp,
+  homeHref = "#content",
+  localeHrefs,
+  currentPath,
+  login: loginProp,
+  reveal = false,
 }: {
   locale: Locale;
-  onLocale: (next: Locale) => void;
+  /** Optional on pages whose language switch is a navigation (see localeHrefs). */
+  onLocale?: (next: Locale) => void;
   labels?: Partial<NavLabels>;
   loginHref?: string;
+  /** Without currentPath: the first link is marked current, as before. */
   markCurrent?: boolean;
-  currency?: Currency;
+  /**
+   * Omitted: the currency control keeps its own state, starting at AED (today's behaviour).
+   * A currency: controlled. null: controlled with no choice yet, nothing selected.
+   * false: no currency control at all (a page with no amount has nothing to convert).
+   */
+  currency?: Currency | null | false;
   onCurrency?: (next: Currency) => void;
   /** No session exists this phase. Default false. Do not pass true from a call site. */
   signedIn?: boolean;
   onSignOut?: () => void;
   /** on-image sits over the hero: transparent bar, ivory text, Poly_White logo. */
   tone?: "solid" | "on-image";
+  /** Real, locale-aware links. Omitted: the four page anchors of the one-page layout. */
+  links?: NavLink[];
+  /** Where the wordmark goes. */
+  homeHref?: string;
+  /** The same page in each language (same-origin paths): the language switch navigates. */
+  localeHrefs?: Record<string, string>;
+  /** The page's own path. The link whose href equals it is aria-current; none when none does. */
+  currentPath?: string;
+  /** false omits Login (no session exists yet). Anything else keeps it. */
+  login?: false;
+  /** The cart is not live: there is no cart UI, so only false (the default) is accepted. */
+  cart?: false;
+  /** The nav fades in from 10 px above on load (design A2). Off by default: pages that do not run the motion controller keep it still. */
+  reveal?: boolean;
 }) {
   const text: NavLabels = { ...DEFAULT_LABELS, ...labels };
-  const links = [
-    [text.destinations, "#destinations"],
-    [text.experiences, "#experiences"],
-    [text.about, "#about"],
-    [text.contact, "#contact"],
-  ] as const;
+  const links: NavLink[] = linksProp ?? [
+    { label: text.destinations, href: "#destinations" },
+    { label: text.experiences, href: "#experiences" },
+    { label: text.about, href: "#about" },
+    { label: text.contact, href: "#contact" },
+  ];
   const [open, setOpen] = useState(false);
   const [currencyState, setCurrencyState] = useState<Currency>("AED");
-  const currency = currencyProp ?? currencyState;
+  const showCurrency = currencyProp !== false;
+  const currency = currencyProp === undefined ? currencyState : currencyProp === false ? null : currencyProp;
   function setCurrency(next: Currency) {
     if (currencyProp === undefined) setCurrencyState(next);
     onCurrency?.(next);
@@ -157,12 +190,15 @@ export function SiteNav({
   const localeCopy = JOURNEY_COPY[locale].locale;
   const tools = onImage ? "on-image" : "default";
   const login = cn(LINK, "@6xl:ms-2");
+  const motion = reveal ? revealProps("nav", "load") : null;
+  const headerProps = { ...motion, className: cn(nav({ tone }), motion?.className) };
   const closeMenuIfOpen = () => {
     if (open) closeMenu();
   };
 
   return (
-    <header ref={headerRef} className={nav({ tone })}>
+    // cn() merges the cva string, so the tone's `absolute` replaces the base `sticky` (both are `position`).
+    <header ref={headerRef} {...headerProps}>
       <div
         className={cn(
           "flex w-full min-w-0 items-center gap-4 px-3 py-2 @6xl:gap-8 @6xl:px-6",
@@ -170,7 +206,7 @@ export function SiteNav({
         )}
       >
         <a
-          href="#content"
+          href={homeHref}
           aria-label="ALMAR Private Journeys home"
           className={cn("inline-flex min-h-control min-w-control items-center", open && "me-12")}
         >
@@ -217,8 +253,8 @@ export function SiteNav({
             aria-label="Primary"
             className="flex flex-col items-start @6xl:flex-row @6xl:items-center @6xl:gap-3"
           >
-            {links.map(([name, href], index) => {
-              const active = markCurrent && index === 0;
+            {links.map(({ label, href }, index) => {
+              const active = currentPath !== undefined ? href === currentPath : markCurrent && index === 0;
               return (
                 <a
                   key={href}
@@ -227,26 +263,30 @@ export function SiteNav({
                   aria-current={active ? "page" : undefined}
                   onClick={closeMenuIfOpen}
                 >
-                  {name}
+                  {label}
                 </a>
               );
             })}
           </nav>
           <div className="flex flex-wrap items-center gap-4 @6xl:ms-auto @6xl:flex-nowrap">
-            <LocaleSelect
-              kind="currency"
-              dir={locale === "ar" ? "rtl" : "ltr"}
-              value={currency}
-              tone={tools}
-              copy={localeCopy}
-              onChange={(next) => setCurrency(next as Currency)}
-            />
+            {showCurrency ? (
+              <LocaleSelect
+                kind="currency"
+                dir={locale === "ar" ? "rtl" : "ltr"}
+                value={currency}
+                placeholder={text.currencyNone}
+                tone={tools}
+                copy={localeCopy}
+                onChange={(next) => setCurrency(next as Currency)}
+              />
+            ) : null}
             <LocaleSelect
               kind="language"
               value={locale}
+              hrefs={localeHrefs}
               tone={tools}
               copy={localeCopy}
-              onChange={(next) => onLocale(next as Locale)}
+              onChange={(next) => onLocale?.(next as Locale)}
             />
             {signedIn ? (
               <>
@@ -267,7 +307,7 @@ export function SiteNav({
                   {text.signOut}
                 </button>
               </>
-            ) : (
+            ) : loginProp === false ? null : (
               <a className={login} href={loginHref} onClick={closeMenuIfOpen}>
                 {text.login}
               </a>

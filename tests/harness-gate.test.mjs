@@ -21,10 +21,11 @@ test("page imports no scene or fixture data at module top", () => {
   assert.equal(/^import .*(tests\/|fixtures)/m.test(page), false);
 });
 
-test("assemble step never names the harness and only copies .body files", () => {
+test("assemble step never names the harness, copies .body files, and copies .html only for public pages", () => {
   assert.equal(/harness/i.test(assemble), false);
   assert.match(assemble, /endsWith\("\.body"\)/);
   assert.equal((assemble.match(/copyFileSync/g) ?? []).length >= 1, true);
+  assert.match(assemble, /matchPublicPage/);
 });
 
 test("ALMAR_HARNESS is set only inside webServer.env", () => {

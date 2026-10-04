@@ -1,6 +1,7 @@
 /node_modules
 /.next/
 /out/
+/out-preview/
 .env*.local
 next-env.d.ts
 *.tsbuildinfo
@@ -16,3 +17,4 @@ tests/screens/after/
 .env.*
 !.env.example
 .dev.vars
+/media-staging/

@@ -1,6 +1,7 @@
 import type { ReactNode, SVGProps } from "react";
+import type { AmenityIcon } from "../../lib/data/types";
 
-type IconProps = SVGProps<SVGSVGElement> & {
+export type IconProps = SVGProps<SVGSVGElement> & {
   size?: 16 | 20 | 24;
   title?: string;
 };
@@ -261,3 +262,123 @@ export function ArrowIcon(props: IconProps) {
     </Icon>
   );
 }
+
+// Job 11 (plan 03.3-42): amenity, calendar and slider-control icons. Line icons, 1.5 stroke, like Chevron and Search.
+
+export function PoolIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path d="M8.5 4v9M15.5 4v9M8.5 7h7M8.5 10.5h7" />
+      <path d="M3 16.5c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0M3 20.5c1.5 1.2 3 1.2 4.5 0s3-1.2 4.5 0 3 1.2 4.5 0 3-1.2 4.5 0" />
+    </Icon>
+  );
+}
+
+export function WifiIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path d="M3 9.5a13 13 0 0 1 18 0M6 13a8.5 8.5 0 0 1 12 0M9 16.5a4 4 0 0 1 6 0" />
+      <rect x="11" y="18.5" width="2" height="2" fill="currentColor" stroke="none" />
+    </Icon>
+  );
+}
+
+export function DropIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path d="M12 3.5c3.5 4.2 6 7 6 10.2a6 6 0 0 1-12 0c0-3.2 2.5-6 6-10.2z" />
+    </Icon>
+  );
+}
+
+export function TvIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <rect x="3.5" y="5.5" width="17" height="11.5" />
+      <path d="M9 20.5h6M12 17v3.5" />
+    </Icon>
+  );
+}
+
+export function AirIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path d="M3 9h11a2.5 2.5 0 1 0-2.5-2.5M3 13h15a2.5 2.5 0 1 1-2.5 2.5M3 17h7" />
+    </Icon>
+  );
+}
+
+export function KitchenIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path d="M5 10h14v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7zM3 10h18M9 7c0-1.2 1-1.2 1-2.5M14 7c0-1.2 1-1.2 1-2.5" />
+    </Icon>
+  );
+}
+
+export function FlameIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path d="M12 3.5c.5 3-3.5 5-3.5 9a5 5 0 0 0 10 0c0-2-1-3.5-2-4.5 0 1.5-.8 2.2-1.5 2.5.5-3-1-5.5-3-7z" />
+    </Icon>
+  );
+}
+
+export function BedIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path d="M3.5 18.5V6M3.5 14h17v4.5M20.5 14v-2.5a3 3 0 0 0-3-3H11V14M3.5 17h17" />
+      <circle cx="7" cy="10.5" r="1.7" />
+    </Icon>
+  );
+}
+
+export function CalendarIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <rect x="4" y="5.5" width="16" height="14.5" />
+      <path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" />
+    </Icon>
+  );
+}
+
+export function PlusIcon(props: IconProps) {
+  return (
+    <Icon fill="none" stroke="currentColor" strokeWidth={1.5} {...props}>
+      <path d="M12 5v14M5 12h14" />
+    </Icon>
+  );
+}
+
+export function PauseIcon(props: IconProps) {
+  return (
+    <Icon fill="currentColor" {...props}>
+      <path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" />
+    </Icon>
+  );
+}
+
+export function PlayIcon(props: IconProps) {
+  return (
+    <Icon fill="currentColor" {...props}>
+      <path d="M8 5l11 7-11 7z" />
+    </Icon>
+  );
+}
+
+/** The icon for each AmenityIcon key (plan 40 derives the key from the English amenity label). */
+export const AMENITY_ICONS: Record<AmenityIcon, (props: IconProps) => ReactNode> = {
+  pool: PoolIcon,
+  wifi: WifiIcon,
+  water: DropIcon,
+  tv: TvIcon,
+  air: AirIcon,
+  kitchen: KitchenIcon,
+  grill: FlameIcon,
+  security: ShieldIcon,
+  parking: CarIcon,
+  outdoor: PalmIcon,
+  lounge: StayIcon,
+  service: HeadsetIcon,
+  check: CheckIcon,
+};

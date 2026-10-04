@@ -1,0 +1,338 @@
+[
+  {
+    "id": "0d2a7249-64d9-5035-8996-f3b002d307f0",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "24-7-private-concierge",
+    "kind": "service",
+    "unit": "trip",
+    "price_aed": null,
+    "is_uae": false,
+    "image": {
+      "id": "0f28d1c4-47c9-5251-a4fc-696dc90caa77",
+      "media_key": "catalog/24-7-private-concierge.webp",
+      "width": 1600,
+      "height": 1200,
+      "position": 0
+    },
+    "destination_ids": [
+      "8990190e-2836-58e4-9eb0-3ac94c24632a",
+      "e34e5839-d6a1-5930-a061-512e7e6bc8f1"
+    ],
+    "stay_ids": [
+      "38f3ed2e-e6d2-50df-886c-c90c815252ad",
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3",
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec",
+      "d774b123-42b7-57c1-85b4-b73c697155dd",
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba",
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096",
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7",
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448",
+      "4a8e01c7-215d-578f-996a-6121e7b10e69",
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c",
+      "dae54186-686b-5701-9198-38818eb3aded",
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ],
+    "is_published": true,
+    "position": 1
+  },
+  {
+    "id": "36f0cbfa-61c7-53e1-85b8-a380296aa654",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "luxury-ground-transport",
+    "kind": "service",
+    "unit": "trip",
+    "price_aed": null,
+    "is_uae": false,
+    "image": {
+      "id": "2144b93b-a5c6-5671-893e-5aae8ef47cb8",
+      "media_key": "catalog/luxury-ground-transport.webp",
+      "width": 736,
+      "height": 736,
+      "position": 0
+    },
+    "destination_ids": [
+      "8990190e-2836-58e4-9eb0-3ac94c24632a",
+      "e34e5839-d6a1-5930-a061-512e7e6bc8f1"
+    ],
+    "stay_ids": [
+      "38f3ed2e-e6d2-50df-886c-c90c815252ad",
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3",
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec",
+      "d774b123-42b7-57c1-85b4-b73c697155dd",
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba",
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096",
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7",
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448",
+      "4a8e01c7-215d-578f-996a-6121e7b10e69",
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c",
+      "dae54186-686b-5701-9198-38818eb3aded",
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ],
+    "is_published": true,
+    "position": 2
+  },
+  {
+    "id": "0a1e9bbb-a744-5c57-ad6e-a34116dfe1e9",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "vip-airport-meet-greet",
+    "kind": "service",
+    "unit": "trip",
+    "price_aed": null,
+    "is_uae": false,
+    "image": {
+      "id": "667fc851-be00-5640-93a2-fa3d89658c29",
+      "media_key": "catalog/vip-airport-meet-greet.webp",
+      "width": 736,
+      "height": 736,
+      "position": 0
+    },
+    "destination_ids": [
+      "8990190e-2836-58e4-9eb0-3ac94c24632a",
+      "e34e5839-d6a1-5930-a061-512e7e6bc8f1"
+    ],
+    "stay_ids": [
+      "38f3ed2e-e6d2-50df-886c-c90c815252ad",
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3",
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec",
+      "d774b123-42b7-57c1-85b4-b73c697155dd",
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba",
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096",
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7",
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448",
+      "4a8e01c7-215d-578f-996a-6121e7b10e69",
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c",
+      "dae54186-686b-5701-9198-38818eb3aded",
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ],
+    "is_published": true,
+    "position": 3
+  },
+  {
+    "id": "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "welcome-cocktail",
+    "kind": "experience",
+    "unit": "person",
+    "price_aed": null,
+    "is_uae": false,
+    "image": {
+      "id": "8974aa01-5eed-570c-9a95-ab2381f8004b",
+      "media_key": "catalog/welcome-cocktail.webp",
+      "width": 736,
+      "height": 1291,
+      "position": 0
+    },
+    "destination_ids": [
+      "8990190e-2836-58e4-9eb0-3ac94c24632a",
+      "e34e5839-d6a1-5930-a061-512e7e6bc8f1"
+    ],
+    "stay_ids": [
+      "38f3ed2e-e6d2-50df-886c-c90c815252ad",
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3",
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec",
+      "d774b123-42b7-57c1-85b4-b73c697155dd",
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba",
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096",
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7",
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448",
+      "4a8e01c7-215d-578f-996a-6121e7b10e69",
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c",
+      "dae54186-686b-5701-9198-38818eb3aded",
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ],
+    "is_published": true,
+    "position": 4
+  },
+  {
+    "id": "d4cc2412-6db6-5e58-8108-610b391a2cb6",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "cartagena-night-experience",
+    "kind": "experience",
+    "unit": "person",
+    "price_aed": null,
+    "is_uae": false,
+    "image": {
+      "id": "857186c3-85a9-59d8-8e88-aa046c00438d",
+      "media_key": "catalog/cartagena-night-experience.webp",
+      "width": 955,
+      "height": 1274,
+      "position": 0
+    },
+    "destination_ids": [
+      "8990190e-2836-58e4-9eb0-3ac94c24632a"
+    ],
+    "stay_ids": [
+      "38f3ed2e-e6d2-50df-886c-c90c815252ad",
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3",
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec",
+      "d774b123-42b7-57c1-85b4-b73c697155dd",
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba",
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096",
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448"
+    ],
+    "is_published": true,
+    "position": 5
+  },
+  {
+    "id": "8736a8de-7744-53f9-8cb2-3028d9d309d9",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "cartagena-heritage-tours",
+    "kind": "experience",
+    "unit": "person",
+    "price_aed": null,
+    "is_uae": false,
+    "image": {
+      "id": "d7c9d68a-5697-5a17-9530-16250f5a2280",
+      "media_key": "catalog/cartagena-heritage-tours.webp",
+      "width": 1920,
+      "height": 1433,
+      "position": 0
+    },
+    "destination_ids": [
+      "8990190e-2836-58e4-9eb0-3ac94c24632a"
+    ],
+    "stay_ids": [
+      "38f3ed2e-e6d2-50df-886c-c90c815252ad",
+      "0e62e1e3-77bc-5658-b643-e4407fdc18a3",
+      "4bc21ad0-2d92-595a-8a70-ba2f895097ec",
+      "d774b123-42b7-57c1-85b4-b73c697155dd",
+      "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba",
+      "c5444a7c-d129-5536-bdd5-ee35dff4a096",
+      "b22e8dfd-1f35-541d-85bf-4169d08ed448"
+    ],
+    "is_published": true,
+    "position": 6
+  },
+  {
+    "id": "9f31a21f-e3f0-5f1d-ae06-71da428e3abd",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "rosario-islands-escape",
+    "kind": "experience",
+    "unit": "person",
+    "price_aed": null,
+    "is_uae": false,
+    "image": {
+      "id": "421aa8d8-678f-5607-b708-810365bc1266",
+      "media_key": "catalog/rosario-islands-escape.webp",
+      "width": 1200,
+      "height": 1601,
+      "position": 0
+    },
+    "destination_ids": [
+      "8990190e-2836-58e4-9eb0-3ac94c24632a"
+    ],
+    "stay_ids": [
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7",
+      "4a8e01c7-215d-578f-996a-6121e7b10e69",
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c"
+    ],
+    "is_published": true,
+    "position": 7
+  },
+  {
+    "id": "18d491a4-8c28-569a-9587-ff21bc5aeeba",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "yacht-island-charters",
+    "kind": "experience",
+    "unit": "person",
+    "price_aed": null,
+    "is_uae": false,
+    "image": {
+      "id": "1e02db5a-5ac1-5415-a05f-66c9b7d81cae",
+      "media_key": "catalog/yacht-island-charters.webp",
+      "width": 736,
+      "height": 1013,
+      "position": 0
+    },
+    "destination_ids": [
+      "8990190e-2836-58e4-9eb0-3ac94c24632a"
+    ],
+    "stay_ids": [
+      "9a5ae3ce-043f-533f-80c1-6d742dac42c7",
+      "4a8e01c7-215d-578f-996a-6121e7b10e69",
+      "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c"
+    ],
+    "is_published": true,
+    "position": 8
+  },
+  {
+    "id": "0eb443e0-f11d-58ef-93db-40d370d85c31",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "medellin-renaissance",
+    "kind": "experience",
+    "unit": "person",
+    "price_aed": null,
+    "is_uae": false,
+    "image": {
+      "id": "49a20a34-c831-544d-b6d2-a1bb80e602a0",
+      "media_key": "catalog/medellin-renaissance.webp",
+      "width": 736,
+      "height": 1318,
+      "position": 0
+    },
+    "destination_ids": [
+      "e34e5839-d6a1-5930-a061-512e7e6bc8f1"
+    ],
+    "stay_ids": [
+      "dae54186-686b-5701-9198-38818eb3aded",
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ],
+    "is_published": true,
+    "position": 9
+  },
+  {
+    "id": "feb9b4e7-6a66-5a31-b1d0-603fe49f04ea",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "slug": "medellin-discovery-tours",
+    "kind": "experience",
+    "unit": "person",
+    "price_aed": null,
+    "is_uae": false,
+    "image": {
+      "id": "09dde168-3631-5fb2-aade-99ced23244cf",
+      "media_key": "catalog/medellin-discovery-tours.webp",
+      "width": 959,
+      "height": 1200,
+      "position": 0
+    },
+    "destination_ids": [
+      "e34e5839-d6a1-5930-a061-512e7e6bc8f1"
+    ],
+    "stay_ids": [
+      "dae54186-686b-5701-9198-38818eb3aded",
+      "91748919-5a54-5ddb-9a5f-35b33b74c8a3"
+    ],
+    "is_published": true,
+    "position": 10
+  }
+]

@@ -17,6 +17,12 @@ export const FX_URL = "https://latest.currency-api.pages.dev/v1/currencies/usd.j
 
 const TWELVE_HOURS = 12 * 60 * 60 * 1000;
 
+// Sanity band for the daily feed (units per 1 USD). The dirham is pegged to the dollar, so a feed outside
+// these bounds is wrong (swapped, scaled, broken), not a market move; it is refused and the published
+// text stays as written.
+const AED_PER_USD = { min: 3.6, max: 3.75 };
+const EUR_PER_USD = { min: 0.5, max: 1.5 };
+
 export type WrittenCurrency = "USD" | "AED";
 export type SelectedCurrency = "AED" | "USD" | "EUR";
 
@@ -52,19 +58,57 @@ const WRITTEN: Array<{
   { source: "AED 80,000", amount: 80000, currency: "AED" },
 ];
 
+// A written amount ends where no further digit and no decimal or group part follows, so "AED 80,000"
+// never matches inside "AED 80,0000" or "AED 80,000.50". It starts where no word character or "$" comes
+// before it, so "$3,000" never matches inside "US$3,000".
+const START = String.raw`(?<![\w$])`;
+const END = String.raw`(?!\d|[.,]\d)`;
+
+// The dashes a range may be written with: hyphen, en dash, em dash. AED_RANGE, the single-amount guards
+// and settled() all use this one class, so a range is either read whole or not at all.
+const DASH = "[-–—]";
+
+// "AED 80,000–90,000" (a DASH, spaced or not, optional trailing "+"): both ends convert under one
+// currency code and the written separator is kept.
+const AED_RANGE = new RegExp(
+  String.raw`(?<![\w$])AED (\d{1,3}(?:,\d{3})*)(\s*${DASH}\s*)(\d{1,3}(?:,\d{3})*)(\+?)(?!\d|[.,]\d)`,
+  "g",
+);
+
+// A single written amount is never one end of a range: no dash or "to" and a digit after it (the low
+// end) and no digit and a dash or "to" before it (the high end). Only AED_RANGE converts a range, and a
+// range it cannot read keeps the whole label as written.
+const NOT_LOW_END = String.raw`(?!\s*(?:${DASH}|to)\s*\d)`;
+const NOT_HIGH_END = String.raw`(?<!\d\s*(?:${DASH}|to)\s*)`;
+const WRITTEN_PATTERNS = WRITTEN.map((row) => ({
+  ...row,
+  pattern: new RegExp(`${START}${NOT_HIGH_END}${row.source.replace(/[$.]/g, "\\$&")}${END}${NOT_LOW_END}`, "g"),
+}));
+
 let memory: { rates: FxRates; at: number } | null = null;
+
+/** A usable rate is a real number above zero: never 0, negative, NaN, Infinity, a string or null. */
+function isRate(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+/** The digits of a written amount ("80,000") as a number, or null when they are not a safe integer. */
+function writtenNumber(digits: string): number | null {
+  const amount = Number(digits.replace(/,/g, ""));
+  return Number.isSafeInteger(amount) ? amount : null;
+}
 
 export function parseWrittenAmount(text: string): WrittenAmount | null {
   if (typeof text !== "string") return null;
   const usd = text.match(/^\$(\d{1,3}(?:,\d{3})*)$/);
   if (usd) {
-    const amount = Number(usd[1].replace(/,/g, ""));
-    return Number.isFinite(amount) ? { amount, currency: "USD" } : null;
+    const amount = writtenNumber(usd[1]);
+    return amount === null ? null : { amount, currency: "USD" };
   }
   const aed = text.match(/^AED (\d{1,3}(?:,\d{3})*)$/);
   if (aed) {
-    const amount = Number(aed[1].replace(/,/g, ""));
-    return Number.isFinite(amount) ? { amount, currency: "AED" } : null;
+    const amount = writtenNumber(aed[1]);
+    return amount === null ? null : { amount, currency: "AED" };
   }
   return null;
 }
@@ -81,23 +125,19 @@ export function convertWrittenAmount(
   if (selected !== "AED" && selected !== "USD" && selected !== "EUR") return null;
   if (written.currency === selected) return written.amount;
 
-  const aed = Number(rates?.aed);
-  const eur = Number(rates?.eur);
+  const aed: unknown = rates?.aed;
+  const eur: unknown = rates?.eur;
+  let converted: number | null = null;
   if (written.currency === "USD" && selected === "EUR") {
-    return Number.isFinite(eur) ? written.amount * eur : null;
+    converted = isRate(eur) ? written.amount * eur : null;
+  } else if (written.currency === "USD" && selected === "AED") {
+    converted = isRate(aed) ? written.amount * aed : null;
+  } else if (written.currency === "AED" && selected === "USD") {
+    converted = isRate(aed) ? written.amount * (1 / aed) : null;
+  } else if (written.currency === "AED" && selected === "EUR") {
+    converted = isRate(aed) && isRate(eur) ? written.amount * (eur / aed) : null;
   }
-  if (written.currency === "USD" && selected === "AED") {
-    return Number.isFinite(aed) ? written.amount * aed : null;
-  }
-  if (written.currency === "AED" && selected === "USD") {
-    return Number.isFinite(aed) && aed !== 0 ? written.amount * (1 / aed) : null;
-  }
-  if (written.currency === "AED" && selected === "EUR") {
-    return Number.isFinite(aed) && Number.isFinite(eur) && aed !== 0
-      ? written.amount * (eur / aed)
-      : null;
-  }
-  return null;
+  return converted !== null && Number.isFinite(converted) ? converted : null;
 }
 
 export function formatConverted(
@@ -110,6 +150,42 @@ export function formatConverted(
   return formatLikeAmount(currency, amount, "en");
 }
 
+/** The converted amount as text, or null when it would print empty (not finite) or as zero. */
+function shownAmount(selected: SelectedCurrency, amount: number, locale: string): string | null {
+  const shown = formatConverted(selected, amount, locale);
+  return shown !== "" && /[1-9]/.test(shown) ? shown : null;
+}
+
+// An amount as printed in the selected currency: "21,783.53", "80,000".
+const PRINTED = String.raw`\d{1,3}(?:,\d{3})*(?:\.\d+)?`;
+
+// What may not follow an amount in the selected currency: a short gap (one sign, or a word of up to five
+// letters such as "a", "or", "hasta", "إلى") and then a digit. That digit starts a range end the module
+// did not read, in any number format ("−90000", " a 90.000", " إلى 90 ألف", " or 3500").
+const NUMBER_AFTER_GAP = /^\s*(?:[^\p{L}\p{N}\s]|\p{L}{1,5})\s*\p{N}/u;
+
+/**
+ * True when `out` reads in one currency only: no written dollar amount is left ("$3,000", "US$3,000"),
+ * every currency code in it is the selected one, and once every amount or DASH range in the selected
+ * currency ("USD 21,783.53–24,506.47+") is set aside, no grouped number ("90,000") is left. That last
+ * rule catches any range end the module did not read, whatever separates it ("−", "~", " or ", " a ",
+ * " إلى ", a third end), and NUMBER_AFTER_GAP catches one written without comma groups ("90000",
+ * "90.000", "90k"). A DASH range set aside here was converted whole: a low end alone before a DASH and a
+ * digit never converts (NOT_LOW_END).
+ */
+function settled(out: string, selected: SelectedCurrency): boolean {
+  if (/\$\s?\d/.test(out)) return false;
+  const codes = out.match(/\b(?:AED|USD|EUR)\b/g) ?? [];
+  if (!codes.every((code) => code === selected)) return false;
+  const inSelected = new RegExp(String.raw`\b${selected} ${PRINTED}(?:\s*${DASH}\s*${PRINTED})?\+?`, "g");
+  // Each span is matched whole (greedy, nothing after it to backtrack for) before the text after it is
+  // checked, so "USD 3,000" is never read as "USD 3" followed by ",0".
+  for (const span of out.matchAll(inSelected)) {
+    if (NUMBER_AFTER_GAP.test(out.slice(span.index + span[0].length))) return false;
+  }
+  return !/\d,\d{3}/.test(out.replace(inSelected, ""));
+}
+
 export function rewriteHomeAmounts(
   text: string,
   selected: SelectedCurrency,
@@ -118,11 +194,33 @@ export function rewriteHomeAmounts(
 ): string {
   if (typeof text !== "string") return "";
   if (selected !== "AED" && selected !== "USD" && selected !== "EUR") return text;
-  if (!rates || !Number.isFinite(Number(rates.aed)) || !Number.isFinite(Number(rates.eur))) {
-    return text;
-  }
+  if (!rates || !isRate(rates.aed) || !isRate(rates.eur)) return text;
   let next = text;
-  for (const row of WRITTEN) {
+  // A written AED range ("AED 80,000–90,000", see AED_RANGE) converts at BOTH ends under
+  // one currency code. Only the low end carries the "AED " prefix the rows below match, so without this the
+  // high end stayed in AED under a USD label. A range converts only when both ends come out finite and
+  // above zero; otherwise it is left as written.
+  next = next.replace(
+    AED_RANGE,
+    (whole: string, low: string, separator: string, high: string, plus: string) => {
+      if (selected === "AED") return whole; // already in AED: keep it byte for byte
+      // A high end below the low end is not money ("AED 80,000 – 7 nights"): leave it, and the low end
+      // alone is then never converted (NOT_LOW_END), so the label prints as written.
+      const lowAmount = writtenNumber(low);
+      const highAmount = writtenNumber(high);
+      if (lowAmount === null || highAmount === null || highAmount < lowAmount) return whole;
+      const prefix = `${selected} `;
+      const ends = [lowAmount, highAmount].map((written) => {
+        const amount = convertWrittenAmount({ amount: written, currency: "AED" }, selected, rates);
+        if (amount === null || !Number.isFinite(amount) || amount <= 0) return null;
+        const shown = shownAmount(selected, amount, locale);
+        return shown !== null && shown.startsWith(prefix) ? shown.slice(prefix.length) : null;
+      });
+      return ends[0] === null || ends[1] === null ? whole : `${prefix}${ends[0]}${separator}${ends[1]}${plus}`;
+    },
+  );
+  for (const row of WRITTEN_PATTERNS) {
+    if (row.currency === "AED" && selected === "AED") continue; // already in AED: keep it byte for byte
     if (!next.includes(row.source)) continue;
     const amount = convertWrittenAmount(
       { amount: row.amount, currency: row.currency },
@@ -130,9 +228,13 @@ export function rewriteHomeAmounts(
       rates,
     );
     if (amount === null) continue;
-    next = next.split(row.source).join(formatConverted(selected, amount, locale));
+    const shown = shownAmount(selected, amount, locale);
+    if (shown === null) continue;
+    next = next.replace(row.pattern, () => shown);
   }
-  return next;
+  // All or nothing: a written amount that could not be converted, or a second currency code, means the
+  // label would mix currencies. Print it exactly as written instead.
+  return settled(next, selected) ? next : text;
 }
 
 async function readFeed(): Promise<FxRates | null> {
@@ -142,10 +244,12 @@ async function readFeed(): Promise<FxRates | null> {
     const body: unknown = await response.json();
     if (!body || typeof body !== "object") return null;
     const record = body as { date?: unknown; usd?: { aed?: unknown; eur?: unknown } };
-    const aed = Number(record.usd?.aed);
-    const eur = Number(record.usd?.eur);
+    const aed = record.usd?.aed;
+    const eur = record.usd?.eur;
     const date = record.date;
-    if (!Number.isFinite(aed) || !Number.isFinite(eur)) return null;
+    if (!isRate(aed) || !isRate(eur)) return null;
+    if (aed < AED_PER_USD.min || aed > AED_PER_USD.max) return null;
+    if (eur < EUR_PER_USD.min || eur > EUR_PER_USD.max) return null;
     if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
     return { aed, eur, date };
   } catch {
@@ -162,103 +266,4 @@ export async function loadRates(): Promise<FxRates | null> {
     return fresh;
   }
   return memory?.rates ?? null;
-}
-
-export function homePriceScript(): string {
-  return `(function () {
-  var ORIG = "data-almar-fx";
-  var last = null;
-  var specs = [
-    ["USD $20,000", 20000, "USD"],
-    ["$20,000", 20000, "USD"],
-    ["USD $3,500", 3500, "USD"],
-    ["$3,500", 3500, "USD"],
-    ["USD $3,000", 3000, "USD"],
-    ["$3,000", 3000, "USD"],
-    ["AED 200,000", 200000, "AED"],
-    ["AED 120,000", 120000, "AED"],
-    ["AED 80,000", 80000, "AED"]
-  ];
-  function finite(value) {
-    return typeof value === "number" && isFinite(value);
-  }
-  function convert(amount, written, selected, aed, eur) {
-    if (written === selected) return amount;
-    if (written === "USD" && selected === "EUR") return finite(eur) ? amount * eur : null;
-    if (written === "USD" && selected === "AED") return finite(aed) ? amount * aed : null;
-    if (written === "AED" && selected === "USD") return finite(aed) && aed !== 0 ? amount * (1 / aed) : null;
-    if (written === "AED" && selected === "EUR") return finite(aed) && finite(eur) && aed !== 0 ? amount * (eur / aed) : null;
-    return null;
-  }
-  function format(currency, amount, locale) {
-    var whole = Number.isInteger(amount);
-    var loc = locale === "ar" ? "ar-AE-u-nu-latn" : "en-US";
-    var num = new Intl.NumberFormat(loc, {
-      minimumFractionDigits: whole ? 0 : 2,
-      maximumFractionDigits: whole ? 0 : 2
-    }).format(amount);
-    return currency + " " + num;
-  }
-  function rewrite(text, selected, aed, eur, locale) {
-    if (!finite(aed) || !finite(eur)) return text;
-    var next = text;
-    for (var i = 0; i < specs.length; i++) {
-      var source = specs[i][0];
-      if (next.indexOf(source) === -1) continue;
-      var amount = convert(specs[i][1], specs[i][2], selected, aed, eur);
-      if (amount === null) continue;
-      next = next.split(source).join(format(selected, amount, locale));
-    }
-    return next;
-  }
-  function hasSource(text) {
-    for (var j = 0; j < specs.length; j++) {
-      if (text.indexOf(specs[j][0]) !== -1) return true;
-    }
-    return false;
-  }
-  function apply(selected, aed, eur, locale) {
-    var nodes = document.body ? document.body.querySelectorAll("*") : [];
-    for (var i = 0; i < nodes.length; i++) {
-      var el = nodes[i];
-      if (el.closest("#almar-hero-booker, script, style")) continue;
-      var original = el.getAttribute(ORIG) || el.textContent || "";
-      if (!hasSource(original)) continue;
-      var childHit = false;
-      for (var c = 0; c < el.children.length; c++) {
-        var childText = el.children[c].getAttribute(ORIG) || el.children[c].textContent || "";
-        if (hasSource(childText)) childHit = true;
-      }
-      if (childHit) continue;
-      if (!el.getAttribute(ORIG)) el.setAttribute(ORIG, original);
-      var next = rewrite(original, selected, aed, eur, locale);
-      if (el.textContent !== next) el.textContent = next;
-      if (el.style.fontVariantNumeric !== "tabular-nums") el.style.fontVariantNumeric = "tabular-nums";
-    }
-  }
-  function onMessage(event) {
-    if (event.origin !== location.origin) return;
-    if (event.source !== window.parent) return;
-    var data = event.data;
-    if (!data || typeof data !== "object") return;
-    if (data.currency !== "AED" && data.currency !== "USD" && data.currency !== "EUR") return;
-    var locale = data.locale === "ar" ? "ar" : "en";
-    var aed = typeof data.aed === "number" ? data.aed : NaN;
-    var eur = typeof data.eur === "number" ? data.eur : NaN;
-    last = { currency: data.currency, aed: aed, eur: eur, locale: locale };
-    apply(data.currency, aed, eur, locale);
-  }
-  window.addEventListener("message", onMessage);
-  var timer = 0;
-  var observer = new MutationObserver(function () {
-    if (!last) return;
-    window.clearTimeout(timer);
-    timer = window.setTimeout(function () {
-      if (!last) return;
-      apply(last.currency, last.aed, last.eur, last.locale);
-    }, 50);
-  });
-  observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
-  window.setTimeout(function () { observer.disconnect(); }, 8000);
-})();`;
 }

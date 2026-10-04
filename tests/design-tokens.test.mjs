@@ -164,7 +164,13 @@ function fileViolations(file) {
     if (new RegExp(word, "i").test(text)) out.push(`banned string ${word}`);
   }
   if (/\.dark\b/.test(text)) out.push("contains a .dark selector");
-  if (/dangerouslySetInnerHTML/.test(text)) out.push("dangerouslySetInnerHTML");
+  // One exemption, approved by the controller 2026-10-03: JSON-LD cannot be rendered without raw HTML
+  // (React escapes a <script> text child). Allowed only while the file's payload is a fixed literal.
+  const JSON_LD_FILE = "components/site/organization-json-ld.ts";
+  if (/dangerouslySetInnerHTML/.test(text)) {
+    const fixedLiteral = /export const ORGANIZATION_JSON_LD =\s*'[^'`$]*';/.test(text) && !/[`]|\$\{/.test(text);
+    if (file !== JSON_LD_FILE || !fixedLiteral) out.push("dangerouslySetInnerHTML");
+  }
   if (/\.(tsx|ts)$/.test(file)) {
     for (const token of classTokens(text, file)) out.push(...tokenViolations(token, file));
   }

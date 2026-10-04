@@ -46,7 +46,9 @@ test("dialog.tsx has no hard-coded button strings and keeps the locked-dismiss h
 });
 
 test("specimen-only exports are gone from the app", () => {
-  for (const name of ["select.tsx", "date-field.tsx"]) {
+  // select.tsx left this list in 03.3-02: it is now the shared Select primitive (the one listbox);
+  // the specimen-only Select it once named is still gone.
+  for (const name of ["date-field.tsx"]) {
     assert.equal(readdirSync(DIR).includes(name), false, `${name} should be deleted`);
   }
   assert.equal(read("toast.tsx").includes("ShowToast"), false);

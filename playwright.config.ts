@@ -5,6 +5,8 @@ const baseURL = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
   testDir: "tests",
+  // The build-suite runs against the assembled out/ with playwright.build.config.ts, not against next dev.
+  testIgnore: ["build/**"],
   snapshotPathTemplate: "{testDir}/{arg}{ext}",
   expect: {
     toHaveScreenshot: {

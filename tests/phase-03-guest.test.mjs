@@ -118,6 +118,7 @@ test("nav takes its logos from brand/ and uses LocaleSelect, not NavDrop or Fram
   assert.match(nav, /LocaleSelect/);
   const footer = readFileSync("components/ui/footer.tsx", "utf8");
   assert.equal(footer.includes("framerusercontent.com"), false);
-  assert.match(footer, /inquiries@<wbr \/>almarprivatejourney\.com/);
+  // The footer now splits the address at "@" to place the <wbr />; the owner's text stays verbatim.
+  assert.match(footer, /"inquiries@almarprivatejourney\.com"/);
   assert.match(footer, /\+971 56 388 3302/);
 });

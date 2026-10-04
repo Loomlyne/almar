@@ -3,6 +3,7 @@
 import { forwardRef, type ReactNode } from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { LockIcon } from "../icons/icons";
 
 export type JourneySegmentState = "empty" | "hover" | "open" | "filled" | "missing";
 
@@ -18,6 +19,8 @@ export type JourneySegmentProps = {
   expanded?: boolean;
   /** Locked by a pre-filled stay page (D-62): shown, not interactive. */
   locked?: boolean;
+  /** Show the lock icon before the value (the private-stay bar). Off by default. */
+  lockIcon?: boolean;
   id?: string;
   className?: string;
 };
@@ -45,7 +48,7 @@ const segment = cva(
 );
 
 export const JourneySegment = forwardRef<HTMLButtonElement, JourneySegmentProps>(function JourneySegment(
-  { label, value, placeholder, state, onClick, ariaDescribedBy, expanded, locked = false, id, className },
+  { label, value, placeholder, state, onClick, ariaDescribedBy, expanded, locked = false, lockIcon = false, id, className },
   ref,
 ) {
   const missing = state === "missing";
@@ -70,7 +73,16 @@ export const JourneySegment = forwardRef<HTMLButtonElement, JourneySegmentProps>
           filled ? "text-ink" : "text-muted",
         )}
       >
-        {filled ? value : placeholder}
+        {lockIcon ? (
+          <span className="flex min-w-0 items-center gap-2">
+            <LockIcon size={16} className="shrink-0 text-muted" />
+            <span className="truncate">{filled ? value : placeholder}</span>
+          </span>
+        ) : filled ? (
+          value
+        ) : (
+          placeholder
+        )}
       </span>
     </button>
   );
