@@ -17,6 +17,7 @@ const SOURCES = [
   path.join(process.cwd(), "components/ui/stepper.tsx"),
   path.join(process.cwd(), "lib/cn.ts"),
   path.join(process.cwd(), "components/icons/icons.tsx"),
+  path.join(process.cwd(), "lib/data/types.ts"),
   path.join(process.cwd(), "lib/copy/home.ts"),
 ];
 const OUTFILE = path.join(process.cwd(), ".next/cache/almar-hero-booker.js");
