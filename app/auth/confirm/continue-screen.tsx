@@ -55,7 +55,8 @@ export function ContinueScreen({
     confirmSignIn,
     initialWrong ? { status: "wrong-email" as const, email: initialEmail } : ({ status: "idle" } as ConfirmState),
   );
-  const [email, setEmail] = useState(initialEmail);
+  // Without JavaScript the page is rendered again from the action's state: keep what she typed.
+  const [email, setEmail] = useState(state.status === "wrong-email" ? state.email : initialEmail);
   const copy = GUEST_COPY[locale].auth.continue;
   useEffect(() => setDocumentLocale(locale), [locale]);
 
@@ -98,7 +99,7 @@ export function ContinueScreen({
           </>
         ) : null}
         <ContinueButton>{copy.button}</ContinueButton>
-        <a href={signInHref} className="text-label text-ink underline decoration-gold underline-offset-4">
+        <a href={signInHref} rel="noreferrer" className="text-label text-ink underline decoration-gold underline-offset-4">
           {copy.other}
         </a>
       </form>

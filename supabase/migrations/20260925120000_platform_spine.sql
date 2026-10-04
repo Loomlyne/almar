@@ -193,12 +193,15 @@ begin
   perform pg_advisory_xact_lock(hashtextextended(p_email_hash, 0));
   perform pg_advisory_xact_lock(hashtextextended(p_ip_hash, 0));
 
-  -- Only old rows for the keys locked above: a delete that touches other keys' rows would race with their
-  -- locks. A full cleanup of every old row belongs to a scheduled job (proposal, not built).
+  -- Only old rows for the keys locked above, and only rows no other request holds (skip locked): an old row
+  -- can carry one request's email and another's IP, and two plain deletes could then wait on each other.
+  -- A full cleanup of every old row belongs to a scheduled job (proposal, not built).
   delete from public.auth_link_requests
-  where email_hash = p_email_hash and created_at < now() - interval '1 day';
-  delete from public.auth_link_requests
-  where ip_hash = p_ip_hash and created_at < now() - interval '1 day';
+  where id in (
+    select id from public.auth_link_requests
+    where (email_hash = p_email_hash or ip_hash = p_ip_hash) and created_at < now() - interval '1 day'
+    for update skip locked
+  );
 
   if exists (
     select 1 from public.auth_link_requests

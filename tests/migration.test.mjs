@@ -126,8 +126,8 @@ test("claim_link_slot takes the email lock first, then the IP lock; created_at i
 
 test("claim_link_slot deletes only old rows for the two locked keys; a full cleanup is a proposal", () => {
   const body = fnBody("claim_link_slot");
-  assert.match(body, /delete from public\.auth_link_requests\s+where email_hash = p_email_hash and created_at < now\(\) - interval '1 day'/);
-  assert.match(body, /delete from public\.auth_link_requests\s+where ip_hash = p_ip_hash and created_at < now\(\) - interval '1 day'/);
+  assert.match(body, /delete from public\.auth_link_requests\s+where id in \(/);
+  assert.match(body, /\(email_hash = p_email_hash or ip_hash = p_ip_hash\) and created_at < now\(\) - interval '1 day'\s+for update skip locked/);
   assert.equal(/delete from public\.auth_link_requests\s+where created_at/.test(body), false);
   const raw = readFileSync("supabase/migrations/20260925120000_platform_spine.sql", "utf8");
   assert.equal(raw.split("scheduled job (proposal, not built)").length - 1, 2);
