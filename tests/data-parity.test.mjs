@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildImportPayload } from "../scripts/import-catalog.mjs";
 import { localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
+import { importIntoLocal } from "./helpers/import-local.mjs";
 import { writeLiveShapedFixtures } from "./helpers/live-shaped-fixtures.mjs";
 import { withStackLock } from "./helpers/stack-lock.mjs";
 
@@ -100,15 +101,6 @@ function supabaseSide(stack) {
     NEXT_PUBLIC_SUPABASE_URL: stack.url,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: stack.anonKey,
   });
-}
-
-function importIntoLocal(stack) {
-  const res = spawnSync(process.execPath, ["scripts/import-catalog.mjs", "--apply", "--local"], {
-    cwd: process.cwd(),
-    env: { ...process.env, SUPABASE_URL: stack.url, SUPABASE_SERVICE_ROLE_KEY: stack.serviceKey },
-    encoding: "utf8",
-  });
-  assert.equal(res.status, 0, `import failed:\n${(res.stdout + res.stderr).replaceAll(stack.serviceKey, "<key>").slice(-3000)}`);
 }
 
 let touched = false;

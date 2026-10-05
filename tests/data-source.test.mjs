@@ -62,6 +62,8 @@ const SUPABASE_ENV = {
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-a-test",
 };
 
+const PUBLIC_FOR_IMPORT = { NEXT_PUBLIC_SUPABASE_URL: "https://example-project.invalid", NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-a-test" };
+
 const VIEW_NAMES = [
   "api_destinations", "api_destination_translations", "api_stays", "api_stay_translations", "api_catalog",
   "api_catalog_translations", "api_team", "api_team_translations", "api_journey_tiers", "api_journey_tier_translations",
@@ -354,6 +356,20 @@ test("__testing.reset forgets the loaded rows, the failure and the injected clie
     mod.__testing.reset();
     assert.throws(() => mod.readSource("stays"), /before loadSource/);
   });
+});
+
+// the load at import (byte parity depends on it) -------------------------------------------------------------------------
+
+test("importing source.ts in supabase mode loads the views before any read; in fixtures mode it does nothing", async () => {
+  // The stub throws when supabase-js is imported, so a rejected import proves the import started the load.
+  const refused = await withEnv(SUPABASE_ENV, () => loadSourceModule().then(() => null, (e) => e));
+  assert.match(refused.message, /@supabase\/supabase-js was imported/);
+  const noSettings = await withEnv({ ALMAR_DATA_SOURCE: "supabase" }, () => loadSourceModule().then(() => null, (e) => e));
+  assert.match(noSettings.message, /NEXT_PUBLIC_SUPABASE_URL/);
+  await withEnv({}, () => loadSourceModule());
+  await withEnv({ ALMAR_DATA_SOURCE: "fixtures", ...PUBLIC_FOR_IMPORT }, () => loadSourceModule());
+  const typo = await withEnv({ ALMAR_DATA_SOURCE: "supabse" }, () => loadSourceModule());
+  await withEnv({ ALMAR_DATA_SOURCE: "supabse" }, () => assert.throws(() => typo.dataSource(), /ALMAR_DATA_SOURCE/));
 });
 
 // image-translations in supabase mode -----------------------------------------------------------------------------

@@ -195,9 +195,17 @@ async function readAll(): Promise<void> {
  */
 export async function loadSource(): Promise<void> {
   if (dataSource() === "fixtures") return;
+  if (rows) return; // once loaded: the same path, with the same microtask ticks, as fixtures mode (see tests/parity)
   loading ??= readAll();
   await loading;
 }
+
+// Supabase mode: the load is part of importing this module, so it has finished before any page that imports lib/data
+// starts to render. A page that waited for the network itself would stream its React Flight rows in another order than
+// the same page built from fixtures, and the built bytes would differ for nothing a visitor can see (parity-build).
+// Fixtures mode and the Worker at request time (no ALMAR_DATA_SOURCE there) do nothing here. A failed load rejects the
+// import: the build stops.
+if (process.env.ALMAR_DATA_SOURCE === "supabase") await loadSource();
 
 /**
  * The rows of one source, under the fixture file's name. Sync; in supabase mode `await loadSource()` must have resolved
