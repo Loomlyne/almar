@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
@@ -55,6 +56,30 @@ const PAGES = [
   ...SLUGS.map((slug) => ({ name: slug, path: `/private-stays/${slug}` })),
 ];
 const DOCUMENTS = LOCALES.flatMap((locale) => PAGES.map((page) => ({ locale, ...page, url: localePath(locale, page.path) })));
+
+/**
+ * Plan 03.3-17: every public React document, computed (scripts/media-lib.mjs publicDocuments(), read once in a child
+ * process because that module imports .ts files). The sitemap lists all of them, not only slice 1's 42 (the sweep's
+ * own scope stays DOCUMENTS), so its alternate count is this number, never a literal.
+ */
+const PUBLIC_REACT_DOCUMENTS: number = Number(
+  execFileSync(
+    process.execPath,
+    ["--input-type=module", "-e", 'import { publicDocuments } from "./scripts/media-lib.mjs"; process.stdout.write(String(publicDocuments().length));'],
+    { cwd: process.cwd(), encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+  ),
+);
+
+/** The Framer documents still served: every app route.ts that holds a Framer export (same rule as locale-routing.spec.ts). */
+function framerDocumentCount(dir = "app"): number {
+  let count = 0;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) count += framerDocumentCount(full);
+    else if (entry.name === "route.ts" && fs.readFileSync(full, "utf8").includes('const HTML = "')) count += 1;
+  }
+  return count;
+}
 
 const attr = (tag: string, name: string) => new RegExp(`\\s${name}\\s*=\\s*"([^"]*)"`, "i").exec(tag)?.[1] ?? null;
 
@@ -586,7 +611,7 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     expect(missing.headers()["x-robots-tag"]).toBeUndefined();
   });
 
-  test("sitemap.xml lists 42 documents with alternates and every address answers 200 without a redirect", async ({ request }) => {
+  test("sitemap.xml lists every public React document with alternates (slice 1's 42 among them) and every address answers 200 without a redirect", async ({ request }) => {
     test.setTimeout(120_000);
     const response = await request.get("/sitemap.xml");
     expect(response.status()).toBe(200);
@@ -594,9 +619,10 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     const xml = await response.text();
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(new Set(locs).size, "no address twice").toBe(locs.length);
-    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "42 documents carry alternates").toBe(42);
+    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "every public React document carries alternates").toBe(PUBLIC_REACT_DOCUMENTS);
+    expect(locs.length, "React documents plus the remaining Framer documents").toBe(PUBLIC_REACT_DOCUMENTS + framerDocumentCount());
 
-    // The 42 documents of this slice are all listed, once each, at the address the locale helper builds.
+    // The 42 documents of slice 1 are all listed, once each, at the address the locale helper builds.
     for (const doc of DOCUMENTS) expect(locs, doc.url).toContain(SITE_ORIGIN + doc.url);
 
     // Every listed address, fetched from the local server (the sitemap's origin is the live site's).
