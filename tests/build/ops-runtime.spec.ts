@@ -13,6 +13,12 @@ import { OPS_AUTH_PATHS, opsPathsFrom } from "../../lib/ops-routes";
 // The test copy of wrangler.ops.toml has no [ai] block (Workers AI is always remote and would bill) and no route.
 // The ops host is sent as the request's Host header; the first test proves the Worker sees it.
 
+// The normal build suite runs the public Worker (wrangler.toml); this file runs only with the ops test config (see the header),
+// so it is skipped everywhere else. The skip is file-wide, and the route list below is read only on an ops run, because
+// .open-next/almar-ops-routes.json exists only after `--target=ops` and a missing file would fail the load, not skip.
+const OPS_RUN = /wrangler\.ops\.test\.toml$/.test(process.env.PW_WRANGLER_CONFIG ?? "");
+test.skip(!OPS_RUN, "runs only with PW_WRANGLER_CONFIG=.tmp/wrangler.ops.test.toml (the built ops Worker), see the header");
+
 const OPS_HOST = "dashboard.almarprivatejourney.com";
 const MARKETING_HOST = "almarprivatejourney.com";
 const FOLDER = "out-ops";
@@ -40,7 +46,7 @@ function nearest404(path: string): Buffer {
   return readFileSync(join(FOLDER, file));
 }
 
-const opsPaths: string[] = JSON.parse(readFileSync(ROUTES_FILE, "utf8"));
+const opsPaths: string[] = OPS_RUN ? JSON.parse(readFileSync(ROUTES_FILE, "utf8")) : [];
 /** The bare dashboard sections, such as /catalog/stays: what the owner types on the ops host. */
 const SECTIONS = opsPaths.filter(
   (p) => p !== "/" && p !== "/sign-in" && !p.startsWith("/dashboard") && !p.startsWith("/api/") && !p.startsWith("/auth/"),
