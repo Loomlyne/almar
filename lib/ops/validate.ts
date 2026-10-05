@@ -204,7 +204,8 @@ export function translations(value: unknown, spec: TextSpec, { create }: { creat
         rec.status = item;
         continue;
       }
-      const rule = spec.fields[key];
+      // Own properties only: an inherited name ("constructor", "__proto__") is not a field.
+      const rule = has(spec.fields, key) ? spec.fields[key] : undefined;
       if (!rule) throw new OpsInvalid(field, locale);
       if (rule.kind === "list") {
         rec[key] = textList(item, field, { itemMax: rule.max, locale });

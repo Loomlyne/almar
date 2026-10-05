@@ -385,6 +385,10 @@ test("translations: EN required on create; null deletes AR/ES; EN null invalid; 
   invalid(() => v.translations({ es: { tags: "x" } }, DEST_SPEC, { create: false }), "translations.es.tags", "es");
   invalid(() => v.translations({ es: "x" }, DEST_SPEC, { create: false }), "translations.es", "es");
   invalid(() => v.translations([], DEST_SPEC, { create: false }), "translations");
+  // Inherited names are not fields: an own-property lookup, so "constructor" or "__proto__" never pass as text.
+  for (const key of ["constructor", "toString", "hasOwnProperty", "__proto__"]) {
+    invalid(() => v.translations(JSON.parse(`{"ar": {"${key}": "x"}}`), DEST_SPEC, { create: false }), `translations.ar.${key}`, "ar");
+  }
   // A present key with a partial record is kept partial: the database leaves the absent fields alone.
   assert.deepEqual(v.translations({ ar: { summary: "ملخص", status: "draft" } }, DEST_SPEC, { create: false }), { ar: { summary: "ملخص", status: "draft" } });
 });
