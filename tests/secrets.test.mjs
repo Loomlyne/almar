@@ -12,11 +12,22 @@ function files(dir, acc = []) {
   return acc;
 }
 
-const ALL = ["app", "components", "lib"].flatMap((dir) => files(dir)).concat(["middleware.ts"]);
+// Everything that can reach a bundle, a Worker or a build: the app, its libraries, the build scripts and the Workers.
+const ALL = ["app", "components", "lib", "scripts", "worker"].flatMap((dir) => files(dir)).concat(["middleware.ts"]);
 
-test("the service-role key is read only in lib/supabase/clients.ts", () => {
-  const hits = ALL.filter((path) => path !== join("lib", "supabase", "clients.ts") && readFileSync(path, "utf8").includes("SUPABASE_SERVICE_ROLE_KEY"));
-  assert.deepEqual(hits, []);
+// The service-role key is named in exactly two files: the server clients, and the controller's one-time import (plan 03.2-01).
+const SERVICE_KEY_FILES = [join("lib", "supabase", "clients.ts"), join("scripts", "import-catalog.mjs")];
+
+test("the service-role key is named only in lib/supabase/clients.ts and scripts/import-catalog.mjs", () => {
+  const hits = ALL.filter((path) => readFileSync(path, "utf8").includes("SUPABASE_SERVICE_ROLE_KEY"));
+  assert.deepEqual(hits.sort(), [...SERVICE_KEY_FILES].sort());
+});
+
+test("the scan covers the app, the libraries, the scripts and the Workers", () => {
+  for (const dir of ["app", "components", "lib", "scripts", "worker"]) {
+    assert.ok(ALL.some((path) => path.startsWith(`${dir}/`)), dir);
+  }
+  assert.ok(ALL.includes("middleware.ts"));
 });
 
 test("no public env name carries a service key", () => {
