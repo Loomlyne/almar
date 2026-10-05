@@ -54,8 +54,8 @@ test("serverPathsFrom: dynamic, catch-all, grouped and parallel segments under /
   }
 });
 
-test("HELD_PATHS is the six sections still held; SERVER_PATHS_OUTSIDE_API is job 02's six sign-in paths (02-23 task 3)", () => {
-  assert.deepEqual([...HELD_PATHS], ["/dashboard", "/booking", "/fx", "/newsletter", "/embed", "/__harness"]);
+test("HELD_PATHS is the five sections still held (/booking left it with plan 04-02); SERVER_PATHS_OUTSIDE_API is job 02's six sign-in paths (02-23 task 3)", () => {
+  assert.deepEqual([...HELD_PATHS], ["/dashboard", "/fx", "/newsletter", "/embed", "/__harness"]);
   assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], ["/login", "/auth/confirm", "/auth/sign-out", "/auth/handoff/start", "/account", "/bookings"]);
 });
 
@@ -80,9 +80,19 @@ test("three places agree: JOB02_SERVER_PATHS, SERVER_PATHS_OUTSIDE_API and run_w
 test("serverPathsFrom: an extra path outside /api is added; one under a held section stops the build", () => {
   assert.deepEqual(serverPathsFrom(TODAY, ["/subscribe"]), ["/api/health", "/subscribe"]);
   assert.deepEqual(serverPathsFrom(TODAY), ["/api/health", ...[...JOB02_SERVER_PATHS].sort()].sort());
-  for (const held of ["/newsletter", "/dashboard/home", "/booking/trip", "/es/dashboard", "/ar/booking", "/__harness"]) {
+  for (const held of ["/newsletter", "/dashboard/home", "/es/dashboard", "/ar/fx", "/__harness"]) {
     assert.throws(() => serverPathsFrom(TODAY, [held]), /held/);
   }
+});
+
+test("plan 04-02: /booking is no longer held, and the three booking endpoints are served", () => {
+  assert.equal(isHeldPath("/booking"), false);
+  assert.equal(isHeldPath("/booking/trip"), false);
+  assert.equal(isHeldPath("/es/booking"), false);
+  assert.deepEqual(
+    serverPathsFrom(["/api/booking/quote/route", "/api/booking/hold/route", "/api/booking/release/route", "/api/health/route"], []),
+    ["/api/booking/hold", "/api/booking/quote", "/api/booking/release", "/api/health"],
+  );
 });
 
 test("serverPathsFrom: a malformed extra path stops the build", () => {
@@ -93,7 +103,7 @@ test("serverPathsFrom: a malformed extra path stops the build", () => {
 
 test("serverPathsFrom: an app/api route can never shadow a held section", () => {
   // Not reachable from a real manifest today, but the guard holds whatever the list says.
-  assert.throws(() => serverPathsFrom([], ["/booking/export"]), /held/);
+  assert.throws(() => serverPathsFrom([], ["/fx/export"]), /held/);
 });
 
 // ---- handle -----------------------------------------------------------------------------------------------------
@@ -303,7 +313,7 @@ test("assembleOut: a prerendered file under /api or a held section stops the bui
 });
 
 test("assembleOut: a public/ file under /api or a held section stops the build before out/ is written", () => {
-  for (const f of ["api/health", "api/x.json", "booking.html", "dashboard/index.html", "ar/booking.html", "embed/x.js"]) {
+  for (const f of ["api/health", "api/x.json", "fx.html", "dashboard/index.html", "ar/newsletter.html", "embed/x.js"]) {
     const base = scratchDir({ [`public/${f}`]: "x", "app/index.html": "home", "static/css/x.css": "body{}" });
     const outDir = join(base, "out");
     assert.throws(

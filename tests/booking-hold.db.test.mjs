@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { requireStack } from "./helpers/local-supabase.mjs";
+import { loadTs } from "./helpers/load-ts.mjs";
 
 const OWNER = "00000000-0000-4000-8000-00000000f0a1";
 let state = null; // { admin, stack, ids } once seeded
@@ -286,4 +287,119 @@ test("a home-pickup line is stored with the address, and the address is required
   const lines = await s.admin.from("booking_lines").select("catalog_item_id, quantity, line_fils").eq("booking_id", withAddress.data.booking_id);
   assert.equal(lines.data.length, 1);
   assert.equal(lines.data[0].line_fils, price);
+});
+
+// The same helpers the routes call (lib/booking/server.ts), against the real SQL: the payload snapshotRow() builds is the
+// one create_web_booking accepts, the quote and the hold agree, an own hold is skipped only with its signed link, and a
+// release frees the nights. The fake-rpc tests cannot prove any of this.
+test("the server helpers on the real database: quote, hold, own-hold skip, release, deposit and home pickup", async (t) => {
+  const s = await seed(t);
+  if (!s) return;
+  process.env.BOOKING_LINK_SECRET = "db-test-secret-".padEnd(48, "z");
+  const server = await loadTs("lib/booking/server.ts");
+  const link = await loadTs("lib/booking/link.ts");
+  const ctx = (tag) => ({ ipHash: `ip-${tag}-${randomUUID()}`, emailHash: (email) => `eh-${email}`, isTest: true });
+  const quoteOf = (over = {}) => ({ stay: s.slug, from: dubaiDay(1000), to: dubaiDay(1003), adults: 2, children: 0, infants: 0, addons: [], plan: "full", locale: "en", ...over });
+  const guest = (email, over = {}) => ({
+    ...quoteOf(),
+    contact: { name: "Server Guest", email, phone: "+971 50 123 4567", nationality: "Swiss" },
+    travellers: [{ kind: "adult", fullName: "Second Adult", isBooker: false, notStaying: false }, { kind: "adult", fullName: "Server Guest", isBooker: true, notStaying: false }],
+    airport: "SHJ",
+    termsAccepted: true,
+    ...over,
+  });
+  const email = () => `srv-${randomUUID().slice(0, 8)}@example.com`;
+
+  // The quote, from the real context.
+  const quoted = await server.quoteBooking(s.admin, quoteOf());
+  assert.equal(quoted.ok, true, JSON.stringify(quoted.reasons));
+  assert.equal(quoted.breakdown.nightsFils, 300000);
+  assert.equal(quoted.breakdown.vatFils, Math.floor((300000 * s.vatBp + 5000) / 10000), "VAT is the settings' percentage under the one rounding rule");
+  assert.equal(quoted.stay.slug, s.slug);
+  assert.equal((await server.quoteBooking(s.admin, quoteOf({ stay: "no-such-stay" }))).reasons[0].code, "stay_unavailable");
+
+  // The hold, with a payload built by snapshotRow(), accepted by the real function.
+  const first = email();
+  const held = await server.createWebHold(s.admin, guest(first), ctx("a"));
+  assert.equal(held.response.ok, true, JSON.stringify(held.response));
+  const row = await s.admin.from("bookings").select("*").eq("id", held.bookingId).single();
+  assert.ifError(row.error);
+  assert.equal(row.data.ref, held.response.ref);
+  assert.equal(row.data.status, "held");
+  assert.equal(row.data.plan, "full");
+  assert.equal(row.data.grand_fils, held.response.breakdown.grandFils);
+  assert.equal(row.data.vat_bp, s.vatBp);
+  assert.equal(row.data.terms_version, "placeholder");
+  assert.equal(row.data.nationality, "Swiss");
+  assert.equal(row.data.airport, "SHJ");
+  assert.equal(row.data.email, first);
+  const travellers = await s.admin.from("booking_travellers").select("position, full_name, is_booker").eq("booking_id", held.bookingId).order("position");
+  assert.deepEqual(travellers.data.map((x) => [x.position, x.full_name, x.is_booker]), [[0, "Server Guest", true], [1, "Second Adult", false]], "the booker is first");
+  assert.equal(await link.verifyBookingLink(held.bookingId, row.data.link_version, held.response.linkToken), true);
+
+  // The nights are taken: a quote says so, with the nights; the own-hold skip needs the signed link.
+  const taken = await server.quoteBooking(s.admin, quoteOf());
+  assert.equal(taken.ok, false);
+  assert.deepEqual(taken.reasons, [{ code: "sold_out", nights: [dubaiDay(1000), dubaiDay(1001), dubaiDay(1002)] }]);
+  const own = await server.quoteBooking(s.admin, quoteOf({ hold: { ref: held.response.ref, t: held.response.linkToken } }));
+  assert.equal(own.ok, true, "the guest's own hold does not count against them");
+  const forged = await server.quoteBooking(s.admin, quoteOf({ hold: { ref: held.response.ref, t: "A".repeat(43) } }));
+  assert.equal(forged.ok, false, "a made-up token skips nothing");
+  const again = await server.createWebHold(s.admin, guest(email()), ctx("b"));
+  assert.equal(again.response.ok, false);
+  assert.equal(again.response.reasons[0].code, "sold_out", "a second guest cannot hold the same nights");
+
+  // Release: refused without the token, frees the nights with it.
+  assert.deepEqual(await server.releaseWebHold(s.admin, { ref: held.response.ref, t: "B".repeat(43) }), { ok: false });
+  assert.equal((await s.admin.from("bookings").select("status").eq("id", held.bookingId).single()).data.status, "held");
+  const released = await server.releaseWebHold(s.admin, { ref: held.response.ref, t: held.response.linkToken });
+  assert.deepEqual(released, { ok: true, dropped: true, sessionIds: [] });
+  assert.equal((await s.admin.from("bookings").select("status").eq("id", held.bookingId).single()).data.status, "expired");
+  assert.equal((await server.quoteBooking(s.admin, quoteOf())).ok, true, "the nights are free again");
+  assert.deepEqual(await server.releaseWebHold(s.admin, { ref: held.response.ref, t: held.response.linkToken }), { ok: true, dropped: false, sessionIds: [] }, "releasing twice is harmless");
+
+  // The deposit: needs the owner's balance days, which the migration leaves unset. Set for this case only, then put back.
+  const noDays = await server.quoteBooking(s.admin, quoteOf({ plan: "deposit", from: dubaiDay(1100), to: dubaiDay(1102) }));
+  assert.deepEqual(noDays.reasons, [{ code: "deposit_unavailable", cause: "no_due_days" }], "balance days not set: the deposit is refused, never defaulted");
+  assert.ifError((await s.admin.from("site_settings").update({ balance_due_days: 30 }).eq("id", 1)).error);
+  try {
+    const dep = quoteOf({ plan: "deposit", from: dubaiDay(1100), to: dubaiDay(1102) });
+    const depQuote = await server.quoteBooking(s.admin, dep);
+    assert.equal(depQuote.ok, true, JSON.stringify(depQuote.reasons));
+    assert.equal(depQuote.breakdown.balanceDueDate, dubaiDay(1070));
+    const depHold = await server.createWebHold(s.admin, guest(email(), { ...dep }), ctx("c"));
+    assert.equal(depHold.response.ok, true, JSON.stringify(depHold.response));
+    const depRow = await s.admin.from("bookings").select("plan, deposit_fils, balance_fils, grand_fils, balance_due_date, balance_due_days").eq("id", depHold.bookingId).single();
+    assert.equal(depRow.data.plan, "deposit");
+    assert.equal(depRow.data.deposit_fils + depRow.data.balance_fils, depRow.data.grand_fils);
+    assert.equal(depRow.data.deposit_fils, depQuote.breakdown.dueNowFils);
+    assert.equal(depRow.data.balance_due_date, dubaiDay(1070));
+    assert.equal(depRow.data.balance_due_days, 30);
+  } finally {
+    assert.ifError((await s.admin.from("site_settings").update({ balance_due_days: null }).eq("id", 1)).error);
+  }
+
+  // Home pickup: the address is required, then stored with the line.
+  const offered = (await server.quoteBooking(s.admin, quoteOf())).offers.find((o) => o.id === s.ids.item);
+  if (s.ids.ownItem) assert.ok(offered, "the home-pickup item this test made is offered, so the pickup part below really runs");
+  if (offered) {
+    const pick = { addons: [{ id: s.ids.item, qty: 1 }], from: dubaiDay(1200), to: dubaiDay(1202) };
+    const noAddress = await server.createWebHold(s.admin, guest(email(), pick), ctx("d"));
+    assert.deepEqual(noAddress.response, { ok: false, reasons: [{ code: "invalid", field: "pickupAddress" }] });
+    const withAddress = await server.createWebHold(s.admin, guest(email(), { ...pick, pickupAddress: "Villa 1, Dubai" }), ctx("e"));
+    assert.equal(withAddress.response.ok, true, JSON.stringify(withAddress.response));
+    const stored = await s.admin.from("bookings").select("pickup_address, addons_fils").eq("id", withAddress.bookingId).single();
+    assert.equal(stored.data.pickup_address, "Villa 1, Dubai");
+    assert.equal(stored.data.addons_fils, offered.priceFils);
+    assert.equal((await s.admin.from("booking_lines").select("id").eq("booking_id", withAddress.bookingId)).data.length, 1);
+  }
+
+  // The limiter: the sixth hold of one email in an hour is refused.
+  const spammer = email();
+  let limited = null;
+  for (let i = 0; i < 7 && !limited; i += 1) {
+    const r = await server.createWebHold(s.admin, guest(spammer, { from: dubaiDay(1300 + i * 3), to: dubaiDay(1302 + i * 3) }), ctx(`l${i}`));
+    if (!r.response.ok && r.response.reasons[0].code === "hold_limit") limited = i;
+  }
+  assert.equal(limited, 5, "five holds an hour per email, the sixth is hold_limit");
 });

@@ -496,6 +496,10 @@ test("quote: too many guests is over_max_guests; infants count only when the sta
   const counted = fakeDb({}, { stay: { infants_count: true } });
   const withInfant = await quoteBooking(counted, q({ adults: 4, children: 2, infants: 1 }), { now: NOW });
   assert.deepEqual(withInfant.reasons, [{ code: "over_max_guests", max: 6 }]);
+  const unset = fakeDb({}, { stay: { infants_count: null } });
+  const unsetResult = await quoteBooking(unset, q({ adults: 4, children: 2, infants: 1 }), { now: NOW });
+  assert.equal(unsetResult.ok, true, "infants_count not set by the owner (null) reads as: infants do not count");
+  assert.equal(unsetResult.stay.infantsCount, false);
   const noLimit = fakeDb({}, { stay: { max_guests: null } });
   assert.equal((await quoteBooking(noLimit, q({ adults: 20 }), { now: NOW })).ok, true, "a stay without a maximum takes any count");
 });
