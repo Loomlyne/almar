@@ -81,7 +81,7 @@ for (const [locale, path, file, slug] of DOCS) {
     else assert.ok(title.endsWith(" | ALMAR"), title);
   });
 
-  test(`${name}: organisation JSON-LD; BlogPosting only on posts, parseable, in this language, no Person`, () => {
+  test(`${name}: organisation JSON-LD; BlogPosting only on posts, parseable, in the language of its text, no Person`, async () => {
     const blocks = [...doc.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
     const parsed = blocks.map((b) => JSON.parse(b));
     const org = parsed.filter((d) => Array.isArray(d["@type"]) && d["@type"].includes("Organization"));
@@ -92,7 +92,8 @@ for (const [locale, path, file, slug] of DOCS) {
       assert.equal(blocks.length, 1);
     } else {
       assert.equal(blogPostings.length, 1);
-      assert.equal(blogPostings[0].inLanguage, locale);
+      // inLanguage is the language the text is in (post.locale), which is "en" when the translation is missing.
+      assert.equal(blogPostings[0].inLanguage, (await posts.getPost(locale, slug)).locale);
       assert.equal(blogPostings[0].url, localeAlternates(locale, path).canonical);
     }
     for (const block of blocks) assert.equal(block.includes("Person"), false);

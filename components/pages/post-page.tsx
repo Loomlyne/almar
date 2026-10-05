@@ -149,7 +149,7 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
   return (
     <>
       <script {...ORGANIZATION_JSON_LD_SCRIPT} />
-      <script {...blogPostingJsonLd(post, locale, url)} />
+      <script {...blogPostingJsonLd(post, url)} />
       <JourneyChoiceProvider destinationSlugById={destinationSlugById} initialDestinationId={post.destination_id}>
         <PublicFrame
           locale={locale}
