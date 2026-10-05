@@ -329,7 +329,7 @@ test("access.ts takes its dependencies as arguments (no environment, no database
 process.env.BOOKING_LINK_SECRET = "test-secret-".padEnd(48, "x");
 const server = await loadTs("lib/booking/server.ts");
 const linkModule = await loadTs("lib/booking/link.ts");
-const { quoteBooking, createWebHold, releaseWebHold, snapshotRow, holdStatus, liveGate } = server;
+const { quoteBooking, priceQuote, createWebHold, releaseWebHold, snapshotRow, holdStatus, liveGate } = server;
 const { signBookingLink } = linkModule;
 
 const NOW = new Date("2026-10-05T10:00:00Z"); // 14:00 in Dubai, so "today" is 2026-10-05
@@ -621,11 +621,47 @@ test("quote: a database error is thrown for the route to answer 503; the message
   });
 });
 
+// ---------------------------------------------------------------- what the browser may see of a price
+
+const RATE_RANGE_ID = "cccccccc-1111-4222-8333-444455556666";
+const rangedNights = (args) => nightsBetween(args.p_from, args.p_to).map((night) => ({ night, rate_fils: 120000, source: "range", rate_id: RATE_RANGE_ID }));
+
+test("quote: the public breakdown carries no rate-range id (review 2026-10-05); the night keeps its date, rate and source", async () => {
+  const r = await quoteBooking(fakeDb({}, (a) => ({ night_rates: rangedNights(a) })), q(), { now: NOW });
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.breakdown.nights.map((n) => Object.keys(n).sort()), [["night", "rateFils", "source"], ["night", "rateFils", "source"], ["night", "rateFils", "source"]]);
+  assert.deepEqual(r.breakdown.nights[0], { night: "2026-12-10", rateFils: 120000, source: "range" });
+  assert.equal(JSON.stringify(r).includes(RATE_RANGE_ID), false);
+  assert.equal(JSON.stringify(r).includes("rateId"), false);
+});
+
+test("priceQuote: the internal quote keeps each night's rate id for the snapshot the database stores", async () => {
+  const r = await priceQuote(fakeDb({}, (a) => ({ night_rates: rangedNights(a) })), q(), { now: NOW });
+  assert.equal(r.breakdown.nights[0].rateId, RATE_RANGE_ID);
+  assert.equal(snapshotRow(r.breakdown, r.offers).nights_snapshot[0].rate_id, RATE_RANGE_ID);
+});
+
+test("snapshotRow: the browser's price has no rate ids, so it is refused rather than stored without them", async () => {
+  const quoted = await quoteBooking(fakeDb({}, (a) => ({ night_rates: rangedNights(a) })), q(), { now: NOW });
+  assert.throws(() => snapshotRow(quoted.breakdown, quoted.offers), /priceQuote/);
+});
+
+test("hold: the stored snapshot keeps the rate id, the answer to the browser carries none", async () => {
+  const db = fakeDb({ create_web_booking: () => created }, (a) => ({ night_rates: rangedNights(a) }));
+  const out = await createWebHold(db, guest(), CTX);
+  assert.equal(out.response.ok, true);
+  const stored = db.calls.find((c) => c.name === "create_web_booking").args.p.nights_snapshot;
+  assert.deepEqual(stored.map((n) => n.rate_id), [RATE_RANGE_ID, RATE_RANGE_ID, RATE_RANGE_ID]);
+  assert.equal(JSON.stringify(out.response).includes(RATE_RANGE_ID), false);
+  assert.equal(JSON.stringify(out.response).includes("rateId"), false);
+  assert.equal(out.response.breakdown.grandFils, 378000, "three nights at 120000 plus 5% VAT");
+});
+
 // ---------------------------------------------------------------- snapshotRow
 
 test("snapshotRow: the snake_case payload the SQL functions read, add-on lines with their names and flags", async () => {
   const db = fakeDb();
-  const quoted = await quoteBooking(db, q({ addons: [{ id: PERSON_ITEM, qty: 2 }, { id: HOME_ITEM, qty: 1 }] }), { now: NOW });
+  const quoted = await priceQuote(db, q({ addons: [{ id: PERSON_ITEM, qty: 2 }, { id: HOME_ITEM, qty: 1 }] }), { now: NOW });
   const row = snapshotRow(quoted.breakdown, quoted.offers);
   assert.deepEqual(row, {
     nights_fils: 300000, addons_fils: 45000, subtotal_fils: 345000, vat_bp: 500, vat_fils: 17250, grand_fils: 362250,
@@ -644,7 +680,7 @@ test("snapshotRow: the snake_case payload the SQL functions read, add-on lines w
 });
 
 test("snapshotRow: plan full stores no deposit and no balance, due now is the grand total", async () => {
-  const quoted = await quoteBooking(fakeDb(), q({ plan: "full" }), { now: NOW });
+  const quoted = await priceQuote(fakeDb(), q({ plan: "full" }), { now: NOW });
   const row = snapshotRow(quoted.breakdown, quoted.offers);
   assert.equal(row.plan, "full");
   assert.equal(row.deposit_fils, 0);
@@ -656,7 +692,7 @@ test("snapshotRow: plan full stores no deposit and no balance, due now is the gr
 });
 
 test("snapshotRow: a line whose offer is not in the list is a caller error", async () => {
-  const quoted = await quoteBooking(fakeDb(), q({ addons: [{ id: PERSON_ITEM, qty: 1 }] }), { now: NOW });
+  const quoted = await priceQuote(fakeDb(), q({ addons: [{ id: PERSON_ITEM, qty: 1 }] }), { now: NOW });
   assert.throws(() => snapshotRow(quoted.breakdown, []), /offer/);
 });
 
@@ -676,11 +712,11 @@ const guest = (over = {}) => ({
 const CTX = { ipHash: "iphash", emailHash: (email) => `h:${email}`, isTest: true, now: NOW };
 const created = { ok: true, booking_id: OWN_ID, ref: OWN_REF, hold_expires_at: "2026-10-05T10:30:00.000Z", link_version: 1 };
 
-test("hold: limiter, quote, then create_web_booking, in that order; the answer carries a signed link and no booking id", async () => {
+test("hold: quote, then limiter, then create_web_booking, in that order; the answer carries a signed link and no booking id", async () => {
   const db = fakeDb({ create_web_booking: () => created });
   const out = await createWebHold(db, guest(), CTX);
-  assert.deepEqual(db.names(), ["claim_hold_slot", "booking_context", "create_web_booking"]);
-  assert.deepEqual(db.calls[0].args, { p_email_hash: "h:ann@example.com", p_ip_hash: "iphash" });
+  assert.deepEqual(db.names(), ["booking_context", "claim_hold_slot", "create_web_booking"]);
+  assert.deepEqual(db.calls[1].args, { p_email_hash: "h:ann@example.com", p_ip_hash: "iphash" });
   assert.equal(out.response.ok, true);
   assert.equal(out.response.ref, OWN_REF);
   assert.equal(out.response.holdExpiresAt, "2026-10-05T10:30:00.000Z");
@@ -767,12 +803,35 @@ test("hold: the page's old hold is ignored: the re-quote never skips an own book
   assert.equal(db.calls.find((c) => c.name === "booking_context").args.p_own_booking, null);
 });
 
-test("hold: the limiter says no: hold_limit, and nothing else is called", async () => {
+test("hold: the limiter says no: hold_limit, and nothing is created", async () => {
   const db = fakeDb({ claim_hold_slot: () => false, create_web_booking: () => created });
   const out = await createWebHold(db, guest(), CTX);
   assert.deepEqual(out.response, { ok: false, reasons: [{ code: "hold_limit" }] });
   assert.equal(out.bookingId, null);
-  assert.deepEqual(db.names(), ["claim_hold_slot"]);
+  assert.deepEqual(db.names(), ["booking_context", "claim_hold_slot"]);
+});
+
+test("hold: a refused quote costs no slot, so five sold_out answers never lock a real guest out (review 2026-10-05)", async () => {
+  // A limiter that counts like the real one: five claims an hour per email, then no.
+  let claims = 0;
+  const db = fakeDb({ claim_hold_slot: () => ++claims <= 5, create_web_booking: () => created }, { taken: ["2026-12-11"] });
+  for (let i = 0; i < 8; i += 1) {
+    const out = await createWebHold(db, guest(), CTX);
+    assert.deepEqual(out.response, { ok: false, reasons: [{ code: "sold_out", nights: ["2026-12-11"] }] });
+  }
+  assert.equal(db.names().includes("claim_hold_slot"), false, "a quote that refuses claims nothing");
+  assert.equal(claims, 0);
+  // The same guest with free nights still gets a hold afterwards.
+  const free = fakeDb({ claim_hold_slot: () => ++claims <= 5, create_web_booking: () => created });
+  assert.equal((await createWebHold(free, guest(), CTX)).response.ok, true);
+  assert.equal(claims, 1);
+});
+
+test("hold: a request refused before the write (a missing pickup address) costs no slot either", async () => {
+  const db = fakeDb({ create_web_booking: () => created });
+  const out = await createWebHold(db, guest({ addons: [{ id: HOME_ITEM, qty: 1 }] }), CTX);
+  assert.deepEqual(out.response, { ok: false, reasons: [{ code: "invalid", field: "pickupAddress" }] });
+  assert.deepEqual(db.names(), ["booking_context"]);
 });
 
 test("hold: a limiter answer that is not a boolean fails closed (thrown)", async () => {

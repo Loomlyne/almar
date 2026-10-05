@@ -358,6 +358,16 @@ test("the server helpers on the real database: quote, hold, own-hold skip, relea
   assert.equal(again.response.ok, false);
   assert.equal(again.response.reasons[0].code, "sold_out", "a second guest cannot hold the same nights");
 
+  // A refused quote costs no slot (review 2026-10-05): six sold_out answers for one email, then the same email still holds free nights.
+  const patient = email();
+  for (let i = 0; i < 6; i += 1) {
+    const refused = await server.createWebHold(s.admin, guest(patient), ctx(`p${i}`));
+    assert.equal(refused.response.reasons[0].code, "sold_out");
+  }
+  const later = await server.createWebHold(s.admin, guest(patient, { from: dubaiDay(1500), to: dubaiDay(1502) }), ctx("p-later"));
+  assert.equal(later.response.ok, true, JSON.stringify(later.response));
+  assert.equal(JSON.stringify(later.response).includes("rateId"), false, "the browser's price carries no rate-range id");
+
   // Release: refused without the token, frees the nights with it.
   assert.deepEqual(await server.releaseWebHold(s.admin, { ref: held.response.ref, t: "B".repeat(43) }), { ok: false });
   assert.equal((await s.admin.from("bookings").select("status").eq("id", held.bookingId).single()).data.status, "held");

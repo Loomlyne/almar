@@ -91,13 +91,21 @@ export type AddOnOffering = {
   priceFils: number;
 };
 
+/**
+ * The price as the browser sees it: the engine's snapshot without each night's rate-range id (an internal key of the
+ * stored snapshot; the page has no use for it). Review 2026-10-05.
+ */
+export type PublicPriceSnapshot = Omit<PriceSnapshot, "nights"> & {
+  nights: { night: string; rateFils: number; source: "range" | "base" }[];
+};
+
 export type QuoteResponse = {
   ok: boolean;
   reasons: BookingReason[];
   stay: StayCard | null;
   offers: AddOnOffering[];
   inclusions: { id: string; label: string }[];
-  breakdown: PriceSnapshot | null;
+  breakdown: PublicPriceSnapshot | null;
 };
 
 export type ContactInput = {
@@ -133,7 +141,7 @@ export type HoldResponse =
       ref: string;
       holdExpiresAt: string;
       linkToken: string;
-      breakdown: PriceSnapshot;
+      breakdown: PublicPriceSnapshot;
       checkout?: { clientSecret: string; publishableKey: string; sessionId: string };
     }
   | { ok: false; reasons: BookingReason[] };

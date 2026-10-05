@@ -12,7 +12,7 @@ import { authorizeBookingAccess } from "./access";
 import { bookingLinkConfigured, signBookingLink, verifyBookingLink } from "./link";
 import { isBookingRef } from "./ref";
 import { BOOKING_TERMS_IS_PLACEHOLDER, BOOKING_TERMS_VERSION } from "./terms";
-import type { AddOnOffering, BookingReason, HoldRequest, HoldResponse, QuoteRequest, QuoteResponse, StayCard } from "./types";
+import type { AddOnOffering, BookingReason, HoldRequest, HoldResponse, PublicPriceSnapshot, QuoteRequest, QuoteResponse, StayCard } from "./types";
 import { needsPickupAddress } from "./validate";
 
 export type RpcError = { message?: string; details?: string | null } | null;
@@ -193,12 +193,27 @@ function mapPriceReason(reason: PriceReason): BookingReason {
   }
 }
 
+/** A quote with the engine's whole snapshot (each night's rate-range id included). For the server only: never sent to a browser. */
+export type PricedQuote = Omit<QuoteResponse, "breakdown"> & { breakdown: PriceSnapshot | null };
+
+/** The snapshot without each night's rate-range id: what the browser may see of a price. */
+export function publicBreakdown(snapshot: PriceSnapshot): PublicPriceSnapshot {
+  return { ...snapshot, nights: snapshot.nights.map((n) => ({ night: n.night, rateFils: n.rateFils, source: n.source })) };
+}
+
 /**
  * Every reason a stay and these dates cannot be booked as asked, with the server's own price (B-02: nothing is hidden
  * silently). One `booking_context` call; a second `booking_by_ref` only when the request carries the page's own hold.
- * Never throws for a guest's choice; a database failure throws and the route answers 503.
+ * Never throws for a guest's choice; a database failure throws and the route answers 503. The answer is the browser's:
+ * its nights carry no rate-range id.
  */
 export async function quoteBooking(db: BookingDb, input: QuoteRequest, opts: { now?: Date } = {}): Promise<QuoteResponse> {
+  const quote = await priceQuote(db, input, opts);
+  return { ...quote, breakdown: quote.breakdown ? publicBreakdown(quote.breakdown) : null };
+}
+
+/** `quoteBooking` with the whole snapshot, for the code that stores it (`snapshotRow`). Its answer never goes to a browser as it is. */
+export async function priceQuote(db: BookingDb, input: QuoteRequest, opts: { now?: Date } = {}): Promise<PricedQuote> {
   const own = await ownBookingId(db, input.hold);
   const ctx = readContext(
     await call(db, "booking_context", { p_stay_slug: input.stay, p_from: input.from, p_to: input.to, p_locale: input.locale, p_own_booking: own }),
@@ -219,7 +234,7 @@ export async function quoteBooking(db: BookingDb, input: QuoteRequest, opts: { n
     infantsCount: stay.infantsCount,
   };
   const offers: AddOnOffering[] = ctx.offers;
-  const respond = (reasons: BookingReason[], breakdown: PriceSnapshot | null): QuoteResponse => ({
+  const respond = (reasons: BookingReason[], breakdown: PriceSnapshot | null): PricedQuote => ({
     ok: reasons.length === 0,
     reasons,
     stay: card,
@@ -282,7 +297,11 @@ export function snapshotRow(breakdown: PriceSnapshot, offers: readonly Pick<AddO
     balance_fils: deposit ? breakdown.balanceFils : 0,
     due_now_fils: breakdown.dueNowFils,
     plan: breakdown.plan,
-    nights_snapshot: breakdown.nights.map((n) => ({ night: n.night, rate_fils: n.rateFils, source: n.source, rate_id: n.rateId })),
+    nights_snapshot: breakdown.nights.map((n) => {
+      // The browser's price (quoteBooking) has no rate ids: storing it would silently lose them. Use priceQuote.
+      if (n.rateId === undefined) throw new Error(`snapshotRow: night ${n.night} has no rateId (price it with priceQuote, not quoteBooking)`);
+      return { night: n.night, rate_fils: n.rateFils, source: n.source, rate_id: n.rateId };
+    }),
     balance_due_date: deposit ? breakdown.balanceDueDate : null,
     lines: breakdown.lines.map((line) => {
       const offer = byId.get(line.id);
@@ -332,19 +351,16 @@ function invalidFrom(error: NonNullable<RpcError>): BookingReason {
 }
 
 /**
- * The guest's 30-minute hold. Order: the limiter (five holds an hour per email, twenty per IP), a fresh quote on the
- * server (the page's numbers and its old hold are ignored), any reason refuses, then one `create_web_booking`
- * transaction that re-checks the owner's settings, stores the booking with its price snapshot and places the nights.
+ * The guest's 30-minute hold. Order: a fresh quote on the server (the page's numbers and its old hold are ignored),
+ * any reason refuses, then the limiter (five holds an hour per email, twenty per IP; only a request that is about to
+ * write claims a slot), then one `create_web_booking` transaction that re-checks the owner's settings, stores the
+ * booking with its price snapshot (rate ids included) and places the nights.
  * Needs the link secret before it writes anything: a hold the guest cannot be given a link for is never created.
  */
 export async function createWebHold(db: BookingDb, input: HoldRequest, ctx: HoldContext): Promise<HoldOutcome> {
   if (!bookingLinkConfigured()) throw new Error("booking link secret missing");
 
-  const slot = await call(db, "claim_hold_slot", { p_email_hash: ctx.emailHash(input.contact.email), p_ip_hash: ctx.ipHash });
-  if (typeof slot !== "boolean") throw new Error("rpc claim_hold_slot failed");
-  if (!slot) return refuse([{ code: "hold_limit" }]);
-
-  const quote = await quoteBooking(
+  const quote = await priceQuote(
     db,
     // English texts: the booking's add-on lines store the English name (the plan's "EN snapshot"); the guest's own
     // language is the booking's `locale`, which the emails use. The amounts do not depend on the language.
@@ -358,6 +374,13 @@ export async function createWebHold(db: BookingDb, input: HoldRequest, ctx: Hold
   const flags = new Map(quote.offers.map((o) => [o.id, o.isHomePickup]));
   const pickup = needsPickupAddress(breakdown.lines.map((l) => ({ isHomePickup: flags.get(l.id) === true, quantity: l.quantity })));
   if (pickup && !input.pickupAddress) return refuse([{ code: "invalid", field: "pickupAddress" }]);
+
+  // The limiter is claimed only now, once nothing is left to refuse before the write: a quote that says sold out or
+  // blocked, or a missing address, costs the guest no slot (review 2026-10-05: five refused answers had locked a real
+  // guest out for an hour).
+  const slot = await call(db, "claim_hold_slot", { p_email_hash: ctx.emailHash(input.contact.email), p_ip_hash: ctx.ipHash });
+  if (typeof slot !== "boolean") throw new Error("rpc claim_hold_slot failed");
+  if (!slot) return refuse([{ code: "hold_limit" }]);
 
   const { contact } = input;
   const travellers = [...input.travellers.filter((t) => t.isBooker), ...input.travellers.filter((t) => !t.isBooker)].map((t) => ({
@@ -406,7 +429,7 @@ export async function createWebHold(db: BookingDb, input: HoldRequest, ctx: Hold
     throw new Error("rpc create_web_booking: unreadable answer");
   }
   return {
-    response: { ok: true, ref, holdExpiresAt: expires, linkToken: await signBookingLink(id, version), breakdown },
+    response: { ok: true, ref, holdExpiresAt: expires, linkToken: await signBookingLink(id, version), breakdown: publicBreakdown(breakdown) },
     bookingId: id,
   };
 }
