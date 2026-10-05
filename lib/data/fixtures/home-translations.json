@@ -8,12 +8,12 @@
     {
       "locale": "ar",
       "headline": "كولومبيا، لكم بخصوصية",
-      "status": "draft"
+      "status": "published"
     },
     {
       "locale": "es",
       "headline": "Colombia, en privado",
-      "status": "draft"
+      "status": "published"
     }
   ],
   "welcome": [
@@ -34,18 +34,18 @@
     },
     {
       "locale": "ar",
-      "kicker": "أهلاً بكم في المار",
+      "kicker": "أهلاً بكم في ALMAR",
       "heading": "حيث يلتقي الأمان بالفخامة المفصّلة",
       "salutation": "عزيزي المسافر،",
       "paragraphs": [
-        "بُنيت المار للمسافرين من الإمارات والخليج الذين يريدون رحلة خاصة مدروسة في كولومبيا، تُخطَّط حول تواريخهم واهتماماتهم وإيقاعهم.",
+        "بُنيت ALMAR للمسافرين من الإمارات والخليج الذين يريدون رحلة خاصة مدروسة في كولومبيا، تُخطَّط حول تواريخهم واهتماماتهم وإيقاعهم.",
         "كل رحلة تُفصَّل بإقامات وتنقّل وتجارب مؤكدة لمجموعتكم. أي ترتيبات إضافية تُناقَش على حدة ولا تُثبَّت إلا بعد تأكيد التوفر.",
-        "هدفنا بسيط: أن تصبح كولومبيا أسهل عبر رحلة خاصة واضحة وشخصية، مبنية حول ما يهمكم."
+        "هدفنا بسيط: أن نجعل تجربة كولومبيا أسهل عبر رحلة خاصة واضحة وشخصية، مبنية حول ما يهمكم."
       ],
       "sign_off": "مع أطيب التحيات،",
-      "signer": "رحلات المار الخاصة",
+      "signer": "المار للرحلات الخاصة",
       "signer_role": "المؤسس والمدير",
-      "status": "draft"
+      "status": "published"
     },
     {
       "locale": "es",
@@ -54,13 +54,13 @@
       "salutation": "Estimado viajero,",
       "paragraphs": [
         "ALMAR está hecho para viajeros de Emiratos y el Golfo que quieren un viaje privado y pensado por Colombia, organizado según sus fechas, intereses y ritmo.",
-        "Cada viaje se personaliza con estancias, traslados y experiencias confirmadas para su grupo. Cualquier arreglo adicional se habla por separado y solo se reserva cuando hay disponibilidad.",
-        "El objetivo es simple: hacer Colombia más fácil, con un viaje privado claro, personal y construido alrededor de lo que les importa."
+        "Cada viaje se personaliza con estancias, traslados y experiencias confirmadas para tu grupo. Cualquier arreglo adicional se habla por separado y solo se asegura una vez confirmada la disponibilidad.",
+        "Nuestro objetivo es simple: hacer que Colombia sea más fácil de vivir, con un viaje privado claro, personal y construido alrededor de lo que te importa."
       ],
       "sign_off": "Un cordial saludo,",
       "signer": "ALMAR Private Journeys",
       "signer_role": "Fundador y director",
-      "status": "draft"
+      "status": "published"
     }
   ],
   "gallery": [
@@ -73,14 +73,14 @@
     {
       "locale": "ar",
       "kicker": "كولومبيا بعيونكم",
-      "heading": "كولومبيا، كما تُرى",
-      "status": "draft"
+      "heading": "كولومبيا، في أبهى صورها",
+      "status": "published"
     },
     {
       "locale": "es",
-      "kicker": "Colombia a través de sus ojos",
-      "heading": "Colombia, bien mirada",
-      "status": "draft"
+      "kicker": "Colombia a través de tus ojos",
+      "heading": "Colombia, bellamente retratada",
+      "status": "published"
     }
   ],
   "tiers": [
@@ -101,24 +101,24 @@
       "locale": "ar",
       "name": "المستكشف",
       "price_label": "From USD $3,000/person · Est. AED 80,000–90,000",
-      "tagline": "تعرّف مدروس على كولومبيا، يُشكَّل حول مجموعتكم",
+      "tagline": "مدخل مدروس إلى كولومبيا، صُمّم حول مجموعتكم",
       "duration_label": "5–7 ليالٍ · مدينة إلى مدينتين",
       "ideal_for_label": "مثالي لـ",
       "ideal_for": "الزوار لأول مرة والأزواج والمجموعات الصغيرة الباحثون عن مدخل أصيل إلى كولومبيا",
       "body": "إطار رحلة خاصة يُشكَّل حول تواريخكم ومجموعتكم والتوفر المؤكد. تُقترح الإقامات والتنقلات والمرشدون والطعام والتجارب بعد الاستفسار وتُؤكَّد قبل الحجز.",
-      "status": "draft"
+      "status": "published"
     },
     {
       "tier_id": "25af917e-8005-5ec2-9782-a0c2d002ddc0",
       "locale": "es",
       "name": "The Explorer",
       "price_label": "From USD $3,000/person · Est. AED 80,000–90,000",
-      "tagline": "Una introducción pensada a Colombia, formada alrededor de su grupo",
+      "tagline": "Una introducción pensada a Colombia, diseñada en torno a tu grupo",
       "duration_label": "5–7 noches · 1–2 ciudades",
       "ideal_for_label": "Ideal para",
       "ideal_for": "Visitantes primerizos, parejas y grupos pequeños que buscan una introducción auténtica a Colombia",
-      "body": "Un marco de viaje privado formado alrededor de sus fechas, su grupo y la disponibilidad confirmada. Las estancias, los traslados, los guías, las comidas y las experiencias se proponen tras la consulta y se confirman antes de reservar.",
-      "status": "draft"
+      "body": "Un marco de viaje privado diseñado en torno a tus fechas, tu grupo y la disponibilidad confirmada. Las estancias, los traslados, los guías, las comidas y las experiencias se proponen tras la consulta y se confirman antes de reservar.",
+      "status": "published"
     },
     {
       "tier_id": "383c2fb5-8408-5a06-b748-638e93876bfc",
@@ -142,19 +142,19 @@
       "ideal_for_label": "مثالي لـ",
       "ideal_for": "المسافرون المدقّقون الذين يريدون رحلة أعمق بين عدة مدن بإيقاع راقٍ غير متعجّل",
       "body": "كل شيء يبدأ بأساسيات الرحلة الخاصة، ثم يتوسع حول إيقاعكم المفضل والتوفر المؤكد. تُناقَش مسارات المدن المتعددة والتنقل والإقامات والتجارب على حدة وتُثبَّت قبل الحجز.",
-      "status": "draft"
+      "status": "published"
     },
     {
       "tier_id": "383c2fb5-8408-5a06-b748-638e93876bfc",
       "locale": "es",
       "name": "The Resident",
       "price_label": "From USD $3,500/person · Est. AED 120,000–150,000",
-      "tagline": "Un viaje más hondo por varias ciudades de Colombia, a su ritmo",
+      "tagline": "Un viaje más profundo por varias ciudades de Colombia, a tu ritmo",
       "duration_label": "8–14 noches · hasta 2 ciudades adicionales",
       "ideal_for_label": "Ideal para",
       "ideal_for": "Viajeros exigentes que quieren un viaje más profundo por varias ciudades, a un ritmo refinado y sin prisas",
-      "body": "Todo empieza con lo esencial de un viaje privado y luego se amplía según su ritmo preferido y la disponibilidad confirmada. Las rutas entre varias ciudades, el transporte, las estancias y las experiencias se hablan por separado y se aseguran antes de reservar.",
-      "status": "draft"
+      "body": "Todo empieza con lo esencial de un viaje privado y luego se amplía según tu ritmo preferido y la disponibilidad confirmada. Las rutas entre varias ciudades, el transporte, las estancias y las experiencias se hablan por separado y se aseguran antes de reservar.",
+      "status": "published"
     },
     {
       "tier_id": "98d5b6e9-94f5-56dc-8037-a11b4b85786b",
@@ -176,9 +176,9 @@
       "tagline": "رحلة عالية العناية في كولومبيا، تُشكَّل حول ما يمكن تأكيده",
       "duration_label": "14–21 ليلة · حتى 3 مدن إضافية",
       "ideal_for_label": "مثالي لـ",
-      "ideal_for": "العائلات والتنفيذيون من أصحاب الثروات الضخمة الباحثون عن أقصى خصوصية ومرونة وخدمة بمعايير القفازات البيضاء",
+      "ideal_for": "العائلات والتنفيذيون من أصحاب الثروات الضخمة الباحثون عن أقصى درجات الخصوصية والمرونة وخدمة راقية بأعلى المعايير",
       "body": "إطار تخطيط عالي العناية للرحلات الأطول بين عدة مدن. تُناقَش الإقامات والتنقل والخيارات المائية والترتيبات الخاصة على حدة ولا تُدرج إلا عند تأكيدها لتواريخكم.",
-      "status": "draft"
+      "status": "published"
     },
     {
       "tier_id": "98d5b6e9-94f5-56dc-8037-a11b4b85786b",
@@ -189,8 +189,8 @@
       "duration_label": "14–21 noches · hasta 3 ciudades adicionales",
       "ideal_for_label": "Ideal para",
       "ideal_for": "Familias y ejecutivos de patrimonio ultraalto que buscan máxima privacidad, flexibilidad y un servicio de guante blanco",
-      "body": "Un marco de planificación de mucha atención para viajes más largos por varias ciudades. Las estancias, el transporte, las opciones acuáticas y los arreglos especiales se hablan por separado y solo se incluyen cuando están confirmados para sus fechas.",
-      "status": "draft"
+      "body": "Un marco de planificación de mucha atención para viajes más largos por varias ciudades. Las estancias, el transporte, las opciones acuáticas y los arreglos especiales se hablan por separado y solo se incluyen cuando están confirmados para tus fechas.",
+      "status": "published"
     }
   ]
 }

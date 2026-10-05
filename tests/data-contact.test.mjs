@@ -73,19 +73,19 @@ test("the published facts are the same in en, ar and es", async () => {
   }
 });
 
-test("en is published; ar and es are drafts; the Bogotá label is pinned per language (S3-2)", async () => {
+test("every language is published (AR and ES reviewed and published 2026-10-05, I18N-REVIEW-2026-10-05.md); the Bogotá label is pinned per language (S3-2)", async () => {
   const en = await details("en");
   assert.equal(en.location_label, "Bogotá, Colombia");
   assert.equal(en.whatsapp_message, WA_TEXT);
   assert.equal(en.translation_status, "published");
   const es = await details("es");
   assert.equal(es.location_label, "Bogotá, Colombia");
-  assert.equal(es.translation_status, "draft");
+  assert.equal(es.translation_status, "published");
   assert.notEqual(es.whatsapp_message, WA_TEXT);
   const ar = await details("ar");
   assert.equal(ar.location_label, "بوغوتا، كولومبيا");
   assert.equal(ar.location_label, BOGOTA_AR);
-  assert.equal(ar.translation_status, "draft");
+  assert.equal(ar.translation_status, "published");
   assert.match(ar.whatsapp_message, ARABIC_LETTER);
   assert.doesNotMatch(ar.whatsapp_message, ARABIC_INDIC_DIGIT);
   assert.doesNotMatch(ar.location_label, ARABIC_INDIC_DIGIT);
