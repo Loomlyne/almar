@@ -5,6 +5,9 @@ const baseURL = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
   testDir: "tests",
+  // Browser specs only. Without this, Playwright's default pattern also loads tests/*.test.mjs (the node:test files, run
+  // with `node --test`) as browser tests: they fail on relative paths and bundling, and a bare `npx playwright test` ran nothing.
+  testMatch: /.*\.spec\.ts$/,
   // The build-suite runs against the assembled out/ with playwright.build.config.ts, not against next dev.
   testIgnore: ["build/**"],
   snapshotPathTemplate: "{testDir}/{arg}{ext}",
