@@ -6,7 +6,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 // Plan 03.3-08, Task 3: what scripts/assemble-cloudflare.mjs does with --target, run as a real process on a scratch
-// copy of the scripts and lib folders. No build runs (a refused target stops before `npm run build`), nothing is
+// copy of the scripts and lib folders. No build runs (a refused target stops before the OpenNext build), nothing is
 // deployed, and the real out/ and out-preview/ are never touched.
 
 const SOURCE = readFileSync("scripts/assemble-cloudflare.mjs", "utf8");
@@ -20,7 +20,7 @@ function scratch({ placeholder = false, publicFile = null } = {}) {
   cpSync("_headers", join(root, "_headers"));
   mkdirSync(join(root, "public"));
   if (publicFile) writeFileSync(join(root, "public", publicFile), "x");
-  // A build must not be reachable from here: no package.json, so `npm run build` cannot find a script.
+  // A build must not be reachable from here: no node_modules, so the OpenNext binary (job 10) cannot run.
   if (placeholder) {
     const file = join(root, "lib", "data", "media.ts");
     const text = readFileSync(file, "utf8")
@@ -43,7 +43,7 @@ test("a mistyped target stops the assembler before any build or folder", () => {
   const result = run(root, ["--target=previw"]);
   assert.notEqual(result.status, 0);
   assert.match(result.text, /previw/);
-  assert.doesNotMatch(result.text, /npm run build|Creating an optimized/);
+  assert.doesNotMatch(result.text, /npm run build|opennextjs-cloudflare|Creating an optimized/);
   assert.deepEqual(folders(root), { out: false, preview: false });
 });
 
@@ -59,7 +59,7 @@ for (const target of ["preview", "production"]) {
     const result = run(root, [`--target=${target}`]);
     assert.notEqual(result.status, 0);
     assert.match(result.text, /media host is a placeholder/);
-    assert.doesNotMatch(result.text, /npm run build|Creating an optimized/);
+    assert.doesNotMatch(result.text, /npm run build|opennextjs-cloudflare|Creating an optimized/);
     assert.deepEqual(folders(root), { out: false, preview: false }, "a refused run leaves no folder");
   });
 }
@@ -68,7 +68,8 @@ test("--target=local does not run the media check (it gets as far as the build, 
   const result = run(scratch({ placeholder: true }), []);
   assert.notEqual(result.status, 0, "the scratch copy has no package.json, so the build step fails");
   assert.doesNotMatch(result.text, /media host is a placeholder/);
-  assert.match(result.text, /Command failed: npm run build/, "it reached the build step");
+  // Job 10: the build step is the OpenNext build, whose binary this scratch copy does not have.
+  assert.match(result.text, /opennextjs-cloudflare ENOENT/, "it reached the build step");
 });
 
 for (const name of ["robots.txt", "sitemap.xml", "_headers"]) {
@@ -90,8 +91,8 @@ test("the order in the source: target, public check, media check, then the build
   };
   assert.ok(at("parseTarget(argv)") < at("assertPublicClean(root)"));
   assert.ok(at("assertPublicClean(root)") < at('if (target !== "local") assertMediaReady()'));
-  assert.ok(at('if (target !== "local") assertMediaReady()') < at('execSync("npm run build"'));
-  assert.ok(at('execSync("npm run build"') < at("outDirNameFor(target)"));
+  assert.ok(at('if (target !== "local") assertMediaReady()') < at('execFileSync("./node_modules/.bin/opennextjs-cloudflare"'));
+  assert.ok(at('execFileSync("./node_modules/.bin/opennextjs-cloudflare"') < at("outDirNameFor(target)"));
   assert.ok(at("writeTargetFiles({") < at("assertTargetFiles(outDir, target"));
   assert.equal(SOURCE.includes("headersFile:"), false, "_headers is written by writeTargetFiles, never copied by the assembler");
 });

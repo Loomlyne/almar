@@ -32,9 +32,7 @@ function isFilled(value: FormDataEntryValue | null): boolean {
 }
 
 export async function POST(request: Request) {
-  if (process.env.NODE_ENV === "production") {
-    return new NextResponse(null, { status: 404 });
-  }
+  // Held at the Worker by lib/server-routes.ts HELD_PATHS until slice 3 plan 27 switches it on.
 
   const formData = await request.formData();
 
