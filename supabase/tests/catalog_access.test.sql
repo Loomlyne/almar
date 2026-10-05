@@ -2,7 +2,7 @@
 -- The seed is written as the postgres owner; the assertions run as anon, then authenticated, then service_role.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(90);
+select plan(120);
 
 -- Seed ----------------------------------------------------------------------------------------------------------
 insert into public.media (id, key, width, height, bytes, sha256, source) values
@@ -187,6 +187,87 @@ select is((select (public.ops_get('stay', '00000000-0000-4000-8000-0000000000e1'
 select is((select (public.ops_get('stay', '00000000-0000-4000-8000-0000000000e1') ->> 'base_nightly_rate_aed')), '1234.00', 'ops_get returns money as a decimal string');
 select is((select (public.ops_get('team_member', '00000000-0000-4000-8000-000000000071') ->> 'email')), 'private@example.com', 'ops_get returns the team email to the owner');
 select is((select count(*)::int from public.stay_night_rates('00000000-0000-4000-8000-0000000000e1', current_date + 10, current_date + 12) where source = 'range'), 2, 'service_role can read the rate preview');
+reset role;
+
+-- Review fixes (Fable, plan 03.2-01): the home-pickup add-on is not in the public catalogue, and a draft row's
+-- pictures, alt text and blocked days are not public. Seeded as the owner, asserted as anon. ----------------------------
+reset role;
+insert into public.media (id, key, width, height, source) values
+  ('00000000-0000-4000-8000-0000000000b1', 'test/up-stay-hero.webp', 1600, 1000, 'upload'),
+  ('00000000-0000-4000-8000-0000000000b2', 'test/up-stay-gallery.webp', 1600, 1000, 'upload'),
+  ('00000000-0000-4000-8000-0000000000b3', 'test/up-member.webp', 800, 800, 'upload'),
+  ('00000000-0000-4000-8000-0000000000b4', 'test/up-destination.webp', 1600, 1000, 'upload'),
+  ('00000000-0000-4000-8000-0000000000b5', 'test/up-experience.webp', 1600, 1000, 'upload'),
+  ('00000000-0000-4000-8000-0000000000b6', 'test/up-journey.webp', 1600, 1000, 'upload');
+insert into public.image_translations (image_id, locale, alt, status) values
+  ('00000000-0000-4000-8000-0000000000b1', 'en', 'Alt of a draft stay picture', 'published'),
+  ('00000000-0000-4000-8000-0000000000b3', 'en', 'Alt of a draft member picture', 'published');
+insert into public.stays (id, slug, destination_id, hero_media_id, is_published, position) values
+  ('00000000-0000-4000-8000-0000000000e3', 'upload-stay', '00000000-0000-4000-8000-0000000000d1', '00000000-0000-4000-8000-0000000000b1', false, 3);
+insert into public.stay_translations (stay_id, locale, status, title) values
+  ('00000000-0000-4000-8000-0000000000e3', 'en', 'published', 'Upload stay');
+insert into public.stay_gallery (stay_id, media_id, position) values
+  ('00000000-0000-4000-8000-0000000000e3', '00000000-0000-4000-8000-0000000000b2', 1);
+update public.destinations set inset_media_id = '00000000-0000-4000-8000-0000000000b4' where id = '00000000-0000-4000-8000-0000000000d2';
+update public.catalog_items set media_id = '00000000-0000-4000-8000-0000000000b5' where id = '00000000-0000-4000-8000-0000000000c2';
+update public.journey_tiers set media_id = '00000000-0000-4000-8000-0000000000b6' where id = '00000000-0000-4000-8000-0000000000f2';
+update public.team_members set photo_media_id = '00000000-0000-4000-8000-0000000000b3' where id = '00000000-0000-4000-8000-000000000072';
+insert into public.availability_blocks (scope, destination_id, stay_id, starts_on, ends_on) values
+  ('stay', null, '00000000-0000-4000-8000-0000000000e3', current_date + 20, current_date + 21),
+  ('destination', '00000000-0000-4000-8000-0000000000d2', null, current_date + 22, current_date + 22);
+insert into public.catalog_items (id, slug, kind, unit, price_aed, is_uae, is_home_pickup, is_published, position) values
+  ('00000000-0000-4000-8000-0000000000c3', 'home-pickup', 'service', 'trip', 100.00, true, true, true, 3);
+insert into public.catalog_translations (item_id, locale, status, name) values
+  ('00000000-0000-4000-8000-0000000000c3', 'en', 'published', 'Home pickup');
+insert into public.catalog_item_stays (item_id, stay_id, position) values
+  ('00000000-0000-4000-8000-0000000000c3', '00000000-0000-4000-8000-0000000000e1', 2);
+
+set local role anon;
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b1'), 0, 'media: an upload used only by a draft stay (hero) is invisible');
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b2'), 0, 'media: an upload used only by a draft stay (gallery) is invisible');
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b3'), 0, 'media: an upload used only by a draft team member is invisible');
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b4'), 0, 'media: an upload used only by a draft destination is invisible');
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b5'), 0, 'media: an upload used only by a draft experience is invisible');
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b6'), 0, 'media: an upload used only by a draft journey is invisible');
+select is((select count(*)::int from public.image_translations where image_id = '00000000-0000-4000-8000-0000000000b1'), 0, 'image_translations: the alt text of a draft stay picture is invisible');
+select is((select count(*)::int from public.api_image_translations where image_id = '00000000-0000-4000-8000-0000000000b1'), 0, 'api_image_translations: the alt text of a draft stay picture is invisible');
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000a1'), 1, 'media: an imported row stays visible (fixture-only pages read its alt by id)');
+select is((select count(*)::int from public.image_translations where image_id = '00000000-0000-4000-8000-0000000000a1'), 1, 'image_translations: the alt text of an imported row stays visible');
+select is((select count(*)::int from public.api_image_translations where image_id = '00000000-0000-4000-8000-0000000000a1'), 1, 'api_image_translations: an imported row stays visible');
+select is((select count(*)::int from public.api_catalog where slug = 'home-pickup'), 0, 'api_catalog does not return the published home-pickup add-on');
+select is((select count(*)::int from public.api_catalog_translations where name = 'Home pickup'), 0, 'api_catalog_translations does not return the home-pickup add-on');
+select is((select service_ids from public.api_stays where slug = 'pub-stay'), '{}'::uuid[], 'api_stays does not list the home-pickup add-on as a service');
+select is((select count(*)::int from public.availability_blocks where stay_id = '00000000-0000-4000-8000-0000000000e3'), 0, 'availability_blocks: a block of a draft stay is invisible');
+select is((select count(*)::int from public.availability_blocks where destination_id = '00000000-0000-4000-8000-0000000000d2'), 0, 'availability_blocks: a block of a draft destination is invisible');
+select is((select count(*)::int from public.availability_blocks), 3, 'availability_blocks: only the blocks of published rows and of scope all remain');
+
+reset role;
+update public.stays set is_published = true where id = '00000000-0000-4000-8000-0000000000e3';
+set local role anon;
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b1'), 1, 'media: the hero upload becomes visible once the stay is published');
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b2'), 1, 'media: the gallery upload becomes visible once the stay is published');
+select is((select count(*)::int from public.image_translations where image_id = '00000000-0000-4000-8000-0000000000b1'), 1, 'image_translations: the alt text becomes visible once the stay is published');
+select is((select count(*)::int from public.api_image_translations where image_id = '00000000-0000-4000-8000-0000000000b1'), 1, 'api_image_translations: the alt text becomes visible once the stay is published');
+select is((select gallery::jsonb -> 0 ->> 'media_key' from public.api_stays where slug = 'upload-stay'), 'test/up-stay-gallery.webp', 'api_stays: the published stay carries its uploaded gallery picture');
+select is((select count(*)::int from public.availability_blocks where stay_id = '00000000-0000-4000-8000-0000000000e3'), 1, 'availability_blocks: the block becomes visible once the stay is published');
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b3'), 0, 'media: the draft team member picture is still invisible');
+
+reset role;
+update public.destinations set is_published = true where id = '00000000-0000-4000-8000-0000000000d2';
+update public.catalog_items set is_published = true where id = '00000000-0000-4000-8000-0000000000c2';
+update public.journey_tiers set is_published = true where id = '00000000-0000-4000-8000-0000000000f2';
+update public.team_members set is_published = true where id = '00000000-0000-4000-8000-000000000072';
+set local role anon;
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b3'), 1, 'media: the team member picture becomes visible once the member is published');
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b4'), 1, 'media: the destination picture becomes visible once the destination is published');
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b5'), 1, 'media: the experience picture becomes visible once the experience is published');
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b6'), 1, 'media: the journey picture becomes visible once the journey is published');
+select is((select count(*)::int from public.availability_blocks where destination_id = '00000000-0000-4000-8000-0000000000d2'), 1, 'availability_blocks: the destination block becomes visible once the destination is published');
+
+reset role;
+update public.stays set is_published = false where id = '00000000-0000-4000-8000-0000000000e3';
+set local role anon;
+select is((select count(*)::int from public.media where id = '00000000-0000-4000-8000-0000000000b1'), 0, 'media: unpublishing the stay hides its upload again');
 reset role;
 
 select * from finish();

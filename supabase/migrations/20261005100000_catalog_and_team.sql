@@ -12,6 +12,10 @@
 --
 -- Phase 4's 20261005110000_bookings_and_ops.sql may `create or replace` api_stay_blocked_days (same two columns,
 -- same grants) and ops_add_block (same signature and result); nothing else here is edited by a later plan.
+-- Two things a later migration must know: api_catalog (and its translations and the stays' id lists) never return the
+-- home-pickup add-on, so Phase 4 reads that one row from catalog_items with the service-role client; and the anon
+-- read policies of media, image_translations and availability_blocks follow their published parents, so a later
+-- table that points at media must extend the media policy or its pictures stay invisible to the public key.
 --
 -- Known and not this file's job: job 02's site_settings_public is still `security_invoker = false` (Supabase lint
 -- 0010, research section 4.1). Flagged to the controller.
@@ -504,10 +508,29 @@ grant select (inclusion_id, locale, status, label) on public.inclusion_translati
 grant select (requested_seq) on public.site_publish to anon;
 
 -- Policies: published rows only; a translation or link row follows its parent.
+-- A picture is public when it came from the fixture import (the fixture-only pages, home, about and blog, read alt
+-- text by image id with no database reference) or when a published row shows it. An uploaded picture used only by a
+-- draft stay, destination, experience, journey or team member stays private until that row is published. The policy
+-- reads `source` without a column grant: policy expressions are not column-checked, and anon cannot select it.
 create policy "media: anon reads" on public.media
-  for select to anon using (true);
+  for select to anon using (
+    source = 'import'
+    or exists (select 1 from public.destinations d
+      where d.is_published and media.id in (d.hero_media_id, d.inset_media_id))
+    or exists (select 1 from public.stays s
+      where s.is_published and s.hero_media_id = media.id)
+    or exists (select 1 from public.stay_gallery g join public.stays s on s.id = g.stay_id
+      where s.is_published and g.media_id = media.id)
+    or exists (select 1 from public.catalog_items c
+      where c.is_published and c.media_id = media.id)
+    or exists (select 1 from public.journey_tiers j
+      where j.is_published and j.media_id = media.id)
+    or exists (select 1 from public.team_members t
+      where t.is_published and t.photo_media_id = media.id)
+  );
+-- Alt text follows its picture: the media policy above applies inside this one.
 create policy "image_translations: anon reads" on public.image_translations
-  for select to anon using (true);
+  for select to anon using (exists (select 1 from public.media m where m.id = image_translations.image_id));
 create policy "destinations: anon reads published" on public.destinations
   for select to anon using (is_published);
 create policy "destination_translations: anon reads published" on public.destination_translations
@@ -518,9 +541,16 @@ create policy "stay_gallery: anon reads published" on public.stay_gallery
   for select to anon using (exists (select 1 from public.stays p where p.id = stay_id and p.is_published));
 create policy "stay_translations: anon reads published" on public.stay_translations
   for select to anon using (exists (select 1 from public.stays p where p.id = stay_id and p.is_published));
--- Blocked days are baked into the stay pages as hints (C-04); the reason and the author are not granted.
+-- Blocked days are baked into the stay pages as hints (C-04); the reason and the author are not granted. A block of a
+-- draft stay or an unpublished destination is not public (an unpublished destination holds no published stay).
 create policy "availability_blocks: anon reads dates" on public.availability_blocks
-  for select to anon using (true);
+  for select to anon using (
+    scope = 'all'
+    or (scope = 'destination' and exists (select 1 from public.destinations d
+      where d.id = availability_blocks.destination_id and d.is_published))
+    or (scope = 'stay' and exists (select 1 from public.stays s
+      where s.id = availability_blocks.stay_id and s.is_published))
+  );
 create policy "catalog_items: anon reads published" on public.catalog_items
   for select to anon using (is_published);
 create policy "catalog_translations: anon reads published" on public.catalog_translations
@@ -601,12 +631,12 @@ select
   coalesce((
     select array_agg(l.item_id order by l.position, c.slug)
     from public.catalog_item_stays l join public.catalog_items c on c.id = l.item_id
-    where l.stay_id = s.id and c.kind = 'experience' and c.is_published
+    where l.stay_id = s.id and c.kind = 'experience' and c.is_published and not c.is_home_pickup
   ), '{}'::uuid[]) as experience_ids,
   coalesce((
     select array_agg(l.item_id order by l.position, c.slug)
     from public.catalog_item_stays l join public.catalog_items c on c.id = l.item_id
-    where l.stay_id = s.id and c.kind = 'service' and c.is_published
+    where l.stay_id = s.id and c.kind = 'service' and c.is_published and not c.is_home_pickup
   ), '{}'::uuid[]) as service_ids,
   case when hm.id is null then null::json
     else json_build_object('id', hm.id, 'media_key', hm.key, 'width', hm.width, 'height', hm.height, 'position', 0) end as hero_image,
@@ -648,14 +678,14 @@ select
   c.is_published, c.position
 from public.catalog_items c
 left join public.media m on m.id = c.media_id
-where c.is_published
+where c.is_published and not c.is_home_pickup
 order by c.position, c.slug;
 
 create view public.api_catalog_translations with (security_invoker = on) as
 select t.item_id, t.locale, t.name, t.summary, t.duration_label, t.status
 from public.catalog_translations t
 join public.catalog_items c on c.id = t.item_id
-where c.is_published
+where c.is_published and not c.is_home_pickup
 order by c.position, c.slug, t.locale;
 
 create view public.api_journey_tiers with (security_invoker = on) as
@@ -701,9 +731,12 @@ join public.team_members t on t.id = tt.member_id
 where t.is_published
 order by t.position, t.slug, tt.locale;
 
+-- Only the alt text of pictures the public key may see: the exists runs under the caller's rights, so the media
+-- policy decides (the view is granted to anon only; the service-role client reads image_translations directly).
 create view public.api_image_translations with (security_invoker = on) as
 select it.image_id, it.locale, it.alt, it.status
 from public.image_translations it
+where exists (select 1 from public.media m where m.id = it.image_id)
 order by it.image_id, it.locale;
 
 -- Phase 4's step "Included in your journey": one row per inclusion per language.

@@ -100,3 +100,34 @@ test("no storage, no hosted-project call, no key in the file", () => {
   assert.equal(/storage\./i.test(sql), false);
   assert.equal(/service_role_key|sb_secret_|sb_publishable_|eyJ[A-Za-z0-9_-]{20,}/.test(sql), false);
 });
+
+test("draft rows' pictures, alt text and blocked days are not public: no open anon policy on them", () => {
+  for (const table of ["media", "image_translations", "availability_blocks"]) {
+    const policy = sql.match(new RegExp(`create policy "[^"]+" on public\\.${table}\\s+for select to anon using \\(([\\s\\S]*?)\\);`));
+    assert.ok(policy, `${table}: policy found`);
+    assert.equal(/^\s*true\s*$/.test(policy[1]), false, `${table}: not using (true)`);
+  }
+  const media = sql.match(/create policy "media: anon reads" on public\.media\s+for select to anon using \(([\s\S]*?)\);/)[1];
+  assert.match(media, /source = 'import'/, "imported fixture pictures stay public");
+  for (const parent of ["destinations", "stays", "stay_gallery", "catalog_items", "journey_tiers", "team_members"]) {
+    assert.match(media, new RegExp(`public\\.${parent}\\b`), `media policy follows ${parent}`);
+  }
+  assert.match(sql, /create policy "image_translations: anon reads" on public\.image_translations\s+for select to anon using \(exists \(select 1 from public\.media m where m\.id = image_translations\.image_id\)\);/);
+  assert.match(sql, /create view public\.api_image_translations[\s\S]*?where exists \(select 1 from public\.media m where m\.id = it\.image_id\)/);
+  assert.equal(/grant select \([^)]*\bsource\b[^)]*\)\s*on public\.media/.test(sql), false, "media.source is not granted to anon");
+});
+
+test("the home-pickup add-on is in no public view", () => {
+  for (const view of ["api_catalog", "api_catalog_translations"]) {
+    const body = sql.match(new RegExp(`create view public\\.${view} with \\(security_invoker = on\\) as([\\s\\S]*?);\\n`))[1];
+    assert.match(body, /not c\.is_home_pickup/, `${view}: home pickup excluded`);
+  }
+  const stays = sql.match(/create view public\.api_stays with \(security_invoker = on\) as([\s\S]*?);\n/)[1];
+  assert.equal(stays.split("not c.is_home_pickup").length - 1, 2, "api_stays lists neither experiences nor services of the add-on");
+});
+
+test("the local Supabase config never turns sign-ups on", () => {
+  const toml = readFileSync("supabase/config.toml", "utf8");
+  assert.equal(/^\s*enable_signup\s*=\s*true\b/m.test(toml), false);
+  assert.ok((toml.match(/^enable_signup = false$/gm) ?? []).length >= 2);
+});
