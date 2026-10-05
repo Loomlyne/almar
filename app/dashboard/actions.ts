@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { sendLinkFromRequest } from "../../lib/auth/magic-link-server";
-import { normalizeEmail, readLocale, RETURN_COOKIE } from "../../lib/auth/rules";
+import { normalizeEmail, readLocale, returnCookieName, returnCookieOptions } from "../../lib/auth/rules";
 import { createSupabaseServer } from "../../lib/supabase/clients";
 import type { SignInState } from "../login/actions";
 
@@ -14,13 +14,7 @@ import type { SignInState } from "../login/actions";
 export async function opsSignIn(_previous: SignInState, form: FormData): Promise<SignInState> {
   const email = normalizeEmail(form.get("email"));
   const locale = readLocale(form.get("locale"));
-  (await cookies()).set(RETURN_COOKIE, "/", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60,
-  });
+  (await cookies()).set(returnCookieName(), "/", returnCookieOptions());
 
   const result = await sendLinkFromRequest({ email, locale });
   switch (result.status) {

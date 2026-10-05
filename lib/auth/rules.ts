@@ -2,7 +2,26 @@
 // directly with node's type stripping.
 
 export const OWNER_EMAIL = "maria@almarprivatejourney.com";
-export const RETURN_COOKIE = "almar-return";
+
+/** One hour: long enough to read the email and click the link. */
+export const RETURN_COOKIE_MAX_AGE = 60 * 60;
+
+/**
+ * The cookie that remembers where to go after sign-in. In production the name carries the `__Host-` prefix
+ * (browsers then require Secure, path "/" and no Domain attribute), like the link nonce cookie; plain http dev
+ * cannot set a Secure cookie, so it gets the plain name. Every reader and writer uses this name.
+ */
+export function returnCookieName(env: string | undefined = process.env.NODE_ENV): string {
+  return env === "production" ? "__Host-almar-return" : "almar-return";
+}
+
+/**
+ * Flags for writing the return cookie, and (maxAge 0) for clearing it: a __Host- cookie is only accepted, and
+ * only cleared, by a Set-Cookie that carries Secure and Path=/, which a bare cookies().delete() does not.
+ */
+export function returnCookieOptions(maxAge: number = RETURN_COOKIE_MAX_AGE, env: string | undefined = process.env.NODE_ENV) {
+  return { httpOnly: true, sameSite: "lax" as const, secure: env === "production", path: "/", maxAge };
+}
 export const LOCALE_COOKIE = "almar-locale";
 
 export type AuthLocale = "en" | "ar" | "es";

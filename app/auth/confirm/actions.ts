@@ -3,7 +3,7 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { authSigningKey, createSupabaseAdmin, createSupabaseServer } from "../../../lib/supabase/clients";
-import { RETURN_COOKIE, safeReturnPath } from "../../../lib/auth/rules";
+import { returnCookieName, returnCookieOptions, safeReturnPath } from "../../../lib/auth/rules";
 import { checkContinue, isConfirmType, linkNonceCookieName } from "../../../lib/auth/continue";
 import { isTokenHashShape, limiterHash, visitorIpKey } from "../../../lib/auth/limit";
 import { SHELL_HEADER } from "../../../lib/host";
@@ -26,7 +26,7 @@ export async function confirmSignIn(_previous: ConfirmState, form: FormData): Pr
   if (!isTokenHashShape(tokenHash) || !isConfirmType(type)) redirect(expired);
 
   const store = await cookies();
-  const back = safeReturnPath(store.get(RETURN_COOKIE)?.value);
+  const back = safeReturnPath(store.get(returnCookieName())?.value);
 
   const limitKey = authSigningKey("limit");
   const admin = createSupabaseAdmin();
@@ -58,7 +58,8 @@ export async function confirmSignIn(_previous: ConfirmState, form: FormData): Pr
 
   const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
   if (!error) {
-    store.delete(RETURN_COOKIE);
+    // Not delete(): its Set-Cookie has no Secure, and a __Host- cookie is only cleared by one that has it.
+    store.set(returnCookieName(), "", returnCookieOptions(0));
     redirect(back);
   }
   redirect(expired);
