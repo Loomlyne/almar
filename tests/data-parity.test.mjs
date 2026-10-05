@@ -12,8 +12,8 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildImportPayload } from "../scripts/import-catalog.mjs";
-import { localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
-import { importIntoLocal, underStackLock } from "./helpers/import-local.mjs";
+import { localStack, requireStack, runSql } from "./helpers/local-supabase.mjs";
+import { importIntoLocal, resetAndWait, underStackLock } from "./helpers/import-local.mjs";
 import { writeLiveShapedFixtures } from "./helpers/live-shaped-fixtures.mjs";
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -105,11 +105,11 @@ function supabaseSide(stack) {
 let touched = false;
 
 /** The database as the import leaves it (12 stays). `fresh` rebuilds it from the migrations first. Call under the lock. */
-function ensureImported(stack, { fresh = false } = {}) {
+async function ensureImported(stack, { fresh = false } = {}) {
   touched = true;
   const count = () => runSql("select count(*)::int as n from public.stays").rows[0]?.n;
   if (!fresh && count() === 12) return;
-  const reset = resetLocal();
+  const reset = await resetAndWait();
   assert.equal(reset.code, 0, reset.output.slice(-2000));
   importIntoLocal(stack);
   assert.equal(count(), 12);
@@ -117,7 +117,7 @@ function ensureImported(stack, { fresh = false } = {}) {
 
 after(async () => {
   // Leave the database as the migrations make it: the pgTAP files expect an empty catalogue.
-  if (touched && localStack()) await underStackLock(async () => resetLocal());
+  if (touched && localStack()) await underStackLock(async () => resetAndWait());
 });
 
 const SAMPLE_SLUG = "getsemani-colonial-house";
@@ -130,7 +130,7 @@ test("every read x en/ar/es: live-shaped fixtures = the local database, key orde
   await underStackLock(async () => {
     const stack = requireStack(t);
     if (!stack) return;
-    ensureImported(stack, { fresh: true });
+    await ensureImported(stack, { fresh: true });
 
     const dir = mkdtempSync(join(tmpdir(), "almar-live-shaped-"));
     try {
@@ -172,7 +172,7 @@ test("per-source row counts equal the import payload's counts (a truncated read 
   await underStackLock(async () => {
     const stack = requireStack(t);
     if (!stack) return;
-    ensureImported(stack);
+    await ensureImported(stack);
     const database = supabaseSide(stack);
     const { counts } = buildImportPayload({ root: process.cwd() });
     const expected = {
@@ -202,7 +202,7 @@ test("an ops block on a stay reaches getBlockedDates through api_stay_blocked_da
       assert.equal(res.code, 0, res.output.slice(-1500));
       return res.rows;
     };
-    ensureImported(stack);
+    await ensureImported(stack);
     try {
       db(
         `insert into public.availability_blocks (scope, stay_id, starts_on, ends_on, reason)

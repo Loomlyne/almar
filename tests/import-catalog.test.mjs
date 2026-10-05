@@ -7,7 +7,8 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildImportPayload, checkApplyTarget, formatReport, PAYLOAD_TABLES } from "../scripts/import-catalog.mjs";
-import { acquireStackLock, localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
+import { acquireStackLock, localStack, requireStack, runSql } from "./helpers/local-supabase.mjs";
+import { resetAndWait } from "./helpers/import-local.mjs";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
 const manifest = JSON.parse(readFileSync("lib/data/media-manifest.json", "utf8"));
@@ -270,10 +271,14 @@ async function readView(stack, view) {
 
 let importedLocally = false;
 let releaseStackLock = null;
-after(() => {
-  // The pgTAP files expect an empty catalogue: leave the local database as the migrations make it.
-  if (importedLocally && localStack()) resetLocal();
-  releaseStackLock?.();
+after(async () => {
+  // The pgTAP files expect an empty catalogue: leave the local database as the migrations make it, and wait until PostgREST
+  // serves it again (the next file to take the lock must not meet a stale schema cache).
+  try {
+    if (importedLocally && localStack()) await resetAndWait();
+  } finally {
+    releaseStackLock?.();
+  }
 });
 
 test("local stack: --apply --local imports, the public views return the fixtures, a second run writes nothing", { timeout: 600000 }, async (t) => {
@@ -284,7 +289,7 @@ test("local stack: --apply --local imports, the public views return the fixtures
   const stack = requireStack(t);
   if (!stack) return;
   const existing = runSql("select count(*)::int as n from public.destinations").rows[0]?.n;
-  if (existing !== 0) resetLocal();
+  if (existing !== 0) assert.equal((await resetAndWait()).code, 0, "reset of the local stack");
   importedLocally = true;
 
   const env = { SUPABASE_URL: stack.url, SUPABASE_SERVICE_ROLE_KEY: stack.serviceKey };

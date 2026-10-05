@@ -4,7 +4,7 @@
 import { spawnSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { acquireStackLock } from "./local-supabase.mjs";
+import { acquireStackLock, localStack, resetLocal, runSql } from "./local-supabase.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -34,5 +34,44 @@ export async function underStackLock(fn, { timeoutMs = 30 * 60 * 1000 } = {}) {
     return await fn();
   } finally {
     release();
+  }
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * `resetLocal()`, then waits until PostgREST can call what the migrations just created. `supabase db reset` returns before
+ * PostgREST has a good schema cache again: it is restarted by the reset, fails to load while the database is coming back
+ * (503, "Attempting to reconnect to the database in 32 seconds"), and loads partial caches while the migrations run. Under
+ * load an import or a read straight after the reset failed with "Could not find the function public.import_catalog(p) in
+ * the schema cache". Asks for a reload, then calls import_catalog with an empty payload (a no-op: every table is read from
+ * an empty list) until it answers 200 twice, a second apart. The probe is the call the import makes, so a passing probe is
+ * the same proof the import needs. Returns { code, output } like resetLocal; code 1 when PostgREST is not ready after
+ * `timeoutMs`. Call it under the stack lock.
+ */
+export async function resetAndWait({ timeoutMs = 120_000 } = {}) {
+  const reset = resetLocal();
+  if (reset.code !== 0) return reset;
+  const stack = localStack({ fresh: true });
+  if (!stack) return { code: 1, output: `${reset.output}\nno local stack after the reset` };
+  runSql("notify pgrst, 'reload schema'");
+  const deadline = Date.now() + timeoutMs;
+  let good = 0;
+  for (;;) {
+    let ok = false;
+    try {
+      const res = await fetch(`${stack.url}/rest/v1/rpc/import_catalog`, {
+        method: "POST",
+        headers: { apikey: stack.serviceKey, authorization: `Bearer ${stack.serviceKey}`, "content-type": "application/json" },
+        body: JSON.stringify({ p: {} }),
+      });
+      ok = res.status === 200;
+    } catch {
+      // the API is still restarting: try again
+    }
+    good = ok ? good + 1 : 0;
+    if (good >= 2) return reset;
+    if (Date.now() > deadline) return { code: 1, output: `${reset.output}\nPostgREST could not call import_catalog ${Math.round(timeoutMs / 1000)} s after the reset` };
+    await sleep(ok ? 1000 : 500);
   }
 }
