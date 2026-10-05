@@ -17,28 +17,30 @@ const CONFIG_TEXT = readFileSync(CONFIG, "utf8");
 const FOLDER = /^directory = "\.\/([^"]+)"$/m.exec(CONFIG_TEXT)?.[1] ?? "";
 const IS_PREVIEW = /^name = "almar-preview"$/m.test(CONFIG_TEXT);
 
-// The six sections still held (the prompt's nine minus /login, /account and /bookings, opened by plan 02-23 task 3),
-// pinned here on purpose: changing HELD_PATHS breaks this spec until the spec is changed in the same commit
-// (lib/server-routes.ts, step 3 of its how-to). The six opened paths are proven in tests/build/auth-paths.spec.ts.
-const PINNED_HELD = ["/dashboard", "/booking", "/fx", "/newsletter", "/embed", "/__harness"];
+// The five sections still held (the prompt's nine minus /login, /account and /bookings, opened by plan 02-23 task 3,
+// and /booking, opened by plan 04-02), pinned here on purpose: changing HELD_PATHS breaks this spec until the spec is
+// changed in the same commit (lib/server-routes.ts, step 3 of its how-to). The six opened sign-in paths are proven in
+// tests/build/auth-paths.spec.ts.
+const PINNED_HELD = ["/dashboard", "/fx", "/newsletter", "/embed", "/__harness"];
 
 const HELD_PROBES = [
   "/dashboard",
   "/dashboard/home",
   "/dashboard/catalog/stays",
-  "/booking",
-  "/booking/trip",
   "/fx",
   "/newsletter",
   "/embed/hero-booker",
   "/embed/font/x.woff2",
   "/__harness",
   "/ar/dashboard",
-  "/es/booking",
 ];
 // Not held sections, but never served by Next either: they get the static 404 too.
 // Also the near misses of the six opened sign-in paths: a locale prefix, a child path, the ops-host handoff.
 const OTHER_MISSES = [
+  // /booking left the held list with plan 04-02 but has no page until 04-03: the same static 404 (no page is in PUBLIC_PAGES).
+  "/booking",
+  "/booking/trip",
+  "/es/booking",
   "/api/health/",
   "/api/nope",
   "/_next/image?url=%2Fx.png&w=64&q=75",
@@ -91,7 +93,9 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(["out", "out-preview"]).toContain(FOLDER);
     expect(FOLDER === "out-preview").toBe(IS_PREVIEW);
     expect(existsSync(join(FOLDER, "index.html"))).toBe(true);
-    expect(JSON.parse(readFileSync(".open-next/almar-server-routes.json", "utf8"))).toEqual(["/api/health", ...[...JOB02_SERVER_PATHS].sort()].sort());
+    expect(JSON.parse(readFileSync(".open-next/almar-server-routes.json", "utf8"))).toEqual(
+      ["/api/booking/hold", "/api/booking/quote", "/api/booking/release", "/api/health", ...[...JOB02_SERVER_PATHS].sort()].sort(),
+    );
   });
 
   test("1. same bytes: every page answers 200 at its address with exactly the file's bytes", async ({ request }) => {
@@ -105,7 +109,7 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     }
   });
 
-  test("2. the held list is the six sections still held, and every one is probed", () => {
+  test("2. the held list is the five sections still held, and every one is probed", () => {
     expect([...HELD_PATHS]).toEqual(PINNED_HELD);
     for (const entry of PINNED_HELD) {
       const probed = HELD_PROBES.some((p) => {
@@ -248,5 +252,15 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     const res = await request.get("/about?_rsc=x", { headers: { RSC: "1" }, maxRedirects: 0 });
     expect(res.status()).toBe(200);
     expect(Buffer.compare(await res.body(), readFileSync(join(FOLDER, "about.html")))).toBe(0);
+  });
+
+  test("8. POST /api/booking/quote is served by Next (plan 04-02): an empty body is 400, 403 or 503, never the static 404", async ({ request }) => {
+    const res = await request.post("/api/booking/quote", { data: {}, maxRedirects: 0 });
+    expect([400, 403, 503], `POST /api/booking/quote answered ${res.status()}`).toContain(res.status());
+    expect(res.headers()["content-type"]).toMatch(/^application\/json/);
+    expect(res.headers()["cache-control"]).toContain("no-store");
+    expect(res.headers()["x-robots-tag"]).toBe("noindex");
+    const get = await request.get("/api/booking/quote", { maxRedirects: 0 });
+    expect(get.status()).toBe(405);
   });
 });

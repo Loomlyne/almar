@@ -28,12 +28,12 @@
 //   node tests/helpers/local-supabase.mjs stop       (or stopLocal(); do it when your session idles)
 // In a test: `const stack = requireStack(t); if (!stack) return;` then use stack.url, stack.serviceKey, stack.dbUrl.
 //
-// Exports: stackId, stackPorts, localStack, requireStack, startLocal, resetLocal, runPgTap, runSql, stopLocal,
+// Exports: stackId, stackPorts, localStack, requireStack, acquireStackLock, startLocal, resetLocal, runPgTap, runSql, stopLocal,
 // genTypes (and workdir, buildStackConfig for the helper's own test).
 
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -258,6 +258,51 @@ export function stopLocal({ inherit = false } = {}) {
   const res = supabase(["stop", "--no-backup"], { inherit });
   cached = undefined;
   return { code: res.code, output: res.stdout + res.stderr };
+}
+
+/**
+ * A cross-process lock for node tests that write to this worktree's one stack. `node --test tests/*.test.mjs` runs the
+ * files in parallel; a test that resets the database (tests/import-catalog.test.mjs) or counts the catalogue rows would
+ * otherwise meet another file's rows or lose them mid-run. A file that writes to the stack awaits this before it seeds and
+ * calls the returned release() after its own cleanup (an `after` hook). The lock is a directory with its owner's pid; one
+ * whose owner is gone (or that never got a pid, ten seconds old) is stale and taken over.
+ */
+export async function acquireStackLock({ timeoutMs = 900_000 } = {}) {
+  const dir = join(repoRoot(), "supabase", ".temp", "stack-test.lock");
+  mkdirSync(dirname(dir), { recursive: true });
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      mkdirSync(dir);
+      writeFileSync(join(dir, "pid"), String(process.pid));
+      return () => rmSync(dir, { recursive: true, force: true });
+    } catch (error) {
+      if (error.code !== "EEXIST") throw error;
+    }
+    let stale = false;
+    try {
+      const owner = Number(readFileSync(join(dir, "pid"), "utf8"));
+      if (Number.isInteger(owner) && owner > 0) {
+        try {
+          process.kill(owner, 0);
+        } catch (error) {
+          stale = error.code === "ESRCH";
+        }
+      }
+    } catch {
+      try {
+        stale = Date.now() - statSync(dir).mtimeMs > 10_000;
+      } catch {
+        stale = true;
+      }
+    }
+    if (stale) {
+      rmSync(dir, { recursive: true, force: true });
+      continue;
+    }
+    if (Date.now() > deadline) throw new Error("timed out waiting for the local stack test lock");
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
 }
 
 /** TypeScript types of the public schema, as text. */

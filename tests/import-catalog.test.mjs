@@ -7,7 +7,7 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildImportPayload, checkApplyTarget, formatReport, PAYLOAD_TABLES } from "../scripts/import-catalog.mjs";
-import { localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
+import { acquireStackLock, localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
 const manifest = JSON.parse(readFileSync("lib/data/media-manifest.json", "utf8"));
@@ -269,14 +269,18 @@ async function readView(stack, view) {
 }
 
 let importedLocally = false;
+let releaseStackLock = null;
 after(() => {
   // The pgTAP files expect an empty catalogue: leave the local database as the migrations make it.
   if (importedLocally && localStack()) resetLocal();
+  releaseStackLock?.();
 });
 
 test("local stack: --apply --local imports, the public views return the fixtures, a second run writes nothing", { timeout: 600000 }, async (t) => {
   const stack = requireStack(t);
   if (!stack) return;
+  // The booking tests (plan 04-02) write to the same stack: take turns (node --test runs the files in parallel).
+  releaseStackLock = await acquireStackLock();
   const existing = runSql("select count(*)::int as n from public.destinations").rows[0]?.n;
   if (existing !== 0) resetLocal();
   importedLocally = true;
