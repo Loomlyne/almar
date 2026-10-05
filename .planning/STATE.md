@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-05 11:21 (+04):** live Supabase "Almar" `jkdkaldgeiowkhlfmsft` ready for job 02: migration `20260925120000` applied and read back, owner user `maria@almarprivatejourney.com` (role owner), sign-ups off, three Supabase secrets on Worker `almar` (version `e1d0add8`). Missing: `RESEND_API_KEY` (owner). Job 02 merged with `main` at `11962cf`, landing check running.
+
 Phase: **3.3 (public site in React)** — reshaped and starting. Phases 1, 3 and 3.1 are complete; 3.1 landed as `9fd6786` and job 04 as `97005a0`, live as `b769e01a`.
 Execution order is no longer numeric: 1 → 3 → 3.1 → **3.3** → **2** → **3.2** → 4 → 5 → 6 (`ROADMAP.md`, Execution Order).
 Next: Phase 3.3 slice 1 — wave 3 merged 2026-10-03 20:59 (`84deec2`); money fix and integration fix, then wave 4 (plan 08), his local preview, and the slice Ship, which lands the media flip (runbook C8–C9). Jobs 07–09 (slices 2–4) design and plans in parallel, no code until slice 1 lands
