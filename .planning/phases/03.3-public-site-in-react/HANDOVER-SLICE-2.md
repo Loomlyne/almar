@@ -240,3 +240,35 @@ Drafted strings for his review (S2-14); all `draft` in the data:
 - Two literal place outcomes: Helicopter Transfers ("coffee country") and Rural Farm & Nature Visits ("coffee farms") are not filed under Cocora Valley because neither phrase is on the keyword list (plan 10).
 - Plan 14: the Filters button carries no `aria-haspopup` (the plan asks for exactly 45 dialog-opening buttons, the cards), and Request Inquiry is a primary link button, not a bare link, so the docked bar has a visible next step where the board draws Add to cart.
 - S2-13 recorded: one worktree per executor was the plan; S2-28 replaced it, so there are no per-plan executor branches to merge (section 1).
+
+## 14. Merge with main f46cd70 (slice 3A, money engine)
+
+Merge commit `21a3b81` (2026-10-05, about 08:38 +04): `origin/main` f46cd70 (slice 3 part A About/Contact in React `e0dd82f`, Phase 4 money engine `d3d2615`, planning notes) into this branch on top of `f263d04`. Main wins; slice 2's additions kept. package-lock.json did not change, so no `npm ci`.
+
+Resolutions, one line each:
+
+- `lib/locale-path.ts`: PUBLIC_PAGES = main's `/`, `/private-stays`, `/private-stays/[stay]`, `/about`, `/contact`, `/blog`, `/blog/[post]`, then slice 2's `/destinations`, `/experiences`.
+- `scripts/media-lib.mjs`: `publicDocuments()` stays the one computed list (S3-11); main's `SLICE3_PAGES`/`slice3Documents(pages)` and `reactDocuments(stays, posts, pages)` are now derived from it, no hand-kept list.
+- `scripts/media-guard.mjs`: slice 2's code (manifest-key check, `publicDocuments()`); main changed only comments, which now name About and Contact.
+- `lib/data/fixtures/image-translations.json`: union, slice 2's records then main's 42 appended: 519 records, 173 image ids, each exactly en, ar, es, no duplicate.
+- `tests/locale-path.test.mjs`: main's tests plus slice 2's; `/about` and `/contact` are localised now, so the English-only examples moved to `/login` and `/destinations` expects `/ar/destinations`.
+- `tests/data-sample.test.mjs`: fixture list is the union (`about` and `destinations-page`); floor stays 118 + 41.
+- `tests/media-guard.test.mjs`: slice 2's out/ coverage tests and imports plus `slice3Documents`; main's slice 3 RED test uses PUBLIC_PAGES as is (it already holds both pages); main's `slice3Documents` test rewritten without the removed `slice1Documents`.
+- `tests/media-manifest.test.mjs`: main's tests kept; `slice1Documents` import dropped (gone in slice 2); the page list is de-duplicated.
+- `tests/build/home/home.spec.ts`: slice 2's cases (service cards to `/experiences?...`) with main's `localePath(locale, "/contact")` for both Request Consultation links.
+- `tests/build/locale-routing.spec.ts`: DEFAULT_PATHS = slice 2's list plus main's `/about`, `/contact`.
+- Outside the conflict list, needed by the merge: `tests/data-contract.test.mjs` manifest count is computed (118 + slice 2's 40 + about/ entries, was a typed 158); `tests/media-guard.test.mjs` source scan asserts no Framer route file remains (main had `>= 1`; slice 2 and slice 3A removed the last ones); `tests/build/experiences/overlay.spec.ts` Request Inquiry expects `localePath(locale, "/contact")`; `tests/build/slice2-sweep.spec.ts` sweep list leaves About and Contact to slice 3A's own specs, as it does the blog.
+
+Checks run on the merge (`21a3b81` content, PW_PORT 3048, `--workers=1`):
+
+- No conflict markers outside node_modules. `node scripts/assemble-cloudflare.mjs --target=local`: 69 html files, 0 Framer, React en 22 / ar 22 / es 22, 3 404s.
+- `npx tsc --noEmit`: clean. `npm run tokens:check`: theme up to date.
+- `node --test tests/*.test.mjs`: 943 tests, 931 passed, 0 failed, 12 skipped.
+- `node scripts/media-guard.mjs --deploy`: OK, 66 documents, 1146 image references.
+- `node scripts/media-upload.mjs --public-base https://media.almarprivatejourney.com` (dry run, after `media-fetch --offline` copied main's 12 local about/ files into the gitignored cache): 170 entries, 40 PUT, 130 SKIP; the 40 PUT are exactly slice 2's keys; main's 12 about/ keys are already uploaded.
+- `MEDIA_CHECK_OUT=1 node --test tests/media-guard.test.mjs`: 33 passed; 66 documents, 170 keys referenced, 0 unreferenced.
+- Build node tests (`tests/build/*.test.mjs tests/build/**/*.test.mjs`): 493 passed, 0 failed.
+- Build Playwright, slice2-sweep, redirects, destinations, experiences, locale-routing, home: 1336 tests; first run 1335 passed, 1 failed (the sweep list, 54 vs 48, About and Contact now public); fixed, that test rerun: passed. A first attempt was stopped at test 240 by the shell's time limit; it had shown the two overlay `/contact` failures (ar 390), fixed before the full run, and both passed in it.
+- Extra: build Playwright `tests/build/about tests/build/contact` (slice 3A's specs) on the merge: 189 passed.
+
+The full dev and build Playwright suites (2270 / 2487 passed) ran on `14ed6db` before this merge and were not rerun in full.
