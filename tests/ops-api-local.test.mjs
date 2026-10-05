@@ -3,17 +3,17 @@
 // lib/ops/route.ts builds it (origin, JSON, parse, handler, error mapping); only requireOwner() is replaced by a decide that
 // answers "the owner". Rates and prices here are symbolic test values on a local database, never real ones.
 //
-// requireStack(t): skipped without a stack, FAILS under ALMAR_REQUIRE_STACK=1. The stack is reset before and after, so
-// the pgTAP files (which expect an empty catalogue) see the database as the migrations make it. Do not run this file at
-// the same time as another file that resets the same stack (tests/import-catalog.test.mjs): run stack files serially
-// (`node --test --test-concurrency=1`) until the helper has a stack lock (plan 04-02).
+// requireStack(t): skipped without a stack, FAILS under ALMAR_REQUIRE_STACK=1. The stack is reset before (when not empty)
+// and after, so the pgTAP files (which expect an empty catalogue) see the database as the migrations make it. The file
+// holds acquireStackLock() (plan 04-02) from before its first write until after its final reset, so it takes turns with
+// tests/import-catalog.test.mjs and the booking tests when node --test runs the files in parallel.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import { loadTs } from "./helpers/load-ts.mjs";
-import { localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
+import { acquireStackLock, localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
 
 const { runOps } = await loadTs("lib/ops/route-core.ts");
 const parse = await loadTs("lib/ops/validate-catalog.ts");
@@ -37,13 +37,18 @@ const OWNER_ID = "0b0b0b0b-0000-4000-8000-000000000001";
 
 let owner;
 let reset = false;
+let releaseStackLock = null;
 
 after(async () => {
-  const stack = localStack();
-  if (!reset || !stack) return;
-  resetLocal();
-  // Leave the API ready for the next file that uses the stack (its schema cache reloads after the reset).
-  await settle(createClient(stack.url, stack.serviceKey, { auth: { persistSession: false, autoRefreshToken: false } }));
+  try {
+    const stack = localStack();
+    if (!reset || !stack) return;
+    resetLocal();
+    // Leave the API ready for the next file that takes the lock (its schema cache reloads after the reset).
+    await settle(createClient(stack.url, stack.serviceKey, { auth: { persistSession: false, autoRefreshToken: false } }));
+  } finally {
+    releaseStackLock?.();
+  }
 });
 
 async function get(handler, query = "") {
@@ -129,6 +134,7 @@ async function settle(admin) {
 test("local stack: the owner API end to end on the imported catalogue", { timeout: 600_000 }, async (t) => {
   const stack = requireStack(t);
   if (!stack) return;
+  releaseStackLock = await acquireStackLock();
 
   reset = true;
   const existing = runSql("select count(*)::int as n from public.destinations").rows[0]?.n;
