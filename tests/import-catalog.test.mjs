@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildImportPayload, checkApplyTarget, formatReport, PAYLOAD_TABLES } from "../scripts/import-catalog.mjs";
 import { localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
+import { withStackLock } from "./helpers/stack-lock.mjs";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
 const manifest = JSON.parse(readFileSync("lib/data/media-manifest.json", "utf8"));
@@ -269,14 +270,19 @@ async function readView(stack, view) {
 }
 
 let importedLocally = false;
-after(() => {
-  // The pgTAP files expect an empty catalogue: leave the local database as the migrations make it.
-  if (importedLocally && localStack()) resetLocal();
+after(async () => {
+  // The pgTAP files expect an empty catalogue: leave the local database as the migrations make it. Under the stack lock
+  // (plan 03.2-02): tests/data-parity.test.mjs resets and fills the same database in a parallel test process.
+  if (importedLocally && localStack()) await withStackLock(async () => resetLocal());
 });
 
 test("local stack: --apply --local imports, the public views return the fixtures, a second run writes nothing", { timeout: 600000 }, async (t) => {
   const stack = requireStack(t);
   if (!stack) return;
+  await withStackLock(() => importAndCheck(stack));
+});
+
+async function importAndCheck(stack) {
   const existing = runSql("select count(*)::int as n from public.destinations").rows[0]?.n;
   if (existing !== 0) resetLocal();
   importedLocally = true;
@@ -328,4 +334,4 @@ test("local stack: --apply --local imports, the public views return the fixtures
   assert.match(second.stdout, /0 rows inserted/);
   const rows = (await readView(stack, "api_stays")).length;
   assert.equal(rows, counts.stays, "no duplicate rows");
-});
+}
