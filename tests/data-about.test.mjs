@@ -27,7 +27,7 @@ const EN_CARDS = {
     ["a-vision-that-grows", "A Vision That Grows", "Our long-term vision: direct villa and luxury car partnerships across Colombia, then Latin America — earning trust as the reference for safety-led luxury travel throughout the region."],
   ],
   values: [
-    ["intentional-hospitality", "Intentional Hospitality", "We believe great service should feel natural, never forced. Every team member is empowered to create moments that matter - from a warm greeting to a handwritten note."],
+    ["intentional-hospitality", "Intentional Hospitality", "We believe great service should feel natural, never forced. Every team member is empowered to create moments that matter — from a warm greeting to a handwritten note."],
     ["bilingual-trip-support", "Bilingual Trip Support", "Bilingual trip coordination and a 24/7 emergency contact are planned around each confirmed journey."],
     ["privacy-and-discreet-coordination", "Privacy & Discreet Coordination", "Private transfer coordination, discreet planning, and specialist support can be arranged around each client and confirmed before booking."],
   ],

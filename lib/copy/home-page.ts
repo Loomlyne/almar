@@ -116,7 +116,7 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
       kicker: "إقامات خاصة",
       heading: "إقامات خاصة، موثّقة بالكامل",
       intro:
-        "بيوت خاصة موثّقة وعِزَب على الجزر وملاذات ريفية في كارتاخينا وأنتيوكيا، اختيرت كلٌّ منها لأمانها وجاهزية طاقمها وخصوصيتها التامة.",
+        "بيوت خاصة موثّقة وضيعات على الجزر وملاذات ريفية في كارتاخينا وأنتيوكيا، اختيرت كلٌّ منها لأمانها وجاهزية طاقمها وخصوصيتها التامة.",
       viewAll: "عرض كل الإقامات الخاصة",
     },
     services: {
@@ -160,7 +160,7 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
     meta: {
       title: "Viajes privados de lujo en Colombia | ALMAR",
       description:
-        "ALMAR organiza viajes privados por Colombia. Reservamos villas, armamos recorridos y te asignamos un conserje durante toda tu estancia.",
+        "ALMAR organiza viajes privados por Colombia. Reservamos villas, armamos recorridos y te asignamos un concierge durante toda tu estancia.",
     },
     hero: { barLabel: "Planea tu viaje" },
     stays: {
@@ -174,7 +174,7 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
       kicker: "Experiencias y servicios",
       heading: "Todo resuelto. Nada dejado al azar.",
       intro:
-        "De villas privadas a un conserje dedicado, ALMAR se ocupa de cada detalle de tu viaje por Colombia, para que solo tengas que vivirlo.",
+        "De villas privadas a un concierge dedicado, ALMAR se ocupa de cada detalle de tu viaje por Colombia, para que solo tengas que vivirlo.",
       viewAll: "Ver todos los servicios",
     },
     moments: {

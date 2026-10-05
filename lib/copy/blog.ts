@@ -87,7 +87,7 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
     list: {
       meta: {
         title: "أدلة السفر في كولومبيا | ALMAR",
-        description: "أدلة بسيطة عن أين تذهبون وماذا تفعلون وكيف تسافرون بخصوصية في كولومبيا.",
+        description: "أدلة بسيطة تخبركم إلى أين تذهبون وماذا تفعلون وكيف تسافرون بخصوصية في كولومبيا.",
       },
       kicker: "المدونة / الأخبار",
       heading: "رؤى السفر",
@@ -140,14 +140,14 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
       copyLink: "Copiar enlace",
       copied: "Enlace copiado",
       copyFailed: "No se pudo copiar el enlace: {url}",
-      pairKicker: "Elegidos para esta historia",
+      pairKicker: "Elegidas para esta historia",
       pairHeading: "Estancia y experiencia",
       featuredStay: "Estancia destacada",
       featuredExperience: "Experiencia destacada",
       relatedKicker: "Más del Diario ALMAR",
       related: "Historias relacionadas",
       intro:
-        "Estancias totalmente verificadas, conductores privados y conserje disponible. Cuéntanos tus fechas y nosotros planificamos el resto.",
+        "Estancias totalmente verificadas, conductores privados y concierge disponible. Cuéntanos tus fechas y nosotros planificamos el resto.",
       barLabel: "Planea tu viaje",
       englishOnly: "Por ahora, este artículo está en inglés.",
     },

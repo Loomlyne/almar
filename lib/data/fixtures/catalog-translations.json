@@ -18,8 +18,8 @@
   {
     "item_id": "0d2a7249-64d9-5035-8996-f3b002d307f0",
     "locale": "es",
-    "name": "Conserje privado 24/7",
-    "summary": "Tu conserje ALMAR dedicado: reservas, logística, sorpresas y pedidos de último momento, atendidos a cualquier hora en toda Colombia.",
+    "name": "Concierge privado 24/7",
+    "summary": "Tu concierge ALMAR dedicado: reservas, logística, sorpresas y pedidos de último momento, atendidos a cualquier hora en toda Colombia.",
     "duration_label": null,
     "status": "published"
   },
@@ -43,7 +43,7 @@
     "item_id": "36f0cbfa-61c7-53e1-85b8-a380296aa654",
     "locale": "es",
     "name": "Transporte terrestre de lujo",
-    "summary": "Mercedes Clase S, Range Rover y furgonetas Sprinter VIP con chóferes bilingües para traslados al aeropuerto, recorridos por la ciudad e itinerarios de varios días.",
+    "summary": "Mercedes Clase S, Range Rover y camionetas Sprinter VIP con choferes bilingües para traslados al aeropuerto, recorridos por la ciudad e itinerarios de varios días.",
     "duration_label": null,
     "status": "published"
   },
@@ -124,7 +124,7 @@
     "locale": "en",
     "name": "Cartagena Heritage Tours",
     "summary": "Private historian-led walks through the Walled City, Getsemaní street art, and exclusive after-hours access to colonial mansions.",
-    "duration_label": "Half, Full Day",
+    "duration_label": "Half or Full Day",
     "status": "published"
   },
   {
@@ -172,13 +172,13 @@
     "locale": "en",
     "name": "Yacht & Island Charters",
     "summary": "Private yachts and speedboats to the Rosario Islands, Barú, and hidden Caribbean coves with chef, crew, and snorkeling gear.",
-    "duration_label": "Half, Full Day",
+    "duration_label": "Half or Full Day",
     "status": "published"
   },
   {
     "item_id": "18d491a4-8c28-569a-9587-ff21bc5aeeba",
     "locale": "ar",
-    "name": "رحلات اليخوت والجزر",
+    "name": "استئجار اليخوت ورحلات الجزر",
     "summary": "يخوت وقوارب سريعة خاصة إلى جزر الروساريو وبارو وخلجان كاريبية خفية، مع شيف وطاقم ومعدات غطس.",
     "duration_label": "نصف يوم أو يوم كامل",
     "status": "published"
@@ -211,7 +211,7 @@
     "item_id": "0eb443e0-f11d-58ef-93db-40d370d85c31",
     "locale": "es",
     "name": "Renacimiento de Medellín",
-    "summary": "Del barrio al horizonte, una exploración privada y guiada de la extraordinaria transformación de Medellín. Cables sobre los tejados, arte callejero en las comunas y una ciudad que se reconstruyó a sí misma.",
+    "summary": "Del barrio al horizonte, una exploración privada y guiada de la extraordinaria transformación de Medellín. Teleféricos sobre los tejados, arte callejero en las comunas y una ciudad que se reconstruyó a sí misma.",
     "duration_label": "Día completo",
     "status": "published"
   },
@@ -227,7 +227,7 @@
     "item_id": "feb9b4e7-6a66-5a31-b1d0-603fe49f04ea",
     "locale": "ar",
     "name": "جولات اكتشاف ميديلين",
-    "summary": "جولات خاصة في الكومونا 13 وساحة بوتيرو، ورحلات يوم إلى غواتابي، ومشهد الطعام العالمي في ميديلين برفقة مطّلع محلي.",
+    "summary": "جولات خاصة في الكومونا 13 وساحة بوتيرو، ورحلات يوم إلى غواتابي، ومشهد الطعام عالمي المستوى في ميديلين برفقة مطّلع محلي.",
     "duration_label": "يوم كامل",
     "status": "published"
   },
@@ -274,8 +274,8 @@
   {
     "item_id": "22a5cb76-0f95-59ff-a366-00aa3c4ac782",
     "locale": "ar",
-    "name": "خلوة العافية في الأنديز",
-    "summary": "يوغا صباحية في مواجهة الأنديز، يليها علاج سبا نباتي كولومبي. تربطكم ALMAR بمعالجين محليين وممارسي العافية لخلوة كولومبية بامتياز.",
+    "name": "ملاذ العافية في الأنديز",
+    "summary": "يوغا صباحية في مواجهة الأنديز، يليها علاج سبا نباتي كولومبي. تربطكم ALMAR بمعالجين محليين وممارسي العافية لملاذ كولومبي بامتياز.",
     "duration_label": "يوم كامل",
     "status": "published"
   },
@@ -299,7 +299,7 @@
     "item_id": "5370ee79-d25c-5951-bf83-25ef3c2d799f",
     "locale": "ar",
     "name": "الانغماس في منطقة القهوة",
-    "summary": "يوم خاص في قلب منطقة القهوة في كولومبيا، تقطفون الثمار عند الفجر، وتحمّصون محصولكم بأنفسكم، وتقيمون في هاسيندا تراثية في سالينتو أو أرمينيا.",
+    "summary": "يوم خاص في قلب منطقة القهوة في كولومبيا، تقطفون ثمار البن عند الفجر، وتحمّصون محصولكم بأنفسكم، وتقيمون في هاسيندا تراثية في سالينتو أو أرمينيا.",
     "duration_label": "يوم كامل",
     "status": "published"
   },
@@ -307,7 +307,7 @@
     "item_id": "5370ee79-d25c-5951-bf83-25ef3c2d799f",
     "locale": "es",
     "name": "Inmersión en la región cafetera",
-    "summary": "Un día privado en el corazón cafetero de Colombia: recoger cerezas al amanecer, tostar tu propia cosecha y alojarte en una hacienda patrimonial en Salento o Armenia.",
+    "summary": "Un día privado en el corazón cafetero de Colombia: recoger cerezas de café al amanecer, tostar tu propia cosecha y alojarte en una hacienda patrimonial en Salento o Armenia.",
     "duration_label": "Día completo",
     "status": "published"
   },
@@ -491,7 +491,7 @@
     "item_id": "82ed8ded-7436-5513-9941-1722ce27c09d",
     "locale": "ar",
     "name": "تجارب الشاطئ الخاص",
-    "summary": "تجهيزات شاطئية حصرية في بارو وبلايا بلانكا مع أكواخ خاصة وشيف ودي جي ومعدات رياضات مائية.",
+    "summary": "تجهيزات شاطئية حصرية في بارو وبلايا بلانكا مع كبائن شاطئية خاصة وشيف ودي جي ومعدات رياضات مائية.",
     "duration_label": "يوم كامل",
     "status": "published"
   },
@@ -898,8 +898,8 @@
   {
     "item_id": "f914b9b5-fb7c-5cfd-a7eb-4cd5415a6adc",
     "locale": "ar",
-    "name": "خلوات اليوغا والعافية عند الشروق",
-    "summary": "جلسات يوغا خاصة عند الشروق على الشاطئ أو في الغابات الغائمة أو على شرفة فيلتكم مع مدربين معتمدين.",
+    "name": "ملاذات اليوغا والعافية عند الشروق",
+    "summary": "جلسات يوغا خاصة عند الشروق على الشاطئ أو في الغابات الضبابية أو على شرفة فيلتكم مع مدربين معتمدين.",
     "duration_label": "لكل جلسة",
     "status": "published"
   },

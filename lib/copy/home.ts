@@ -210,7 +210,7 @@ export const HOME_COPY: Record<HomeLocale, HomeCopy> = {
     ],
     galleryTitle: "كولومبيا، في أبهى صورها",
     staysTitle: "إقامات خاصة، موثّقة بالكامل",
-    staysIntro: "بيوت خاصة موثّقة وعِزَب على الجزر وملاذات ريفية في كارتاخينا وأنتيوكيا، اختيرت لأمانها وجاهزية طاقمها وخصوصيتها.",
+    staysIntro: "بيوت خاصة موثّقة وضيعات على الجزر وملاذات ريفية في كارتاخينا وأنتيوكيا، اختيرت لأمانها وجاهزية طاقمها وخصوصيتها.",
     stays: [...stays.ar],
     servicesTitle: "كل شيء مُرتَّب. لا شيء متروك للصدفة.",
     servicesIntro: "من الفلل الخاصة إلى الكونسيرج المخصّص، تتولى ALMAR كل تفصيل في رحلتكم إلى كولومبيا، فلا يبقى لكم إلا أن تعيشوها.",
@@ -314,8 +314,8 @@ export const HOME_COPY: Record<HomeLocale, HomeCopy> = {
     welcomeTitle: "Donde la seguridad se encuentra con el lujo a medida",
     letter: "Estimado viajero,",
     welcome: [
-      "ALMAR está hecho para viajeros de Emiratos y el Golfo que quieren un viaje privado y pensado por Colombia, organizado según sus fechas, intereses y ritmo.",
-      "Cada viaje se personaliza con estancias, traslados y experiencias confirmadas para su grupo. Cualquier arreglo adicional se habla por separado y solo se reserva cuando hay disponibilidad.",
+      "ALMAR está pensada para viajeros de Emiratos y el Golfo que quieren un viaje privado, cuidadosamente planificado por Colombia, según sus fechas, intereses y ritmo preferido.",
+      "Cada viaje se personaliza con estancias, traslados y experiencias confirmadas para su grupo. Cualquier arreglo adicional se trata por separado y solo se reserva cuando hay disponibilidad.",
       "El objetivo es simple: hacer Colombia más fácil, con un viaje privado claro, personal y construido alrededor de lo que les importa.",
     ],
     galleryTitle: "Colombia, bellamente retratada",
@@ -323,17 +323,17 @@ export const HOME_COPY: Record<HomeLocale, HomeCopy> = {
     staysIntro: "Casas privadas verificadas, fincas en islas y retiros de campo en Cartagena y Antioquia, elegidas por su seguridad, su personal preparado y su discreción.",
     stays: [...stays.es],
     servicesTitle: "Todo resuelto. Nada dejado al azar.",
-    servicesIntro: "De villas privadas a un conserje dedicado, ALMAR se ocupa de cada detalle de tu viaje por Colombia, para que solo tengas que vivirlo.",
+    servicesIntro: "De villas privadas a un concierge dedicado, ALMAR se ocupa de cada detalle de tu viaje por Colombia, para que solo tengas que vivirlo.",
     services: [
       {
-        name: "Conserje 24/7",
+        name: "Concierge 24/7",
         text: "Reservas, logística y pedidos de último momento, a cualquier hora en Colombia.",
-        alt: "Conserje privado 24/7, un servicio de ALMAR en Colombia",
+        alt: "Concierge privado 24/7, un servicio de ALMAR en Colombia",
         src: "/assets/img/fad99748eb29b7f8.webp",
       },
       {
         name: "Chófer privado",
-        text: "Mercedes Clase S, Range Rover y furgonetas VIP con chóferes bilingües.",
+        text: "Mercedes Clase S, Range Rover y camionetas VIP con choferes bilingües.",
         alt: "Chófer privado para un viaje de ALMAR en Colombia",
       },
       {
@@ -350,7 +350,7 @@ export const HOME_COPY: Record<HomeLocale, HomeCopy> = {
       {
         name: "The Explorer",
         price: "From USD $3,000/person · Est. AED 80,000–90,000",
-        text: "Una introducción pensada a Colombia, diseñada en torno a tu grupo.",
+        text: "Una introducción cuidada a Colombia, diseñada en torno a tu grupo.",
         alt: "Balcones coloniales de colores en Cartagena para el viaje privado The Explorer",
         src: "/assets/img/6dfbf0e54d04f1da.webp",
       },
@@ -364,7 +364,7 @@ export const HOME_COPY: Record<HomeLocale, HomeCopy> = {
       {
         name: "The Sovereign",
         price: "From USD $20,000/person · Est. AED 200,000–250,000+",
-        text: "Un viaje de mucha atención, formado alrededor de lo que se puede confirmar. 14–21 noches.",
+        text: "Un viaje de atención muy personalizada, diseñado en torno a lo que se puede confirmar. 14–21 noches.",
         alt: "Yate privado en mar abierto para el viaje The Sovereign",
         src: "/assets/img/88ad9b5c0cfb91eb.webp",
       },

@@ -71,7 +71,7 @@ export const CONTACT_PAGE_COPY: Record<ContactPageLocale, ContactPageCopy> = {
   },
   ar: {
     meta: {
-      title: "احجز مع ALMAR | تواصل",
+      title: "احجزوا مع ALMAR | تواصل",
       description:
         "اتصلوا على +971 56 388 3302 أو راسلوا inquiries@almarprivatejourney.com. أخبرونا بتواريخكم ونتولى الباقي.",
     },

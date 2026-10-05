@@ -44,7 +44,7 @@
       ],
       "sign_off": "مع أطيب التحيات،",
       "signer": "المار للرحلات الخاصة",
-      "signer_role": "المؤسس والمدير",
+      "signer_role": "المؤسِّسة والمديرة",
       "status": "published"
     },
     {
@@ -53,13 +53,13 @@
       "heading": "Donde la seguridad se encuentra con el lujo a medida",
       "salutation": "Estimado viajero,",
       "paragraphs": [
-        "ALMAR está hecho para viajeros de Emiratos y el Golfo que quieren un viaje privado y pensado por Colombia, organizado según sus fechas, intereses y ritmo.",
-        "Cada viaje se personaliza con estancias, traslados y experiencias confirmadas para tu grupo. Cualquier arreglo adicional se habla por separado y solo se asegura una vez confirmada la disponibilidad.",
+        "ALMAR está pensada para viajeros de Emiratos y el Golfo que quieren un viaje privado, cuidadosamente planificado por Colombia, según sus fechas, intereses y ritmo preferido.",
+        "Cada viaje se personaliza con estancias, traslados y experiencias confirmadas para tu grupo. Cualquier arreglo adicional se trata por separado y solo se asegura una vez confirmada la disponibilidad.",
         "Nuestro objetivo es simple: hacer que Colombia sea más fácil de vivir, con un viaje privado claro, personal y construido alrededor de lo que te importa."
       ],
       "sign_off": "Un cordial saludo,",
       "signer": "ALMAR Private Journeys",
-      "signer_role": "Fundador y director",
+      "signer_role": "Fundadora y directora",
       "status": "published"
     }
   ],
@@ -113,7 +113,7 @@
       "locale": "es",
       "name": "The Explorer",
       "price_label": "From USD $3,000/person · Est. AED 80,000–90,000",
-      "tagline": "Una introducción pensada a Colombia, diseñada en torno a tu grupo",
+      "tagline": "Una introducción cuidada a Colombia, diseñada en torno a tu grupo",
       "duration_label": "5–7 noches · 1–2 ciudades",
       "ideal_for_label": "Ideal para",
       "ideal_for": "Visitantes primerizos, parejas y grupos pequeños que buscan una introducción auténtica a Colombia",
@@ -140,7 +140,7 @@
       "tagline": "رحلة أعمق بين عدة مدن في كولومبيا، على إيقاعكم",
       "duration_label": "8–14 ليلة · حتى مدينتين إضافيتين",
       "ideal_for_label": "مثالي لـ",
-      "ideal_for": "المسافرون المدقّقون الذين يريدون رحلة أعمق بين عدة مدن بإيقاع راقٍ غير متعجّل",
+      "ideal_for": "المسافرون أصحاب الذوق الرفيع الذين يريدون رحلة أعمق بين عدة مدن بإيقاع راقٍ غير متعجّل",
       "body": "كل شيء يبدأ بأساسيات الرحلة الخاصة، ثم يتوسع حول إيقاعكم المفضل والتوفر المؤكد. تُناقَش مسارات المدن المتعددة والتنقل والإقامات والتجارب على حدة وتُثبَّت قبل الحجز.",
       "status": "published"
     },
@@ -153,7 +153,7 @@
       "duration_label": "8–14 noches · hasta 2 ciudades adicionales",
       "ideal_for_label": "Ideal para",
       "ideal_for": "Viajeros exigentes que quieren un viaje más profundo por varias ciudades, a un ritmo refinado y sin prisas",
-      "body": "Todo empieza con lo esencial de un viaje privado y luego se amplía según tu ritmo preferido y la disponibilidad confirmada. Las rutas entre varias ciudades, el transporte, las estancias y las experiencias se hablan por separado y se aseguran antes de reservar.",
+      "body": "Todo empieza con lo esencial de un viaje privado y luego se amplía según tu ritmo preferido y la disponibilidad confirmada. Las rutas entre varias ciudades, el transporte, las estancias y las experiencias se tratan por separado y se aseguran antes de reservar.",
       "status": "published"
     },
     {
@@ -185,11 +185,11 @@
       "locale": "es",
       "name": "The Sovereign",
       "price_label": "From USD $20,000/person · Est. AED 200,000–250,000+",
-      "tagline": "Un viaje de mucha atención por Colombia, formado alrededor de lo que se puede confirmar",
+      "tagline": "Un viaje de atención muy personalizada por Colombia, diseñado en torno a lo que se puede confirmar",
       "duration_label": "14–21 noches · hasta 3 ciudades adicionales",
       "ideal_for_label": "Ideal para",
       "ideal_for": "Familias y ejecutivos de patrimonio ultraalto que buscan máxima privacidad, flexibilidad y un servicio de guante blanco",
-      "body": "Un marco de planificación de mucha atención para viajes más largos por varias ciudades. Las estancias, el transporte, las opciones acuáticas y los arreglos especiales se hablan por separado y solo se incluyen cuando están confirmados para tus fechas.",
+      "body": "Un marco de planificación de atención muy personalizada para viajes más largos por varias ciudades. Las estancias, el transporte, las opciones acuáticas y los arreglos especiales se tratan por separado y solo se incluyen cuando están confirmados para tus fechas.",
       "status": "published"
     }
   ]

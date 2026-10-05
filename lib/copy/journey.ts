@@ -253,7 +253,7 @@ const AR: JourneyCopy = {
       },
     },
   },
-  entry: { title: "خطّط لرحلتك", hint: "أين · متى · من" },
+  entry: { title: "خطّط لرحلتك", hint: "أين · متى · مع من" },
   sheet: {
     label: "خطّط لرحلتك",
     progress: "{n} من 3",
@@ -285,7 +285,7 @@ const AR: JourneyCopy = {
     intro:
       "أضف ما تشاء. يمكنك أيضًا إضافة التجارب والخدمات بعد الدفع من حسابك.",
     section: "التجارب والخدمات في {destination}",
-    count: "{shown} خيارات · {added} مضافة",
+    count: "الخيارات: {shown} · المضافة: {added}",
     listLabel: "التجارب والخدمات، قائمة قابلة للتمرير",
     filter: {
       label: "تصفية",
@@ -452,7 +452,7 @@ const ES: JourneyCopy = {
     intro:
       "Agrega todos los que quieras. También puedes agregar experiencias y servicios después de pagar, desde tu cuenta.",
     section: "Experiencias y servicios en {destination}",
-    count: "{shown} opciones · {added} agregadas",
+    count: "Opciones: {shown} · Agregadas: {added}",
     listLabel: "Experiencias y servicios, con desplazamiento",
     filter: {
       label: "Filtrar",
