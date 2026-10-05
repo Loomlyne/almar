@@ -1,0 +1,62 @@
+[
+  {
+    "id": "9616c101-0b63-58c5-a525-9eb1c910765a",
+    "slug": "discovering-cartagenas-hidden-colonial-courtyards",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
+    "featured_stay_id": "38f3ed2e-e6d2-50df-886c-c90c815252ad",
+    "featured_experience_id": "8736a8de-7744-53f9-8cb2-3028d9d309d9",
+    "cover_image": {
+      "id": "fecf7741-a79b-5436-8c7a-9380bf3e9aa9",
+      "media_key": "home/stories/discovering-cartagenas-hidden-colonial-courtyards.webp",
+      "width": 1600,
+      "height": 1067,
+      "position": 0
+    },
+    "published_at": "2025-06-01T00:00:00+00:00",
+    "is_published": true
+  },
+  {
+    "id": "544d5a28-0412-53ca-8822-5ab420600aac",
+    "slug": "why-medellin-is-redefining-luxury-travel",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "destination_id": "e34e5839-d6a1-5930-a061-512e7e6bc8f1",
+    "featured_stay_id": "dae54186-686b-5701-9198-38818eb3aded",
+    "featured_experience_id": "feb9b4e7-6a66-5a31-b1d0-603fe49f04ea",
+    "cover_image": {
+      "id": "d2f69dd4-13a8-5954-b9a5-00f51bcb7b32",
+      "media_key": "home/stories/why-medellin-is-redefining-luxury-travel.webp",
+      "width": 1600,
+      "height": 1060,
+      "position": 0
+    },
+    "published_at": "2025-05-28T00:00:00+00:00",
+    "is_published": true
+  },
+  {
+    "id": "26cb9d6c-202e-518e-8892-281f854eff5c",
+    "slug": "colombias-coffee-triangle-eje-cafetero",
+    "created_at": "2026-10-03T00:00:00+00:00",
+    "updated_at": "2026-10-03T00:00:00+00:00",
+    "is_sample": false,
+    "sample_fields": [],
+    "destination_id": null,
+    "featured_stay_id": null,
+    "featured_experience_id": null,
+    "cover_image": {
+      "id": "8b26bd0c-e3cb-59e3-9689-103c57132f03",
+      "media_key": "home/stories/colombias-coffee-triangle-eje-cafetero.webp",
+      "width": 1600,
+      "height": 1200,
+      "position": 0
+    },
+    "published_at": "2025-05-24T00:00:00+00:00",
+    "is_published": true
+  }
+]

@@ -3,7 +3,7 @@
 //      framerusercontent.com, files.catbox.moe or videos.pexels.com; fixtures hold keys, never URLs; the placeholder
 //      host lives in lib/data/media.ts only.
 //   2. Constants: lib/data/media.ts is coherent (placeholder iff flag true; otherwise an https origin).
-//   3. out/ scan (only with MEDIA_CHECK_OUT=1): the 42 slice-1 documents point at the media base and nowhere else.
+//   3. out/ scan (only with MEDIA_CHECK_OUT=1): the 54 React documents point at the media base and nowhere else.
 //   4. assertMediaReady() and the `--deploy` CLI the controller runs before every deploy.
 // The red cases run on scratch copies in os.tmpdir(); the scan functions below are this file's own, so the guard
 // cannot go silent because the script it also tests changed.
@@ -13,7 +13,8 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { REPO_ROOT, collectFixtureImages, readStaySlugs, slice1Documents } from "../scripts/media-lib.mjs";
+import { REPO_ROOT, collectFixtureImages, isLivePost, readPostSlugs, readStaySlugs, reactDocuments, slice1Documents } from "../scripts/media-lib.mjs";
+import { loadTs } from "./helpers/load-ts.mjs";
 import { assertMediaReady, imageReferences, main as guardMain, readMediaConstants, scanOut } from "../scripts/media-guard.mjs";
 
 const THIRD_PARTY = ["framerusercontent.com", "files.catbox.moe", "videos.pexels.com"];
@@ -105,6 +106,7 @@ function scratchTree(label) {
   fs.mkdirSync(path.join(root, "lib", "data", "fixtures"), { recursive: true });
   fs.mkdirSync(path.join(root, "app"), { recursive: true });
   fs.copyFileSync(path.join(REPO_ROOT, "lib", "data", "fixtures", "stays.json"), path.join(root, "lib", "data", "fixtures", "stays.json"));
+  fs.copyFileSync(path.join(REPO_ROOT, "lib", "data", "fixtures", "posts.json"), path.join(root, "lib", "data", "fixtures", "posts.json"));
   return root;
 }
 
@@ -117,9 +119,14 @@ function setMedia(root, { base, placeholder }) {
 
 const GOOD_BASE = "https://media.example.test";
 
+// The documents of a scratch root: its own stays and posts, passed explicitly.
+const docsOf = (root) => {
+  const fixtures = path.join(root, "lib", "data", "fixtures");
+  return reactDocuments(readStaySlugs(fixtures), readPostSlugs(fixtures));
+};
+
 function writeDocs(root, base, { out = "out", mutate } = {}) {
-  const slugs = readStaySlugs(path.join(root, "lib", "data", "fixtures"));
-  for (const doc of slice1Documents(slugs)) {
+  for (const doc of docsOf(root)) {
     const file = path.join(root, out, ...doc.split("/"));
     fs.mkdirSync(path.dirname(file), { recursive: true });
     let html = `<!doctype html><html><head><meta content="${base}/home/hero/poster.webp" property="og:image"/></head><body>` +
@@ -128,6 +135,54 @@ function writeDocs(root, base, { out = "out", mutate } = {}) {
     fs.writeFileSync(file, html);
   }
 }
+
+// 0. Which posts are documents --------------------------------------------------------------------------------------
+
+// A post is a document only when it is published and its date has come, as lib/data/posts.ts decides (isLive).
+const NOW = new Date("2026-10-05T00:00:00Z");
+const postRow = (slug, over = {}) => ({ slug, is_published: true, published_at: "2025-06-01T00:00:00+00:00", ...over });
+
+test("readPostSlugs: a scheduled post (published_at in the future) and an unpublished post are not documents", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "almar-post-slugs-"));
+  fs.writeFileSync(
+    path.join(dir, "posts.json"),
+    JSON.stringify([
+      postRow("live-one"),
+      postRow("scheduled", { published_at: "2099-01-01T00:00:00+00:00" }),
+      postRow("draft", { is_published: false }),
+      postRow("live-two", { published_at: "2025-05-01T00:00:00+00:00" }),
+    ]),
+  );
+  assert.deepEqual(readPostSlugs(dir, NOW), ["live-one", "live-two"]);
+  // The clock decides: the same fixture a century later lists the scheduled post too.
+  assert.deepEqual(readPostSlugs(dir, new Date("2100-01-01T00:00:00Z")), ["live-one", "scheduled", "live-two"]);
+  // The default clock is now: 2099 has not come.
+  assert.deepEqual(readPostSlugs(dir), ["live-one", "live-two"]);
+  assert.equal(blogDocs(dir).length, 6, "2 live posts x 3 locales are the post documents; the 3 list pages are extra");
+});
+
+function blogDocs(dir) {
+  return reactDocuments(readStaySlugs(), readPostSlugs(dir)).filter((d) => d.includes("blog/"));
+}
+
+test("isLivePost agrees with lib/data/posts.ts isLive on every case", async () => {
+  const { isLive } = await loadTs("lib/data/posts.ts");
+  const cases = [
+    { is_published: true, published_at: "2025-06-01T00:00:00+00:00" },
+    { is_published: true, published_at: "2026-10-05T00:00:00+00:00" },
+    { is_published: true, published_at: "2026-10-05T00:00:01+00:00" },
+    { is_published: true, published_at: "2099-01-01T00:00:00+00:00" },
+    { is_published: false, published_at: "2025-06-01T00:00:00+00:00" },
+    { is_published: false, published_at: "2099-01-01T00:00:00+00:00" },
+  ];
+  for (const row of cases) assert.equal(isLivePost(row, NOW), isLive(row, NOW), JSON.stringify(row));
+});
+
+test("the real fixtures: readPostSlugs lists the three live posts, as getPostSlugs does", async () => {
+  const { getPostSlugs } = await loadTs("lib/data/posts.ts");
+  assert.deepEqual([...readPostSlugs()].sort(), [...(await getPostSlugs())].sort());
+  assert.equal(readPostSlugs().length, 3);
+});
 
 // 1. Source scan ----------------------------------------------------------------------------------------------------
 
@@ -213,13 +268,14 @@ test("RED: a media.ts with the flag false and an .invalid URL, a path, a trailin
 
 const checkOut = process.env.MEDIA_CHECK_OUT === "1";
 
-test(checkOut ? "out/: the 42 slice-1 documents point at the media base and nowhere else" : "out/: the 42 slice-1 documents point at the media base and nowhere else (SKIPPED: set MEDIA_CHECK_OUT=1)", { skip: !checkOut && "set MEDIA_CHECK_OUT=1 after the assembler has written out/" }, () => {
+test(checkOut ? "out/: the 54 React documents point at the media base and nowhere else" : "out/: the 54 React documents point at the media base and nowhere else (SKIPPED: set MEDIA_CHECK_OUT=1)", { skip: !checkOut && "set MEDIA_CHECK_OUT=1 after the assembler has written out/" }, () => {
   const outDir = path.join(REPO_ROOT, "out");
   assert.ok(fs.existsSync(outDir), "out/ is missing: run the assembler first (with MEDIA_CHECK_OUT=1 a missing out/ is a failure)");
   const { base } = readMediaConstants(REPO_ROOT);
   const r = scanOut(outDir, base);
   assert.deepEqual(r.violations, []);
-  assert.equal(r.documents, 42);
+  assert.equal(r.documents, reactDocuments().length);
+  assert.equal(r.documents, 54);
   assert.ok(r.images > 0);
 });
 
@@ -250,25 +306,26 @@ test("assertMediaReady on scratch roots: placeholder, bad base, good base", () =
   assert.throws(() => assertMediaReady({ root }), /exactly once each/);
 });
 
-test("scanOut: 42 clean documents have no violations and 4 image references each", () => {
+test("scanOut: 54 clean documents have no violations and 4 image references each", () => {
   const root = scratchTree("scan-ok");
   writeDocs(root, GOOD_BASE);
-  const r = scanOut(path.join(root, "out"), GOOD_BASE, { documents: slice1Documents(readStaySlugs(path.join(root, "lib", "data", "fixtures"))) });
+  const r = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docsOf(root) });
   assert.deepEqual(r.violations, []);
-  assert.equal(r.documents, 42);
-  assert.equal(r.images, 42 * 4, "one img src, two srcset candidates, one og:image per document; data-src is not an image src");
+  assert.equal(r.documents, docsOf(root).length);
+  assert.equal(r.documents, 54);
+  assert.equal(r.images, 54 * 4, "one img src, two srcset candidates, one og:image per document; data-src is not an image src");
 });
 
 test("scanOut allows the same-origin nav wordmarks under /_next/static/media/, and only that shape", () => {
   const root = scratchTree("scan-brand");
-  const docs = slice1Documents(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const docs = docsOf(root);
   const BRAND = "/_next/static/media/Poly_White.3f2a9c1d.svg";
   const CHARCOAL = "/_next/static/media/Stacked_Charcoal.7b41e0aa.svg";
   // the nav wordmark is one <img src> on every document, as the build writes it
   writeDocs(root, GOOD_BASE, { mutate: (doc, html) => html.replace("<img ", `<img alt="ALMAR" src="${doc === "index.html" ? CHARCOAL : BRAND}"><img `) });
   const ok = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
   assert.deepEqual(ok.violations, []);
-  assert.equal(ok.images, 42 * 5, "the wordmark is counted and checked, not skipped");
+  assert.equal(ok.images, 54 * 5, "the wordmark is counted and checked, not skipped");
 
   // every other same-origin or foreign shape keeps failing
   const bad = {
@@ -379,7 +436,7 @@ test("imageReferences reads attributes in any order, with single or double quote
 
 test("RED: a document with a framerusercontent src, a placeholder host, a foreign srcset candidate, a foreign og:image or no file is reported", () => {
   const root = scratchTree("scan-red");
-  const docs = slice1Documents(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const docs = docsOf(root);
   writeDocs(root, GOOD_BASE, {
     mutate: (doc, html) => {
       if (doc === "index.html") return html.replace(`src="${GOOD_BASE}/stays/a/hero.webp"`, 'src="https://framerusercontent.com/images/x.jpg"');
@@ -408,7 +465,7 @@ test("main --deploy: exit 0 and the OK line for a good scratch root; exit 1 for 
   const log = (l) => logs.push(l);
   writeDocs(root, GOOD_BASE);
   assert.equal(guardMain(["--deploy", "--root", root], { log }), 0, logs.join("\n"));
-  assert.equal(logs.at(-1), `media-guard: OK ${GOOD_BASE}, 42 documents, 168 image references`);
+  assert.equal(logs.at(-1), `media-guard: OK ${GOOD_BASE}, 54 documents, 216 image references`);
   // another output folder (the preview build writes out-preview/)
   writeDocs(root, GOOD_BASE, { out: "out-preview" });
   logs.length = 0;

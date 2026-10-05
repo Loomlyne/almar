@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { matchPublicPage, stripLocale } from "../../lib/locale-path.ts";
+import { isLivePost } from "../../scripts/post-live.mjs";
 
 // Shared by tests/no-dead-links.test.mjs (Framer HTML, in source) and tests/build/assembled-site.test.mjs
 // (every document in out/). One list of hidden and known-dead paths, in one place.
@@ -88,10 +89,18 @@ function stayRows() {
   return rows;
 }
 
+function postRows() {
+  const rows = JSON.parse(readFileSync("lib/data/fixtures/posts.json", "utf8"));
+  if (!Array.isArray(rows)) throw new Error("lib/data/fixtures/posts.json holds no array of posts");
+  // Published and dated now or earlier, as lib/data/posts.ts decides: a scheduled post has no page yet.
+  return rows.filter((row) => isLivePost(row));
+}
+
 /**
  * The URL of every React public page in every locale: page.tsx files under app/ whose English path matches a
  * PUBLIC_PAGES pattern, with route groups dropped and a [stay] segment expanded to every slug of the base
- * stays fixture (read only when such a page exists). Any other [param] on a public page throws.
+ * stays fixture and a [post] segment to every live slug (published, date reached) of the posts fixture (each read only when such a page
+ * exists). Any other [param] on a public page throws.
  */
 export function reactPublicRoutes() {
   const urls = [];
@@ -106,11 +115,12 @@ export function reactPublicRoutes() {
     const pattern = stripLocale(probe).path;
     if (matchPublicPage(pattern) === null) continue;
     const params = segments.filter((s) => /^\[.+\]$/.test(s));
-    for (const p of params) if (p !== "[stay]") throw new Error(`no enumerator for ${p}`);
+    for (const p of params) if (p !== "[stay]" && p !== "[post]") throw new Error(`no enumerator for ${p}`);
     if (params.length === 0) {
       urls.push(shape === "/ar" || shape === "/es" ? `${shape}/` : shape);
     } else {
-      for (const row of stayRows()) urls.push(shape.replace("[stay]", row.slug));
+      const rows = params[0] === "[post]" ? postRows() : stayRows();
+      for (const row of rows) urls.push(shape.replace(params[0], row.slug));
     }
   }
   return urls.sort();

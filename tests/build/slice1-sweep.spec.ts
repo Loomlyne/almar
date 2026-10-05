@@ -11,6 +11,7 @@ import { getDestinations } from "../../lib/data/destinations";
 import { LOCALES, SITE_ORIGIN, localeAlternates, localeDir, localePath, siteHref, type Locale } from "../../lib/locale-path";
 import { clickClearOfDock } from "../helpers/click-clear-of-dock";
 import { routeMedia } from "../helpers/media-route";
+import { reactPublicRoutes } from "../helpers/site-links.mjs";
 
 // Plan 03.3-08, Task 4. Run on the assembled out/ under local wrangler (playwright.build.config.ts):
 //   node scripts/assemble-cloudflare.mjs
@@ -586,7 +587,7 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     expect(missing.headers()["x-robots-tag"]).toBeUndefined();
   });
 
-  test("sitemap.xml lists 42 documents with alternates and every address answers 200 without a redirect", async ({ request }) => {
+  test("sitemap.xml lists the React documents with alternates and every address answers 200 without a redirect", async ({ request }) => {
     test.setTimeout(120_000);
     const response = await request.get("/sitemap.xml");
     expect(response.status()).toBe(200);
@@ -594,7 +595,9 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     const xml = await response.text();
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(new Set(locs).size, "no address twice").toBe(locs.length);
-    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "42 documents carry alternates").toBe(42);
+    // Every React page (slice 1's 42 plus the blog's 12 today) carries alternates: the count is computed from the page
+    // files under app/ and the live posts, not typed.
+    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "every React document carries alternates").toBe(reactPublicRoutes().length);
 
     // The 42 documents of this slice are all listed, once each, at the address the locale helper builds.
     for (const doc of DOCUMENTS) expect(locs, doc.url).toContain(SITE_ORIGIN + doc.url);

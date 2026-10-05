@@ -12,6 +12,10 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { isLivePost } from "./post-live.mjs";
+
+// A post is a document only when it is published and its date has come (lib/data/posts.ts isLive): see post-live.mjs.
+export { isLivePost };
 
 /** The repo root, resolved from this file so the scripts work from any cwd. */
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -212,6 +216,12 @@ export function readStaySlugs(fixturesDir = defaultPaths().fixturesDir) {
   return stays.filter((s) => s.is_published !== false).map((s) => s.slug);
 }
 
+/** The slugs of the live posts (the three blog pages), in fixture order. */
+export function readPostSlugs(fixturesDir = defaultPaths().fixturesDir, now = new Date()) {
+  const posts = JSON.parse(fs.readFileSync(path.join(fixturesDir, "posts.json"), "utf8"));
+  return posts.filter((p) => isLivePost(p, now)).map((p) => p.slug);
+}
+
 /**
  * The out/ paths of the slice-1 documents: for each of "", "ar/", "es/": the locale root, the list page and one
  * page per stay. 3 x (2 + 12) = 42. The EN root is index.html; a locale root is <locale>/index.html (design 5.4).
@@ -223,6 +233,21 @@ export function slice1Documents(staySlugs = readStaySlugs()) {
     for (const slug of staySlugs) docs.push(`${prefix}private-stays/${slug}.html`);
   }
   return docs;
+}
+
+/** The blog documents (slice 4): for each of "", "ar/", "es/": the list and one page per post. 3 x (1 + 3) = 12. */
+export function blogDocuments(postSlugs = readPostSlugs()) {
+  const docs = [];
+  for (const prefix of ["", "ar/", "es/"]) {
+    docs.push(`${prefix}blog.html`);
+    for (const slug of postSlugs) docs.push(`${prefix}blog/${slug}.html`);
+  }
+  return docs;
+}
+
+/** Every React document the media guard scans: slice 1 (42) and the blog (12) = 54. */
+export function reactDocuments(staySlugs = readStaySlugs(), postSlugs = readPostSlugs()) {
+  return [...slice1Documents(staySlugs), ...blogDocuments(postSlugs)];
 }
 
 /** Bytes as decimal megabytes with one decimal, e.g. "47.3". */
