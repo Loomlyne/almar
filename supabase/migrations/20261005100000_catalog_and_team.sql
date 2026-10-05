@@ -901,9 +901,9 @@ grant execute on function public.catalog_entity_meta(text) to service_role;
 
 -- Saves the translation records of one entity from {en: {...}, ar: {...}|null, es: ...} (contract 1.2): a language
 -- absent leaves its record alone, null deletes it (never en), a present object upserts it and, inside it, a key
--- absent leaves that field alone. Text is trimmed and empty becomes null. p_require_en: the English record must exist
+-- absent leaves that field alone. Text is trimmed and empty becomes null. p_need_en: the English record must exist
 -- afterwards (a new row).
-create or replace function public.catalog_save_translations(p_entity text, p_id uuid, p_tr jsonb, p_require_en boolean default false)
+create or replace function public.catalog_save_translations(p_entity text, p_id uuid, p_tr jsonb, p_need_en boolean default false)
 returns void
 language plpgsql
 set search_path = ''
@@ -981,7 +981,7 @@ begin
     end loop;
   end if;
 
-  if p_require_en then
+  if p_need_en then
     execute format('select exists (select 1 from public.%I where %I = $1 and locale = ''en'')', m.tr_tbl, m.fk) into v_exists using p_id;
     if not v_exists then
       perform public.catalog_invalid('translations.en', 'en');

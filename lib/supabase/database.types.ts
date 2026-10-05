@@ -859,7 +859,7 @@ isOneToOne: false
 { Args: { "p": Json,"p_key": string }; Returns: string
                            },
 "catalog_save_translations":
-{ Args: { "p_entity": string,"p_id": string,"p_require_en"?: boolean,"p_tr": Json }; Returns: undefined
+{ Args: { "p_entity": string,"p_id": string,"p_need_en"?: boolean,"p_tr": Json }; Returns: undefined
                            },
 "catalog_tr_all":
 { Args: { "p_entity": string,"p_id": string }; Returns: Json
