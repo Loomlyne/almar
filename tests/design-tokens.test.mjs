@@ -153,6 +153,31 @@ function tokenViolations(token, file) {
   return out;
 }
 
+/**
+ * The raw-HTML rule for one file (text already comment-stripped). Two exemptions, both granted by the controller
+ * (organisation 2026-10-03, blog post 2026-10-05): JSON-LD cannot be rendered without raw HTML, because React
+ * escapes a <script> text child.
+ *  - components/site/organization-json-ld.ts: only while the payload is a fixed literal.
+ *  - components/site/blog-posting-json-ld.ts: the post's BlogPosting carries data, so it is allowed only in one form:
+ *    exactly one dangerouslySetInnerHTML in the file, and it is `__html: blogPostingJsonLdText(`; every "<" of the
+ *    JSON text is escaped (JSON.stringify(...).replace(/</g, "\\u003c")); nothing is assigned through innerHTML.
+ */
+export function rawHtmlViolations(file, text) {
+  if (!/dangerouslySetInnerHTML/.test(text)) return [];
+  const JSON_LD_FILE = "components/site/organization-json-ld.ts";
+  const BLOG_JSON_LD_FILE = "components/site/blog-posting-json-ld.ts";
+  if (file === BLOG_JSON_LD_FILE) {
+    const uses = text.match(/dangerouslySetInnerHTML/g) ?? [];
+    const fixedForm = /dangerouslySetInnerHTML\s*:\s*\{\s*__html\s*:\s*blogPostingJsonLdText\(/.test(text);
+    const escaped = text.includes('.replace(/</g, "\\\\u003c")') && !/\.innerHTML\s*=/.test(text);
+    if (uses.length !== 1 || !fixedForm) return ["dangerouslySetInnerHTML other than the one `__html: blogPostingJsonLdText(`"];
+    if (!escaped) return ["dangerouslySetInnerHTML without the < escape"];
+    return [];
+  }
+  const fixedLiteral = /export const ORGANIZATION_JSON_LD =\s*'[^'`$]*';/.test(text) && !/[`]|\$\{/.test(text);
+  return file !== JSON_LD_FILE || !fixedLiteral ? ["dangerouslySetInnerHTML"] : [];
+}
+
 function fileViolations(file) {
   const out = [];
   if (file.endsWith(".module.css")) out.push("module.css is not allowed (Tailwind v4 only)");
@@ -164,19 +189,7 @@ function fileViolations(file) {
     if (new RegExp(word, "i").test(text)) out.push(`banned string ${word}`);
   }
   if (/\.dark\b/.test(text)) out.push("contains a .dark selector");
-  // One exemption, approved by the controller 2026-10-03: JSON-LD cannot be rendered without raw HTML
-  // (React escapes a <script> text child). Allowed only while the file's payload is a fixed literal.
-  const JSON_LD_FILE = "components/site/organization-json-ld.ts";
-  const BLOG_JSON_LD_FILE = "components/site/blog-posting-json-ld.ts";
-  if (/dangerouslySetInnerHTML/.test(text)) {
-    const fixedLiteral = /export const ORGANIZATION_JSON_LD =\s*'[^'`$]*';/.test(text) && !/[`]|\$\{/.test(text);
-    if (file === BLOG_JSON_LD_FILE) {
-      // Plan 32: the post's BlogPosting carries data, so it is allowed only while every "<" of the JSON text is escaped
-      // (JSON.stringify(...).replace(/</g, "\\u003c")) and nothing is assigned through innerHTML.
-      const escaped = text.includes('.replace(/</g, "\\\\u003c")') && !/\.innerHTML\s*=/.test(text);
-      if (!escaped) out.push("dangerouslySetInnerHTML without the < escape");
-    } else if (file !== JSON_LD_FILE || !fixedLiteral) out.push("dangerouslySetInnerHTML");
-  }
+  out.push(...rawHtmlViolations(file, text));
   if (/\.(tsx|ts)$/.test(file)) {
     for (const token of classTokens(text, file)) out.push(...tokenViolations(token, file));
   }
@@ -301,6 +314,30 @@ test("standalone 404 document only uses tokens.json hexes", () => {
   for (const m of text.matchAll(/#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3})\b/gi)) {
     assert.ok(TOKEN_HEX.has(m[0].toLowerCase()), `not-found-document.ts hex ${m[0]} is not in tokens.json`);
   }
+});
+
+test("raw HTML is allowed only in the two JSON-LD files, in their one fixed form", () => {
+  const BLOG = "components/site/blog-posting-json-ld.ts";
+  const ORG = "components/site/organization-json-ld.ts";
+  // The real files pass.
+  assert.deepEqual(rawHtmlViolations(BLOG, stripComments(readFileSync(BLOG, "utf8"))), []);
+  assert.deepEqual(rawHtmlViolations(ORG, stripComments(readFileSync(ORG, "utf8"))), []);
+  const good = [
+    'return JSON.stringify(data).replace(/</g, "\\\\u003c");',
+    "return { dangerouslySetInnerHTML: { __html: blogPostingJsonLdText(post, url) } };",
+  ].join("\n");
+  assert.deepEqual(rawHtmlViolations(BLOG, good), []);
+  // A second use, or a use with another payload, in the blog file is flagged.
+  const second = `${good}\nconst b = { dangerouslySetInnerHTML: { __html: post.title } };`;
+  assert.notDeepEqual(rawHtmlViolations(BLOG, second), []);
+  const other = good.replace("blogPostingJsonLdText(post, url)", "post.title");
+  assert.notDeepEqual(rawHtmlViolations(BLOG, other), []);
+  assert.notDeepEqual(rawHtmlViolations(BLOG, good.replace(".replace(/</g", ".replace(/>/g")), []);
+  assert.notDeepEqual(rawHtmlViolations(BLOG, `${good}\nel.innerHTML = post.title;`), []);
+  // Any other file is flagged.
+  assert.notDeepEqual(rawHtmlViolations("components/ui/rich-text.tsx", good), []);
+  // Files without raw HTML are not touched by this rule.
+  assert.deepEqual(rawHtmlViolations("components/ui/rich-text.tsx", "export const x = 1;"), []);
 });
 
 test("every scoped file passes the token rules", () => {
