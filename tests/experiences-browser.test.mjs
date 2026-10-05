@@ -230,3 +230,35 @@ for (const locale of LOCALES) {
     }
   });
 }
+
+test("ItemDetail skips a stay with no href: no link without an address and no raw slug as text", async () => {
+  const heritage = await detailFor("en", "cartagena-heritage-tours");
+  const [first, second, ...rest] = heritage.item.stay_slugs;
+  assert.ok(first && second && rest.length > 0, "the item lists several stays");
+
+  // One stay is not built (unpublished): its slug has no href and no name in the page's maps.
+  const stayHrefs = { ...heritage.stayHrefs };
+  const stayNames = { ...heritage.stayNames };
+  delete stayHrefs[first];
+  delete stayNames[first];
+  const html = detailHtml({ ...heritage, stayHrefs, stayNames });
+  assert.equal(html.includes(first), false, "the hidden stay's slug is not shown as text");
+  const links = [...html.matchAll(/<a\b[^>]*>/g)].map((m) => m[0]);
+  assert.equal(links.length, heritage.item.stay_slugs.length - 1);
+  assert.ok(links.every((tag) => /href="[^"]+"/.test(tag)), "every link has an address");
+  assert.deepEqual(
+    [...html.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map((m) => m[1]),
+    [second, ...rest].map((s) => heritage.stayHrefs[s]),
+  );
+
+  // Even with a name but no href the slug is skipped, never drawn as a dead link.
+  const namedOnly = detailHtml({ ...heritage, stayHrefs });
+  assert.equal([...namedOnly.matchAll(/<a\b/g)].length, heritage.item.stay_slugs.length - 1);
+  assert.equal(namedOnly.includes(escape(heritage.stayNames[first])), false);
+
+  // Every stay hidden: no Private stays row at all, and no link.
+  const none = detailHtml({ ...heritage, stayHrefs: {}, stayNames: {} });
+  assert.equal(none.includes(`>${heritage.copy.overlay.stays}<`), false, "no Private stays row");
+  assert.equal(/<a\b/.test(none), false);
+  assert.ok(none.includes(`>${heritage.copy.overlay.duration}<`), "the other rows stay");
+});

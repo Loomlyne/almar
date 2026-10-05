@@ -38,12 +38,17 @@ function published(): CatalogBase[] {
     .sort((a, b) => a.position - b.position);
 }
 
+/**
+ * The slugs of the destinations or stays an item lists, in the item's id order. An id that matches no row is a data error
+ * and throws; a row that is not published is left out, so the overlay never links to a stay page that is not built and the
+ * kicker never names a place the filters do not offer (stays.ts and destinations.ts read published rows only).
+ */
 function slugsOf(table: "destinations" | "stays", ids: string[], itemSlug: string): string[] {
-  const rows = readFixture<Array<{ id: string; slug: string }>>(table);
-  return ids.map((id) => {
+  const rows = readFixture<Array<{ id: string; slug: string; is_published: boolean }>>(table);
+  return ids.flatMap((id) => {
     const hit = rows.find((r) => r.id === id);
     if (!hit) throw new Error(`catalog ${itemSlug}: unknown ${table === "stays" ? "stay" : "destination"} ${id}`);
-    return hit.slug;
+    return hit.is_published ? [hit.slug] : [];
   });
 }
 

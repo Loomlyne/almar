@@ -42,12 +42,14 @@ export function ItemDetail({
 }) {
   const rows: Fact[] = [];
   if (item.duration_label) rows.push({ label: copy.overlay.duration, value: item.duration_label });
-  if (item.stay_slugs.length > 0) {
+  // A stay with no address is not built (unpublished): it is skipped, never drawn as a dead link or as its raw slug.
+  const linkedStays = item.stay_slugs.filter((slug) => Boolean(stayHrefs[slug]));
+  if (linkedStays.length > 0) {
     rows.push({
       label: copy.overlay.stays,
       value: (
         <span className="flex flex-wrap gap-x-4">
-          {item.stay_slugs.map((slug) => (
+          {linkedStays.map((slug) => (
             <Link key={slug} href={stayHrefs[slug]}>
               {stayNames[slug] ?? slug}
             </Link>

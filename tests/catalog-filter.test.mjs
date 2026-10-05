@@ -218,3 +218,74 @@ test("slugsOf throws on an unknown destination or stay id (isolated fixture copy
     }
   }
 });
+
+/** Runs `fn(fresh experiences module, temp root)` with an isolated copy of the fixtures that `mutate(name, rows)` has edited. */
+async function withEditedFixtures(edits, fn) {
+  const root = process.cwd();
+  const tmp = mkdtempSync(join(tmpdir(), "almar-fx-"));
+  mkdirSync(join(tmp, "lib", "data"), { recursive: true });
+  cpSync(join(root, "lib", "data", "fixtures"), join(tmp, "lib", "data", "fixtures"), { recursive: true });
+  for (const [name, edit] of Object.entries(edits)) {
+    const file = join(tmp, "lib", "data", "fixtures", `${name}.json`);
+    const rows = JSON.parse(readFileSync(file, "utf8"));
+    edit(rows);
+    writeFileSync(file, JSON.stringify(rows));
+  }
+  const fresh = await loadTs("lib/data/experiences.ts");
+  try {
+    process.chdir(tmp);
+    return await fn(fresh, tmp);
+  } finally {
+    process.chdir(root);
+  }
+}
+
+test("an unpublished stay is not joined into any item's stay_slugs (the overlay would link to a page that is not built)", async () => {
+  const OFF = "santa-fe-farm-antioquia";
+  await withEditedFixtures(
+    { stays: (rows) => (rows.find((s) => s.slug === OFF).is_published = false) },
+    async (fresh, tmp) => {
+      const stays = JSON.parse(readFileSync(join(tmp, "lib", "data", "fixtures", "stays.json"), "utf8"));
+      const published = new Set(stays.filter((s) => s.is_published).map((s) => s.slug));
+      assert.equal(published.has(OFF), false);
+      for (const l of LOCALES) {
+        const all = await fresh.getCatalogItems(l);
+        assert.equal(all.length, 45, l);
+        for (const i of all) {
+          assert.ok(i.stay_slugs.every((s) => published.has(s)), `${l} ${i.slug}: ${i.stay_slugs.filter((s) => !published.has(s))}`);
+        }
+        const mr = await fresh.getCatalogItem(l, "medellin-renaissance");
+        assert.deepEqual(mr.stay_slugs, ["sopetran-country-estate"], l);
+        // The filter agrees: the hidden stay offers nothing, so a bookmarked ?stay=<hidden> shows nothing.
+        assert.deepEqual(await fresh.getCatalogItems(l, { staySlug: OFF }), [], l);
+      }
+      // The unpublished stay leaves the services' stay lists too: 12 stays become 11.
+      const vip = await fresh.getCatalogItem("en", "vip-airport-meet-greet");
+      assert.equal(vip.stay_slugs.length, 11);
+    },
+  );
+});
+
+test("an unpublished destination is not joined into any item's destination_slugs", async () => {
+  const OFF = "cocora-valley";
+  await withEditedFixtures(
+    { destinations: (rows) => (rows.find((d) => d.slug === OFF).is_published = false) },
+    async (fresh) => {
+      for (const l of LOCALES) {
+        const all = await fresh.getCatalogItems(l);
+        for (const i of all) assert.equal(i.destination_slugs.includes(OFF), false, `${l} ${i.slug}`);
+        const pcc = await fresh.getCatalogItem(l, "private-ceremony-colombia");
+        assert.deepEqual(pcc.destination_slugs, ["cartagena", "medellin"], l);
+        const coffee = await fresh.getCatalogItem(l, "coffee-region-immersion");
+        assert.deepEqual(coffee.destination_slugs, [], l);
+      }
+    },
+  );
+});
+
+test("the published fixtures still join every stay and destination (nothing is dropped when all are published)", async () => {
+  const wc = await getCatalogItem("en", "welcome-cocktail");
+  assert.equal(wc.stay_slugs.length, 12);
+  const pcc = await getCatalogItem("en", "private-ceremony-colombia");
+  assert.deepEqual(pcc.destination_slugs, ["cartagena", "medellin", "cocora-valley"]);
+});
