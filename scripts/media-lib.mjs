@@ -267,11 +267,6 @@ export function publicDocuments(staySlugs = readStaySlugs(), pages = PUBLIC_PAGE
   return docs;
 }
 
-/** Kept as a one-line wrapper only because tests/media-manifest.test.mjs (plan 10) imports it; no script calls it. */
-export function slice1Documents(staySlugs = readStaySlugs()) {
-  return publicDocuments(staySlugs, SLICE1_PAGES);
-}
-
 /** Bytes as decimal megabytes with one decimal, e.g. "47.3". */
 export function formatMB(bytes) {
   return (bytes / 1_000_000).toFixed(1);

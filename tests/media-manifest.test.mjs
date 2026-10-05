@@ -23,7 +23,6 @@ import {
   readManifest,
   serializeManifest,
   sha256,
-  slice1Documents,
   webpDimensions,
 } from "../scripts/media-lib.mjs";
 import { buildManifest, checkManifest, main as manifestMain, syncFixtureDimensions } from "../scripts/media-manifest.mjs";
@@ -267,14 +266,8 @@ test("RED: a manifest that differs from the computed one by one byte fails --che
   assert.match(out.join("\n"), /not byte-identical/);
 });
 
-test("slice1Documents lists the 42 slice-1 documents: 14 per locale, EN at the root", () => {
-  const docs = slice1Documents();
-  assert.equal(docs.length, 42);
-  assert.equal(new Set(docs).size, 42);
-  assert.ok(docs.includes("index.html") && docs.includes("ar/index.html") && docs.includes("es/index.html"));
-  assert.ok(docs.includes("private-stays.html") && docs.includes("es/private-stays/getsemani-colonial-house.html"));
-  assert.equal(docs.filter((d) => d.startsWith("ar/")).length, 14);
-});
+// The document list is publicDocuments() (scripts/media-lib.mjs); slice 1's own 42 are covered by
+// tests/public-documents.test.mjs (S2-5: slice 1's one-line wrapper and its test here are gone).
 
 // Task 2: measured fields, the cache, and fetch -------------------------------------------------------------------
 
