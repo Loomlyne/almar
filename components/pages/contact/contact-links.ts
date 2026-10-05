@@ -20,9 +20,9 @@ export type ContactLinks = {
 };
 
 const PHONE = /^\+(?!0)\d{8,15}$/;
-// One plain address: no whitespace (CR and LF included), no quote or angle bracket, and none of ? & , that would add
-// a header, a recipient or a subject to a mailto: link.
-const EMAIL = /^[^\s@?&,"'<>]+@[^\s@?&,"'<>]+\.[^\s@?&,"'<>]+$/;
+// One plain address: no whitespace (CR and LF included), no quote or angle bracket, none of ? & , ; that would add
+// a header, a recipient or a subject to a mailto: link, and no % (a percent escape decodes to CRLF or a second address).
+const EMAIL = /^[^\s@?&,;%"'<>]+@[^\s@?&,;%"'<>]+\.[^\s@?&,;%"'<>]+$/;
 
 export function contactLinks(details: ContactDetails): ContactLinks {
   const { phone_e164: phone, location_url: location, email } = details;

@@ -19,14 +19,16 @@ test("CONTACT_PATH is /contact", () => {
   assert.equal(CONTACT_PATH, "/contact");
 });
 
-test("en: the four hrefs equal the live ones, byte for byte", async () => {
+test("en: the hrefs equal the live ones, byte for byte (the Maps one is the same search, percent-encoded)", async () => {
   const d = await getContactDetails("en");
   const l = contactLinks(d);
   assert.equal(l.whatsappMessage, LIVE_WA);
   assert.equal(l.tel, "tel:+971563883302");
   assert.equal(l.whatsapp, "https://wa.me/971563883302");
   assert.equal(l.mailto, "mailto:inquiries@almarprivatejourney.com");
-  assert.equal(l.location, "https://www.google.com/maps/search/Bogotá,+Colombia");
+  // The live page wrote Bogotá,+Colombia; the query is percent-encoded now: the same search, decoded.
+  assert.equal(l.location, "https://www.google.com/maps/search/Bogot%C3%A1%2C+Colombia");
+  assert.equal(decodeURIComponent(new URL(l.location).pathname), decodeURIComponent(new URL("https://www.google.com/maps/search/Bogotá,+Colombia").pathname));
   assert.deepEqual(Object.keys(l).sort(), ["location", "mailto", "tel", "whatsapp", "whatsappMessage"]);
 });
 
@@ -94,6 +96,12 @@ test("an email that is not one plain local@domain.tld throws", () => {
     "a@b.com&cc=x@y.com",
     "a@b.com,c@d.com",
     "a@@b.com",
+    "a%0D%0ABcc%3Ax%40y.com@b.com", // decodes to CRLF + a Bcc header inside a mailto: link
+    "a%0Ab@c.com",
+    "50%@b.com",
+    "a@x%2ey.com",
+    "a;b@c.com",
+    "a@b.com;c@d.com",
     "",
   ]) {
     assert.throws(() => contactLinks({ ...GOOD, email }), /email/i, JSON.stringify(email));

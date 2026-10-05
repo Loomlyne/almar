@@ -35,8 +35,10 @@ type ContactTranslation = {
 
 function validate(row: ContactBase): void {
   if (!/^\+[1-9]\d{7,14}$/.test(row.phone_e164)) throw new Error("contact: phone_e164 is not an E.164 number");
-  if (typeof row.email !== "string" || row.email.split("@").length !== 2 || /\s/.test(row.email)) {
-    throw new Error("contact: email must hold exactly one @ and no space");
+  // "%" would let a percent escape decode to a header break or a second recipient inside a mailto: link; ";" separates
+  // recipients in some mail clients. contactLinks refuses the same two characters.
+  if (typeof row.email !== "string" || row.email.split("@").length !== 2 || /[\s%;]/.test(row.email)) {
+    throw new Error('contact: email must hold exactly one @ and no space, "%" or ";"');
   }
   if (!/^[a-z0-9._]+$/.test(row.instagram_handle)) throw new Error("contact: instagram_handle is outside [a-z0-9._]");
   if (typeof row.location_query !== "string" || row.location_query.length === 0 || /[/?#]/.test(row.location_query)) {
@@ -51,7 +53,9 @@ export async function getContactDetails(locale: Locale): Promise<ContactDetails>
   return {
     business_name: r.business_name,
     location_label: r.location_label,
-    location_url: MAPS_SEARCH_BASE + row.location_query.replace(/ /g, "+"),
+    // Encoded as a whole, then the spaces written as + (the form Google Maps uses): a "%" or any reserved character in
+    // the query cannot make a malformed or hijacked address.
+    location_url: MAPS_SEARCH_BASE + encodeURIComponent(row.location_query).replace(/%20/g, "+"),
     phone_e164: r.phone_e164,
     phone_display: r.phone_display,
     email: r.email,

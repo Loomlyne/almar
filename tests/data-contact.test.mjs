@@ -12,7 +12,11 @@ const EMAIL = "inquiries@almarprivatejourney.com";
 const PHONE_DISPLAY = "+971 56 388 3302";
 const PHONE_E164 = "+971563883302";
 const NAME = "ALMAR Private Journeys";
-const MAPS = "https://www.google.com/maps/search/Bogotá,+Colombia";
+// The live Framer page's Maps href was "Bogotá,+Colombia". The query is now percent-encoded (encodeURIComponent, then
+// %20 -> +), so the same search is written MAPS; decoded, both are the same path (the "same search" test below).
+const LIVE_MAPS = "https://www.google.com/maps/search/Bogotá,+Colombia";
+const MAPS = "https://www.google.com/maps/search/Bogot%C3%A1%2C+Colombia";
+const MAPS_BASE = "https://www.google.com/maps/search/";
 const INSTAGRAM = "https://www.instagram.com/almarprivatejourney/";
 const WA_TEXT = "Hello ALMAR, I would like to plan a private journey.";
 const WA_HREF = "https://wa.me/971563883302?text=Hello%20ALMAR%2C%20I%20would%20like%20to%20plan%20a%20private%20journey.";
@@ -22,6 +26,7 @@ const ARABIC_INDIC_DIGIT = /[٠-٩]/;
 const KEYS = ["business_name", "email", "instagram_url", "locale", "location_label", "location_url", "phone_display", "phone_e164", "translation_status", "whatsapp_message"];
 
 const details = async (l) => (await loadTs("lib/data/contact.ts")).getContactDetails(l);
+const { contactLinks } = await loadTs("components/pages/contact/contact-links.ts");
 
 async function withScratch(edit, locale = "en") {
   const dir = mkdtempSync(join(tmpdir(), "almar-contact-"));
@@ -86,11 +91,33 @@ test("en is published; ar and es are drafts; the Bogotá label is pinned per lan
   assert.doesNotMatch(ar.location_label, ARABIC_INDIC_DIGIT);
 });
 
-test("the live hrefs rebuild byte for byte from the en details", async () => {
+test("the live hrefs rebuild byte for byte from the en details; the Maps href is the same search, percent-encoded", async () => {
   const d = await details("en");
   assert.equal("https://wa.me/" + d.phone_e164.replace("+", "") + "?text=" + encodeURIComponent(d.whatsapp_message), WA_HREF);
   assert.equal("tel:" + d.phone_e164, "tel:+971563883302");
   assert.equal(d.location_url, MAPS);
+  assert.notEqual(d.location_url, LIVE_MAPS, "the href is encoded now: Bogot%C3%A1%2C+Colombia, not the raw live text");
+  assert.equal(decodeURIComponent(new URL(d.location_url).pathname), decodeURIComponent(new URL(LIVE_MAPS).pathname), "same search path once decoded");
+  assert.equal(new URL(d.location_url).pathname.slice("/maps/search/".length), "Bogot%C3%A1%2C+Colombia");
+});
+
+test("the Maps href encodes the query: a % or any reserved character cannot make a malformed URL", async () => {
+  const cases = [
+    ["Bogotá 100% Colombia", `${MAPS_BASE}Bogot%C3%A1+100%25+Colombia`],
+    ["50%25 off", `${MAPS_BASE}50%2525+off`],
+    ["a&b=c;d", `${MAPS_BASE}a%26b%3Dc%3Bd`],
+    ['say "hi" <b>', `${MAPS_BASE}say+%22hi%22+%3Cb%3E`],
+  ];
+  for (const [query, want] of cases) {
+    const d = await withScratch((r) => { r.location_query = query; });
+    assert.equal(d.location_url, want, query);
+    assert.doesNotMatch(d.location_url, /%(?![0-9A-F]{2})/, `${query}: every % starts a valid escape`);
+    assert.equal(decodeURIComponent(d.location_url.slice(MAPS_BASE.length).replace(/\+/g, " ")), query, `${query}: decodes back to the query`);
+    assert.doesNotThrow(() => contactLinks(d), query);
+  }
+  // encodeURIComponent leaves ' alone; contactLinks still refuses a quote in the address, so the build fails closed.
+  const quote = await withScratch((r) => { r.location_query = "it's"; });
+  assert.throws(() => contactLinks(quote), /location/);
 });
 
 test("guard: the data, SITE_CONTACT (PublicFrame) and OWNER_CONTACT (SiteFooter) agree", async () => {
@@ -120,7 +147,7 @@ test("while app/contact/route.ts exists, the live page carries the pinned facts 
   const line = readFileSync(file, "utf8").split("\n").find((l) => l.startsWith("const HTML = "));
   assert.ok(line, "HTML constant not found");
   const html = JSON.parse(line.slice("const HTML = ".length).replace(/;$/, ""));
-  for (const p of [EMAIL, PHONE_DISPLAY, "Bogotá, Colombia", `href="${MAPS}"`, `href="${WA_HREF}"`, NAME]) {
+  for (const p of [EMAIL, PHONE_DISPLAY, "Bogotá, Colombia", `href="${LIVE_MAPS}"`, `href="${WA_HREF}"`, NAME]) {
     assert.ok(html.includes(p), `not on the live Contact page: ${p}`);
   }
 });
@@ -143,6 +170,11 @@ test("a malformed row is refused at read (scratch tree)", async () => {
   await assert.rejects(withScratch((r) => { r.phone_e164 = "+971 56"; }), /phone_e164/);
   await assert.rejects(withScratch((r) => { r.email = "nobody"; }), /email/);
   await assert.rejects(withScratch((r) => { r.email = "a@b@c.com"; }), /email/);
+  // a percent escape decodes to a header break or a second recipient in a mailto: link; ; separates recipients in some mail clients
+  await assert.rejects(withScratch((r) => { r.email = "a%0D%0ABcc%3Ax%40y.com@b.com"; }), /email/);
+  await assert.rejects(withScratch((r) => { r.email = "50%@b.com"; }), /email/);
+  await assert.rejects(withScratch((r) => { r.email = "a;b@c.com"; }), /email/);
+  await assert.rejects(withScratch((r) => { r.email = "a@b.com;c@d.com"; }), /email/);
   await assert.rejects(withScratch((r) => { r.instagram_handle = "Bad/Handle"; }), /instagram_handle/);
   await assert.rejects(withScratch((r) => { r.instagram_handle = "javascript:alert(1)"; }), /instagram_handle/);
   await assert.rejects(withScratch((r) => { r.location_query = "Bogotá/../x"; }), /location_query/);
