@@ -161,4 +161,26 @@ for (const { name, root, present } of ROOTS) {
       assert.equal(/<input\b/i.test(text), false, `${file} has an <input>`);
     }
   });
+
+  // Plan 03.3-15: each card on a stay page is one link to its overlay on /experiences, in the document's language.
+  test(`${name}: the Services and Experiences cards in the 36 documents link to /experiences?item=, never to /services`, run, async () => {
+    const { getCatalogForStay } = await loadTs("lib/data/experiences.ts");
+    const { localePath } = await loadTs("lib/locale-path.ts");
+    const decode = (text) => text.replace(/&amp;/g, "&");
+    for (const { prefix, slug, file } of stayDocuments(root)) {
+      const locale = prefix === "" ? "en" : prefix.slice(0, -1);
+      const catalog = await getCatalogForStay(locale, slug);
+      // The page shows the first three items with a picture in each section.
+      const shown = [...catalog.services, ...catalog.experiences].length === 0 ? [] : [
+        ...catalog.services.filter((i) => i.image).slice(0, 3),
+        ...catalog.experiences.filter((i) => i.image).slice(0, 3),
+      ];
+      const experiences = localePath(locale, "/experiences");
+      const text = decode(Buffer.from(readFileSync(file)).toString("utf8"));
+      assert.equal(text.split(`href="${experiences}?item=`).length - 1, shown.length, `${file}: card links`);
+      for (const item of shown) assert.ok(text.includes(`href="${experiences}?item=${item.slug}"`), `${file}: ${item.slug}`);
+      assert.equal(text.includes('href="/services'), false, `${file}: a /services link`);
+      assert.equal(text.includes('href="./services'), false, `${file}: a ./services link`);
+    }
+  });
 }

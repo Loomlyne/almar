@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { HOME_PAGE_COPY } from "../../../lib/copy/home-page";
@@ -6,6 +6,7 @@ import { FRAMER_SOURCE_COPY } from "../../../lib/copy/framer-source";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { getDestinations } from "../../../lib/data/destinations";
 import { getCatalogItems } from "../../../lib/data/experiences";
+import { EXPERIENCES_PAGE_COPY } from "../../../lib/copy/experiences-page";
 import { getHomeBlocks, getJourneyTiers } from "../../../lib/data/home";
 import { getStays } from "../../../lib/data/stays";
 import { MEDIA_BASE_URL } from "../../../lib/data/media";
@@ -40,6 +41,9 @@ const NEXT: Record<Locale, Locale> = { en: "ar", ar: "es", es: "en" };
 const home = (locale: Locale) => localePath(locale, "/");
 const nameOfCurrency = (locale: Locale, code: string) => JOURNEY_COPY[locale].locale.currency.replace("{code}", code);
 const nameOfLanguage = (locale: Locale) => JOURNEY_COPY[locale].locale.language.replace("{name}", LANGUAGE_NAMES[locale]);
+
+/** The three services the signed home shows, by slug and in this order. Pinned on purpose: it is the live home's trio. */
+const HOME_SERVICE_SLUGS = ["24-7-private-concierge", "luxury-ground-transport", "vip-airport-meet-greet"] as const;
 
 /** "Today" for every test: the dates the journey picks are in the future of it and the past days stay unpickable. */
 const FIXED_NOW = "2026-10-04T09:00:00+04:00";
@@ -553,27 +557,19 @@ for (const vp of VIEWPORTS) {
         const { media } = await visit(page, locale);
         const stays = await getStays(locale);
         const blocks = await getHomeBlocks(locale);
-        const services = await getCatalogItems(locale, { kind: "service" });
-        const cases: Array<[string, () => ReturnType<Page["locator"]>, string]> = [
-          ["a stay card", () => page.locator("#stays ul a").first(), localePath(locale, `/private-stays/${stays[0].slug}`)],
-          ["View All Services", () => page.getByRole("link", { name: copy.services.viewAll }), localePath(locale, "/experiences")],
-          ["Read All", () => page.getByRole("link", { name: copy.stories.readAll }), "/blog"],
-          ["Request Consultation (curated)", () => page.locator("#experiences").getByRole("link", { name: copy.moments.cta }), "/contact"],
-          ["Request Consultation (begin)", () => page.locator("#begin").getByRole("link", { name: copy.begin.cta }), "/contact"],
-          ["a service card", () => page.locator("#services ul a").first(), "/experiences"],
-          ["a story card", () => page.locator("#stories ul a").first(), `/blog/${blocks.stories[0].slug}`],
-          ["the wordmark", () => page.getByRole("link", { name: "ALMAR Private Journeys home" }), home(locale)],
+        const experiences = localePath(locale, "/experiences");
+        // [label, locator, expected pathname, expected search]
+        const cases: Array<[string, () => ReturnType<Page["locator"]>, string, string]> = [
+          ["a stay card", () => page.locator("#stays ul a").first(), localePath(locale, `/private-stays/${stays[0].slug}`), ""],
+          ["View All Services", () => page.getByRole("link", { name: copy.services.viewAll }), experiences, "?type=service"],
+          ["Read All", () => page.getByRole("link", { name: copy.stories.readAll }), "/blog", ""],
+          ["Request Consultation (curated)", () => page.locator("#experiences").getByRole("link", { name: copy.moments.cta }), "/contact", ""],
+          ["Request Consultation (begin)", () => page.locator("#begin").getByRole("link", { name: copy.begin.cta }), "/contact", ""],
+          ["a service card", () => page.locator("#services ul a").first(), experiences, `?type=service&item=${HOME_SERVICE_SLUGS[0]}`],
+          ["a story card", () => page.locator("#stories ul a").first(), `/blog/${blocks.stories[0].slug}`, ""],
+          ["the wordmark", () => page.getByRole("link", { name: "ALMAR Private Journeys home" }), home(locale), ""],
         ];
-        // The service card links /services/<slug>; public/_redirects sends it one hop to /experiences with a search.
-        const redirectRules = readFileSync("public/_redirects", "utf8")
-          .split("\n")
-          .filter((line) => line.trim() !== "" && !line.startsWith("#"))
-          .map((line) => line.trim().split(/\s+/));
-        const serviceRule =
-          redirectRules.find(([from]) => from === `/services/${services[0].slug}`) ??
-          redirectRules.find(([from]) => from === "/services/*");
-        const serviceSearch = new URL(serviceRule![1], "https://almarprivatejourney.com").search;
-        for (const [label, locate, path] of cases) {
+        for (const [label, locate, path, search] of cases) {
           await page.goto(home(locale));
           await hydrated(page);
           const link = locate();
@@ -581,7 +577,7 @@ for (const vp of VIEWPORTS) {
           await link.click();
           await page.waitForURL((url) => url.pathname === path, { timeout: 15_000 });
           expect(new URL(page.url()).pathname, label).toBe(path);
-          if (label === "a service card") expect(new URL(page.url()).search, label).toBe(serviceSearch);
+          expect(new URL(page.url()).search, label).toBe(search);
         }
 
         // Every distinct same-origin address on the page answers 200. The stay list and stay pages of the
@@ -612,6 +608,42 @@ for (const vp of VIEWPORTS) {
           await expect(card).toHaveCount(1);
           await expect(card.locator("a")).toHaveCount(0);
         }
+        expect(media.missing).toEqual([]);
+      });
+
+      test(`8b a service card opens its overlay on /experiences (${where})`, async ({ page }) => {
+        const { media } = await visit(page, locale);
+        const services = await getCatalogItems(locale, { kind: "service" });
+        const trio = HOME_SERVICE_SLUGS.map((slug) => services.find((s) => s.slug === slug)!);
+        expect(trio.every(Boolean)).toBe(true);
+        const experiences = localePath(locale, "/experiences");
+        const links = page.locator("#services ul a");
+        await expect(links).toHaveCount(3);
+        expect(await links.evaluateAll((nodes) => nodes.map((n) => n.getAttribute("href")))).toEqual(
+          HOME_SERVICE_SLUGS.map((slug) => experiences + "?type=service&item=" + slug),
+        );
+        // en 0, ar 1, es 2; the phone shows two cards, so the third is only clicked from md up (all three links stay in the page).
+        const index = Math.min(LOCALES.indexOf(locale), shownCards(vp) - 1);
+        const service = trio[index];
+        await links.nth(index).click();
+        await page.waitForURL((url) => url.pathname === experiences, { timeout: 15_000 });
+        await expect(page.locator("html")).toHaveAttribute("lang", locale);
+        const dialog = page.getByRole("dialog");
+        await expect(dialog).toBeVisible({ timeout: 15_000 });
+        await expect(dialog.getByRole("heading", { level: 2, name: service.name, exact: true })).toBeVisible();
+        expect(new URL(page.url()).searchParams.get("item")).toBe(service.slug);
+        expect(new URL(page.url()).searchParams.get("type")).toBe("service");
+        await page.waitForTimeout(500);
+        await page.keyboard.press("Escape");
+        await expect(page.getByRole("dialog")).toHaveCount(0);
+        const after = new URL(page.url());
+        expect(after.searchParams.has("item")).toBe(false);
+        expect(after.searchParams.get("type")).toBe("service");
+        const groups = EXPERIENCES_PAGE_COPY[locale].groups;
+        // A group head is its name then a count in one h2, so the name is matched as a prefix.
+        const head = (name: string) => page.getByRole("heading", { level: 2, name: new RegExp("^" + name) });
+        await expect(head(groups.services)).toBeVisible();
+        await expect(head(groups.experiences)).toHaveCount(0);
         expect(media.missing).toEqual([]);
       });
 
