@@ -115,6 +115,7 @@ test("storage shape: one record per language per entity, no locale-keyed map in 
   rule("stay-translations", "stay_id", "stays");
   rule("destination-translations", "destination_id", "destinations");
   rule("catalog-translations", "item_id", "catalog");
+  rule("post-translations", "post_id", "posts");
   for (const [name, data] of allFixtures()) {
     assert.doesNotMatch(JSON.stringify(data), /"(?:en|ar|es)"\s*:\s*[{[]/, `${name}: locale-keyed map`);
   }
@@ -122,7 +123,7 @@ test("storage shape: one record per language per entity, no locale-keyed map in 
   const alts = fixture("image-translations");
   const ids = new Set();
   const collect = (n) => { if (Array.isArray(n)) n.forEach(collect); else if (n && typeof n === "object") { if (typeof n.media_key === "string") ids.add(n.id); Object.values(n).forEach(collect); } };
-  for (const f of ["stays", "destinations", "catalog", "home", "about"]) collect(fixture(f));
+  for (const f of ["stays", "destinations", "catalog", "home", "posts", "about"]) collect(fixture(f));
   assert.ok(ids.size >= 100);
   for (const id of ids) assert.deepEqual(alts.filter((a) => a.image_id === id).map((a) => a.locale).sort(), ["ar", "en", "es"], id);
   assert.equal(alts.length, ids.size * 3);

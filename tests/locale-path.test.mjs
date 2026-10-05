@@ -17,7 +17,7 @@ import {
 } from "../lib/locale-path.ts";
 
 const STAY = "/private-stays/getsemani-colonial-house";
-const PATHS = ["/", "/private-stays", STAY];
+const PATHS = ["/", "/private-stays", STAY, "/blog", "/blog/why-medellin-is-redefining-luxury-travel"];
 
 test("localePath: English is unchanged", () => {
   for (const p of PATHS) assert.equal(localePath("en", p), p);
@@ -110,7 +110,10 @@ test("matchPublicPage matches the five patterns and one [a-z0-9-] segment", () =
   ]) {
     assert.equal(matchPublicPage(p), null, p);
   }
-  assert.deepEqual([...PUBLIC_PAGES], ["/", "/private-stays", "/private-stays/[stay]", "/about", "/contact"]);
+  assert.equal(matchPublicPage("/blog/why-medellin-is-redefining-luxury-travel"), "/blog/[post]");
+  assert.equal(matchPublicPage("/blog/a/b"), null);
+  assert.equal(siteHref("ar", "/blog"), "/ar/blog");
+  assert.deepEqual([...PUBLIC_PAGES], ["/", "/private-stays", "/private-stays/[stay]", "/about", "/contact", "/blog", "/blog/[post]"]);
 });
 
 test("siteHref localises only pages that exist in every locale", () => {
@@ -119,7 +122,8 @@ test("siteHref localises only pages that exist in every locale", () => {
   assert.equal(siteHref("es", "/contact"), "/es/contact");
   assert.equal(siteHref("en", "/about"), "/about");
   assert.equal(siteHref("ar", "/contact#inquiry"), "/ar/contact#inquiry");
-  assert.equal(siteHref("ar", "/blog"), "/blog");
+  assert.equal(siteHref("ar", "/blog"), "/ar/blog");
+  assert.equal(siteHref("ar", "/destinations"), "/destinations");
   assert.equal(siteHref("es", "/"), "/es/");
   assert.equal(siteHref("ar", "/private-stays#filters"), "/ar/private-stays#filters");
 });
@@ -154,7 +158,7 @@ test("localeAlternates: canonical plus four alternates, x-default is English", (
       "x-default": `${o}/about`,
     },
   });
-  assert.throws(() => localeAlternates("en", "/blog"));
+  assert.throws(() => localeAlternates("en", "/destinations"));
 });
 
 test("isLocale and localeDir", () => {

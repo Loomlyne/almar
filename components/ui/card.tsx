@@ -121,11 +121,14 @@ export function MediaCard({
 export type PortraitFact = { icon: ReactNode; text: string };
 
 export type PortraitCardProps = {
-  href: string;
+  /** Without href the card is a <div>, not a link (an item with no detail page). */
+  href?: string;
   image: MediaCardImage;
   title: string;
   /** An icon row on the photo, for example guests, bedrooms, bathrooms. */
   facts?: PortraitFact[];
+  /** A 12px uppercase line above the title (a date, or `Featured stay`). */
+  kicker?: string;
   className?: string;
 };
 
@@ -133,12 +136,16 @@ export type PortraitCardProps = {
  * The Framer stay card: one link, a 2:3 photo, the title and an icon facts row on the photo over a dark gradient.
  * The photo zooms 1.05x on hover over the hover duration with the reveal ease (not under reduced motion).
  */
-export function PortraitCard({ href, image, title, facts = [], className }: PortraitCardProps) {
-  return (
-    <a href={href} className={cn("group relative block aspect-2/3 min-w-0 overflow-hidden text-ivory no-underline", className)}>
+export function PortraitCard({ href, image, title, facts = [], kicker, className }: PortraitCardProps) {
+  const classes = cn("group relative block aspect-2/3 min-w-0 overflow-hidden text-ivory no-underline", className);
+  const body = (
+    <>
       <img src={image.src} alt={image.alt} decoding="async" className={cn("absolute inset-0 size-full object-cover", ZOOM.md)} />
       <span aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-ink/70 via-ink/10 to-transparent" />
       <span className="absolute inset-x-0 bottom-0 flex flex-col gap-3 px-6 pb-6 md:px-8 md:pb-8">
+        {kicker ? (
+          <span className="text-caption uppercase tracking-kicker text-ivory ar:normal-case ar:tracking-normal">{kicker}</span>
+        ) : null}
         <span className="font-display text-heading text-ivory">{title}</span>
         {facts.length > 0 ? (
           <span className="flex flex-wrap gap-x-6 gap-y-2 text-label text-ivory">
@@ -151,6 +158,13 @@ export function PortraitCard({ href, image, title, facts = [], className }: Port
           </span>
         ) : null}
       </span>
+    </>
+  );
+  return href ? (
+    <a href={href} className={classes}>
+      {body}
     </a>
+  ) : (
+    <div className={classes}>{body}</div>
   );
 }

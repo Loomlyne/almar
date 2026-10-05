@@ -1,17 +1,19 @@
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import {
   LOCALES,
+  PUBLIC_PAGES,
   localeAlternates,
   localeDir,
   localeHrefs,
   localePath,
   type Locale,
 } from "../../lib/locale-path";
+import { isLivePost } from "../../scripts/post-live.mjs";
+import { framerRoutes } from "../helpers/site-links.mjs";
 import { clickClearOfDock } from "../helpers/click-clear-of-dock";
 import { routeMedia } from "../helpers/media-route";
-import { framerRoutes } from "../helpers/site-links.mjs";
 
 // The per-locale route matrix on the assembled out/, served by local wrangler (the Cloudflare asset rules).
 // Plans 04, 05 and 06 narrow it to their own path:
@@ -46,6 +48,12 @@ const STAYS = [
   "santa-fe-farm-antioquia",
   "sopetran-country-estate",
 ];
+// The live posts (lib/data/fixtures/posts.json: published and dated now or earlier, as lib/data/posts.ts decides), for the inventory below.
+const POSTS = (
+  JSON.parse(readFileSync("lib/data/fixtures/posts.json", "utf8")) as Array<{ slug: string; is_published: boolean; published_at: string }>
+)
+  .filter((p) => isLivePost(p))
+  .map((p) => p.slug);
 const DEFAULT_PATHS = ["/", "/private-stays", ...STAYS.map((s) => `/private-stays/${s}`), "/about", "/contact"];
 const list = (value: string | undefined) => (value ? value.split(",").map((v) => v.trim()).filter(Boolean) : null);
 
@@ -225,16 +233,24 @@ function htmlFiles(dir: string, found: string[] = []): string[] {
   return found;
 }
 
-// Once, no viewport. With the default PATHS and locales: one React document per path and locale, one document per
-// remaining Framer route (computed, so a slice that converts a page changes nothing here), and three 404s.
-test("slice inventory: out/ holds the React documents of PATHS x LOCALES, one document per remaining Framer route, and three 404s", async () => {
+// Once, no viewport. The inventory is derived, so the next slice that converts a page changes no literal: the React
+// documents are every PUBLIC_PAGES pattern (with [stay] and [post] expanded to the published slugs) in the three
+// locales; the Framer documents are the route.ts files that still serve a Framer export (English only).
+test("slice inventory: out/ holds every React document, every remaining Framer document and three 404s", async () => {
   test.skip(
     Boolean(process.env.ROUTING_PATHS || process.env.ROUTING_LOCALES),
-    "the inventory is for the default paths x 3 locales, not a narrowed run",
+    "the inventory is for every page x 3 locales, not a narrowed run",
   );
   const files = htmlFiles("out").sort();
+  const paths = PUBLIC_PAGES.flatMap((pattern) =>
+    pattern === "/private-stays/[stay]"
+      ? STAYS.map((s) => `/private-stays/${s}`)
+      : pattern === "/blog/[post]"
+        ? POSTS.map((s) => `/blog/${s}`)
+        : [pattern],
+  );
   const react = LOCALES.flatMap((l) =>
-    PATHS.map((p) => {
+    paths.map((p) => {
       const url = localePath(l, p);
       return url.endsWith("/") ? `${url.slice(1)}index.html` : `${url.slice(1)}.html`;
     }),
@@ -242,7 +258,7 @@ test("slice inventory: out/ holds the React documents of PATHS x LOCALES, one do
   const notFound = ["404.html", "ar/404.html", "es/404.html"];
   const rest = files.filter((f) => !react.includes(f) && !notFound.includes(f));
   expect(react.filter((f) => !files.includes(f)), "missing React documents").toEqual([]);
-  expect(react).toHaveLength(3 * PATHS.length);
+  expect(react).toHaveLength(LOCALES.length * paths.length);
   expect(notFound.filter((f) => !files.includes(f))).toEqual([]);
-  expect(rest, "one Framer document per remaining Framer route and nothing else").toHaveLength(framerRoutes().length);
+  expect(rest, "the Framer documents that remain, and nothing else").toHaveLength(framerRoutes("app").length);
 });

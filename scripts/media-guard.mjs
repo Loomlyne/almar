@@ -7,16 +7,15 @@
 //
 // The controller runs it between the assemble step and every preview or production deploy (runbook C10); plan 08's
 // assembler calls assertMediaReady() for the preview and production targets. It exits 1 while the placeholder is
-// set, while the media base is not an https origin, or while any guarded document in the output folder (guardedDocuments:
-// slice 1's, plus About and Contact once they are in PUBLIC_PAGES) holds the placeholder, a third-party image host, or an
-// <img> src / srcset / og:image that does not start with the media base. Two same-site shapes are let through for an
-// <img src>: the nav wordmark files under /_next/static/media/ and the light footer's inline brand SVG (a
-// data:image/svg+xml URL whose markup names nothing outside itself).
+// set, while the media base is not an https origin, or while any React document (slice 1, the blog, and About and Contact once they are in PUBLIC_PAGES) in the output folder
+// holds the placeholder, a third-party image host, or an <img> src / srcset / og:image that does not start with the
+// media base. Two same-site shapes are let through for an <img src>: the nav wordmark files under /_next/static/media/
+// and the light footer's inline brand SVG (a data:image/svg+xml URL whose markup names nothing outside itself).
 
 import fs from "node:fs";
 import path from "node:path";
 import { MEDIA_BASE_URL, MEDIA_BASE_URL_IS_PLACEHOLDER } from "../lib/data/media.ts";
-import { FORBIDDEN_HOSTS, REPO_ROOT, defaultPaths, guardedDocuments, isMain, readStaySlugs } from "./media-lib.mjs";
+import { FORBIDDEN_HOSTS, REPO_ROOT, defaultPaths, isMain, readPostSlugs, readStaySlugs, reactDocuments } from "./media-lib.mjs";
 
 /**
  * The nav wordmarks (Poly_White, Stacked_Charcoal) are brand assets from brand/: the Next build hashes them to
@@ -156,7 +155,7 @@ export function imageReferences(html) {
  * `{ violations: [{ document, problem }], documents, images }`: `documents` is how many were found and read,
  * `images` how many image references were checked.
  */
-export function scanOut(outDir, base, { documents = guardedDocuments(readStaySlugs()) } = {}) {
+export function scanOut(outDir, base, { documents = reactDocuments() } = {}) {
   const violations = [];
   let found = 0;
   let images = 0;
@@ -221,7 +220,7 @@ export function main(argv = [], { log = console.log } = {}) {
     log(`media-guard: ${path.relative(paths.root, outDir) || out}/ is absent: run the assembler first`);
     return 1;
   }
-  const { violations, documents, images } = scanOut(outDir, base, { documents: guardedDocuments(readStaySlugs(paths.fixturesDir)) });
+  const { violations, documents, images } = scanOut(outDir, base, { documents: reactDocuments(readStaySlugs(paths.fixturesDir), readPostSlugs(paths.fixturesDir)) });
   if (violations.length) {
     for (const v of violations) log(`media-guard: ${v.document}: ${v.problem}`);
     log(`media-guard: ${violations.length} violation(s) in ${out}/`);

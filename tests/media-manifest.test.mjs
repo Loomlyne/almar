@@ -21,8 +21,9 @@ import {
   isWebp,
   md5,
   readManifest,
-  guardedDocuments,
+  readPostSlugs,
   readStaySlugs,
+  reactDocuments,
   serializeManifest,
   sha256,
   slice1Documents,
@@ -295,11 +296,11 @@ function assemblerInput(doc) {
   return doc.replace(/^(ar|es)\/index\.html$/, "$1.html");
 }
 
-test("the guarded documents are exactly the React documents assembleOut ships, About and Contact included once public", () => {
+test("the guarded documents (reactDocuments) are exactly the React documents assembleOut ships, About and Contact included once public", () => {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), "almar-guarded-docs-"));
   const slugs = readStaySlugs();
   // One React .html per document the guard could ever list, plus the six About/Contact ones, whether or not they are public.
-  const all = [...guardedDocuments(slugs, [...PUBLIC_PAGES, "/about", "/contact"])];
+  const all = [...reactDocuments(slugs, readPostSlugs(), [...PUBLIC_PAGES, "/about", "/contact"])];
   for (const doc of all) {
     const file = path.join(base, "app", assemblerInput(doc));
     fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -319,7 +320,7 @@ test("the guarded documents are exactly the React documents assembleOut ships, A
     headersFile: path.join(base, "_headers"),
   });
   const shipped = [...report.react.en, ...report.react.ar, ...report.react.es].sort();
-  assert.deepEqual(shipped, [...guardedDocuments(slugs)].sort());
+  assert.deepEqual(shipped, [...reactDocuments(slugs, readPostSlugs())].sort());
   assert.equal(shipped.includes("about.html"), matchPublicPage("/about") !== null, "about.html ships iff /about is in PUBLIC_PAGES");
   assert.equal(shipped.includes("contact.html"), matchPublicPage("/contact") !== null);
   assert.ok(!shipped.includes("dashboard.html"));
@@ -327,8 +328,9 @@ test("the guarded documents are exactly the React documents assembleOut ships, A
 
 test("adding /about and /contact to PUBLIC_PAGES grows the guarded list by exactly six", () => {
   const slugs = readStaySlugs();
-  const before = guardedDocuments(slugs, PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact"));
-  const after = guardedDocuments(slugs, [...PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact"), "/about", "/contact"]);
+  const posts = readPostSlugs();
+  const before = reactDocuments(slugs, posts, PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact"));
+  const after = reactDocuments(slugs, posts, [...PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact"), "/about", "/contact"]);
   assert.equal(after.length, before.length + 6);
   const added = after.filter((d) => !before.includes(d)).sort();
   assert.deepEqual(added, ["about.html", "ar/about.html", "ar/contact.html", "contact.html", "es/about.html", "es/contact.html"]);
