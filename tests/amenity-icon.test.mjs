@@ -25,7 +25,6 @@ const TABLE = {
   "Dining room": "lounge",
   "Living room terrace": "outdoor",
   "Rooftop with jacuzzi and barbecue": "pool",
-  "Private Pool: Pivada": "pool",
   "Private patio": "outdoor",
   "Pool table": "lounge",
   "Private lounge": "lounge",

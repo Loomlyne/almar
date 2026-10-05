@@ -332,9 +332,9 @@ export const HOME_COPY: Record<HomeLocale, HomeCopy> = {
         src: "/assets/img/fad99748eb29b7f8.webp",
       },
       {
-        name: "Chófer privado",
+        name: "Chofer privado",
         text: "Mercedes Clase S, Range Rover y camionetas VIP con choferes bilingües.",
-        alt: "Chófer privado para un viaje de ALMAR en Colombia",
+        alt: "Chofer privado para un viaje de ALMAR en Colombia",
       },
       {
         name: "Recibimiento VIP en el aeropuerto",
