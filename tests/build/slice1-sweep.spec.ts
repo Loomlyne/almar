@@ -9,6 +9,7 @@ import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
 import { getDestinations } from "../../lib/data/destinations";
 import { LOCALES, SITE_ORIGIN, localeAlternates, localeDir, localePath, siteHref, type Locale } from "../../lib/locale-path";
+import { reactDocuments } from "../../scripts/media-lib.mjs";
 import { clickClearOfDock } from "../helpers/click-clear-of-dock";
 import { routeMedia } from "../helpers/media-route";
 
@@ -594,7 +595,8 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     const xml = await response.text();
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(new Set(locs).size, "no address twice").toBe(locs.length);
-    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "54 documents carry alternates").toBe(DOCUMENTS.length + 12); // slice 1's 42 plus the 12 blog documents (plan 03.3-33)
+    // Every React document (slice 1's 42 plus the blog's 12 today) carries alternates: the count is computed from the fixtures, not typed.
+    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "every React document carries alternates").toBe(reactDocuments().length);
 
     // The 42 documents of this slice are all listed, once each, at the address the locale helper builds.
     for (const doc of DOCUMENTS) expect(locs, doc.url).toContain(SITE_ORIGIN + doc.url);
