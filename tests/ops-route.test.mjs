@@ -393,6 +393,18 @@ test("translations: EN required on create; null deletes AR/ES; EN null invalid; 
   assert.deepEqual(v.translations({ ar: { summary: "ملخص", status: "draft" } }, DEST_SPEC, { create: false }), { ar: { summary: "ملخص", status: "draft" } });
 });
 
+test("an unknown key is echoed as the field capped at 64 characters (Fable nit on ec588c1), never the whole key", () => {
+  const long = "k".repeat(5000);
+  const arabic = "مفتاح".repeat(100);
+  invalid(() => v.onlyKeys({ [long]: 1 }, ["a"]), "k".repeat(64));
+  invalid(() => v.onlyKeys({ [long]: 1 }, ["a"], "block."), `block.${"k".repeat(64)}`);
+  invalid(() => v.onlyKeys({ [arabic]: 1 }, ["a"]), Array.from(arabic).slice(0, 64).join(""));
+  invalid(() => v.translations({ [long]: { name: "x" } }, DEST_SPEC, { create: false }), `translations.${"k".repeat(64)}`);
+  invalid(() => v.translations({ ar: { [long]: "x" } }, DEST_SPEC, { create: false }), `translations.ar.${"k".repeat(64)}`, "ar");
+  // A short unknown key is still named exactly.
+  invalid(() => v.onlyKeys({ colour: 1 }, ["a"]), "colour");
+});
+
 // ---- shape.ts ---------------------------------------------------------------------------------------------------------
 
 test("shape: MediaRef gets its url from mediaUrl(); money is a 2-decimal string; translation state is filled", () => {

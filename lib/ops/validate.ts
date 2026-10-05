@@ -28,10 +28,19 @@ export function record(value: unknown, field: string): Record<string, unknown> {
   return value;
 }
 
-/** Throws on the first key not in `allowed`; the field is `prefix` + key. */
+/** At most this many characters of a key the owner sent are echoed back as `field` (Fable review of ec588c1). */
+export const ECHO_KEY_MAX = 64;
+
+/** A caller-sent key as it may appear in `field`: its first ECHO_KEY_MAX characters, never the whole of a long key. */
+export function echoKey(key: string): string {
+  const chars = Array.from(key);
+  return chars.length > ECHO_KEY_MAX ? chars.slice(0, ECHO_KEY_MAX).join("") : key;
+}
+
+/** Throws on the first key not in `allowed`; the field is `prefix` + the key (capped, echoKey). */
 export function onlyKeys(value: Record<string, unknown>, allowed: readonly string[], prefix = ""): void {
   for (const key of Object.keys(value)) {
-    if (!allowed.includes(key)) throw new OpsInvalid(`${prefix}${key}`);
+    if (!allowed.includes(key)) throw new OpsInvalid(`${prefix}${echoKey(key)}`);
   }
 }
 
@@ -181,7 +190,7 @@ export function translations(value: unknown, spec: TextSpec, { create }: { creat
   if (value === undefined && create) throw new OpsInvalid("translations.en", "en");
   if (!isRecord(value)) throw new OpsInvalid("translations");
   for (const key of Object.keys(value)) {
-    if (!(LOCALES as readonly string[]).includes(key)) throw new OpsInvalid(`translations.${key}`);
+    if (!(LOCALES as readonly string[]).includes(key)) throw new OpsInvalid(`translations.${echoKey(key)}`);
   }
   if (create && !has(value, "en")) throw new OpsInvalid("translations.en", "en");
 
@@ -198,7 +207,7 @@ export function translations(value: unknown, spec: TextSpec, { create }: { creat
     if (!isRecord(raw)) throw new OpsInvalid(base, locale);
     const rec: TranslationRecord = {};
     for (const [key, item] of Object.entries(raw)) {
-      const field = `${base}.${key}`;
+      const field = `${base}.${echoKey(key)}`;
       if (key === "status") {
         if (item !== "published" && item !== "draft") throw new OpsInvalid(field, locale);
         rec.status = item;
