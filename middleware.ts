@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { allowHostOverride, HOST_OVERRIDE_HEADER, isOpsHost, routeFor, SHELL_HEADER } from "./lib/host";
 import { isOwnerEmail } from "./lib/auth/rules";
+import { OPS_PATH_HEADER } from "./lib/ops-routes";
 import { sessionCookieOptions } from "./lib/supabase/cookie-options";
 
 // Plan 02-02: keep her Supabase session fresh. Requests without a Supabase auth cookie never
@@ -43,10 +44,16 @@ export async function middleware(request: NextRequest) {
   const pending: PendingCookie[] = [];
   const email = await sessionEmail(request, pending);
 
-  // The shell header is set here only; a client-sent copy is always dropped.
+  // The shell header and the ops-path header are set here only; a client-sent copy is always dropped, on every host.
+  // The ops-path header (plan 03.2-03) is the path the browser asked for, before any rewrite: the (ops) layout reads
+  // it to render a section's page only when lib/ops-routes.ts lists that section.
   const forwarded = new Headers(request.headers);
   forwarded.delete(SHELL_HEADER);
-  if (isOpsHost(host)) forwarded.set(SHELL_HEADER, "ops");
+  forwarded.delete(OPS_PATH_HEADER);
+  if (isOpsHost(host)) {
+    forwarded.set(SHELL_HEADER, "ops");
+    forwarded.set(OPS_PATH_HEADER, request.nextUrl.pathname);
+  }
 
   const route = routeFor({
     host,

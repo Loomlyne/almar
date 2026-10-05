@@ -30,9 +30,12 @@ export type HostRoute =
 /**
  * Ops host: the browser never sees /dashboard. `/` is Home for the owner and the ops sign-in for
  * anyone else; `/sign-in` is always the ops sign-in; `/<section>` serves `/dashboard/<section>`; a typed `/dashboard/...` goes to the clean
- * path. `/auth/*` stays as is (confirm, handoff, sign-out).
- * Marketing host: `/dashboard` and `/ops` are 404 in production. The dev server keeps `/dashboard`
- * for reviewing the drawn screens (3.1 D-55).
+ * path. `/auth/*` stays as is (confirm, handoff, sign-out), and so does `/api/*` (`/api/health`, the owner's
+ * `/api/ops/*`; plan 03.2-03): an API path is never a dashboard section. Which paths exist at all is decided by
+ * Worker almar-ops (lib/ops-routes.ts), not here.
+ * Marketing host: `/dashboard`, `/ops` and `/api/ops/*` are 404 in production (the owner's API is served by
+ * almar-ops only; this is the third wall after the public Worker's route list and its startup check). The dev
+ * server keeps `/dashboard` for reviewing the drawn screens (3.1 D-55).
  */
 export function routeFor({
   host,
@@ -54,11 +57,12 @@ export function routeFor({
       return { kind: "redirect", path: path.slice("/dashboard".length) || "/" };
     }
     if (path === "/auth" || path.startsWith("/auth/")) return { kind: "next" };
+    if (path === "/api" || path.startsWith("/api/")) return { kind: "next" };
     if (path === "/") return { kind: "rewrite", path: isOwner ? "/dashboard/home" : "/dashboard" };
     if (path === "/sign-in") return { kind: "rewrite", path: "/dashboard" };
     return { kind: "rewrite", path: `/dashboard${path}` };
   }
-  const opsPath = /^\/(dashboard|ops)(\/|$)/i.test(path);
+  const opsPath = /^\/(dashboard|ops)(\/|$)/i.test(path) || /^\/api\/ops(\/|$)/i.test(path);
   if (opsPath && production) return { kind: "not-found" };
   return { kind: "next" };
 }
