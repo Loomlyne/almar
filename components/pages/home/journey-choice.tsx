@@ -40,7 +40,23 @@ type JourneyChoiceContext = {
 type StoredChoice = NonNullable<ReturnType<typeof parseJourneyChoice>>;
 
 /**
- * The state after restoring a stored choice. With an initial destination it stays (When and Who come from storage);
+ * The initial destination as the bar can show it: kept only when it is a known id (one the bar lists). A post tagged
+ * with a destination that has no published stay would otherwise make Where look set while Search matches nothing.
+ */
+function knownInitial(initialDestinationId: string | null | undefined, known: (id: string) => boolean): string | null {
+  return initialDestinationId != null && known(initialDestinationId) ? initialDestinationId : null;
+}
+
+/** The state of the first render, on the server and in the browser: the empty default, Where pre-filled when known. */
+export function initialState(
+  initialDestinationId: string | null | undefined,
+  known: (id: string) => boolean,
+): JourneyChoiceState {
+  return { value: { ...EMPTY_JOURNEY, destinationId: knownInitial(initialDestinationId, known) }, guestsSet: false };
+}
+
+/**
+ * The state after restoring a stored choice. With a known initial destination it stays (When and Who come from storage);
  * without one, the stored destination is kept only when it is a known id. Exported for tests/journey-choice-initial.test.mjs.
  */
 export function restoreState(
@@ -48,8 +64,8 @@ export function restoreState(
   initialDestinationId: string | null | undefined,
   known: (id: string) => boolean,
 ): JourneyChoiceState {
-  const initial = initialDestinationId ?? null;
-  if (!stored) return { value: { ...EMPTY_JOURNEY, destinationId: initial }, guestsSet: false };
+  const initial = knownInitial(initialDestinationId, known);
+  if (!stored) return initialState(initial, known);
   const storedDestination = stored.destination_id != null && known(stored.destination_id) ? stored.destination_id : null;
   return {
     value: {
@@ -73,17 +89,14 @@ export function JourneyChoiceProvider({
 }: {
   /** The bar's destination id mapped to the slug the list page filters on. */
   destinationSlugById: Record<string, string>;
-  /** Pre-fills Where on the server and on the first client render; the visitor can change it. Nothing is stored until they do. */
+  /** Pre-fills Where on the server and on the first client render when the bar lists it (an unlisted id is ignored); the visitor can change it. Nothing is stored until they do. */
   initialDestinationId?: string | null;
   children: ReactNode;
 }) {
-  const [state, setState] = useState<JourneyChoiceState>(
-    initialDestinationId
-      ? { value: { ...EMPTY_JOURNEY, destinationId: initialDestinationId }, guestsSet: false }
-      : { value: EMPTY_JOURNEY, guestsSet: false },
-  );
-  const latest = useRef(state);
   const slugs = useRef(destinationSlugById);
+  const known = useCallback((id: string) => Object.hasOwn(slugs.current, id), []);
+  const [state, setState] = useState<JourneyChoiceState>(() => initialState(initialDestinationId, known));
+  const latest = useRef(state);
 
   // Once, on mount: restore what this tab saved.
   useEffect(() => {
@@ -104,7 +117,7 @@ export function JourneyChoiceProvider({
       return;
     }
     try {
-      const restored = restoreState(choice, initialDestinationId, (id) => Object.hasOwn(slugs.current, id));
+      const restored = restoreState(choice, initialDestinationId, known);
       latest.current = restored;
       setState(restored);
     } catch {

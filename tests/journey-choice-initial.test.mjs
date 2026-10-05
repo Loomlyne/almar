@@ -13,7 +13,22 @@ const SOURCE = "components/pages/home/journey-choice.tsx";
 async function load() {
   const { build } = await import("esbuild");
   const out = await build({
-    stdin: { contents: `export { restoreState, EMPTY_JOURNEY } from "./${SOURCE}";`, resolveDir: process.cwd(), loader: "ts" },
+    stdin: {
+      contents: `
+        import { createElement } from "react";
+        import { renderToStaticMarkup } from "react-dom/server";
+        import { JourneyChoiceProvider, useJourneyChoice } from "./${SOURCE}";
+        export { restoreState, initialState, EMPTY_JOURNEY } from "./${SOURCE}";
+        function Probe() {
+          return createElement("p", null, String(useJourneyChoice().value.destinationId));
+        }
+        // The provider's first render, as the server (and the first client render) draws it.
+        export const renderFirst = (props) =>
+          renderToStaticMarkup(createElement(JourneyChoiceProvider, props, createElement(Probe)));
+      `,
+      resolveDir: process.cwd(),
+      loader: "ts",
+    },
     bundle: true,
     platform: "node",
     format: "cjs",
@@ -26,7 +41,7 @@ async function load() {
   return createRequire(file)(file);
 }
 
-const { restoreState } = await load();
+const { restoreState, initialState, renderFirst } = await load();
 const known = (id) => id === "dest-a" || id === "dest-b";
 const stored = (over = {}) => ({
   destination_id: null,
@@ -71,6 +86,31 @@ test("an unknown stored id is dropped when there is no initial destination", () 
   assert.equal(restoreState(stored({ destination_id: "nowhere" }), undefined, known).value.destinationId, null);
   assert.equal(restoreState(stored({ destination_id: "dest-b" }), undefined, known).value.destinationId, "dest-b");
   assert.equal(restoreState(stored({ destination_id: "nowhere" }), "dest-a", known).value.destinationId, "dest-a");
+});
+
+test("an initial destination the bar does not list is dropped, so Where never looks set while Search does nothing", () => {
+  // A post tagged with a destination that has no published stay: its id is not in destinationSlugById.
+  assert.equal(initialState("nowhere", known).value.destinationId, null);
+  assert.equal(initialState("dest-a", known).value.destinationId, "dest-a");
+  assert.equal(initialState(null, known).value.destinationId, null);
+  assert.equal(initialState(undefined, known).value.destinationId, null);
+  assert.equal(initialState("nowhere", known).guestsSet, false);
+  assert.equal(initialState("dest-a", known).value.start, null);
+  // The same on the restore path, with and without storage.
+  assert.equal(restoreState(null, "nowhere", known).value.destinationId, null);
+  assert.equal(restoreState(stored({ destination_id: "dest-b" }), "nowhere", known).value.destinationId, "dest-b");
+  assert.equal(restoreState(stored({ destination_id: "nowhere" }), "nowhere", known).value.destinationId, null);
+  assert.equal(restoreState(stored({ destination_id: "dest-b" }), "dest-a", known).value.destinationId, "dest-a");
+});
+
+test("the provider's first render shows a listed initial destination and drops an unlisted one", () => {
+  const slugs = { "dest-a": "cartagena", "dest-b": "medellin" };
+  assert.equal(renderFirst({ destinationSlugById: slugs, initialDestinationId: "dest-a" }), "<p>dest-a</p>");
+  assert.equal(renderFirst({ destinationSlugById: slugs, initialDestinationId: "no-stay-here" }), "<p>null</p>");
+  assert.equal(renderFirst({ destinationSlugById: slugs, initialDestinationId: null }), "<p>null</p>");
+  assert.equal(renderFirst({ destinationSlugById: slugs }), "<p>null</p>");
+  // Own-property check: an id that is a name on Object.prototype is not a listed destination.
+  assert.equal(renderFirst({ destinationSlugById: slugs, initialDestinationId: "constructor" }), "<p>null</p>");
 });
 
 test("nothing is written to sessionStorage outside setValue", () => {
