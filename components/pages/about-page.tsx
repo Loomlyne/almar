@@ -84,9 +84,9 @@ export async function AboutPage({ locale }: { locale: Locale }) {
 }
 
 /**
- * Title, description, og:image (the hero photo) and, once /about is in PUBLIC_PAGES (plan 25's one line), the canonical and the four hreflang links.
- * localeAlternates throws for a path that is not a public page, so it is called only inside the matchPublicPage branch:
- * the page builds before plan 25 adds the line and gains its links the moment that line lands, with no edit here.
+ * Title, description, og:image (the hero photo), the canonical and, while /about is in PUBLIC_PAGES, the four hreflang links.
+ * localeAlternates throws for a path that is not a public page, so it is called only inside the matchPublicPage branch;
+ * the other branch (not reachable today) keeps the canonical alone, the same as contactMetadata.
  */
 export async function aboutMetadata(locale: Locale): Promise<Metadata> {
   const copy = ABOUT_PAGE_COPY[locale];
@@ -98,7 +98,7 @@ export async function aboutMetadata(locale: Locale): Promise<Metadata> {
   return {
     title: copy.meta.title,
     description: copy.meta.description,
-    alternates: matchPublicPage(PATH) ? localeAlternates(locale, PATH) : undefined,
+    alternates: matchPublicPage(PATH) ? localeAlternates(locale, PATH) : { canonical: url },
     openGraph: {
       type: "website",
       title: copy.meta.title,

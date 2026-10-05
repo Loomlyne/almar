@@ -35,7 +35,8 @@ import {
   watch,
 } from "../slice3-pages";
 
-// Plan 03.3-25 Task 3: Contact on the assembled out/, served by local wrangler. 9 tests x 3 locales x 3 widths = 81.
+// Plan 03.3-25 Task 3: Contact on the assembled out/, served by local wrangler. 10 tests x 3 locales x 3 widths = 90
+// (test 10 is the slice 3 review's: a longer Settings address wraps inside the column).
 // The byte layer is built-documents.test.mjs; the held controls are contact-held.spec.ts.
 //   node scripts/assemble-cloudflare.mjs
 //   PW_PORT=<free 3041-3049> npx playwright test -c playwright.build.config.ts tests/build/contact/contact.spec.ts --workers=1
@@ -372,6 +373,26 @@ for (const locale of LOCALES) {
         } finally {
           await live.close();
         }
+      });
+
+      test(`10 a longer Settings address wraps inside its column and the screen (${where})`, async ({ page }) => {
+        const watched = await watch(page);
+        await open(page, url);
+        const link = page.locator('main dl a[href^="mailto:"]');
+        await expect(link).toHaveCount(1);
+        const before = await box(link);
+        const dl = await box(page.locator("main dl"));
+        // The address comes from Dashboard > Settings and can be any length: put 170 characters in the shown text.
+        const long = `${"private.journeys.concierge.team-".repeat(3)}reservations@${"subdomain-".repeat(6)}almarprivatejourney.com`;
+        await link.locator("bdi").evaluate((el, text) => { el.textContent = text; }, long);
+        const after = await box(link);
+        const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), "horizontal overflow").toBeLessThanOrEqual(0);
+        expect(after.x, "starts inside the column").toBeGreaterThanOrEqual(dl.x - 1);
+        expect(after.x + after.width, "ends inside the column").toBeLessThanOrEqual(dl.x + dl.width + 1);
+        expect(after.x + after.width, "ends inside the screen").toBeLessThanOrEqual(clientWidth);
+        expect(after.height, "the address wrapped onto more lines").toBeGreaterThan(before.height);
+        expect(watched.problems).toEqual([]);
       });
     });
   }

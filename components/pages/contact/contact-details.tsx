@@ -37,6 +37,9 @@ function Group({ icon, label, children }: { icon: ReactNode; label: string; chil
 
 const DD = "m-0 grid justify-items-start gap-0";
 const LINK = "w-max gap-2 text-body";
+// The address is whatever Dashboard > Settings holds: no w-max, so the link can shrink to its column, and break-all, so
+// a long address wraps instead of widening the page. A short one is laid out exactly as with w-max.
+const EMAIL_LINK = "gap-2 text-body break-all";
 const NEW_TAB = { target: "_blank", rel: "noopener noreferrer" } as const;
 
 export function ContactDetailsBlock({
@@ -80,7 +83,7 @@ export function ContactDetailsBlock({
         </Group>
         <Group icon={<MailIcon size={16} className="shrink-0" />} label={copy.details.email}>
           <dd className={DD}>
-            <Link href={links.mailto} className={LINK}>
+            <Link href={links.mailto} className={EMAIL_LINK}>
               <bdi>{details.email}</bdi>
               <Outward />
             </Link>

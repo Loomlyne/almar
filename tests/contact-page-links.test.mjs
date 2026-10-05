@@ -108,6 +108,19 @@ test("an email that is not one plain local@domain.tld throws", () => {
   }
 });
 
+// The branch for a page that is not in PUBLIC_PAGES cannot run today (both pages are public), so it is pinned in the source:
+// aboutMetadata and contactMetadata fall back to the same canonical-only alternates.
+test("aboutMetadata and contactMetadata use the same fallback when the page is not public: the canonical alone", async () => {
+  const { readFileSync } = await import("node:fs");
+  const fallback = (file, path) => {
+    const m = new RegExp(`alternates:\\s*matchPublicPage\\(${path}\\)\\s*\\?\\s*localeAlternates\\(locale, ${path}\\)\\s*:\\s*([^,\\n]+),`).exec(readFileSync(file, "utf8"));
+    assert.ok(m, `${file}: the alternates line was not found`);
+    return m[1].trim();
+  };
+  assert.equal(fallback("components/pages/contact/contact-meta.ts", "CONTACT_PATH"), "{ canonical: url }");
+  assert.equal(fallback("components/pages/about-page.tsx", "PATH"), "{ canonical: url }");
+});
+
 for (const locale of ["en", "ar", "es"]) {
   test(`contactMetadata(${locale}): copy, canonical, no image, no Framer host`, () => {
     const m = contactMetadata(locale);

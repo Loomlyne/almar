@@ -4,10 +4,10 @@ import { absoluteLocaleUrl, localeAlternates, matchPublicPage, type Locale } fro
 import { CONTACT_PATH } from "./contact-links";
 
 /**
- * Title, description, canonical and (once /contact is in PUBLIC_PAGES) the four hreflang links. No og:image: the live
- * page's was on a Framer CDN host and this page carries no photo. localeAlternates throws for a path that is not a
- * public page, so it is called only inside the matchPublicPage branch: the page builds before plan 25 adds the line
- * and gains its hreflang links the moment that line lands, with no edit here.
+ * Title, description, the canonical and, while /contact is in PUBLIC_PAGES, the four hreflang links. No og:image: the
+ * live page's was on a Framer CDN host and this page carries no photo. localeAlternates throws for a path that is not a
+ * public page, so it is called only inside the matchPublicPage branch; the other branch (not reachable today) keeps the
+ * canonical alone, the same as aboutMetadata.
  */
 export function contactMetadata(locale: Locale): Metadata {
   const copy = CONTACT_PAGE_COPY[locale];

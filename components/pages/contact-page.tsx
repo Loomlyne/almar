@@ -16,7 +16,7 @@ import { CONTACT_PATH, contactLinks } from "./contact/contact-links";
 
 export { contactMetadata } from "./contact/contact-meta";
 
-/** The four pages the header and footer link to. Today About is still an English-only Framer page (siteHref keeps it so). */
+/** The four pages the header and footer link to. siteHref gives each its address in this language, and keeps a page English-only until it is a public React page (Destinations and Experiences today). */
 const PAGE_LINKS = [
   { key: "destinations", path: "/destinations" },
   { key: "experiences", path: "/experiences" },
