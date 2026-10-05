@@ -938,8 +938,13 @@ begin
     foreach v_spec in array m.cols loop
       v_col := split_part(v_spec, ':', 1);
       v_names := v_names || format(', %I', v_col);
-      v_vals := v_vals || case when split_part(v_spec, ':', 2) = 'a'
-        then format(', public.catalog_txt_array($3 -> %L)', v_col)
+      -- A required (not null) column absent from p keeps the value the record already holds: the row is proposed to
+      -- the insert first, and a null there would fail before `on conflict` can turn it into an update.
+      v_vals := v_vals || case
+        when split_part(v_spec, ':', 2) = 'a'
+          then format(', public.catalog_txt_array($3 -> %L)', v_col)
+        when v_col = any (m.req)
+          then format(', coalesce(public.catalog_txt($3, %1$L), (select x.%1$I from public.%2$I x where x.%3$I = $1 and x.locale = $2))', v_col, m.tr_tbl, m.fk)
         else format(', public.catalog_txt($3, %L)', v_col) end;
       v_sets := v_sets || format(', %1$I = case when $3 ? %1$L then excluded.%1$I else t.%1$I end', v_col);
     end loop;

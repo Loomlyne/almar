@@ -2,7 +2,7 @@
 -- transaction that is rolled back: nothing it creates stays in the database.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(96);
+select plan(162);
 
 -- Fixture rows -----------------------------------------------------------------------------------------------
 insert into public.media (id, key, width, height, source) values
@@ -211,6 +211,110 @@ select is(
   '{"media": 0, "stays": 0, "destinations": 0, "stay_gallery": 0, "team_members": 0, "journey_tiers": 0, "catalog_items": 0, "image_translations": 0, "stay_translations": 0, "catalog_translations": 0, "destination_translations": 0, "catalog_item_stays": 0, "team_member_translations": 0, "catalog_item_destinations": 0, "journey_tier_translations": 0}'::jsonb,
   'the second import writes nothing');
 select is((select count(*)::int from public.destinations where slug = 'imp-destination'), 1, 'and no duplicate row exists');
+
+-- Destinations: create, update, languages, publish ------------------------------------------------------------------
+select lives_ok($$select public.ops_save_destination('{
+  "slug": "new-destination", "hero_media_id": "00000000-0000-4000-8000-0000000000a1",
+  "translations": {"en": {"name": "New", "short_line": "A line", "status": "published"}, "es": {"name": "Nueva"}}
+}'::jsonb)$$, 'a destination is created with two languages');
+select is((select count(*)::int from public.destination_translations t join public.destinations d on d.id = t.destination_id where d.slug = 'new-destination'), 2, 'two translation records exist');
+select is((select t.status from public.destination_translations t join public.destinations d on d.id = t.destination_id where d.slug = 'new-destination' and t.locale = 'es'), 'draft', 'a record saved without a status is a draft');
+select is(
+  (public.ops_publish('destination', (select id from public.destinations where slug = 'new-destination'), true)) -> 'missing',
+  '[{"locale": "ar", "field": "name"}, {"locale": "ar", "field": "short_line"}, {"locale": "es", "field": "short_line"}]'::jsonb, 'publish names what is missing per language');
+select lives_ok($$select public.ops_save_destination(jsonb_build_object('id', (select id from public.destinations where slug = 'new-destination'),
+  'translations', '{"ar": {"name": "جديد", "short_line": "سطر"}, "es": {"short_line": "Una linea"}}'::jsonb))$$, 'languages are completed one record at a time');
+select is((select name from public.destination_translations t join public.destinations d on d.id = t.destination_id where d.slug = 'new-destination' and t.locale = 'es'), 'Nueva', 'a field absent in a record is left alone');
+select is((public.ops_publish('destination', (select id from public.destinations where slug = 'new-destination'), true)) ->> 'ok', 'true', 'the destination publishes');
+select throws_ok($$select public.ops_save_destination(jsonb_build_object('id', (select id from public.destinations where slug = 'new-destination'), 'slug', 'renamed'))$$, 'P0001', 'almar:invalid', 'a published destination keeps its slug');
+select lives_ok($$select public.ops_save_destination(jsonb_build_object('id', (select id from public.destinations where slug = 'new-destination'), 'translations', '{"es": null}'::jsonb))$$, 'a language can be deleted with null');
+select is((select count(*)::int from public.destination_translations t join public.destinations d on d.id = t.destination_id where d.slug = 'new-destination' and t.locale = 'es'), 0, 'the Spanish record is gone');
+select throws_ok($$select public.ops_save_destination(jsonb_build_object('id', (select id from public.destinations where slug = 'new-destination'), 'translations', '{"en": null}'::jsonb))$$, 'P0001', 'almar:invalid', 'English can never be deleted');
+select throws_ok($$select public.ops_save_destination('{"slug": "no-english", "translations": {"ar": {"name": "x"}}}'::jsonb)$$, 'P0001', 'almar:invalid', 'a new destination needs English');
+select throws_ok($$select public.ops_save_destination('{"slug": "bad-lang", "translations": {"en": {"name": "x"}, "fr": {"name": "y"}}}'::jsonb)$$, 'P0001', 'almar:invalid', 'only en, ar and es exist');
+select throws_ok($$select public.ops_save_destination('{"slug": "bad-media", "hero_media_id": "00000000-0000-4000-8000-0000000000ee", "translations": {"en": {"name": "x"}}}'::jsonb)$$, 'P0001', 'almar:invalid', 'an unknown photo is refused with the field named');
+
+-- Lists and details of every entity ------------------------------------------------------------------------------------
+select is((select jsonb_array_length(public.ops_list('destination'))), 4, 'ops_list destination');
+select is((select jsonb_array_length(public.ops_list('catalog_item'))), 2, 'ops_list catalog_item');
+select is((select (e ->> 'published_stay_count')::int from jsonb_array_elements(public.ops_list('destination')) e where e ->> 'slug' = 'test-destination'), 2, 'a destination counts its published stays');
+select is((select e -> 'translation_state' from jsonb_array_elements(public.ops_list('stay')) e where e ->> 'slug' = 'test-stay-one'), '{"en": "published", "ar": "missing", "es": "missing"}'::jsonb, 'translation_state names missing languages');
+select is((select e ->> 'bookable' from jsonb_array_elements(public.ops_list('stay')) e where e ->> 'slug' = 'test-stay-one'), 'true', 'a published stay with a base rate is bookable');
+select is((select e ->> 'bookable' from jsonb_array_elements(public.ops_list('stay')) e where e ->> 'slug' = 'test-stay-publish'), 'false', 'a stay with no base rate is not');
+select is((select (public.ops_get('stay', '00000000-0000-4000-8000-0000000000e1') -> 'translations' -> 'en' ->> 'title')), 'Stay one', 'ops_get carries the translations');
+select is((public.ops_get('stay', '00000000-0000-4000-8000-0000000000e1') -> 'translations' -> 'ar'), 'null'::jsonb, 'a missing language is null');
+select is((public.ops_get('destination', '00000000-0000-4000-8000-0000000000d1') -> 'hero' ->> 'key'), 'test/hero.webp', 'ops_get returns the photo with its key');
+select is(public.ops_get('stay', '00000000-0000-4000-8000-0000000000ff'), null, 'ops_get of an unknown id is null');
+select throws_ok($$select public.ops_list('bogus')$$, 'P0001', 'almar:invalid', 'an unknown entity is refused');
+select is((select (public.ops_get('catalog_item', (select id from public.catalog_items where slug = 'pickup-service')) ->> 'is_home_pickup')), 'false', 'ops_get carries is_home_pickup');
+
+-- Team --------------------------------------------------------------------------------------------------------------------
+select lives_ok($$select public.ops_save_team_member('{
+  "slug": "test-member", "email": "member@example.com",
+  "links": [{"label": "Site", "url": "https://example.com/me"}],
+  "translations": {"en": {"name": "A member", "role": "Guide"}}
+}'::jsonb)$$, 'a team member is created');
+select throws_ok($$select public.ops_save_team_member('{"slug": "bad-link", "links": [{"label": "Site", "url": "http://example.com"}], "translations": {"en": {"name": "x"}}}'::jsonb)$$, 'P0001', 'almar:invalid', 'only https links');
+select throws_ok($$select public.ops_save_team_member('{"slug": "many-links", "links": [{"label":"a","url":"https://a.example"},{"label":"b","url":"https://b.example"},{"label":"c","url":"https://c.example"},{"label":"d","url":"https://d.example"},{"label":"e","url":"https://e.example"},{"label":"f","url":"https://f.example"},{"label":"g","url":"https://g.example"},{"label":"h","url":"https://h.example"},{"label":"i","url":"https://i.example"}], "translations": {"en": {"name": "x"}}}'::jsonb)$$, 'P0001', 'almar:invalid', 'at most eight links');
+select is((select links -> 0 ->> 'url' from public.team_members where slug = 'test-member'), 'https://example.com/me', 'the link was stored');
+select is((public.ops_publish('team_member', (select id from public.team_members where slug = 'test-member'), true)) -> 'missing',
+  '[{"locale": "ar", "field": "name"}, {"locale": "ar", "field": "role"}, {"locale": "es", "field": "name"}, {"locale": "es", "field": "role"}]'::jsonb, 'a team member needs the name and role in every language');
+select is((public.ops_delete('team_member', (select id from public.team_members where slug = 'test-member'))) ->> 'id' is not null, true, 'an unpublished team member is deleted');
+select throws_ok($$select public.ops_delete('journey_tier', '00000000-0000-4000-8000-0000000000f1')$$, 'P0001', 'almar:invalid', 'the three journeys cannot be deleted');
+
+-- Journeys: existing rows only ---------------------------------------------------------------------------------------------
+insert into public.journey_tiers (id, slug, is_published, position) values ('00000000-0000-4000-8000-0000000000f1', 'test-journey', false, 1);
+insert into public.journey_tier_translations (tier_id, locale, status, name, price_label) values
+  ('00000000-0000-4000-8000-0000000000f1', 'en', 'published', 'Journey', 'From USD $1,000');
+select throws_ok($$select public.ops_save_journey_tier('{"is_featured": true}'::jsonb)$$, 'P0001', 'almar:invalid', 'a journey cannot be created');
+select lives_ok($$select public.ops_save_journey_tier('{"id": "00000000-0000-4000-8000-0000000000f1", "is_featured": true, "price_from_amount": 1000, "price_from_currency": "USD", "translations": {"en": {"tagline": "A tagline"}}}'::jsonb)$$, 'a journey is edited');
+select is((public.ops_get('journey_tier', '00000000-0000-4000-8000-0000000000f1') -> 'price_from'), '{"amount": 1000, "currency": "USD"}'::jsonb, 'ops_get rebuilds price_from');
+select is((public.ops_get('journey_tier', '00000000-0000-4000-8000-0000000000f1') -> 'price_estimate'), 'null'::jsonb, 'no estimate is null');
+select is((select price_label from public.journey_tier_translations where tier_id = '00000000-0000-4000-8000-0000000000f1' and locale = 'en'), 'From USD $1,000', 'the price label is left alone');
+select is((public.ops_publish('journey_tier', '00000000-0000-4000-8000-0000000000f1', true)) -> 'missing' @> '[{"locale": null, "field": "media_id"}]'::jsonb, true, 'a journey needs a photo');
+
+-- Catalog items: publish rules ------------------------------------------------------------------------------------------------
+select lives_ok($$select public.ops_save_catalog_item('{"slug": "incomplete-item", "kind": "experience", "unit": "person",
+  "translations": {"en": {"name": "Item"}, "ar": {"name": "عنصر"}, "es": {"name": "Elemento"}}}'::jsonb)$$, 'an item without a photo or destination is created');
+select is(
+  (public.ops_publish('catalog_item', (select id from public.catalog_items where slug = 'incomplete-item'), true)) -> 'missing',
+  '[{"locale": null, "field": "media_id"}, {"locale": null, "field": "destination_ids"}]'::jsonb, 'an item needs a photo and a destination');
+select lives_ok($$select public.ops_save_catalog_item(jsonb_build_object('id', (select id from public.catalog_items where slug = 'incomplete-item'),
+  'media_id', '00000000-0000-4000-8000-0000000000a1', 'destination_ids', jsonb_build_array('00000000-0000-4000-8000-0000000000d1')))$$, 'the photo and destination are added');
+select is((public.ops_publish('catalog_item', (select id from public.catalog_items where slug = 'incomplete-item'), true)) -> 'warnings', '[{"code": "no_price"}]'::jsonb, 'an item with no price publishes with the no_price warning');
+
+-- Rates and blocks through the functions -------------------------------------------------------------------------------------------
+select is((public.ops_set_base_rate('00000000-0000-4000-8000-0000000000e2', 1250)) ->> 'base_nightly_rate_aed', '1250.00', 'ops_set_base_rate returns the stored rate as a decimal string');
+select is((select base_nightly_rate_aed from public.stays where id = '00000000-0000-4000-8000-0000000000e2'), 1250.00, 'and stores it');
+select throws_ok($$select public.ops_set_base_rate('00000000-0000-4000-8000-0000000000e2', 0)$$, '23514', null, 'a zero base rate is refused');
+select lives_ok($$select public.ops_set_base_rate('00000000-0000-4000-8000-0000000000e2', null)$$, 'a base rate can be cleared');
+select is((select base_nightly_rate_aed from public.stays where id = '00000000-0000-4000-8000-0000000000e2'), null, 'a cleared base rate is null');
+select is((public.ops_delete_stay_rate((select id from public.stay_rates where nightly_rate_aed = 650))) ->> 'id' is not null, true, 'a range is deleted');
+select throws_ok($$select public.ops_delete_stay_rate('00000000-0000-4000-8000-0000000000ff')$$, 'P0001', 'almar:not_found', 'an unknown range is not_found');
+select throws_ok($$select public.ops_add_block('{"scope": "stay", "starts_on": "2027-01-01", "ends_on": "2027-01-02"}'::jsonb)$$, 'P0001', 'almar:invalid', 'a stay block needs a stay');
+select throws_ok($$select public.ops_add_block('{"scope": "all", "starts_on": "2027-01-05", "ends_on": "2027-01-02"}'::jsonb)$$, 'P0001', 'almar:invalid', 'a block that ends before it starts is refused with the field named');
+select is((public.ops_delete_block((select id from public.availability_blocks where reason = 'Closed'))) ->> 'id' is not null, true, 'a block is deleted');
+select lives_ok($$select public.ops_save_image_alts('{"id": "00000000-0000-4000-8000-0000000000a1", "status": {"ar": "published"}}'::jsonb)$$, 'a status-only change');
+select is((select status from public.image_translations where image_id = '00000000-0000-4000-8000-0000000000a1' and locale = 'ar'), 'published', 'the Arabic alt is now published');
+
+-- A stay created whole through the function, then edited a piece at a time -----------------------------------------------------------
+select lives_ok($$select public.ops_save_stay('{
+  "slug": "whole-stay", "destination_id": "00000000-0000-4000-8000-0000000000d1", "max_guests": 8, "bedrooms": 4, "infants_count": true,
+  "hero_media_id": "00000000-0000-4000-8000-0000000000a1",
+  "gallery_media_ids": ["00000000-0000-4000-8000-0000000000a3", "00000000-0000-4000-8000-0000000000a2"],
+  "connections": {"service_ids": [], "experience_ids": []},
+  "translations": {"en": {"title": "Whole stay", "description": ["One", "Two"], "amenities": ["Pool", "Wifi"], "status": "published"}}
+}'::jsonb)$$, 'a stay is created whole');
+select is((select array_agg(g.media_id order by g.position) from public.stay_gallery g join public.stays s on s.id = g.stay_id where s.slug = 'whole-stay'), array['00000000-0000-4000-8000-0000000000a3', '00000000-0000-4000-8000-0000000000a2']::uuid[], 'the gallery keeps the order given');
+select lives_ok($$select public.ops_save_stay(jsonb_build_object('id', (select id from public.stays where slug = 'whole-stay'), 'translations', '{"en": {"tagline": "Added later"}}'::jsonb))$$, 'a save with one field of one language');
+select is((select amenities from public.stay_translations t join public.stays s on s.id = t.stay_id where s.slug = 'whole-stay' and t.locale = 'en'), array['Pool', 'Wifi'], 'the arrays were left alone');
+select is((select tagline from public.stay_translations t join public.stays s on s.id = t.stay_id where s.slug = 'whole-stay' and t.locale = 'en'), 'Added later', 'the new field was set');
+select is((select infants_count from public.stays where slug = 'whole-stay'), true, 'a boolean set on create is kept');
+select throws_ok($$select public.ops_save_stay(jsonb_build_object('id', (select id from public.stays where slug = 'whole-stay'), 'connections', jsonb_build_object('experience_ids', jsonb_build_array((select id from public.catalog_items where slug = 'pickup-service')))))$$, 'P0001', 'almar:invalid', 'a service in the experience list is refused');
+select lives_ok($$select public.ops_save_catalog_item(jsonb_build_object('id', (select id from public.catalog_items where slug = 'second-service'), 'stay_ids', '[]'::jsonb))$$, 'a catalog item can drop all its stays');
+select is((select count(*)::int from public.catalog_item_stays cs join public.catalog_items c on c.id = cs.item_id where c.slug = 'second-service'), 0, 'its links are gone');
+select is((public.ops_reorder('catalog_item', array[(select id from public.catalog_items where slug = 'second-service'), (select id from public.catalog_items where slug = 'pickup-service')])) ->> 'affects_site', 'false', 'reordering unpublished items does not reach the site');
+select is((select c.position from public.catalog_items c where c.slug = 'pickup-service'), 2, 'the second id got position 2');
 
 -- Site publish helpers --------------------------------------------------------------------------------------------
 select is((public.site_request_update()) ->> 'requested_seq', '1', 'site_request_update bumps the sequence');
