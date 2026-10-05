@@ -221,6 +221,57 @@
     "height": 1200
   },
   {
+    "key": "catalog/amazon-rainforest-expedition.webp",
+    "source": "/assets/img/0b8402d7d069dc80.webp",
+    "source_kind": "local",
+    "used_by": [
+      "26e90245-4cf2-52bd-8e40-cceb65a49c2e"
+    ],
+    "image_ids": [
+      "a7bc3a78-30a7-5471-b1db-810e611f5948"
+    ],
+    "content_type": "image/webp",
+    "bytes": 317368,
+    "sha256": "5d8e1a9a30dda70487377ae234e5ee367e3e4acabcb248ea48c5a76012ee81c0",
+    "md5": "5f96a0be1ed0e664a04e21f587ed87e0",
+    "width": 1200,
+    "height": 1776
+  },
+  {
+    "key": "catalog/artisan-workshop-experiences.webp",
+    "source": "/assets/img/e65a20ddba325ddc.webp",
+    "source_kind": "local",
+    "used_by": [
+      "5aa59d3e-a728-597d-b700-f178975f7e38"
+    ],
+    "image_ids": [
+      "8e5d31f7-3a93-5fc6-974f-6985e2311ec4"
+    ],
+    "content_type": "image/webp",
+    "bytes": 181248,
+    "sha256": "9dba0a5e298c10838a7c541b0ffd9ab4da82cca184ccd8b818deaa8c0e08f865",
+    "md5": "ad0fe0617a72e6c1a99e7adbee5967df",
+    "width": 1200,
+    "height": 1600
+  },
+  {
+    "key": "catalog/bogota-art-gastronomy.webp",
+    "source": "/assets/img/ef1c2b0ec161f78b.webp",
+    "source_kind": "local",
+    "used_by": [
+      "899a9f64-ca80-59e6-90c6-8e105d01bcd7"
+    ],
+    "image_ids": [
+      "9e16e4f8-9aa3-5fa1-8362-0b0e05cac5ca"
+    ],
+    "content_type": "image/webp",
+    "bytes": 253566,
+    "sha256": "6f2ba14cde12fbf038ae5e09f11b57070c4bbf7ee2c916253b1740ac606b34ef",
+    "md5": "b7b72f825dae4871bd7307e8e34a657f",
+    "width": 768,
+    "height": 1200
+  },
+  {
     "key": "catalog/cartagena-heritage-tours.webp",
     "source": "/assets/img/2e8e18393ba7bc74.webp",
     "source_kind": "local",
@@ -253,6 +304,142 @@
     "md5": "89de86fc0a3d80b8ece37752d8af3f3c",
     "width": 955,
     "height": 1274
+  },
+  {
+    "key": "catalog/coffee-hacienda-experiences.webp",
+    "source": "/assets/img/a4595bea0f3781e2.webp",
+    "source_kind": "local",
+    "used_by": [
+      "a67a5c6b-f9ce-53a7-80fb-ba8138c8b9ac"
+    ],
+    "image_ids": [
+      "c65a807d-5dc7-594d-84e4-a38f258fc22f"
+    ],
+    "content_type": "image/webp",
+    "bytes": 184010,
+    "sha256": "c068fe5f5c544421d77a6a22b5ff314b233a88a06cc61e99b0fa68da193f598f",
+    "md5": "97a28e687ba01e7cef8b505606620da3",
+    "width": 1200,
+    "height": 1599
+  },
+  {
+    "key": "catalog/coffee-region-immersion.webp",
+    "source": "/assets/img/e79f428834abad39.webp",
+    "source_kind": "local",
+    "used_by": [
+      "5370ee79-d25c-5951-bf83-25ef3c2d799f"
+    ],
+    "image_ids": [
+      "27fd924f-3e99-5556-b66d-77d855ed07e8"
+    ],
+    "content_type": "image/webp",
+    "bytes": 300202,
+    "sha256": "c1bd8a3469e37db7e2439a62a80ef3160e842ec21b85fd1edd4c135c6ea782e1",
+    "md5": "68ad3e32245d646f39a286290e897dec",
+    "width": 1080,
+    "height": 1350
+  },
+  {
+    "key": "catalog/gourmet-food-tours.webp",
+    "source": "/assets/img/8d72e5577734778a.webp",
+    "source_kind": "local",
+    "used_by": [
+      "740d56d4-3b0f-551b-81f7-0ec412b76b9c"
+    ],
+    "image_ids": [
+      "7cdd5a8b-7a55-59a4-9a97-dc36040cfa06"
+    ],
+    "content_type": "image/webp",
+    "bytes": 97898,
+    "sha256": "c13cc4d7167d2c70a36671c45ae685a7d4e5dcdfb104239b6fd56684c2997fc6",
+    "md5": "aa5840feddbecf2cea69710fe336fa36",
+    "width": 474,
+    "height": 842
+  },
+  {
+    "key": "catalog/helicopter-city-tours.webp",
+    "source": "/assets/img/788c34e919c05909.webp",
+    "source_kind": "local",
+    "used_by": [
+      "09b5d681-c441-54aa-a731-a75c5b6c95ab"
+    ],
+    "image_ids": [
+      "7be1f4a7-9185-5ea1-afa1-9856ac5c9028"
+    ],
+    "content_type": "image/webp",
+    "bytes": 103824,
+    "sha256": "e7d7c6bdebaccaef651fafa6373db9126e47eda8dd8bc735ffa0f15483451d5c",
+    "md5": "29d0a826148672b3b704bc9834a13917",
+    "width": 736,
+    "height": 1104
+  },
+  {
+    "key": "catalog/helicopter-transfers.webp",
+    "source": "/assets/img/55229fe2762f7af5.webp",
+    "source_kind": "local",
+    "used_by": [
+      "b9829c3b-ae85-555d-abdd-dd67b9c3416c"
+    ],
+    "image_ids": [
+      "eb9bdab1-9feb-5251-9eeb-b40ce8ac4215"
+    ],
+    "content_type": "image/webp",
+    "bytes": 263062,
+    "sha256": "e635931aebf7fbd31fa131dd9f18a853b110d906205b8ae47703c9209d400022",
+    "md5": "0ff353a77be49c0fa6370abdd8c1827c",
+    "width": 1174,
+    "height": 2048
+  },
+  {
+    "key": "catalog/highland-trekking-experiences.webp",
+    "source": "/assets/img/b0cbdcbce3dc33f7.webp",
+    "source_kind": "local",
+    "used_by": [
+      "e06c0eff-47f2-53bb-883c-9f706358e028"
+    ],
+    "image_ids": [
+      "770393cf-3ad7-5127-9e05-ed4db401f776"
+    ],
+    "content_type": "image/webp",
+    "bytes": 339894,
+    "sha256": "f51de911904b4abbf25f0a77b1fdd3fb9c84a687e2b4b1af2c35ecb364fbedfe",
+    "md5": "b5f9e2627b5c2aada8a1ad3df94b6c32",
+    "width": 1200,
+    "height": 1800
+  },
+  {
+    "key": "catalog/hot-air-balloon-coffee-region.webp",
+    "source": "/assets/img/23bb36239242c7b9.webp",
+    "source_kind": "local",
+    "used_by": [
+      "75656474-2766-5611-b976-7edcd5a8e66b"
+    ],
+    "image_ids": [
+      "33e56d34-20b5-5d67-8017-b65d84a2687c"
+    ],
+    "content_type": "image/webp",
+    "bytes": 100470,
+    "sha256": "0ef52fd1ffc99e2fdac14f975b137232a5935b3929a2a90bf34952fb877a7b00",
+    "md5": "0628b0c7f768bc3d7df3ed8ed50ba461",
+    "width": 900,
+    "height": 1200
+  },
+  {
+    "key": "catalog/in-villa-private-chef.webp",
+    "source": "/assets/img/57b0dca8aa1b756b.webp",
+    "source_kind": "local",
+    "used_by": [
+      "8fb2ad20-d3bb-5e72-a1a6-a2e155c91149"
+    ],
+    "image_ids": [
+      "9fb21c65-ca5d-5dc1-af40-9bd10b1b065f"
+    ],
+    "content_type": "image/webp",
+    "bytes": 126966,
+    "sha256": "d4a5dbd464d5f901513a4b827d36a3722a7ebeec9de970739ce012ce36e9889a",
+    "md5": "d7bc699482694dddf7e015314c4ca0ee",
+    "width": 915,
+    "height": 1177
   },
   {
     "key": "catalog/luxury-ground-transport.webp",
@@ -306,6 +493,193 @@
     "height": 1318
   },
   {
+    "key": "catalog/mountain-adventure-excursions.webp",
+    "source": "/assets/img/7aa519add59d9fe8.webp",
+    "source_kind": "local",
+    "used_by": [
+      "42674d7e-5e9c-5e2a-9560-c2dbae36328e"
+    ],
+    "image_ids": [
+      "a2cf57a5-b5de-5543-8922-7c7030784e7d"
+    ],
+    "content_type": "image/webp",
+    "bytes": 73294,
+    "sha256": "557f80ade53b2b627c0957779c40e2079fabcc1f1fa158da8d7e4948050576d4",
+    "md5": "2e1619051b8b21c4df1dd31f7bf755c0",
+    "width": 735,
+    "height": 490
+  },
+  {
+    "key": "catalog/pastry-dessert-masterclass.webp",
+    "source": "/assets/img/7638152d7ba4b292.webp",
+    "source_kind": "local",
+    "used_by": [
+      "181877b6-7f58-5751-b3c7-bc1660ec69e2"
+    ],
+    "image_ids": [
+      "9248dad4-158f-5965-a0a8-d3d17141e5a8"
+    ],
+    "content_type": "image/webp",
+    "bytes": 112210,
+    "sha256": "8f38c95327dff3d8c59350e063f6d244873f296b83b9c08d57281a7a84fd4773",
+    "md5": "55cf283220db47bbd2226a138df623b1",
+    "width": 853,
+    "height": 1280
+  },
+  {
+    "key": "catalog/personal-security-detail.webp",
+    "source": "/assets/img/efca5e84cc63a331.webp",
+    "source_kind": "local",
+    "used_by": [
+      "d19a07c5-e0c1-5b7c-8532-9b501156feb9"
+    ],
+    "image_ids": [
+      "e6156104-9f6f-5075-a86f-9491fda66d95"
+    ],
+    "content_type": "image/webp",
+    "bytes": 46964,
+    "sha256": "5e4ae93cedc460aeb41aba6ca6dcd751f5bdf4f3794ad13e1cb9f4b8104a2b68",
+    "md5": "2fa9611d2b34a53837546c27947eca2f",
+    "width": 736,
+    "height": 544
+  },
+  {
+    "key": "catalog/pop-up-bar-experiences.webp",
+    "source": "/assets/img/708e2b953e00972f.webp",
+    "source_kind": "local",
+    "used_by": [
+      "918770ab-81d2-56fa-b783-98c1e3396fcf"
+    ],
+    "image_ids": [
+      "f313cfb6-a919-5df2-ad49-30741561aaab"
+    ],
+    "content_type": "image/webp",
+    "bytes": 46078,
+    "sha256": "e29b3813e319560929d1821880fb07b89d9319d057142ed0cd6f327a8cdc932b",
+    "md5": "9b8dba4ddf1a5a06cd5a9ea6111bb3f8",
+    "width": 800,
+    "height": 534
+  },
+  {
+    "key": "catalog/pop-up-cinema-at-your-villa.webp",
+    "source": "/assets/img/a9effc190987855f.webp",
+    "source_kind": "local",
+    "used_by": [
+      "a797a911-e2d9-5686-b963-1e3190e2c6b4"
+    ],
+    "image_ids": [
+      "ebf7b78d-4aba-52fc-b098-bb9523c2b49d"
+    ],
+    "content_type": "image/webp",
+    "bytes": 102178,
+    "sha256": "48a2ce57fae767cb381032d27fd0e40dc6dfedf927f9ba60f8cee9768e2e51fb",
+    "md5": "bac7aea43eb486915e0c3b91d5dbba37",
+    "width": 736,
+    "height": 1104
+  },
+  {
+    "key": "catalog/private-beach-experiences.webp",
+    "source": "/assets/img/54482d988b8f11b3.webp",
+    "source_kind": "local",
+    "used_by": [
+      "82ed8ded-7436-5513-9941-1722ce27c09d"
+    ],
+    "image_ids": [
+      "198313d7-168b-582a-83a7-a01479230155"
+    ],
+    "content_type": "image/webp",
+    "bytes": 163984,
+    "sha256": "c02343dcc8eff31bac552b8d694a53272bfcfe1e5b307d529d60c141f58b6cd9",
+    "md5": "33ca41469e57b24aa7a36359eb3fd1dc",
+    "width": 768,
+    "height": 1376
+  },
+  {
+    "key": "catalog/private-ceremony-colombia.webp",
+    "source": "/assets/img/4f10e90754c6e7a3.webp",
+    "source_kind": "local",
+    "used_by": [
+      "e729a194-7184-56f0-b4cf-d95a36954183"
+    ],
+    "image_ids": [
+      "ff46451d-ceb0-52df-9112-6d18e61e98a8"
+    ],
+    "content_type": "image/webp",
+    "bytes": 173328,
+    "sha256": "322dc43abfb0142907ff1755d71d4745013ee94b1bbf711bbee6fdeeb407ed3e",
+    "md5": "69eec15d334b9b3c404ebc0517e01500",
+    "width": 736,
+    "height": 1102
+  },
+  {
+    "key": "catalog/private-city-guides.webp",
+    "source": "/assets/img/0c19280f3db2c897.webp",
+    "source_kind": "local",
+    "used_by": [
+      "0e237e8d-800b-548c-b1ac-418c534c1942"
+    ],
+    "image_ids": [
+      "ab7f3687-b165-5e7a-95dd-553594cc2e2a"
+    ],
+    "content_type": "image/webp",
+    "bytes": 118760,
+    "sha256": "3ed7b12b554377157c795ee5a3ca2b2ebce4b211637e2720db2465ebc8eff22c",
+    "md5": "73a195947fd17ec600cbdb0e905f268c",
+    "width": 1080,
+    "height": 1080
+  },
+  {
+    "key": "catalog/private-museum-experiences.webp",
+    "source": "/assets/img/eea0e804555322ec.webp",
+    "source_kind": "local",
+    "used_by": [
+      "cd8835ba-43f7-527e-878b-a90977b467a0"
+    ],
+    "image_ids": [
+      "87268dfa-43ef-52f9-98b2-273588e77396"
+    ],
+    "content_type": "image/webp",
+    "bytes": 64148,
+    "sha256": "467fdb6afcd9a00580511b9663af6bd5ac931178eca9df5a20d91ca8cf714c1a",
+    "md5": "e867278e78c637e7d8eb31a2cb6d2c92",
+    "width": 600,
+    "height": 800
+  },
+  {
+    "key": "catalog/private-picnic-experiences.webp",
+    "source": "/assets/img/62741bd08bc3d3b8.webp",
+    "source_kind": "local",
+    "used_by": [
+      "3ed3bc9b-f2e3-576e-bf43-4082c5d3722f"
+    ],
+    "image_ids": [
+      "8e0a1895-c6bd-5b77-9050-b70394d79a0d"
+    ],
+    "content_type": "image/webp",
+    "bytes": 147336,
+    "sha256": "9732eb35065dcf404025af239c78288573033112e47b95cc53ff06769274e3de",
+    "md5": "aabd88503be84e48b65ba2e55c45944b",
+    "width": 736,
+    "height": 1049
+  },
+  {
+    "key": "catalog/private-surfing-lessons.webp",
+    "source": "/assets/img/831cc67e4504b2bd.webp",
+    "source_kind": "local",
+    "used_by": [
+      "c44a7622-1ed8-5538-9719-06514bbac2ec"
+    ],
+    "image_ids": [
+      "a0b9ac4b-54d0-5979-9506-e9d76d393667"
+    ],
+    "content_type": "image/webp",
+    "bytes": 64352,
+    "sha256": "d9b65636ccfc5cf6ff2dea8573287905d46e5b2d5010821f450dcedac0e45ea6",
+    "md5": "f86349e33af4e5a23c5c58f50adcd32e",
+    "width": 1080,
+    "height": 1080
+  },
+  {
     "key": "catalog/rosario-islands-escape.webp",
     "source": "/assets/img/0dadd08a491bfc52.webp",
     "source_kind": "local",
@@ -321,6 +695,142 @@
     "md5": "d5e764534aa29d0b81d0db9973e5b437",
     "width": 1200,
     "height": 1601
+  },
+  {
+    "key": "catalog/rural-farm-nature-visits.webp",
+    "source": "/assets/img/5e9e2253799ba09c.webp",
+    "source_kind": "local",
+    "used_by": [
+      "17295fac-2a78-54de-8688-fcf2fbd4f4cb"
+    ],
+    "image_ids": [
+      "2b2d9931-ed5b-505d-b256-58d0cbd1bc33"
+    ],
+    "content_type": "image/webp",
+    "bytes": 242128,
+    "sha256": "8de18b16e2787997928256c05cf6a50a7a554d49d6b766a51edd2ad9d7af5e45",
+    "md5": "5cb847ce4244986955a2b4886ef8b56a",
+    "width": 1080,
+    "height": 1618
+  },
+  {
+    "key": "catalog/san-andres-diving-escape.webp",
+    "source": "/assets/img/c146260c2e6aed1f.webp",
+    "source_kind": "local",
+    "used_by": [
+      "56ad01ed-e8b2-586b-93c9-40a295cb1264"
+    ],
+    "image_ids": [
+      "d0b2609b-cb60-525f-93f8-3fc931b54706"
+    ],
+    "content_type": "image/webp",
+    "bytes": 163866,
+    "sha256": "45488d2b43eaf52a4d37d9694278d609de85af5c56706dc8d9ae9a12880d7efe",
+    "md5": "7f95036227c3ddc77b8dee5632cdbd68",
+    "width": 735,
+    "height": 977
+  },
+  {
+    "key": "catalog/scuba-diving-expeditions.webp",
+    "source": "/assets/img/fe94d42b01c05e8b.webp",
+    "source_kind": "local",
+    "used_by": [
+      "300a8259-248b-542f-8384-749bc576ac1f"
+    ],
+    "image_ids": [
+      "7bf218fa-4371-50d0-b252-bc779d204dd1"
+    ],
+    "content_type": "image/webp",
+    "bytes": 108908,
+    "sha256": "5fc6fc01446766f087f2696517b59e1c480fd468361ed2fbdd320329a6f10c37",
+    "md5": "a4f1553fdfd7b2fd0381b5db45483e2f",
+    "width": 736,
+    "height": 1308
+  },
+  {
+    "key": "catalog/snorkeling-adventures.webp",
+    "source": "/assets/img/783f0f9f85c684dc.webp",
+    "source_kind": "local",
+    "used_by": [
+      "bf43c23b-f11f-59d1-9281-074417acbe6a"
+    ],
+    "image_ids": [
+      "0f757217-6516-532b-aace-c2e2048e496b"
+    ],
+    "content_type": "image/webp",
+    "bytes": 63122,
+    "sha256": "8bebbd557896a442e91d93fba67418880b7c309062e70c05e9ac4da3f121b13b",
+    "md5": "fdde6be428ae45c863bd21c54c73793c",
+    "width": 686,
+    "height": 859
+  },
+  {
+    "key": "catalog/sunrise-yoga-wellness-retreats.webp",
+    "source": "/assets/img/35de84d1af4e18e3.webp",
+    "source_kind": "local",
+    "used_by": [
+      "f914b9b5-fb7c-5cfd-a7eb-4cd5415a6adc"
+    ],
+    "image_ids": [
+      "a7025bfe-b21e-54a4-a0d9-502761d2789c"
+    ],
+    "content_type": "image/webp",
+    "bytes": 90252,
+    "sha256": "9f4286c3caaec83c951bd2198b000bca1d6c4a428d7bfacf309327cdbcd5da1e",
+    "md5": "e031b9208b263d473f3c94b7033f7b92",
+    "width": 591,
+    "height": 879
+  },
+  {
+    "key": "catalog/tayrona-coastal-escape.webp",
+    "source": "/assets/img/20ec0195691731a5.webp",
+    "source_kind": "local",
+    "used_by": [
+      "be4d9730-a424-5f8a-a49d-2b3d44a4c992"
+    ],
+    "image_ids": [
+      "6a81e5b7-64f7-5752-82ea-b48b98c147e5"
+    ],
+    "content_type": "image/webp",
+    "bytes": 55426,
+    "sha256": "a61543ce67fb7d12c1af39a71fd7ed02a517408084682e137fe54cceb65a0f59",
+    "md5": "b19e1a2957fe29ed6abb2d9b478a1771",
+    "width": 720,
+    "height": 858
+  },
+  {
+    "key": "catalog/traditional-cooking-classes.webp",
+    "source": "/assets/img/81840f01e4039621.webp",
+    "source_kind": "local",
+    "used_by": [
+      "73ace5b5-6ee2-5205-8463-8c47e227d871"
+    ],
+    "image_ids": [
+      "30aa5754-13c0-574a-8567-562f4d7be9cf"
+    ],
+    "content_type": "image/webp",
+    "bytes": 150710,
+    "sha256": "52edb6ee913f90034baa78d67607cb353ceed396a0048f506338f1775b061f85",
+    "md5": "9c7a870f8fe4e4575eabc79bef50a479",
+    "width": 736,
+    "height": 1104
+  },
+  {
+    "key": "catalog/truffle-foraging-experiences.webp",
+    "source": "/assets/img/2146dba8218b821e.webp",
+    "source_kind": "local",
+    "used_by": [
+      "17dd525c-ca98-536b-8f3b-0f56504581fe"
+    ],
+    "image_ids": [
+      "ca7c9716-df27-54a6-9493-6438247f90bf"
+    ],
+    "content_type": "image/webp",
+    "bytes": 144950,
+    "sha256": "780a4240d0893be0964aa359592b0d68659ebe750ee5ae6433b38c2aa76c0305",
+    "md5": "2d69b51f9c6179aa5dbb61f8381b7ad6",
+    "width": 640,
+    "height": 853
   },
   {
     "key": "catalog/vip-airport-meet-greet.webp",
@@ -340,6 +850,40 @@
     "height": 736
   },
   {
+    "key": "catalog/vip-cultural-access.webp",
+    "source": "/assets/img/b67a57e844f55d59.webp",
+    "source_kind": "local",
+    "used_by": [
+      "507cf0e4-9a22-5027-8eeb-11671eb6b365"
+    ],
+    "image_ids": [
+      "25723acf-3b4a-5f22-ac92-d51009ab7b17"
+    ],
+    "content_type": "image/webp",
+    "bytes": 131222,
+    "sha256": "c3d6c9773a21ecce9e0ed97c9949510e8d52cc5d90190bdc6dce797b9b02721d",
+    "md5": "39eefc7549386b8c9a20800934062fd7",
+    "width": 736,
+    "height": 1104
+  },
+  {
+    "key": "catalog/vip-dinner-show-experiences.webp",
+    "source": "/assets/img/fe15633f305e7835.webp",
+    "source_kind": "local",
+    "used_by": [
+      "cb362bd6-8caa-57c0-9e58-83eefac5fc37"
+    ],
+    "image_ids": [
+      "8c3a22db-80e7-5edb-a3f3-9e5c035a52e2"
+    ],
+    "content_type": "image/webp",
+    "bytes": 59496,
+    "sha256": "eeeab9411ab26f5808313dc6f0e9df40b71b52ef395984084ffed08547e896d6",
+    "md5": "1f1e6092da86f8c22b9815bb735e9c8d",
+    "width": 600,
+    "height": 800
+  },
+  {
     "key": "catalog/welcome-cocktail.webp",
     "source": "/assets/img/726c964e0318bf1b.webp",
     "source_kind": "local",
@@ -357,6 +901,57 @@
     "height": 1291
   },
   {
+    "key": "catalog/wellness-spa-coordination.webp",
+    "source": "/assets/img/82f63c1afddf14b2.webp",
+    "source_kind": "local",
+    "used_by": [
+      "d9e34371-f3b0-58f3-80fd-fbfc3aa2648e"
+    ],
+    "image_ids": [
+      "66101cbf-5978-5eea-8f80-b9772263a8fb"
+    ],
+    "content_type": "image/webp",
+    "bytes": 92356,
+    "sha256": "540bbd60f81c8eaacdd7a671d92c93ea1a6f5475674d050691fff75ae7e8afc0",
+    "md5": "4bef84398d341141b12dcd4edb114d98",
+    "width": 800,
+    "height": 1200
+  },
+  {
+    "key": "catalog/wellness-yoga-retreat.webp",
+    "source": "/assets/img/e6194c17eba0cb30.webp",
+    "source_kind": "local",
+    "used_by": [
+      "22a5cb76-0f95-59ff-a366-00aa3c4ac782"
+    ],
+    "image_ids": [
+      "f66b4ec1-f66f-5e07-bf3d-68728d537134"
+    ],
+    "content_type": "image/webp",
+    "bytes": 193758,
+    "sha256": "019e6d5e7e8ef72419920152cb338ba7e73617ea39429fbefbd9d42a7ea57e68",
+    "md5": "ba4ba9cba9db7cf8cbe77f7e410c29c7",
+    "width": 1024,
+    "height": 1539
+  },
+  {
+    "key": "catalog/wine-spirits-tastings.webp",
+    "source": "/assets/img/efe24e8c8dbeb887.webp",
+    "source_kind": "local",
+    "used_by": [
+      "23bab7b0-ca4c-55df-bfa8-1690c7078b12"
+    ],
+    "image_ids": [
+      "342c7540-1953-51bc-9371-21f38305fece"
+    ],
+    "content_type": "image/webp",
+    "bytes": 72086,
+    "sha256": "2a703e9c5808255875159e4db2b468ada7bd7a494d783f70145e9574ee3bf04d",
+    "md5": "fc00ebed74cb853ebf13b14ccc77b0c0",
+    "width": 736,
+    "height": 1308
+  },
+  {
     "key": "catalog/yacht-island-charters.webp",
     "source": "/assets/img/85bdc83c0860c091.webp",
     "source_kind": "local",
@@ -372,6 +967,23 @@
     "md5": "d93d9f656cf11ff74c0c9e22e7953615",
     "width": 736,
     "height": 1013
+  },
+  {
+    "key": "destinations/bogota/hero.webp",
+    "source": "/assets/img/b62ee6b7553e89fa.webp",
+    "source_kind": "local",
+    "used_by": [
+      "8f446e7f-412f-537c-9910-1135dadd421c"
+    ],
+    "image_ids": [
+      "bffe05fb-a5fd-52d5-9151-6c60388479e2"
+    ],
+    "content_type": "image/webp",
+    "bytes": 226356,
+    "sha256": "d4b2967aed95ca5a3d4f3288086eaa8f97806f26c078a864a2d80e3f2fd12cd3",
+    "md5": "1d1656bf4d60119fd5e4f22a36576ea0",
+    "width": 736,
+    "height": 1318
   },
   {
     "key": "destinations/cartagena/hero.webp",
@@ -408,6 +1020,23 @@
     "height": 989
   },
   {
+    "key": "destinations/cocora-valley/hero.webp",
+    "source": "/assets/img/25a959b694257d53.webp",
+    "source_kind": "local",
+    "used_by": [
+      "37171873-91c7-5acc-8d67-6a616202fa2d"
+    ],
+    "image_ids": [
+      "83ed6607-36a8-5e27-9b01-dd3c58af9e3a"
+    ],
+    "content_type": "image/webp",
+    "bytes": 190642,
+    "sha256": "61c7b5bb012ba15f3a603bc2a7e666c4fe326bd1d25a362d51742fbef7c77950",
+    "md5": "30aaed012f0b4dde01669cb35a4f8edb",
+    "width": 736,
+    "height": 920
+  },
+  {
     "key": "destinations/medellin/hero.webp",
     "source": "/assets/img/61f0185cb8d5387c.webp",
     "source_kind": "local",
@@ -440,6 +1069,57 @@
     "md5": "8b11b54d2639baedf73d613037d2f3f4",
     "width": 719,
     "height": 901
+  },
+  {
+    "key": "destinations/page/hero-2.webp",
+    "source": "/assets/img/63ab3e6e8d9dec4a.webp",
+    "source_kind": "local",
+    "used_by": [
+      "destinations-page:hero"
+    ],
+    "image_ids": [
+      "c2d5f871-6ce2-5486-88a9-ea8a09b2deeb"
+    ],
+    "content_type": "image/webp",
+    "bytes": 318462,
+    "sha256": "43e0007ebb2f0529aed3d2bea19b527539caf2b93dfc6f6418e6484c9fd184c2",
+    "md5": "e1ae84e2fa6a69341d8593ad52656696",
+    "width": 1820,
+    "height": 1024
+  },
+  {
+    "key": "destinations/page/hero-3.webp",
+    "source": "/assets/img/0ecaa27f3bc3940e.webp",
+    "source_kind": "local",
+    "used_by": [
+      "destinations-page:hero"
+    ],
+    "image_ids": [
+      "338e83be-3378-55e2-851c-c0a741183b2e"
+    ],
+    "content_type": "image/webp",
+    "bytes": 267306,
+    "sha256": "eb763a9e07c686461eb6b3754bb23485fdc739b8a644b7a12d8d3a3e6fcf960e",
+    "md5": "99fc59c223c09ee36f544ac5cfb298d1",
+    "width": 1820,
+    "height": 1024
+  },
+  {
+    "key": "destinations/san-andres/hero.webp",
+    "source": "/assets/img/6ef3dad90b2d2f3c.webp",
+    "source_kind": "local",
+    "used_by": [
+      "9b70fbde-8d84-5cba-bf16-c5690f6c1607"
+    ],
+    "image_ids": [
+      "3c3794eb-59e4-5531-a80c-f3d04f5a3edd"
+    ],
+    "content_type": "image/webp",
+    "bytes": 121120,
+    "sha256": "3b6b1a5edeb5fecfdab76a428ea97004b90dedcaf98884e24274cb28999e310b",
+    "md5": "9a18bb0aeb7e8c87d3721715f7da9178",
+    "width": 736,
+    "height": 920
   },
   {
     "key": "home/begin/poster.webp",
@@ -497,10 +1177,12 @@
     "source": "/assets/img/4d62ca4792adaf59.webp",
     "source_kind": "local",
     "used_by": [
+      "destinations-page:hero",
       "home:welcome"
     ],
     "image_ids": [
-      "7c106731-d85f-50a4-9800-4538dcd69ead"
+      "7c106731-d85f-50a4-9800-4538dcd69ead",
+      "bf7b9a70-9beb-51d1-bf9e-a7dbc25082d3"
     ],
     "content_type": "image/webp",
     "bytes": 306464,

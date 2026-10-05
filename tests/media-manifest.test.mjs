@@ -26,7 +26,6 @@ import {
   reactDocuments,
   serializeManifest,
   sha256,
-  slice1Documents,
   slice3Documents,
   webpDimensions,
 } from "../scripts/media-lib.mjs";
@@ -326,14 +325,8 @@ test("RED: a manifest that differs from the computed one by one byte fails --che
   assert.match(out.join("\n"), /not byte-identical/);
 });
 
-test("slice1Documents lists the 42 slice-1 documents: 14 per locale, EN at the root", () => {
-  const docs = slice1Documents();
-  assert.equal(docs.length, 42);
-  assert.equal(new Set(docs).size, 42);
-  assert.ok(docs.includes("index.html") && docs.includes("ar/index.html") && docs.includes("es/index.html"));
-  assert.ok(docs.includes("private-stays.html") && docs.includes("es/private-stays/getsemani-colonial-house.html"));
-  assert.equal(docs.filter((d) => d.startsWith("ar/")).length, 14);
-});
+// The document list is publicDocuments() (scripts/media-lib.mjs); slice 1's own 42 are covered by
+// tests/public-documents.test.mjs (S2-5: slice 1's one-line wrapper and its test here are gone).
 
 // The guarded document list and the assembler agree (plan 03.3-22) ------------------------------------------------
 
@@ -346,7 +339,7 @@ test("the guarded documents (reactDocuments) are exactly the React documents ass
   const base = fs.mkdtempSync(path.join(os.tmpdir(), "almar-guarded-docs-"));
   const slugs = readStaySlugs();
   // One React .html per document the guard could ever list, plus the six About/Contact ones, whether or not they are public.
-  const all = [...reactDocuments(slugs, readPostSlugs(), [...PUBLIC_PAGES, "/about", "/contact"])];
+  const all = [...reactDocuments(slugs, readPostSlugs(), [...new Set([...PUBLIC_PAGES, "/about", "/contact"])])];
   for (const doc of all) {
     const file = path.join(base, "app", assemblerInput(doc));
     fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -510,7 +503,9 @@ test("the two reused photos carry two image ids and the about:intro use, and kee
 
 // Task 2: measured fields, the cache, and fetch -------------------------------------------------------------------
 
-const cacheExists = fs.existsSync(paths.cacheDir);
+// Entries whose cache file exists. A partial media-staging/ is normal until plan 16 fetches the rest (S2-6).
+const cachedEntries = fs.existsSync(paths.cacheDir) ? manifest.filter((e) => fs.existsSync(cachePath(e.key, paths.cacheDir))) : [];
+const cacheExists = cachedEntries.length > 0;
 
 test("every entry is measured: content_type, bytes, sha256, md5, width and height", () => {
   for (const e of manifest) {
@@ -531,14 +526,15 @@ test("every fixture image's width and height equal its manifest entry's", () => 
   }
 });
 
-test(cacheExists ? "every cached file's sha256 equals the manifest" : "every cached file's sha256 equals the manifest (SKIPPED: media-staging/ is absent, as in a clean clone)", { skip: !cacheExists && "media-staging/ is absent" }, () => {
-  for (const e of manifest) {
-    const file = cachePath(e.key, paths.cacheDir);
-    assert.ok(fs.existsSync(file), `${e.key} is not cached`);
-    const buf = fs.readFileSync(file);
+test(cacheExists ? "every cached file's sha256 equals the manifest" : "every cached file's sha256 equals the manifest (SKIPPED: media-staging/ is absent or empty, as in a clean clone)", { skip: !cacheExists && "media-staging/ is absent or holds no manifest entry" }, () => {
+  let checked = 0;
+  for (const e of cachedEntries) {
+    const buf = fs.readFileSync(cachePath(e.key, paths.cacheDir));
     assert.equal(sha256(buf), e.sha256, e.key);
     assert.equal(buf.length, e.bytes, e.key);
+    checked++;
   }
+  assert.ok(checked >= 1, "at least one cached entry was checked");
 });
 
 function fakeResponse(body, { status = 200, type = "image/webp", url } = {}) {

@@ -1,11 +1,9 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { cn } from "../../lib/cn";
 
 export type MediaCardImage = { src: string; alt: string };
 
-export type MediaCardProps = {
-  /** With href the whole card is one link named by the title. Without it the card is an article. */
-  href?: string;
+type MediaCardBase = {
   image: MediaCardImage;
   title: string;
   /** One muted line under the title. */
@@ -26,6 +24,17 @@ export type MediaCardProps = {
   className?: string;
 };
 
+/**
+ * Three exclusive forms. With href the whole card is one link named by the title; without href or onOpen the card
+ * is an article. With onOpen the title is one button that announces a dialog, stretched over the card, and openRef
+ * receives it so the dialog it opens can hand focus back. href and onOpen together is a type error.
+ */
+export type MediaCardProps = MediaCardBase &
+  (
+    | { href?: string; onOpen?: undefined; openRef?: undefined }
+    | { onOpen: () => void; openRef?: Ref<HTMLButtonElement>; href?: undefined }
+  );
+
 const ROOT = "group grid min-w-0 content-start gap-3 text-ink no-underline";
 const IMAGE = "block w-full object-cover outline outline-1 outline-line -outline-offset-1";
 const TITLE_REST = "text-teal decoration-gold decoration-1 underline-offset-4 group-hover:underline";
@@ -40,6 +49,8 @@ const ZOOM = {
  */
 export function MediaCard({
   href,
+  onOpen,
+  openRef,
   image,
   title,
   detail,
@@ -79,6 +90,33 @@ export function MediaCard({
       {detail ? <span className="text-label text-muted">{detail}</span> : null}
     </span>
   );
+
+  if (onOpen) {
+    // The card opens an overlay and never links: the title is the button and stretches over the card.
+    return (
+      <article className={cn(ROOT, "relative", className)}>
+        {picture}
+        <div className="flex items-start justify-between gap-3">
+          <span className={lineBox}>
+            <button
+              ref={openRef}
+              type="button"
+              aria-haspopup="dialog"
+              onClick={onOpen}
+              className={cn(
+                TITLE,
+                "cursor-pointer border-0 bg-transparent p-0 text-start no-underline after:absolute after:inset-0",
+              )}
+            >
+              {title}
+            </button>
+            {detail ? <span className="text-label text-muted">{detail}</span> : null}
+          </span>
+          {action ? <span className="relative z-10 shrink-0">{action}</span> : null}
+        </div>
+      </article>
+    );
+  }
 
   if (href && !action) {
     return (
@@ -121,7 +159,7 @@ export function MediaCard({
 export type PortraitFact = { icon: ReactNode; text: string };
 
 export type PortraitCardProps = {
-  /** Without href the card is a <div>, not a link (an item with no detail page). */
+  /** The link. Absent (/destinations, a featured experience with no detail page): the card is an `<article>`, no link, no hover zoom. */
   href?: string;
   image: MediaCardImage;
   title: string;
@@ -129,24 +167,32 @@ export type PortraitCardProps = {
   facts?: PortraitFact[];
   /** A 12px uppercase line above the title (a date, or `Featured stay`). */
   kicker?: string;
+  /** "portrait" (default) is 2:3. "square" is 7:12 below md and a square from md (the /destinations card). */
+  ratio?: "portrait" | "square";
+  /** Capitals for a Latin-script title. A title in Arabic script is never transformed. */
+  uppercase?: boolean;
   className?: string;
 };
+
+const ARABIC_SCRIPT = /[֐-ࣿ]/;
 
 /**
  * The Framer stay card: one link, a 2:3 photo, the title and an icon facts row on the photo over a dark gradient.
  * The photo zooms 1.05x on hover over the hover duration with the reveal ease (not under reduced motion).
+ * Without href it is an article with no zoom; `kicker`, `ratio` and `uppercase` are opt-in and change nothing when absent.
  */
-export function PortraitCard({ href, image, title, facts = [], kicker, className }: PortraitCardProps) {
-  const classes = cn("group relative block aspect-2/3 min-w-0 overflow-hidden text-ivory no-underline", className);
+export function PortraitCard({ href, image, title, facts = [], kicker, ratio = "portrait", uppercase = false, className }: PortraitCardProps) {
+  const shape = ratio === "square" ? "aspect-7/12 md:aspect-square" : "aspect-2/3";
+  const capitals = uppercase && !ARABIC_SCRIPT.test(title);
   const body = (
     <>
-      <img src={image.src} alt={image.alt} decoding="async" className={cn("absolute inset-0 size-full object-cover", ZOOM.md)} />
+      <img src={image.src} alt={image.alt} decoding="async" className={cn("absolute inset-0 size-full object-cover", href && ZOOM.md)} />
       <span aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-ink/70 via-ink/10 to-transparent" />
       <span className="absolute inset-x-0 bottom-0 flex flex-col gap-3 px-6 pb-6 md:px-8 md:pb-8">
         {kicker ? (
           <span className="text-caption uppercase tracking-kicker text-ivory ar:normal-case ar:tracking-normal">{kicker}</span>
         ) : null}
-        <span className="font-display text-heading text-ivory">{title}</span>
+        <span className={cn("font-display text-heading text-ivory", capitals && "uppercase")}>{title}</span>
         {facts.length > 0 ? (
           <span className="flex flex-wrap gap-x-6 gap-y-2 text-label text-ivory">
             {facts.map((fact, index) => (
@@ -160,11 +206,12 @@ export function PortraitCard({ href, image, title, facts = [], kicker, className
       </span>
     </>
   );
-  return href ? (
-    <a href={href} className={classes}>
+  if (!href) {
+    return <article className={cn("relative block", shape, "min-w-0 overflow-hidden text-ivory", className)}>{body}</article>;
+  }
+  return (
+    <a href={href} className={cn("group relative block", shape, "min-w-0 overflow-hidden text-ivory no-underline", className)}>
       {body}
     </a>
-  ) : (
-    <div className={classes}>{body}</div>
   );
 }

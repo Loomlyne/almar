@@ -5,7 +5,7 @@
 // forgets it would silently ship English into an Arabic document.
 
 import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
-import type { Destination, Locale } from "./types";
+import type { Destination, ImageRef, Locale } from "./types";
 
 type DestinationBase = {
   id: string;
@@ -78,4 +78,15 @@ export async function getDestinationSlugs(): Promise<string[]> {
     .filter((d) => d.is_published)
     .sort((a, b) => a.position - b.position)
     .map((d) => d.slug);
+}
+
+/** The /destinations hero slideshow: three photos, in the owner's order (S2-16). Never null entries. */
+export async function getDestinationsPageHero(locale: Locale): Promise<ImageRef[]> {
+  const raw = readFixture<{ hero: RawImage[] }>("destinations-page").hero;
+  return [...raw]
+    .sort((a, b) => a.position - b.position)
+    .flatMap((r) => {
+      const img = image(r, locale);
+      return img ? [img] : [];
+    });
 }

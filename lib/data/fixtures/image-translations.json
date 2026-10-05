@@ -2124,6 +2124,744 @@
     "status": "draft"
   },
   {
+    "image_id": "bffe05fb-a5fd-52d5-9151-6c60388479e2",
+    "locale": "en",
+    "alt": "Bogotá",
+    "status": "published"
+  },
+  {
+    "image_id": "bffe05fb-a5fd-52d5-9151-6c60388479e2",
+    "locale": "ar",
+    "alt": "بوغوتا",
+    "status": "draft"
+  },
+  {
+    "image_id": "bffe05fb-a5fd-52d5-9151-6c60388479e2",
+    "locale": "es",
+    "alt": "Bogotá",
+    "status": "draft"
+  },
+  {
+    "image_id": "3c3794eb-59e4-5531-a80c-f3d04f5a3edd",
+    "locale": "en",
+    "alt": "San Andrés",
+    "status": "published"
+  },
+  {
+    "image_id": "3c3794eb-59e4-5531-a80c-f3d04f5a3edd",
+    "locale": "ar",
+    "alt": "سان أندريس",
+    "status": "draft"
+  },
+  {
+    "image_id": "3c3794eb-59e4-5531-a80c-f3d04f5a3edd",
+    "locale": "es",
+    "alt": "San Andrés",
+    "status": "draft"
+  },
+  {
+    "image_id": "83ed6607-36a8-5e27-9b01-dd3c58af9e3a",
+    "locale": "en",
+    "alt": "Cocora Valley",
+    "status": "published"
+  },
+  {
+    "image_id": "83ed6607-36a8-5e27-9b01-dd3c58af9e3a",
+    "locale": "ar",
+    "alt": "وادي كوكورا",
+    "status": "draft"
+  },
+  {
+    "image_id": "83ed6607-36a8-5e27-9b01-dd3c58af9e3a",
+    "locale": "es",
+    "alt": "Valle de Cocora",
+    "status": "draft"
+  },
+  {
+    "image_id": "ff46451d-ceb0-52df-9112-6d18e61e98a8",
+    "locale": "en",
+    "alt": "Private Ceremony in Colombia, ALMAR private celebration experience in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "ff46451d-ceb0-52df-9112-6d18e61e98a8",
+    "locale": "ar",
+    "alt": "حفل خاص في كولومبيا، تجربة احتفال خاصة من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "ff46451d-ceb0-52df-9112-6d18e61e98a8",
+    "locale": "es",
+    "alt": "Ceremonia privada en Colombia, una experiencia de celebración privada de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "f66b4ec1-f66f-5e07-bf3d-68728d537134",
+    "locale": "en",
+    "alt": "Wellness & Andean Retreat",
+    "status": "published"
+  },
+  {
+    "image_id": "f66b4ec1-f66f-5e07-bf3d-68728d537134",
+    "locale": "ar",
+    "alt": "ريتريت العافية في الأنديز",
+    "status": "draft"
+  },
+  {
+    "image_id": "f66b4ec1-f66f-5e07-bf3d-68728d537134",
+    "locale": "es",
+    "alt": "Retiro de bienestar andino",
+    "status": "draft"
+  },
+  {
+    "image_id": "27fd924f-3e99-5556-b66d-77d855ed07e8",
+    "locale": "en",
+    "alt": "Coffee Region Immersion, ALMAR private adventure experience in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "27fd924f-3e99-5556-b66d-77d855ed07e8",
+    "locale": "ar",
+    "alt": "الانغماس في منطقة القهوة، تجربة مغامرة خاصة من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "27fd924f-3e99-5556-b66d-77d855ed07e8",
+    "locale": "es",
+    "alt": "Inmersión en la región cafetera, una experiencia de aventura privada de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "a7bc3a78-30a7-5471-b1db-810e611f5948",
+    "locale": "en",
+    "alt": "Amazon Rainforest Expedition, ALMAR private expedition experience in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "a7bc3a78-30a7-5471-b1db-810e611f5948",
+    "locale": "ar",
+    "alt": "رحلة استكشاف غابات الأمازون المطيرة، تجربة استكشاف خاصة من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "a7bc3a78-30a7-5471-b1db-810e611f5948",
+    "locale": "es",
+    "alt": "Expedición a la selva amazónica, una experiencia de expedición privada de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "6a81e5b7-64f7-5752-82ea-b48b98c147e5",
+    "locale": "en",
+    "alt": "Tayrona Coastal Escape, ALMAR private coastal experience in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "6a81e5b7-64f7-5752-82ea-b48b98c147e5",
+    "locale": "ar",
+    "alt": "رحلة هروب ساحلية إلى تايرونا، تجربة ساحلية خاصة من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "6a81e5b7-64f7-5752-82ea-b48b98c147e5",
+    "locale": "es",
+    "alt": "Escapada costera a Tayrona, una experiencia costera privada de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "9e16e4f8-9aa3-5fa1-8362-0b0e05cac5ca",
+    "locale": "en",
+    "alt": "Bogotá art and gastronomy experience with private dining and cultural access.",
+    "status": "published"
+  },
+  {
+    "image_id": "9e16e4f8-9aa3-5fa1-8362-0b0e05cac5ca",
+    "locale": "ar",
+    "alt": "تجربة فن وفنون طهي في بوغوتا مع عشاء خاص ودخول ثقافي",
+    "status": "draft"
+  },
+  {
+    "image_id": "9e16e4f8-9aa3-5fa1-8362-0b0e05cac5ca",
+    "locale": "es",
+    "alt": "Experiencia de arte y gastronomía en Bogotá con cena privada y acceso cultural",
+    "status": "draft"
+  },
+  {
+    "image_id": "d0b2609b-cb60-525f-93f8-3fc931b54706",
+    "locale": "en",
+    "alt": "San Andrés Diving Escape, ALMAR private adventure experience in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "d0b2609b-cb60-525f-93f8-3fc931b54706",
+    "locale": "ar",
+    "alt": "رحلة غوص إلى سان أندريس، تجربة مغامرة خاصة من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "d0b2609b-cb60-525f-93f8-3fc931b54706",
+    "locale": "es",
+    "alt": "Escapada de buceo a San Andrés, una experiencia de aventura privada de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "c65a807d-5dc7-594d-84e4-a38f258fc22f",
+    "locale": "en",
+    "alt": "Coffee Hacienda Experiences, ALMAR culture service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "c65a807d-5dc7-594d-84e4-a38f258fc22f",
+    "locale": "ar",
+    "alt": "تجارب هاسيندا القهوة، خدمة ثقافية من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "c65a807d-5dc7-594d-84e4-a38f258fc22f",
+    "locale": "es",
+    "alt": "Experiencias en haciendas cafeteras, un servicio cultural de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "33e56d34-20b5-5d67-8017-b65d84a2687c",
+    "locale": "en",
+    "alt": "Hot Air Balloon, Coffee Region, ALMAR adventure service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "33e56d34-20b5-5d67-8017-b65d84a2687c",
+    "locale": "ar",
+    "alt": "منطاد الهواء الساخن، منطقة القهوة، خدمة مغامرات من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "33e56d34-20b5-5d67-8017-b65d84a2687c",
+    "locale": "es",
+    "alt": "Globo aerostático, región cafetera, un servicio de aventura de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "7be1f4a7-9185-5ea1-afa1-9856ac5c9028",
+    "locale": "en",
+    "alt": "Helicopter City Tours, ALMAR adventure service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "7be1f4a7-9185-5ea1-afa1-9856ac5c9028",
+    "locale": "ar",
+    "alt": "جولات المدن بالمروحية، خدمة مغامرات من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "7be1f4a7-9185-5ea1-afa1-9856ac5c9028",
+    "locale": "es",
+    "alt": "Recorridos en helicóptero por la ciudad, un servicio de aventura de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "198313d7-168b-582a-83a7-a01479230155",
+    "locale": "en",
+    "alt": "Private Beach Experiences, ALMAR marine service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "198313d7-168b-582a-83a7-a01479230155",
+    "locale": "ar",
+    "alt": "تجارب الشاطئ الخاص، خدمة بحرية من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "198313d7-168b-582a-83a7-a01479230155",
+    "locale": "es",
+    "alt": "Experiencias privadas en la playa, un servicio marino de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "25723acf-3b4a-5f22-ac92-d51009ab7b17",
+    "locale": "en",
+    "alt": "VIP Cultural Access, ALMAR culture service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "25723acf-3b4a-5f22-ac92-d51009ab7b17",
+    "locale": "ar",
+    "alt": "دخول ثقافي لكبار الشخصيات، خدمة ثقافية من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "25723acf-3b4a-5f22-ac92-d51009ab7b17",
+    "locale": "es",
+    "alt": "Acceso cultural VIP, un servicio cultural de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "7cdd5a8b-7a55-59a4-9a97-dc36040cfa06",
+    "locale": "en",
+    "alt": "Gourmet Food Tours, ALMAR dining service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "7cdd5a8b-7a55-59a4-9a97-dc36040cfa06",
+    "locale": "ar",
+    "alt": "جولات طعام فاخرة، خدمة طعام من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "7cdd5a8b-7a55-59a4-9a97-dc36040cfa06",
+    "locale": "es",
+    "alt": "Recorridos gastronómicos gourmet, un servicio gastronómico de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "8e0a1895-c6bd-5b77-9050-b70394d79a0d",
+    "locale": "en",
+    "alt": "Private Picnic Experiences, ALMAR dining service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "8e0a1895-c6bd-5b77-9050-b70394d79a0d",
+    "locale": "ar",
+    "alt": "تجارب نزهات خاصة، خدمة طعام من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "8e0a1895-c6bd-5b77-9050-b70394d79a0d",
+    "locale": "es",
+    "alt": "Experiencias de picnic privado, un servicio gastronómico de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "9248dad4-158f-5965-a0a8-d3d17141e5a8",
+    "locale": "en",
+    "alt": "Pastry & Dessert Masterclass, ALMAR dining service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "9248dad4-158f-5965-a0a8-d3d17141e5a8",
+    "locale": "ar",
+    "alt": "ورشة متقدمة في المعجنات والحلويات، خدمة طعام من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "9248dad4-158f-5965-a0a8-d3d17141e5a8",
+    "locale": "es",
+    "alt": "Clase magistral de pastelería y postres, un servicio gastronómico de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "8e5d31f7-3a93-5fc6-974f-6985e2311ec4",
+    "locale": "en",
+    "alt": "Artisan Workshop Experiences",
+    "status": "published"
+  },
+  {
+    "image_id": "8e5d31f7-3a93-5fc6-974f-6985e2311ec4",
+    "locale": "ar",
+    "alt": "تجارب ورش الحرفيين",
+    "status": "draft"
+  },
+  {
+    "image_id": "8e5d31f7-3a93-5fc6-974f-6985e2311ec4",
+    "locale": "es",
+    "alt": "Experiencias en talleres artesanales",
+    "status": "draft"
+  },
+  {
+    "image_id": "a0b9ac4b-54d0-5979-9506-e9d76d393667",
+    "locale": "en",
+    "alt": "Private Surfing Lessons, ALMAR adventure service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "a0b9ac4b-54d0-5979-9506-e9d76d393667",
+    "locale": "ar",
+    "alt": "دروس ركوب الأمواج الخاصة، خدمة مغامرات من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "a0b9ac4b-54d0-5979-9506-e9d76d393667",
+    "locale": "es",
+    "alt": "Clases privadas de surf, un servicio de aventura de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "87268dfa-43ef-52f9-98b2-273588e77396",
+    "locale": "en",
+    "alt": "Private Museum Experiences, ALMAR culture service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "87268dfa-43ef-52f9-98b2-273588e77396",
+    "locale": "ar",
+    "alt": "تجارب المتاحف الخاصة، خدمة ثقافية من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "87268dfa-43ef-52f9-98b2-273588e77396",
+    "locale": "es",
+    "alt": "Experiencias privadas en museos, un servicio cultural de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "7bf218fa-4371-50d0-b252-bc779d204dd1",
+    "locale": "en",
+    "alt": "Scuba Diving Expeditions, ALMAR marine service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "7bf218fa-4371-50d0-b252-bc779d204dd1",
+    "locale": "ar",
+    "alt": "رحلات الغوص بالأسطوانات، خدمة بحرية من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "7bf218fa-4371-50d0-b252-bc779d204dd1",
+    "locale": "es",
+    "alt": "Expediciones de buceo, un servicio marino de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "0f757217-6516-532b-aace-c2e2048e496b",
+    "locale": "en",
+    "alt": "Snorkeling Adventures, ALMAR marine service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "0f757217-6516-532b-aace-c2e2048e496b",
+    "locale": "ar",
+    "alt": "مغامرات الغطس السطحي، خدمة بحرية من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "0f757217-6516-532b-aace-c2e2048e496b",
+    "locale": "es",
+    "alt": "Aventuras de snorkel, un servicio marino de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "a2cf57a5-b5de-5543-8922-7c7030784e7d",
+    "locale": "en",
+    "alt": "Mountain Adventure Excursions, ALMAR adventure service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "a2cf57a5-b5de-5543-8922-7c7030784e7d",
+    "locale": "ar",
+    "alt": "رحلات مغامرات الجبال، خدمة مغامرات من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "a2cf57a5-b5de-5543-8922-7c7030784e7d",
+    "locale": "es",
+    "alt": "Excursiones de aventura en la montaña, un servicio de aventura de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "770393cf-3ad7-5127-9e05-ed4db401f776",
+    "locale": "en",
+    "alt": "Highland Trekking Experiences, ALMAR adventure service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "770393cf-3ad7-5127-9e05-ed4db401f776",
+    "locale": "ar",
+    "alt": "تجارب المشي في المرتفعات، خدمة مغامرات من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "770393cf-3ad7-5127-9e05-ed4db401f776",
+    "locale": "es",
+    "alt": "Experiencias de trekking en las tierras altas, un servicio de aventura de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "30aa5754-13c0-574a-8567-562f4d7be9cf",
+    "locale": "en",
+    "alt": "Traditional Cooking Classes, ALMAR dining service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "30aa5754-13c0-574a-8567-562f4d7be9cf",
+    "locale": "ar",
+    "alt": "دروس الطبخ التقليدي، خدمة طعام من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "30aa5754-13c0-574a-8567-562f4d7be9cf",
+    "locale": "es",
+    "alt": "Clases de cocina tradicional, un servicio gastronómico de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "ca7c9716-df27-54a6-9493-6438247f90bf",
+    "locale": "en",
+    "alt": "Truffle & Foraging Experiences, ALMAR dining service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "ca7c9716-df27-54a6-9493-6438247f90bf",
+    "locale": "ar",
+    "alt": "تجارب جمع الكمأة والمأكولات البرية، خدمة طعام من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "ca7c9716-df27-54a6-9493-6438247f90bf",
+    "locale": "es",
+    "alt": "Experiencias de trufas y recolección, un servicio gastronómico de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "8c3a22db-80e7-5edb-a3f3-9e5c035a52e2",
+    "locale": "en",
+    "alt": "VIP Dinner & Show Experiences, ALMAR entertainment service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "8c3a22db-80e7-5edb-a3f3-9e5c035a52e2",
+    "locale": "ar",
+    "alt": "تجارب العشاء والعروض لكبار الشخصيات، خدمة ترفيه من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "8c3a22db-80e7-5edb-a3f3-9e5c035a52e2",
+    "locale": "es",
+    "alt": "Experiencias VIP de cena y espectáculo, un servicio de entretenimiento de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "2b2d9931-ed5b-505d-b256-58d0cbd1bc33",
+    "locale": "en",
+    "alt": "Rural Farm & Nature Visits, ALMAR culture service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "2b2d9931-ed5b-505d-b256-58d0cbd1bc33",
+    "locale": "ar",
+    "alt": "زيارات المزارع الريفية والطبيعة، خدمة ثقافية من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "2b2d9931-ed5b-505d-b256-58d0cbd1bc33",
+    "locale": "es",
+    "alt": "Visitas rurales a fincas y naturaleza, un servicio cultural de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "342c7540-1953-51bc-9371-21f38305fece",
+    "locale": "en",
+    "alt": "Wine & Spirits Tastings, ALMAR dining service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "342c7540-1953-51bc-9371-21f38305fece",
+    "locale": "ar",
+    "alt": "تذوق النبيذ والمشروبات الروحية، خدمة طعام من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "342c7540-1953-51bc-9371-21f38305fece",
+    "locale": "es",
+    "alt": "Degustaciones de vinos y licores, un servicio gastronómico de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "a7025bfe-b21e-54a4-a0d9-502761d2789c",
+    "locale": "en",
+    "alt": "Sunrise Yoga & Wellness Retreats, ALMAR wellness service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "a7025bfe-b21e-54a4-a0d9-502761d2789c",
+    "locale": "ar",
+    "alt": "ريتريتات اليوغا والعافية عند الشروق، خدمة عافية من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "a7025bfe-b21e-54a4-a0d9-502761d2789c",
+    "locale": "es",
+    "alt": "Retiros de yoga y bienestar al amanecer, un servicio de bienestar de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "eb9bdab1-9feb-5251-9eeb-b40ce8ac4215",
+    "locale": "en",
+    "alt": "Helicopter Transfers, ALMAR transport service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "eb9bdab1-9feb-5251-9eeb-b40ce8ac4215",
+    "locale": "ar",
+    "alt": "رحلات المروحية الخاصة، خدمة نقل من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "eb9bdab1-9feb-5251-9eeb-b40ce8ac4215",
+    "locale": "es",
+    "alt": "Traslados en helicóptero, un servicio de transporte de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "9fb21c65-ca5d-5dc1-af40-9bd10b1b065f",
+    "locale": "en",
+    "alt": "In-Villa Private Chef, ALMAR dining service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "9fb21c65-ca5d-5dc1-af40-9bd10b1b065f",
+    "locale": "ar",
+    "alt": "شيف خاص في الفيلا، خدمة طعام من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "9fb21c65-ca5d-5dc1-af40-9bd10b1b065f",
+    "locale": "es",
+    "alt": "Chef privado en la villa, un servicio gastronómico de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "66101cbf-5978-5eea-8f80-b9772263a8fb",
+    "locale": "en",
+    "alt": "Wellness & Spa Coordination, ALMAR wellness service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "66101cbf-5978-5eea-8f80-b9772263a8fb",
+    "locale": "ar",
+    "alt": "تنسيق العافية والسبا، خدمة عافية من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "66101cbf-5978-5eea-8f80-b9772263a8fb",
+    "locale": "es",
+    "alt": "Coordinación de bienestar y spa, un servicio de bienestar de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "e6156104-9f6f-5075-a86f-9491fda66d95",
+    "locale": "en",
+    "alt": "Personal Security Detail, ALMAR security service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "e6156104-9f6f-5075-a86f-9491fda66d95",
+    "locale": "ar",
+    "alt": "فريق الحماية الشخصية، خدمة أمن من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "e6156104-9f6f-5075-a86f-9491fda66d95",
+    "locale": "es",
+    "alt": "Equipo de seguridad personal, un servicio de seguridad de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "f313cfb6-a919-5df2-ad49-30741561aaab",
+    "locale": "en",
+    "alt": "Pop-Up Bar Experiences, ALMAR dining service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "f313cfb6-a919-5df2-ad49-30741561aaab",
+    "locale": "ar",
+    "alt": "تجارب البار المؤقت، خدمة طعام من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "f313cfb6-a919-5df2-ad49-30741561aaab",
+    "locale": "es",
+    "alt": "Experiencias de bar pop-up, un servicio gastronómico de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "ebf7b78d-4aba-52fc-b098-bb9523c2b49d",
+    "locale": "en",
+    "alt": "Pop-Up Cinema at Your Villa, ALMAR entertainment service in Colombia.",
+    "status": "published"
+  },
+  {
+    "image_id": "ebf7b78d-4aba-52fc-b098-bb9523c2b49d",
+    "locale": "ar",
+    "alt": "سينما مؤقتة في فيلتكم، خدمة ترفيه من المار في كولومبيا",
+    "status": "draft"
+  },
+  {
+    "image_id": "ebf7b78d-4aba-52fc-b098-bb9523c2b49d",
+    "locale": "es",
+    "alt": "Cine pop-up en su villa, un servicio de entretenimiento de ALMAR en Colombia",
+    "status": "draft"
+  },
+  {
+    "image_id": "ab7f3687-b165-5e7a-95dd-553594cc2e2a",
+    "locale": "en",
+    "alt": "Private City Guides",
+    "status": "published"
+  },
+  {
+    "image_id": "ab7f3687-b165-5e7a-95dd-553594cc2e2a",
+    "locale": "ar",
+    "alt": "مرشدون خاصون للمدن",
+    "status": "draft"
+  },
+  {
+    "image_id": "ab7f3687-b165-5e7a-95dd-553594cc2e2a",
+    "locale": "es",
+    "alt": "Guías privados de ciudad",
+    "status": "draft"
+  },
+  {
+    "image_id": "bf7b9a70-9beb-51d1-bf9e-a7dbc25082d3",
+    "locale": "en",
+    "alt": "Minimalist living room inside a Mediterranean villa",
+    "status": "published"
+  },
+  {
+    "image_id": "bf7b9a70-9beb-51d1-bf9e-a7dbc25082d3",
+    "locale": "ar",
+    "alt": "غرفة جلوس بسيطة داخل فيلا متوسطية",
+    "status": "draft"
+  },
+  {
+    "image_id": "bf7b9a70-9beb-51d1-bf9e-a7dbc25082d3",
+    "locale": "es",
+    "alt": "Sala de estar minimalista dentro de una villa mediterránea",
+    "status": "draft"
+  },
+  {
+    "image_id": "c2d5f871-6ce2-5486-88a9-ea8a09b2deeb",
+    "locale": "en",
+    "alt": "Black marble bathroom with a freestanding bathtub and a sea view",
+    "status": "published"
+  },
+  {
+    "image_id": "c2d5f871-6ce2-5486-88a9-ea8a09b2deeb",
+    "locale": "ar",
+    "alt": "حمّام من الرخام الأسود مع حوض استحمام قائم بذاته وإطلالة على البحر",
+    "status": "draft"
+  },
+  {
+    "image_id": "c2d5f871-6ce2-5486-88a9-ea8a09b2deeb",
+    "locale": "es",
+    "alt": "Baño de mármol negro con bañera exenta y vista al mar",
+    "status": "draft"
+  },
+  {
+    "image_id": "338e83be-3378-55e2-851c-c0a741183b2e",
+    "locale": "en",
+    "alt": "Arched hallway inside a Mediterranean modern hotel",
+    "status": "published"
+  },
+  {
+    "image_id": "338e83be-3378-55e2-851c-c0a741183b2e",
+    "locale": "ar",
+    "alt": "ممر مقوّس داخل فندق متوسطي حديث",
+    "status": "draft"
+  },
+  {
+    "image_id": "338e83be-3378-55e2-851c-c0a741183b2e",
+    "locale": "es",
+    "alt": "Pasillo arqueado dentro de un hotel mediterráneo moderno",
+    "status": "draft"
+  },
+  {
     "image_id": "db3c31d3-d6ae-5e4a-a0a7-72f7dc85cf74",
     "locale": "en",
     "alt": "Infinity pool blending into the ocean view, minimalist sun loungers in soft neutral fabric, curved architecture",

@@ -751,23 +751,58 @@ for (const slug of FOCUS) {
 
       // ---- services and experiences: content cards, the data's counts -----------------------------------------
       for (const size of ALL) {
-        test(`catalogue @${size.width}: services and experiences are cards, three from md and two below, none a link or a button`, async ({ page }) => {
+        test(`catalogue @${size.width}: services and experiences are links to their overlay, three from md and two below`, async ({ page }) => {
           const c = await context(locale, slug);
           const watched = await load(page, c, size);
           const catalog = await getCatalogForStay(locale, slug);
+          const experiencesPath = localePath(locale, "/experiences");
           for (const [id, items] of [
             ["services", catalog.services],
             ["experiences", catalog.experiences],
           ] as const) {
             const section = page.locator(`#${id}`);
             const listed = items.filter((item) => item.image).slice(0, 3);
-            await expect(section.locator("article")).toHaveCount(listed.length);
-            await expect(section.locator("a, button")).toHaveCount(0);
-            for (const item of listed) await expect(section).toContainText(item.name);
-            const shown = await section.locator("article").evaluateAll((els) => els.filter((el) => el.getClientRects().length > 0).length);
+            await expect(section.locator("a")).toHaveCount(listed.length);
+            await expect(section.locator("article")).toHaveCount(0);
+            await expect(section.locator("button")).toHaveCount(0);
+            // The hrefs are spelled out here, not built with the page's own helper.
+            expect(await section.locator("a").evaluateAll((els) => els.map((el) => el.getAttribute("href")))).toEqual(
+              listed.map((item) => experiencesPath + "?item=" + item.slug),
+            );
+            for (const [index, item] of listed.entries()) {
+              const link = section.locator("a").nth(index);
+              await expect(link).toContainText(item.name);
+              await expect(link.locator("img")).toHaveAttribute("src", item.image!.url);
+            }
+            const shown = await section.locator("a").evaluateAll((els) => els.filter((el) => el.getClientRects().length > 0).length);
             expect(shown, `${id} cards shown`).toBe(Math.min(listed.length, size.width >= MD ? 3 : 2));
           }
           expect(catalog.experiences.length).toBeGreaterThan(0);
+          await noProblems(watched);
+        });
+      }
+
+      for (const size of sizes(390, 1440)) {
+        test(`catalogue click @${size.width}: an experience card opens its overlay on /experiences in this language`, async ({ page }) => {
+          const c = await context(locale, slug);
+          const watched = await load(page, c, size);
+          const catalog = await getCatalogForStay(locale, slug);
+          const item = catalog.experiences.filter((i) => i.image).slice(0, 3)[0];
+          const experiencesPath = localePath(locale, "/experiences");
+          const link = page.locator("#experiences a").first();
+          // Centre it, so the 88px dock cannot cover it at 390.
+          await link.evaluate((el) => el.scrollIntoView({ block: "center" }));
+          await link.click();
+          await page.waitForURL((url) => url.pathname === experiencesPath, { timeout: 15_000 });
+          expect(new URL(page.url()).searchParams.get("item")).toBe(item.slug);
+          await expect(page.locator("html")).toHaveAttribute("lang", locale);
+          const dialog = page.getByRole("dialog");
+          await expect(dialog).toBeVisible({ timeout: 15_000 });
+          await expect(dialog.getByRole("heading", { level: 2, name: item.name, exact: true })).toBeVisible();
+          await page.waitForTimeout(500);
+          await page.keyboard.press("Escape");
+          await expect(page.getByRole("dialog")).toHaveCount(0);
+          expect(new URL(page.url()).searchParams.has("item")).toBe(false);
           await noProblems(watched);
         });
       }

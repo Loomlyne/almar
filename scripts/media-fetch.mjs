@@ -3,7 +3,10 @@
 // Fills the gitignored cache media-staging/<key> with the bytes of every manifest entry (plan 03.3-07).
 //
 //   node scripts/media-fetch.mjs              copy local sources, GET Framer sources, verify sha256
-//   node scripts/media-fetch.mjs --offline    no network: every needed download is an error
+//   node scripts/media-fetch.mjs --offline    no network: every needed download is an error; a LOCAL source
+//                                             (public/assets/img) is still copied, a copy is not a download
+//   --keys <file>                             only the keys listed in <file> (one per line, # comments); an unknown
+//                                             key, a duplicate or a bad key is exit 2 (plan 03.3-16)
 //   --root <dir>                              operate on another tree
 //
 // Plain GETs only, no gate, no Cloudflare. A file whose sha256 already matches the manifest is never fetched
@@ -29,11 +32,17 @@ import {
   formatMB,
   isMain,
   isWebp,
+  readKeyList,
   readManifest,
   sha256,
 } from "./media-lib.mjs";
 
 const USER_AGENT = "almar-media-fetch";
+
+/** A local entry is copied from public/; only a remote one needs the network. */
+function isLocalEntry(entry) {
+  return entry.source_kind === "local" || (typeof entry.source === "string" && entry.source.startsWith("/"));
+}
 
 async function sleep(ms) {
   if (ms > 0) await new Promise((r) => setTimeout(r, ms));
@@ -131,7 +140,7 @@ export async function fetchAll({
         return;
       }
       // A stale or damaged cache file: fetch it again below and compare with the manifest.
-    } else if (offline) {
+    } else if (offline && !isLocalEntry(entry)) {
       say(`MISSING ${entry.key} is not cached and --offline forbids a download`);
       result.failed++;
       return;
@@ -139,7 +148,7 @@ export async function fetchAll({
 
     let bytes;
     let how;
-    if (entry.source_kind === "local" || (typeof entry.source === "string" && entry.source.startsWith("/"))) {
+    if (isLocalEntry(entry)) {
       if (!LOCAL_SOURCE_RE.test(entry.source)) throw new Error(`local source ${JSON.stringify(entry.source)} is not /assets/img/<file>.webp`);
       bytes = fs.readFileSync(path.join(publicDir, entry.source));
       how = "copied";
@@ -191,17 +200,27 @@ export async function fetchAll({
   return result;
 }
 
+const USAGE = "usage: node scripts/media-fetch.mjs [--offline] [--keys <file>] [--root <dir>]";
+
 /** Returns the exit code. */
 export async function main(argv = [], { log = console.log, fetch = globalThis.fetch } = {}) {
   let offline = false;
   let root;
+  let keysFile;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--offline") offline = true;
     else if (a === "--root") root = path.resolve(argv[++i] ?? "");
-    else {
+    else if (a === "--keys") {
+      keysFile = argv[++i];
+      if (!keysFile) {
+        log("media-fetch: --keys needs a file");
+        log(USAGE);
+        return 2;
+      }
+    } else {
       log(`media-fetch: unknown argument ${JSON.stringify(a)}`);
-      log("usage: node scripts/media-fetch.mjs [--offline] [--root <dir>]");
+      log(USAGE);
       return 2;
     }
   }
@@ -212,6 +231,16 @@ export async function main(argv = [], { log = console.log, fetch = globalThis.fe
   } catch (err) {
     log(`media-fetch: ${err.message}`);
     return 1;
+  }
+  if (keysFile !== undefined) {
+    try {
+      const keys = new Set(readKeyList(keysFile, manifest));
+      log(`media-fetch: --keys ${keysFile}: ${keys.size} of ${manifest.length} manifest entries`);
+      manifest = manifest.filter((e) => keys.has(e.key));
+    } catch (err) {
+      log(`media-fetch: ${err.message}`);
+      return 2;
+    }
   }
   const result = await fetchAll({ manifest, cacheDir: paths.cacheDir, publicDir: paths.publicDir, offline, fetch, log });
   return result.failed > 0 ? 1 : 0;

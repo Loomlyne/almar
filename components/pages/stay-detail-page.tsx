@@ -23,6 +23,7 @@ import { Section } from "../ui/section";
 import { Slider } from "../ui/slider";
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
 import { PublicFrame } from "../site/public-frame";
+import { toCatalogQuery } from "../../lib/data/catalog-filter";
 import { getCatalogForStay } from "../../lib/data/experiences";
 import { getBlockedDates, getRelatedStays, getStay, getStaySlugs } from "../../lib/data/stays";
 import type { CatalogItem, Locale } from "../../lib/data/types";
@@ -70,13 +71,17 @@ export async function generateStayMetadata(locale: Locale, slug: string): Promis
   };
 }
 
-function catalogCards(items: CatalogItem[], ratio: number, centered: boolean) {
+// Each card is one link to that item's overlay on /experiences, in the page's language (design 4.2 row 3). The
+// query goes after localePath, which refuses a "?". No type, no stay: the address names the item only.
+function catalogCards(items: CatalogItem[], ratio: number, centered: boolean, locale: Locale) {
+  const experiencesPath = localePath(locale, "/experiences");
   return items
     .filter((item) => item.image)
     .slice(0, 3)
     .map((item, index) => (
       <li key={item.slug} className={cardItem(index)}>
         <MediaCard
+          href={experiencesPath + toCatalogQuery({ destinations: [], stays: [], item: item.slug })}
           image={{ src: item.image!.url, alt: item.image!.alt }}
           title={item.name}
           ratio={ratio}
@@ -149,8 +154,8 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
     { label: copy.facts.neighborhood, value: stay.neighborhood },
   ].filter((fact) => fact.value !== null && fact.value !== "");
 
-  const services = catalogCards(catalog.services, 2 / 3, false);
-  const experiences = catalogCards(catalog.experiences, 1, true);
+  const services = catalogCards(catalog.services, 2 / 3, false, locale);
+  const experiences = catalogCards(catalog.experiences, 1, true, locale);
   const g = copy.gallery;
 
   return (

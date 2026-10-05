@@ -17,7 +17,7 @@ import {
   writeTargetFiles,
 } from "../scripts/crawl-files.mjs";
 import { LOCALES as LOCALE_PATH_LOCALES, localePath } from "../lib/locale-path.ts";
-import { readStaySlugs, slice1Documents } from "../scripts/media-lib.mjs";
+import { SLICE1_PAGES, publicDocuments, readStaySlugs } from "../scripts/media-lib.mjs";
 
 // Plan 03.3-08, Task 2. The noindex trap: a preview-only noindex header or disallow-all robots.txt must never
 // reach the production folder. Everything here runs on temp directories; nothing builds and nothing deploys.
@@ -44,7 +44,7 @@ function outFolder(root, target) {
 
 /** The slice-1 documents (42) plus 12 English-only Framer documents. */
 const SLUGS = readStaySlugs();
-const SLICE1 = slice1Documents(SLUGS);
+const SLICE1 = publicDocuments(SLUGS, SLICE1_PAGES);
 const EN_ONLY = [
   "about.html",
   "blog.html",

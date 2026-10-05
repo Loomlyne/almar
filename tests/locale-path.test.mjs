@@ -113,7 +113,43 @@ test("matchPublicPage matches the five patterns and one [a-z0-9-] segment", () =
   assert.equal(matchPublicPage("/blog/why-medellin-is-redefining-luxury-travel"), "/blog/[post]");
   assert.equal(matchPublicPage("/blog/a/b"), null);
   assert.equal(siteHref("ar", "/blog"), "/ar/blog");
-  assert.deepEqual([...PUBLIC_PAGES], ["/", "/private-stays", "/private-stays/[stay]", "/about", "/contact", "/blog", "/blog/[post]"]);
+  assert.deepEqual([...PUBLIC_PAGES], [
+    "/",
+    "/private-stays",
+    "/private-stays/[stay]",
+    "/about",
+    "/contact",
+    "/blog",
+    "/blog/[post]",
+    "/destinations",
+    "/experiences",
+  ]);
+});
+
+test("/destinations is a public page in every locale; a destination slug under it is not", () => {
+  assert.equal(matchPublicPage("/destinations"), "/destinations");
+  assert.equal(matchPublicPage("/destinations/cartagena"), null);
+  assert.equal(siteHref("ar", "/destinations"), "/ar/destinations");
+  assert.equal(siteHref("es", "/destinations"), "/es/destinations");
+  assert.equal(siteHref("en", "/destinations"), "/destinations");
+  assert.deepEqual(localeHrefs("/destinations"), {
+    en: "/destinations",
+    ar: "/ar/destinations",
+    es: "/es/destinations",
+  });
+  assert.equal(siteHref("ar", "/login"), "/login");
+});
+
+test("/experiences is a public page in every locale; a slug under it is not; /contact is localised (slice 3A)", () => {
+  assert.equal(matchPublicPage("/experiences"), "/experiences");
+  assert.equal(matchPublicPage("/experiences/x"), null);
+  assert.equal(siteHref("ar", "/experiences"), "/ar/experiences");
+  assert.equal(siteHref("en", "/experiences"), "/experiences");
+  assert.equal(
+    siteHref("es", "/experiences?type=service&item=vip-airport-meet-greet"),
+    "/es/experiences?type=service&item=vip-airport-meet-greet",
+  );
+  assert.equal(siteHref("ar", "/contact"), "/ar/contact");
 });
 
 test("siteHref localises only pages that exist in every locale", () => {
@@ -123,7 +159,8 @@ test("siteHref localises only pages that exist in every locale", () => {
   assert.equal(siteHref("en", "/about"), "/about");
   assert.equal(siteHref("ar", "/contact#inquiry"), "/ar/contact#inquiry");
   assert.equal(siteHref("ar", "/blog"), "/ar/blog");
-  assert.equal(siteHref("ar", "/destinations"), "/destinations");
+  assert.equal(siteHref("ar", "/destinations"), "/ar/destinations");
+  assert.equal(siteHref("ar", "/login"), "/login");
   assert.equal(siteHref("es", "/"), "/es/");
   assert.equal(siteHref("ar", "/private-stays#filters"), "/ar/private-stays#filters");
 });
@@ -158,7 +195,7 @@ test("localeAlternates: canonical plus four alternates, x-default is English", (
       "x-default": `${o}/about`,
     },
   });
-  assert.throws(() => localeAlternates("en", "/destinations"));
+  assert.throws(() => localeAlternates("en", "/login"));
 });
 
 test("isLocale and localeDir", () => {

@@ -3,9 +3,11 @@
 //      framerusercontent.com, files.catbox.moe or videos.pexels.com; fixtures hold keys, never URLs; the placeholder
 //      host lives in lib/data/media.ts only.
 //   2. Constants: lib/data/media.ts is coherent (placeholder iff flag true; otherwise an https origin).
-//   3. out/ scan (only with MEDIA_CHECK_OUT=1): every public React document the guard lists (slice 1's, the blog's, plus About and Contact once they are in PUBLIC_PAGES)
-//      points at the media base and nowhere else.
+//   3. out/ scan (only with MEDIA_CHECK_OUT=1): coverage (every public React document the guard lists, About and
+//      Contact included, names real manifest keys, and the pages that must carry their images do) in both media
+//      states, and the host scan once the flag is false.
 //   4. assertMediaReady() and the `--deploy` CLI the controller runs before every deploy.
+// Document counts are computed from PUBLIC_PAGES and stays.json, never written as a number (plan 03.3-16).
 // The red cases run on scratch copies in os.tmpdir(); the scan functions below are this file's own, so the guard
 // cannot go silent because the script it also tests changed.
 import { test } from "node:test";
@@ -14,10 +16,10 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { REPO_ROOT, collectFixtureImages, isLivePost, readPostSlugs, readStaySlugs, reactDocuments, slice1Documents, slice3Documents } from "../scripts/media-lib.mjs";
-import { loadTs } from "./helpers/load-ts.mjs";
 import { PUBLIC_PAGES } from "../lib/locale-path.ts";
-import { assertMediaReady, imageReferences, main as guardMain, readMediaConstants, scanOut } from "../scripts/media-guard.mjs";
+import { REPO_ROOT, collectFixtureImages, isLivePost, readManifest, readPostSlugs, readStaySlugs, publicDocuments, reactDocuments, slice3Documents } from "../scripts/media-lib.mjs";
+import { loadTs } from "./helpers/load-ts.mjs";
+import { assertMediaReady, imageReferences, main as guardMain, readMediaConstants, referencedKeys, scanOut } from "../scripts/media-guard.mjs";
 
 const THIRD_PARTY = ["framerusercontent.com", "files.catbox.moe", "videos.pexels.com"];
 const PLACEHOLDER = "media-pending.invalid";
@@ -103,12 +105,16 @@ function checkConstants(text) {
   return problems;
 }
 
+const SCRATCH_KEYS = ["home/hero/poster.webp", "stays/a/hero.webp", "stays/a/gallery-1.webp"];
+
 function scratchTree(label) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), `almar-guard-${label}-`));
   fs.mkdirSync(path.join(root, "lib", "data", "fixtures"), { recursive: true });
   fs.mkdirSync(path.join(root, "app"), { recursive: true });
   fs.copyFileSync(path.join(REPO_ROOT, "lib", "data", "fixtures", "stays.json"), path.join(root, "lib", "data", "fixtures", "stays.json"));
   fs.copyFileSync(path.join(REPO_ROOT, "lib", "data", "fixtures", "posts.json"), path.join(root, "lib", "data", "fixtures", "posts.json"));
+  // the manifest holds the keys writeDocs uses, so the clean scan has nothing to report
+  fs.writeFileSync(path.join(root, "lib", "data", "media-manifest.json"), JSON.stringify(SCRATCH_KEYS.map((key) => ({ key })), null, 2) + "\n");
   return root;
 }
 
@@ -124,7 +130,7 @@ const GOOD_BASE = "https://media.example.test";
 // The documents of a scratch root: its own stays and posts, passed explicitly.
 const docsOf = (root) => {
   const fixtures = path.join(root, "lib", "data", "fixtures");
-  return reactDocuments(readStaySlugs(fixtures), readPostSlugs(fixtures));
+  return publicDocuments(readStaySlugs(fixtures), undefined, readPostSlugs(fixtures));
 };
 
 function writeDocs(root, base, { out = "out", mutate } = {}) {
@@ -192,7 +198,9 @@ test("no non-Framer file under app/, components/, lib/copy/ or lib/data/ names f
   const { scanned, framer } = sourceFiles(REPO_ROOT);
   assert.ok(scanned.length > 100, `the scan read only ${scanned.length} files; it must not pass by reading nothing`);
   assert.ok(scanned.some((f) => f.r === "lib/data/fixtures/stays.json") && scanned.some((f) => f.r.startsWith("components/")));
-  assert.ok(framer.length >= 1, "the Framer route files are skipped, not scanned");
+  // Slice 2 (destinations, experiences) and slice 3A (about, contact) converted the last Framer pages: no Framer route
+  // file is left to skip. The exception itself is proven on a scratch tree in the next test.
+  assert.deepEqual(framer, [], "no Framer route file remains under app/");
   assert.deepEqual(scanSources(REPO_ROOT), []);
 });
 
@@ -200,8 +208,24 @@ test("the placeholder host appears nowhere in app/, components/, lib/ or scripts
   assert.deepEqual(scanPlaceholder(REPO_ROOT), []);
 });
 
-test("fixtures hold keys: collectFixtureImages finds the images and throws on no URL", () => {
-  assert.ok(collectFixtureImages().length >= 117);
+test("fixtures hold keys: the distinct media_key count of collectFixtureImages equals the manifest's entry count", () => {
+  const distinct = new Set(collectFixtureImages().map((i) => i.media_key));
+  assert.ok(distinct.size > 0);
+  assert.equal(distinct.size, readManifest().length);
+});
+
+test("publicDocuments is computed from PUBLIC_PAGES: 3 locales x (static pages + published stays + live posts), the new pages named, no services", () => {
+  const per = { "/private-stays/[stay]": readStaySlugs().length, "/blog/[post]": readPostSlugs().length };
+  const perLocale = PUBLIC_PAGES.reduce((n, p) => n + (per[p] ?? 1), 0);
+  const docs = publicDocuments();
+  assert.equal(docs.length, 3 * perLocale);
+  assert.equal(new Set(docs).size, docs.length);
+  assert.deepEqual(reactDocuments(), docs, "reactDocuments is an alias of publicDocuments: one list");
+  for (const slug of readPostSlugs()) assert.ok(docs.includes(`blog/${slug}.html`) && docs.includes(`ar/blog/${slug}.html`), slug);
+  for (const d of ["blog.html", "ar/blog.html", "es/blog.html", "destinations.html", "ar/destinations.html", "es/destinations.html", "experiences.html", "ar/experiences.html", "es/experiences.html"]) {
+    assert.ok(docs.includes(d), `${d} is in the list`);
+  }
+  assert.ok(!docs.some((d) => d.includes("services")), "services have no page of their own");
 });
 
 test("RED: a page file with a Framer URL, a catbox URL or a pexels URL is caught with file and line", () => {
@@ -269,16 +293,68 @@ test("RED: a media.ts with the flag false and an .invalid URL, a path, a trailin
 // 3. The built documents (opt in) -----------------------------------------------------------------------------------
 
 const checkOut = process.env.MEDIA_CHECK_OUT === "1";
+const outSkip = !checkOut && "set MEDIA_CHECK_OUT=1 after the assembler has written out/";
+const outTitle = (t) => (checkOut ? t : `${t} (SKIPPED: set MEDIA_CHECK_OUT=1)`);
+const outDir = path.join(REPO_ROOT, "out");
+const fixture = (name) => JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "lib", "data", "fixtures", name), "utf8"));
+const outHtml = (doc) => fs.readFileSync(path.join(outDir, ...doc.split("/")), "utf8");
 
-test(checkOut ? "out/: every React document the guard lists points at the media base and nowhere else" : "out/: every React document the guard lists points at the media base and nowhere else (SKIPPED: set MEDIA_CHECK_OUT=1)", { skip: !checkOut && "set MEDIA_CHECK_OUT=1 after the assembler has written out/" }, () => {
-  const outDir = path.join(REPO_ROOT, "out");
+test(outTitle("out/ coverage: every document is found and names only manifest keys (both media states)"), { skip: outSkip }, () => {
   assert.ok(fs.existsSync(outDir), "out/ is missing: run the assembler first (with MEDIA_CHECK_OUT=1 a missing out/ is a failure)");
-  const { base } = readMediaConstants(REPO_ROOT);
-  const r = scanOut(outDir, base);
+  const { base, placeholder } = readMediaConstants(REPO_ROOT);
+  const manifestKeys = new Set(readManifest().map((e) => e.key));
+  const docs = publicDocuments();
+  const r = scanOut(outDir, base, { documents: docs, manifestKeys, placeholderBase: placeholder });
   assert.deepEqual(r.violations, []);
-  assert.equal(r.documents, reactDocuments().length);
+  assert.equal(r.documents, docs.length);
   assert.ok(r.images > 0);
+  const union = new Set();
+  for (const d of docs) for (const k of referencedKeys(outHtml(d), base)) union.add(k);
+  const unreferenced = [...manifestKeys].filter((k) => !union.has(k)).sort();
+  console.log(`# media coverage: ${docs.length} documents, ${r.images} image references, ${union.size} distinct keys referenced, ${unreferenced.length} manifest keys referenced by no document`);
+  console.log(`# unreferenced manifest keys: ${unreferenced.join(", ") || "none"}`);
 });
+
+test(outTitle("out/ coverage: /destinations carries the 5 published card heroes and the 3 page heroes, the heroes as <img> in the static HTML"), { skip: outSkip }, () => {
+  const { base } = readMediaConstants(REPO_ROOT);
+  const cards = fixture("destinations.json").filter((d) => d.is_published).map((d) => d.hero_image.media_key);
+  const heroes = fixture("destinations-page.json").hero.map((h) => h.media_key);
+  assert.equal(cards.length, 5);
+  assert.deepEqual(heroes, ["home/gallery/03.webp", "destinations/page/hero-2.webp", "destinations/page/hero-3.webp"]);
+  for (const doc of ["destinations.html", "ar/destinations.html", "es/destinations.html"]) {
+    const html = outHtml(doc);
+    const keys = referencedKeys(html, base);
+    for (const k of [...cards, ...heroes]) assert.ok(keys.has(k), `${doc} does not reference ${k}`);
+    const imgs = new Set(imageReferences(html).filter((r) => r.kind === "img src").map((r) => r.url));
+    for (const k of heroes) assert.ok(imgs.has(`${base}/${k}`), `${doc}: ${k} is not an <img src> in the static HTML`);
+  }
+});
+
+test(outTitle("out/ coverage: /experiences carries every published catalogue image"), { skip: outSkip }, () => {
+  const { base } = readMediaConstants(REPO_ROOT);
+  const rows = fixture("catalog.json").filter((c) => c.is_published);
+  const keys = rows.map((c) => c.image.media_key);
+  assert.ok(keys.length > 0 && new Set(keys).size === keys.length, "one distinct image per published catalogue row");
+  for (const doc of ["experiences.html", "ar/experiences.html", "es/experiences.html"]) {
+    const got = referencedKeys(outHtml(doc), base);
+    assert.deepEqual(keys.filter((k) => !got.has(k)), [], `${doc} lacks catalogue image keys`);
+  }
+  console.log(`# /experiences carries ${keys.length} catalogue image keys in each of 3 languages`);
+});
+
+const flag = readMediaConstants(REPO_ROOT).placeholder;
+test(
+  outTitle(flag ? "out/ host: the full scan with the manifest and no placeholderBase (SKIPPED: host checks wait for the flip, runbook C9)" : "out/ host: the full scan has no violation"),
+  { skip: outSkip || (flag && "host checks wait for the flip, runbook C9") },
+  () => {
+    const { base } = readMediaConstants(REPO_ROOT);
+    const manifestKeys = new Set(readManifest().map((e) => e.key));
+    const docs = publicDocuments();
+    const r = scanOut(outDir, base, { documents: docs, manifestKeys });
+    assert.deepEqual(r.violations, []);
+    assert.equal(r.documents, docs.length);
+  },
+);
 
 // 4. assertMediaReady, scanOut and the CLI --------------------------------------------------------------------------
 
@@ -366,7 +442,7 @@ const reactAttr = (value) => value.replaceAll("&", "&amp;").replaceAll('"', "&qu
 
 test("scanOut allows the inline brand SVG of the light footer on an <img src>, counts it, and nothing else of that form", () => {
   const root = scratchTree("scan-inline");
-  const docs = slice1Documents(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const docs = docsOf(root);
   const reportOf = (src, { as = "img" } = {}) => {
     writeDocs(root, GOOD_BASE, {
       mutate: (doc, html) => {
@@ -384,7 +460,7 @@ test("scanOut allows the inline brand SVG of the light footer on an <img src>, c
   writeDocs(root, GOOD_BASE, { mutate: (doc, html) => html.replace("<img ", `<img alt="ALMAR" src="${reactAttr(inlineSvgSrc(WORDMARK_SVG))}"><img `) });
   const ok = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
   assert.deepEqual(ok.violations, []);
-  assert.equal(ok.images, 42 * 5, "the inline wordmark is counted and checked, not skipped");
+  assert.equal(ok.images, docs.length * 5, "the inline wordmark is counted and checked, not skipped");
 
   // an inline SVG that pulls an image off the network is a violation, whatever host it names
   const catbox = reportOf(inlineSvgSrc('<svg xmlns="http://www.w3.org/2000/svg"><image href="https://files.catbox.moe/x.png"/></svg>'));
@@ -461,7 +537,7 @@ test("RED: a document with a framerusercontent src, a placeholder host, a foreig
 
 test("RED: About and Contact documents with a third-party host, a framer img or no file are reported (the six documents of slice 3)", () => {
   const root = scratchTree("scan-slice3");
-  const pages = [...PUBLIC_PAGES, "/about", "/contact"];
+  const pages = PUBLIC_PAGES;
   const fixtures = path.join(root, "lib", "data", "fixtures");
   const docs = reactDocuments(readStaySlugs(fixtures), readPostSlugs(fixtures), pages);
   const six = ["about.html", "ar/about.html", "es/about.html", "contact.html", "ar/contact.html", "es/contact.html"];
@@ -489,17 +565,17 @@ test("RED: About and Contact documents with a third-party host, a framer img or 
 });
 
 test("slice3Documents follows PUBLIC_PAGES: nothing until /about and /contact are public, exactly six after", () => {
+  const six = ["about.html", "contact.html", "ar/about.html", "ar/contact.html", "es/about.html", "es/contact.html"];
   assert.deepEqual(slice3Documents(["/", "/private-stays", "/private-stays/[stay]"]), []);
-  assert.deepEqual(slice3Documents([...PUBLIC_PAGES, "/about", "/contact"]), [
-    "about.html", "contact.html", "ar/about.html", "ar/contact.html", "es/about.html", "es/contact.html",
-  ]);
+  assert.deepEqual(slice3Documents(PUBLIC_PAGES), six);
   assert.equal(slice3Documents(["/about"]).length, 3);
   const slugs = readStaySlugs();
   const posts = readPostSlugs();
   const without = PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact");
-  const base = [...slice1Documents(slugs), ...reactDocuments(slugs, posts, []).slice(slice1Documents(slugs).length)];
-  assert.equal(reactDocuments(slugs, posts, [...PUBLIC_PAGES, "/about", "/contact"]).length, base.length + 6);
-  assert.deepEqual(reactDocuments(slugs, posts, without), base);
+  const all = reactDocuments(slugs, posts, PUBLIC_PAGES);
+  for (const d of six) assert.ok(all.includes(d), `${d} is guarded while /about and /contact are public`);
+  assert.equal(all.length, reactDocuments(slugs, posts, without).length + six.length);
+  assert.deepEqual(all.filter((d) => !six.includes(d)), reactDocuments(slugs, posts, without));
 });
 
 test("main --deploy: exit 0 and the OK line for a good scratch root; exit 1 for a bad document, a missing out/, a placeholder", () => {
@@ -533,6 +609,64 @@ test("main --deploy: exit 0 and the OK line for a good scratch root; exit 1 for 
   // no --deploy
   assert.equal(guardMain([], { log: () => {} }), 2);
   assert.equal(guardMain(["--nope"], { log: () => {} }), 2);
+});
+
+test("referencedKeys drops query and fragment, ignores refs outside the base (the wordmarks too) and returns a Set", () => {
+  const html =
+    `<img src="${GOOD_BASE}/catalog/a.webp?v=2" srcset="${GOOD_BASE}/catalog/a.webp 1x, ${GOOD_BASE}/catalog/b.webp#x 2x">` +
+    `<img src="/_next/static/media/Poly_White.3f2a9c1d.svg"><img src="https://other.test/catalog/z.webp">` +
+    `<meta property="og:image" content="${GOOD_BASE}/home/hero/poster.webp">`;
+  const keys = referencedKeys(html, GOOD_BASE);
+  assert.ok(keys instanceof Set);
+  assert.deepEqual([...keys].sort(), ["catalog/a.webp", "catalog/b.webp", "home/hero/poster.webp"]);
+});
+
+test("RED: a reference under the base to a key the manifest does not hold is `<kind> key <key> is not in lib/data/media-manifest.json`; the wordmark is not a key", () => {
+  const root = scratchTree("scan-key");
+  const docs = docsOf(root);
+  const manifestKeys = new Set(SCRATCH_KEYS);
+  writeDocs(root, GOOD_BASE, {
+    mutate: (doc, html) =>
+      doc === "index.html"
+        ? html.replace("<img ", `<img alt="" src="/_next/static/media/Poly_White.3f2a9c1d.svg"><img alt="" src="${GOOD_BASE}/catalog/not-in-manifest.webp"><img `)
+        : html,
+  });
+  const r = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs, manifestKeys });
+  assert.deepEqual(r.violations.map((v) => `${v.document}: ${v.problem}`), ["index.html: img src key catalog/not-in-manifest.webp is not in lib/data/media-manifest.json"]);
+  // without manifestKeys the same tree is clean (the option is what turns the check on)
+  assert.deepEqual(scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs }).violations, []);
+});
+
+test("RED: the CLI exits 1 on a key the manifest does not hold, and exits 1 naming the manifest when the file is missing", () => {
+  const root = scratchTree("cli-key");
+  setMedia(root, { base: GOOD_BASE, placeholder: false });
+  writeDocs(root, GOOD_BASE, { mutate: (doc, html) => (doc === "es/index.html" ? html.replace("</body>", `<img alt="" src="${GOOD_BASE}/catalog/not-in-manifest.webp"></body>`) : html) });
+  const logs = [];
+  assert.equal(guardMain(["--deploy", "--root", root], { log: (l) => logs.push(l) }), 1);
+  assert.ok(logs.includes("media-guard: es/index.html: img src key catalog/not-in-manifest.webp is not in lib/data/media-manifest.json"), logs.join("\n"));
+  fs.rmSync(path.join(root, "lib", "data", "media-manifest.json"));
+  logs.length = 0;
+  assert.equal(guardMain(["--deploy", "--root", root], { log: (l) => logs.push(l) }), 1);
+  assert.match(logs.join("\n"), /media-manifest\.json/);
+});
+
+test("RED: placeholderBase ignores exactly the base's own host; any other .invalid host is still a violation; with the flag off the base's own host is one", () => {
+  const PBASE = `https://${PLACEHOLDER}`;
+  const root = scratchTree("scan-pb");
+  const docs = docsOf(root);
+  writeDocs(root, PBASE);
+  const manifestKeys = new Set(SCRATCH_KEYS);
+  const on = scanOut(path.join(root, "out"), PBASE, { documents: docs, manifestKeys, placeholderBase: true });
+  assert.deepEqual(on.violations, []);
+  assert.equal(on.images, docs.length * 4);
+  const off = scanOut(path.join(root, "out"), PBASE, { documents: docs, manifestKeys, placeholderBase: false });
+  assert.equal(off.violations.length, docs.length, "every document names the placeholder host when the flag is off");
+  assert.ok(off.violations.every((v) => v.problem === `contains the placeholder host ${PLACEHOLDER}`));
+  writeDocs(root, PBASE, { mutate: (doc, html) => (doc === "index.html" ? html.replace("</body>", '<img alt="" src="https://other.invalid/x.webp"></body>') : html) });
+  const other = scanOut(path.join(root, "out"), PBASE, { documents: docs, manifestKeys, placeholderBase: true }).violations.map((v) => `${v.document}: ${v.problem}`);
+  assert.ok(other.includes("index.html: contains the placeholder host other.invalid"), other.join("\n"));
+  assert.ok(other.includes('index.html: img src "https://other.invalid/x.webp" does not start with https://media-pending.invalid/'), other.join("\n"));
+  assert.equal(other.filter((l) => !l.startsWith("index.html: ")).length, 0);
 });
 
 test("`node scripts/media-guard.mjs --deploy` exits 1 and names runbook step C9 while the flag is true", () => {

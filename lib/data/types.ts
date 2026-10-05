@@ -227,6 +227,10 @@ export type CatalogItem = RowMeta & {
 
   destination_ids: Uuid[];
   stay_ids: Uuid[];
+  /** Slugs of destination_ids, same order. Joined from destination_ids / stay_ids; a join on catalog_destinations / catalog_stays in Supabase (design 3.2). */
+  destination_slugs: string[];
+  /** Slugs of stay_ids, same order (joined, see destination_slugs). */
+  stay_slugs: string[];
 
   is_published: boolean;
   position: number;

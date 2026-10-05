@@ -6,7 +6,7 @@ import { HOME_COPY } from "../../../lib/copy/home.ts";
 import { HOME_PAGE_COPY } from "../../../lib/copy/home-page.ts";
 import { JOURNEY_COPY } from "../../../lib/copy/journey.ts";
 import { MEDIA_BASE_URL } from "../../../lib/data/media.ts";
-import { localeAlternates, localeDir } from "../../../lib/locale-path.ts";
+import { localeAlternates, localeDir, localePath } from "../../../lib/locale-path.ts";
 
 // Plan 03.3-04 Task 5: the three built home documents, read from the assembled out/ folder.
 // Not in the tests/*.test.mjs glob on purpose: it needs `node scripts/assemble-cloudflare.mjs` first.
@@ -139,5 +139,24 @@ for (const [locale, doc] of Object.entries(html)) {
       const links = [...doc.matchAll(/<(?:a|button)\b[^>]*>([^<]*)</g)].map((m) => decode(m[1]).trim());
       assert.equal(links.includes(name), false, `${locale}: a control named ${name}`);
     }
+  });
+}
+
+// Plan 03.3-15: the home's service cards and View All Services point at /experiences in the document's language.
+// The three slugs are the signed home's trio, pinned on purpose.
+const HOME_SERVICE_SLUGS = ["24-7-private-concierge", "luxury-ground-transport", "vip-airport-meet-greet"];
+
+for (const [locale, doc] of Object.entries(html)) {
+  test(`${locale}: service cards and View All Services point at /experiences in the document's language`, () => {
+    const text = decode(doc);
+    const experiences = localePath(locale, "/experiences");
+    const count = (needle) => text.split(needle).length - 1;
+    for (const slug of HOME_SERVICE_SLUGS) {
+      const href = `href="${experiences}?type=service&item=${slug}"`;
+      assert.equal(count(href), 1, `${locale}: ${href}`);
+    }
+    assert.equal(count(`href="${experiences}?type=service"`), 1, `${locale}: View All Services`);
+    assert.equal(text.includes('href="/services'), false, `${locale}: a /services link`);
+    assert.equal(text.includes('href="./services'), false, `${locale}: a ./services link`);
   });
 }
