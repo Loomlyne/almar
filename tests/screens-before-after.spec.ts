@@ -8,7 +8,8 @@ const MODE = process.env.SCREENS_MODE === "before" ? "before" : "after";
 
 const ROUTES = [
   { path: "/dashboard", slug: "dashboard", ownLanguageControl: false },
-  { path: "/account", slug: "account", ownLanguageControl: true },
+  // /account needs a session since 02-02: the hub renders through the harness with a fixture guest.
+  { path: "/__harness?c=guest-account&s=hub&l=en", slug: "account", ownLanguageControl: true },
   { path: "/login", slug: "login", ownLanguageControl: true },
   { path: "/booking/trip", slug: "booking-trip", ownLanguageControl: true },
 ] as const;
@@ -69,6 +70,13 @@ for (const route of ROUTES) {
         await page.goto(route.path);
         await page.waitForLoadState("networkidle");
         if (locale === "ar") await chooseArabic(page, route.ownLanguageControl);
+        // /account harness has no backend: the language switch calls savePreferences, which fails, and its status line
+        // appeared at a varying time (page height 23px off). Wait for it so every run captures the same final state.
+        if (locale === "ar" && route.slug === "account") {
+          await expect(
+            page.getByRole("status").filter({ hasText: "لم يتم الحفظ. حاول مرة أخرى." }),
+          ).toBeVisible({ timeout: 15000 });
+        }
         await page.waitForLoadState("networkidle");
         await page.evaluate(() => document.fonts.ready);
         // Next dev overlay is not part of the product look.
@@ -83,7 +91,8 @@ for (const route of ROUTES) {
           return;
         }
 
-        const afterDir = path.join("tests", "screens", "after");
+        // Outside the Next-watched tree: a write under tests/ made dev recompile mid-run (500s, wrong heights).
+        const afterDir = path.join("test-results", "screens-after");
         mkdirSync(afterDir, { recursive: true });
         writeFileSync(path.join(afterDir, name), image);
         expect(image).toMatchSnapshot(["screens", "before", name], {

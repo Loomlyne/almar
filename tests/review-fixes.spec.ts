@@ -47,14 +47,16 @@ test.describe("W2 site nav phone menu", () => {
   test.use({ viewport: { width: 375, height: 800 } });
 
   test("Close returns focus to Menu", async ({ page }) => {
-    await page.goto("/account");
+    // /account needs a session since 02-02: the same hub through the harness, signed in as a fixture guest.
+    await page.goto("/__harness?c=guest-account&s=hub&l=en");
     await page.getByRole("button", { name: "Menu", exact: true }).click();
     await page.getByRole("button", { name: "Close menu", exact: true }).click();
     await expect(page.getByRole("button", { name: "Menu", exact: true })).toBeFocused();
   });
 
   test("Escape closes only the open list, then the menu, then focus is on Menu", async ({ page }) => {
-    await page.goto("/account");
+    // /account needs a session since 02-02: the same hub through the harness, signed in as a fixture guest.
+    await page.goto("/__harness?c=guest-account&s=hub&l=en");
     await page.getByRole("button", { name: "Menu", exact: true }).click();
     const header = page.locator("header").first();
     const list = header.getByRole("combobox").first();

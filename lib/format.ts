@@ -25,3 +25,10 @@ export function formatDate(day: number, month: number, year: number): string {
 export function formatRange(start: string, end: string): string {
   return `${start} – ${end}`;
 }
+
+/** Arabic-Indic and Persian digits to Western digits (plan 02-03). */
+export function westernDigits(value: string): string {
+  return value
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0));
+}
