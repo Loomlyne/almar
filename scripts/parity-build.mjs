@@ -21,9 +21,10 @@
 //                At the end the stack is reset to empty (the pgTAP files expect it) and out/ holds build B.
 //   --against-today
 //                also build C from today's real fixtures (sample blocked dates included) and print, for the owner, every
-//                file that differs from A. Expected: the stay pages' and /private-stays' sample-dates note and struck-through
-//                days are gone (C-16), and wherever a stay row is serialised into client props `min_nights` is 1 instead of
-//                null (the database default, STAY-06; nothing visible changes from that).
+//                file that differs from A. Expected (measured 2026-10-05, 39 files = /private-stays and the 12 stay pages x
+//                en/ar/es): the sample-dates note ("Blocked dates here are examples.") is gone, and the stays' sample blocked
+//                days (six per stay) are gone from the booking bar's props (C-16). Nothing else differs: `min_nights` is 1
+//                in A and null in today's fixtures, but no built file serialises it.
 //   --live     read-only, for the controller after the import. No stack, no reset, no import. Build B reads the LIVE
 //                project through the public views with the anon key from the shell (NEXT_PUBLIC_SUPABASE_URL and
 //                NEXT_PUBLIC_SUPABASE_ANON_KEY); only GET requests of that read reach it. Build A gets the same values
