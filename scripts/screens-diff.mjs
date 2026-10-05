@@ -1,4 +1,4 @@
-// Compares tests/screens/before with tests/screens/after (or any two directories)
+// Compares tests/screens/before with test-results/screens-after (or any two directories)
 // with Playwright's bundled image comparator. No dependency added.
 //   node scripts/screens-diff.mjs                      print ratios, write tests/screens/INDEX.md
 //   node scripts/screens-diff.mjs --no-index A B       print ratios for directories A and B only
@@ -14,7 +14,7 @@ const args = process.argv.slice(2);
 const writeIndex = !args.includes("--no-index");
 const rest = args.filter((a) => !a.startsWith("--"));
 const beforeDir = rest[0] ?? "tests/screens/before";
-const afterDir = rest[1] ?? "tests/screens/after";
+const afterDir = rest[1] ?? "test-results/screens-after";
 
 /** Pixel ratio of differing pixels: 0 when identical, 1 when the sizes differ. */
 export function diffRatio(before, after) {
@@ -39,14 +39,14 @@ if (writeIndex) {
     "# Screens: before and after (plan 03.1-27)",
     "",
     "Before: `tests/screens/before/` (pre-conversion baseline, never regenerated).",
-    "After: `tests/screens/after/` (`SCREENS_MODE=after npx playwright test tests/screens-before-after.spec.ts --workers=1`).",
+    "After: `test-results/screens-after/` (`SCREENS_MODE=after npx playwright test tests/screens-before-after.spec.ts --workers=1`).",
     "Diff ratio: share of pixels that differ (0 = identical, 1 = different size or fully different). Produced by `node scripts/screens-diff.mjs`.",
     "",
     "| Route | Locale | Width | Before | After | Diff ratio |",
     "|---|---|---|---|---|---|",
     ...rows.map(
       (r) =>
-        `| ${r.route} | ${r.locale} | ${r.width} | tests/screens/before/${r.name} | tests/screens/after/${r.name} | ${r.ratio.toFixed(4)} |`,
+        `| ${r.route} | ${r.locale} | ${r.width} | tests/screens/before/${r.name} | test-results/screens-after/${r.name} | ${r.ratio.toFixed(4)} |`,
     ),
     "",
     "## Intended differences for owner UAT",

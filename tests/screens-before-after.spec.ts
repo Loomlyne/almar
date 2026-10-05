@@ -91,7 +91,8 @@ for (const route of ROUTES) {
           return;
         }
 
-        const afterDir = path.join("tests", "screens", "after");
+        // Outside the Next-watched tree: a write under tests/ made dev recompile mid-run (500s, wrong heights).
+        const afterDir = path.join("test-results", "screens-after");
         mkdirSync(afterDir, { recursive: true });
         writeFileSync(path.join(afterDir, name), image);
         expect(image).toMatchSnapshot(["screens", "before", name], {

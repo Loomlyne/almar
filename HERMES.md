@@ -308,7 +308,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - Location: `scripts/generate-theme.mjs` (`npm run tokens`, `npm run tokens:check`).
 - Triggers: After a `tokens.json` change; CI-style check in the controller's clean-clone run.
 - Location: `scripts/screens-diff.mjs`.
-- Triggers: Manual; writes `tests/screens/INDEX.md` from `tests/screens/before` vs `tests/screens/after`.
+- Triggers: Manual; writes `tests/screens/INDEX.md` from `tests/screens/before` vs `test-results/screens-after`.
 - Location: `npm run dev` (Next dev), `playwright.config.ts` (starts `npm run dev -- -H 127.0.0.1 -p 3010` with `ALMAR_HARNESS=1`; override port with `PW_PORT`), `npm test` = `node --test tests/*.test.mjs && playwright test`.
 - Location: `app/layout.tsx`, wraps React pages, `not-found.tsx` and `error.tsx`.
 ## Architectural Constraints
