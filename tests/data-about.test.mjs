@@ -17,7 +17,7 @@ const ARABIC_LETTER = /[؀-ۿ]/;
 const ARABIC_INDIC_DIGIT = /[٠-٩]/;
 const IMAGE_KEYS = ["alt", "height", "id", "position", "url", "width"];
 
-const HERO_ALT = "nfinity pool blending into the ocean view, minimalist sun loungers in soft neutral fabric, curved architecture";
+const HERO_ALT = "Infinity pool blending into the ocean view, minimalist sun loungers in soft neutral fabric, curved architecture";
 const STATEMENT =
   "ALMAR Private Journeys is a luxury travel agency created for travellers who want to experience Colombia with privacy, careful planning, and high standards of service.";
 const EN_CARDS = {
@@ -73,7 +73,7 @@ const editAbout = (fn) => (dir) => {
   writeFileSync(p, JSON.stringify(data, null, 2));
 };
 
-test("en hero: the live kicker and headline, the hero image with the published alt (typo kept)", async () => {
+test("en hero: the live kicker and headline, the hero image with its published alt (the live page's lost first letter restored)", async () => {
   const b = await about("en");
   assert.equal(b.hero.kicker, "Our Story");
   assert.equal(b.hero.headline, "Your Private Colombia");
@@ -81,7 +81,25 @@ test("en hero: the live kicker and headline, the hero image with the published a
   assert.equal(b.hero.image.width, 1820);
   assert.equal(b.hero.image.height, 1024);
   assert.equal(b.hero.image.alt, HERO_ALT);
-  assert.ok(b.hero.image.alt.startsWith("nfinity pool"));
+  // The live Framer alt began "nfinity pool" (a lost first letter). The same string feeds og:image and twitter:image alt
+  // in aboutMetadata, so it is fixed at the source, in image-translations.json, and nowhere else.
+  assert.ok(b.hero.image.alt.startsWith("Infinity pool"));
+  assert.ok(!b.hero.image.alt.startsWith("nfinity"));
+});
+
+test("no published English alt on the About page starts with a lowercase letter (a lost first letter shows up as one)", () => {
+  const a = fixture("about");
+  const alts = fixture("image-translations");
+  const images = [a.hero.image, ...a.intro.images, a.intro.still, a.cta_image, ...a.cards.map((c) => c.image)];
+  let described = 0;
+  for (const img of images) {
+    const en = alts.find((r) => r.image_id === img.id && r.locale === "en");
+    assert.ok(en, img.media_key);
+    if (en.status !== "published" || en.alt === "") continue;
+    described++;
+    assert.doesNotMatch(en.alt, /^\p{Ll}/u, `${img.media_key}: "${en.alt.slice(0, 30)}"`);
+  }
+  assert.ok(described >= 1, "the hero is described");
 });
 
 test("en intro: the live statement, the collage's five photos in order, the wide still", async () => {
