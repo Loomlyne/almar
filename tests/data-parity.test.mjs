@@ -13,9 +13,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildImportPayload } from "../scripts/import-catalog.mjs";
 import { localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
-import { importIntoLocal } from "./helpers/import-local.mjs";
+import { importIntoLocal, underStackLock } from "./helpers/import-local.mjs";
 import { writeLiveShapedFixtures } from "./helpers/live-shaped-fixtures.mjs";
-import { withStackLock } from "./helpers/stack-lock.mjs";
 
 // ---------------------------------------------------------------------------------------------------------------
 // The comparison (pure, tested below so it is known to bite)
@@ -118,7 +117,7 @@ function ensureImported(stack, { fresh = false } = {}) {
 
 after(async () => {
   // Leave the database as the migrations make it: the pgTAP files expect an empty catalogue.
-  if (touched && localStack()) await withStackLock(async () => resetLocal());
+  if (touched && localStack()) await underStackLock(async () => resetLocal());
 });
 
 const SAMPLE_SLUG = "getsemani-colonial-house";
@@ -128,7 +127,7 @@ const SAMPLE_SLUG = "getsemani-colonial-house";
 // ---------------------------------------------------------------------------------------------------------------
 
 test("every read x en/ar/es: live-shaped fixtures = the local database, key order included", { timeout: 900000 }, async (t) => {
-  await withStackLock(async () => {
+  await underStackLock(async () => {
     const stack = requireStack(t);
     if (!stack) return;
     ensureImported(stack, { fresh: true });
@@ -170,7 +169,7 @@ test("every read x en/ar/es: live-shaped fixtures = the local database, key orde
 });
 
 test("per-source row counts equal the import payload's counts (a truncated read would show here)", { timeout: 600000 }, async (t) => {
-  await withStackLock(async () => {
+  await underStackLock(async () => {
     const stack = requireStack(t);
     if (!stack) return;
     ensureImported(stack);
@@ -195,7 +194,7 @@ test("per-source row counts equal the import payload's counts (a truncated read 
 });
 
 test("an ops block on a stay reaches getBlockedDates through api_stay_blocked_days (the one read the import leaves empty)", { timeout: 600000 }, async (t) => {
-  await withStackLock(async () => {
+  await underStackLock(async () => {
     const stack = requireStack(t);
     if (!stack) return;
     const db = (sql) => {

@@ -40,10 +40,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { importIntoLocal } from "../tests/helpers/import-local.mjs";
+import { importIntoLocal, underStackLock } from "../tests/helpers/import-local.mjs";
 import { writeLiveShapedFixtures } from "../tests/helpers/live-shaped-fixtures.mjs";
 import { localStack, resetLocal } from "../tests/helpers/local-supabase.mjs";
-import { withStackLock } from "../tests/helpers/stack-lock.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -327,7 +326,7 @@ async function main(argv = process.argv.slice(2)) {
     if (args.live) {
       b = runBuild({ label: "B", tmp, env: envFor({ ALMAR_DATA_SOURCE: "supabase" }) });
     } else {
-      b = await withStackLock(async () => {
+      b = await underStackLock(async () => {
         console.log("\n== reset the local stack from the migrations, then import the fixtures");
         const reset = resetLocal();
         if (reset.code !== 0) throw new Error(`local reset failed:\n${reset.output.slice(-2000)}`);

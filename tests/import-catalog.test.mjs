@@ -7,8 +7,7 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildImportPayload, checkApplyTarget, formatReport, PAYLOAD_TABLES } from "../scripts/import-catalog.mjs";
-import { localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
-import { withStackLock } from "./helpers/stack-lock.mjs";
+import { acquireStackLock, localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
 const manifest = JSON.parse(readFileSync("lib/data/media-manifest.json", "utf8"));
@@ -270,23 +269,20 @@ async function readView(stack, view) {
 }
 
 let importedLocally = false;
-after(async () => {
-  // The pgTAP files expect an empty catalogue: leave the local database as the migrations make it. Under the stack lock
-  // (plan 03.2-02): tests/data-parity.test.mjs resets and fills the same database in a parallel test process.
-  if (importedLocally && localStack()) await withStackLock(async () => resetLocal());
+let releaseStackLock = null;
+after(() => {
+  // The pgTAP files expect an empty catalogue: leave the local database as the migrations make it.
+  if (importedLocally && localStack()) resetLocal();
+  releaseStackLock?.();
 });
 
 test("local stack: --apply --local imports, the public views return the fixtures, a second run writes nothing", { timeout: 600000 }, async (t) => {
-  // requireStack inside the lock: `supabase status` fails while the other test process resets the database, and
-  // localStack() remembers a failure for the rest of the process.
-  await withStackLock(async () => {
-    const stack = requireStack(t);
-    if (!stack) return;
-    await importAndCheck(stack);
-  });
-});
-
-async function importAndCheck(stack) {
+  // The booking tests (plan 04-02) and tests/data-parity.test.mjs (plan 03.2-02) write to the same stack: take turns
+  // (node --test runs the files in parallel). The lock is taken BEFORE the stack is looked for: `supabase status` fails
+  // while another file resets the database, and localStack() remembers a failure for the rest of the process.
+  releaseStackLock = await acquireStackLock();
+  const stack = requireStack(t);
+  if (!stack) return;
   const existing = runSql("select count(*)::int as n from public.destinations").rows[0]?.n;
   if (existing !== 0) resetLocal();
   importedLocally = true;
@@ -338,4 +334,4 @@ async function importAndCheck(stack) {
   assert.match(second.stdout, /0 rows inserted/);
   const rows = (await readView(stack, "api_stays")).length;
   assert.equal(rows, counts.stays, "no duplicate rows");
-}
+});
