@@ -7,6 +7,7 @@ import { getDestinations } from "./destinations";
 import { getCatalogItems } from "./experiences";
 import { dateLabel, parseBody, readingMinutes } from "./post-body";
 import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { loadSource } from "./source";
 import { getStays } from "./stays";
 import type { Locale, Post, PostBlock } from "./types";
 
@@ -47,6 +48,8 @@ function liveBase(): PostBase[] {
 }
 
 async function resolvePost(base: PostBase, locale: Locale): Promise<Post> {
+  // The post stays a fixture block (C-21), but its cover's alt text comes through image(), which reads the shared source.
+  await loadSource();
   const own = readFixture<PostTranslation[]>("post-translations").filter((t) => t.post_id === base.id);
   const row = resolveRow(base, own, locale);
   const body: PostBlock[] = parseBody(row.body);

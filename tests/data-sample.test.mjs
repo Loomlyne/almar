@@ -7,6 +7,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { loadTs } from "./helpers/load-ts.mjs";
+
+// Plan 03.2-02: this file pins the fixtures. Once the catalogue can come from Supabase, a run with ALMAR_DATA_SOURCE=supabase
+// must fail here instead of silently asserting facts about a database.
+const { dataSource } = await loadTs("lib/data/source.ts");
+assert.equal(dataSource(), "fixtures", "this test pins the JSON fixtures: run it with ALMAR_DATA_SOURCE unset or fixtures");
 
 const ROOT = resolve(process.env.ALMAR_DATA_ROOT ?? process.cwd());
 const DIR = join(ROOT, "lib", "data", "fixtures");

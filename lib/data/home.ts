@@ -1,12 +1,13 @@
 // lib/data/home.ts
 //
 // Server only. The home page's own blocks: hero, welcome letter, gallery, the three journey tiers and the
-// ALMAR Stories cards. They are not catalogue entities, but they sit behind the same door so Phase 3.2 can
-// move them into the CMS (CMS-04, Content > Pages) without touching the page.
+// ALMAR Stories cards. Since plan 03.2-02 the three journey tiers (C-15) are read through ./source (fixtures or the
+// Supabase views); hero, begin, welcome and gallery stay fixture blocks until the Pages editor (C-21, v1.1).
 
 import { mediaUrl } from "./media";
 import { getPosts } from "./posts";
 import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { loadSource, readSource } from "./source";
 import type { HomeBlocks, HomeStory, JourneyTier, Locale } from "./types";
 
 type RowBase = {
@@ -76,9 +77,10 @@ function block<T extends Rec>(records: readonly T[], locale: Locale): T {
 }
 
 export async function getJourneyTiers(locale: Locale): Promise<JourneyTier[]> {
-  const records = homeT().tiers;
-  return home()
-    .tiers.filter((t) => t.is_published)
+  await loadSource();
+  const records = readSource<HomeTranslations["tiers"]>("journey-tier-translations");
+  return readSource<TierBase[]>("journey-tiers")
+    .filter((t) => t.is_published)
     .sort((a, b) => a.position - b.position)
     .map((t) => {
       const row = resolveRow(
@@ -112,6 +114,7 @@ async function getHomeStories(locale: Locale): Promise<HomeStory[]> {
 }
 
 export async function getHomeBlocks(locale: Locale): Promise<HomeBlocks> {
+  await loadSource(); // the blocks' pictures take their alt texts from the same source as every other picture
   const h = home();
   const t = homeT();
   const welcome = block(t.welcome, locale);

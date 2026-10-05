@@ -3,7 +3,8 @@
 // Server only. Experiences and services are one table with a `kind` discriminator (D-64, D-89).
 
 import { filterCatalog } from "./catalog-filter";
-import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { image, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { loadSource, readSource } from "./source";
 import type { CatalogItem, CatalogKind, CatalogUnit, Locale } from "./types";
 
 type CatalogBase = {
@@ -33,7 +34,7 @@ type CatalogTranslation = {
 };
 
 function published(): CatalogBase[] {
-  return readFixture<CatalogBase[]>("catalog")
+  return readSource<CatalogBase[]>("catalog")
     .filter((c) => c.is_published)
     .sort((a, b) => a.position - b.position);
 }
@@ -44,7 +45,7 @@ function published(): CatalogBase[] {
  * kicker never names a place the filters do not offer (stays.ts and destinations.ts read published rows only).
  */
 function slugsOf(table: "destinations" | "stays", ids: string[], itemSlug: string): string[] {
-  const rows = readFixture<Array<{ id: string; slug: string; is_published: boolean }>>(table);
+  const rows = readSource<Array<{ id: string; slug: string; is_published: boolean }>>(table);
   return ids.flatMap((id) => {
     const hit = rows.find((r) => r.id === id);
     if (!hit) throw new Error(`catalog ${itemSlug}: unknown ${table === "stays" ? "stay" : "destination"} ${id}`);
@@ -53,7 +54,7 @@ function slugsOf(table: "destinations" | "stays", ids: string[], itemSlug: strin
 }
 
 function resolveItem(base: CatalogBase, locale: Locale): CatalogItem {
-  const own = readFixture<CatalogTranslation[]>("catalog-translations").filter((t) => t.item_id === base.id);
+  const own = readSource<CatalogTranslation[]>("catalog-translations").filter((t) => t.item_id === base.id);
   const row = resolveRow(base, own, locale);
   return {
     ...row,
@@ -74,6 +75,7 @@ export async function getCatalogItems(
     query?: string;
   },
 ): Promise<CatalogItem[]> {
+  await loadSource();
   const items = published().map((c) => resolveItem(c, locale));
   return filterCatalog(items, {
     kind: opts?.kind,
@@ -84,6 +86,7 @@ export async function getCatalogItems(
 }
 
 export async function getCatalogItem(locale: Locale, slug: string): Promise<CatalogItem | null> {
+  await loadSource();
   const base = published().find((c) => c.slug === slug);
   return base ? resolveItem(base, locale) : null;
 }
@@ -93,7 +96,8 @@ export async function getCatalogForStay(
   locale: Locale,
   staySlug: string,
 ): Promise<{ experiences: CatalogItem[]; services: CatalogItem[] }> {
-  const stay = readFixture<Array<{ slug: string; experience_ids: string[]; service_ids: string[] }>>("stays").find(
+  await loadSource();
+  const stay = readSource<Array<{ slug: string; experience_ids: string[]; service_ids: string[] }>>("stays").find(
     (s) => s.slug === staySlug,
   );
   if (!stay) return { experiences: [], services: [] };

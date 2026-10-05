@@ -3,7 +3,8 @@
 //
 // Rules, over every source file under app/ and components/ (a route.ts holding a Framer `const HTML = "`
 // string and the test harness folder are skipped):
-//   1. No import of lib/data/fixtures, lib/data/resolve or lib/data/media.
+//   1. No import of lib/data/fixtures, lib/data/resolve, lib/data/source or lib/data/media. source.ts (plan 03.2-02)
+//      decides fixtures or Supabase for the whole data layer; it is internal to lib/data and is on no client allow-list.
 //   2. No `*_en` / `*_ar` / `*_es` field suffix and no `translations` identifier, except under the owner API
 //      folders below (plan 03.2-11): the dashboard talks to /api/ops/*, whose shapes are `translations: { en, ar, es }`
 //      and fields such as `name_en` (03.2-API-CONTRACT.md). That is the owner's editing API, not the public data
@@ -22,7 +23,7 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 
 const ROOT = resolve(process.env.ALMAR_DATA_ROOT ?? process.cwd());
 const SKIP_DIRS = new Set(["node_modules", ".next", "%5F%5Fharness", "__harness"]);
-const FORBIDDEN_IMPORT = /lib\/data\/(?:fixtures\b|resolve\b|media\b(?!-))/;
+const FORBIDDEN_IMPORT = /lib\/data\/(?:fixtures\b|resolve\b|source\b(?!-)|media\b(?!-))/;
 const FIELD_SUFFIX = /\b[a-z]+_(?:en|ar|es)\b/;
 const TRANSLATIONS = /\btranslations\b/;
 const PROPS_ONLY_DIRS = ["components/ui/", "components/journey/", "components/icons/", "components/site/"];
@@ -98,6 +99,9 @@ function scanTree() {
 test("the analyzer flags each kind of violation (red cases)", () => {
   assert.equal(analyze('import x from "../../lib/data/fixtures/stays.json";', "components/ui/a.tsx").length > 0, true);
   assert.equal(analyze('import { readFixture } from "@/lib/data/resolve";', "app/page.tsx").length > 0, true);
+  assert.equal(analyze('import { loadSource } from "@/lib/data/source";', "app/page.tsx").length > 0, true);
+  assert.equal(analyze('import { readSource } from "../../lib/data/source";', "components/pages/p.tsx").length > 0, true);
+  assert.equal(analyze('"use client";\nimport { dataSource } from "@/lib/data/source";', "components/pages/c.tsx").length > 0, true);
   assert.equal(analyze('import { mediaUrl } from "@/lib/data/media";', "components/pages/p.tsx").length > 0, true);
   assert.equal(analyze("const title_ar = 1;", "components/ui/a.tsx").length > 0, true);
   assert.equal(analyze("const { translations } = row;", "app/page.tsx").length > 0, true);
@@ -126,6 +130,31 @@ test("the analyzer allows what the contract allows (green cases)", () => {
   // ... but the import rules still hold there.
   assert.equal(analyze('"use client";\nimport { getStays } from "../../lib/data/stays";', "components/ops/x.tsx").length > 0, true);
   assert.equal(analyze("const name_en = row.translations.en;", "components/pages/p.tsx").length > 0, true);
+});
+
+test("source.ts is imported by nothing outside lib/data: not app, components, the rest of lib, middleware, worker or scripts", () => {
+  const importers = [];
+  const scanDirs = ["app", "components", "lib", "worker", "scripts"];
+  const files = [...scanDirs.flatMap((top) => [...walk(join(ROOT, top))]), join(ROOT, "middleware.ts")];
+  for (const file of files) {
+    const rel = relative(ROOT, file).split(sep).join("/");
+    if (rel.startsWith("lib/data/")) continue;
+    for (const spec of specifiers(readFileSync(file, "utf8"))) {
+      if (/(?:^|\/)lib\/data\/source(?:\.ts)?$/.test(spec) || libDataTarget(spec, rel) === "source") importers.push(`${rel}: ${spec}`);
+    }
+  }
+  assert.deepEqual(importers, []);
+});
+
+test("every lib/data module that reads a picture awaits loadSource() (image() reads the shared source)", () => {
+  const dir = join(ROOT, "lib", "data");
+  const offenders = readdirSync(dir)
+    .filter((name) => name.endsWith(".ts") && name !== "resolve.ts" && name !== "source.ts")
+    .filter((name) => {
+      const src = readFileSync(join(dir, name), "utf8");
+      return /\bimage\(/.test(src) && !/await loadSource\(\)/.test(src);
+    });
+  assert.deepEqual(offenders, []);
 });
 
 test("no file under app/ or components/ breaks the data-layer boundary", () => {

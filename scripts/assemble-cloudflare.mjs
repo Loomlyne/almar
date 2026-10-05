@@ -186,17 +186,74 @@ export function assertNoBundledEnv(file) {
 }
 
 /**
+ * The only NEXT_PUBLIC_* names a build may see (plan 03.2-02): the project's public URL and its public (anon) key. The
+ * build reads the catalogue through them (lib/data/source.ts, anon key, published views only, C-04), and Supabase says
+ * both are public by design. Next substitutes their values into the server chunks that name them (middleware, the
+ * Supabase clients, the data layer); no browser bundle names them. Every other NEXT_PUBLIC_* stays refused.
+ */
+export const BUILD_PUBLIC_ENV = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+
+/**
  * Job 10 review: assertNoBundledEnv only sees the project's .env files. The build also inherits the shell it runs in,
- * and Next inlines every NEXT_PUBLIC_* value it finds there into the browser bundle. No such variable may be set.
+ * and Next inlines every NEXT_PUBLIC_* value it finds there into the bundles that name it. Since plan 03.2-02 exactly two
+ * names are allowed (BUILD_PUBLIC_ENV); any other NEXT_PUBLIC_* may not be set.
  * Only the names are reported, never the values. `env` is process.env in the build, a plain object in the test.
  */
 export function assertNoPublicEnv(env) {
   const names = Object.keys(env)
-    .filter((name) => name.startsWith("NEXT_PUBLIC_"))
+    .filter((name) => name.startsWith("NEXT_PUBLIC_") && !BUILD_PUBLIC_ENV.includes(name))
     .sort();
   if (names.length > 0) {
     throw new Error(`NEXT_PUBLIC_* in the build shell would be inlined into the browser bundle: ${names.join(", ")}`);
   }
+}
+
+/**
+ * Plan 03.2-02 (threat T-3.2-10): the build reads the public views with the anon key and nothing else. A service-role
+ * variable in the build shell is refused before anything runs, whatever its value, so it can never reach `next build`,
+ * the OpenNext bundle or a Worker. Names only; an empty variable is ignored.
+ */
+export function assertNoServiceKey(env) {
+  const names = Object.keys(env)
+    .filter((name) => /SERVICE_ROLE/i.test(name) && String(env[name] ?? "").trim() !== "")
+    .sort();
+  if (names.length > 0) {
+    throw new Error(`a service-role key in the build shell may never reach a build: unset ${names.join(", ")}`);
+  }
+}
+
+/**
+ * Plan 03.2-02: where the public pages read the catalogue (lib/data/source.ts). Decided before anything is built or
+ * removed, so a refused run leaves the previous output intact.
+ *
+ *   local            fixtures, unless ALMAR_DATA_SOURCE=supabase (the parity build uses both)
+ *   preview, production, ops
+ *                    the database, always: ALMAR_DATA_SOURCE=fixtures, a typo, a missing NEXT_PUBLIC_SUPABASE_URL or
+ *                    NEXT_PUBLIC_SUPABASE_ANON_KEY, and ALMAR_FIXTURE_DIR are refused, so an assembled build can never
+ *                    silently ship fixture content for the catalogue (T-3.2-09).
+ *
+ * Returns "fixtures" | "supabase". Names only in every message, never a value (a data-source word is not a secret).
+ */
+export function dataSourceFor(target, env = process.env) {
+  const asked = env.ALMAR_DATA_SOURCE === undefined || env.ALMAR_DATA_SOURCE === "" ? null : env.ALMAR_DATA_SOURCE;
+  if (asked !== null && asked !== "fixtures" && asked !== "supabase") {
+    throw new Error(`ALMAR_DATA_SOURCE must be "fixtures" or "supabase" (got ${JSON.stringify(asked.slice(0, 40))})`);
+  }
+  const assembled = target !== "local";
+  if (assembled && asked === "fixtures") {
+    throw new Error(`--target=${target} refuses ALMAR_DATA_SOURCE=fixtures: an assembled build reads the database only`);
+  }
+  if (assembled && env.ALMAR_FIXTURE_DIR) {
+    throw new Error(`--target=${target} refuses ALMAR_FIXTURE_DIR: an assembled build reads the page blocks from lib/data/fixtures`);
+  }
+  const source = assembled || asked === "supabase" ? "supabase" : "fixtures";
+  if (source === "supabase") {
+    const missing = BUILD_PUBLIC_ENV.filter((name) => !String(env[name] ?? "").trim());
+    if (missing.length > 0) {
+      throw new Error(`the database source needs ${missing.join(" and ")} in the build shell (public values; names only, never printed)`);
+    }
+  }
+  return source;
 }
 
 /**
@@ -265,9 +322,11 @@ function assertBuiltWorkerSize(config) {
  */
 function main(argv = process.argv.slice(2)) {
   const target = parseTarget(argv);
-  // 03.2-02 adds dataSourceFor(target) here: the catalogue source check, before anything is built or removed.
-  // Before anything is built or removed, like the target check above.
+  // Before anything is built or removed, like the target check above: what the shell may hold, and where the pages read
+  // the catalogue from (plan 03.2-02).
   assertNoPublicEnv(process.env);
+  assertNoServiceKey(process.env);
+  const source = dataSourceFor(target);
   process.chdir(root);
   assertPublicClean(root);
   // Before the build and before any folder is wiped: a refused run leaves the previous output intact.
@@ -278,7 +337,7 @@ function main(argv = process.argv.slice(2)) {
   execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
     cwd: root,
     stdio: "inherit",
-    env: { ...process.env, WRANGLER_SEND_METRICS: "false" },
+    env: { ...process.env, ALMAR_DATA_SOURCE: source, WRANGLER_SEND_METRICS: "false" },
   });
   assertNoBundledEnv(path.join(root, ".open-next/cloudflare/next-env.mjs"));
   const folder = outDirNameFor(target);

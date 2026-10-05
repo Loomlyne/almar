@@ -4,7 +4,8 @@
 // on 2026-09-28 and 2026-10-02, and the public section renders nothing until Dashboard > Content > Team
 // publishes someone (D-55, D-57). team.json is [] and never holds an invented person.
 
-import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { image, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { loadSource, readSource } from "./source";
 import type { Locale, TeamMember } from "./types";
 
 type TeamBase = {
@@ -29,8 +30,9 @@ type TeamTranslation = {
 };
 
 export async function getTeam(locale: Locale): Promise<TeamMember[]> {
-  const translations = readFixture<TeamTranslation[]>("team-translations");
-  return readFixture<TeamBase[]>("team")
+  await loadSource();
+  const translations = readSource<TeamTranslation[]>("team-translations");
+  return readSource<TeamBase[]>("team")
     .filter((m) => m.is_published)
     .sort((a, b) => a.position - b.position)
     .map((m) => {
