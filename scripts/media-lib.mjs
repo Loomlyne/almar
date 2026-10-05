@@ -189,6 +189,35 @@ export function readManifest(manifestPath = defaultPaths().manifestPath) {
   return data;
 }
 
+/**
+ * The `--keys <file>` list shared by media-fetch and media-upload: one media key per line, trimmed; blank lines and
+ * lines starting `#` are ignored. Every key must pass assertKey, appear once, and be a key of `manifest`. Returns the
+ * keys in manifest order, whatever the order in the file. Throws `key list <file>: line <n>: <reason>` (the line is
+ * the 1-based line of the file), or `key list <file> holds no key`.
+ */
+export function readKeyList(file, manifest) {
+  const known = new Set(manifest.map((e) => e.key));
+  const seen = new Set();
+  const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+  lines.forEach((raw, i) => {
+    const key = raw.trim();
+    if (key === "" || key.startsWith("#")) return;
+    const fail = (why) => {
+      throw new Error(`key list ${file}: line ${i + 1}: ${why}`);
+    };
+    try {
+      assertKey(key);
+    } catch (err) {
+      fail(err.message);
+    }
+    if (seen.has(key)) fail(`duplicate key ${JSON.stringify(key)}`);
+    if (!known.has(key)) fail(`${JSON.stringify(key)} is not in the manifest`);
+    seen.add(key);
+  });
+  if (seen.size === 0) throw new Error(`key list ${file} holds no key`);
+  return manifest.map((e) => e.key).filter((k) => seen.has(k));
+}
+
 /** One entry with its fields in the fixed order; unknown fields are kept after the known ones, sorted. */
 export function orderEntry(entry) {
   const out = {};
