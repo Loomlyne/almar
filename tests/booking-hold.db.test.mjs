@@ -242,7 +242,8 @@ test("a payment, a cancel, a lapse, a release and new holds on one stay run toge
   const s = await seed(t);
   if (!s) return;
   const failures = [];
-  for (let round = 0; round < 24; round += 1) {
+  const rounds = 40;
+  for (let round = 0; round < rounds; round += 1) {
     const day = 480 + round * 10;
     const h = await hold(s, { arrive: dubaiDay(day), leave: dubaiDay(day + 2), email: `mix${round}-${randomUUID().slice(0, 6)}@example.com` });
     assert.equal(h.error, null);
@@ -251,20 +252,22 @@ test("a payment, a cancel, a lapse, a release and new holds on one stay run toge
     assert.equal(open.data.ok, true);
     const session = `cs_mix_${randomUUID().replaceAll("-", "")}`;
     await s.admin.rpc("attach_checkout_session", { p_payment: open.data.payment_id, p_session: session });
-    // Half of the rounds: the hold ended more than two minutes ago, so a new hold's sweep, the lapse, the cancel and the
-    // payment all want the same lapsed booking at once (the lock order stay -> booking -> nights is what keeps them apart).
-    if (round % 2 === 0) {
+    // Two of every three rounds: the hold ended more than two minutes ago, so a new hold's sweep, the lapse, the cancel and
+    // the payment all want the same lapsed booking at once (the lock order stay -> booking -> nights is what keeps them
+    // apart; without the stay lock first, a sweeping hold and a payment wait on each other and Postgres reports a deadlock).
+    if (round % 3 !== 2) {
       const ended = new Date(Date.now() - 4 * 60000).toISOString();
       assert.ifError((await s.admin.from("booking_nights").update({ expires_at: ended }).eq("booking_id", h.data.booking_id)).error);
       assert.ifError((await s.admin.from("bookings").update({ hold_expires_at: ended }).eq("id", h.data.booking_id)).error);
     }
+    const each = (n, make) => Array.from({ length: n }, make);
     const settled = await Promise.allSettled([
-      s.admin.rpc("record_payment", { p_session: session, p_payment_intent: `pi_${session.slice(-10)}`, p_actor: "stripe:evt_mix" }),
-      s.admin.rpc("ops_set_booking_status", { p_booking: h.data.booking_id, p_to: "cancelled", p_expected_from: "held", p_actor: OWNER }),
-      s.admin.rpc("ops_lapse_holds"),
-      s.admin.rpc("booking_drop_hold", { p_booking: h.data.booking_id, p_actor: "guest" }),
-      s.admin.rpc("mark_session_expired", { p_session: session, p_actor: "stripe:evt_mix_exp" }),
-      hold(s, { arrive: dubaiDay(day + 1), leave: dubaiDay(day + 4), email: `mixb${round}-${randomUUID().slice(0, 6)}@example.com` }),
+      ...each(2, (_, i) => s.admin.rpc("record_payment", { p_session: session, p_payment_intent: `pi_${session.slice(-10)}`, p_actor: `stripe:evt_mix_${i}` })),
+      ...each(2, () => s.admin.rpc("ops_set_booking_status", { p_booking: h.data.booking_id, p_to: "cancelled", p_expected_from: "held", p_actor: OWNER })),
+      ...each(2, () => s.admin.rpc("ops_lapse_holds")),
+      ...each(2, () => s.admin.rpc("booking_drop_hold", { p_booking: h.data.booking_id, p_actor: "guest" })),
+      ...each(2, (_, i) => s.admin.rpc("mark_session_expired", { p_session: session, p_actor: `stripe:evt_mix_exp_${i}` })),
+      ...each(3, (_, i) => hold(s, { arrive: dubaiDay(day + 1), leave: dubaiDay(day + 4), email: `mixb${round}-${i}-${randomUUID().slice(0, 6)}@example.com` })),
       s.admin.rpc("ops_add_block", { p: { scope: "stay", stay_id: s.ids.stay, starts_on: dubaiDay(day + 6), ends_on: dubaiDay(day + 6) } }),
     ]);
     for (const x of settled) {
