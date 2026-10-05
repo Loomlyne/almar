@@ -10,6 +10,7 @@ import {
   localePath,
   type Locale,
 } from "../../lib/locale-path";
+import { isLivePost } from "../../scripts/media-lib.mjs";
 import { framerRoutes } from "../helpers/site-links.mjs";
 import { clickClearOfDock } from "../helpers/click-clear-of-dock";
 import { routeMedia } from "../helpers/media-route";
@@ -47,9 +48,11 @@ const STAYS = [
   "santa-fe-farm-antioquia",
   "sopetran-country-estate",
 ];
-// The published posts (lib/data/fixtures/posts.json), for the inventory below.
-const POSTS = (JSON.parse(readFileSync("lib/data/fixtures/posts.json", "utf8")) as Array<{ slug: string; is_published: boolean }>)
-  .filter((p) => p.is_published)
+// The live posts (lib/data/fixtures/posts.json: published and dated now or earlier, as lib/data/posts.ts decides), for the inventory below.
+const POSTS = (
+  JSON.parse(readFileSync("lib/data/fixtures/posts.json", "utf8")) as Array<{ slug: string; is_published: boolean; published_at: string }>
+)
+  .filter((p) => isLivePost(p))
   .map((p) => p.slug);
 const DEFAULT_PATHS = ["/", "/private-stays", ...STAYS.map((s) => `/private-stays/${s}`)];
 const list = (value: string | undefined) => (value ? value.split(",").map((v) => v.trim()).filter(Boolean) : null);

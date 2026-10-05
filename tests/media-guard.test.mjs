@@ -13,7 +13,8 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { REPO_ROOT, collectFixtureImages, readPostSlugs, readStaySlugs, reactDocuments, slice1Documents } from "../scripts/media-lib.mjs";
+import { REPO_ROOT, collectFixtureImages, isLivePost, readPostSlugs, readStaySlugs, reactDocuments, slice1Documents } from "../scripts/media-lib.mjs";
+import { loadTs } from "./helpers/load-ts.mjs";
 import { assertMediaReady, imageReferences, main as guardMain, readMediaConstants, scanOut } from "../scripts/media-guard.mjs";
 
 const THIRD_PARTY = ["framerusercontent.com", "files.catbox.moe", "videos.pexels.com"];
@@ -134,6 +135,54 @@ function writeDocs(root, base, { out = "out", mutate } = {}) {
     fs.writeFileSync(file, html);
   }
 }
+
+// 0. Which posts are documents --------------------------------------------------------------------------------------
+
+// A post is a document only when it is published and its date has come, as lib/data/posts.ts decides (isLive).
+const NOW = new Date("2026-10-05T00:00:00Z");
+const postRow = (slug, over = {}) => ({ slug, is_published: true, published_at: "2025-06-01T00:00:00+00:00", ...over });
+
+test("readPostSlugs: a scheduled post (published_at in the future) and an unpublished post are not documents", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "almar-post-slugs-"));
+  fs.writeFileSync(
+    path.join(dir, "posts.json"),
+    JSON.stringify([
+      postRow("live-one"),
+      postRow("scheduled", { published_at: "2099-01-01T00:00:00+00:00" }),
+      postRow("draft", { is_published: false }),
+      postRow("live-two", { published_at: "2025-05-01T00:00:00+00:00" }),
+    ]),
+  );
+  assert.deepEqual(readPostSlugs(dir, NOW), ["live-one", "live-two"]);
+  // The clock decides: the same fixture a century later lists the scheduled post too.
+  assert.deepEqual(readPostSlugs(dir, new Date("2100-01-01T00:00:00Z")), ["live-one", "scheduled", "live-two"]);
+  // The default clock is now: 2099 has not come.
+  assert.deepEqual(readPostSlugs(dir), ["live-one", "live-two"]);
+  assert.equal(blogDocs(dir).length, 6, "2 live posts x 3 locales are the post documents; the 3 list pages are extra");
+});
+
+function blogDocs(dir) {
+  return reactDocuments(readStaySlugs(), readPostSlugs(dir)).filter((d) => d.includes("blog/"));
+}
+
+test("isLivePost agrees with lib/data/posts.ts isLive on every case", async () => {
+  const { isLive } = await loadTs("lib/data/posts.ts");
+  const cases = [
+    { is_published: true, published_at: "2025-06-01T00:00:00+00:00" },
+    { is_published: true, published_at: "2026-10-05T00:00:00+00:00" },
+    { is_published: true, published_at: "2026-10-05T00:00:01+00:00" },
+    { is_published: true, published_at: "2099-01-01T00:00:00+00:00" },
+    { is_published: false, published_at: "2025-06-01T00:00:00+00:00" },
+    { is_published: false, published_at: "2099-01-01T00:00:00+00:00" },
+  ];
+  for (const row of cases) assert.equal(isLivePost(row, NOW), isLive(row, NOW), JSON.stringify(row));
+});
+
+test("the real fixtures: readPostSlugs lists the three live posts, as getPostSlugs does", async () => {
+  const { getPostSlugs } = await loadTs("lib/data/posts.ts");
+  assert.deepEqual([...readPostSlugs()].sort(), [...(await getPostSlugs())].sort());
+  assert.equal(readPostSlugs().length, 3);
+});
 
 // 1. Source scan ----------------------------------------------------------------------------------------------------
 

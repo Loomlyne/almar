@@ -212,10 +212,18 @@ export function readStaySlugs(fixturesDir = defaultPaths().fixturesDir) {
   return stays.filter((s) => s.is_published !== false).map((s) => s.slug);
 }
 
-/** The slugs of the published posts (the three blog pages), in fixture order. */
-export function readPostSlugs(fixturesDir = defaultPaths().fixturesDir) {
+/**
+ * A post is a document only when it is published and its date has come: the rule of lib/data/posts.ts (isLive),
+ * kept here because that module cannot be loaded by Node itself. tests/media-guard.test.mjs holds the two equal.
+ */
+export function isLivePost(row, now = new Date()) {
+  return row.is_published === true && new Date(row.published_at).getTime() <= now.getTime();
+}
+
+/** The slugs of the live posts (the three blog pages), in fixture order. */
+export function readPostSlugs(fixturesDir = defaultPaths().fixturesDir, now = new Date()) {
   const posts = JSON.parse(fs.readFileSync(path.join(fixturesDir, "posts.json"), "utf8"));
-  return posts.filter((p) => p.is_published !== false).map((p) => p.slug);
+  return posts.filter((p) => isLivePost(p, now)).map((p) => p.slug);
 }
 
 /**
