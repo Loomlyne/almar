@@ -5,6 +5,7 @@
 //
 //   production  https://almarprivatejourney.com            robots.txt allows and names the sitemap; sitemap.xml
 //   preview     https://preview.almarprivatejourney.com    noindex header, disallow-all robots.txt, no sitemap
+//   ops         https://dashboard.almarprivatejourney.com  the preview's files, in out-ops/ (plan 03.2-03; no page ships)
 //
 // Both hosts serve a static folder with the same [assets] block, so the one thing that must never happen is a
 // preview-only `noindex` reaching production. It is closed three ways, and tests/crawl-files.test.mjs holds each:
@@ -26,14 +27,17 @@ export { LOCALES, SITE_ORIGIN };
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-export const TARGETS = ["local", "preview", "production"];
+export const TARGETS = ["local", "preview", "production", "ops"];
 export const DEFAULT_TARGET = "local";
 
-/** The folder each target is built into. Preview never shares a folder with the live site. */
+/** The folder each target is built into. Preview and ops never share a folder with the live site. */
 export function outDirNameFor(target) {
   assertTarget(target);
-  return target === "preview" ? "out-preview" : "out";
+  return target === "preview" ? "out-preview" : target === "ops" ? "out-ops" : "out";
 }
+
+/** The dashboard host and the review host are never indexed: both carry the noindex block and the disallow-all file. */
+const isNoindexTarget = (target) => target === "preview" || target === "ops";
 
 export function assertTarget(target) {
   if (!TARGETS.includes(target)) {
@@ -162,15 +166,15 @@ export function assertPublicClean(root = REPO_ROOT) {
 const read = (file) => fs.readFileSync(file, "utf8");
 
 /**
- * Writes _headers, robots.txt and (not on preview) sitemap.xml into outDir. _headers always starts as the
- * repo-root file, byte for byte; only the preview target appends the one noindex block after it.
+ * Writes _headers, robots.txt and (not on preview or ops) sitemap.xml into outDir. _headers always starts as the
+ * repo-root file, byte for byte; only the preview and ops targets append the one noindex block after it.
  */
 export function writeTargetFiles({ outDir, target, root = REPO_ROOT, htmlFiles }) {
   assertTarget(target);
   assertFolderFor(outDir, target);
   fs.mkdirSync(outDir, { recursive: true });
   const headers = read(path.join(root, "_headers"));
-  if (target === "preview") {
+  if (isNoindexTarget(target)) {
     const block = read(path.join(root, "deploy", "preview", "_headers"));
     fs.writeFileSync(path.join(outDir, "_headers"), `${headers}${headers.endsWith("\n") ? "" : "\n"}\n${block}`);
     fs.copyFileSync(path.join(root, "deploy", "preview", "robots.txt"), path.join(outDir, "robots.txt"));
@@ -197,7 +201,7 @@ export function assertTargetFiles(outDir, target, { root = REPO_ROOT } = {}) {
   const headers = need("_headers");
   const robots = need("robots.txt");
 
-  if (target === "preview") {
+  if (isNoindexTarget(target)) {
     const block = read(path.join(root, "deploy", "preview", "_headers"));
     if (!headers.endsWith(block)) fail("_headers", "does not end with the preview noindex block");
     if (headers.split(block).length - 1 !== 1 || (headers.match(/x-robots-tag/gi) ?? []).length !== 1) {

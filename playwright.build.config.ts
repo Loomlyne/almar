@@ -8,8 +8,12 @@ import { defineConfig } from "@playwright/test";
 // Job 10: PW_WRANGLER_CONFIG picks the Worker file (default wrangler.toml; wrangler.preview.toml serves out-preview/,
 // built with --target=preview). Since job 10 `wrangler dev` also runs worker/almar.mjs, which imports the
 // .open-next/ bundle the assembler writes, so assemble before running.
+// Plan 03.2-03: PW_READY_PATH is the path polled before the first test (default "/", so every existing run is unchanged).
+// The ops Worker (.tmp/wrangler.ops.test.toml, tests/build/ops-runtime.spec.ts) is polled on /api/health: the poll sends no
+// ops Host, and "/" with another host is the marketing page, which that Worker does not hold.
 const port = Number(process.env.PW_PORT ?? 8787);
 const wranglerConfig = process.env.PW_WRANGLER_CONFIG ?? "wrangler.toml";
+const readyPath = process.env.PW_READY_PATH ?? "/";
 const baseURL = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
@@ -26,7 +30,7 @@ export default defineConfig({
   },
   webServer: {
     command: `./node_modules/.bin/wrangler dev --config ${wranglerConfig} --ip 127.0.0.1 --port ${port} --show-interactive-dev-session=false`,
-    url: `${baseURL}/`,
+    url: `${baseURL}${readyPath}`,
     reuseExistingServer: false,
     timeout: 120_000,
     env: { WRANGLER_SEND_METRICS: "false" },

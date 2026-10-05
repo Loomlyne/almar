@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderStaticNotFound } from "../lib/not-found-document.ts";
 import { LOCALES, isLocale, localePath, matchPublicPage, stripLocale } from "../lib/locale-path.ts";
+import { opsPathsFrom } from "../lib/ops-routes.ts";
 import { isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { assertPublicClean, assertTargetFiles, outDirNameFor, parseTarget, writeTargetFiles } from "./crawl-files.mjs";
 import { assertMediaReady } from "./media-guard.mjs";
@@ -39,18 +40,21 @@ function copyFile(src, dest) {
  *  - A locale home is written to out/<locale>/index.html, never to out/<locale>.html.
  *  - .next/static goes to out/_next/static when any React document ships, so it is styled and hydrates.
  *  - Three branded 404s are rendered by renderStaticNotFound, never templated here.
+ *  - `pages: false` (the ops target, plan 03.2-03) ships no page at all: no .body, no .html, no index.html. Only
+ *    public/ (without its marketing _redirects), .next/static (always), the three 404s and the headers file reach the
+ *    folder; Worker almar-ops serves every page itself.
  *
  * Returns { framer, react: { en, ar, es }, notFound, total }, paths relative to outDir.
  */
-export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile }) {
-  if (!fs.existsSync(appDir)) {
+export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile, pages = true }) {
+  if (pages && !fs.existsSync(appDir)) {
     throw new Error(`missing build output: ${appDir}`);
   }
 
   // 1. Decide what ships, before touching out/.
   const plan = []; // { src, dest, kind: "framer" | "react", locale }
   const taken = new Map(); // dest -> src
-  for (const { full, rel: file } of listFiles(appDir)) {
+  for (const { full, rel: file } of pages ? listFiles(appDir) : []) {
     const isBody = file.endsWith(".body");
     const isHtml = file.endsWith(".html");
     if (!isBody && !isHtml) continue;
@@ -109,10 +113,17 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile 
   if (publicDir && fs.existsSync(publicDir)) {
     fs.cpSync(publicDir, outDir, { recursive: true });
   }
+  // public/_redirects holds the marketing site's address moves (/services -> /experiences). The ops host has no such
+  // pages: there /services is the branded 404, not a redirect to a page that does not exist.
+  if (!pages) fs.rmSync(path.join(outDir, "_redirects"), { force: true });
   const anyReact = plan.some((item) => item.kind === "react");
-  if (anyReact) {
+  if (anyReact || !pages) {
     if (!staticDir || !fs.existsSync(staticDir)) {
-      throw new Error(`React documents are shipping but ${staticDir} is missing: they would be unstyled and never hydrate`);
+      throw new Error(
+        pages
+          ? `React documents are shipping but ${staticDir} is missing: they would be unstyled and never hydrate`
+          : `${staticDir} is missing: the dashboard pages Worker almar-ops serves would be unstyled and never hydrate`,
+      );
     }
     fs.cpSync(staticDir, path.join(outDir, "_next", "static"), { recursive: true });
   }
@@ -133,7 +144,7 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile 
   }
 
   // 4. Self-checks on what is on disk.
-  const must = ["index.html", ...notFound];
+  const must = pages ? ["index.html", ...notFound] : [...notFound];
   const absent = must.filter((f) => !fs.existsSync(path.join(outDir, f)));
   if (absent.length > 0) throw new Error(`assemble incomplete: missing ${absent.join(", ")}`);
   for (const l of ["ar", "es"]) {
@@ -141,8 +152,8 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile 
       throw new Error(`out/${l}.html exists: a locale home must be out/${l}/index.html only`);
     }
   }
-  if (anyReact && !fs.existsSync(path.join(outDir, "_next", "static"))) {
-    throw new Error("out/_next/static is missing although React documents were copied");
+  if ((anyReact || !pages) && !fs.existsSync(path.join(outDir, "_next", "static"))) {
+    throw new Error(`${path.basename(outDir)}/_next/static is missing although the static files were copied`);
   }
 
   const total = listFiles(outDir).filter((f) => f.rel.endsWith(".html")).length;
@@ -203,6 +214,21 @@ export function writeServerPaths({ manifestFile, openNextDir }) {
 }
 
 /**
+ * Plan 03.2-03: the exact paths worker/almar-ops.mjs forwards to Next, computed from the same manifest by
+ * lib/ops-routes.ts and written to .open-next/almar-ops-routes.json (the ops build writes this file instead of
+ * almar-server-routes.json). Returns the list.
+ */
+export function writeOpsPaths({ manifestFile, openNextDir }) {
+  if (!fs.existsSync(path.join(openNextDir, "worker.js"))) {
+    throw new Error(`missing ${path.join(openNextDir, "worker.js")}: the OpenNext build did not finish`);
+  }
+  const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+  const paths = opsPathsFrom(Object.keys(manifest));
+  fs.writeFileSync(path.join(openNextDir, "almar-ops-routes.json"), `${JSON.stringify(paths)}\n`);
+  return paths;
+}
+
+/**
  * Job 10 review: bundle the Worker the way `wrangler deploy` would, with `--dry-run` (nothing is uploaded, no login is
  * used), into a temporary folder, and fail when its gzip size is over the limit in scripts/worker-size.mjs. Wrangler
  * reads the assets folder and .open-next/, so this runs after both are written. Returns the size in KiB.
@@ -224,18 +250,22 @@ function assertBuiltWorkerSize(config) {
 }
 
 /**
- * node scripts/assemble-cloudflare.mjs [--target=local|preview|production]
+ * node scripts/assemble-cloudflare.mjs [--target=local|preview|production|ops]
  *
  *   local (default)  out/          production crawl files; no media check, so the check set can build
  *   production       out/          the same files, after assertMediaReady()
  *   preview          out-preview/  noindex header, disallow-all robots.txt, no sitemap, after assertMediaReady()
+ *   ops              out-ops/      the dashboard Worker almar-ops (plan 03.2-03): no page HTML, public/ and _next/static,
+ *                                  the three 404s, the preview's noindex files, after assertMediaReady(); the OpenNext
+ *                                  build uses wrangler.ops.toml and the list of served paths is almar-ops-routes.json
  *
- * Preview and production go to different folders, so a preview build never writes out/ and a production build
- * never writes out-preview/ (reconcile R-11): a wrong `wrangler deploy` cannot ship preview files to the live site.
+ * Preview, ops and production go to different folders, so a preview build never writes out/ and a production build
+ * never writes out-preview/ or out-ops/ (reconcile R-11): a wrong `wrangler deploy` cannot ship preview files to the live site.
  * A typo in the target throws before anything is built or removed.
  */
 function main(argv = process.argv.slice(2)) {
   const target = parseTarget(argv);
+  // 03.2-02 adds dataSourceFor(target) here: the catalogue source check, before anything is built or removed.
   // Before anything is built or removed, like the target check above.
   assertNoPublicEnv(process.env);
   process.chdir(root);
@@ -244,7 +274,7 @@ function main(argv = process.argv.slice(2)) {
   if (target !== "local") assertMediaReady();
   // Job 10: OpenNext runs the project's `next build` (standalone) and bundles the server into .open-next/. The
   // prerendered pages below come from that same build, so the static folder and the Worker script always match.
-  const config = target === "preview" ? "wrangler.preview.toml" : "wrangler.toml";
+  const config = target === "preview" ? "wrangler.preview.toml" : target === "ops" ? "wrangler.ops.toml" : "wrangler.toml";
   execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
     cwd: root,
     stdio: "inherit",
@@ -258,6 +288,7 @@ function main(argv = process.argv.slice(2)) {
     staticDir: path.join(root, ".next/static"),
     outDir,
     publicDir: path.join(root, "public"),
+    pages: target !== "ops",
   });
   // _headers, robots.txt and sitemap.xml are written per target, never copied from public/.
   const htmlFiles = listFiles(outDir)
@@ -265,12 +296,20 @@ function main(argv = process.argv.slice(2)) {
     .map((f) => f.rel);
   writeTargetFiles({ outDir, target, root, htmlFiles });
   assertTargetFiles(outDir, target, { root });
-  const serverPaths = writeServerPaths({
+  const pathArgs = {
     manifestFile: path.join(root, ".next/server/app-paths-manifest.json"),
     openNextDir: path.join(root, ".open-next"),
-  });
+  };
+  const serverPaths = target === "ops" ? writeOpsPaths(pathArgs) : writeServerPaths(pathArgs);
   const workerKiB = assertBuiltWorkerSize(config);
   const r = report.react;
+  if (target === "ops") {
+    console.log(
+      `assembled ${folder}/ (target: ops): no page HTML, ${report.notFound.length} 404s; ` +
+        `Worker ${Math.round(workerKiB)} KiB gzip; ops paths: ${serverPaths.join(", ")}`,
+    );
+    return;
+  }
   console.log(
     `assembled ${report.total} html files into ${folder}/ (target: ${target}): ${report.framer.length} Framer, ` +
       `React en ${r.en.length} / ar ${r.ar.length} / es ${r.es.length}, ${report.notFound.length} 404s; ` +

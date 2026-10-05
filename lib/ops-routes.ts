@@ -108,7 +108,8 @@ function assertNoSpecialSegments(key: string, segments: string[], scope: string)
 /**
  * The exact ops paths, sorted, from the keys of Next's app-paths-manifest.json (such as
  * `/dashboard/(ops)/catalog/stays/page`, `/auth/confirm/route`, `/api/ops/stays/route`):
- *  - OPS_FIXED_PATHS, OPS_AUTH_PATHS and /api/health (each auth route and the health route must be in the manifest);
+ *  - OPS_FIXED_PATHS, OPS_AUTH_PATHS and /api/health (each auth path, as a route or a page, and the health route must
+ *    be in the manifest);
  *  - every page under /dashboard, with `(group)` segments removed, as `/dashboard/<section>` (job 02 redirects it to
  *    the clean path) and `/<section>`;
  *  - every route handler under /api/ops as `/api/ops/<name>`.
@@ -119,9 +120,13 @@ function assertNoSpecialSegments(key: string, segments: string[], scope: string)
 export function opsPathsFrom(manifestKeys: readonly string[]): string[] {
   const keys = new Set(manifestKeys);
   const found = new Set<string>([...OPS_FIXED_PATHS, ...OPS_AUTH_PATHS, OPS_API_HEALTH]);
-  for (const path of [...OPS_AUTH_PATHS, OPS_API_HEALTH]) {
-    if (!keys.has(`${path}/route`)) throw new Error(`${path}/route is missing from the build: the ops host needs it`);
+  // /auth/confirm is a page (the Continue screen), /auth/handoff and /auth/sign-out are route handlers: either form counts.
+  for (const path of OPS_AUTH_PATHS) {
+    if (!keys.has(`${path}/route`) && !keys.has(`${path}/page`)) {
+      throw new Error(`${path} (${path}/route or ${path}/page) is missing from the build: the ops host needs it`);
+    }
   }
+  if (!keys.has(`${OPS_API_HEALTH}/route`)) throw new Error(`${OPS_API_HEALTH}/route is missing from the build: the ops host needs it`);
 
   for (const key of keys) {
     if (key.startsWith("/api/ops/")) {

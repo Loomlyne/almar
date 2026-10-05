@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import test from "node:test";
 import { OPS_AUTH_PATHS, OPS_LIVE_SECTIONS, OPS_PATH_HEADER, assertOpsPath, isLiveOpsPath, opsPathsFrom } from "../lib/ops-routes.ts";
 import { OPS_API_PREFIX, serverPathsFrom } from "../lib/server-routes.ts";
+import { assembleOut, writeOpsPaths, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
+import { opsTestConfig } from "./build/make-ops-test-config.mjs";
 
 // Plan 03.2-03: the second Worker, `almar-ops` (dashboard.almarprivatejourney.com). No build and no wrangler here;
 // the built Worker is proven by tests/build/ops-runtime.spec.ts.
@@ -28,7 +32,7 @@ const MANIFEST = [
   ...TODAY,
   "/dashboard/page",
   "/dashboard/(ops)/catalog/stays/page",
-  "/auth/confirm/route",
+  "/auth/confirm/page",
   "/auth/handoff/route",
   "/auth/handoff/start/route",
   "/auth/sign-out/route",
@@ -74,11 +78,17 @@ test("opsPathsFrom: the input order and duplicates change nothing", () => {
   assert.deepEqual(opsPathsFrom([...MANIFEST, ...MANIFEST]), WANT);
 });
 
-test("opsPathsFrom: every OPS_AUTH_PATHS route and /api/health must be in the manifest", () => {
+test("opsPathsFrom: every OPS_AUTH_PATHS entry (a route or a page) and the /api/health route must be in the manifest", () => {
   assert.deepEqual([...OPS_AUTH_PATHS], ["/auth/confirm", "/auth/handoff", "/auth/sign-out"]);
-  for (const missing of ["/auth/confirm/route", "/auth/handoff/route", "/auth/sign-out/route", "/api/health/route"]) {
-    assert.throws(() => opsPathsFrom(MANIFEST.filter((k) => k !== missing)), new RegExp(missing.replace(/\//g, "\\/")), missing);
+  // /auth/confirm is a page in app/ (the Continue screen); the other two are route handlers.
+  for (const missing of ["/auth/confirm/page", "/auth/handoff/route", "/auth/sign-out/route", "/api/health/route"]) {
+    const stem = missing.replace(/\/(route|page)$/, "");
+    assert.throws(() => opsPathsFrom(MANIFEST.filter((k) => k !== missing)), new RegExp(stem.replace(/\//g, "\\/")), missing);
   }
+  // Either form counts for an auth path, and the answer is the same.
+  assert.deepEqual(opsPathsFrom([...MANIFEST.filter((k) => k !== "/auth/confirm/page"), "/auth/confirm/route"]), WANT);
+  // The health path must be a route handler: a page of that name is not enough.
+  assert.throws(() => opsPathsFrom([...MANIFEST.filter((k) => k !== "/api/health/route"), "/api/health/page"]), /api\/health/);
 });
 
 test("opsPathsFrom: a dynamic, catch-all, parallel or intercepting segment under /dashboard or /api/ops stops the build", () => {
@@ -291,4 +301,165 @@ test("lib/ops-routes.ts is a leaf module (no imports), so node tests, the assemb
   const source = readFileSync("lib/ops-routes.ts", "utf8");
   assert.equal(/^import\s/m.test(source), false);
   assert.equal(/^export .*from /m.test(source), false);
+});
+
+// ---- the ops build target (Task 2) ------------------------------------------------------------------------------
+
+function scratchDir(files) {
+  const base = mkdtempSync(join(tmpdir(), "almar-ops-"));
+  for (const [rel, text] of Object.entries(files)) {
+    mkdirSync(dirname(join(base, rel)), { recursive: true });
+    writeFileSync(join(base, rel), text);
+  }
+  return base;
+}
+
+function filesUnder(dir, base = dir, found = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) filesUnder(full, base, found);
+    else found.push(full.slice(base.length + 1));
+  }
+  return found.sort();
+}
+
+/** A build output with pages, Framer bodies, the dashboard, public/ and static, as `next build` leaves it. */
+function fixture() {
+  return scratchDir({
+    "app/index.html": "home",
+    "app/ar.html": "home ar",
+    "app/es.html": "home es",
+    "app/private-stays.html": "stays",
+    "app/ar/private-stays.html": "stays ar",
+    "app/es/private-stays.html": "stays es",
+    "app/about.body": "framer about",
+    "app/dashboard.html": "dashboard",
+    "app/dashboard/home.html": "dashboard home",
+    "static/css/x.css": "body{}",
+    "static/chunks/a.js": "1",
+    "public/assets/logo.svg": "<svg/>",
+    "public/favicon.ico": "x",
+    "public/_redirects": "/services /experiences 301\n",
+    "_headers": "/assets/*\n  Cache-Control: public\n",
+  });
+}
+
+test("assembleOut({ pages: false }): public/ without its marketing _redirects, _next/static, the three branded 404s and _headers; no .html or .body page at all", () => {
+  const base = fixture();
+  const outDir = join(base, "out-ops");
+  const report = assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir, publicDir: join(base, "public"), headersFile: join(base, "_headers"), pages: false });
+  assert.deepEqual(filesUnder(outDir), [
+    "404.html",
+    "_headers",
+    "_next/static/chunks/a.js",
+    "_next/static/css/x.css",
+    "ar/404.html",
+    "assets/logo.svg",
+    "es/404.html",
+    "favicon.ico",
+  ]);
+  assert.deepEqual(report.framer, []);
+  assert.deepEqual(report.react, { en: [], ar: [], es: [] });
+  assert.deepEqual(report.notFound, ["404.html", "ar/404.html", "es/404.html"]);
+  assert.equal(report.total, 3);
+  assert.equal(readFileSync(join(outDir, "404.html"), "utf8").includes("<html"), true);
+  assert.equal(existsSync(join(outDir, "_redirects")), false, "/services is the branded 404 on the ops host, not a redirect");
+});
+
+test("assembleOut({ pages: false }): _next/static is copied unconditionally, and a missing static folder stops the build", () => {
+  const base = scratchDir({ "app/index.html": "home", "public/a.txt": "x" });
+  const outDir = join(base, "out-ops");
+  assert.throws(() => assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir, publicDir: join(base, "public"), pages: false }), /static/);
+});
+
+test("assembleOut({ pages: false }): public/ may still hold nothing under /api or a held section", () => {
+  const base = scratchDir({ "app/index.html": "home", "static/css/x.css": "b", "public/api/x.json": "{}" });
+  assert.throws(
+    () => assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir: join(base, "out-ops"), publicDir: join(base, "public"), pages: false }),
+    /only the Worker may answer/,
+  );
+});
+
+test("assembleOut: with pages omitted it behaves exactly as before (the pages, the home link and index.html are required)", () => {
+  const base = fixture();
+  const outDir = join(base, "out");
+  const report = assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir, publicDir: join(base, "public") });
+  assert.ok(existsSync(join(outDir, "index.html")));
+  assert.ok(existsSync(join(outDir, "private-stays.html")));
+  assert.ok(existsSync(join(outDir, "_redirects")), "the public folder keeps its redirects");
+  assert.equal(existsSync(join(outDir, "dashboard.html")), false, "the dashboard never reaches the public folder");
+  assert.deepEqual(report.framer, ["about.html"]);
+  const none = scratchDir({ "static/css/x.css": "b", "app/private-stays.html": "x" });
+  assert.throws(() => assembleOut({ appDir: join(none, "app"), staticDir: join(none, "static"), outDir: join(none, "out"), publicDir: join(none, "public") }), /index\.html|English home/);
+});
+
+test("writeOpsPaths: writes opsPathsFrom's list next to the OpenNext worker as almar-ops-routes.json; refuses without the worker", () => {
+  const base = scratchDir({
+    "app-paths-manifest.json": JSON.stringify(Object.fromEntries(MANIFEST.map((k) => [k, "x"]))),
+    ".open-next/worker.js": "export default {}",
+  });
+  const got = writeOpsPaths({ manifestFile: join(base, "app-paths-manifest.json"), openNextDir: join(base, ".open-next") });
+  assert.deepEqual(got, WANT);
+  assert.equal(readFileSync(join(base, ".open-next/almar-ops-routes.json"), "utf8"), `${JSON.stringify(WANT)}\n`);
+  assert.equal(existsSync(join(base, ".open-next/almar-server-routes.json")), false, "the public list is a different file");
+  const empty = scratchDir({ "app-paths-manifest.json": "{}" });
+  assert.throws(() => writeOpsPaths({ manifestFile: join(empty, "app-paths-manifest.json"), openNextDir: join(empty, ".open-next") }), /did not finish/);
+});
+
+test("writeServerPaths and writeOpsPaths split one manifest: the public list holds no /api/ops path, the ops list no guest API", () => {
+  const base = scratchDir({
+    "app-paths-manifest.json": JSON.stringify(Object.fromEntries(MANIFEST.map((k) => [k, "x"]))),
+    ".open-next/worker.js": "export default {}",
+  });
+  const args = { manifestFile: join(base, "app-paths-manifest.json"), openNextDir: join(base, ".open-next") };
+  const pub = writeServerPaths(args);
+  const ops = writeOpsPaths(args);
+  assert.equal(pub.some((p) => p.startsWith("/api/ops")), false);
+  assert.ok(pub.includes("/api/booking/quote") && pub.includes("/api/health"));
+  assert.equal(ops.includes("/api/booking/quote"), false);
+  assert.ok(ops.includes("/api/ops/stays") && ops.includes("/api/health"));
+});
+
+test("package.json gains exactly build:ops, which only builds; the other scripts are unchanged", () => {
+  const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+  assert.equal(pkg.scripts["build:ops"], "node scripts/assemble-cloudflare.mjs --target=ops");
+  assert.equal(pkg.scripts["build:cloudflare"], "node scripts/assemble-cloudflare.mjs --target=production");
+  assert.equal(pkg.scripts["build:preview"], "node scripts/assemble-cloudflare.mjs --target=preview");
+  for (const [name, command] of Object.entries(pkg.scripts)) {
+    assert.equal(/wrangler\s+(deploy|versions\s+upload|secret)|opennextjs-cloudflare\s+(deploy|upload|preview)|vercel/.test(command), false, `${name}: ${command}`);
+  }
+});
+
+test(".gitignore keeps out-ops/ and the scratch .tmp/ out of git", () => {
+  const lines = readFileSync(".gitignore", "utf8").split("\n");
+  assert.ok(lines.includes("/out-ops/"));
+  assert.ok(lines.includes("/.tmp/"));
+});
+
+test("the assembler builds the ops target from wrangler.ops.toml, with no pages, and writes the ops list instead of the public one", () => {
+  const source = readFileSync("scripts/assemble-cloudflare.mjs", "utf8");
+  assert.match(source, /"wrangler\.ops\.toml"/);
+  assert.match(source, /pages: target !== "ops"/);
+  assert.match(source, /almar-ops-routes\.json/);
+  assert.match(source, /target === "ops" \? writeOpsPaths\(/);
+});
+
+test("opsTestConfig: wrangler.ops.toml without [ai] and without the route, paths relative to .tmp/, R2 and ASSETS kept", () => {
+  const copy = opsTestConfig(OPS);
+  assert.equal(/^\[ai\]/m.test(copy) || /AI/.test(copy.replace(/^#.*$/gm, "")), false, "no AI binding in the local copy");
+  assert.equal(/^\[\[routes\]\]|custom_domain|pattern = /m.test(copy), false, "no route in the local copy");
+  assert.match(copy, /^main = "\.\.\/worker\/almar-ops\.mjs"$/m);
+  assert.match(copy, /^directory = "\.\.\/out-ops"$/m);
+  assert.match(copy, /^binding = "ASSETS"$/m);
+  assert.match(copy, /^run_worker_first = true$/m);
+  assert.deepEqual(block(copy, "[[r2_buckets]]"), ['binding = "MEDIA"', 'bucket_name = "almar-media"']);
+  assert.equal(topKey(copy, "name"), '"almar-ops"');
+  // Everything else is the real file's: same flags, date and account.
+  for (const key of ["compatibility_date", "compatibility_flags", "account_id", "workers_dev", "preview_urls"]) assert.equal(topKey(copy, key), topKey(OPS, key), key);
+});
+
+test("opsTestConfig: a wrangler.ops.toml that lost the lines it rewrites stops the script instead of writing a wrong copy", () => {
+  assert.throws(() => opsTestConfig(OPS.replace('main = "worker/almar-ops.mjs"', 'main = "worker/other.mjs"')), /rewrites/);
+  assert.throws(() => opsTestConfig(OPS.replace('directory = "./out-ops"', 'directory = "./out"')), /rewrites/);
+  assert.throws(() => opsTestConfig(OPS.replace('binding = "MEDIA"', 'binding = "OTHER"')), /MEDIA/);
 });
