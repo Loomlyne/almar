@@ -8,13 +8,13 @@
     },
     {
       "locale": "ar",
-      "status": "draft",
+      "status": "published",
       "kicker": "قصتنا",
       "headline": "كولومبيا الخاصة بك"
     },
     {
       "locale": "es",
-      "status": "draft",
+      "status": "published",
       "kicker": "Nuestra historia",
       "headline": "Tu Colombia privada"
     }
@@ -27,12 +27,12 @@
     },
     {
       "locale": "ar",
-      "status": "draft",
-      "statement": "ALMAR Private Journeys وكالة سفر فاخرة أُنشئت للمسافرين الذين يريدون اكتشاف كولومبيا بخصوصية وتخطيط دقيق ومعايير خدمة رفيعة."
+      "status": "published",
+      "statement": "المار للرحلات الخاصة وكالة سفر فاخرة أُنشئت للمسافرين الذين يريدون اكتشاف كولومبيا بخصوصية وتخطيط دقيق ومعايير خدمة رفيعة."
     },
     {
       "locale": "es",
-      "status": "draft",
+      "status": "published",
       "statement": "ALMAR Private Journeys es una agencia de viajes de lujo creada para quienes quieren conocer Colombia con privacidad, planificación cuidadosa y altos estándares de servicio."
     }
   ],
@@ -47,14 +47,14 @@
     {
       "card_id": "a05fe6d3-0feb-5cde-aeba-5f79bc71926d",
       "locale": "ar",
-      "status": "draft",
+      "status": "published",
       "title": "صُمّمت من القلب",
       "body": "تعكس كل رحلة مع ALMAR التزامنا بالتخطيط الشخصي، وشركاء محليين مختارين، وتجارب تُصاغ حول كل عميل."
     },
     {
       "card_id": "a05fe6d3-0feb-5cde-aeba-5f79bc71926d",
       "locale": "es",
-      "status": "draft",
+      "status": "published",
       "title": "Diseñado con corazón",
       "body": "Cada viaje de ALMAR refleja nuestro compromiso con una planificación personalizada, aliados locales seleccionados y experiencias pensadas para cada cliente."
     },
@@ -68,16 +68,16 @@
     {
       "card_id": "a9e6d48c-0f61-5c20-a2be-92928700a3f5",
       "locale": "ar",
-      "status": "draft",
+      "status": "published",
       "title": "جسر بين الفضول والثقة",
-      "body": "أسّس ALMAR كولومبيٌّ أمضى سنوات يرافق مسؤولين تنفيذيين دوليين في الخليج وخارجه، ورآهم يقعون في حب كولومبيا ثم يتراجعون خوفاً. فكان ردّنا باقات خاصة شاملة: سائق خاص، وطاهٍ في الفيلا، ومساعدة على مدار الساعة، وفلل مختارة بعناية، وثقافة منتقاة. ذلك الجسر صار رسالتنا."
+      "body": "أسّست ALMAR كولومبيّةٌ أمضت سنوات ترافق مسؤولين تنفيذيين دوليين في الخليج وخارجه، ورأتهم يقعون في حب كولومبيا ثم يتراجعون خوفاً. فكان ردّنا باقات خاصة شاملة: سائق خاص، وشيف في الفيلا، ومساعدة على مدار الساعة، وفلل مختارة بعناية، وثقافة منتقاة. ذلك الجسر صار رسالتنا."
     },
     {
       "card_id": "a9e6d48c-0f61-5c20-a2be-92928700a3f5",
       "locale": "es",
-      "status": "draft",
+      "status": "published",
       "title": "Un puente entre curiosidad y confianza",
-      "body": "ALMAR fue fundada por un colombiano que pasó años acompañando a ejecutivos internacionales por el Golfo y más allá, viéndolos enamorarse de Colombia y luego echarse atrás por miedo. Respondimos con paquetes privados todo incluido: conductor privado, chef en la villa, asistencia las 24 horas, villas seleccionadas y cultura cuidadosamente elegida. Ese puente se convirtió en nuestra misión."
+      "body": "ALMAR fue fundada por una colombiana que pasó años acompañando a ejecutivos internacionales por el Golfo y más allá, viéndolos enamorarse de Colombia y luego echarse atrás por miedo. Respondimos con paquetes privados todo incluido: conductor privado, chef en la villa, asistencia las 24 horas, villas seleccionadas y cultura cuidadosamente elegida. Ese puente se convirtió en nuestra misión."
     },
     {
       "card_id": "6c902218-e0ac-5c78-9182-928b035775c9",
@@ -89,14 +89,14 @@
     {
       "card_id": "6c902218-e0ac-5c78-9182-928b035775c9",
       "locale": "ar",
-      "status": "draft",
+      "status": "published",
       "title": "رؤية تنمو",
       "body": "رؤيتنا على المدى البعيد: شراكات مباشرة مع الفلل والسيارات الفاخرة في أنحاء كولومبيا ثم أمريكا اللاتينية، لنكسب الثقة مرجعاً للسفر الفاخر القائم على الأمان في المنطقة كلها."
     },
     {
       "card_id": "6c902218-e0ac-5c78-9182-928b035775c9",
       "locale": "es",
-      "status": "draft",
+      "status": "published",
       "title": "Una visión que crece",
       "body": "Nuestra visión a largo plazo: alianzas directas con villas y autos de lujo en toda Colombia y luego en América Latina, ganando la confianza como la referencia del viaje de lujo con seguridad en toda la región."
     },
@@ -105,20 +105,20 @@
       "locale": "en",
       "status": "published",
       "title": "Intentional Hospitality",
-      "body": "We believe great service should feel natural, never forced. Every team member is empowered to create moments that matter - from a warm greeting to a handwritten note."
+      "body": "We believe great service should feel natural, never forced. Every team member is empowered to create moments that matter — from a warm greeting to a handwritten note."
     },
     {
       "card_id": "8066d158-ea36-519f-8f3c-38006e6ea8d6",
       "locale": "ar",
-      "status": "draft",
-      "title": "ضيافة مقصودة",
-      "body": "نؤمن بأن الخدمة الرائعة تبدو طبيعية لا متكلّفة. كل فرد في فريقنا مخوّل لصنع لحظات تهمّ، من ترحيب دافئ إلى رسالة بخط اليد."
+      "status": "published",
+      "title": "ضيافة مدروسة",
+      "body": "نؤمن بأن الخدمة الرائعة تبدو طبيعية لا متكلّفة. كل فرد في فريقنا مخوّل لصنع لحظات ذات معنى، من ترحيب دافئ إلى رسالة بخط اليد."
     },
     {
       "card_id": "8066d158-ea36-519f-8f3c-38006e6ea8d6",
       "locale": "es",
-      "status": "draft",
-      "title": "Hospitalidad intencional",
+      "status": "published",
+      "title": "Hospitalidad con propósito",
       "body": "Creemos que un gran servicio debe sentirse natural, nunca forzado. Cada miembro del equipo tiene la libertad de crear momentos que importan, desde un saludo cálido hasta una nota escrita a mano."
     },
     {
@@ -131,14 +131,14 @@
     {
       "card_id": "15195615-f711-5de8-b13e-087cc9bc0e30",
       "locale": "ar",
-      "status": "draft",
+      "status": "published",
       "title": "دعم ثنائي اللغة للرحلة",
       "body": "يُخطَّط لكل رحلة مؤكَّدة تنسيقٌ بلغتين ورقمُ طوارئ على مدار الساعة."
     },
     {
       "card_id": "15195615-f711-5de8-b13e-087cc9bc0e30",
       "locale": "es",
-      "status": "draft",
+      "status": "published",
       "title": "Apoyo bilingüe durante el viaje",
       "body": "La coordinación bilingüe del viaje y un contacto de emergencia 24/7 se planifican alrededor de cada viaje confirmado."
     },
@@ -152,14 +152,14 @@
     {
       "card_id": "07fc4c83-1256-5bca-b900-a1d3616966ea",
       "locale": "ar",
-      "status": "draft",
-      "title": "الخصوصية والتنسيق المتحفّظ",
-      "body": "يمكن ترتيب تنسيق التنقلات الخاصة والتخطيط المتحفّظ والدعم المتخصص حول كل عميل، وتأكيدها قبل الحجز."
+      "status": "published",
+      "title": "الخصوصية والتنسيق بتكتّم",
+      "body": "يمكن ترتيب تنسيق التنقلات الخاصة والتخطيط بتكتّم والدعم المتخصص لكل عميل، وتأكيدها قبل الحجز."
     },
     {
       "card_id": "07fc4c83-1256-5bca-b900-a1d3616966ea",
       "locale": "es",
-      "status": "draft",
+      "status": "published",
       "title": "Privacidad y coordinación discreta",
       "body": "La coordinación de traslados privados, la planificación discreta y el apoyo especializado pueden organizarse para cada cliente y confirmarse antes de reservar."
     }

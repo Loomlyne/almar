@@ -71,15 +71,16 @@ function written(target, htmlFiles = ALL_FILES) {
 
 // ---- the targets ------------------------------------------------------------------------------------------------
 
-test("TARGETS are local, preview and production; the default is local", () => {
-  assert.deepEqual([...TARGETS], ["local", "preview", "production"]);
+test("TARGETS are local, preview, production and ops; the default is local", () => {
+  assert.deepEqual([...TARGETS], ["local", "preview", "production", "ops"]);
   assert.equal(parseTarget([]), "local");
   assert.equal(parseTarget(["--target=preview"]), "preview");
   assert.equal(parseTarget(["--target=production"]), "production");
+  assert.equal(parseTarget(["--target=ops"]), "ops");
 });
 
 test("an unknown or malformed target throws (a typo cannot build the wrong variant)", () => {
-  for (const bad of ["--target=previw", "--target=", "--target=Preview", "--target=prod", "--target", "preview", "--targets=preview"]) {
+  for (const bad of ["--target=previw", "--target=", "--target=Preview", "--target=prod", "--target", "preview", "--targets=preview", "--target=Ops", "--target=op"]) {
     assert.throws(() => parseTarget([bad]), /target|argument/i, bad);
   }
   assert.throws(() => parseTarget(["--target=preview", "--target=production"]), /more than once/i);
@@ -93,8 +94,9 @@ test("an unknown target throws in writeTargetFiles and assertTargetFiles", () =>
   assert.throws(() => assertTargetFiles(outDir, "previw", { root }), /previw/);
 });
 
-test("preview builds into out-preview/, every other target into out/", () => {
+test("preview builds into out-preview/, ops into out-ops/, every other target into out/", () => {
   assert.equal(outDirNameFor("preview"), "out-preview");
+  assert.equal(outDirNameFor("ops"), "out-ops");
   assert.equal(outDirNameFor("production"), "out");
   assert.equal(outDirNameFor("local"), "out");
   assert.throws(() => outDirNameFor("previw"), /previw/);
@@ -110,6 +112,21 @@ test("a preview folder named out, or a production folder named out-preview, is r
   assert.throws(() => writeTargetFiles({ outDir: preview, target: "production", root, htmlFiles: [] }), /out/);
   assert.throws(() => writeTargetFiles({ outDir: preview, target: "local", root, htmlFiles: [] }), /out/);
   assert.throws(() => assertTargetFiles(out, "preview", { root }), /out-preview/);
+});
+
+test("an ops folder is refused for any other target, and any other folder for ops (plan 03.2-03)", () => {
+  const root = fakeRoot();
+  const out = join(root, "out");
+  const preview = join(root, "out-preview");
+  const ops = join(root, "out-ops");
+  for (const dir of [out, preview, ops]) mkdirSync(dir);
+  assert.throws(() => writeTargetFiles({ outDir: ops, target: "production", root, htmlFiles: [] }), /out\//);
+  assert.throws(() => writeTargetFiles({ outDir: ops, target: "preview", root, htmlFiles: [] }), /out-preview/);
+  assert.throws(() => writeTargetFiles({ outDir: ops, target: "local", root, htmlFiles: [] }), /out\//);
+  assert.throws(() => writeTargetFiles({ outDir: out, target: "ops", root, htmlFiles: [] }), /out-ops/);
+  assert.throws(() => writeTargetFiles({ outDir: preview, target: "ops", root, htmlFiles: [] }), /out-ops/);
+  assert.throws(() => assertTargetFiles(out, "ops", { root }), /out-ops/);
+  assert.throws(() => assertTargetFiles(ops, "production", { root }), /out\//);
 });
 
 // ---- production and local ---------------------------------------------------------------------------------------
@@ -161,6 +178,34 @@ test("preview target: robots.txt is the disallow-all file and no sitemap.xml is 
   assert.equal(read("robots.txt"), "User-agent: *\nDisallow: /\n");
   assert.equal(has("sitemap.xml"), false);
   assertTargetFiles(outDir, "preview", { root });
+});
+
+// ---- ops: the dashboard host's files are the preview's (noindex, disallow-all, no sitemap) ------------------------
+
+test("ops target: _headers starts with the root bytes and ends with the one noindex block, exactly once", () => {
+  const { root, read } = written("ops", []);
+  const rootBytes = readFileSync(join(root, "_headers"), "utf8");
+  const block = readFileSync(join(root, "deploy/preview/_headers"), "utf8");
+  const headers = read("_headers");
+  assert.ok(headers.startsWith(rootBytes), "starts with the root _headers");
+  assert.ok(headers.endsWith(block), "ends with the noindex block");
+  assert.equal(headers.split(block).length - 1, 1, "the block once");
+  assert.equal((headers.match(/x-robots-tag/gi) ?? []).length, 1, "exactly one X-Robots-Tag");
+});
+
+test("ops target: robots.txt is the disallow-all file, no sitemap.xml, and assertTargetFiles accepts the folder", () => {
+  const { root, outDir, read, has } = written("ops", []);
+  assert.equal(read("robots.txt"), "User-agent: *\nDisallow: /\n");
+  assert.equal(read("robots.txt"), readFileSync(join(root, "deploy/preview/robots.txt"), "utf8"));
+  assert.equal(has("sitemap.xml"), false);
+  assertTargetFiles(outDir, "ops", { root });
+});
+
+test("ops target: the same traps as preview are refused (no block, block twice, a sitemap, a wrong robots.txt)", () => {
+  refuses("ops", (out, root) => writeFileSync(join(out, "_headers"), readFileSync(join(root, "_headers"), "utf8")), /_headers/);
+  refuses("ops", (out) => writeFileSync(join(out, "_headers"), readFileSync(join(out, "_headers"), "utf8") + "/*\n  X-Robots-Tag: noindex, nofollow\n"), /_headers/);
+  refuses("ops", (out) => writeFileSync(join(out, "sitemap.xml"), "<urlset/>"), /sitemap/);
+  refuses("ops", (out) => writeFileSync(join(out, "robots.txt"), "User-agent: *\nAllow: /\n"), /robots\.txt/);
 });
 
 // ---- the trap: each injected violation is refused, one named test each -------------------------------------------

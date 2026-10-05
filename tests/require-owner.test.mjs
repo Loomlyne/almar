@@ -66,10 +66,56 @@ test("source guard: the pure rule uses isOwnerProfile and nothing else", () => {
   assert.match(src, /input\.shell !== "ops"/);
 });
 
-test("the shell header the gate trusts is dropped from the client and set only for the ops host", () => {
+// Brace depth of `src` just before `index`: how many blocks are open there.
+const depthAt = (src, index) => {
+  let depth = 0;
+  for (let i = 0; i < index; i++) {
+    if (src[i] === "{") depth++;
+    else if (src[i] === "}") depth--;
+  }
+  return depth;
+};
+
+// The index of the `}` that closes the block opened by the `{` at `open`.
+const closeOf = (src, open) => {
+  let depth = 0;
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === "{") depth++;
+    else if (src[i] === "}" && --depth === 0) return i;
+  }
+  throw new Error("unbalanced braces in middleware.ts");
+};
+
+// The two headers the (ops) gate trusts. Each must be dropped from the client's copy first, as a plain statement at the
+// function's top level, and written in exactly one place: directly inside the `if (isOpsHost(host)) {` block, never in
+// another branch, never with append, never on another headers object.
+test("the shell header the gate trusts is dropped from the client and set only for the ops host, and so is the ops-path header", () => {
   const middleware = code("middleware.ts");
-  const drop = middleware.indexOf("forwarded.delete(SHELL_HEADER);");
-  const set = middleware.indexOf('if (isOpsHost(host)) forwarded.set(SHELL_HEADER, "ops");');
-  assert.ok(drop > -1 && set > drop, "client copy dropped, then set for the ops host only");
-  assert.equal(middleware.split("forwarded.set(SHELL_HEADER").length - 1, 1, "set in one place");
+
+  const gate = "if (isOpsHost(host)) {";
+  assert.equal(middleware.split(gate).length - 1, 1, "one ops-host block");
+  const open = middleware.indexOf(gate) + gate.length - 1;
+  const close = closeOf(middleware, open);
+  const outerDepth = depthAt(middleware, open);
+
+  for (const header of ["SHELL_HEADER", "OPS_PATH_HEADER"]) {
+    const drop = `forwarded.delete(${header});`;
+    assert.equal(middleware.split(drop).length - 1, 1, `${drop} appears once`);
+    const dropAt = middleware.indexOf(drop);
+    assert.ok(dropAt < open, `${header}: dropped before the ops-host block`);
+    assert.equal(depthAt(middleware, dropAt), outerDepth, `${header}: the drop is not inside any branch`);
+    assert.match(middleware, new RegExp(`^[ \\t]*forwarded\\.delete\\(${header}\\);`, "m"), `${header}: the drop is a plain statement`);
+
+    const writes = [...middleware.matchAll(new RegExp(`\\.(set|append)\\(\\s*${header}\\b`, "g"))];
+    assert.equal(writes.length, 1, `${header}: written in exactly one place`);
+    const [write] = writes;
+    assert.equal(write[1], "set");
+    const line = middleware.slice(middleware.lastIndexOf("\n", write.index) + 1, middleware.indexOf("\n", write.index));
+    assert.match(line, /^\s*forwarded\.set\(/, `${header}: a plain statement on the forwarded headers, not under an inline condition`);
+    assert.ok(write.index > dropAt, `${header}: dropped before it is set`);
+    assert.ok(write.index > open && write.index < close, `${header}: set inside the ops-host block`);
+    assert.equal(depthAt(middleware, write.index), outerDepth + 1, `${header}: set directly in the block, under no other condition`);
+  }
+
+  assert.match(middleware, /forwarded\.set\(SHELL_HEADER, "ops"\);/, "the shell header is only ever \"ops\"");
 });

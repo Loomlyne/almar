@@ -4,14 +4,14 @@
     "locale": "en",
     "title": "Getsemaní Colonial House",
     "tagline": "Getsemaní heritage living",
-    "neighborhood": "Casa Centro Getsemani",
+    "neighborhood": "Casa Centro Getsemaní",
     "guests_label": "Up to 10 Guests",
     "bathrooms_label": "5",
     "beds_label": "5 double",
     "price_label": "On request",
     "price_note": "Public rates are quoted on request. ALMAR confirms availability, staffing, and final pricing before you travel.",
     "description": [
-      "Getsemaní Colonial House is a vetted ALMAR private stay in Casa Centro Getsemani, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
+      "Getsemaní Colonial House is a vetted ALMAR private stay in Casa Centro Getsemaní, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
       "Layout: 5 bedrooms, 5 bathrooms, 5 double beds, hosting up to 10 guests.",
       "Property highlights include Private pool, rooftop terrace, living room, dining room."
     ],
@@ -37,16 +37,16 @@
     "locale": "ar",
     "title": "بيت خيتسيماني الاستعماري",
     "tagline": "حياة تراثية في خيتسيماني",
-    "neighborhood": "Casa Centro Getsemani",
+    "neighborhood": "Casa Centro Getsemaní",
     "guests_label": "حتى 10 ضيوف",
     "bathrooms_label": "5",
     "beds_label": "5 أسرّة مزدوجة",
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "بيت خيتسيماني الاستعماري إقامة خاصة موثّقة من المار في Casa Centro Getsemani، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 5، الحمامات 5، الأسرّة 5 أسرّة مزدوجة، الاستضافة حتى 10 ضيوف.",
-      "من أبرز ما يتميز به العقار: مسبح خاص، تراس على السطح، غرفة جلوس، غرفة طعام."
+      "بيت خيتسيماني الاستعماري إقامة خاصة موثّقة من ALMAR في Casa Centro Getsemaní، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 5 غرف نوم، 5 حمامات، 5 أسرّة مزدوجة، تستوعب حتى 10 ضيوف.",
+      "من أبرز ما يتميز به العقار: مسبح خاص، وتراس على السطح، وغرفة جلوس، وغرفة طعام."
     ],
     "amenities": [
       "مسبح خاص",
@@ -63,23 +63,23 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "38f3ed2e-e6d2-50df-886c-c90c815252ad",
     "locale": "es",
     "title": "Casa colonial de Getsemaní",
-    "tagline": "Vida con herencia en Getsemaní",
-    "neighborhood": "Casa Centro Getsemani",
+    "tagline": "Vida patrimonial en Getsemaní",
+    "neighborhood": "Casa Centro Getsemaní",
     "guests_label": "Hasta 10 huéspedes",
     "bathrooms_label": "5",
     "beds_label": "5 dobles",
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
-      "Casa colonial de Getsemaní es una estancia privada verificada de ALMAR en Casa Centro Getsemani, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 5 dormitorios, 5 baños, camas: 5 dobles, para hasta 10 huéspedes.",
-      "Entre sus características destacan: piscina privada, terraza en la azotea, sala de estar, comedor."
+      "Casa colonial de Getsemaní es una estancia privada verificada de ALMAR en Casa Centro Getsemaní, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
+      "Distribución: 5 dormitorios, 5 baños, 5 camas dobles, para hasta 10 huéspedes.",
+      "Entre sus características destacan: piscina privada, terraza en la azotea, sala de estar y comedor."
     ],
     "amenities": [
       "Piscina privada",
@@ -96,22 +96,22 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "0e62e1e3-77bc-5658-b643-e4407fdc18a3",
     "locale": "en",
     "title": "Getsemaní Courtyard Residence",
     "tagline": "Getsemaní heritage living",
-    "neighborhood": "Casa Centro Getsemani",
+    "neighborhood": "Casa Centro Getsemaní",
     "guests_label": "Up to 10 Guests",
     "bathrooms_label": "5",
     "beds_label": "3 king beds, 2 queen beds",
     "price_label": "On request",
     "price_note": "Public rates are quoted on request. ALMAR confirms availability, staffing, and final pricing before you travel.",
     "description": [
-      "Getsemaní Courtyard Residence is a vetted ALMAR private stay in Casa Centro Getsemani, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
-      "Layout: 5 bedrooms, 5 bathrooms, 3 king beds, 2 queen beds beds, hosting up to 10 guests.",
+      "Getsemaní Courtyard Residence is a vetted ALMAR private stay in Casa Centro Getsemaní, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
+      "Layout: 5 bedrooms, 5 bathrooms, 3 king beds, 2 queen beds, hosting up to 10 guests.",
       "Property highlights include Private pool, living room terrace, TV, WiFi, air conditioning."
     ],
     "amenities": [
@@ -140,16 +140,16 @@
     "locale": "ar",
     "title": "إقامة فناء خيتسيماني",
     "tagline": "حياة تراثية في خيتسيماني",
-    "neighborhood": "Casa Centro Getsemani",
+    "neighborhood": "Casa Centro Getsemaní",
     "guests_label": "حتى 10 ضيوف",
     "bathrooms_label": "5",
     "beds_label": "3 أسرّة كينغ، سريران كوين",
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "إقامة فناء خيتسيماني إقامة خاصة موثّقة من المار في Casa Centro Getsemani، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 5، الحمامات 5، الأسرّة 3 أسرّة كينغ، سريران كوين، الاستضافة حتى 10 ضيوف.",
-      "من أبرز ما يتميز به العقار: مسبح خاص، تكييف هواء، واي فاي، تلفزيون، تراس غرفة الجلوس."
+      "إقامة فناء خيتسيماني إقامة خاصة موثّقة من ALMAR في Casa Centro Getsemaní، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 5 غرف نوم، 5 حمامات، 3 أسرّة كينغ وسريران كوين، تستوعب حتى 10 ضيوف.",
+      "من أبرز ما يتميز به العقار: مسبح خاص، وتراس غرفة الجلوس، وتلفزيون، وواي فاي، وتكييف هواء."
     ],
     "amenities": [
       "مسبح خاص",
@@ -170,23 +170,23 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "0e62e1e3-77bc-5658-b643-e4407fdc18a3",
     "locale": "es",
     "title": "Residencia con patio en Getsemaní",
-    "tagline": "Vida con herencia en Getsemaní",
-    "neighborhood": "Casa Centro Getsemani",
+    "tagline": "Vida patrimonial en Getsemaní",
+    "neighborhood": "Casa Centro Getsemaní",
     "guests_label": "Hasta 10 huéspedes",
     "bathrooms_label": "5",
     "beds_label": "3 camas king, 2 camas queen",
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
-      "Residencia con patio en Getsemaní es una estancia privada verificada de ALMAR en Casa Centro Getsemani, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 5 dormitorios, 5 baños, camas: 3 camas king, 2 camas queen, para hasta 10 huéspedes.",
-      "Entre sus características destacan: piscina privada, aire acondicionado, WiFi, TV, terraza de la sala de estar."
+      "Residencia con patio en Getsemaní es una estancia privada verificada de ALMAR en Casa Centro Getsemaní, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
+      "Distribución: 5 dormitorios, 5 baños, 3 camas king y 2 camas queen, para hasta 10 huéspedes.",
+      "Entre sus características destacan: piscina privada, terraza de la sala de estar, TV, WiFi y aire acondicionado."
     ],
     "amenities": [
       "Piscina privada",
@@ -207,21 +207,21 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "4bc21ad0-2d92-595a-8a70-ba2f895097ec",
     "locale": "en",
     "title": "Cartagena Historic Center House",
     "tagline": "Walled city elegance",
-    "neighborhood": "Casa Centro Historico",
+    "neighborhood": "Casa Centro Histórico",
     "guests_label": "Up to 7 Guests",
     "bathrooms_label": "2",
     "beds_label": "3 double",
     "price_label": "On request",
     "price_note": "Public rates are quoted on request. ALMAR confirms availability, staffing, and final pricing before you travel.",
     "description": [
-      "Cartagena Historic Center House is a vetted ALMAR private stay in Casa Centro Historico, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
+      "Cartagena Historic Center House is a vetted ALMAR private stay in Casa Centro Histórico, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
       "Layout: 3 bedrooms, 2 bathrooms, 3 double beds, hosting up to 7 guests.",
       "Property highlights include Private pool, rooftop with jacuzzi and barbecue."
     ],
@@ -243,16 +243,16 @@
     "locale": "ar",
     "title": "بيت المركز التاريخي في كارتاخينا",
     "tagline": "أناقة المدينة المسوّرة",
-    "neighborhood": "Casa Centro Historico",
+    "neighborhood": "Casa Centro Histórico",
     "guests_label": "حتى 7 ضيوف",
     "bathrooms_label": "2",
     "beds_label": "3 أسرّة مزدوجة",
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "بيت المركز التاريخي في كارتاخينا إقامة خاصة موثّقة من المار في Casa Centro Historico، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 3، الحمامات 2، الأسرّة 3 أسرّة مزدوجة، الاستضافة حتى 7 ضيوف.",
-      "من أبرز ما يتميز به العقار: مسبح خاص، سطح مع جاكوزي وشواء."
+      "بيت المركز التاريخي في كارتاخينا إقامة خاصة موثّقة من ALMAR في Casa Centro Histórico، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 3 غرف نوم، حمّامان، 3 أسرّة مزدوجة، تستوعب حتى 7 ضيوف.",
+      "من أبرز ما يتميز به العقار: مسبح خاص، وسطح مع جاكوزي وشواء."
     ],
     "amenities": [
       "مسبح خاص",
@@ -265,23 +265,23 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "4bc21ad0-2d92-595a-8a70-ba2f895097ec",
     "locale": "es",
     "title": "Casa del centro histórico de Cartagena",
     "tagline": "Elegancia de la ciudad amurallada",
-    "neighborhood": "Casa Centro Historico",
+    "neighborhood": "Casa Centro Histórico",
     "guests_label": "Hasta 7 huéspedes",
     "bathrooms_label": "2",
     "beds_label": "3 dobles",
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
-      "Casa del centro histórico de Cartagena es una estancia privada verificada de ALMAR en Casa Centro Historico, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 3 dormitorios, 2 baños, camas: 3 dobles, para hasta 7 huéspedes.",
-      "Entre sus características destacan: piscina privada, azotea con jacuzzi y barbacoa."
+      "Casa del centro histórico de Cartagena es una estancia privada verificada de ALMAR en Casa Centro Histórico, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
+      "Distribución: 3 dormitorios, 2 baños, 3 camas dobles, para hasta 7 huéspedes.",
+      "Entre sus características destacan: piscina privada y azotea con jacuzzi y barbacoa."
     ],
     "amenities": [
       "Piscina privada",
@@ -294,7 +294,7 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "d774b123-42b7-57c1-85b4-b73c697155dd",
@@ -310,7 +310,7 @@
     "description": [
       "Casa Jardín San Diego is a vetted ALMAR private stay in Casa Jardino Calle San Diego, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
       "Layout: 6 bedrooms, 6 bathrooms, 3 queen, 2 king, 2 double beds, hosting up to 14 guests.",
-      "Property highlights include Private pool, tv, internet, air conditioning, hot water, kitchen."
+      "Property highlights include Private pool, TV, internet, air conditioning, hot water, kitchen."
     ],
     "amenities": [
       "Private pool",
@@ -340,13 +340,13 @@
     "neighborhood": "Casa Jardino Calle San Diego",
     "guests_label": "حتى 14 ضيفاً",
     "bathrooms_label": "6",
-    "beds_label": "3 كوين، 2 كينغ، 2 مزدوج",
+    "beds_label": "3 أسرّة كوين، سريران كينغ، سريران مزدوجان",
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "كاسا خاردين سان دييغو إقامة خاصة موثّقة من المار في Casa Jardino Calle San Diego، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 6، الحمامات 6، الأسرّة 3 كوين، 2 كينغ، 2 مزدوج، الاستضافة حتى 14 ضيفاً.",
-      "من أبرز ما يتميز به العقار: مسبح خاص، ماء ساخن، تكييف هواء، إنترنت، تلفزيون، مطبخ."
+      "كاسا خاردين سان دييغو إقامة خاصة موثّقة من ALMAR في Casa Jardino Calle San Diego، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 6 غرف نوم، 6 حمامات، 3 أسرّة كوين وسريران كينغ وسريران مزدوجان، تستوعب حتى 14 ضيفاً.",
+      "من أبرز ما يتميز به العقار: مسبح خاص، وتلفزيون، وإنترنت، وتكييف هواء، وماء ساخن، ومطبخ."
     ],
     "amenities": [
       "مسبح خاص",
@@ -366,7 +366,7 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "d774b123-42b7-57c1-85b4-b73c697155dd",
@@ -377,12 +377,12 @@
     "guests_label": "Hasta 14 huéspedes",
     "bathrooms_label": "6",
     "beds_label": "3 queen, 2 king, 2 dobles",
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
       "Casa Jardín San Diego es una estancia privada verificada de ALMAR en Casa Jardino Calle San Diego, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 6 dormitorios, 6 baños, camas: 3 queen, 2 king, 2 dobles, para hasta 14 huéspedes.",
-      "Entre sus características destacan: piscina privada, agua caliente, aire acondicionado, internet, TV, cocina."
+      "Distribución: 6 dormitorios, 6 baños, 3 camas queen, 2 king y 2 dobles, para hasta 14 huéspedes.",
+      "Entre sus características destacan: piscina privada, TV, internet, aire acondicionado, agua caliente y cocina."
     ],
     "amenities": [
       "Piscina privada",
@@ -402,26 +402,26 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba",
     "locale": "en",
     "title": "Casa Juliana Historic Center",
     "tagline": "Walled city elegance",
-    "neighborhood": "Casa Juliana Calle Quero Centro Historico",
+    "neighborhood": "Casa Juliana Calle Quero Centro Histórico",
     "guests_label": "Up to 18 Guests",
     "bathrooms_label": "7",
-    "beds_label": "1 KING, 2 double, 6 QUEEN",
+    "beds_label": "1 king, 2 double, 6 queen",
     "price_label": "On request",
     "price_note": "Public rates are quoted on request. ALMAR confirms availability, staffing, and final pricing before you travel.",
     "description": [
-      "Casa Juliana Historic Center is a vetted ALMAR private stay in Casa Juliana Calle Quero Centro Historico, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
-      "Layout: 8 bedrooms, 7 bathrooms, 1 KING, 2 double, 6 QUEEN beds, hosting up to 18 guests.",
+      "Casa Juliana Historic Center is a vetted ALMAR private stay in Casa Juliana Calle Quero Centro Histórico, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
+      "Layout: 8 bedrooms, 7 bathrooms, 1 king, 2 double, 6 queen beds, hosting up to 18 guests.",
       "Property highlights include Private pool, TV, internet, air conditioning, kitchen, hot water."
     ],
     "amenities": [
-      "Private Pool: Pivada",
+      "Private pool",
       "Kitchen",
       "Air conditioning",
       "Internet",
@@ -445,16 +445,16 @@
     "locale": "ar",
     "title": "كاسا خوليانا في المركز التاريخي",
     "tagline": "أناقة المدينة المسوّرة",
-    "neighborhood": "Casa Juliana Calle Quero Centro Historico",
+    "neighborhood": "Casa Juliana Calle Quero Centro Histórico",
     "guests_label": "حتى 18 ضيفاً",
     "bathrooms_label": "7",
-    "beds_label": "1 كينغ، 2 مزدوج، 6 كوين",
+    "beds_label": "سرير كينغ، سريران مزدوجان، 6 أسرّة كوين",
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "كاسا خوليانا في المركز التاريخي إقامة خاصة موثّقة من المار في Casa Juliana Calle Quero Centro Historico، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 8، الحمامات 7، الأسرّة 1 كينغ، 2 مزدوج، 6 كوين، الاستضافة حتى 18 ضيفاً.",
-      "من أبرز ما يتميز به العقار: مسبح خاص، مطبخ، تكييف هواء، إنترنت، تلفزيون، ماء ساخن."
+      "كاسا خوليانا في المركز التاريخي إقامة خاصة موثّقة من ALMAR في Casa Juliana Calle Quero Centro Histórico، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 8 غرف نوم، 7 حمامات، سرير كينغ وسريران مزدوجان و6 أسرّة كوين، تستوعب حتى 18 ضيفاً.",
+      "من أبرز ما يتميز به العقار: مسبح خاص، وتلفزيون، وإنترنت، وتكييف هواء، ومطبخ، وماء ساخن."
     ],
     "amenities": [
       "مسبح خاص",
@@ -474,23 +474,23 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba",
     "locale": "es",
     "title": "Casa Juliana, centro histórico",
     "tagline": "Elegancia de la ciudad amurallada",
-    "neighborhood": "Casa Juliana Calle Quero Centro Historico",
+    "neighborhood": "Casa Juliana Calle Quero Centro Histórico",
     "guests_label": "Hasta 18 huéspedes",
     "bathrooms_label": "7",
     "beds_label": "1 king, 2 dobles, 6 queen",
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
-      "Casa Juliana, centro histórico es una estancia privada verificada de ALMAR en Casa Juliana Calle Quero Centro Historico, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 8 dormitorios, 7 baños, camas: 1 king, 2 dobles, 6 queen, para hasta 18 huéspedes.",
-      "Entre sus características destacan: piscina privada, cocina, aire acondicionado, internet, TV, agua caliente."
+      "Casa Juliana, centro histórico es una estancia privada verificada de ALMAR en Casa Juliana Calle Quero Centro Histórico, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
+      "Distribución: 8 dormitorios, 7 baños, 1 cama king, 2 dobles y 6 queen, para hasta 18 huéspedes.",
+      "Entre sus características destacan: piscina privada, TV, internet, aire acondicionado, cocina y agua caliente."
     ],
     "amenities": [
       "Piscina privada",
@@ -510,22 +510,22 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "c5444a7c-d129-5536-bdd5-ee35dff4a096",
     "locale": "en",
     "title": "Casa Mariana Historic Center",
     "tagline": "Walled city elegance",
-    "neighborhood": "Casa Mariana Calle Quero Centro Historico",
+    "neighborhood": "Casa Mariana Calle Quero Centro Histórico",
     "guests_label": "Up to 14 Guests",
     "bathrooms_label": "7",
-    "beds_label": "2 QUEEN, 2 KING, 3 double",
+    "beds_label": "2 queen, 2 king, 3 double",
     "price_label": "On request",
     "price_note": "Public rates are quoted on request. ALMAR confirms availability, staffing, and final pricing before you travel.",
     "description": [
-      "Casa Mariana Historic Center is a vetted ALMAR private stay in Casa Mariana Calle Quero Centro Historico, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
-      "Layout: 6 bedrooms, 7 bathrooms, 2 QUEEN, 2 KING, 3 double beds, hosting up to 14 guests.",
+      "Casa Mariana Historic Center is a vetted ALMAR private stay in Casa Mariana Calle Quero Centro Histórico, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
+      "Layout: 6 bedrooms, 7 bathrooms, 2 queen, 2 king, 3 double beds, hosting up to 14 guests.",
       "Property highlights include Private pool, TV, internet, air conditioning, hot water, kitchen."
     ],
     "amenities": [
@@ -553,16 +553,16 @@
     "locale": "ar",
     "title": "كاسا ماريانا في المركز التاريخي",
     "tagline": "أناقة المدينة المسوّرة",
-    "neighborhood": "Casa Mariana Calle Quero Centro Historico",
+    "neighborhood": "Casa Mariana Calle Quero Centro Histórico",
     "guests_label": "حتى 14 ضيفاً",
     "bathrooms_label": "7",
-    "beds_label": "2 كوين، 2 كينغ، 3 مزدوج",
+    "beds_label": "سريران كوين، سريران كينغ، 3 أسرّة مزدوجة",
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "كاسا ماريانا في المركز التاريخي إقامة خاصة موثّقة من المار في Casa Mariana Calle Quero Centro Historico، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 6، الحمامات 7، الأسرّة 2 كوين، 2 كينغ، 3 مزدوج، الاستضافة حتى 14 ضيفاً.",
-      "من أبرز ما يتميز به العقار: مسبح خاص، ماء ساخن، تكييف هواء، إنترنت، تلفزيون، مطبخ."
+      "كاسا ماريانا في المركز التاريخي إقامة خاصة موثّقة من ALMAR في Casa Mariana Calle Quero Centro Histórico، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 6 غرف نوم، 7 حمامات، سريران كوين وسريران كينغ و3 أسرّة مزدوجة، تستوعب حتى 14 ضيفاً.",
+      "من أبرز ما يتميز به العقار: مسبح خاص، وتلفزيون، وإنترنت، وتكييف هواء، وماء ساخن، ومطبخ."
     ],
     "amenities": [
       "مسبح خاص",
@@ -582,23 +582,23 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "c5444a7c-d129-5536-bdd5-ee35dff4a096",
     "locale": "es",
     "title": "Casa Mariana, centro histórico",
     "tagline": "Elegancia de la ciudad amurallada",
-    "neighborhood": "Casa Mariana Calle Quero Centro Historico",
+    "neighborhood": "Casa Mariana Calle Quero Centro Histórico",
     "guests_label": "Hasta 14 huéspedes",
     "bathrooms_label": "7",
     "beds_label": "2 queen, 2 king, 3 dobles",
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
-      "Casa Mariana, centro histórico es una estancia privada verificada de ALMAR en Casa Mariana Calle Quero Centro Historico, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 6 dormitorios, 7 baños, camas: 2 queen, 2 king, 3 dobles, para hasta 14 huéspedes.",
-      "Entre sus características destacan: piscina privada, agua caliente, aire acondicionado, internet, TV, cocina."
+      "Casa Mariana, centro histórico es una estancia privada verificada de ALMAR en Casa Mariana Calle Quero Centro Histórico, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
+      "Distribución: 6 dormitorios, 7 baños, 2 camas queen, 2 king y 3 dobles, para hasta 14 huéspedes.",
+      "Entre sus características destacan: piscina privada, TV, internet, aire acondicionado, agua caliente y cocina."
     ],
     "amenities": [
       "Piscina privada",
@@ -618,23 +618,23 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "9a5ae3ce-043f-533f-80c1-6d742dac42c7",
     "locale": "en",
     "title": "Barú Island Private Villa",
     "tagline": "Barú island privacy",
-    "neighborhood": "Villa Isla Baru",
+    "neighborhood": "Villa Isla Barú",
     "guests_label": "Up to 10 Guests",
     "bathrooms_label": "5",
     "beds_label": "9",
     "price_label": "On request",
     "price_note": "Public rates are quoted on request. ALMAR confirms availability, staffing, and final pricing before you travel.",
     "description": [
-      "Barú Island Private Villa is a vetted ALMAR private stay in Villa Isla Baru, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
+      "Barú Island Private Villa is a vetted ALMAR private stay in Villa Isla Barú, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
       "Layout: 5 bedrooms, 5 bathrooms, 9 beds, hosting up to 10 guests.",
-      "Property highlights include Private pool, JACUZZI, WiFi, TV."
+      "Property highlights include Private pool, Jacuzzi, WiFi, TV."
     ],
     "amenities": [
       "Private pool",
@@ -658,16 +658,16 @@
     "locale": "ar",
     "title": "فيلا خاصة في جزيرة بارو",
     "tagline": "خصوصية جزيرة بارو",
-    "neighborhood": "Villa Isla Baru",
+    "neighborhood": "Villa Isla Barú",
     "guests_label": "حتى 10 ضيوف",
     "bathrooms_label": "5",
     "beds_label": "9",
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "فيلا خاصة في جزيرة بارو إقامة خاصة موثّقة من المار في Villa Isla Baru، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 5، الحمامات 5، الأسرّة 9، الاستضافة حتى 10 ضيوف.",
-      "من أبرز ما يتميز به العقار: مسبح خاص، جاكوزي، واي فاي، تلفزيون."
+      "فيلا خاصة في جزيرة بارو إقامة خاصة موثّقة من ALMAR في Villa Isla Barú، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 5 غرف نوم، 5 حمامات، 9 أسرّة، تستوعب حتى 10 ضيوف.",
+      "من أبرز ما يتميز به العقار: مسبح خاص، وجاكوزي، وواي فاي، وتلفزيون."
     ],
     "amenities": [
       "مسبح خاص",
@@ -684,23 +684,23 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "9a5ae3ce-043f-533f-80c1-6d742dac42c7",
     "locale": "es",
     "title": "Villa privada en la isla de Barú",
     "tagline": "Privacidad en la isla de Barú",
-    "neighborhood": "Villa Isla Baru",
+    "neighborhood": "Villa Isla Barú",
     "guests_label": "Hasta 10 huéspedes",
     "bathrooms_label": "5",
     "beds_label": "9",
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
-      "Villa privada en la isla de Barú es una estancia privada verificada de ALMAR en Villa Isla Baru, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 5 dormitorios, 5 baños, camas: 9, para hasta 10 huéspedes.",
-      "Entre sus características destacan: piscina privada, jacuzzi, WiFi, TV."
+      "Villa privada en la isla de Barú es una estancia privada verificada de ALMAR en Villa Isla Barú, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
+      "Distribución: 5 dormitorios, 5 baños, 9 camas, para hasta 10 huéspedes.",
+      "Entre sus características destacan: piscina privada, jacuzzi, WiFi y TV."
     ],
     "amenities": [
       "Piscina privada",
@@ -717,7 +717,7 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "b22e8dfd-1f35-541d-85bf-4169d08ed448",
@@ -759,18 +759,18 @@
   {
     "stay_id": "b22e8dfd-1f35-541d-85bf-4169d08ed448",
     "locale": "ar",
-    "title": "بيت شاطئ بوكاغراندي",
+    "title": "بيت شاطئي في بوكاغراندي",
     "tagline": "كارتاخينا على الواجهة البحرية",
     "neighborhood": "Casa Playa Castillo Bocagrande",
     "guests_label": "حتى 17 ضيفاً",
-    "bathrooms_label": "8، و1 اجتماعي",
+    "bathrooms_label": "8، وحمّام ضيوف",
     "beds_label": "17",
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "بيت شاطئ بوكاغراندي إقامة خاصة موثّقة من المار في Casa Playa Castillo Bocagrande، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 10، الحمامات 8، الأسرّة 17، الاستضافة حتى 17 ضيفاً.",
-      "من أبرز ما يتميز به العقار: مسبح خاص، ماء ساخن، فناء خاص، طاولة بلياردو، صالة خاصة، واي فاي، تكييف هواء، منطقة شواء، نظام سماعات، جاكوزي."
+      "بيت شاطئي في بوكاغراندي إقامة خاصة موثّقة من ALMAR في Casa Playa Castillo Bocagrande، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 10 غرف نوم، 8 حمامات، 17 سريراً، تستوعب حتى 17 ضيفاً.",
+      "من أبرز ما يتميز به العقار: مسبح خاص، وفناء خاص، وواي فاي، ومنطقة شواء، وماء ساخن، وطاولة بلياردو."
     ],
     "amenities": [
       "مسبح خاص",
@@ -781,7 +781,7 @@
       "واي فاي",
       "تكييف هواء",
       "منطقة شواء",
-      "نظام سماعات",
+      "نظام صوتي",
       "جاكوزي"
     ],
     "inclusions": [],
@@ -791,7 +791,7 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "b22e8dfd-1f35-541d-85bf-4169d08ed448",
@@ -800,14 +800,14 @@
     "tagline": "Cartagena frente al mar",
     "neighborhood": "Casa Playa Castillo Bocagrande",
     "guests_label": "Hasta 17 huéspedes",
-    "bathrooms_label": "8, 1 social",
+    "bathrooms_label": "8 y 1 social",
     "beds_label": "17",
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
       "Casa de playa en Bocagrande es una estancia privada verificada de ALMAR en Casa Playa Castillo Bocagrande, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 10 dormitorios, 8 baños, camas: 17, para hasta 17 huéspedes.",
-      "Entre sus características destacan: piscina privada, agua caliente, patio privado, mesa de billar, salón privado, WiFi, aire acondicionado, zona de barbacoa, sistema de sonido, jacuzzi."
+      "Distribución: 10 dormitorios, 8 baños, 17 camas, para hasta 17 huéspedes.",
+      "Entre sus características destacan: piscina privada, patio privado, WiFi, zona de barbacoa, agua caliente y mesa de billar."
     ],
     "amenities": [
       "Piscina privada",
@@ -828,7 +828,7 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "4a8e01c7-215d-578f-996a-6121e7b10e69",
@@ -843,7 +843,7 @@
     "price_note": "Public rates are quoted on request. ALMAR confirms availability, staffing, and final pricing before you travel.",
     "description": [
       "Private Island Cartagena is a vetted ALMAR private stay in Isla Cartagena, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
-      "Layout: 8 bedrooms, — bathrooms, — beds, hosting up to 20 guests.",
+      "Layout: 8 bedrooms, hosting up to 20 guests.",
       "Property highlights include Private pool."
     ],
     "amenities": [
@@ -868,10 +868,10 @@
     "bathrooms_label": null,
     "beds_label": null,
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "جزيرة خاصة في كارتاخينا إقامة خاصة موثّقة من المار في Isla Cartagena، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 8، الحمامات —، الأسرّة —، الاستضافة حتى 20 ضيفاً.",
+      "جزيرة خاصة في كارتاخينا إقامة خاصة موثّقة من ALMAR في Isla Cartagena، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 8 غرف نوم، تستوعب حتى 20 ضيفاً.",
       "من أبرز ما يتميز به العقار: مسبح خاص."
     ],
     "amenities": [
@@ -884,22 +884,22 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "4a8e01c7-215d-578f-996a-6121e7b10e69",
     "locale": "es",
     "title": "Isla privada en Cartagena",
-    "tagline": "Escape a una isla privada",
+    "tagline": "Escapada a una isla privada",
     "neighborhood": "Isla Cartagena",
     "guests_label": "16–20 huéspedes",
     "bathrooms_label": null,
     "beds_label": null,
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
       "Isla privada en Cartagena es una estancia privada verificada de ALMAR en Isla Cartagena, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 8 dormitorios, — baños, camas: —, para hasta 20 huéspedes.",
+      "Distribución: 8 dormitorios, para hasta 20 huéspedes.",
       "Entre sus características destacan: piscina privada."
     ],
     "amenities": [
@@ -912,7 +912,7 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c",
@@ -927,7 +927,7 @@
     "price_note": "Public rates are quoted on request. ALMAR confirms availability, staffing, and final pricing before you travel.",
     "description": [
       "Private Island Estate Cartagena is a vetted ALMAR private stay in Isla Private Cartagena, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
-      "Layout: 11 bedrooms, 13 bathrooms, — beds, hosting up to 30 guests.",
+      "Layout: 11 bedrooms, 13 bathrooms, hosting up to 30 guests.",
       "Property highlights include Private pool, designer social area, private dock, monumental gazebo."
     ],
     "amenities": [
@@ -956,21 +956,21 @@
   {
     "stay_id": "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c",
     "locale": "ar",
-    "title": "عزبة جزيرة خاصة في كارتاخينا",
+    "title": "ضيعة جزيرة خاصة في كارتاخينا",
     "tagline": "ملاذ في جزيرة خاصة",
     "neighborhood": "Private Island Cartagena",
     "guests_label": "20–30 ضيفاً",
     "bathrooms_label": "13",
     "beds_label": null,
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "عزبة جزيرة خاصة في كارتاخينا إقامة خاصة موثّقة من المار في Isla Private Cartagena، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 11، الحمامات 13، الأسرّة —، الاستضافة حتى 30 ضيفاً.",
-      "من أبرز ما يتميز به العقار: مسبح خاص: إنفينيتي متعدد المستويات، شيف خاص وكبير خدم بدوام كامل، جازيبو ضخم، رصيف خاص ومواقف سيارات، منطقة اجتماعية بتصميم خاص، حراسة على مدار الساعة (12 حارساً)."
+      "ضيعة جزيرة خاصة في كارتاخينا إقامة خاصة موثّقة من ALMAR في Isla Private Cartagena، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 11 غرفة نوم، 13 حماماً، تستوعب حتى 30 ضيفاً.",
+      "من أبرز ما يتميز به العقار: مسبح خاص، ومنطقة اجتماعية بتصميم خاص، ورصيف خاص، وجازيبو ضخم."
     ],
     "amenities": [
-      "مسبح خاص: إنفينيتي متعدد المستويات",
+      "مسبح خاص لا متناهي الحافة متعدد المستويات",
       "شيف خاص وكبير خدم بدوام كامل",
       "جازيبو ضخم",
       "رصيف خاص ومواقف سيارات",
@@ -980,9 +980,9 @@
     "inclusions": [
       "شيف خاص",
       "كبير خدم بدوام كامل",
-      "طاقم متخصص مخصّص",
+      "طاقم متخصص مخصّص لكم",
       "ترتيب حراسة دائم",
-      "طاقم الراحة"
+      "طاقم لخدمة الراحة"
     ],
     "policy_headings": [
       "ما تشمله الإقامة والطاقم",
@@ -990,26 +990,26 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c",
     "locale": "es",
     "title": "Finca en isla privada de Cartagena",
-    "tagline": "Escape a una isla privada",
+    "tagline": "Escapada a una isla privada",
     "neighborhood": "Private Island Cartagena",
     "guests_label": "20–30 huéspedes",
     "bathrooms_label": "13",
     "beds_label": null,
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
       "Finca en isla privada de Cartagena es una estancia privada verificada de ALMAR en Isla Private Cartagena, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 11 dormitorios, 13 baños, camas: —, para hasta 30 huéspedes.",
-      "Entre sus características destacan: piscina privada: infinita de varios niveles, chef privado y mayordomo a tiempo completo, gazebo monumental, muelle privado y estacionamiento, zona social de diseño, seguridad 24/7 (12 guardias)."
+      "Distribución: 11 dormitorios, 13 baños, para hasta 30 huéspedes.",
+      "Entre sus características destacan: piscina privada, zona social de diseño, muelle privado y gazebo monumental."
     ],
     "amenities": [
-      "Piscina privada: infinita de varios niveles",
+      "Piscina privada infinita de varios niveles",
       "Chef privado y mayordomo a tiempo completo",
       "Gazebo monumental",
       "Muelle privado y estacionamiento",
@@ -1029,7 +1029,7 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "dae54186-686b-5701-9198-38818eb3aded",
@@ -1076,17 +1076,17 @@
     "bathrooms_label": "5",
     "beds_label": "10",
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "مزرعة سانتا في في أنتيوكيا إقامة خاصة موثّقة من المار في Santa Fe Antioquia، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 4، الحمامات 5، الأسرّة 10، الاستضافة حتى 16 ضيفاً.",
-      "من أبرز ما يتميز به العقار: مسبح خاص: بطراز المنتجعات، منطقة شواء بالغاز والبرميل، جاكوزي، بيت قفز للأطفال بإضاءة فاخرة، تكييف هواء، مساحات خضراء واسعة بإطلالة على نهر كاوكا، جازيبو مع أراجيح شبكية، مواقف واسعة ومجمع سكني مسوّر وآمن."
+      "مزرعة سانتا في في أنتيوكيا إقامة خاصة موثّقة من ALMAR في Santa Fe Antioquia، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 4 غرف نوم، 5 حمامات، 10 أسرّة، تستوعب حتى 16 ضيفاً.",
+      "من أبرز ما يتميز به العقار: مسبح خاص بطراز المنتجعات، وجاكوزي، وتكييف هواء، وجازيبو مع أراجيح شبكية، ومنطقة شواء بالغاز والبرميل، وقلعة نطّاطة للأطفال بإضاءة فاخرة."
     ],
     "amenities": [
-      "مسبح خاص: بطراز المنتجعات",
+      "مسبح خاص بطراز المنتجعات",
       "منطقة شواء بالغاز والبرميل",
       "جاكوزي",
-      "بيت قفز للأطفال بإضاءة فاخرة",
+      "قلعة نطّاطة للأطفال بإضاءة فاخرة",
       "تكييف هواء",
       "مساحات خضراء واسعة بإطلالة على نهر كاوكا",
       "جازيبو مع أراجيح شبكية",
@@ -1099,7 +1099,7 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "dae54186-686b-5701-9198-38818eb3aded",
@@ -1110,15 +1110,15 @@
     "guests_label": "Hasta 16 huéspedes",
     "bathrooms_label": "5",
     "beds_label": "10",
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
       "Finca Santa Fe, Antioquia es una estancia privada verificada de ALMAR en Santa Fe Antioquia, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 4 dormitorios, 5 baños, camas: 10, para hasta 16 huéspedes.",
-      "Entre sus características destacan: piscina privada: estilo resort, zona de barbacoa a gas y de barril, jacuzzi, casa inflable para niños con iluminación de lujo, aire acondicionado, amplias zonas verdes con vista al río Cauca, gazebo con hamacas, amplio estacionamiento y conjunto cerrado y seguro."
+      "Distribución: 4 dormitorios, 5 baños, 10 camas, para hasta 16 huéspedes.",
+      "Entre sus características destacan: piscina privada estilo resort, jacuzzi, aire acondicionado, gazebo con hamacas, zona de barbacoa a gas y de barril y casa inflable para niños con iluminación de lujo."
     ],
     "amenities": [
-      "Piscina privada: estilo resort",
+      "Piscina privada estilo resort",
       "Zona de barbacoa a gas y de barril",
       "Jacuzzi",
       "Casa inflable para niños con iluminación de lujo",
@@ -1134,21 +1134,21 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "91748919-5a54-5ddb-9a5f-35b33b74c8a3",
     "locale": "en",
     "title": "Sopetrán Country Estate",
     "tagline": "Antioquia countryside",
-    "neighborhood": "Sopetran Antioquia",
+    "neighborhood": "Sopetrán Antioquia",
     "guests_label": "Up to 18 Guests",
     "bathrooms_label": "9",
     "beds_label": "16",
     "price_label": "On request",
     "price_note": "Public rates are quoted on request. ALMAR confirms availability, staffing, and final pricing before you travel.",
     "description": [
-      "Sopetrán Country Estate is a vetted ALMAR private stay in Sopetran Antioquia, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
+      "Sopetrán Country Estate is a vetted ALMAR private stay in Sopetrán Antioquia, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
       "Layout: 6 bedrooms, 9 bathrooms, 16 beds, hosting up to 18 guests.",
       "Property highlights include Private pool, adults and children, green area, BBQ area."
     ],
@@ -1169,18 +1169,18 @@
   {
     "stay_id": "91748919-5a54-5ddb-9a5f-35b33b74c8a3",
     "locale": "ar",
-    "title": "عزبة سوبيتران الريفية",
+    "title": "ضيعة سوبيتران الريفية",
     "tagline": "ريف أنتيوكيا",
-    "neighborhood": "Sopetran Antioquia",
+    "neighborhood": "Sopetrán Antioquia",
     "guests_label": "حتى 18 ضيفاً",
     "bathrooms_label": "9",
     "beds_label": "16",
     "price_label": "عند الطلب",
-    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد المار التوفر والطاقم والسعر النهائي قبل سفركم.",
+    "price_note": "تُقدَّم الأسعار المعلنة عند الطلب. تؤكد ALMAR التوفر والطاقم والسعر النهائي قبل سفركم.",
     "description": [
-      "عزبة سوبيتران الريفية إقامة خاصة موثّقة من المار في Sopetran Antioquia، مختارة للضيوف الدوليين الذين يريدون خصوصية بمستوى الفنادق مع مساحة المسكن وخصوصيته.",
-      "التوزيع: غرف النوم 6، الحمامات 9، الأسرّة 16، الاستضافة حتى 18 ضيفاً.",
-      "من أبرز ما يتميز به العقار: مسبح خاص للكبار والأطفال، مساحة خضراء، منطقة شواء."
+      "ضيعة سوبيتران الريفية إقامة خاصة موثّقة من ALMAR في Sopetrán Antioquia، مختارة للضيوف الدوليين الذين يريدون تكتّماً بمستوى الفنادق مع رحابة المسكن وخصوصيته.",
+      "التوزيع: 6 غرف نوم، 9 حمامات، 16 سريراً، تستوعب حتى 18 ضيفاً.",
+      "من أبرز ما يتميز به العقار: مسبح خاص للكبار والأطفال، ومساحة خضراء، ومنطقة شواء."
     ],
     "amenities": [
       "مسبح خاص للكبار والأطفال",
@@ -1194,23 +1194,23 @@
       "التعديل والإلغاء",
       "الإشغال والسلامة"
     ],
-    "status": "draft"
+    "status": "published"
   },
   {
     "stay_id": "91748919-5a54-5ddb-9a5f-35b33b74c8a3",
     "locale": "es",
     "title": "Finca campestre en Sopetrán",
     "tagline": "Campo de Antioquia",
-    "neighborhood": "Sopetran Antioquia",
+    "neighborhood": "Sopetrán Antioquia",
     "guests_label": "Hasta 18 huéspedes",
     "bathrooms_label": "9",
     "beds_label": "16",
-    "price_label": "Bajo petición",
-    "price_note": "Las tarifas públicas se facilitan bajo petición. ALMAR confirma disponibilidad, personal y precio final antes de su viaje.",
+    "price_label": "A solicitud",
+    "price_note": "Las tarifas públicas se facilitan a solicitud. ALMAR confirma disponibilidad, personal y precio final antes de tu viaje.",
     "description": [
-      "Finca campestre en Sopetrán es una estancia privada verificada de ALMAR en Sopetran Antioquia, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
-      "Distribución: 6 dormitorios, 9 baños, camas: 16, para hasta 18 huéspedes.",
-      "Entre sus características destacan: piscina privada para adultos y niños, zona verde, zona de barbacoa."
+      "Finca campestre en Sopetrán es una estancia privada verificada de ALMAR en Sopetrán Antioquia, seleccionada para huéspedes internacionales que buscan la discreción de un hotel con el espacio y la privacidad de una residencia.",
+      "Distribución: 6 dormitorios, 9 baños, 16 camas, para hasta 18 huéspedes.",
+      "Entre sus características destacan: piscina privada para adultos y niños, zona verde y zona de barbacoa."
     ],
     "amenities": [
       "Piscina privada para adultos y niños",
@@ -1224,6 +1224,6 @@
       "Cambios y cancelación",
       "Ocupación y seguridad"
     ],
-    "status": "draft"
+    "status": "published"
   }
 ]

@@ -1,3 +1,4 @@
+// AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 // Copy for /blog and the post template (phase 3.3 plan 32, controller reconcile R-9).
 //
 // EN is published text where it has one: the list meta title and description, the kicker and the h1 `Travel Insights`,
@@ -86,16 +87,16 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
     list: {
       meta: {
         title: "أدلة السفر في كولومبيا | ALMAR",
-        description: "أدلة بسيطة عن أين تذهبون وماذا تفعلون وكيف تسافرون بخصوصية في كولومبيا.",
+        description: "أدلة بسيطة تخبركم إلى أين تذهبون وماذا تفعلون وكيف تسافرون بخصوصية في كولومبيا.",
       },
       kicker: "المدونة / الأخبار",
       heading: "رؤى السفر",
       empty: "لا توجد حكايات بعد.",
     },
     post: {
-      kicker: "مجلة المار",
-      cta: "خططوا لرحلتكم — تواصلوا مع المار",
-      links: { back: "← العودة إلى رؤى السفر", home: "الرئيسية", destinations: "الوجهات" },
+      kicker: "مجلة ALMAR",
+      cta: "خطّطوا لرحلتكم — تواصلوا مع ALMAR",
+      links: { back: "→ العودة إلى رؤى السفر", home: "الرئيسية", destinations: "الوجهات" },
       readingTime: {
         one: "دقيقة قراءة واحدة",
         two: "دقيقتا قراءة",
@@ -109,13 +110,13 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
       copied: "تم نسخ الرابط",
       copyFailed: "تعذّر نسخ الرابط: {url}",
       pairKicker: "مختارة لهذه الحكاية",
-      pairHeading: "إقامة وتجربة لهذه الرحلة",
+      pairHeading: "إقامة وتجربة",
       featuredStay: "إقامة مميزة",
       featuredExperience: "تجربة مميزة",
-      relatedKicker: "المزيد من مجلة المار",
+      relatedKicker: "المزيد من مجلة ALMAR",
       related: "قصص ذات صلة",
       intro: "إقامات موثّقة بالكامل، وسائقون خاصون، وكونسيرج عند الطلب. أخبرونا بتواريخكم ونخطط لكم الباقي.",
-      barLabel: "خططوا لرحلتكم",
+      barLabel: "خطّط لرحلتك",
       englishOnly: "هذا المقال متاح بالإنجليزية حاليًا.",
     },
   },
@@ -131,7 +132,7 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
     },
     post: {
       kicker: "Diario ALMAR",
-      cta: "Planifiquen su viaje — Contacten a ALMAR",
+      cta: "Planifica tu viaje — Contacta a ALMAR",
       links: { back: "← Volver a las guías de viaje", home: "Inicio", destinations: "Destinos" },
       readingTime: { one: "# min de lectura", other: "# min de lectura" },
       onThisPage: "En esta página",
@@ -139,15 +140,15 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
       copyLink: "Copiar enlace",
       copied: "Enlace copiado",
       copyFailed: "No se pudo copiar el enlace: {url}",
-      pairKicker: "Elegidos para esta historia",
+      pairKicker: "Elegidas para esta historia",
       pairHeading: "Estancia y experiencia",
       featuredStay: "Estancia destacada",
       featuredExperience: "Experiencia destacada",
       relatedKicker: "Más del Diario ALMAR",
       related: "Historias relacionadas",
       intro:
-        "Estancias totalmente verificadas, conductores privados y conserje disponible. Cuéntennos sus fechas y nosotros planificamos el resto.",
-      barLabel: "Planifiquen su viaje",
+        "Estancias totalmente verificadas, conductores privados y concierge disponible. Cuéntanos tus fechas y nosotros planificamos el resto.",
+      barLabel: "Planea tu viaje",
       englishOnly: "Por ahora, este artículo está en inglés.",
     },
   },

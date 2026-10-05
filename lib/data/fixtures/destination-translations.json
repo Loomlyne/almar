@@ -15,9 +15,9 @@
     "name": "كارتاخينا",
     "short_line": null,
     "region": "الساحل الكاريبي",
-    "summary": "كارتاخينا هي أكثف مخزون موثّق لدى المار: بيوت استعمارية في خيتسيماني والمركز التاريخي، وإقامات في سان دييغو، وبيوت شاطئية في بوكاغراندي، وفلل في بارو، وجزر خاصة، ورحلات بحرية مستأجرة.",
+    "summary": "تضم كارتاخينا أكبر مجموعة من العقارات الموثّقة لدى ALMAR: بيوت استعمارية في خيتسيماني والمركز التاريخي، وإقامات في سان دييغو، وبيوت شاطئية في بوكاغراندي، وفلل في بارو، وجزر خاصة، ورحلات بحرية خاصة.",
     "nights_label": "3–7 ليالٍ",
-    "status": "draft"
+    "status": "published"
   },
   {
     "destination_id": "8990190e-2836-58e4-9eb0-3ac94c24632a",
@@ -25,9 +25,9 @@
     "name": "Cartagena",
     "short_line": null,
     "region": "Costa Caribe",
-    "summary": "Cartagena es el inventario verificado más denso de ALMAR: casas coloniales en Getsemaní y el Centro Histórico, residencias en San Diego, casas de playa en Bocagrande, villas en Barú, islas privadas y chárteres marinos.",
+    "summary": "Cartagena concentra la mayor oferta verificada de ALMAR: casas coloniales en Getsemaní y el Centro Histórico, residencias en San Diego, casas de playa en Bocagrande, villas en Barú, islas privadas y chárteres náuticos.",
     "nights_label": "3–7 noches",
-    "status": "draft"
+    "status": "published"
   },
   {
     "destination_id": "e34e5839-d6a1-5930-a061-512e7e6bc8f1",
@@ -45,9 +45,9 @@
     "name": "ميديلين",
     "short_line": null,
     "region": "الأنديز",
-    "summary": "ميديلين ركيزة كولومبيا الحديثة: أحياء آمنة وتجارب طعام راقية وثقافة. وفي مخزون المار الموثّق حالياً، الريف خارج المدينة هو الأصل الأقوى: إقامات خاصة في المزارع والعزب في أنتيوكيا.",
+    "summary": "ميديلين ركيزة كولومبيا الحديثة: أحياء آمنة ومطاعم راقية وثقافة. وفي ما تعرضه ALMAR اليوم من عقارات موثّقة، الريف خارج المدينة هو الأصل الأثمن: إقامات خاصة في المزارع والضيعات في أنتيوكيا.",
     "nights_label": "2–5 ليالٍ",
-    "status": "draft"
+    "status": "published"
   },
   {
     "destination_id": "e34e5839-d6a1-5930-a061-512e7e6bc8f1",
@@ -57,7 +57,7 @@
     "region": "Andes",
     "summary": "Medellín es el ancla de la Colombia moderna: barrios seguros, gastronomía refinada y cultura. En el inventario verificado actual de ALMAR, el campo más allá de la ciudad es el gran activo: estancias privadas en fincas y haciendas de Antioquia.",
     "nights_label": "2–5 noches",
-    "status": "draft"
+    "status": "published"
   },
   {
     "destination_id": "8f446e7f-412f-537c-9910-1135dadd421c",
@@ -77,7 +77,7 @@
     "region": "الأنديز",
     "summary": null,
     "nights_label": null,
-    "status": "draft"
+    "status": "published"
   },
   {
     "destination_id": "8f446e7f-412f-537c-9910-1135dadd421c",
@@ -87,7 +87,7 @@
     "region": "Andes",
     "summary": null,
     "nights_label": null,
-    "status": "draft"
+    "status": "published"
   },
   {
     "destination_id": "9b70fbde-8d84-5cba-bf16-c5690f6c1607",
@@ -107,7 +107,7 @@
     "region": "الكاريبي",
     "summary": null,
     "nights_label": null,
-    "status": "draft"
+    "status": "published"
   },
   {
     "destination_id": "9b70fbde-8d84-5cba-bf16-c5690f6c1607",
@@ -117,7 +117,7 @@
     "region": "Caribe",
     "summary": null,
     "nights_label": null,
-    "status": "draft"
+    "status": "published"
   },
   {
     "destination_id": "37171873-91c7-5acc-8d67-6a616202fa2d",
@@ -137,7 +137,7 @@
     "region": "منطقة القهوة",
     "summary": null,
     "nights_label": null,
-    "status": "draft"
+    "status": "published"
   },
   {
     "destination_id": "37171873-91c7-5acc-8d67-6a616202fa2d",
@@ -147,6 +147,6 @@
     "region": "Región cafetera",
     "summary": null,
     "nights_label": null,
-    "status": "draft"
+    "status": "published"
   }
 ]

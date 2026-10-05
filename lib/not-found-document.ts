@@ -1,3 +1,4 @@
+// AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Locale } from "./locale-path";
@@ -18,14 +19,14 @@ export const NOT_FOUND_COPY: Record<Locale, NotFoundCopy> = {
     heading: "الصفحة غير موجودة",
     linkLabel: "العودة إلى الصفحة الرئيسية",
     href: "/ar/",
-    status: "draft",
+    status: "published",
   },
   es: {
     title: "Página no encontrada | ALMAR",
     heading: "Página no encontrada",
     linkLabel: "Volver al inicio",
     href: "/es/",
-    status: "draft",
+    status: "published",
   },
 };
 

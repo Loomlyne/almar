@@ -1,3 +1,4 @@
+// AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 // Strings of the private-stay detail page (phase 3.3 plan 06). Imported directly by
 // components/pages/stay-detail-page.tsx; not registered in lib/copy/index.ts (reconcile R-9).
 //
@@ -123,7 +124,7 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
       neighborhood: "الحي",
     },
     inclusionsLabel: "مشمول مع الإقامة:",
-    requestInquiry: "اطلبوا استفساراً",
+    requestInquiry: "أرسلوا استفساراً",
     gallery: {
       region: "صور {title}",
       previous: "الصورة السابقة",
@@ -135,8 +136,8 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
     },
     relatedViewAll: "عرض كل الإقامات الخاصة",
     whatsapp: {
-      button: "اطلب عبر واتساب",
-      greeting: "مرحباً المار، أودّ طلب {title} ({destination}).",
+      button: "اطلبوا عبر واتساب",
+      greeting: "مرحباً ALMAR، أودّ طلب {title} ({destination}).",
       dates: "التواريخ: من {from} إلى {to} ({nights})",
       datesNone: "التواريخ: لم تُحدَّد بعد",
       guests: "الضيوف: {guests}",
@@ -187,6 +188,6 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
     sampleDatesNote: "Las fechas bloqueadas aquí son ejemplos.",
     metaTitle: "{title} — estancia privada en Colombia | ALMAR",
     metaDescription:
-      "Reserven {title} como estancia privada en Colombia. ALMAR revisa la casa, se ocupa del personal y planifica su viaje.",
+      "Reserva {title} como estancia privada en Colombia. ALMAR revisa la casa, se ocupa del personal y planifica tu viaje.",
   },
 };

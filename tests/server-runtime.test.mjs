@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFil
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
-import { HELD_PATHS, SERVER_PATHS_OUTSIDE_API, isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
+import { HELD_PATHS, OPS_API_PREFIX, SERVER_PATHS_OUTSIDE_API, isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { JOB02_SERVER_PATHS } from "../lib/auth/server-paths.ts";
 import { assembleOut, assertNoBundledEnv, assertNoPublicEnv, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
 import { handle } from "../worker/handle.mjs";
@@ -104,6 +104,16 @@ test("serverPathsFrom: a malformed extra path stops the build", () => {
 test("serverPathsFrom: an app/api route can never shadow a held section", () => {
   // Not reachable from a real manifest today, but the guard holds whatever the list says.
   assert.throws(() => serverPathsFrom([], ["/fx/export"]), /held/);
+});
+
+test("serverPathsFrom: /api/ops/* is the owner's dashboard API, served by almar-ops only: skipped here, never listed (plan 03.2-03)", () => {
+  assert.equal(OPS_API_PREFIX, "/api/ops/");
+  assert.deepEqual(serverPathsFrom(["/api/ops/stays/route", "/api/ops/route", "/api/health/route"], []), ["/api/health"]);
+  assert.deepEqual(serverPathsFrom([...TODAY, "/api/ops/publish/route", "/api/ops/site-status/route"]), ["/api/health", ...[...JOB02_SERVER_PATHS].sort()].sort());
+  // Only the exact prefix: a near miss is an ordinary /api route, and a malformed one still stops the build.
+  assert.deepEqual(serverPathsFrom(["/api/operations/route"], []), ["/api/operations"]);
+  assert.throws(() => serverPathsFrom(["/api/ops/x/page"]), /\/api\/ops\/x\/page/);
+  assert.throws(() => serverPathsFrom(["/api/ops/[id]/route"]), /dynamic/);
 });
 
 // ---- handle -----------------------------------------------------------------------------------------------------
@@ -411,6 +421,12 @@ test("neither Worker file binds a variable, store, queue, service or object", ()
   }
 });
 
+test("neither Worker file names the ops Worker, its host or its folder (plan 03.2-03: AI and R2 live only in wrangler.ops.toml)", () => {
+  for (const file of WORKER_FILES) {
+    assert.equal(/almar-ops|dashboard\.almarprivatejourney|out-ops|almar-ops-routes/.test(readFileSync(file, "utf8")), false, file);
+  }
+});
+
 test("wrangler.toml keeps its two custom domains and never names the preview Worker or host", () => {
   const live = readFileSync("wrangler.toml", "utf8");
   assert.deepEqual(live.split("\n").filter((l) => l.startsWith("pattern = ")), ['pattern = "almarprivatejourney.com"', 'pattern = "www.almarprivatejourney.com"']);
@@ -473,6 +489,12 @@ test("worker/almar.mjs imports only the OpenNext worker, the generated list, the
   assert.deepEqual(imports, ["../.open-next/worker.js", "../.open-next/almar-server-routes.json", "../lib/server-routes.ts", "./handle.mjs"]);
   // The startup check runs before the list becomes the Set the router uses.
   assert.ok(source.indexOf("isHeldPath(path)") > -1 && source.indexOf("isHeldPath(path)") < source.indexOf("new Set(serverPaths)"));
+});
+
+test("worker/almar.mjs refuses an /api/ops path at startup, before the list becomes the Set (plan 03.2-03)", () => {
+  const source = readFileSync("worker/almar.mjs", "utf8");
+  assert.match(source, /path === "\/api\/ops" \|\| path\.startsWith\(OPS_API_PREFIX\)/);
+  assert.ok(source.indexOf("OPS_API_PREFIX)") > -1 && source.indexOf("OPS_API_PREFIX)") < source.indexOf("new Set(serverPaths)"));
 });
 
 test("open-next.config.ts sets no cache override and no static export", () => {

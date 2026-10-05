@@ -36,13 +36,13 @@ async function build(locale, patch = {}) {
 
 const GOLDEN = {
   en: "Hello ALMAR, I would like to request Casa Jardín San Diego (Cartagena).\nDates: 12/10/2026 to 15/10/2026 (3 nights)\nGuests: 2 adults, 1 child\nhttps://almarprivatejourney.com/private-stays/casa-jardin-san-diego",
-  ar: "مرحباً المار، أودّ طلب كاسا خاردين سان دييغو (كارتاخينا).\nالتواريخ: من 12/10/2026 إلى 15/10/2026 (3 ليالٍ)\nالضيوف: بالغان، طفل واحد\nhttps://almarprivatejourney.com/ar/private-stays/casa-jardin-san-diego",
+  ar: "مرحباً ALMAR، أودّ طلب كاسا خاردين سان دييغو (كارتاخينا).\nالتواريخ: من 12/10/2026 إلى 15/10/2026 (3 ليالٍ)\nالضيوف: بالغان، طفل واحد\nhttps://almarprivatejourney.com/ar/private-stays/casa-jardin-san-diego",
   es: "Hola ALMAR, me gustaría solicitar Casa Jardín San Diego (Cartagena).\nFechas: del 12/10/2026 al 15/10/2026 (3 noches)\nHuéspedes: 2 adultos, 1 niño\nhttps://almarprivatejourney.com/es/private-stays/casa-jardin-san-diego",
 };
 
 const NO_DATES = {
   en: "Hello ALMAR, I would like to request Casa Jardín San Diego (Cartagena).\nDates: not chosen yet\nGuests: 1 adult\nhttps://almarprivatejourney.com/private-stays/casa-jardin-san-diego",
-  ar: "مرحباً المار، أودّ طلب كاسا خاردين سان دييغو (كارتاخينا).\nالتواريخ: لم تُحدَّد بعد\nالضيوف: بالغ واحد\nhttps://almarprivatejourney.com/ar/private-stays/casa-jardin-san-diego",
+  ar: "مرحباً ALMAR، أودّ طلب كاسا خاردين سان دييغو (كارتاخينا).\nالتواريخ: لم تُحدَّد بعد\nالضيوف: بالغ واحد\nhttps://almarprivatejourney.com/ar/private-stays/casa-jardin-san-diego",
   es: "Hola ALMAR, me gustaría solicitar Casa Jardín San Diego (Cartagena).\nFechas: aún sin elegir\nHuéspedes: 1 adulto\nhttps://almarprivatejourney.com/es/private-stays/casa-jardin-san-diego",
 };
 

@@ -1,3 +1,4 @@
+// AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 // Copy for the /about page (phase 3.3 slice 3, plan 23).
 //
 // EN is the published text of the live Framer About page, verbatim (the Framer route file that plan 23 deletes), and
@@ -87,7 +88,7 @@ export const ABOUT_PAGE_COPY: Record<AboutPageLocale, AboutPageCopy> = {
     },
     values: {
       heading: "Nuestros valores",
-      intro: "Lo que creemos da forma a cada estadía.",
+      intro: "Lo que creemos da forma a cada estancia.",
     },
     team: {
       kicker: "Nuestro equipo",
@@ -96,7 +97,7 @@ export const ABOUT_PAGE_COPY: Record<AboutPageLocale, AboutPageCopy> = {
     getInTouch: {
       heading: "Ponte en contacto",
       intro:
-        "Tu viaje privado por Colombia comienza con una conversación. Comparte tu visión y nuestro equipo diseñará una experiencia totalmente a medida, con la seguridad primero.",
+        "Tu viaje privado por Colombia comienza con una conversación. Comparte tu visión y nuestro equipo diseñará una experiencia totalmente a medida, con la seguridad como prioridad.",
       cta: "Comienza tu viaje",
     },
   },

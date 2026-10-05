@@ -55,6 +55,13 @@ const OTHER_MISSES = [
   "/auth/confirm/x",
   "/auth/sign-out/x",
   "/auth/handoff/start/x",
+  // Plan 03.2-03: the owner's dashboard API is served by Worker almar-ops only; on almar and almar-preview it is the
+  // same static 404, whatever app/ holds (lib/server-routes.ts skips it, worker/almar.mjs refuses it at startup).
+  "/api/ops",
+  "/api/ops/stays",
+  "/api/ops/publish",
+  "/api/ops/site-status",
+  "/ar/api/ops/stays",
 ];
 
 function htmlFiles(dir: string): string[] {

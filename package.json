@@ -11,6 +11,7 @@
     "start": "next start",
     "build:cloudflare": "node scripts/assemble-cloudflare.mjs --target=production",
     "build:preview": "node scripts/assemble-cloudflare.mjs --target=preview",
+    "build:ops": "node scripts/assemble-cloudflare.mjs --target=ops",
     "test": "node --test tests/*.test.mjs && playwright test",
     "tokens": "node scripts/generate-theme.mjs",
     "tokens:check": "node scripts/generate-theme.mjs --check"

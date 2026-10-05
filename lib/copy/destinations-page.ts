@@ -1,3 +1,4 @@
+// AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 // Copy for the /destinations page (phase 3.3 plan 13, controller reconcile R-9).
 //
 // EN is the published text of the live Framer page where it has one (the meta title and description). The kicker and the h1 in
@@ -44,10 +45,10 @@ export const DESTINATIONS_PAGE_COPY: Record<DestinationsPageLocale, Destinations
     },
   },
   ar: {
-    status: "draft",
+    status: "published",
     meta: {
       title: "أفضل الأماكن للزيارة في كولومبيا | ALMAR",
-      description: "كارتاخينا وميديلين وبوغوتا وأرض القهوة والجزر. تخطط ALMAR رحلات خاصة إلى كل مكان منها.",
+      description: "كارتاخينا وميديلين وبوغوتا ومنطقة القهوة والجزر. تخطط ALMAR رحلات خاصة إلى كل وجهة منها.",
     },
     kicker: "الوجهات",
     heading: "أروع مدن كولومبيا",
@@ -62,10 +63,10 @@ export const DESTINATIONS_PAGE_COPY: Record<DestinationsPageLocale, Destinations
     },
   },
   es: {
-    status: "draft",
+    status: "published",
     meta: {
       title: "Los mejores lugares para visitar en Colombia | ALMAR",
-      description: "Cartagena, Medellín, Bogotá, la región del café y las islas. ALMAR planea viajes privados a cada lugar.",
+      description: "Cartagena, Medellín, Bogotá, la región cafetera y las islas. ALMAR planea viajes privados a cada lugar.",
     },
     kicker: "Destinos",
     heading: "Las ciudades más extraordinarias de Colombia",

@@ -108,7 +108,7 @@ test("storage shape: one record per language per entity, no locale-keyed map in 
     for (const id of baseIds) {
       const mine = t.filter((r) => r[fk] === id);
       assert.deepEqual(mine.map((r) => r.locale).sort(), ["ar", "en", "es"], `${name}: ${id}`);
-      for (const r of mine) assert.equal(r.status, r.locale === "en" ? "published" : "draft", `${name}: ${r.locale} status`);
+      for (const r of mine) assert.equal(r.status, "published", `${name}: ${r.locale} status (AR and ES reviewed and published 2026-10-05, I18N-REVIEW-2026-10-05.md)`);
     }
     assert.equal(t.length, baseIds.length * 3);
   };

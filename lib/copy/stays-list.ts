@@ -1,3 +1,4 @@
+// AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 // Copy for the /private-stays list page (phase 3.3 plan 05, controller reconcile R-9).
 //
 // EN is the published text of the live Framer list page where it has one (meta title and description, the
@@ -57,7 +58,7 @@ export const STAYS_LIST_COPY: Record<StaysListLocale, StaysListCopy> = {
   ar: {
     meta: {
       title: "فلل وبيوت خاصة في كولومبيا | ALMAR",
-      description: "فلل وبيوت خاصة في كارتاخينا وميديين وغيرهما. تتحقق ALMAR من كل بيت قبل الحجز.",
+      description: "فلل وبيوت خاصة في كارتاخينا وميديلين وغيرها. تتحقق ALMAR من كل بيت قبل الحجز.",
     },
     heading: "إقامتك، مختارة بعناية شخصية",
     filtersLabel: "تصفية الإقامات",
@@ -82,8 +83,8 @@ export const STAYS_LIST_COPY: Record<StaysListLocale, StaysListCopy> = {
       many: "# إقامة",
       other: "# إقامة",
     },
-    empty: "لا توجد إقامات تطابق هذه المرشّحات.",
-    clear: "مسح المرشّحات",
+    empty: "لا توجد إقامات تطابق عوامل التصفية هذه.",
+    clear: "مسح التصفية",
   },
   es: {
     meta: {
@@ -97,7 +98,7 @@ export const STAYS_LIST_COPY: Record<StaysListLocale, StaysListCopy> = {
     guests: {
       label: "Huéspedes",
       any: "Cualquiera",
-      add: "Añadir un huésped",
+      add: "Agregar un huésped",
       remove: "Quitar un huésped",
       atMax: "Ninguna estancia admite más huéspedes.",
     },
