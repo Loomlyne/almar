@@ -6,7 +6,7 @@
 // 3.2's stay_night_rates (C-11); this engine sums them and never chooses between ranges.
 // Pure: no imports outside lib/money, no environment, no network.
 import { addDays, daysBetween, eachNight, isIsoDate } from "./dates";
-import { MIN_CHARGE_FILS, assertFils, pct } from "./fils";
+import { MAX_AMOUNT_FILS, MIN_CHARGE_FILS, assertFils, pct } from "./fils";
 
 export type AddOnUnit = "person" | "night" | "trip";
 
@@ -40,7 +40,8 @@ export type PriceReason =
   | { code: "addon_unavailable"; id: string }
   | { code: "addon_quantity"; id: string; max: number }
   | { code: "deposit_unavailable"; cause: DepositBlock }
-  | { code: "below_minimum_charge" };
+  | { code: "below_minimum_charge" }
+  | { code: "too_large"; field: "guests" | "amount"; max: number };
 
 export type PriceSnapshot = {
   nights: { night: string; rateFils: number; source: "range" | "base"; rateId: string | null }[];
@@ -62,6 +63,11 @@ export type PriceSnapshot = {
   balanceDueDate: string | null;
 };
 
+/**
+ * `snapshot` is null when the stay cannot be priced at all: dates_invalid, settings_missing, no_rate, or too_large
+ * (a guest total or an amount past the exact-arithmetic bounds). With any other reason it is the price as far as it
+ * goes, for display; it is stored only when `ok`.
+ */
 export type PriceResult =
   | { ok: true; snapshot: PriceSnapshot; reasons: [] }
   | { ok: false; reasons: PriceReason[]; snapshot: PriceSnapshot | null };
@@ -81,14 +87,18 @@ function assertBp(n: unknown, label: string): void {
   }
 }
 
-/** Adds two amounts of fils and checks the result is still a safe integer. */
-function sum(a: number, b: number, label: string): number {
-  const total = a + b;
-  assertFils(total, label);
-  return total;
+/**
+ * `total + x` when it stays at or under `max`, else null. Both are non-negative safe integers and `total <= max`, so
+ * `max - total` is exact and no unsafe sum is ever formed.
+ */
+function addWithin(total: number, x: number, max: number): number | null {
+  return x > max - total ? null : total + x;
 }
 
-/** Shape checks on what the server passes in. A failure is a programming error, never a guest-facing reason. */
+/**
+ * Shape checks on what the server itself passes in (database rows, settings, its own guest counts). A failure is a
+ * programming error and throws. The pick elements come from the browser and are checked in priceBooking instead.
+ */
 function assertCallerInput(input: PriceInput): void {
   if (!isIsoDate(input.today)) throw new RangeError(`today must be a YYYY-MM-DD day, got ${String(input.today)}`);
   assertCount(input.adults, "adults");
@@ -109,9 +119,6 @@ function assertCallerInput(input: PriceInput): void {
     offerIds.add(offer.id);
     if (!UNITS.includes(offer.unit)) throw new RangeError(`offer ${offer.id} has an unknown unit ${String(offer.unit)}`);
     assertFils(offer.priceFils, `offer ${offer.id} priceFils`);
-  }
-  for (const pick of input.picks) {
-    if (typeof pick.id !== "string") throw new TypeError("every pick needs an id");
   }
 }
 
@@ -147,13 +154,13 @@ function priceNights(input: PriceInput): PriceSnapshot["nights"] | null {
   return missing ? null : nights;
 }
 
-function maxQuantity(unit: AddOnUnit, input: PriceInput, nightCount: number): number {
-  if (unit === "person") return input.adults + input.children + input.infants;
+function maxQuantity(unit: AddOnUnit, guestTotal: number, nightCount: number): number {
+  if (unit === "person") return guestTotal;
   if (unit === "night") return nightCount;
   return 1;
 }
 
-/** Prices one booking. Never throws for a guest's choice; throws only when the caller passes a malformed input. */
+/** Prices one booking. Never throws for a guest's choice; throws only when the server passes a malformed input. */
 export function priceBooking(input: PriceInput): PriceResult {
   assertCallerInput(input);
 
@@ -162,28 +169,56 @@ export function priceBooking(input: PriceInput): PriceResult {
     return { ok: false, reasons: [{ code: "dates_invalid" }], snapshot: null };
   }
 
-  // 2. Settings, then 3. nights (checked against the stay even when settings are missing, so a caller error shows).
+  // 2. Settings, the guest total, then 3. nights (checked against the stay even when something above is missing, so a
+  // caller error still shows). The guest total must stay exact: past MAX_SAFE_INTEGER it is too_large, never a throw.
   const blocking: PriceReason[] = [];
   if (input.vatBp === null || input.depositBp === null) blocking.push({ code: "settings_missing" });
+  const someGuests = addWithin(input.adults, input.children, Number.MAX_SAFE_INTEGER);
+  const guestTotal = someGuests === null ? null : addWithin(someGuests, input.infants, Number.MAX_SAFE_INTEGER);
+  if (guestTotal === null) blocking.push({ code: "too_large", field: "guests", max: Number.MAX_SAFE_INTEGER });
   const nights = priceNights(input);
   if (input.baseRateFils === null || nights === null) blocking.push({ code: "no_rate" });
-  if (blocking.length > 0 || nights === null || input.vatBp === null || input.depositBp === null) {
+  if (blocking.length > 0 || nights === null || guestTotal === null || input.vatBp === null || input.depositBp === null) {
     return { ok: false, reasons: blocking, snapshot: null };
   }
   const vatBp = input.vatBp;
   const depositBp = input.depositBp;
   const nightCount = nights.length;
-  const nightsFils = nights.reduce((total, n) => sum(total, n.rateFils, "nightsFils"), 0);
+  // Every amount up to the subtotal stays at or under MAX_AMOUNT_FILS; past it the price is too_large (no snapshot).
+  let tooLarge = false;
+  let nightsFils = 0;
+  for (const n of nights) {
+    const next = addWithin(nightsFils, n.rateFils, MAX_AMOUNT_FILS);
+    if (next === null) tooLarge = true;
+    else nightsFils = next;
+  }
 
-  // 4. Add-on lines (D-46). Zero picks are dropped; a repeated id is refused as a whole.
+  // 4. Add-on lines (D-46). Picks come from the browser: an element that is not an object with a string id is
+  // addon_unavailable under String(id), never a throw. Zero picks are dropped; a repeated id is refused as a whole.
   const reasons: PriceReason[] = [];
-  const picks = input.picks.filter((p) => p.quantity !== 0);
-  const seen = new Map<string, number>();
-  for (const p of picks) seen.set(p.id, (seen.get(p.id) ?? 0) + 1);
-  const offers = new Map(input.offers.map((o) => [o.id, o]));
   const refused = new Set<string>();
+  const wellFormed: { id: string; quantity: unknown }[] = [];
+  for (const raw of input.picks as unknown[]) {
+    const isObject = raw !== null && typeof raw === "object";
+    const id: unknown = isObject ? (raw as { id?: unknown }).id : raw;
+    if (!isObject || typeof id !== "string") {
+      const shown = String(id);
+      if (!refused.has(shown)) {
+        refused.add(shown);
+        reasons.push({ code: "addon_unavailable", id: shown });
+      }
+      continue;
+    }
+    const quantity: unknown = (raw as { quantity?: unknown }).quantity;
+    if (quantity === 0) continue;
+    wellFormed.push({ id, quantity });
+  }
+  const seen = new Map<string, number>();
+  for (const p of wellFormed) seen.set(p.id, (seen.get(p.id) ?? 0) + 1);
+  const offers = new Map(input.offers.map((o) => [o.id, o]));
   const lines: PriceSnapshot["lines"] = [];
-  for (const pick of picks) {
+  let addonsFils = 0;
+  for (const pick of wellFormed) {
     if (refused.has(pick.id)) continue;
     const offer = offers.get(pick.id);
     if (!offer || (seen.get(pick.id) ?? 0) > 1) {
@@ -191,7 +226,7 @@ export function priceBooking(input: PriceInput): PriceResult {
       reasons.push({ code: "addon_unavailable", id: pick.id });
       continue;
     }
-    const max = maxQuantity(offer.unit, input, nightCount);
+    const max = maxQuantity(offer.unit, guestTotal, nightCount);
     const q = pick.quantity;
     if (typeof q !== "number" || !Number.isSafeInteger(q) || q < 0 || q > max) {
       refused.add(pick.id);
@@ -199,15 +234,23 @@ export function priceBooking(input: PriceInput): PriceResult {
       continue;
     }
     const lineFils = offer.priceFils * q;
-    assertFils(lineFils, `line ${offer.id}`);
+    const nextAddons = Number.isSafeInteger(lineFils) ? addWithin(addonsFils, lineFils, MAX_AMOUNT_FILS) : null;
+    if (nextAddons === null) {
+      tooLarge = true;
+      continue;
+    }
+    addonsFils = nextAddons;
     lines.push({ id: offer.id, unit: offer.unit, unitPriceFils: offer.priceFils, quantity: q, lineFils });
   }
-  const addonsFils = lines.reduce((total, l) => sum(total, l.lineFils, "addonsFils"), 0);
 
-  // 5. Subtotal, VAT on the subtotal (once), grand.
-  const subtotalFils = sum(nightsFils, addonsFils, "subtotalFils");
+  // 5. Subtotal, VAT on the subtotal (once), grand. With subtotal <= MAX_AMOUNT_FILS every pct() below is exact.
+  const subtotal = tooLarge ? null : addWithin(nightsFils, addonsFils, MAX_AMOUNT_FILS);
+  if (subtotal === null) {
+    return { ok: false, reasons: [...reasons, { code: "too_large", field: "amount", max: MAX_AMOUNT_FILS }], snapshot: null };
+  }
+  const subtotalFils = subtotal;
   const vatFils = pct(subtotalFils, vatBp);
-  const grandFils = sum(subtotalFils, vatFils, "grandFils");
+  const grandFils = subtotalFils + vatFils;
 
   // 6. The deposit option: deposit % of grand, balance by subtraction so the two always add up.
   const depositFils = pct(grandFils, depositBp);

@@ -4,6 +4,13 @@
 /** Stripe's minimum charge on an AED account: 2.00 AED. */
 export const MIN_CHARGE_FILS = 200;
 
+/**
+ * The largest subtotal the engine prices: 450,359,962,736 fils. A technical bound, not a business one: VAT is at most
+ * 100 %, so the grand total is at most twice the subtotal, and pct() on that grand total (x 10000 + 5000) must stay a
+ * safe integer. Above it the booking engine answers `too_large` instead of rounding wrong or throwing.
+ */
+export const MAX_AMOUNT_FILS = Math.floor((Number.MAX_SAFE_INTEGER - 5000) / 20000);
+
 /** Throws unless `n` is a non-negative safe integer. `label` names the amount in the message. */
 export function assertFils(n: unknown, label: string): asserts n is number {
   if (typeof n !== "number" || !Number.isSafeInteger(n) || n < 0) {
