@@ -95,3 +95,16 @@ Migrations: none. Environment names added: none. R2 upload: none. Hosted databas
 ## 9. Lessons
 
 Running the full build set once showed two slice 1 guards that only the build runner exercises (JSON-LD URL origin, sitemap count): the plans 30 to 32 summaries ran node and dev tests only. A converted page should run the build specs before its own hand-over, not at plan 33.
+
+## 10. Lead's recheck after merging origin/main (job 10's server runtime), 2026-10-05 04:06 +0400
+
+`origin/main` moved to `4da2f77` (job 10: `worker/`, `scripts/assemble-cloudflare.mjs`, `wrangler*.toml`, tests). Merged as
+`04cb3ec`, no conflict. On that tree: `npm ci` ok; `npx tsc --noEmit` clean; `node --test tests/*.test.mjs` 686 tests,
+682 pass, 0 fail, 4 skipped; `npm run tokens:check` up to date; `node scripts/assemble-cloudflare.mjs` 65 html (8 Framer,
+React 18 per language, 3 404s), Worker 1572 KiB gzip (its own dry run, nothing uploaded); `node scripts/media-guard.mjs --deploy`
+OK, 54 documents, 912 image references; `node --test tests/build/*.test.mjs tests/build/*/*.test.mjs` 369 / 369;
+`PW_PORT=8941 npx playwright test -c playwright.build.config.ts tests/build/blog tests/build/server-runtime.spec.ts
+tests/build/locale-routing.spec.ts tests/build/locale-404.spec.ts --workers=1` **694 passed, 0 failed** (14.0 min). A first
+attempt of that run was stopped by my own 10-minute shell limit before it reported; nothing failed in it. The full dev
+and build Playwright suites were not rerun after this merge (their last full run, before it, is in section 2).
+Slices 2 and 3A had not landed on `main` at this merge; merge them first if they land before this one.
