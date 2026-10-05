@@ -6,7 +6,8 @@ import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { STAYS_LIST_COPY } from "../../lib/copy/stays-list";
 import { getDestinations } from "../../lib/data/destinations";
 import { getStays } from "../../lib/data/stays";
-import { absoluteLocaleUrl, localeAlternates, localePath, siteHref, type Locale } from "../../lib/locale-path";
+import { pageLinks } from "../site/page-links";
+import { absoluteLocaleUrl, localeAlternates, localePath, type Locale } from "../../lib/locale-path";
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
 import { PublicFrame, type PublicFrameLink } from "../site/public-frame";
 import { PageShell } from "../ui/page-shell";
@@ -15,14 +16,6 @@ import { StayBrowser, type ListStay } from "./private-stays/stay-browser";
 
 /** The English path of this page. localePath turns it into the address in each language. */
 const PATH = "/private-stays";
-
-/** The four pages the header and footer link to. Today they are English-only Framer pages (siteHref keeps them so). */
-const PAGE_LINKS = [
-  { key: "destinations", path: "/destinations" },
-  { key: "experiences", path: "/experiences" },
-  { key: "about", path: "/about" },
-  { key: "contact", path: "/contact" },
-] as const;
 
 /** With JavaScript off the filters cannot work, so they are not shown: the 12 linked cards still are. */
 const NO_SCRIPT_RULE = "[data-stay-filters]{display:none}";
@@ -50,10 +43,7 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
   }));
 
   const nav = HOME_COPY[locale].nav;
-  const links: PublicFrameLink[] = PAGE_LINKS.map(({ key, path }) => ({
-    label: nav[key],
-    href: siteHref(locale, path),
-  }));
+  const links: PublicFrameLink[] = pageLinks(locale, nav);
 
   return (
     <PublicFrame

@@ -157,3 +157,15 @@ go to a cheaper model (Haiku 4.5; Jev is Hermes-only and is not simulated).
 - **`tests/data-boundary.test.mjs`**: 03.2-11 exempts `components/ops`, `app/dashboard`, `app/api/ops` from the
   `translations` / `*_en` name rule (the API contract uses those names); import rules still apply there.
 - **Plans 04-01 and 03.2-11 ran before job 02** because they need no database or keys (owner's speed word).
+
+## Owner answers, 2026-10-05 ~10:58 (+04), question form
+
+- **Plan 03.2-11 pictures signed** ("Signed"): the 60 pictures at `6b9420e` (`gsd/phase-3.3-… p11-ops-kit`). Task 2
+  runs after job 02 is on `main`.
+- **Supabase:** his CLI login reaches the Loomlyne organisation (Invios, VamosTaxi, Clickit) and an empty "Forgetten
+  Projects" one; the 02-01 ALMAR project is in neither. His answer: "i created one now just let me connect it again
+  to get where is it". The controller waits for the new project to be reachable, then uses it as the one ALMAR
+  project (job 02's migration `20260925120000` first, then 3.2's and Phase 4's).
+- **Arabic and Spanish:** "make sure its correct i will not review it". A Fable 5.1 agent reviews and corrects every
+  AR/ES string on the public site (`.claude/worktrees/phase-3.3-i18n-review`); the controller checks, lands and
+  deploys it like any job. AR/ES text is then no longer "draft for his review".

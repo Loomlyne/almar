@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { CalendarScreen } from "./calendar-screen";
 
 export const metadata: Metadata = {
@@ -8,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardCalendarPage() {
-  if (process.env.NODE_ENV === "production") {
-    notFound();
-  }
-
   return <CalendarScreen />;
 }
