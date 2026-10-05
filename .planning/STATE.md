@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-05 14:50 (+04):** job 02 (Phase 2 sign-in) landed as `01d9304` and is live as Worker `almar` `82569c44` (rollback `e1d0add8`). Sign-in emails wait for `RESEND_API_KEY` (owner). Next: AR/ES text landing, 03.2-11 Task 2, slice 3B (form, newsletter), public-nav Login link, v1 database lanes.
+
 **2026-10-05 11:21 (+04):** live Supabase "Almar" `jkdkaldgeiowkhlfmsft` ready for job 02: migration `20260925120000` applied and read back, owner user `maria@almarprivatejourney.com` (role owner), sign-ups off, three Supabase secrets on Worker `almar` (version `e1d0add8`). Missing: `RESEND_API_KEY` (owner). Job 02 merged with `main` at `11962cf`, landing check running.
 
 Phase: **3.3 (public site in React)** — reshaped and starting. Phases 1, 3 and 3.1 are complete; 3.1 landed as `9fd6786` and job 04 as `97005a0`, live as `b769e01a`.
