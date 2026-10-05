@@ -7,15 +7,18 @@
 //
 // The controller runs it between the assemble step and every preview or production deploy (runbook C10); plan 08's
 // assembler calls assertMediaReady() for the preview and production targets. It exits 1 while the placeholder is
-// set, while the media base is not an https origin, or while any of the 54 React documents (slice 1 and the blog) in the output folder
+// set, while the media base is not an https origin, or while any public React document (publicDocuments, from PUBLIC_PAGES:
+// slice 1, About and Contact, the blog, destinations and experiences, every stay and live post enumerated) in the output folder
 // holds the placeholder, a third-party image host, or an <img> src / srcset / og:image that does not start with the
-// media base. Two same-site shapes are let through for an <img src>: the nav wordmark files under /_next/static/media/
+// media base, or that names a key under the media base which lib/data/media-manifest.json does not hold (so no
+// document can ship pointing at an object nobody uploaded). The document list is computed (publicDocuments), never a
+// literal. Two same-site shapes are let through for an <img src>: the nav wordmark files under /_next/static/media/
 // and the light footer's inline brand SVG (a data:image/svg+xml URL whose markup names nothing outside itself).
 
 import fs from "node:fs";
 import path from "node:path";
 import { MEDIA_BASE_URL, MEDIA_BASE_URL_IS_PLACEHOLDER } from "../lib/data/media.ts";
-import { FORBIDDEN_HOSTS, REPO_ROOT, defaultPaths, isMain, readPostSlugs, readStaySlugs, reactDocuments } from "./media-lib.mjs";
+import { FORBIDDEN_HOSTS, REPO_ROOT, defaultPaths, isMain, publicDocuments, readManifest, readPostSlugs, readStaySlugs } from "./media-lib.mjs";
 
 /**
  * The nav wordmarks (Poly_White, Stacked_Charcoal) are brand assets from brand/: the Next build hashes them to
@@ -150,12 +153,33 @@ export function imageReferences(html) {
   return refs;
 }
 
+/** The media key of a reference under `base` (the part after `${base}/`, query and fragment dropped), or null. */
+function keyUnder(base, url) {
+  if (!url.startsWith(`${base}/`)) return null;
+  return url.slice(base.length + 1).split(/[?#]/)[0];
+}
+
+/** Every media key a document's image references (img src, srcset candidates, og:image) name under `base`. */
+export function referencedKeys(html, base) {
+  const keys = new Set();
+  for (const ref of imageReferences(html)) {
+    const key = keyUnder(base, ref.url);
+    if (key !== null) keys.add(key);
+  }
+  return keys;
+}
+
 /**
- * Scans the slice-1 documents under outDir. Returns
+ * Scans every public React document (publicDocuments, from PUBLIC_PAGES) under outDir. Returns
  * `{ violations: [{ document, problem }], documents, images }`: `documents` is how many were found and read,
  * `images` how many image references were checked.
+ *
+ * `manifestKeys` (a Set): a reference under `${base}/` whose key is not in it is a violation. `placeholderBase`:
+ * the `.invalid` check ignores exactly the base's own hostname (any other .invalid host is still a violation); the
+ * deploy never passes it, only the coverage test, which runs while the base is still the placeholder.
  */
-export function scanOut(outDir, base, { documents = reactDocuments() } = {}) {
+export function scanOut(outDir, base, { documents = publicDocuments(), manifestKeys, placeholderBase = false } = {}) {
+  const ownHost = placeholderBase ? new URL(base).hostname.toLowerCase() : null;
   const violations = [];
   let found = 0;
   let images = 0;
@@ -167,7 +191,10 @@ export function scanOut(outDir, base, { documents = reactDocuments() } = {}) {
     }
     found++;
     const html = fs.readFileSync(file, "utf8");
-    for (const host of new Set(html.match(INVALID_HOST_RE) ?? [])) violations.push({ document: doc, problem: `contains the placeholder host ${host}` });
+    for (const host of new Set(html.match(INVALID_HOST_RE) ?? [])) {
+      if (ownHost !== null && host.toLowerCase() === ownHost) continue;
+      violations.push({ document: doc, problem: `contains the placeholder host ${host}` });
+    }
     for (const host of FORBIDDEN_HOSTS) {
       if (html.includes(host)) violations.push({ document: doc, problem: `contains ${host}` });
     }
@@ -181,6 +208,9 @@ export function scanOut(outDir, base, { documents = reactDocuments() } = {}) {
       }
       if (!ref.url.startsWith(`${base}/`)) {
         violations.push({ document: doc, problem: `${ref.kind} ${JSON.stringify(ref.url.slice(0, 120))} does not start with ${base}/` });
+      } else if (manifestKeys) {
+        const key = keyUnder(base, ref.url);
+        if (!manifestKeys.has(key)) violations.push({ document: doc, problem: `${ref.kind} key ${key} is not in lib/data/media-manifest.json` });
       }
     }
   }
@@ -220,7 +250,15 @@ export function main(argv = [], { log = console.log } = {}) {
     log(`media-guard: ${path.relative(paths.root, outDir) || out}/ is absent: run the assembler first`);
     return 1;
   }
-  const { violations, documents, images } = scanOut(outDir, base, { documents: reactDocuments(readStaySlugs(paths.fixturesDir), readPostSlugs(paths.fixturesDir)) });
+  let manifestKeys;
+  try {
+    manifestKeys = new Set(readManifest(paths.manifestPath).map((e) => e.key));
+  } catch (err) {
+    log(`media-guard: lib/data/media-manifest.json: ${err.message}`);
+    return 1;
+  }
+  const docs = publicDocuments(readStaySlugs(paths.fixturesDir), undefined, readPostSlugs(paths.fixturesDir));
+  const { violations, documents, images } = scanOut(outDir, base, { documents: docs, manifestKeys });
   if (violations.length) {
     for (const v of violations) log(`media-guard: ${v.document}: ${v.problem}`);
     log(`media-guard: ${violations.length} violation(s) in ${out}/`);

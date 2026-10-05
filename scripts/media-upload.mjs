@@ -7,6 +7,9 @@
 //                                                                 dry run that also reads what is already in the bucket
 //   HOME=... CLOUDFLARE_ACCOUNT_ID=... node scripts/media-upload.mjs --public-base https://<host> --apply
 //   node scripts/media-upload.mjs --verify --public-base https://<host> [--sample N | --all]
+//   --keys <file>                                                 limit any of the above to the keys listed in <file>
+//                                                                 (one per line, # comments); with --verify every listed
+//                                                                 key is checked, plus the negative probe
 //
 // Safety, all enforced here and covered by tests/media-upload.test.mjs:
 //   - dry run by default; nothing is started unless --apply;
@@ -29,6 +32,7 @@ import {
   defaultPaths,
   formatMB,
   isMain,
+  readKeyList,
   readManifest,
   sha256,
 } from "./media-lib.mjs";
@@ -234,7 +238,7 @@ export async function verifyObjects(manifest, base, { fetch, sample = 12, all = 
 }
 
 function parseArgs(argv) {
-  const o = { apply: false, verify: false, publicBase: undefined, bucket: BUCKET_DEFAULT, sample: 12, all: false, replaceKeys: [], root: undefined, bust: true };
+  const o = { apply: false, verify: false, publicBase: undefined, bucket: BUCKET_DEFAULT, sample: 12, all: false, replaceKeys: [], root: undefined, bust: true, keys: undefined };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const val = () => {
@@ -253,14 +257,15 @@ function parseArgs(argv) {
       o.sample = n;
     } else if (a === "--replace-key") o.replaceKeys.push(val());
     else if (a === "--root") o.root = path.resolve(val());
+    else if (a === "--keys") o.keys = val();
     else throw new Error(`unknown argument ${JSON.stringify(a)}`);
   }
   return o;
 }
 
 const USAGE =
-  "usage: node scripts/media-upload.mjs [--bucket <name>] [--public-base https://<host>] [--apply] [--replace-key <key>]...\n" +
-  "       node scripts/media-upload.mjs --verify --public-base https://<host> [--sample N | --all]";
+  "usage: node scripts/media-upload.mjs [--bucket <name>] [--public-base https://<host>] [--apply] [--replace-key <key>]... [--keys <file>]\n" +
+  "       node scripts/media-upload.mjs --verify --public-base https://<host> [--sample N | --all] [--keys <file>]";
 
 /**
  * Returns the exit code: 0 done, 1 a refusal, a failed check or a failed put, 2 a usage or gate error.
@@ -310,14 +315,29 @@ export async function main(argv = [], deps = {}) {
     return 1;
   }
 
+  // --keys narrows the manifest here, after the account gate and before the cache check, the remote probe, the plan,
+  // --apply and --verify, so none of them can see (or start a process for) an unlisted key.
+  let keysLine;
+  if (o.keys !== undefined) {
+    try {
+      const keys = new Set(readKeyList(o.keys, manifest));
+      keysLine = `media-upload: --keys ${o.keys}: ${keys.size} of ${manifest.length} manifest entries`;
+      manifest = manifest.filter((e) => keys.has(e.key));
+    } catch (err) {
+      log(`media-upload: ${err.message}`);
+      return 2;
+    }
+  }
+
   if (o.verify) {
     const unmeasured = manifest.filter((e) => !/^[0-9a-f]{64}$/.test(e.sha256 ?? ""));
     if (unmeasured.length) {
       log(`media-upload: ${unmeasured.length} manifest entries have no sha256 (run media-fetch and media-manifest --write): ${unmeasured[0].key} ...`);
       return 1;
     }
-    log(`media-upload: verify ${o.all ? "all" : `sample of at least ${o.sample}`} on ${base}`);
-    const r = await verifyObjects(manifest, base, { fetch, sample: o.sample, all: o.all, bust: o.bust });
+    if (keysLine) log(keysLine);
+    log(`media-upload: verify ${o.all || keysLine ? "all" : `sample of at least ${o.sample}`} on ${base}`);
+    const r = await verifyObjects(manifest, base, { fetch, sample: o.sample, all: o.all || keysLine !== undefined, bust: o.bust });
     for (const l of r.lines) log(l);
     log(`media-upload: verify ${r.ok} ok, ${r.failed} failed (${r.objects} objects and the negative probe)`);
     return r.failed ? 1 : 0;
@@ -351,6 +371,7 @@ export async function main(argv = [], deps = {}) {
   }
 
   log(o.bucket === BUCKET_DEFAULT ? `media-upload: bucket ${o.bucket}` : `media-upload: bucket ${o.bucket} (NOT the default ${BUCKET_DEFAULT})`);
+  if (keysLine) log(keysLine);
   log(o.apply ? "media-upload: APPLY, each PUT and FIX line below is run in order" : "media-upload: dry run, nothing is sent and no process is started");
   let remote;
   if (base) {

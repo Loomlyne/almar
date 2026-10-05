@@ -33,6 +33,24 @@ import {
 } from "./media-lib.mjs";
 
 const LOCALES = ["en", "ar", "es"];
+
+/**
+ * The decorative set: the only images allowed to have alt="" in en, ar and es (design 3.3 and S3-25 publish the About
+ * intro photos, the still, the card photos and the Get In Touch still with an empty alt). Every other image needs a
+ * non-empty alt record in all three languages. Eleven keys sit under the four prefixes below; two more are About's own
+ * image ids for photos whose keys the home page shares (home/gallery/13.webp, home/hero/poster.webp): the home-side id
+ * of the same key is a described photo and stays outside the set. The About hero is a meaningful picture and is outside it.
+ */
+export const DECORATIVE_KEY_PREFIXES = ["about/intro/", "about/story/", "about/values/", "about/cta/"];
+export const DECORATIVE_REUSED_IMAGE_IDS = new Set([
+  "94ffea10-71fa-5bd9-a4b3-291b2ff7047a", // About intro photo 2 = home/gallery/13.webp
+  "ed7466de-f9a3-51b7-a170-987601defa6d", // About Get In Touch still = home/hero/poster.webp
+]);
+
+/** True when this image may carry alt="" in every language. */
+export function isDecorativeImage(id, key) {
+  return DECORATIVE_REUSED_IMAGE_IDS.has(id) || (typeof key === "string" && DECORATIVE_KEY_PREFIXES.some((p) => key.startsWith(p)));
+}
 const MEASURED = ["content_type", "bytes", "sha256", "md5", "width", "height"];
 
 function readAlts(fixturesDir) {
@@ -113,11 +131,24 @@ export function buildManifest({ fixturesDir, manifestPath, cacheDir } = {}) {
   }
 
   // 3. Alt records: the manifest points at the record, it never copies the text.
+  // Every image needs a non-empty alt in en, ar and es. The one exception is the decorative set (isDecorativeImage:
+  // the About photos of the signed design, design 3.3 and S3-25), which may carry alt="" exactly, in all three languages
+  // or in none; a mix is a problem, and a whitespace-only alt is still no record. Any other image with an empty alt fails.
   const altSet = new Set();
+  const rawAlt = new Map();
   for (const a of alts) {
-    if (typeof a.alt === "string" && a.alt.trim().length > 0) altSet.add(`${a.image_id}|${a.locale}`);
+    if (typeof a.alt !== "string") continue;
+    rawAlt.set(`${a.image_id}|${a.locale}`, a.alt);
+    if (a.alt.trim().length > 0) altSet.add(`${a.image_id}|${a.locale}`);
   }
   for (const [id, key] of keyById) {
+    if (isDecorativeImage(id, key)) {
+      if (LOCALES.every((l) => rawAlt.get(`${id}|${l}`) === "")) continue;
+      if (LOCALES.some((l) => rawAlt.get(`${id}|${l}`) === "") && LOCALES.some((l) => altSet.has(`${id}|${l}`))) {
+        problems.push(`image ${id} (${key}) is decorative in some languages and not in others`);
+        continue;
+      }
+    }
     for (const locale of LOCALES) {
       if (!altSet.has(`${id}|${locale}`)) problems.push(`no ${locale} alt record for image ${id} (${key})`);
     }

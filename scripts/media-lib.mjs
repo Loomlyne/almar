@@ -12,6 +12,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { LOCALES, PUBLIC_PAGES } from "../lib/locale-path.ts";
 import { isLivePost } from "./post-live.mjs";
 
 // A post is a document only when it is published and its date has come (lib/data/posts.ts isLive): see post-live.mjs.
@@ -192,6 +193,35 @@ export function readManifest(manifestPath = defaultPaths().manifestPath) {
   return data;
 }
 
+/**
+ * The `--keys <file>` list shared by media-fetch and media-upload: one media key per line, trimmed; blank lines and
+ * lines starting `#` are ignored. Every key must pass assertKey, appear once, and be a key of `manifest`. Returns the
+ * keys in manifest order, whatever the order in the file. Throws `key list <file>: line <n>: <reason>` (the line is
+ * the 1-based line of the file), or `key list <file> holds no key`.
+ */
+export function readKeyList(file, manifest) {
+  const known = new Set(manifest.map((e) => e.key));
+  const seen = new Set();
+  const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+  lines.forEach((raw, i) => {
+    const key = raw.trim();
+    if (key === "" || key.startsWith("#")) return;
+    const fail = (why) => {
+      throw new Error(`key list ${file}: line ${i + 1}: ${why}`);
+    };
+    try {
+      assertKey(key);
+    } catch (err) {
+      fail(err.message);
+    }
+    if (seen.has(key)) fail(`duplicate key ${JSON.stringify(key)}`);
+    if (!known.has(key)) fail(`${JSON.stringify(key)} is not in the manifest`);
+    seen.add(key);
+  });
+  if (seen.size === 0) throw new Error(`key list ${file} holds no key`);
+  return manifest.map((e) => e.key).filter((k) => seen.has(k));
+}
+
 /** One entry with its fields in the fixed order; unknown fields are kept after the known ones, sorted. */
 export function orderEntry(entry) {
   const out = {};
@@ -216,6 +246,12 @@ export function readStaySlugs(fixturesDir = defaultPaths().fixturesDir) {
   return stays.filter((s) => s.is_published !== false).map((s) => s.slug);
 }
 
+/** The public pages slice 1 shipped. Slice 1's own document list (42 files) is publicDocuments(slugs, SLICE1_PAGES). */
+export const SLICE1_PAGES = ["/", "/private-stays", "/private-stays/[stay]"];
+
+/** The blog pages slice 4 shipped. The blog's own document list is publicDocuments(undefined, BLOG_PAGES, postSlugs). */
+export const BLOG_PAGES = ["/blog", "/blog/[post]"];
+
 /** The slugs of the live posts (the three blog pages), in fixture order. */
 export function readPostSlugs(fixturesDir = defaultPaths().fixturesDir, now = new Date()) {
   const posts = JSON.parse(fs.readFileSync(path.join(fixturesDir, "posts.json"), "utf8"));
@@ -223,31 +259,52 @@ export function readPostSlugs(fixturesDir = defaultPaths().fixturesDir, now = ne
 }
 
 /**
- * The out/ paths of the slice-1 documents: for each of "", "ar/", "es/": the locale root, the list page and one
- * page per stay. 3 x (2 + 12) = 42. The EN root is index.html; a locale root is <locale>/index.html (design 5.4).
+ * The out/ path of every public React document, computed from PUBLIC_PAGES (lib/locale-path.ts): for each locale
+ * (no prefix for en, "<locale>/" otherwise) and each pattern in order, "/" is `<prefix>index.html`, a static path is
+ * `<prefix><path>.html` and a dynamic pattern gives one document per value of its parameter: `[stay]` per published
+ * stay slug (readStaySlugs), `[post]` per live post slug (readPostSlugs). Each enumerator is read only when a
+ * pattern needs it. This is the one document list (reconcile S3-11): a new page is a PUBLIC_PAGES entry; a new
+ * dynamic parameter needs its enumerator here and in tests/helpers/site-links.mjs reactPublicRoutes.
  */
-export function slice1Documents(staySlugs = readStaySlugs()) {
+export function publicDocuments(staySlugs, pages = PUBLIC_PAGES, postSlugs) {
+  const enumerators = {
+    "[stay]": () => (staySlugs ??= readStaySlugs()),
+    "[post]": () => (postSlugs ??= readPostSlugs()),
+  };
   const docs = [];
-  for (const prefix of ["", "ar/", "es/"]) {
-    docs.push(`${prefix}index.html`, `${prefix}private-stays.html`);
-    for (const slug of staySlugs) docs.push(`${prefix}private-stays/${slug}.html`);
+  for (const locale of LOCALES) {
+    const prefix = locale === "en" ? "" : `${locale}/`;
+    for (const pattern of pages) {
+      const params = pattern.match(/\[[^\]]+\]/g) ?? [];
+      for (const p of params) if (!(p in enumerators)) throw new Error(`no enumerator for ${p}`);
+      if (params.length > 1) throw new Error(`one parameter per pattern: ${pattern}`);
+      if (pattern === "/") docs.push(`${prefix}index.html`);
+      else if (params.length === 0) docs.push(`${prefix}${pattern.slice(1)}.html`);
+      else for (const slug of enumerators[params[0]]()) docs.push(`${prefix}${pattern.slice(1).replace(params[0], slug)}.html`);
+    }
   }
   return docs;
 }
 
-/** The blog documents (slice 4): for each of "", "ar/", "es/": the list and one page per post. 3 x (1 + 3) = 12. */
+/** The blog documents (slice 4): publicDocuments over BLOG_PAGES. Kept for main's callers. */
 export function blogDocuments(postSlugs = readPostSlugs()) {
-  const docs = [];
-  for (const prefix of ["", "ar/", "es/"]) {
-    docs.push(`${prefix}blog.html`);
-    for (const slug of postSlugs) docs.push(`${prefix}blog/${slug}.html`);
-  }
-  return docs;
+  return publicDocuments(undefined, BLOG_PAGES, postSlugs);
 }
 
-/** Every React document the media guard scans: slice 1 (42) and the blog (12) = 54. */
-export function reactDocuments(staySlugs = readStaySlugs(), postSlugs = readPostSlugs()) {
-  return [...slice1Documents(staySlugs), ...blogDocuments(postSlugs)];
+/** The two pages slice 3 converts. They enter the media guard's list only once they are in PUBLIC_PAGES. */
+export const SLICE3_PAGES = ["/about", "/contact"];
+
+/**
+ * Slice 3's documents (About and Contact in all three locales) that `pages` makes public: publicDocuments over the
+ * SLICE3_PAGES entries `pages` holds. Nothing while neither is public, six once both are. Kept for main's callers.
+ */
+export function slice3Documents(pages = PUBLIC_PAGES) {
+  return publicDocuments(undefined, SLICE3_PAGES.filter((page) => pages.includes(page)));
+}
+
+/** Every React document the media guard scans: publicDocuments() over every `pages` entry (PUBLIC_PAGES). An alias. */
+export function reactDocuments(staySlugs, postSlugs, pages = PUBLIC_PAGES) {
+  return publicDocuments(staySlugs, pages, postSlugs);
 }
 
 /** Bytes as decimal megabytes with one decimal, e.g. "47.3". */

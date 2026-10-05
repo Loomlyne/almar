@@ -82,7 +82,17 @@ export function localeHrefs(path: string): Record<Locale, string> {
  * The pages that exist in all three locales. A later slice that converts a page appends its pattern here;
  * nothing else changes. `[param]` matches one segment of [a-z0-9-]+.
  */
-export const PUBLIC_PAGES = ["/", "/private-stays", "/private-stays/[stay]", "/blog", "/blog/[post]"] as const;
+export const PUBLIC_PAGES = [
+  "/",
+  "/private-stays",
+  "/private-stays/[stay]",
+  "/about",
+  "/contact",
+  "/blog",
+  "/blog/[post]",
+  "/destinations",
+  "/experiences",
+] as const;
 
 const PARAM = /^[a-z0-9-]+$/;
 

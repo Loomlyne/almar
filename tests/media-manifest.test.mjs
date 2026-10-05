@@ -21,13 +21,26 @@ import {
   isWebp,
   md5,
   readManifest,
+  readPostSlugs,
+  readStaySlugs,
+  reactDocuments,
   serializeManifest,
   sha256,
-  slice1Documents,
+  slice3Documents,
   webpDimensions,
 } from "../scripts/media-lib.mjs";
-import { buildManifest, checkManifest, main as manifestMain, syncFixtureDimensions } from "../scripts/media-manifest.mjs";
+import {
+  DECORATIVE_KEY_PREFIXES,
+  DECORATIVE_REUSED_IMAGE_IDS,
+  buildManifest,
+  checkManifest,
+  isDecorativeImage,
+  main as manifestMain,
+  syncFixtureDimensions,
+} from "../scripts/media-manifest.mjs";
 import { fetchAll, withFormatWebp } from "../scripts/media-fetch.mjs";
+import { assembleOut } from "../scripts/assemble-cloudflare.mjs";
+import { PUBLIC_PAGES, matchPublicPage } from "../lib/locale-path.ts";
 
 const paths = defaultPaths();
 const manifest = readManifest(paths.manifestPath);
@@ -62,20 +75,63 @@ test("every manifest entry points at its fixture image ids (image_ids, sorted)",
 
 // 2. Alt records --------------------------------------------------------------------------------------------------
 
-test("every manifest image_id has an en, ar and es alt record (the manifest never copies alt text)", () => {
-  const have = new Set(alts.filter((a) => a.alt && a.alt.trim()).map((a) => `${a.image_id}|${a.locale}`));
+test("every manifest image_id has an en, ar and es alt record: three non-empty, or all three exactly empty (decorative)", (t) => {
+  const rec = new Map(alts.map((a) => [`${a.image_id}|${a.locale}`, a.alt]));
   let checked = 0;
+  let decorative = 0;
   for (const e of manifest) {
     assert.ok(e.image_ids.length > 0, `${e.key} has no image_ids`);
     assert.equal("alt" in e, false, `${e.key}: the manifest must not hold alt text`);
     for (const id of e.image_ids) {
-      for (const locale of ["en", "ar", "es"]) {
-        assert.ok(have.has(`${id}|${locale}`), `${e.key}: no ${locale} alt record for image ${id}`);
-        checked++;
-      }
+      const three = ["en", "ar", "es"].map((locale) => rec.get(`${id}|${locale}`));
+      for (const [i, alt] of three.entries()) assert.equal(typeof alt, "string", `${e.key}: no ${["en", "ar", "es"][i]} alt record for image ${id}`);
+      const empty = three.filter((a) => a === "").length;
+      if (empty === 3) {
+        decorative++;
+        assert.ok(isDecorativeImage(id, e.key), `${e.key}: image ${id} has empty alt in all three languages but is not in the decorative set`);
+      } else assert.ok(three.every((a) => a.trim().length > 0), `${e.key}: image ${id} is empty in ${empty} language(s) and not in all, or holds only spaces`);
+      checked += 3;
     }
   }
   assert.ok(checked >= 300);
+  assert.equal(decorative, DECORATIVE_IMAGE_COUNT, "the decorative images are exactly the About photos of the signed design");
+  t.diagnostic(`${decorative} decorative image id(s) of ${checked / 3}`);
+});
+
+// The decorative set, pinned (review of slice 3 part A, item 1). The signed design allows alt="" only for the About
+// photos: the five intro photos (two of them reused from the home page), the still, the six card photos, and the Get In
+// Touch still. 11 sit under the four about/ key prefixes; 2 are about.json's own image ids for photos whose keys the
+// home page shares (home/gallery/13.webp, home/hero/poster.webp) and whose home-side ids keep a real alt.
+const DECORATIVE_ABOUT_KEYS = [
+  "about/cta/band.webp",
+  "about/intro/01.webp",
+  "about/intro/03.webp",
+  "about/intro/04.webp",
+  "about/intro/05.webp",
+  "about/story/a-vision-that-grows.webp",
+  "about/story/bridging-curiosity-and-confidence.webp",
+  "about/story/designed-with-heart.webp",
+  "about/values/bilingual-trip-support.webp",
+  "about/values/intentional-hospitality.webp",
+  "about/values/privacy-and-discreet-coordination.webp",
+];
+const REUSED_GALLERY_ABOUT_ID = "94ffea10-71fa-5bd9-a4b3-291b2ff7047a"; // about intro photo 2 = home/gallery/13.webp
+const REUSED_POSTER_ABOUT_ID = "ed7466de-f9a3-51b7-a170-987601defa6d"; // the Get In Touch still = home/hero/poster.webp
+const DECORATIVE_IMAGE_COUNT = DECORATIVE_ABOUT_KEYS.length + 2;
+
+test("the decorative set is exactly the 11 About-keyed photos plus the 2 reused About ids (13 image ids), and the rule's constants say so", () => {
+  assert.deepEqual([...DECORATIVE_KEY_PREFIXES].sort(), ["about/cta/", "about/intro/", "about/story/", "about/values/"]);
+  assert.deepEqual([...DECORATIVE_REUSED_IMAGE_IDS].sort(), [REUSED_GALLERY_ABOUT_ID, REUSED_POSTER_ABOUT_ID].sort());
+  const rec = new Map(alts.map((a) => [`${a.image_id}|${a.locale}`, a.alt]));
+  const emptyAll = images.filter((i, n, all) => all.findIndex((x) => x.id === i.id) === n).filter((i) => ["en", "ar", "es"].every((l) => rec.get(`${i.id}|${l}`) === ""));
+  const aboutKeyed = emptyAll.filter((i) => i.media_key.startsWith("about/"));
+  assert.deepEqual(aboutKeyed.map((i) => i.media_key).sort(), DECORATIVE_ABOUT_KEYS, "the 11 About-keyed decorative photos");
+  assert.equal(aboutKeyed.length, 11);
+  assert.deepEqual(emptyAll.filter((i) => !i.media_key.startsWith("about/")).map((i) => i.id).sort(), [REUSED_GALLERY_ABOUT_ID, REUSED_POSTER_ABOUT_ID].sort());
+  assert.equal(emptyAll.length, DECORATIVE_IMAGE_COUNT);
+  assert.equal(emptyAll.length, 13);
+  // The About hero is a meaningful picture: it never counts as decorative.
+  assert.equal(isDecorativeImage(images.find((i) => i.media_key === "about/hero.webp").id, "about/hero.webp"), false);
 });
 
 // 3. Key, source and host rules -----------------------------------------------------------------------------------
@@ -249,13 +305,15 @@ test("RED: a duplicate key, a bad key, a catbox source and a missing alt record 
   fs.writeFileSync(mpath, JSON.stringify(copy, null, 2) + "\n");
   const apath = path.join(root, "lib", "data", "fixtures", "image-translations.json");
   const a = JSON.parse(fs.readFileSync(apath, "utf8"));
-  fs.writeFileSync(apath, JSON.stringify(a.filter((r) => !(r.image_id === images[5].id && r.locale === "ar")), null, 2) + "\n");
+  // the first image whose English alt is non-empty, so the case holds whatever order the fixtures list their images in
+  const target = images.find((i) => a.some((r) => r.image_id === i.id && r.locale === "en" && r.alt.trim().length > 0));
+  fs.writeFileSync(apath, JSON.stringify(a.filter((r) => !(r.image_id === target.id && r.locale === "ar")), null, 2) + "\n");
   const { problems } = buildManifest(defaultPaths(root));
   const text = problems.join("\n");
   assert.match(text, /duplicate key/);
   assert.match(text, /catbox\.moe/);
   assert.match(text, /bad key "Stays\/BAD key\.webp"/);
-  assert.match(text, new RegExp(`no ar alt record for image ${images[5].id}`));
+  assert.match(text, new RegExp(`no ar alt record for image ${target.id}`));
 });
 
 test("RED: a manifest that differs from the computed one by one byte fails --check", () => {
@@ -267,18 +325,187 @@ test("RED: a manifest that differs from the computed one by one byte fails --che
   assert.match(out.join("\n"), /not byte-identical/);
 });
 
-test("slice1Documents lists the 42 slice-1 documents: 14 per locale, EN at the root", () => {
-  const docs = slice1Documents();
-  assert.equal(docs.length, 42);
-  assert.equal(new Set(docs).size, 42);
-  assert.ok(docs.includes("index.html") && docs.includes("ar/index.html") && docs.includes("es/index.html"));
-  assert.ok(docs.includes("private-stays.html") && docs.includes("es/private-stays/getsemani-colonial-house.html"));
-  assert.equal(docs.filter((d) => d.startsWith("ar/")).length, 14);
+// The document list is publicDocuments() (scripts/media-lib.mjs); slice 1's own 42 are covered by
+// tests/public-documents.test.mjs (S2-5: slice 1's one-line wrapper and its test here are gone).
+
+// The guarded document list and the assembler agree (plan 03.3-22) ------------------------------------------------
+
+/** assembleOut's input layout for an out/ document: a locale home is <locale>.html, every other page keeps its path. */
+function assemblerInput(doc) {
+  return doc.replace(/^(ar|es)\/index\.html$/, "$1.html");
+}
+
+test("the guarded documents (reactDocuments) are exactly the React documents assembleOut ships, About and Contact included once public", () => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), "almar-guarded-docs-"));
+  const slugs = readStaySlugs();
+  // One React .html per document the guard could ever list, plus the six About/Contact ones, whether or not they are public.
+  const all = [...reactDocuments(slugs, readPostSlugs(), [...new Set([...PUBLIC_PAGES, "/about", "/contact"])])];
+  for (const doc of all) {
+    const file = path.join(base, "app", assemblerInput(doc));
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, `<html>${doc}</html>`);
+  }
+  // A page outside PUBLIC_PAGES ships in neither list.
+  fs.writeFileSync(path.join(base, "app", "dashboard.html"), "<html>dashboard</html>");
+  fs.mkdirSync(path.join(base, "static", "css"), { recursive: true });
+  fs.writeFileSync(path.join(base, "static", "css", "x.css"), "body{}");
+  fs.mkdirSync(path.join(base, "public"), { recursive: true });
+  fs.writeFileSync(path.join(base, "_headers"), "/*\n  X-Test: 1\n");
+  const report = assembleOut({
+    appDir: path.join(base, "app"),
+    staticDir: path.join(base, "static"),
+    outDir: path.join(base, "out"),
+    publicDir: path.join(base, "public"),
+    headersFile: path.join(base, "_headers"),
+  });
+  const shipped = [...report.react.en, ...report.react.ar, ...report.react.es].sort();
+  assert.deepEqual(shipped, [...reactDocuments(slugs, readPostSlugs())].sort());
+  assert.equal(shipped.includes("about.html"), matchPublicPage("/about") !== null, "about.html ships iff /about is in PUBLIC_PAGES");
+  assert.equal(shipped.includes("contact.html"), matchPublicPage("/contact") !== null);
+  assert.ok(!shipped.includes("dashboard.html"));
+});
+
+test("adding /about and /contact to PUBLIC_PAGES grows the guarded list by exactly six", () => {
+  const slugs = readStaySlugs();
+  const posts = readPostSlugs();
+  const before = reactDocuments(slugs, posts, PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact"));
+  const after = reactDocuments(slugs, posts, [...PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact"), "/about", "/contact"]);
+  assert.equal(after.length, before.length + 6);
+  const added = after.filter((d) => !before.includes(d)).sort();
+  assert.deepEqual(added, ["about.html", "ar/about.html", "ar/contact.html", "contact.html", "es/about.html", "es/contact.html"]);
+  assert.deepEqual(slice3Documents(["/about", "/contact"]).sort(), added);
+});
+
+// The decorative rule (plan 03.3-22, scoped by the slice 3 review): all three languages exactly "" passes for the
+// decorative set only; nothing else got looser ----------------------------------------------------------------------
+
+/** The default target: the first image whose English alt is non-empty (a stay, home or destination photo). */
+function firstDescribed(all, a) {
+  return all.find((i) => a.some((r) => r.image_id === i.id && r.locale === "en" && r.alt.trim().length > 0));
+}
+
+function altProblems(mutate, pick = firstDescribed) {
+  const root = scratch("decor");
+  const apath = path.join(root, "lib", "data", "fixtures", "image-translations.json");
+  const a = JSON.parse(fs.readFileSync(apath, "utf8"));
+  const target = pick(images, a);
+  assert.ok(target, "the picked image exists on the real tree");
+  const all = a;
+  mutate(a.filter((r) => r.image_id === target.id), target, all);
+  fs.writeFileSync(apath, JSON.stringify(all, null, 2) + "\n");
+  const { problems } = buildManifest(defaultPaths(root));
+  return { target, text: problems.filter((p) => /alt record|decorative/.test(p) && p.includes(target.id)).join("\n") };
+}
+
+const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const pickKey = (re, not) => (all) => all.find((i) => re.test(i.media_key) && i.id !== not);
+
+test("decorative: an About photo with en, ar and es alt exactly empty passes the alt rule", () => {
+  for (const key of DECORATIVE_ABOUT_KEYS) {
+    const { text } = altProblems((recs) => recs.forEach((r) => (r.alt = "")), pickKey(new RegExp(`^${esc(key)}$`)));
+    assert.equal(text, "", key);
+  }
+});
+
+test("decorative: the two reused About ids pass with empty alt, and their home-side ids do not", () => {
+  for (const [key, aboutId] of [["home/gallery/13.webp", REUSED_GALLERY_ABOUT_ID], ["home/hero/poster.webp", REUSED_POSTER_ABOUT_ID]]) {
+    const about = altProblems((recs) => recs.forEach((r) => (r.alt = "")), (all) => all.find((i) => i.id === aboutId));
+    assert.equal(about.text, "", `${key} (About id)`);
+    const home = altProblems((recs) => recs.forEach((r) => (r.alt = "")), pickKey(new RegExp(`^${esc(key)}$`), aboutId));
+    for (const l of ["en", "ar", "es"]) assert.match(home.text, new RegExp(`no ${l} alt record for image ${home.target.id}`), `${key} (home id), ${l}`);
+  }
+});
+
+test("RED: a stay photo, a destination photo and a home photo with en, ar and es all exactly empty each fail the alt rule", () => {
+  for (const prefix of ["stays/", "destinations/", "home/"]) {
+    const r = altProblems((recs) => recs.forEach((x) => (x.alt = "")), (all, a) => all.find((i) => i.media_key.startsWith(prefix) && !DECORATIVE_REUSED_IMAGE_IDS.has(i.id) && a.some((x) => x.image_id === i.id && x.locale === "en" && x.alt.trim().length > 0)));
+    for (const l of ["en", "ar", "es"]) assert.match(r.text, new RegExp(`no ${l} alt record for image ${r.target.id} \\(${esc(r.target.media_key)}\\)`), `${prefix}: ${l}`);
+  }
+});
+
+test("RED: the CLI --check exits 1 when a stay photo has empty alt in all three languages", () => {
+  const root = scratch("decor-cli");
+  const apath = path.join(root, "lib", "data", "fixtures", "image-translations.json");
+  const a = JSON.parse(fs.readFileSync(apath, "utf8"));
+  const stay = images.find((i) => i.media_key.startsWith("stays/") && a.some((x) => x.image_id === i.id && x.locale === "en" && x.alt.trim().length > 0));
+  for (const r of a) if (r.image_id === stay.id) r.alt = "";
+  fs.writeFileSync(apath, JSON.stringify(a, null, 2) + "\n");
+  const out = [];
+  assert.equal(manifestMain(["--check", "--root", root], { log: (l) => out.push(l) }), 1);
+  assert.match(out.join("\n"), new RegExp(`no en alt record for image ${stay.id}`));
+});
+
+test("RED: a decorative-set image empty in one or two languages and not in the others is reported as decorative in some languages only", () => {
+  const about = pickKey(/^about\/story\/designed-with-heart\.webp$/);
+  const one = altProblems((recs) => recs.filter((r) => r.locale !== "en").forEach((r) => (r.alt = "A photo")), about);
+  assert.match(one.text, new RegExp(`image ${one.target.id} \\(${esc(one.target.media_key)}\\) is decorative in some languages and not in others`));
+  const two = altProblems((recs) => (recs.find((r) => r.locale === "es").alt = "A photo"), about);
+  assert.match(two.text, /is decorative in some languages and not in others/);
+});
+
+test("RED: a described image empty in one or two languages is a missing record for each empty one, never called decorative", () => {
+  const one = altProblems((recs) => (recs.find((r) => r.locale === "en").alt = ""));
+  assert.match(one.text, new RegExp(`no en alt record for image ${one.target.id}`));
+  assert.doesNotMatch(one.text, /decorative/);
+  const two = altProblems((recs) => recs.filter((r) => r.locale !== "es").forEach((r) => (r.alt = "")));
+  assert.match(two.text, /no en alt record/);
+  assert.match(two.text, /no ar alt record/);
+  assert.doesNotMatch(two.text, /decorative/);
+});
+
+test("RED: a whitespace-only alt is still a missing record, and so is a missing one", () => {
+  const spaces = altProblems((recs) => (recs.find((r) => r.locale === "ar").alt = "  "));
+  assert.match(spaces.text, new RegExp(`no ar alt record for image ${spaces.target.id}`));
+  const spacesAll = altProblems((recs) => recs.forEach((r) => (r.alt = "  ")));
+  for (const l of ["en", "ar", "es"]) assert.match(spacesAll.text, new RegExp(`no ${l} alt record for image`));
+  const missing = altProblems((recs, target, all) => all.splice(0, all.length, ...all.filter((r) => !(r.image_id === target.id && r.locale === "es"))));
+  assert.match(missing.text, /no es alt record for image/);
+  // A decorative-set image too: whitespace is not the empty string.
+  const decoSpaces = altProblems((recs) => recs.forEach((r) => (r.alt = "  ")), pickKey(/^about\/values\//));
+  for (const l of ["en", "ar", "es"]) assert.match(decoSpaces.text, new RegExp(`no ${l} alt record for image`));
+});
+
+// The About photos (plan 03.3-22) ----------------------------------------------------------------------------------
+
+test("the twelve About entries: local sources, image/webp, measured, bytes and size as measured on 2026-10-03/04", () => {
+  const expected = {
+    "about/hero.webp": [334666, 1820, 1024],
+    "about/intro/01.webp": [239106, 1820, 1024],
+    "about/intro/03.webp": [359042, 1820, 1024],
+    "about/intro/04.webp": [405880, 1820, 1024],
+    "about/intro/05.webp": [366790, 1820, 1024],
+    "about/story/designed-with-heart.webp": [106852, 1920, 1277],
+    "about/story/bridging-curiosity-and-confidence.webp": [199496, 992, 1200],
+    "about/story/a-vision-that-grows.webp": [134190, 1408, 768],
+    "about/values/intentional-hospitality.webp": [100554, 1536, 1024],
+    "about/values/bilingual-trip-support.webp": [112474, 1536, 1024],
+    "about/values/privacy-and-discreet-coordination.webp": [169264, 1536, 1024],
+    "about/cta/band.webp": [41422, 1920, 1010],
+  };
+  const about = manifest.filter((e) => e.key.startsWith("about/"));
+  assert.deepEqual(about.map((e) => e.key).sort(), Object.keys(expected).sort());
+  for (const e of about) {
+    assert.equal(e.source_kind, "local", e.key);
+    assert.equal(e.content_type, "image/webp", e.key);
+    assert.deepEqual([e.bytes, e.width, e.height], expected[e.key], e.key);
+    assert.match(e.sha256, /^[0-9a-f]{64}$/, e.key);
+  }
+  assert.equal(about.reduce((n, e) => n + e.bytes, 0), 2569736);
+});
+
+test("the two reused photos carry two image ids and the about:intro use, and keep their bytes", () => {
+  for (const [key, use] of [["home/gallery/13.webp", "home:gallery"], ["home/hero/poster.webp", "home:hero"]]) {
+    const e = manifest.find((x) => x.key === key);
+    assert.equal(e.image_ids.length, 2, `${key}: image ids`);
+    assert.deepEqual(e.used_by, ["about:intro", use].sort(), `${key}: used_by`);
+  }
 });
 
 // Task 2: measured fields, the cache, and fetch -------------------------------------------------------------------
 
-const cacheExists = fs.existsSync(paths.cacheDir);
+// Entries whose cache file exists. A partial media-staging/ is normal until plan 16 fetches the rest (S2-6).
+const cachedEntries = fs.existsSync(paths.cacheDir) ? manifest.filter((e) => fs.existsSync(cachePath(e.key, paths.cacheDir))) : [];
+const cacheExists = cachedEntries.length > 0;
 
 test("every entry is measured: content_type, bytes, sha256, md5, width and height", () => {
   for (const e of manifest) {
@@ -299,14 +526,15 @@ test("every fixture image's width and height equal its manifest entry's", () => 
   }
 });
 
-test(cacheExists ? "every cached file's sha256 equals the manifest" : "every cached file's sha256 equals the manifest (SKIPPED: media-staging/ is absent, as in a clean clone)", { skip: !cacheExists && "media-staging/ is absent" }, () => {
-  for (const e of manifest) {
-    const file = cachePath(e.key, paths.cacheDir);
-    assert.ok(fs.existsSync(file), `${e.key} is not cached`);
-    const buf = fs.readFileSync(file);
+test(cacheExists ? "every cached file's sha256 equals the manifest" : "every cached file's sha256 equals the manifest (SKIPPED: media-staging/ is absent or empty, as in a clean clone)", { skip: !cacheExists && "media-staging/ is absent or holds no manifest entry" }, () => {
+  let checked = 0;
+  for (const e of cachedEntries) {
+    const buf = fs.readFileSync(cachePath(e.key, paths.cacheDir));
     assert.equal(sha256(buf), e.sha256, e.key);
     assert.equal(buf.length, e.bytes, e.key);
+    checked++;
   }
+  assert.ok(checked >= 1, "at least one cached entry was checked");
 });
 
 function fakeResponse(body, { status = 200, type = "image/webp", url } = {}) {

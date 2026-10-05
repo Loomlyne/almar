@@ -123,14 +123,39 @@ test("the client parts import only types and the stay filter from lib/data", () 
   }
 });
 
-test("links to the pages that stay English-only go through siteHref, and the stay pages through localePath", () => {
-  const source = read("components/pages/home-page.tsx");
+test("nav links go through siteHref; the stay pages and the /experiences deep links through localePath", () => {
+  const raw = read("components/pages/home-page.tsx");
+  const source = code(raw);
   for (const path of ['"/destinations"', '"/experiences"', '"/about"', '"/contact"', '"/blog"']) {
     assert.ok(source.includes(`siteHref(locale, ${path})`), path);
   }
-  assert.ok(source.includes("`/services/${item.slug}`") && source.includes("`/blog/${story.slug}`"));
+  assert.ok(source.includes("`/blog/${story.slug}`"));
   assert.match(source, /localePath\(locale, `\/private-stays\/\$\{stay\.slug\}`\)/);
   assert.match(source, /localePath\(locale, "\/private-stays"\)/);
+  assert.match(source, /localePath\(locale, "\/experiences"\)[\s\S]*?\+ toCatalogQuery\(/);
+  assert.match(raw, /import \{ toCatalogQuery \} from "\.\.\/\.\.\/lib\/data\/catalog-filter"/);
+  assert.equal(/(?<![\w-])\.?\/services\b/.test(source), false, "the home names a /services path");
+});
+
+test("no React source links /services", () => {
+  const files = [];
+  const walk = (dir, keep) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) walk(path, keep);
+      else if (keep(path)) files.push(path);
+    }
+  };
+  walk("components", (p) => /\.(ts|tsx)$/.test(p));
+  walk("app", (p) => /\/(page|layout)\.tsx$/.test(p));
+  walk("lib/copy", (p) => /\.ts$/.test(p));
+  walk("lib/data", (p) => /\.(ts|json)$/.test(p));
+  assert.ok(files.length >= 50, `the walk saw only ${files.length} files`);
+  assert.ok(files.includes("components/pages/home-page.tsx"));
+  for (const file of files) {
+    const source = /\.(ts|tsx)$/.test(file) ? code(read(file)) : read(file);
+    assert.equal(/(?<![\w-])\.?\/services\b/.test(source), false, `${file} names a /services address`);
+  }
 });
 
 test("the destination cards are not links: the live cards are not and /destinations/<slug> has no page", () => {
@@ -140,4 +165,26 @@ test("the destination cards are not links: the live cards are not and /destinati
   assert.equal(articles.length, 1);
   assert.equal(/href=|<a\b|<MediaCard/.test(articles[0]), false);
   assert.match(articles[0], /destination\.name/);
+});
+
+// S2-2 (plan 03.3-10 Task 4): after slice 2 the catalogue holds ten services; the signed home shows three, by slug.
+test("the home keeps its three signed services, chosen by slug and in that order, never by position", async () => {
+  const source = read("components/pages/home-page.tsx");
+  assert.match(
+    source,
+    /export const HOME_SERVICE_SLUGS = \["24-7-private-concierge", "luxury-ground-transport", "vip-airport-meet-greet"\] as const/,
+  );
+  // The read itself is unchanged (pinned above); the Services section receives the derived list, not the raw read.
+  assert.match(source, /HOME_SERVICE_SLUGS\.(?:map|flatMap)\(/);
+  assert.match(source, /items=\{services\}/);
+  assert.match(source, /allServices/);
+  assert.match(source, /home: no published service \$\{slug\}/);
+  const { loadTs } = await import("./helpers/load-ts.mjs");
+  const { getCatalogItems } = await loadTs("lib/data/experiences.ts");
+  for (const locale of ["en", "ar", "es"]) {
+    const services = await getCatalogItems(locale, { kind: "service" });
+    for (const slug of ["24-7-private-concierge", "luxury-ground-transport", "vip-airport-meet-greet"]) {
+      assert.ok(services.some((s) => s.slug === slug), `${locale}: ${slug} is a published service`);
+    }
+  }
 });

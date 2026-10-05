@@ -120,6 +120,22 @@ test("the template reads nothing from a fixture and no image host but the data l
   }
 });
 
+test("the Services and Experiences cards link to their overlay on /experiences in the page's language", () => {
+  const raw = readFileSync("components/pages/stay-detail-page.tsx", "utf8");
+  const stripped = raw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  const start = stripped.indexOf("function catalogCards(");
+  const end = stripped.indexOf("function SplitSection(");
+  assert.ok(start > -1 && end > start, "catalogCards is found");
+  const body = stripped.slice(start, end);
+  assert.match(body, /<MediaCard[\s\S]*?href=/);
+  assert.match(body, /localePath\(locale, "\/experiences"\)/);
+  assert.match(body, /toCatalogQuery\(/);
+  assert.match(raw, /import \{ toCatalogQuery \} from "\.\.\/\.\.\/lib\/data\/catalog-filter"/);
+  assert.match(stripped, /catalogCards\(catalog\.services, [^)]*locale\)/);
+  assert.match(stripped, /catalogCards\(catalog\.experiences, [^)]*locale\)/);
+  assert.equal(/(?<![\w-])\.?\/services\b/.test(stripped), false, "the stay page names a /services path");
+});
+
 test("lib/copy/stay-detail.ts has the same keys, filled, and the same slots in all three languages", async () => {
   const { STAY_DETAIL_COPY } = await loadTs("lib/copy/stay-detail.ts");
   const flat = (node, prefix = "", out = {}) => {

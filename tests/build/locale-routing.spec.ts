@@ -54,7 +54,15 @@ const POSTS = (
 )
   .filter((p) => isLivePost(p))
   .map((p) => p.slug);
-const DEFAULT_PATHS = ["/", "/private-stays", ...STAYS.map((s) => `/private-stays/${s}`)];
+const DEFAULT_PATHS = [
+  "/",
+  "/private-stays",
+  "/destinations",
+  "/experiences",
+  ...STAYS.map((s) => `/private-stays/${s}`),
+  "/about",
+  "/contact",
+];
 const list = (value: string | undefined) => (value ? value.split(",").map((v) => v.trim()).filter(Boolean) : null);
 
 const PATHS = list(process.env.ROUTING_PATHS) ?? DEFAULT_PATHS;
@@ -233,6 +241,18 @@ function htmlFiles(dir: string, found: string[] = []): string[] {
   return found;
 }
 
+// The Framer documents by name: every app route.ts that still holds a Framer export (English only).
+function framerDocuments(dir = "app", out: string[] = []): string[] {
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) framerDocuments(full, out);
+    else if (name === "route.ts" && readFileSync(full, "utf8").includes('const HTML = "')) {
+      out.push(`${full.replace(/^app\//, "").replace(/\/?route\.ts$/, "")}.html`);
+    }
+  }
+  return out;
+}
+
 // Once, no viewport. The inventory is derived, so the next slice that converts a page changes no literal: the React
 // documents are every PUBLIC_PAGES pattern (with [stay] and [post] expanded to the published slugs) in the three
 // locales; the Framer documents are the route.ts files that still serve a Framer export (English only).
@@ -261,4 +281,5 @@ test("slice inventory: out/ holds every React document, every remaining Framer d
   expect(react).toHaveLength(LOCALES.length * paths.length);
   expect(notFound.filter((f) => !files.includes(f))).toEqual([]);
   expect(rest, "the Framer documents that remain, and nothing else").toHaveLength(framerRoutes("app").length);
+  expect(rest, "the Framer documents by name").toEqual(framerDocuments().sort());
 });

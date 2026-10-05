@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../../../../components/ui/button";
 import { ConfirmDialog } from "../../../../components/ui/confirm-dialog";
 import { Field } from "../../../../components/ui/field";
+import { signOutEverywhere } from "../../actions";
 import { DASHBOARD_COPY } from "../../../../lib/copy/dashboard";
 import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
 import monogram from "../../../../brand/Logo Monogram/Curves_White.svg";
@@ -19,6 +20,7 @@ export function ProfileScreen() {
   const [locale, setLocale] = useState<DocumentLocale>("en");
   const [signOutOpen, setSignOutOpen] = useState(false);
   const [logoutAllOpen, setLogoutAllOpen] = useState(false);
+  const signOutForm = useRef<HTMLFormElement>(null);
   const copy = DASHBOARD_COPY[locale];
 
   useEffect(() => {
@@ -47,13 +49,14 @@ export function ProfileScreen() {
         </Button>
       </div>
 
+      <form ref={signOutForm} action="/auth/sign-out" method="post" hidden />
       <ConfirmDialog
         open={signOutOpen}
         onOpenChange={setSignOutOpen}
         title={copy.signOut}
         confirmLabel={copy.signOutOfThisSite}
         cancelLabel={copy.staySignedIn}
-        onConfirm={() => setSignOutOpen(false)}
+        onConfirm={() => signOutForm.current?.submit()}
       />
       <ConfirmDialog
         open={logoutAllOpen}
@@ -61,7 +64,7 @@ export function ProfileScreen() {
         title={copy.logoutAll}
         confirmLabel={copy.signOutEverywhere}
         cancelLabel={copy.staySignedIn}
-        onConfirm={() => setLogoutAllOpen(false)}
+        onConfirm={() => void signOutEverywhere()}
       />
     </div>
   );

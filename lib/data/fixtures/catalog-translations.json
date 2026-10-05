@@ -238,5 +238,845 @@
     "summary": "Recorridos privados por la Comuna 13, la Plaza Botero, excursiones de un día a Guatapé y la gastronomía de talla mundial de Medellín con un conocedor local.",
     "duration_label": "Día completo",
     "status": "draft"
+  },
+  {
+    "item_id": "e729a194-7184-56f0-b4cf-d95a36954183",
+    "locale": "en",
+    "name": "Private Ceremony in Colombia",
+    "summary": "A proposal on Cartagena's colonial rooftops, a birthday in a Medellín flower-filled villa, or a family dinner above the coffee hills. ALMAR coordinates every detail, blooms, private chef, and music.",
+    "duration_label": "Half Day",
+    "status": "published"
+  },
+  {
+    "item_id": "e729a194-7184-56f0-b4cf-d95a36954183",
+    "locale": "ar",
+    "name": "حفل خاص في كولومبيا",
+    "summary": "طلب زواج على أسطح كارتاخينا الاستعمارية، أو عيد ميلاد في فيلا مزهرة بميديلين، أو عشاء عائلي فوق تلال القهوة. تنسّق المار كل التفاصيل: الزهور والشيف الخاص والموسيقى.",
+    "duration_label": "نصف يوم",
+    "status": "draft"
+  },
+  {
+    "item_id": "e729a194-7184-56f0-b4cf-d95a36954183",
+    "locale": "es",
+    "name": "Ceremonia privada en Colombia",
+    "summary": "Una propuesta de matrimonio en las azoteas coloniales de Cartagena, un cumpleaños en una villa llena de flores en Medellín o una cena familiar sobre las colinas del café. ALMAR coordina cada detalle: flores, chef privado y música.",
+    "duration_label": "Medio día",
+    "status": "draft"
+  },
+  {
+    "item_id": "22a5cb76-0f95-59ff-a366-00aa3c4ac782",
+    "locale": "en",
+    "name": "Wellness & Andean Retreat",
+    "summary": "Morning yoga facing the Andes, followed by a Colombian botanical spa treatment. ALMAR connects you with local healers and wellness practitioners for a retreat that is distinctly Colombian.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "22a5cb76-0f95-59ff-a366-00aa3c4ac782",
+    "locale": "ar",
+    "name": "ريتريت العافية في الأنديز",
+    "summary": "يوغا صباحية في مواجهة الأنديز، يليها علاج سبا نباتي كولومبي. تربطكم المار بمعالجين محليين وممارسي العافية لتجربة استجمام كولومبية بامتياز.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "22a5cb76-0f95-59ff-a366-00aa3c4ac782",
+    "locale": "es",
+    "name": "Retiro de bienestar andino",
+    "summary": "Yoga matutino frente a los Andes, seguido de un tratamiento de spa botánico colombiano. ALMAR le conecta con sanadores locales y especialistas en bienestar para un retiro distintivamente colombiano.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "5370ee79-d25c-5951-bf83-25ef3c2d799f",
+    "locale": "en",
+    "name": "Coffee Region Immersion",
+    "summary": "A private day in Colombia's coffee heartland, picking cherries at dawn, roasting your own harvest, staying at a heritage hacienda in Salento or Armenia.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "5370ee79-d25c-5951-bf83-25ef3c2d799f",
+    "locale": "ar",
+    "name": "الانغماس في منطقة القهوة",
+    "summary": "يوم خاص في قلب منطقة القهوة في كولومبيا، تقطفون الثمار عند الفجر، وتحمّصون محصولكم بأنفسكم، وتقيمون في هاسيندا تراثية في ساليتنو أو أرمينيا.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "5370ee79-d25c-5951-bf83-25ef3c2d799f",
+    "locale": "es",
+    "name": "Inmersión en la región cafetera",
+    "summary": "Un día privado en el corazón cafetero de Colombia: recoger cerezas al amanecer, tostar su propia cosecha y alojarse en una hacienda patrimonial en Salento o Armenia.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "26e90245-4cf2-52bd-8e40-cceb65a49c2e",
+    "locale": "en",
+    "name": "Amazon Rainforest Expedition",
+    "summary": "Three days in the Colombian Amazon, private river launches, indigenous guide, and a jungle camp built for comfort. Wildlife, ceremony, and silence unlike anything else.",
+    "duration_label": "3 Days",
+    "status": "published"
+  },
+  {
+    "item_id": "26e90245-4cf2-52bd-8e40-cceb65a49c2e",
+    "locale": "ar",
+    "name": "رحلة استكشاف غابات الأمازون المطيرة",
+    "summary": "ثلاثة أيام في الأمازون الكولومبي، مع قوارب نهرية خاصة ودليل من السكان الأصليين ومخيم في الغابة مصمم للراحة. حياة برية وطقوس وصمت لا يشبه أي شيء آخر.",
+    "duration_label": "3 أيام",
+    "status": "draft"
+  },
+  {
+    "item_id": "26e90245-4cf2-52bd-8e40-cceb65a49c2e",
+    "locale": "es",
+    "name": "Expedición a la selva amazónica",
+    "summary": "Tres días en la Amazonía colombiana, con lanchas fluviales privadas, guía indígena y un campamento en la selva pensado para la comodidad. Fauna, ceremonia y un silencio como ningún otro.",
+    "duration_label": "3 días",
+    "status": "draft"
+  },
+  {
+    "item_id": "be4d9730-a424-5f8a-a49d-2b3d44a4c992",
+    "locale": "en",
+    "name": "Tayrona Coastal Escape",
+    "summary": "Private access to Colombia's most protected coast. ALMAR arranges glamping at the edge of Tayrona where jungle meets Caribbean, no crowds, no compromise.",
+    "duration_label": "2 Days",
+    "status": "published"
+  },
+  {
+    "item_id": "be4d9730-a424-5f8a-a49d-2b3d44a4c992",
+    "locale": "ar",
+    "name": "رحلة هروب ساحلية إلى تايرونا",
+    "summary": "وصول خاص إلى أكثر سواحل كولومبيا حماية. ترتّب المار إقامة غلامبينغ على حافة تايرونا حيث تلتقي الغابة بالكاريبي، بلا زحام وبلا تنازل.",
+    "duration_label": "يومان",
+    "status": "draft"
+  },
+  {
+    "item_id": "be4d9730-a424-5f8a-a49d-2b3d44a4c992",
+    "locale": "es",
+    "name": "Escapada costera a Tayrona",
+    "summary": "Acceso privado a la costa más protegida de Colombia. ALMAR organiza glamping al borde de Tayrona, donde la selva se encuentra con el Caribe, sin multitudes y sin concesiones.",
+    "duration_label": "2 días",
+    "status": "draft"
+  },
+  {
+    "item_id": "899a9f64-ca80-59e6-90c6-8e105d01bcd7",
+    "locale": "en",
+    "name": "Bogotá: Art & Gastronomy",
+    "summary": "A private evening through Bogotá's emerging culinary scene, from a Gold Museum after-hours visit to a chef's table at one of Latin America's most celebrated restaurants.",
+    "duration_label": "Evening",
+    "status": "published"
+  },
+  {
+    "item_id": "899a9f64-ca80-59e6-90c6-8e105d01bcd7",
+    "locale": "ar",
+    "name": "بوغوتا: الفن وفنون الطهي",
+    "summary": "أمسية خاصة في المشهد الطهوي الناشئ في بوغوتا، من زيارة المتحف الذهبي بعد ساعات الدوام إلى طاولة الشيف في أحد أشهر مطاعم أمريكا اللاتينية.",
+    "duration_label": "أمسية",
+    "status": "draft"
+  },
+  {
+    "item_id": "899a9f64-ca80-59e6-90c6-8e105d01bcd7",
+    "locale": "es",
+    "name": "Bogotá: arte y gastronomía",
+    "summary": "Una noche privada por la escena culinaria emergente de Bogotá, desde una visita al Museo del Oro fuera de horario hasta la mesa del chef en uno de los restaurantes más celebrados de América Latina.",
+    "duration_label": "Noche",
+    "status": "draft"
+  },
+  {
+    "item_id": "56ad01ed-e8b2-586b-93c9-40a295cb1264",
+    "locale": "en",
+    "name": "San Andrés Diving Escape",
+    "summary": "Two days on Colombia's Caribbean island, private boat, world-class diving in the Sea of Seven Colors, and a villa reserved just for you at the water's edge.",
+    "duration_label": "2 Days",
+    "status": "published"
+  },
+  {
+    "item_id": "56ad01ed-e8b2-586b-93c9-40a295cb1264",
+    "locale": "ar",
+    "name": "رحلة غوص إلى سان أندريس",
+    "summary": "يومان على جزيرة كولومبيا الكاريبية، مع قارب خاص وغوص عالمي المستوى في بحر الألوان السبعة وفيلا محجوزة لكم وحدكم على حافة الماء.",
+    "duration_label": "يومان",
+    "status": "draft"
+  },
+  {
+    "item_id": "56ad01ed-e8b2-586b-93c9-40a295cb1264",
+    "locale": "es",
+    "name": "Escapada de buceo a San Andrés",
+    "summary": "Dos días en la isla caribeña de Colombia, con barco privado, buceo de clase mundial en el Mar de los Siete Colores y una villa reservada solo para usted a la orilla del agua.",
+    "duration_label": "2 días",
+    "status": "draft"
+  },
+  {
+    "item_id": "a67a5c6b-f9ce-53a7-80fb-ba8138c8b9ac",
+    "locale": "en",
+    "name": "Coffee Hacienda Experiences",
+    "summary": "Private visits to award-winning coffee estates in the Coffee Triangle with cupping sessions, farm-to-table lunch, and bean-to-cup workshops.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "a67a5c6b-f9ce-53a7-80fb-ba8138c8b9ac",
+    "locale": "ar",
+    "name": "تجارب هاسيندا القهوة",
+    "summary": "زيارات خاصة إلى مزارع قهوة حائزة على جوائز في مثلث القهوة، مع جلسات تذوق وغداء من المزرعة إلى المائدة وورش عمل من الحبة إلى الفنجان.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "a67a5c6b-f9ce-53a7-80fb-ba8138c8b9ac",
+    "locale": "es",
+    "name": "Experiencias en haciendas cafeteras",
+    "summary": "Visitas privadas a fincas cafeteras galardonadas en el Triángulo del Café, con sesiones de cata, almuerzo de la finca a la mesa y talleres del grano a la taza.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "75656474-2766-5611-b976-7edcd5a8e66b",
+    "locale": "en",
+    "name": "Hot Air Balloon, Coffee Region",
+    "summary": "Sunrise balloon flight over the Coffee Triangle with champagne toast, private transport, and a farm breakfast below.",
+    "duration_label": "3 Hours",
+    "status": "published"
+  },
+  {
+    "item_id": "75656474-2766-5611-b976-7edcd5a8e66b",
+    "locale": "ar",
+    "name": "منطاد الهواء الساخن، منطقة القهوة",
+    "summary": "رحلة منطاد عند الشروق فوق مثلث القهوة مع نخب شمبانيا ونقل خاص وإفطار في المزرعة بالأسفل.",
+    "duration_label": "3 ساعات",
+    "status": "draft"
+  },
+  {
+    "item_id": "75656474-2766-5611-b976-7edcd5a8e66b",
+    "locale": "es",
+    "name": "Globo aerostático, región cafetera",
+    "summary": "Vuelo en globo al amanecer sobre el Triángulo del Café con brindis de champán, transporte privado y un desayuno en la finca allá abajo.",
+    "duration_label": "3 horas",
+    "status": "draft"
+  },
+  {
+    "item_id": "09b5d681-c441-54aa-a731-a75c5b6c95ab",
+    "locale": "en",
+    "name": "Helicopter City Tours",
+    "summary": "Aerial tours of Cartagena's walled city, Medellín's skyline, and Bogotá's mountaintop Monserrate at golden hour.",
+    "duration_label": "30, 45 min",
+    "status": "published"
+  },
+  {
+    "item_id": "09b5d681-c441-54aa-a731-a75c5b6c95ab",
+    "locale": "ar",
+    "name": "جولات المدن بالمروحية",
+    "summary": "جولات جوية فوق مدينة كارتاخينا المسوّرة، وأفق ميديلين، وجبل مونسيرات المطل على بوغوتا عند الساعة الذهبية.",
+    "duration_label": "30 أو 45 دقيقة",
+    "status": "draft"
+  },
+  {
+    "item_id": "09b5d681-c441-54aa-a731-a75c5b6c95ab",
+    "locale": "es",
+    "name": "Recorridos en helicóptero por la ciudad",
+    "summary": "Recorridos aéreos por la ciudad amurallada de Cartagena, el horizonte de Medellín y Monserrate, en lo alto de la montaña de Bogotá, a la hora dorada.",
+    "duration_label": "30 o 45 min",
+    "status": "draft"
+  },
+  {
+    "item_id": "82ed8ded-7436-5513-9941-1722ce27c09d",
+    "locale": "en",
+    "name": "Private Beach Experiences",
+    "summary": "Exclusive beach setups on Barú and Playa Blanca with private cabanas, chef, DJ, and water sports equipment.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "82ed8ded-7436-5513-9941-1722ce27c09d",
+    "locale": "ar",
+    "name": "تجارب الشاطئ الخاص",
+    "summary": "تجهيزات شاطئية حصرية في بارو وبلايا بلانكا مع أكواخ خاصة وشيف ودي جي ومعدات رياضات مائية.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "82ed8ded-7436-5513-9941-1722ce27c09d",
+    "locale": "es",
+    "name": "Experiencias privadas en la playa",
+    "summary": "Montajes de playa exclusivos en Barú y Playa Blanca con cabañas privadas, chef, DJ y equipo para deportes acuáticos.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "507cf0e4-9a22-5027-8eeb-11671eb6b365",
+    "locale": "en",
+    "name": "VIP Cultural Access",
+    "summary": "After-hours museum tours, private gallery viewings, and backstage access to Colombia's performing arts scene.",
+    "duration_label": "Half Day",
+    "status": "published"
+  },
+  {
+    "item_id": "507cf0e4-9a22-5027-8eeb-11671eb6b365",
+    "locale": "ar",
+    "name": "دخول ثقافي لكبار الشخصيات",
+    "summary": "جولات في المتاحف بعد ساعات الدوام، ومشاهدات خاصة للمعارض، ودخول إلى الكواليس في مشهد الفنون الأدائية في كولومبيا.",
+    "duration_label": "نصف يوم",
+    "status": "draft"
+  },
+  {
+    "item_id": "507cf0e4-9a22-5027-8eeb-11671eb6b365",
+    "locale": "es",
+    "name": "Acceso cultural VIP",
+    "summary": "Visitas a museos fuera de horario, recorridos privados por galerías y acceso entre bastidores a la escena de las artes escénicas de Colombia.",
+    "duration_label": "Medio día",
+    "status": "draft"
+  },
+  {
+    "item_id": "740d56d4-3b0f-551b-81f7-0ec412b76b9c",
+    "locale": "en",
+    "name": "Gourmet Food Tours",
+    "summary": "Curated culinary walks through Cartagena and Medellín, market tastings, chef's table dinners, and rum pairings.",
+    "duration_label": "Half Day",
+    "status": "published"
+  },
+  {
+    "item_id": "740d56d4-3b0f-551b-81f7-0ec412b76b9c",
+    "locale": "ar",
+    "name": "جولات طعام فاخرة",
+    "summary": "جولات طهوية منتقاة في كارتاخينا وميديلين، وتذوق في الأسواق، وعشاء على طاولة الشيف، وتوليفات مع الرون.",
+    "duration_label": "نصف يوم",
+    "status": "draft"
+  },
+  {
+    "item_id": "740d56d4-3b0f-551b-81f7-0ec412b76b9c",
+    "locale": "es",
+    "name": "Recorridos gastronómicos gourmet",
+    "summary": "Paseos culinarios cuidadosamente seleccionados por Cartagena y Medellín, degustaciones en mercados, cenas en la mesa del chef y maridajes con ron.",
+    "duration_label": "Medio día",
+    "status": "draft"
+  },
+  {
+    "item_id": "3ed3bc9b-f2e3-576e-bf43-4082c5d3722f",
+    "locale": "en",
+    "name": "Private Picnic Experiences",
+    "summary": "Curated gourmet picnics in botanical gardens, mountaintops, and hidden beaches with linen, champagne, and live music.",
+    "duration_label": "3, 4 Hours",
+    "status": "published"
+  },
+  {
+    "item_id": "3ed3bc9b-f2e3-576e-bf43-4082c5d3722f",
+    "locale": "ar",
+    "name": "تجارب نزهات خاصة",
+    "summary": "نزهات فاخرة منتقاة في الحدائق النباتية وقمم الجبال والشواطئ المخبأة مع مفارش كتانية وشمبانيا وموسيقى حية.",
+    "duration_label": "3 أو 4 ساعات",
+    "status": "draft"
+  },
+  {
+    "item_id": "3ed3bc9b-f2e3-576e-bf43-4082c5d3722f",
+    "locale": "es",
+    "name": "Experiencias de picnic privado",
+    "summary": "Picnics gourmet cuidadosamente diseñados en jardines botánicos, cimas de montañas y playas escondidas, con manteles de lino, champán y música en vivo.",
+    "duration_label": "3 o 4 horas",
+    "status": "draft"
+  },
+  {
+    "item_id": "181877b6-7f58-5751-b3c7-bc1660ec69e2",
+    "locale": "en",
+    "name": "Pastry & Dessert Masterclass",
+    "summary": "Learn Colombian dessert traditions with a master pastry chef, arequipe, tres leches, and chocolate artistry.",
+    "duration_label": "3 Hours",
+    "status": "published"
+  },
+  {
+    "item_id": "181877b6-7f58-5751-b3c7-bc1660ec69e2",
+    "locale": "ar",
+    "name": "ورشة متقدمة في المعجنات والحلويات",
+    "summary": "تعلّموا تقاليد الحلويات الكولومبية مع شيف معجنات محترف: أريكيبي وتريس ليتشيس وفن الشوكولاتة.",
+    "duration_label": "3 ساعات",
+    "status": "draft"
+  },
+  {
+    "item_id": "181877b6-7f58-5751-b3c7-bc1660ec69e2",
+    "locale": "es",
+    "name": "Clase magistral de pastelería y postres",
+    "summary": "Aprenda las tradiciones de postres colombianos con un maestro pastelero: arequipe, tres leches y arte del chocolate.",
+    "duration_label": "3 horas",
+    "status": "draft"
+  },
+  {
+    "item_id": "5aa59d3e-a728-597d-b700-f178975f7e38",
+    "locale": "en",
+    "name": "Artisan Workshop Experiences",
+    "summary": "Private workshops with Colombian artisans, pottery in Ráquira, mochila weaving, and emerald cutting demonstrations.",
+    "duration_label": "Half Day",
+    "status": "published"
+  },
+  {
+    "item_id": "5aa59d3e-a728-597d-b700-f178975f7e38",
+    "locale": "ar",
+    "name": "تجارب ورش الحرفيين",
+    "summary": "ورش خاصة مع حرفيين كولومبيين: فخار في راكيرا، ونسج المُوتشيلا، وعروض لقطع الزمرد.",
+    "duration_label": "نصف يوم",
+    "status": "draft"
+  },
+  {
+    "item_id": "5aa59d3e-a728-597d-b700-f178975f7e38",
+    "locale": "es",
+    "name": "Experiencias en talleres artesanales",
+    "summary": "Talleres privados con artesanos colombianos: cerámica en Ráquira, tejido de mochilas y demostraciones de corte de esmeraldas.",
+    "duration_label": "Medio día",
+    "status": "draft"
+  },
+  {
+    "item_id": "c44a7622-1ed8-5538-9719-06514bbac2ec",
+    "locale": "en",
+    "name": "Private Surfing Lessons",
+    "summary": "One-on-one surf coaching on Colombia's Pacific and Caribbean coasts with equipment, transport, and video analysis.",
+    "duration_label": "Half Day",
+    "status": "published"
+  },
+  {
+    "item_id": "c44a7622-1ed8-5538-9719-06514bbac2ec",
+    "locale": "ar",
+    "name": "دروس ركوب الأمواج الخاصة",
+    "summary": "تدريب فردي على ركوب الأمواج على سواحل كولومبيا الباسيفيكية والكاريبية مع المعدات والنقل وتحليل بالفيديو.",
+    "duration_label": "نصف يوم",
+    "status": "draft"
+  },
+  {
+    "item_id": "c44a7622-1ed8-5538-9719-06514bbac2ec",
+    "locale": "es",
+    "name": "Clases privadas de surf",
+    "summary": "Entrenamiento de surf personalizado en las costas del Pacífico y del Caribe de Colombia con equipo, transporte y análisis en video.",
+    "duration_label": "Medio día",
+    "status": "draft"
+  },
+  {
+    "item_id": "cd8835ba-43f7-527e-878b-a90977b467a0",
+    "locale": "en",
+    "name": "Private Museum Experiences",
+    "summary": "Exclusive access to Colombia's finest museums and galleries with curator-led private tours after public hours.",
+    "duration_label": "Half Day",
+    "status": "published"
+  },
+  {
+    "item_id": "cd8835ba-43f7-527e-878b-a90977b467a0",
+    "locale": "ar",
+    "name": "تجارب المتاحف الخاصة",
+    "summary": "دخول حصري إلى أرقى متاحف كولومبيا ومعارضها مع جولات خاصة بقيادة أمين المعرض بعد ساعات الزيارة العامة.",
+    "duration_label": "نصف يوم",
+    "status": "draft"
+  },
+  {
+    "item_id": "cd8835ba-43f7-527e-878b-a90977b467a0",
+    "locale": "es",
+    "name": "Experiencias privadas en museos",
+    "summary": "Acceso exclusivo a los mejores museos y galerías de Colombia con recorridos privados guiados por un curador fuera del horario público.",
+    "duration_label": "Medio día",
+    "status": "draft"
+  },
+  {
+    "item_id": "300a8259-248b-542f-8384-749bc576ac1f",
+    "locale": "en",
+    "name": "Scuba Diving Expeditions",
+    "summary": "Certified dive masters guide you through Caribbean reefs, sunken wrecks, and the famous Malpelo Island marine reserve.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "300a8259-248b-542f-8384-749bc576ac1f",
+    "locale": "ar",
+    "name": "رحلات الغوص بالأسطوانات",
+    "summary": "يرافقكم مدربو غوص معتمدون عبر الشعاب الكاريبية والحطام الغارق ومحمية جزيرة مالبيلو البحرية الشهيرة.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "300a8259-248b-542f-8384-749bc576ac1f",
+    "locale": "es",
+    "name": "Expediciones de buceo",
+    "summary": "Maestros de buceo certificados le guían por arrecifes del Caribe, naufragios hundidos y la famosa reserva marina de la isla Malpelo.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "bf43c23b-f11f-59d1-9281-074417acbe6a",
+    "locale": "en",
+    "name": "Snorkeling Adventures",
+    "summary": "Guided snorkeling in crystal-clear Caribbean waters with equipment, boat transport, and a marine biologist guide.",
+    "duration_label": "Half Day",
+    "status": "published"
+  },
+  {
+    "item_id": "bf43c23b-f11f-59d1-9281-074417acbe6a",
+    "locale": "ar",
+    "name": "مغامرات الغطس السطحي",
+    "summary": "غطس سطحي بمرافقة دليل في مياه الكاريبي الصافية كالبلور مع المعدات والنقل بالقارب ودليل عالم أحياء بحرية.",
+    "duration_label": "نصف يوم",
+    "status": "draft"
+  },
+  {
+    "item_id": "bf43c23b-f11f-59d1-9281-074417acbe6a",
+    "locale": "es",
+    "name": "Aventuras de snorkel",
+    "summary": "Snorkel guiado en aguas cristalinas del Caribe con equipo, transporte en barco y un guía biólogo marino.",
+    "duration_label": "Medio día",
+    "status": "draft"
+  },
+  {
+    "item_id": "42674d7e-5e9c-5e2a-9560-c2dbae36328e",
+    "locale": "en",
+    "name": "Mountain Adventure Excursions",
+    "summary": "Guided hikes, waterfall rappelling, and paramo trekking in Colombia's Andean highlands with expert mountain guides.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "42674d7e-5e9c-5e2a-9560-c2dbae36328e",
+    "locale": "ar",
+    "name": "رحلات مغامرات الجبال",
+    "summary": "رحلات مشي بمرافقة دليل، ونزول بالحبال على الشلالات، وتجوال في البارامو في مرتفعات الأنديز الكولومبية مع مرشدي جبال خبراء.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "42674d7e-5e9c-5e2a-9560-c2dbae36328e",
+    "locale": "es",
+    "name": "Excursiones de aventura en la montaña",
+    "summary": "Caminatas guiadas, rapel en cascadas y trekking por el páramo en las tierras altas andinas de Colombia con guías de montaña expertos.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "e06c0eff-47f2-53bb-883c-9f706358e028",
+    "locale": "en",
+    "name": "Highland Trekking Experiences",
+    "summary": "Guided treks through cloud forests, páramo ecosystems, and indigenous trails with picnic lunch and private transport.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "e06c0eff-47f2-53bb-883c-9f706358e028",
+    "locale": "ar",
+    "name": "تجارب المشي في المرتفعات",
+    "summary": "رحلات مشي بمرافقة دليل عبر الغابات الغائمة ونظم البارامو البيئية ومسارات السكان الأصليين مع غداء نزهة ونقل خاص.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "e06c0eff-47f2-53bb-883c-9f706358e028",
+    "locale": "es",
+    "name": "Experiencias de trekking en las tierras altas",
+    "summary": "Caminatas guiadas por bosques de niebla, ecosistemas de páramo y senderos indígenas con almuerzo campestre y transporte privado.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "73ace5b5-6ee2-5205-8463-8c47e227d871",
+    "locale": "en",
+    "name": "Traditional Cooking Classes",
+    "summary": "Learn to prepare authentic Colombian dishes — corn cakes, hearty stew, and coastal ceviche — in a chef's private kitchen.",
+    "duration_label": "Half Day",
+    "status": "published"
+  },
+  {
+    "item_id": "73ace5b5-6ee2-5205-8463-8c47e227d871",
+    "locale": "ar",
+    "name": "دروس الطبخ التقليدي",
+    "summary": "تعلّموا إعداد أطباق كولومبية أصيلة — كعك الذرة، واليخنة الشهية، والسيفيتشي الساحلي — في مطبخ شيف خاص.",
+    "duration_label": "نصف يوم",
+    "status": "draft"
+  },
+  {
+    "item_id": "73ace5b5-6ee2-5205-8463-8c47e227d871",
+    "locale": "es",
+    "name": "Clases de cocina tradicional",
+    "summary": "Aprenda a preparar auténticos platos colombianos — tortitas de maíz, un sustancioso guiso y ceviche costero — en la cocina privada de un chef.",
+    "duration_label": "Medio día",
+    "status": "draft"
+  },
+  {
+    "item_id": "17dd525c-ca98-536b-8f3b-0f56504581fe",
+    "locale": "en",
+    "name": "Truffle & Foraging Experiences",
+    "summary": "Forage for exotic Colombian ingredients in cloud forests, followed by a chef-prepared tasting menu featuring your finds.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "17dd525c-ca98-536b-8f3b-0f56504581fe",
+    "locale": "ar",
+    "name": "تجارب جمع الكمأة والمأكولات البرية",
+    "summary": "ابحثوا عن مكونات كولومبية غريبة في الغابات الغائمة، يليها قائمة تذوق يعدّها شيف تتضمن ما عثرتم عليه.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "17dd525c-ca98-536b-8f3b-0f56504581fe",
+    "locale": "es",
+    "name": "Experiencias de trufas y recolección",
+    "summary": "Recolecte ingredientes colombianos exóticos en bosques de niebla, seguido de un menú degustación preparado por un chef con sus hallazgos.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "cb362bd6-8caa-57c0-9e58-83eefac5fc37",
+    "locale": "en",
+    "name": "VIP Dinner & Show Experiences",
+    "summary": "Premium reservations at Colombia's top restaurants and live music venues with VIP seating and backstage access.",
+    "duration_label": "Evening",
+    "status": "published"
+  },
+  {
+    "item_id": "cb362bd6-8caa-57c0-9e58-83eefac5fc37",
+    "locale": "ar",
+    "name": "تجارب العشاء والعروض لكبار الشخصيات",
+    "summary": "حجوزات مميزة في أفضل مطاعم كولومبيا وأماكن الموسيقى الحية مع مقاعد كبار الشخصيات ودخول إلى الكواليس.",
+    "duration_label": "أمسية",
+    "status": "draft"
+  },
+  {
+    "item_id": "cb362bd6-8caa-57c0-9e58-83eefac5fc37",
+    "locale": "es",
+    "name": "Experiencias VIP de cena y espectáculo",
+    "summary": "Reservas premium en los mejores restaurantes y locales de música en vivo de Colombia con asientos VIP y acceso entre bastidores.",
+    "duration_label": "Noche",
+    "status": "draft"
+  },
+  {
+    "item_id": "17295fac-2a78-54de-8688-fcf2fbd4f4cb",
+    "locale": "en",
+    "name": "Rural Farm & Nature Visits",
+    "summary": "Visit working coffee farms, cacao plantations, and butterfly sanctuaries with private transport and a local expert guide.",
+    "duration_label": "Full Day",
+    "status": "published"
+  },
+  {
+    "item_id": "17295fac-2a78-54de-8688-fcf2fbd4f4cb",
+    "locale": "ar",
+    "name": "زيارات المزارع الريفية والطبيعة",
+    "summary": "زوروا مزارع قهوة عاملة ومزارع كاكاو وملاجئ فراشات مع نقل خاص ودليل محلي خبير.",
+    "duration_label": "يوم كامل",
+    "status": "draft"
+  },
+  {
+    "item_id": "17295fac-2a78-54de-8688-fcf2fbd4f4cb",
+    "locale": "es",
+    "name": "Visitas rurales a fincas y naturaleza",
+    "summary": "Visite fincas cafeteras en funcionamiento, plantaciones de cacao y santuarios de mariposas con transporte privado y un guía local experto.",
+    "duration_label": "Día completo",
+    "status": "draft"
+  },
+  {
+    "item_id": "23bab7b0-ca4c-55df-bfa8-1690c7078b12",
+    "locale": "en",
+    "name": "Wine & Spirits Tastings",
+    "summary": "Curated tastings of Colombian rum, local anise spirit, craft beer, and emerging Andean wines with a certified sommelier.",
+    "duration_label": "2, 3 Hours",
+    "status": "published"
+  },
+  {
+    "item_id": "23bab7b0-ca4c-55df-bfa8-1690c7078b12",
+    "locale": "ar",
+    "name": "تذوق النبيذ والمشروبات الروحية",
+    "summary": "جلسات تذوق منتقاة للرون الكولومبي ومشروب اليانسون المحلي والبيرة الحرفية ونبيذ الأنديز الناشئ مع سومولييه معتمد.",
+    "duration_label": "ساعتان أو 3 ساعات",
+    "status": "draft"
+  },
+  {
+    "item_id": "23bab7b0-ca4c-55df-bfa8-1690c7078b12",
+    "locale": "es",
+    "name": "Degustaciones de vinos y licores",
+    "summary": "Degustaciones seleccionadas de ron colombiano, aguardiente local de anís, cerveza artesanal y vinos andinos emergentes con un sumiller certificado.",
+    "duration_label": "2 o 3 horas",
+    "status": "draft"
+  },
+  {
+    "item_id": "f914b9b5-fb7c-5cfd-a7eb-4cd5415a6adc",
+    "locale": "en",
+    "name": "Sunrise Yoga & Wellness Retreats",
+    "summary": "Private yoga sessions at sunrise on the beach, in cloud forests, or on your villa terrace with certified instructors.",
+    "duration_label": "Per Session",
+    "status": "published"
+  },
+  {
+    "item_id": "f914b9b5-fb7c-5cfd-a7eb-4cd5415a6adc",
+    "locale": "ar",
+    "name": "ريتريتات اليوغا والعافية عند الشروق",
+    "summary": "جلسات يوغا خاصة عند الشروق على الشاطئ أو في الغابات الغائمة أو على شرفة فيلتكم مع مدربين معتمدين.",
+    "duration_label": "لكل جلسة",
+    "status": "draft"
+  },
+  {
+    "item_id": "f914b9b5-fb7c-5cfd-a7eb-4cd5415a6adc",
+    "locale": "es",
+    "name": "Retiros de yoga y bienestar al amanecer",
+    "summary": "Sesiones privadas de yoga al amanecer en la playa, en bosques de niebla o en la terraza de su villa con instructores certificados.",
+    "duration_label": "Por sesión",
+    "status": "draft"
+  },
+  {
+    "item_id": "b9829c3b-ae85-555d-abdd-dd67b9c3416c",
+    "locale": "en",
+    "name": "Helicopter Transfers",
+    "summary": "Skip the traffic. Private helicopter transfers between Cartagena, Medellín, coffee country, and coastal islands.",
+    "duration_label": null,
+    "status": "published"
+  },
+  {
+    "item_id": "b9829c3b-ae85-555d-abdd-dd67b9c3416c",
+    "locale": "ar",
+    "name": "رحلات المروحية الخاصة",
+    "summary": "تجنّبوا الازدحام. رحلات مروحية خاصة بين كارتاخينا وميديلين وبلاد القهوة والجزر الساحلية.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "b9829c3b-ae85-555d-abdd-dd67b9c3416c",
+    "locale": "es",
+    "name": "Traslados en helicóptero",
+    "summary": "Evite el tráfico. Traslados privados en helicóptero entre Cartagena, Medellín, la zona cafetera y las islas costeras.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "8fb2ad20-d3bb-5e72-a1a6-a2e155c91149",
+    "locale": "en",
+    "name": "In-Villa Private Chef",
+    "summary": "Award-winning private chefs create bespoke menus in your villa, Colombian fusion, seafood feasts, or tasting menus with wine pairings.",
+    "duration_label": null,
+    "status": "published"
+  },
+  {
+    "item_id": "8fb2ad20-d3bb-5e72-a1a6-a2e155c91149",
+    "locale": "ar",
+    "name": "شيف خاص في الفيلا",
+    "summary": "يبتكر شيفات خاصون حائزون على جوائز قوائم مفصّلة في فيلتكم: فيوجن كولومبي، أو مآدب مأكولات بحرية، أو قوائم تذوق مع توليفات النبيذ.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "8fb2ad20-d3bb-5e72-a1a6-a2e155c91149",
+    "locale": "es",
+    "name": "Chef privado en la villa",
+    "summary": "Chefs privados galardonados crean menús a la medida en su villa: fusión colombiana, banquetes de mariscos o menús degustación con maridaje de vinos.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "d9e34371-f3b0-58f3-80fd-fbfc3aa2648e",
+    "locale": "en",
+    "name": "Wellness & Spa Coordination",
+    "summary": "In-villa massages, yoga at sunrise, IV therapy, and reservations at Colombia's finest spas, all coordinated to your schedule.",
+    "duration_label": null,
+    "status": "published"
+  },
+  {
+    "item_id": "d9e34371-f3b0-58f3-80fd-fbfc3aa2648e",
+    "locale": "ar",
+    "name": "تنسيق العافية والسبا",
+    "summary": "تدليك في الفيلا، ويوغا عند الشروق، وعلاج بالتسريب الوريدي، وحجوزات في أرقى منتجعات السبا في كولومبيا، كلها منسقة وفق جدولكم.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "d9e34371-f3b0-58f3-80fd-fbfc3aa2648e",
+    "locale": "es",
+    "name": "Coordinación de bienestar y spa",
+    "summary": "Masajes en la villa, yoga al amanecer, terapia intravenosa y reservas en los mejores spas de Colombia, todo coordinado según su agenda.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "d19a07c5-e0c1-5b7c-8532-9b501156feb9",
+    "locale": "en",
+    "name": "Personal Security Detail",
+    "summary": "Discreet close-protection officers and secure transport for executives, celebrities, and families who value privacy and safety.",
+    "duration_label": null,
+    "status": "published"
+  },
+  {
+    "item_id": "d19a07c5-e0c1-5b7c-8532-9b501156feb9",
+    "locale": "ar",
+    "name": "فريق الحماية الشخصية",
+    "summary": "ضباط حماية قريبة يتسمون بالتكتم ونقل آمن للمديرين التنفيذيين والمشاهير والعائلات الذين يقدّرون الخصوصية والسلامة.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "d19a07c5-e0c1-5b7c-8532-9b501156feb9",
+    "locale": "es",
+    "name": "Equipo de seguridad personal",
+    "summary": "Oficiales de protección cercana discretos y transporte seguro para ejecutivos, celebridades y familias que valoran la privacidad y la seguridad.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "918770ab-81d2-56fa-b783-98c1e3396fcf",
+    "locale": "en",
+    "name": "Pop-Up Bar Experiences",
+    "summary": "A world-class mixologist creates a bespoke cocktail bar experience at your villa, yacht, or rooftop terrace.",
+    "duration_label": null,
+    "status": "published"
+  },
+  {
+    "item_id": "918770ab-81d2-56fa-b783-98c1e3396fcf",
+    "locale": "ar",
+    "name": "تجارب البار المؤقت",
+    "summary": "يبتكر خبير مشروبات مختلطة عالمي المستوى تجربة بار كوكتيل مفصّلة في فيلتكم أو يختكم أو على شرفة السطح.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "918770ab-81d2-56fa-b783-98c1e3396fcf",
+    "locale": "es",
+    "name": "Experiencias de bar pop-up",
+    "summary": "Un mixólogo de clase mundial crea una experiencia de coctelería a la medida en su villa, su yate o su terraza en la azotea.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "a797a911-e2d9-5686-b963-1e3190e2c6b4",
+    "locale": "en",
+    "name": "Pop-Up Cinema at Your Villa",
+    "summary": "Open-air cinema under the stars with a projection screen, luxury seating, gourmet popcorn, and a private film curator.",
+    "duration_label": null,
+    "status": "published"
+  },
+  {
+    "item_id": "a797a911-e2d9-5686-b963-1e3190e2c6b4",
+    "locale": "ar",
+    "name": "سينما مؤقتة في فيلتكم",
+    "summary": "سينما في الهواء الطلق تحت النجوم مع شاشة عرض ومقاعد فاخرة وفشار فاخر ومنسّق أفلام خاص.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "a797a911-e2d9-5686-b963-1e3190e2c6b4",
+    "locale": "es",
+    "name": "Cine pop-up en su villa",
+    "summary": "Cine al aire libre bajo las estrellas con pantalla de proyección, asientos de lujo, palomitas gourmet y un curador de cine privado.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "0e237e8d-800b-548c-b1ac-418c534c1942",
+    "locale": "en",
+    "name": "Private City Guides",
+    "summary": "Expert bilingual guides for Bogotá, Cartagena, Medellín, and Cali, tailored to your interests, pace, and schedule.",
+    "duration_label": null,
+    "status": "published"
+  },
+  {
+    "item_id": "0e237e8d-800b-548c-b1ac-418c534c1942",
+    "locale": "ar",
+    "name": "مرشدون خاصون للمدن",
+    "summary": "مرشدون خبراء ثنائيو اللغة في بوغوتا وكارتاخينا وميديلين وكالي، مصممون وفق اهتماماتكم ووتيرتكم وجدولكم.",
+    "duration_label": null,
+    "status": "draft"
+  },
+  {
+    "item_id": "0e237e8d-800b-548c-b1ac-418c534c1942",
+    "locale": "es",
+    "name": "Guías privados de ciudad",
+    "summary": "Guías bilingües expertos para Bogotá, Cartagena, Medellín y Cali, adaptados a sus intereses, ritmo y agenda.",
+    "duration_label": null,
+    "status": "draft"
   }
 ]

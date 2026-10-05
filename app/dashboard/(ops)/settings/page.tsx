@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { loadRates } from "../../../../lib/fx/rates";
 import { SettingsScreen } from "./settings-screen";
 
@@ -9,10 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardSettingsPage() {
-  if (process.env.NODE_ENV === "production") {
-    notFound();
-  }
-
   const rates = await loadRates();
 
   return <SettingsScreen rates={rates} />;

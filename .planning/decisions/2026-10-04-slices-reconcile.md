@@ -145,3 +145,27 @@ marked draft), and no secret value is ever written into chat or a file.
 Team model, his words ("make sure this is how you work as well as my previous orchestrator"): Opus 5.5 plans and
 lands; Sonnet 5.5 writes code in isolated worktrees; Fable 5.1 reviews every diff before it lands; mechanical calls
 go to a cheaper model (Haiku 4.5; Jev is Hermes-only and is not simulated).
+
+## v1 backend, controller calls (2026-10-05 ~06:00 +04)
+
+- **`components/ops/api-types.ts` belongs to plan 03.2-11 (the kit).** 03.2-04 does not create it: it imports from
+  it and adds its server-side types elsewhere; names are the kit's (`Locale3`, `OpsError`, `SiteStatus`). 03.2-09
+  already follows this.
+- **03.2-11 Task 2 waits for job 02 on `main`**: it rewrites `tests/phase-03-catalog.test.mjs` and
+  `tests/review-fixes.spec.ts`, which job 02 also edits, and its scene swaps `OpsLayout` for job 02's
+  `<OpsShell mode="preview">`. Task 1 is done (`6b9420e`, 60 pictures, pushed); the owner signs the pictures.
+- **`tests/data-boundary.test.mjs`**: 03.2-11 exempts `components/ops`, `app/dashboard`, `app/api/ops` from the
+  `translations` / `*_en` name rule (the API contract uses those names); import rules still apply there.
+- **Plans 04-01 and 03.2-11 ran before job 02** because they need no database or keys (owner's speed word).
+
+## Owner answers, 2026-10-05 ~10:58 (+04), question form
+
+- **Plan 03.2-11 pictures signed** ("Signed"): the 60 pictures at `6b9420e` (`gsd/phase-3.3-… p11-ops-kit`). Task 2
+  runs after job 02 is on `main`.
+- **Supabase:** his CLI login reaches the Loomlyne organisation (Invios, VamosTaxi, Clickit) and an empty "Forgetten
+  Projects" one; the 02-01 ALMAR project is in neither. His answer: "i created one now just let me connect it again
+  to get where is it". The controller waits for the new project to be reachable, then uses it as the one ALMAR
+  project (job 02's migration `20260925120000` first, then 3.2's and Phase 4's).
+- **Arabic and Spanish:** "make sure its correct i will not review it". A Fable 5.1 agent reviews and corrects every
+  AR/ES string on the public site (`.claude/worktrees/phase-3.3-i18n-review`); the controller checks, lands and
+  deploys it like any job. AR/ES text is then no longer "draft for his review".

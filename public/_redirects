@@ -1,0 +1,10 @@
+# /services and its detail pages were folded into /experiences (D-64, D-67; owner, 2026-10-03)
+/services /experiences?type=service 301
+/services/ /experiences?type=service 301
+/services/24-7-private-concierge /experiences?type=service&item=24-7-private-concierge 301
+/services/24-7-private-concierge/ /experiences?type=service&item=24-7-private-concierge 301
+/services/luxury-ground-transport /experiences?type=service&item=luxury-ground-transport 301
+/services/luxury-ground-transport/ /experiences?type=service&item=luxury-ground-transport 301
+/services/vip-airport-meet-greet /experiences?type=service&item=vip-airport-meet-greet 301
+/services/vip-airport-meet-greet/ /experiences?type=service&item=vip-airport-meet-greet 301
+/services/* /experiences?type=service 301

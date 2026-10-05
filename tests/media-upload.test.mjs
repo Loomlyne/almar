@@ -12,6 +12,7 @@ import {
   ALMAR_CF_HOME,
   CACHE_CONTROL,
   REPO_ROOT,
+  cachePath,
   defaultPaths,
   md5,
   readManifest,
@@ -138,8 +139,16 @@ test("dry run with no --public-base prints one PUT line and one command per entr
 
 // The real manifest and the real cache. Opt-in by presence: a clean clone has no media-staging/, and this skips with
 // its reason; everything else in this file runs on the synthetic project above.
-const realCache = fs.existsSync(defaultPaths().cacheDir);
-test(realCache ? "the real manifest: dry run prints one PUT line per entry" : "the real manifest: dry run prints one PUT line per entry (SKIPPED: media-staging/ is absent, as in a clean clone)", { skip: !realCache && "media-staging/ is absent (run node scripts/media-fetch.mjs to enable)" }, async () => {
+// It needs every entry cached: a partial media-staging/ (a few files copied by hand) skips it too (S2-6).
+const cacheDirReal = defaultPaths().cacheDir;
+const cachedCount = fs.existsSync(cacheDirReal)
+  ? realManifest.filter((e) => fs.existsSync(cachePath(e.key, cacheDirReal))).length
+  : 0;
+const realCache = cachedCount === realManifest.length;
+const realCacheSkip = !fs.existsSync(cacheDirReal)
+  ? "media-staging/ is absent (run node scripts/media-fetch.mjs to enable)"
+  : `media-staging/ holds ${cachedCount} of ${realManifest.length} entries`;
+test(realCache ? "the real manifest: dry run prints one PUT line per entry" : "the real manifest: dry run prints one PUT line per entry (SKIPPED: media-staging/ is absent or partial)", { skip: !realCache && realCacheSkip }, async () => {
   const h = harness({ root: REPO_ROOT });
   assert.equal(await main([], h.deps), 0, h.logs.slice(0, 5).join("\n"));
   assert.equal(h.logs.filter((l) => l.startsWith("PUT ")).length, realManifest.length);
