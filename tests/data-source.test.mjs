@@ -4,12 +4,13 @@
 // throws when it is imported, so a test can also prove that a mode never touches it.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { build } from "esbuild";
 import { assertNoPublicEnv, assertNoServiceKey, BUILD_HANDOVER_ENV, BUILD_PUBLIC_ENV, dataSourceFor, nextBuildEnv } from "../scripts/assemble-cloudflare.mjs";
+import * as assembler from "../scripts/assemble-cloudflare.mjs";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
 let counter = 0;
@@ -478,6 +479,33 @@ test("main() decides the source before assertMediaReady and before anything is b
   assert.ok(at("dataSourceFor(") < at("opennextjs-cloudflare"), "before the build");
   assert.ok(at("dataSourceFor(") < at("assembleOut("), "before out/ is touched");
   assert.match(main, /env: nextBuildEnv\(process\.env, source\)/, "the build environment is nextBuildEnv: the decided source, no NEXT_PUBLIC_*");
+});
+
+// A second build must read the database again (review of 03.2-02) ----------------------------------------------------
+
+test("main() clears Next's fetch cache after the checks that can refuse a run and before the OpenNext build", () => {
+  const src = readFileSync("scripts/assemble-cloudflare.mjs", "utf8");
+  const main = src.slice(src.indexOf("function main("));
+  const at = (needle) => main.indexOf(needle);
+  assert.ok(at("clearFetchCache(root)") > 0, "main calls clearFetchCache(root)");
+  assert.ok(at("clearFetchCache(root)") > at("assertMediaReady()"), "a refused run leaves the previous .next as it was");
+  assert.ok(at("clearFetchCache(root)") < at("opennextjs-cloudflare"), "before the build, which would otherwise find the old entries");
+  assert.match(src, /\.next["'], ["']cache["'], ["']fetch-cache/, "the folder Next 15 keeps every fetch result in");
+});
+
+test("clearFetchCache removes .next/cache/fetch-cache and nothing else (the webpack cache keeps builds fast and deterministic)", () => {
+  assert.equal(typeof assembler.clearFetchCache, "function", "the assembler exports clearFetchCache");
+  const root = mkdtempSync(join(tmpdir(), "almar-fetch-cache-"));
+  const keep = [join(root, ".next", "cache", "webpack", "client-production", "0.pack"), join(root, ".next", "server", "app", "x.html")];
+  for (const file of [join(root, ".next", "cache", "fetch-cache", "abc123"), ...keep]) {
+    mkdirSync(join(file, ".."), { recursive: true });
+    writeFileSync(file, "x");
+  }
+  assembler.clearFetchCache(root);
+  assert.equal(existsSync(join(root, ".next", "cache", "fetch-cache")), false);
+  for (const file of keep) assert.equal(existsSync(file), true, file);
+  assembler.clearFetchCache(root); // already gone: no error
+  assembler.clearFetchCache(join(root, "no-such-checkout"));
 });
 
 // What the build shell may hold (job 10's rule, reconciled with this plan) -------------------------------------------

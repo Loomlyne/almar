@@ -117,7 +117,10 @@ async function ensureImported(stack, { fresh = false } = {}) {
 
 after(async () => {
   // Leave the database as the migrations make it: the pgTAP files expect an empty catalogue.
-  if (touched && localStack()) await underStackLock(async () => resetAndWait());
+  if (touched && localStack()) {
+    const reset = await underStackLock(async () => resetAndWait());
+    assert.equal(reset.code, 0, `the final local reset failed (the pgTAP files expect an empty catalogue): ${reset.output.slice(-1000)}`);
+  }
 });
 
 const SAMPLE_SLUG = "getsemani-colonial-house";

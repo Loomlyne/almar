@@ -47,7 +47,15 @@ import { localStack } from "../tests/helpers/local-supabase.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export const BUILD_ID_PLACEHOLDER = "BUILD_ID";
+// describeDifference shows a text difference with context for these types and only the sizes for every other type.
 const TEXT_EXTENSIONS = new Set([".html", ".js", ".css", ".json", ".txt", ".xml", ".webmanifest", ".map", ".svg", ".mjs", ".body"]);
+// findValues reads every file except these binary types. Not an allow-list of text extensions: Next's fetch cache entries
+// (.next/cache/fetch-cache/<hash>, .open-next/cache/__fetch/<hash>) have no extension and hold the project URL and the view
+// responses, so an allow-list would never look inside them.
+const BINARY_EXTENSIONS = new Set([
+  ".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".ico", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".wasm",
+  ".mp4", ".webm", ".mov", ".pdf", ".zip", ".gz", ".br",
+]);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Arguments and settings (pure)
@@ -210,17 +218,22 @@ export function compareDigests(left, right) {
   return { compared: names.length, differing };
 }
 
-/** The values from `needles` that appear in a text file of `dir` (html, js, css, json): [{ file, count }] per needle label. */
+/** The values from `needles` that appear in a file of `dir` that is not a known binary type (extension-less files included): [{ file, label }]. */
 export function findValues(dir, needles) {
   const hits = [];
   for (const { full, rel } of walk(dir)) {
-    if (!TEXT_EXTENSIONS.has(path.extname(rel).toLowerCase())) continue;
+    if (BINARY_EXTENSIONS.has(path.extname(rel).toLowerCase())) continue;
     const text = fs.readFileSync(full, "latin1");
     for (const [label, value] of Object.entries(needles)) {
       if (value && text.includes(value)) hits.push({ file: rel, label });
     }
   }
   return hits;
+}
+
+/** True for the files of the build's fetch cache: .next/cache/fetch-cache/* and .open-next/cache/** (its copy, __fetch). */
+export function isBuildCache(place, file) {
+  return place === ".next/cache/fetch-cache/" || (place === ".open-next/" && file.startsWith("cache/"));
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -316,6 +329,7 @@ async function main(argv = process.argv.slice(2)) {
   let ok = false;
   let failed = null;
   let inlinedKey = false;
+  let resetFailed = false;
   try {
     writeLiveShapedFixtures(fixturesDir);
     const envFor = (extra) => buildEnv(process.env, { ...publicEnv, ...extra });
@@ -335,7 +349,11 @@ async function main(argv = process.argv.slice(2)) {
         try {
           return runBuild({ label: "B", tmp, env: envFor({ ALMAR_DATA_SOURCE: "supabase" }) });
         } finally {
-          await resetAndWait(); // the pgTAP files expect an empty catalogue: leave the database as the migrations make it
+          const final = await resetAndWait(); // the pgTAP files expect an empty catalogue: leave the database as the migrations make it
+          if (final.code !== 0) {
+            console.error(`\nthe final local reset failed (the pgTAP files expect an empty catalogue):\n${final.output.slice(-1000)}`);
+            resetFailed = true;
+          }
         }
       });
     }
@@ -347,15 +365,34 @@ async function main(argv = process.argv.slice(2)) {
     // hands the public settings to the data layer under names Next does not inline (nextBuildEnv), so neither value may
     // appear in any file Next or OpenNext wrote: not in the browser files, not in the server bundles, not in the Worker
     // bundles. Finding the anon key means NEXT_PUBLIC_* reached Next again: the run fails (the URL alone is reported only).
-    const places = [["out/", b.out], [".next/static/", path.join(root, ".next", "static")], [".next/server/", path.join(root, ".next", "server")], [".open-next/", path.join(root, ".open-next")]];
-    const scan = (needles) => places.flatMap(([name, dir]) => (fs.existsSync(dir) ? findValues(dir, needles).map((h) => `${h.label} in ${name}${h.file}`) : []));
+    // Scanned: every file of these folders except images, fonts, video and wasm, extension-less files included (Next's own
+    // fetch cache entries have no extension). The fetch cache (.next/cache/fetch-cache, copied to .open-next/cache/__fetch)
+    // holds the project URL and the view responses by design: it is a build cache that is never deployed, so a URL there is
+    // reported separately and does not count against the build.
+    const places = [
+      ["out/", b.out, false],
+      [".next/static/", path.join(root, ".next", "static"), false],
+      [".next/server/", path.join(root, ".next", "server"), false],
+      [".next/cache/fetch-cache/", path.join(root, ".next", "cache", "fetch-cache"), true],
+      [".open-next/", path.join(root, ".open-next"), false],
+    ];
+    const scan = (needles) =>
+      places.flatMap(([name, dir]) => (fs.existsSync(dir) ? findValues(dir, needles).map((h) => ({ text: `${h.label} in ${name}${h.file}`, cache: isBuildCache(name, h.file) })) : []));
     const keyHits = scan({ "the public anon key": publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY });
     const urlHits = scan({ "the public URL": publicEnv.NEXT_PUBLIC_SUPABASE_URL });
+    const urlDeployable = urlHits.filter((h) => !h.cache);
+    const urlInCache = urlHits.filter((h) => h.cache);
     console.log(
-      keyHits.length === 0 && urlHits.length === 0
-        ? "\npublic Supabase settings found in out/, .next/static, .next/server or .open-next: none (Next was not given them, so nothing is inlined into any Worker or browser file)"
-        : `\npublic Supabase settings found in the build output: ${[...keyHits, ...urlHits].slice(0, 12).join("; ")}`,
+      `\nscanned for the public anon key and URL: out/, .next/static, .next/server, .next/cache/fetch-cache, .open-next (every file except images, fonts, video and wasm; extension-less files included)`,
     );
+    console.log(
+      keyHits.length === 0 && urlDeployable.length === 0
+        ? "public anon key: none. public project URL: none outside the build's fetch cache (Next was not given the settings, so nothing is inlined into any Worker or browser file)"
+        : `public Supabase settings found in the build output: ${[...keyHits, ...urlDeployable].map((h) => h.text).slice(0, 12).join("; ")}`,
+    );
+    if (urlInCache.length > 0) {
+      console.log(`   the project URL also sits in the build's fetch cache (${urlInCache.length} files, e.g. ${urlInCache[0].text}): a build cache that is never deployed`);
+    }
     inlinedKey = keyHits.length > 0;
 
     if (args.againstToday) {
@@ -369,12 +406,12 @@ async function main(argv = process.argv.slice(2)) {
     fs.cpSync(b.out, path.join(root, "out"), { recursive: true });
 
     const strictFailures = args.strict ? parity.orderOnly.length : 0;
-    ok = parity.differing.length === 0 && strictFailures === 0 && !inlinedKey;
+    ok = parity.differing.length === 0 && strictFailures === 0 && !inlinedKey && !resetFailed;
     const noise = parity.orderOnly.length > 0 ? ` (${parity.orderOnly.length} of them differ in Flight row order only)` : "";
     console.log(
       ok
         ? `\nPARITY OK: ${parity.compared} files, 0 differing${noise}`
-        : `\nPARITY FAILED: ${parity.differing.length + strictFailures} of ${parity.compared} files differ${noise}${inlinedKey ? "; the public anon key was found in the build output" : ""}`,
+        : `\nPARITY FAILED: ${parity.differing.length + strictFailures} of ${parity.compared} files differ${noise}${inlinedKey ? "; the public anon key was found in the build output" : ""}${resetFailed ? "; the final local reset failed" : ""}`,
     );
   } catch (error) {
     failed = error;

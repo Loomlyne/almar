@@ -225,6 +225,18 @@ export function nextBuildEnv(env, source) {
 }
 
 /**
+ * Next 15 stores the result of every `fetch` of a build in <root>/.next/cache/fetch-cache with revalidate 31536000 (a
+ * year). The data layer reads the api_* views through supabase-js, which uses fetch, so a later build in the same checkout
+ * finds those entries and rebuilds the OLD catalogue: a title changed in the database kept its old text (proved on the
+ * local stack by tests/rebuild-fresh.test.mjs). Deleted before every build; only this folder, the webpack cache beside it
+ * keeps builds fast and deterministic. Not fixable in the data layer (see lib/data/source.ts). Safe to call when the
+ * folder does not exist.
+ */
+export function clearFetchCache(rootDir) {
+  fs.rmSync(path.join(rootDir, ".next", "cache", "fetch-cache"), { recursive: true, force: true });
+}
+
+/**
  * Job 10 review: assertNoBundledEnv only sees the project's .env files. The build also inherits the shell it runs in,
  * and Next inlines every NEXT_PUBLIC_* value it finds there into the bundles that name it. Since plan 03.2-02 the shell
  * may hold exactly two such names (BUILD_PUBLIC_ENV, which nextBuildEnv keeps away from Next); any other NEXT_PUBLIC_*
@@ -363,6 +375,8 @@ function main(argv = process.argv.slice(2)) {
   assertPublicClean(root);
   // Before the build and before any folder is wiped: a refused run leaves the previous output intact.
   if (target !== "local") assertMediaReady();
+  // Every build reads the database again: Next's fetch cache would serve the rows of an earlier build (clearFetchCache).
+  clearFetchCache(root);
   // Job 10: OpenNext runs the project's `next build` (standalone) and bundles the server into .open-next/. The
   // prerendered pages below come from that same build, so the static folder and the Worker script always match.
   const config = target === "preview" ? "wrangler.preview.toml" : target === "ops" ? "wrangler.ops.toml" : "wrangler.toml";

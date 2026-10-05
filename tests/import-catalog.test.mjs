@@ -275,7 +275,10 @@ after(async () => {
   // The pgTAP files expect an empty catalogue: leave the local database as the migrations make it, and wait until PostgREST
   // serves it again (the next file to take the lock must not meet a stale schema cache).
   try {
-    if (importedLocally && localStack()) await resetAndWait();
+    if (importedLocally && localStack()) {
+      const reset = await resetAndWait();
+      assert.equal(reset.code, 0, `the final local reset failed (the pgTAP files expect an empty catalogue): ${reset.output.slice(-1000)}`);
+    }
   } finally {
     releaseStackLock?.();
   }

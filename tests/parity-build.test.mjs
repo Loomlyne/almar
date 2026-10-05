@@ -14,6 +14,7 @@ import {
   digestTree,
   diffContext,
   findValues,
+  isBuildCache,
   livePublicEnv,
   parseArgs,
   buildIdForms,
@@ -126,11 +127,33 @@ test("a difference is reported with its position and context; binaries by size",
   assert.match(describeDifference(join(a, "i.png"), join(b, "i.png"), "i.png", "ID", "ID"), /binary file: 4 bytes vs 5 bytes/);
 });
 
-test("findValues reports where a public value appears in text files, and nothing for binaries", () => {
-  const dir = tree({ "a.html": "x https://abcdefgh.supabase.co y", "_next/static/c.js": "k=anon-key-for-a-test", "i.png": "https://abcdefgh.supabase.co", "b.html": "nothing" });
+test("findValues reports where a public value appears in any file but a binary, extension-less files included", () => {
+  const dir = tree({
+    "a.html": "x https://abcdefgh.supabase.co y",
+    "_next/static/c.js": "k=anon-key-for-a-test",
+    "cache/__fetch/6fe3a1": '{"url":"https://abcdefgh.supabase.co/rest/v1/api_stays"}', // Next's fetch cache: no extension
+    "i.png": "https://abcdefgh.supabase.co",
+    "f.woff2": "anon-key-for-a-test",
+    "b.html": "nothing",
+  });
   const hits = findValues(dir, { "the public URL": PUBLIC.NEXT_PUBLIC_SUPABASE_URL, "the public anon key": PUBLIC.NEXT_PUBLIC_SUPABASE_ANON_KEY });
-  assert.deepEqual(hits.map((h) => `${h.label}@${h.file}`).sort(), ["the public URL@a.html", "the public anon key@_next/static/c.js"]);
+  assert.deepEqual(hits.map((h) => `${h.label}@${h.file}`).sort(), ["the public URL@a.html", "the public URL@cache/__fetch/6fe3a1", "the public anon key@_next/static/c.js"]);
   assert.deepEqual(findValues(dir, { "empty value": "" }), []);
+});
+
+test("isBuildCache names the fetch cache and its OpenNext copy, and nothing deployable", () => {
+  assert.equal(isBuildCache(".next/cache/fetch-cache/", "6fe3a1"), true);
+  assert.equal(isBuildCache(".open-next/", "cache/__fetch/6fe3a1"), true);
+  assert.equal(isBuildCache(".open-next/", "cloudflare/next-env.mjs"), false);
+  assert.equal(isBuildCache("out/", "cache/x.html"), false);
+  assert.equal(isBuildCache(".next/server/", "app/page.js"), false);
+});
+
+test("every build of the script goes through the assembler, which clears Next's fetch cache before it builds", () => {
+  const src = readFileSync("scripts/parity-build.mjs", "utf8");
+  assert.match(src, /spawnSync\(process\.execPath, \["scripts\/assemble-cloudflare\.mjs", "--target=local"\]/);
+  const assembler = readFileSync("scripts/assemble-cloudflare.mjs", "utf8");
+  assert.ok(assembler.indexOf("clearFetchCache(root);") > 0 && assembler.indexOf("clearFetchCache(root);") < assembler.indexOf('"./node_modules/.bin/opennextjs-cloudflare"'));
 });
 
 test("the script never names a service-role key, never prints one, and only reads GET paths of the live project", () => {
