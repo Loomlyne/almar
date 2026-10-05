@@ -40,10 +40,10 @@ test("the walk reports the path of a missing key (red case of the checker)", () 
   assert.deepEqual(empty, ["sample.a: empty string"]);
 });
 
-test("status: published in en, draft in ar and es", () => {
+test("status: published in every language (AR and ES reviewed 2026-10-05, I18N-REVIEW-2026-10-05.md)", () => {
   assert.equal(DESTINATIONS_PAGE_COPY.en.status, "published");
-  assert.equal(DESTINATIONS_PAGE_COPY.ar.status, "draft");
-  assert.equal(DESTINATIONS_PAGE_COPY.es.status, "draft");
+  assert.equal(DESTINATIONS_PAGE_COPY.ar.status, "published");
+  assert.equal(DESTINATIONS_PAGE_COPY.es.status, "published");
 });
 
 const LIVE_TITLE = "Best places to visit in Colombia | ALMAR";

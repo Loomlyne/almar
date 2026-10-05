@@ -1,3 +1,4 @@
+// AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 // Journey copy catalogue (plan 03.1-10, D-08, D-33, D-52, D-58).
 // EN is copied from the 03.1-UI-SPEC Copywriting Contract.
 // AR (Gulf-friendly Modern Standard Arabic) and ES (neutral Latin American) are DRAFTS
@@ -169,7 +170,7 @@ const AR: JourneyCopy = {
   bar: {
     label: "خطّط لرحلتك",
     destination: { label: "الوجهة", empty: "إلى أين؟" },
-    dates: { label: "التواريخ", empty: "أضف التواريخ", partial: "{start} – أضف التاريخ" },
+    dates: { label: "التواريخ", empty: "أضف التواريخ", partial: "{start} – أضف تاريخاً" },
     guests: { label: "الضيوف" },
     search: "بحث",
     editSearch: "تعديل البحث",
@@ -394,7 +395,7 @@ const ES: JourneyCopy = {
     day: {
       arrival: "llegada",
       departure: "salida",
-      inRange: "en tu estadía",
+      inRange: "en tu estancia",
       unavailable: "no disponible",
       today: "hoy",
     },
@@ -439,7 +440,7 @@ const ES: JourneyCopy = {
   },
   steps: {
     label: "Pasos de la reserva",
-    stay: "Estadía",
+    stay: "Estancia",
     addons: "Extras",
     travelers: "Viajeros",
     pay: "Pago",
@@ -472,14 +473,14 @@ const ES: JourneyCopy = {
       experiences: "Aún no hay experiencias aquí.",
       services: "Aún no hay servicios aquí.",
     },
-    back: "Volver a la estadía",
+    back: "Volver a la estancia",
     continue: "Continuar a viajeros",
   },
   inclusions: { title: "Incluido en tu viaje", note: "Sin costo adicional" },
   cart: {
     label: "Tu viaje",
     kicker: "Tu viaje · {destination}",
-    stay: { one: "Estadía · # noche", other: "Estadía · # noches" },
+    stay: { one: "Estancia · # noche", other: "Estancia · # noches" },
     addons: { one: "# extra", other: "# extras" },
     empty: "Aún no has agregado nada.",
     remove: "Quitar {name}",
@@ -488,8 +489,8 @@ const ES: JourneyCopy = {
     subtotal: "Subtotal",
     vat: "IVA [RATE]%",
     total: "Total",
-    note: "No se cobra nada antes de Pagar. En el paso 4 eliges un depósito o pagas el total, en un solo pago para la estadía y todos los extras.",
-    phoneTotal: { one: "Total · estadía + # extra", other: "Total · estadía + # extras" },
+    note: "No se cobra nada antes de Pagar. En el paso 4 eliges un depósito o pagas el total, en un solo pago para la estancia y todos los extras.",
+    phoneTotal: { one: "Total · estancia + # extra", other: "Total · estancia + # extras" },
     continue: "Continuar",
   },
   pay: {

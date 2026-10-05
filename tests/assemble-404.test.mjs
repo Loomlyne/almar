@@ -25,8 +25,8 @@ test("the existing named exports equal the English entry", () => {
   assert.equal(NOT_FOUND_LINK_LABEL, NOT_FOUND_COPY.en.linkLabel);
   assert.equal(NOT_FOUND_HREF, NOT_FOUND_COPY.en.href);
   assert.equal(NOT_FOUND_COPY.en.status, "published");
-  assert.equal(NOT_FOUND_COPY.ar.status, "draft");
-  assert.equal(NOT_FOUND_COPY.es.status, "draft");
+  assert.equal(NOT_FOUND_COPY.ar.status, "published");
+  assert.equal(NOT_FOUND_COPY.es.status, "published");
 });
 
 for (const l of LOCALES) {

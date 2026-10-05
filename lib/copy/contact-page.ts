@@ -1,3 +1,4 @@
+// AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 // Copy for the /contact page (phase 3.3 slice 3, plan 24).
 //
 // EN is the published text of the live Framer contact page, verbatim (the Framer route file that plan 24 deleted),
