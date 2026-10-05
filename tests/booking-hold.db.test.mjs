@@ -8,12 +8,13 @@ import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { requireStack } from "./helpers/local-supabase.mjs";
+import { acquireStackLock, requireStack } from "./helpers/local-supabase.mjs";
 import { loadTs } from "./helpers/load-ts.mjs";
 
 const OWNER = "00000000-0000-4000-8000-00000000f0a1";
 let state = null; // { admin, stack, ids } once seeded
 let seedError = null;
+let releaseStackLock = null; // the stack is shared with the other files of `node --test`: take turns
 
 function dubaiDay(offset) {
   const text = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dubai", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -102,6 +103,7 @@ async function seed(t) {
   const stack = requireStack(t);
   if (!stack) return null;
   assert.match(stack.url, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/, "this test only talks to a local stack");
+  releaseStackLock = await acquireStackLock();
   const admin = createClient(stack.url, stack.serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   try {
     await waitReady(admin);
@@ -142,13 +144,17 @@ async function seed(t) {
 }
 
 after(async () => {
-  if (!state) return;
-  const { admin, ids } = state;
-  // Local rows only, by id. Bookings first (their nights, travellers, lines, payments and history cascade).
-  await admin.from("bookings").delete().eq("stay_id", ids.stay);
-  await admin.from("stays").delete().eq("id", ids.stay);
-  await admin.from("destinations").delete().eq("id", ids.destination);
-  if (ids.ownItem) await admin.from("catalog_items").delete().eq("id", ids.item);
+  try {
+    if (!state) return;
+    const { admin, ids } = state;
+    // Local rows only, by id. Bookings first (their nights, travellers, lines, payments and history cascade).
+    await admin.from("bookings").delete().eq("stay_id", ids.stay);
+    await admin.from("stays").delete().eq("id", ids.stay);
+    await admin.from("destinations").delete().eq("id", ids.destination);
+    if (ids.ownItem) await admin.from("catalog_items").delete().eq("id", ids.item);
+  } finally {
+    releaseStackLock?.();
+  }
 });
 
 async function hold(s, args) {

@@ -7,13 +7,14 @@ import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { requireStack } from "./helpers/local-supabase.mjs";
+import { acquireStackLock, requireStack } from "./helpers/local-supabase.mjs";
 import { loadRoute } from "./helpers/load-route.mjs";
 
 const ORIGIN = "https://preview.almarprivatejourney.com";
 const SECRET = "route-test-secret-".padEnd(48, "r");
 const SAVED = { url: process.env.NEXT_PUBLIC_SUPABASE_URL, key: process.env.SUPABASE_SERVICE_ROLE_KEY, link: process.env.BOOKING_LINK_SECRET, stripe: process.env.STRIPE_SECRET_KEY };
 let state = null;
+let releaseStackLock = null; // the stack is shared with the other files of `node --test`: take turns
 
 function dubaiDay(offset) {
   const text = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dubai", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -35,6 +36,7 @@ async function seed(t) {
   const stack = requireStack(t);
   if (!stack) return null;
   assert.match(stack.url, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/, "this test only talks to a local stack");
+  releaseStackLock = await acquireStackLock();
   process.env.NEXT_PUBLIC_SUPABASE_URL = stack.url;
   process.env.SUPABASE_SERVICE_ROLE_KEY = stack.serviceKey;
   process.env.BOOKING_LINK_SECRET = SECRET;
@@ -63,10 +65,14 @@ after(async () => {
     if (value === undefined) delete process.env[name];
     else process.env[name] = value;
   }
-  if (!state) return;
-  await state.admin.from("bookings").delete().eq("stay_id", state.ids.stay);
-  await state.admin.from("stays").delete().eq("id", state.ids.stay);
-  await state.admin.from("destinations").delete().eq("id", state.ids.destination);
+  try {
+    if (!state) return;
+    await state.admin.from("bookings").delete().eq("stay_id", state.ids.stay);
+    await state.admin.from("stays").delete().eq("id", state.ids.stay);
+    await state.admin.from("destinations").delete().eq("id", state.ids.destination);
+  } finally {
+    releaseStackLock?.();
+  }
 });
 
 // A fresh visitor address for every call, so the limiter (twenty holds an hour per address) never counts one run's holds
