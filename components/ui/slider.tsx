@@ -67,8 +67,9 @@ const ARROW =
  *   `children` sit centred over the photos under a shade (the /destinations kicker and h1). The photos enter with the
  *   "photo" reveal; every slide loads eagerly, so each is a real image in the served HTML.
  * `dotsEvery` 2 draws one dot per two slides (dot i shows slide 2i). `autoplay` moves one slide every AUTOPLAY_MS while
- * not hovered, not keyboard-focused and the tab is visible; any manual input stops it for good, a Pause/Play button is
- * offered, and under prefers-reduced-motion it never moves and the button is not drawn.
+ * not hovered by a mouse (a touch tap never pauses it), not keyboard-focused and the tab is visible; any manual input
+ * stops it for good, a Pause/Play button is offered, and under prefers-reduced-motion it never moves and the button is
+ * not drawn.
  */
 export function Slider({
   images,
@@ -254,8 +255,14 @@ export function Slider({
             }
           : undefined
       }
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      // Hover-pause is for a mouse only. A tap on a touch screen makes the browser fire an emulated mouseenter and no
+      // mouseleave until the next tap elsewhere, which would stop the slideshow for good while its button still reads Pause.
+      onPointerEnter={(event) => {
+        if (event.pointerType === "mouse") setHovered(true);
+      }}
+      onPointerLeave={(event) => {
+        if (event.pointerType === "mouse") setHovered(false);
+      }}
       onFocus={(event) => {
         if (event.target.matches(":focus-visible")) setFocused(true);
       }}

@@ -33,3 +33,10 @@ test("strip and peek served HTML did not take the reveal wrapper", () => {
     assert.equal((html.match(/<img\b/g) ?? []).length, 3);
   }
 });
+
+test("hover-pause is read from pointer events and only for a mouse (a tap's emulated mouseenter never pauses)", () => {
+  const source = readFileSync("components/ui/slider.tsx", "utf8");
+  assert.equal(/onMouseEnter|onMouseLeave/.test(source), false, "no mouse-event hover handlers");
+  assert.match(source, /onPointerEnter=\{[^}]*pointerType === "mouse"/s);
+  assert.match(source, /onPointerLeave=\{[^}]*pointerType === "mouse"/s);
+});

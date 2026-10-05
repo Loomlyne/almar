@@ -459,3 +459,41 @@ for (const locale of LOCALES) {
     });
   }
 }
+
+// ---- 2e. a touch screen: a tap does not pause the slideshow --------------------------------------------------------------
+// A tap fires an emulated mouseenter and no mouseleave until the next tap elsewhere. The slider (shared with the home page and the
+// stay page) pauses for a mouse only, so a tap on the hero leaves it running and its button still reads Pause.
+// A phone has no mouse, so these tests never move one: `visit` and `pointerOff` do, and once the browser has a resting mouse
+// position elsewhere it sends a mouseleave after the tap, which hides the bug (the old slider passed with `visit`).
+
+/** `visit` without the pointer: goto, network idle capped at 10 s, hydration (the dots), a short settle. */
+async function visitTouch(page: Page, d: Data) {
+  await page.goto(d.path, { waitUntil: "load" });
+  try {
+    await page.waitForLoadState("networkidle", { timeout: 10_000 });
+  } catch {
+    // As in `visit`: the hydration wait below is the real gate.
+  }
+  await expect(dot(page, d, 1)).toBeVisible();
+  await page.waitForTimeout(250);
+}
+
+for (const locale of LOCALES) {
+  for (const viewport of VIEWPORTS.filter((v) => v.width < 1440)) {
+    test.describe(`touch ${locale} ${viewport.width}`, () => {
+      test.use({ viewport, hasTouch: true, isMobile: true });
+
+      test("2e. a tap on the hero photo does not pause it: the button still reads Pause and the slides keep changing", async ({ page }) => {
+        const d = await data(locale);
+        await visitTouch(page, d);
+        // Away from the on-image header, the dots (bottom centre) and the Pause button (bottom end).
+        await page.locator(REGION).tap({ position: { x: 60, y: 200 } });
+        await expect(page.getByRole("button", { name: d.copy.slider.pause, exact: true })).toHaveCount(1);
+        await expect(page.getByRole("button", { name: d.copy.slider.play, exact: true })).toHaveCount(0);
+        const afterTap = await shown(page, d);
+        await expect.poll(() => shown(page, d), { timeout: 2 * WAIT }).not.toBe(afterTap);
+        await expect(page.getByRole("button", { name: d.copy.slider.pause, exact: true })).toHaveCount(1);
+      });
+    });
+  }
+}

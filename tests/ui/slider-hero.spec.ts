@@ -98,3 +98,44 @@ for (const viewport of WIDTHS) {
     });
   }
 }
+
+// A touch screen has no hover. A tap makes the browser fire emulated mouse events (mouseenter, never a mouseleave until the next
+// tap elsewhere), so a slider that pauses on mouseenter stops for good while its button still reads "Pause". These run in a
+// touch-emulated context (hasTouch, isMobile): a tap on the photo must not hold it. The mouse hover test above is the other half.
+// A phone has no mouse, so these never call pointerOff (it moves the mouse): once the browser has a resting mouse position
+// elsewhere it sends a mouseleave after the tap, which hides the bug.
+for (const viewport of WIDTHS.filter((w) => w !== "desktop")) {
+  for (const locale of LOCALES.filter((l) => l !== "es")) {
+    test.describe(`Slider hero, touch screen ${locale} ${VIEWPORTS[viewport].width}`, () => {
+      test.use({ hasTouch: true, isMobile: true });
+
+      async function readyTouch(page: Page) {
+        await open(page, "slider-hero", "three", locale, viewport);
+        await expect(page.locator(`${REGION} button[aria-label^="[Go to photo"]`)).toHaveCount(3);
+      }
+
+      test("a tap on the photo does not pause it: the button still reads Pause and the slideshow keeps moving", async ({ page }) => {
+        await readyTouch(page);
+        // Away from the fixed corner square, the dots (bottom centre) and the Pause button (bottom end).
+        await page.locator(REGION).tap({ position: { x: 60, y: 120 } });
+        await expect(page.getByRole("button", { name: "[Pause]" })).toHaveCount(1);
+        await expect(page.getByRole("button", { name: "[Play]" })).toHaveCount(0);
+        const afterTap = await shown(page);
+        await expect.poll(() => shown(page), { timeout: 2 * WAIT }).not.toBe(afterTap);
+        await expect(page.getByRole("button", { name: "[Pause]" })).toHaveCount(1);
+      });
+
+      test("a tap on Pause holds it, a tap on Play runs it again", async ({ page }) => {
+        await readyTouch(page);
+        await page.getByRole("button", { name: "[Pause]" }).tap();
+        await expect(page.getByRole("button", { name: "[Play]" })).toHaveCount(1);
+        const held = await shown(page);
+        await page.waitForTimeout(WAIT);
+        expect(await shown(page)).toBe(held);
+        await page.getByRole("button", { name: "[Play]" }).tap();
+        await expect(page.getByRole("button", { name: "[Pause]" })).toHaveCount(1);
+        await expect.poll(() => shown(page), { timeout: 2 * WAIT }).not.toBe(held);
+      });
+    });
+  }
+}
