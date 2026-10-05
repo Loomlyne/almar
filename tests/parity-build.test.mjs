@@ -1,9 +1,9 @@
 // scripts/parity-build.mjs, the parts that need no build and no database (plan 03.2-02, Task 3): arguments, the --live
 // refusals, the build environment, build-id normalisation and the byte comparison of two output folders. The builds
 // themselves are run by hand (the summary holds their output).
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
@@ -25,8 +25,14 @@ import {
 
 const PUBLIC = { NEXT_PUBLIC_SUPABASE_URL: "https://abcdefgh.supabase.co", NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-a-test" };
 
+const made = [];
+after(() => {
+  for (const dir of made) rmSync(dir, { recursive: true, force: true });
+});
+
 function tree(files) {
   const dir = mkdtempSync(join(tmpdir(), "almar-parity-test-"));
+  made.push(dir);
   for (const [rel, content] of Object.entries(files)) {
     mkdirSync(dirname(join(dir, rel)), { recursive: true });
     writeFileSync(join(dir, rel), content);
