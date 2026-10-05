@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// Phase 3.1 code review (03.1-REVIEW.md) W1 to W5: keyboard focus and URL typing.
+// Phase 3.1 code review (03.1-REVIEW.md) W1 to W4: keyboard focus. W5 (the https URL fields on stays and team) is gone:
+// plans 03.2-07 and 03.2-08 replace those fields with the media picker (03.2-09's MediaField), so their URL-typing cases are replaced there.
 
 async function mountHeroBooker(page: Page) {
   const js = await (await page.request.get("/embed/hero-booker")).text();
@@ -100,21 +101,3 @@ test("W4 calendar keeps one Tab stop after Next month, and Previous stops at thi
   await page.keyboard.press("Tab");
   await expect(grid.locator('button[tabindex="0"]')).toBeFocused();
 });
-
-for (const [route, open, field] of [
-  ["/dashboard/catalog/stays", "New stay", "Media URL"],
-  ["/dashboard/content/team", "New member", "Photo"],
-] as const) {
-  test(`W5 ${field} keeps every typed key on ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await page.getByRole("button", { name: open, exact: true }).click();
-    const input = page.getByLabel(field, { exact: true });
-    await input.pressSequentially("https://cdn.example.com/a.jpg");
-    await expect(input).toHaveValue("https://cdn.example.com/a.jpg");
-    await expect(page.getByText("Enter a URL that starts with https://.")).toHaveCount(0);
-
-    await input.fill("");
-    await input.pressSequentially("http:");
-    await expect(page.getByText("Enter a URL that starts with https://.")).toBeVisible();
-  });
-}
