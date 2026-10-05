@@ -92,7 +92,7 @@ for (const locale of LOCALES) {
           heritage.stay_slugs.map((s) => localePath(locale, `/private-stays/${s}`)),
         );
         expect(await links.allTextContents()).toEqual(heritage.stay_slugs.map((s) => d.stayNames[s]));
-        await expect(inquiry(page, d, HERITAGE)).toHaveAttribute("href", "/contact");
+        await expect(inquiry(page, d, HERITAGE)).toHaveAttribute("href", localePath(locale, "/contact"));
         expect(search(page)).toBe(`?item=${HERITAGE}`);
 
         // Held controls and prices are not in the overlay (design 4.3; board 5f k9, k11, k13).
@@ -245,18 +245,18 @@ for (const locale of LOCALES) {
         expect(new URL(page.url()).pathname).toBe(href);
       });
 
-      test("7. Request Inquiry goes to /contact, which answers 200", async ({ page, watch }) => {
+      test("7. Request Inquiry goes to the localised /contact, which answers 200", async ({ page, watch }) => {
         const d = await data(locale);
         await visit(page, d.path);
         await open(page, d, HERITAGE);
-        // The contact page is still a Framer document: stop watching its requests and console.
+        // /contact is slice 3A's React page in every locale (main f46cd70); its own specs watch it, this one stops here.
         watch.freeze();
         const [response] = await Promise.all([
-          page.waitForResponse((r) => new URL(r.url()).pathname === "/contact" && r.request().resourceType() === "document"),
+          page.waitForResponse((r) => new URL(r.url()).pathname === localePath(locale, "/contact") && r.request().resourceType() === "document"),
           inquiry(page, d, HERITAGE).click(),
         ]);
         expect(response.status()).toBe(200);
-        await page.waitForURL((url) => url.pathname === "/contact");
+        await page.waitForURL((url) => url.pathname === localePath(locale, "/contact"));
       });
     });
   }

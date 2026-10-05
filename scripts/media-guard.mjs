@@ -8,7 +8,7 @@
 // The controller runs it between the assemble step and every preview or production deploy (runbook C10); plan 08's
 // assembler calls assertMediaReady() for the preview and production targets. It exits 1 while the placeholder is
 // set, while the media base is not an https origin, or while any public React document (publicDocuments, from PUBLIC_PAGES:
-// slice 1, the blog, destinations and experiences, every stay and live post enumerated) in the output folder
+// slice 1, About and Contact, the blog, destinations and experiences, every stay and live post enumerated) in the output folder
 // holds the placeholder, a third-party image host, or an <img> src / srcset / og:image that does not start with the
 // media base, or that names a key under the media base which lib/data/media-manifest.json does not hold (so no
 // document can ship pointing at an object nobody uploaded). The document list is computed (publicDocuments), never a

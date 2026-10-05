@@ -3,8 +3,9 @@
 //      framerusercontent.com, files.catbox.moe or videos.pexels.com; fixtures hold keys, never URLs; the placeholder
 //      host lives in lib/data/media.ts only.
 //   2. Constants: lib/data/media.ts is coherent (placeholder iff flag true; otherwise an https origin).
-//   3. out/ scan (only with MEDIA_CHECK_OUT=1): coverage (every document names real manifest keys, and the pages that
-//      must carry their images do) in both media states, and the host scan once the flag is false.
+//   3. out/ scan (only with MEDIA_CHECK_OUT=1): coverage (every public React document the guard lists, About and
+//      Contact included, names real manifest keys, and the pages that must carry their images do) in both media
+//      states, and the host scan once the flag is false.
 //   4. assertMediaReady() and the `--deploy` CLI the controller runs before every deploy.
 // Document counts are computed from PUBLIC_PAGES and stays.json, never written as a number (plan 03.3-16).
 // The red cases run on scratch copies in os.tmpdir(); the scan functions below are this file's own, so the guard
@@ -16,7 +17,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { PUBLIC_PAGES } from "../lib/locale-path.ts";
-import { REPO_ROOT, collectFixtureImages, isLivePost, readManifest, readPostSlugs, readStaySlugs, publicDocuments, reactDocuments } from "../scripts/media-lib.mjs";
+import { REPO_ROOT, collectFixtureImages, isLivePost, readManifest, readPostSlugs, readStaySlugs, publicDocuments, reactDocuments, slice3Documents } from "../scripts/media-lib.mjs";
 import { loadTs } from "./helpers/load-ts.mjs";
 import { assertMediaReady, imageReferences, main as guardMain, readMediaConstants, referencedKeys, scanOut } from "../scripts/media-guard.mjs";
 
@@ -197,7 +198,9 @@ test("no non-Framer file under app/, components/, lib/copy/ or lib/data/ names f
   const { scanned, framer } = sourceFiles(REPO_ROOT);
   assert.ok(scanned.length > 100, `the scan read only ${scanned.length} files; it must not pass by reading nothing`);
   assert.ok(scanned.some((f) => f.r === "lib/data/fixtures/stays.json") && scanned.some((f) => f.r.startsWith("components/")));
-  assert.ok(framer.length >= 1, "the Framer route files are skipped, not scanned");
+  // Slice 2 (destinations, experiences) and slice 3A (about, contact) converted the last Framer pages: no Framer route
+  // file is left to skip. The exception itself is proven on a scratch tree in the next test.
+  assert.deepEqual(framer, [], "no Framer route file remains under app/");
   assert.deepEqual(scanSources(REPO_ROOT), []);
 });
 
@@ -530,6 +533,49 @@ test("RED: a document with a framerusercontent src, a placeholder host, a foreig
   assert.match(text, /^private-stays\.html: contains files\.catbox\.moe$/m);
   assert.match(text, /^private-stays\.html: og:image "https:\/\/files\.catbox\.moe\/p\.webp" does not start with/m);
   assert.match(text, /^es\/private-stays\.html: document is missing$/m);
+});
+
+test("RED: About and Contact documents with a third-party host, a framer img or no file are reported (the six documents of slice 3)", () => {
+  const root = scratchTree("scan-slice3");
+  const pages = PUBLIC_PAGES;
+  const fixtures = path.join(root, "lib", "data", "fixtures");
+  const docs = reactDocuments(readStaySlugs(fixtures), readPostSlugs(fixtures), pages);
+  const six = ["about.html", "ar/about.html", "es/about.html", "contact.html", "ar/contact.html", "es/contact.html"];
+  for (const d of six) assert.ok(docs.includes(d), `${d} is guarded once /about and /contact are public`);
+  // writeDocs follows the real PUBLIC_PAGES, so write every document of this list here
+  for (const doc of docs) {
+    const file = path.join(root, "out", ...doc.split("/"));
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    let html = `<!doctype html><html><head><meta content="${GOOD_BASE}/home/hero/poster.webp" property="og:image"/></head><body><img alt="" src="${GOOD_BASE}/about/hero.webp"></body></html>`;
+    if (doc === "about.html") html = html.replace("<img", '<video src="https://videos.pexels.com/v.mp4"></video><img');
+    if (doc === "ar/about.html") html = html.replace("<img", '<a href="https://files.catbox.moe/h.mp4">v</a><img');
+    if (doc === "es/contact.html") html = html.replace(`src="${GOOD_BASE}/about/hero.webp"`, 'src="https://framerusercontent.com/images/c.jpg"');
+    fs.writeFileSync(file, html);
+  }
+  fs.rmSync(path.join(root, "out", "contact.html"));
+  const { violations } = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
+  const text = violations.map((v) => `${v.document}: ${v.problem}`);
+  assert.deepEqual(text.sort(), [
+    "about.html: contains videos.pexels.com",
+    "ar/about.html: contains files.catbox.moe",
+    "contact.html: document is missing",
+    'es/contact.html: contains framerusercontent.com',
+    'es/contact.html: img src "https://framerusercontent.com/images/c.jpg" does not start with ' + GOOD_BASE + "/",
+  ].sort());
+});
+
+test("slice3Documents follows PUBLIC_PAGES: nothing until /about and /contact are public, exactly six after", () => {
+  const six = ["about.html", "contact.html", "ar/about.html", "ar/contact.html", "es/about.html", "es/contact.html"];
+  assert.deepEqual(slice3Documents(["/", "/private-stays", "/private-stays/[stay]"]), []);
+  assert.deepEqual(slice3Documents(PUBLIC_PAGES), six);
+  assert.equal(slice3Documents(["/about"]).length, 3);
+  const slugs = readStaySlugs();
+  const posts = readPostSlugs();
+  const without = PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact");
+  const all = reactDocuments(slugs, posts, PUBLIC_PAGES);
+  for (const d of six) assert.ok(all.includes(d), `${d} is guarded while /about and /contact are public`);
+  assert.equal(all.length, reactDocuments(slugs, posts, without).length + six.length);
+  assert.deepEqual(all.filter((d) => !six.includes(d)), reactDocuments(slugs, posts, without));
 });
 
 test("main --deploy: exit 0 and the OK line for a good scratch root; exit 1 for a bad document, a missing out/, a placeholder", () => {

@@ -377,7 +377,8 @@ const NEW_KEYS = [
 
 test("slice-2 media: base 118 + 40 entries, catalog/ 10 + 35, destinations/ 4 + 5", () => {
   const manifest = JSON.parse(readFileSync("lib/data/media-manifest.json", "utf8"));
-  assert.equal(manifest.length, 158);
+  // Base 118 + slice 2's 40; slice 3A (main f46cd70) adds its about/ entries beside them.
+  assert.equal(manifest.length, 118 + NEW_KEYS.length + manifest.filter((e) => e.key.startsWith("about/")).length);
   assert.equal(manifest.filter((e) => e.key.startsWith("catalog/")).length, 45);
   assert.equal(manifest.filter((e) => e.key.startsWith("destinations/")).length, 9);
   assert.equal(NEW_KEYS.length, 40);

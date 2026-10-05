@@ -86,6 +86,8 @@ export const PUBLIC_PAGES = [
   "/",
   "/private-stays",
   "/private-stays/[stay]",
+  "/about",
+  "/contact",
   "/blog",
   "/blog/[post]",
   "/destinations",

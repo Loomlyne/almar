@@ -123,5 +123,5 @@ From the 3.1 hand-over (open items 1–5): dead controls W6 (Phase 3.2 and 2), g
 ## Session Continuity
 
 Last session: 2026-10-03T15:28:00.000Z
-Stopped at: slice 4 (blog) shipped and live 2026-10-05 05:42 (main a9f65e3, Worker almar 59587528); job 02 ready, waits for Supabase access; slices 2 and 3 building
+Stopped at: slice 3A (about, contact) shipped and live 2026-10-05 07:37 (main e0dd82f, Worker almar 19137a07); slice 2 building; job 02 ready, waits for Supabase access; 03.2-11 at picture checkpoint
 Resume file: .planning/CONTROL-BOARD.md

@@ -123,8 +123,8 @@ test("storage shape: one record per language per entity, no locale-keyed map in 
   const alts = fixture("image-translations");
   const ids = new Set();
   const collect = (n) => { if (Array.isArray(n)) n.forEach(collect); else if (n && typeof n === "object") { if (typeof n.media_key === "string") ids.add(n.id); Object.values(n).forEach(collect); } };
-  for (const f of ["stays", "destinations", "catalog", "home", "posts", "destinations-page"]) collect(fixture(f));
-  // Base 118 distinct image ids at b698507 (S2-18, S2-27) + slice 2's 41; main's posts add to it.
+  for (const f of ["stays", "destinations", "catalog", "home", "posts", "about", "destinations-page"]) collect(fixture(f));
+  // Base 118 distinct image ids at b698507 (S2-18, S2-27) + slice 2's 41; main's posts and slice 3A's about add to it.
   assert.ok(ids.size >= 118 + 41);
   for (const id of ids) assert.deepEqual(alts.filter((a) => a.image_id === id).map((a) => a.locale).sort(), ["ar", "en", "es"], id);
   assert.equal(alts.length, ids.size * 3);

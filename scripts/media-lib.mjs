@@ -291,9 +291,20 @@ export function blogDocuments(postSlugs = readPostSlugs()) {
   return publicDocuments(undefined, BLOG_PAGES, postSlugs);
 }
 
-/** Every React document the media guard scans: publicDocuments() over every PUBLIC_PAGES entry. An alias. */
-export function reactDocuments(staySlugs, postSlugs) {
-  return publicDocuments(staySlugs, PUBLIC_PAGES, postSlugs);
+/** The two pages slice 3 converts. They enter the media guard's list only once they are in PUBLIC_PAGES. */
+export const SLICE3_PAGES = ["/about", "/contact"];
+
+/**
+ * Slice 3's documents (About and Contact in all three locales) that `pages` makes public: publicDocuments over the
+ * SLICE3_PAGES entries `pages` holds. Nothing while neither is public, six once both are. Kept for main's callers.
+ */
+export function slice3Documents(pages = PUBLIC_PAGES) {
+  return publicDocuments(undefined, SLICE3_PAGES.filter((page) => pages.includes(page)));
+}
+
+/** Every React document the media guard scans: publicDocuments() over every `pages` entry (PUBLIC_PAGES). An alias. */
+export function reactDocuments(staySlugs, postSlugs, pages = PUBLIC_PAGES) {
+  return publicDocuments(staySlugs, pages, postSlugs);
 }
 
 /** Bytes as decimal megabytes with one decimal, e.g. "47.3". */
