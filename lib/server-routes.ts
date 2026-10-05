@@ -21,7 +21,6 @@
  */
 export const HELD_PATHS = [
   "/dashboard",
-  "/booking",
   "/fx",
   "/newsletter",
   "/embed",
