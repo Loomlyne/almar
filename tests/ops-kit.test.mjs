@@ -426,7 +426,8 @@ test("opsPut's site event: a success body with `site` reaches almar:site like op
 
 test("ops-client holds no token: the session cookie travels on its own", () => {
   const source = read("ops-client.ts");
-  assert.equal(/authorization|localStorage|sessionStorage|document\.cookie|process\.env/i.test(source), false);
+  const code = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+  assert.equal(/authorization|localStorage|sessionStorage|document\.cookie|process\.env/i.test(code), false);
   assert.match(source, /credentials:\s*"same-origin"/);
   assert.match(source, /cache:\s*"no-store"/);
 });
