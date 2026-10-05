@@ -160,16 +160,6 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(post.headers()["x-robots-tag"]).toBe("noindex");
   });
 
-  test("4. POST /api/booking/quote is served by Next (plan 04-02): an empty body is 400, 403 or 503, never the static 404", async ({ request }) => {
-    const res = await request.post("/api/booking/quote", { data: {}, maxRedirects: 0 });
-    expect([400, 403, 503], `POST /api/booking/quote answered ${res.status()}`).toContain(res.status());
-    expect(res.headers()["content-type"]).toMatch(/^application\/json/);
-    expect(res.headers()["cache-control"]).toContain("no-store");
-    expect(res.headers()["x-robots-tag"]).toBe("noindex");
-    const get = await request.get("/api/booking/quote", { maxRedirects: 0 });
-    expect(get.status()).toBe(405);
-  });
-
   test("4. headers only Next's own layers set, sent by a visitor, change nothing on /api/health", async ({ request }) => {
     // Pre-landing review 2026-10-05: Next and OpenNext read x-matched-path, x-middleware-rewrite, x-now-route-matches
     // and RSC to route a request they believe an earlier layer already handled. A visitor can send all of them; the
@@ -262,5 +252,15 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     const res = await request.get("/about?_rsc=x", { headers: { RSC: "1" }, maxRedirects: 0 });
     expect(res.status()).toBe(200);
     expect(Buffer.compare(await res.body(), readFileSync(join(FOLDER, "about.html")))).toBe(0);
+  });
+
+  test("8. POST /api/booking/quote is served by Next (plan 04-02): an empty body is 400, 403 or 503, never the static 404", async ({ request }) => {
+    const res = await request.post("/api/booking/quote", { data: {}, maxRedirects: 0 });
+    expect([400, 403, 503], `POST /api/booking/quote answered ${res.status()}`).toContain(res.status());
+    expect(res.headers()["content-type"]).toMatch(/^application\/json/);
+    expect(res.headers()["cache-control"]).toContain("no-store");
+    expect(res.headers()["x-robots-tag"]).toBe("noindex");
+    const get = await request.get("/api/booking/quote", { maxRedirects: 0 });
+    expect(get.status()).toBe(405);
   });
 });
