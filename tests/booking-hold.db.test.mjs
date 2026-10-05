@@ -75,6 +75,27 @@ function fullPayload({ slug, arrive, leave, email, vatBp, depositBp, lines = [],
   };
 }
 
+/** Right after a database reset PostgREST reconnects and reloads its schema; wait for it instead of failing the first case. */
+async function waitReady(admin) {
+  const transient = new Set(["PGRST001", "PGRST002", "PGRST202", "PGRST205"]);
+  let last = null;
+  let good = 0;
+  for (let i = 0; i < 120 && good < 3; i += 1) {
+    const rpc = await admin.rpc("booking_context", { p_stay_slug: "ready-probe", p_from: null, p_to: null, p_locale: "en" });
+    const table = rpc.error ? rpc : await admin.from("site_settings").select("id").eq("id", 1).single();
+    if (!rpc.error && !table.error) {
+      good += 1;
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      continue;
+    }
+    good = 0;
+    last = rpc.error ?? table.error;
+    if (!transient.has(last.code)) break;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  if (good < 3) assert.fail(`the local API did not become ready: ${JSON.stringify(last)}`);
+}
+
 async function seed(t) {
   if (state || seedError) return state;
   const stack = requireStack(t);
@@ -82,6 +103,7 @@ async function seed(t) {
   assert.match(stack.url, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/, "this test only talks to a local stack");
   const admin = createClient(stack.url, stack.serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   try {
+    await waitReady(admin);
     const suffix = randomUUID().slice(0, 8);
     const ids = { destination: randomUUID(), stay: randomUUID(), item: null, ownItem: false };
     const settings = await admin.from("site_settings").select("vat_percent, deposit_percent").eq("id", 1).single();
@@ -213,7 +235,7 @@ test("a payment, a cancel, a lapse, a release and new holds on one stay run toge
   const s = await seed(t);
   if (!s) return;
   const failures = [];
-  for (let round = 0; round < 12; round += 1) {
+  for (let round = 0; round < 24; round += 1) {
     const day = 480 + round * 10;
     const h = await hold(s, { arrive: dubaiDay(day), leave: dubaiDay(day + 2), email: `mix${round}-${randomUUID().slice(0, 6)}@example.com` });
     assert.equal(h.error, null);
@@ -222,6 +244,13 @@ test("a payment, a cancel, a lapse, a release and new holds on one stay run toge
     assert.equal(open.data.ok, true);
     const session = `cs_mix_${randomUUID().replaceAll("-", "")}`;
     await s.admin.rpc("attach_checkout_session", { p_payment: open.data.payment_id, p_session: session });
+    // Half of the rounds: the hold ended more than two minutes ago, so a new hold's sweep, the lapse, the cancel and the
+    // payment all want the same lapsed booking at once (the lock order stay -> booking -> nights is what keeps them apart).
+    if (round % 2 === 0) {
+      const ended = new Date(Date.now() - 4 * 60000).toISOString();
+      assert.ifError((await s.admin.from("booking_nights").update({ expires_at: ended }).eq("booking_id", h.data.booking_id)).error);
+      assert.ifError((await s.admin.from("bookings").update({ hold_expires_at: ended }).eq("id", h.data.booking_id)).error);
+    }
     const settled = await Promise.allSettled([
       s.admin.rpc("record_payment", { p_session: session, p_payment_intent: `pi_${session.slice(-10)}`, p_actor: "stripe:evt_mix" }),
       s.admin.rpc("ops_set_booking_status", { p_booking: h.data.booking_id, p_to: "cancelled", p_expected_from: "held", p_actor: OWNER }),
@@ -248,10 +277,10 @@ test("a home-pickup line is stored with the address, and the address is required
   const item = await s.admin.from("catalog_items").select("price_aed").eq("id", s.ids.item).single();
   const price = Math.round(Number(item.data.price_aed) * 100);
   const line = { catalog_item_id: s.ids.item, name: "Home pickup", unit: "trip", is_uae: true, is_home_pickup: true, unit_price_fils: price, quantity: 1, line_fils: price };
-  const without = await hold(s, { arrive: dubaiDay(700), leave: dubaiDay(702), email: `hp1-${randomUUID().slice(0, 6)}@example.com`, lines: [line] });
+  const without = await hold(s, { arrive: dubaiDay(900), leave: dubaiDay(902), email: `hp1-${randomUUID().slice(0, 6)}@example.com`, lines: [line] });
   assert.ok(without.error, "a home-pickup line without an address is refused");
   assert.match(without.error.message, /almar:invalid/);
-  const withAddress = await hold(s, { arrive: dubaiDay(700), leave: dubaiDay(702), email: `hp2-${randomUUID().slice(0, 6)}@example.com`, lines: [line], pickup: "Villa 1, Dubai" });
+  const withAddress = await hold(s, { arrive: dubaiDay(900), leave: dubaiDay(902), email: `hp2-${randomUUID().slice(0, 6)}@example.com`, lines: [line], pickup: "Villa 1, Dubai" });
   assert.equal(withAddress.error, null);
   assert.equal(withAddress.data.ok, true);
   const lines = await s.admin.from("booking_lines").select("catalog_item_id, quantity, line_fils").eq("booking_id", withAddress.data.booking_id);
