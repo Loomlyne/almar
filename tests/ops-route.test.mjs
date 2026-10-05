@@ -410,3 +410,67 @@ test("shape: a stay rate row's daterange becomes inclusive first/last nights", (
     id: "r1", first_night: "2026-03-01", last_night: "2026-03-07", nights: 7, nightly_rate_aed: "1200.00",
   });
 });
+
+// ---- Task 3: source guard over every app/api/ops route ----------------------------------------------------------------
+
+function walk(dir, acc = []) {
+  for (const name of readdirSync(dir)) {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) walk(path, acc);
+    else acc.push(path);
+  }
+  return acc;
+}
+
+const EXPECTED_ROUTES = ["blocks", "catalog", "destinations", "journeys", "publish", "stay-access", "stay-rates", "stays", "team"];
+
+test("source guard: every file under app/api/ops is a route.ts built with the wrapper; nine routes; no dynamic segment", () => {
+  const files = walk(join("app", "api", "ops")).sort();
+  const names = files.map((f) => f.split("/").slice(3, -1).join("/"));
+  for (const name of EXPECTED_ROUTES) assert.ok(names.includes(name), `app/api/ops/${name}/route.ts`);
+  assert.ok(files.length >= EXPECTED_ROUTES.length);
+  for (const file of files) {
+    assert.match(file, /\/route\.ts$/, `${file}: only route.ts files under app/api/ops`);
+    assert.equal(/[\[\]()@]/.test(file), false, `${file}: no dynamic, grouped or parallel segment`);
+    assert.notEqual(file, join("app", "api", "ops", "route.ts"));
+    const src = readFileSync(file, "utf8");
+    assert.match(src, /^export const dynamic = "force-dynamic";$/m, `${file}: force-dynamic`);
+    const exported = [...src.matchAll(/^export\s+(?:const|function|async function|let|var|class)\s+(\w+)/gm)].map((m) => m[1]);
+    assert.ok(exported.length >= 2, `${file}: dynamic plus at least one method`);
+    for (const name of exported) assert.ok(["dynamic", "GET", "POST", "PUT"].includes(name), `${file}: exports ${name}`);
+    assert.equal(/^export\s*\{|^export\s+default|^export\s*\*/m.test(src), false, `${file}: no re-export or default export`);
+    for (const m of src.matchAll(/^export const (GET|POST|PUT) = (\w+)\(/gm)) {
+      assert.equal(m[2], { GET: "opsGet", POST: "opsPost", PUT: "opsPut" }[m[1]], `${file}: ${m[1]} is built with ${m[2]}`);
+    }
+    for (const method of ["GET", "POST", "PUT"]) {
+      if (exported.includes(method)) assert.match(src, new RegExp(`^export const ${method} = ops(Get|Post|Put)\\(`, "m"), `${file}: ${method}`);
+    }
+    assert.equal(/supabase\/clients|createSupabaseAdmin|createClient|SUPABASE_|process\.env/.test(src), false, `${file}: no client, no key, no env`);
+    assert.equal(/\bruntime\b/.test(src), false, `${file}: no runtime export (job 10)`);
+    for (const m of src.matchAll(/from "([^"]+)"/g)) {
+      assert.match(m[1], /^(\.\.\/)+lib\/ops\/[a-z-]+$/, `${file}: imports only lib/ops (${m[1]})`);
+    }
+  }
+});
+
+test("source guard: the publish route has POST only; journeys has no delete in its parse", () => {
+  const publish = readFileSync("app/api/ops/publish/route.ts", "utf8");
+  assert.match(publish, /export const POST = opsPost\(/);
+  assert.equal(/export const GET/.test(publish), false);
+});
+
+test("source guard: lib/ops/route.ts binds requireOwner; route-core imports no Next; handlers never log a body", () => {
+  const route = readFileSync("lib/ops/route.ts", "utf8");
+  assert.match(route, /import \{ requireOwner[^}]*\} from "\.\.\/auth\/require-owner"/);
+  assert.match(route, /decide: requireOwner/);
+  for (const file of ["lib/ops/route-core.ts", "lib/ops/catalog-handlers.ts", "lib/ops/validate.ts", "lib/ops/validate-catalog.ts", "lib/ops/shape.ts", "lib/ops/journey-price.ts"]) {
+    const src = readFileSync(file, "utf8");
+    assert.equal(/from "next|from "react/.test(src), false, `${file}: no Next import`);
+    assert.equal(/SUPABASE_SERVICE_ROLE_KEY|createSupabaseAdmin|process\.env/.test(src), false, `${file}: no key, no admin client, no env`);
+    assert.equal(/console\.(log|info|debug|warn)\(/.test(src), false, `${file}: no logging but the error code`);
+  }
+  const handlers = readFileSync("lib/ops/catalog-handlers.ts", "utf8");
+  assert.equal(/console\./.test(handlers), false, "handlers never log");
+  assert.equal(/\.(insert|update|upsert|delete)\(/.test(handlers), false, "writes are RPCs only, never table writes");
+  assert.match(handlers, /rpc\("ops_/);
+});
