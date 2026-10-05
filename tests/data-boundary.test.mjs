@@ -4,7 +4,10 @@
 // Rules, over every source file under app/ and components/ (a route.ts holding a Framer `const HTML = "`
 // string and the test harness folder are skipped):
 //   1. No import of lib/data/fixtures, lib/data/resolve or lib/data/media.
-//   2. No `*_en` / `*_ar` / `*_es` field suffix and no `translations` identifier.
+//   2. No `*_en` / `*_ar` / `*_es` field suffix and no `translations` identifier, except under the owner API
+//      folders below (plan 03.2-11): the dashboard talks to /api/ops/*, whose shapes are `translations: { en, ar, es }`
+//      and fields such as `name_en` (03.2-API-CONTRACT.md). That is the owner's editing API, not the public data
+//      layer. Rules 1, 3 and 4 still hold there.
 //   3. Under components/ui, components/journey, components/icons and components/site, the only lib/data
 //      imports are `types` and `stay-filter` (those components take props).
 //   4. A file whose first statement is "use client" imports only `types` and `stay-filter` from lib/data.
@@ -23,6 +26,7 @@ const FIELD_SUFFIX = /\b[a-z]+_(?:en|ar|es)\b/;
 const TRANSLATIONS = /\btranslations\b/;
 const PROPS_ONLY_DIRS = ["components/ui/", "components/journey/", "components/icons/", "components/site/"];
 const ALLOWED_FROM_CLIENT = new Set(["types", "stay-filter"]);
+const OWNER_API_DIRS = ["components/ops/", "app/dashboard/", "app/api/ops/"];
 
 /** The module specifiers a source file imports (static, side-effect, dynamic and require). */
 export function specifiers(src) {
@@ -57,9 +61,11 @@ export function analyze(src, fileRel) {
       found.push(`${fileRel}: ${isClient ? "a client file" : "a props-only component"} imports lib/data/${target}`);
     }
   }
-  const field = src.match(FIELD_SUFFIX);
-  if (field) found.push(`${fileRel}: language-suffixed field ${field[0]}`);
-  if (TRANSLATIONS.test(src)) found.push(`${fileRel}: identifier "translations"`);
+  if (!OWNER_API_DIRS.some((d) => fileRel.startsWith(d))) {
+    const field = src.match(FIELD_SUFFIX);
+    if (field) found.push(`${fileRel}: language-suffixed field ${field[0]}`);
+    if (TRANSLATIONS.test(src)) found.push(`${fileRel}: identifier "translations"`);
+  }
   return found;
 }
 
@@ -110,6 +116,12 @@ test("the analyzer allows what the contract allows (green cases)", () => {
   assert.deepEqual(analyze('import { getStays } from "@/lib/data/stays";', "app/private-stays/page.tsx"), []);
   assert.deepEqual(analyze('import { x } from "@/lib/data/media-manifest.json";', "app/x/page.tsx"), []);
   assert.deepEqual(analyze("const price_estimate = 1; const base_url = 2;", "app/x/page.tsx"), []);
+  // The owner API folders speak the contract's shapes (03.2-11) ...
+  assert.deepEqual(analyze("const name_en = row.translations.en;", "components/ops/api-types.ts"), []);
+  assert.deepEqual(analyze("const name_en = row.translations.en;", "app/dashboard/(ops)/catalog/x.tsx"), []);
+  // ... but the import rules still hold there.
+  assert.equal(analyze('"use client";\nimport { getStays } from "../../lib/data/stays";', "components/ops/x.tsx").length > 0, true);
+  assert.equal(analyze("const name_en = row.translations.en;", "components/pages/p.tsx").length > 0, true);
 });
 
 test("no file under app/ or components/ breaks the data-layer boundary", () => {
