@@ -230,6 +230,11 @@ test.describe("behaviour", () => {
         await expect(publish).toBeDisabled();
         await expect(button(page, copy.save)).toBeEnabled();
         await expect(page.getByText(copy.publishNeeds)).toBeVisible();
+        // The disabled button names its reason: the list of what is missing.
+        const reasonId = await publish.getAttribute("aria-describedby");
+        expect(reasonId, "Publish is described by the missing list").toBeTruthy();
+        await expect(page.locator(`[id="${reasonId}"]`)).toContainText(copy.publishNeeds);
+        await expect(page.locator(`[id="${reasonId}"] li`)).toHaveCount(3);
         await expect(page.getByText(copy.publishNeeds).locator("xpath=following-sibling::ul/li")).toHaveCount(3);
         await publish.click({ force: true });
         await expectNotCalled(page, "publish");
@@ -300,6 +305,7 @@ test.describe("behaviour", () => {
         await expect(list).toHaveCount(3);
         await expect(button(page, copy.publish)).toBeDisabled();
         await expect(page.getByRole("alert")).toHaveCount(0);
+        await expect(button(page, copy.publish)).toHaveAttribute("aria-describedby", /.+/);
         // The server's own words for the Arabic and Spanish gaps and the photo, in the language of the dashboard.
         const gap = (language: "ar" | "es", field: string) => copy.missingLine.replace("{language}", copy.languages[language]).replace("{field}", field);
         const upper = (value: string) => value.charAt(0).toLocaleUpperCase() + value.slice(1);

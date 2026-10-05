@@ -46,15 +46,21 @@ export function PublishBar({
 }) {
   const copy = OPS_KIT_COPY[useDashboardLocale()];
   const hintId = useId();
+  const gapsId = useId();
+  const alertId = useId();
   const fromServer = missingFromError(error);
   const gaps = fromServer ?? (isPublished ? [] : missing);
   const blocked = missing.length > 0 || fromServer !== null;
+  // A 409 publish_incomplete whose list is absent or empty still says why, in its own sentence.
+  const showAlert = error !== null && (fromServer === null || fromServer.length === 0);
+  // What a disabled Publish waits for, so a screen reader hears the reason with the button.
+  const publishReason = blocked ? (gaps.length > 0 ? gapsId : showAlert ? alertId : undefined) : undefined;
   const showDelete = Boolean(onDelete) && !isNew;
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
       {gaps.length > 0 ? (
-        <div className="flex flex-col gap-1 border-s border-gold ps-2">
+        <div id={gapsId} className="flex flex-col gap-1 border-s border-gold ps-2">
           <p className="m-0 text-label text-ink">{copy.publishNeeds}</p>
           <ul className="m-0 flex list-none flex-col p-0 text-label text-ink">
             {gaps.map((item) => (
@@ -68,8 +74,8 @@ export function PublishBar({
           {code === "no_base_rate" ? copy.warnNoBaseRate : copy.warnNoPrice}
         </p>
       ))}
-      {error && fromServer === null ? (
-        <p role="alert" className="m-0 text-label text-error">
+      {showAlert && error ? (
+        <p id={alertId} role="alert" className="m-0 text-label text-error">
           {errorText(copy, error, fieldLabel)}
         </p>
       ) : null}
@@ -88,7 +94,7 @@ export function PublishBar({
             <Button variant="secondary" disabled={busy || (!isNew && !dirty)} onClick={onSave}>
               {copy.save}
             </Button>
-            <Button disabled={busy || blocked} onClick={onPublish}>
+            <Button disabled={busy || blocked} aria-describedby={publishReason} onClick={onPublish}>
               {copy.publish}
             </Button>
           </>

@@ -160,6 +160,20 @@ test("OPS_KIT_COPY has the same keys in en, ar and es, none empty, with the same
   }
 });
 
+test("the Spanish copy speaks tú (house rule), not usted", () => {
+  const formal = /\b(?:usted|deje|dejar[ée]|elija|revise|inténtelo|intentelo|inicie|abra|cierre|actualice|quítelo|publique|arrastre|seleccione|escriba|elimine|guarde|pulse|haga|vuelva|espere)\b/i;
+  for (const [key, value] of leaves(OPS_KIT_COPY.es)) assert.equal(formal.test(value), false, `es.${key}: "${value}" is formal`);
+  const es = OPS_KIT_COPY.es;
+  assert.equal(es.unpublishFirst, "Primero deja de publicarlo");
+  assert.equal(es.dragHandle, "Arrastra para reordenar");
+  assert.equal(es.invalidField, "Revisa {field} e inténtalo de nuevo.");
+  assert.equal(es.errors.not_owner, "Esta sesión no es la del propietario. Inicia sesión de nuevo.");
+  assert.equal(es.errors.network, "Sin conexión. Revisa tu internet e inténtalo de nuevo.");
+  assert.equal(es.datePickLast, "Elige el último día. Elige el mismo día otra vez para un solo día.");
+  assert.equal(es.datePickAfter, "Elige un día a partir del {date}.");
+  assert.equal(readFileSync("lib/copy/ops-kit.ts", "utf8").includes('formal "usted"'), false, "the file header still says usted");
+});
+
 test("fillCopy fills named tokens and leaves an unknown one as written", () => {
   assert.equal(fillCopy("{n} selected", { n: 3 }), "3 selected");
   assert.equal(fillCopy("{a} {b}", { a: "x" }), "x {b}");
@@ -662,6 +676,51 @@ test("PublishBar: any other error is one fixed sentence in an alert", () => {
   const html = bar({ ...barProps, error: { code: "slug_taken", field: "slug", locale: null, detail: { secret: "hidden" } } });
   assert.match(html, /role="alert"[^>]*>Another item already uses this web address\.</);
   assert.equal(html.includes("hidden"), false);
+});
+
+test("PublishBar: a 409 publish_incomplete with no usable list still says the publish_incomplete sentence", () => {
+  for (const detail of [null, undefined, {}, { missing: [] }, { missing: "x" }]) {
+    const html = bar({ ...barProps, error: { code: "publish_incomplete", field: null, locale: null, detail } });
+    assert.match(html, /role="alert"[^>]*>This item cannot be published yet: required items are missing\.</, JSON.stringify(detail));
+    assert.equal(html.includes("Publish needs:"), false);
+    assert.equal(isDisabled(buttonTag(html, "Publish")), true, "the server refused: Publish waits for an edit");
+  }
+  // With a list the list is the message: no second sentence.
+  const listed = bar({ ...barProps, error: { code: "publish_incomplete", field: null, locale: null, detail: { missing: [{ locale: "ar", field: "title" }] } } });
+  assert.equal(listed.includes("role=\"alert\""), false);
+});
+
+/** The id an element names in aria-describedby, and the markup of the element with that id. */
+function describedBy(html, tag) {
+  const id = /aria-describedby="([^"]+)"/.exec(tag)?.[1];
+  assert.ok(id, "aria-describedby is set");
+  const target = new RegExp(`<(\\w+)[^>]*\\sid="${id.replace(/[:]/g, "\\:")}"[^>]*>([\\s\\S]*?)</\\1>`).exec(html);
+  assert.ok(target, `an element has id ${id}`);
+  return target[2];
+}
+
+test("PublishBar: a disabled Publish names the reason it is disabled (aria-describedby)", () => {
+  const withGaps = bar({
+    ...barProps,
+    missing: [{ locale: "ar", field: "name" }, { locale: null, field: "hero_media_id" }],
+  });
+  const reason = describedBy(withGaps, buttonTag(withGaps, "Publish"));
+  assert.match(reason, /Publish needs:/);
+  assert.match(reason, /<li>Arabic name<\/li><li>A photo<\/li>/);
+
+  // The server's list is the reason after a 409.
+  const fromServer = bar({
+    ...barProps,
+    error: { code: "publish_incomplete", field: null, locale: null, detail: { missing: [{ locale: "es", field: "title" }] } },
+  });
+  assert.match(describedBy(fromServer, buttonTag(fromServer, "Publish")), /<li>Spanish title<\/li>/);
+
+  // No list from the server: the sentence is the reason.
+  const sentence = bar({ ...barProps, error: { code: "publish_incomplete", field: null, locale: null, detail: {} } });
+  assert.match(describedBy(sentence, buttonTag(sentence, "Publish")), /This item cannot be published yet/);
+
+  // An enabled Publish has nothing to explain.
+  assert.equal(/aria-describedby/.test(buttonTag(bar(barProps), "Publish")), false);
 });
 
 const table = await loadRenderer(`${KIT}/list-table.tsx`, "ListTable");

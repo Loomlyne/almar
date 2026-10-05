@@ -3,7 +3,7 @@
 // EN is the house register of the dashboard. Strings marked CANVAS are taken verbatim from the design canvas boards
 // (DashServices, DashDestinations, DashTeamLegal, DashMediaNav) in all three languages. Every other EN string is
 // DRAFTED UI COPY for the owner's review at the picture gate. AR (Gulf-friendly Modern Standard Arabic) and ES
-// (neutral Latin American, formal "usted") are DRAFTS written from the EN, flagged for the owner's review, in the same
+// (neutral Latin American, informal "tú", the house rule) are DRAFTS written from the EN, flagged for the owner's review, in the same
 // practice as lib/copy/journey.ts. Never a price, a rate or legal text. `{name}` style tokens are filled with fillCopy.
 // Imported directly by the kit; deliberately not registered in lib/copy/index.ts.
 
@@ -349,7 +349,7 @@ export const OPS_KIT_COPY: Record<OpsKitLocale, OpsKitCopy> = {
     saveAndUpdateSite: "Guardar y actualizar el sitio",
     unpublish: "Dejar de publicar",
     publishNeeds: "Para publicar falta:",
-    unpublishFirst: "Primero deje de publicarlo",
+    unpublishFirst: "Primero deja de publicarlo",
     missing: "Falta",
     checkedTranslation: "Revisé esta traducción",
     discardTitle: "¿Descartar los cambios?",
@@ -357,7 +357,7 @@ export const OPS_KIT_COPY: Record<OpsKitLocale, OpsKitCopy> = {
     keepEditing: "Seguir editando",
     moveUp: "Subir",
     moveDown: "Bajar",
-    dragHandle: "Arrastre para reordenar",
+    dragHandle: "Arrastra para reordenar",
     order: "Orden",
     warnNoBaseRate: "Publicado sin tarifa por noche: los huéspedes aún no pueden reservarlo.",
     warnNoPrice: "Publicado sin precio: no se ofrece como complemento.",
@@ -395,31 +395,31 @@ export const OPS_KIT_COPY: Record<OpsKitLocale, OpsKitCopy> = {
       destination_ids: "Un destino",
       destination_published: "El destino está publicado",
     },
-    invalidField: "Revise {field} e inténtelo de nuevo.",
+    invalidField: "Revisa {field} e inténtalo de nuevo.",
     errors: {
-      invalid: "Algo en este formulario no es válido. Revise los campos e inténtelo de nuevo.",
-      not_owner: "Esta sesión no es la del propietario. Inicie sesión de nuevo.",
+      invalid: "Algo en este formulario no es válido. Revisa los campos e inténtalo de nuevo.",
+      not_owner: "Esta sesión no es la del propietario. Inicia sesión de nuevo.",
       wrong_origin:
-        "Esta solicitud llegó desde una dirección incorrecta. Abra el panel en su propia dirección e inténtelo de nuevo.",
-      not_found: "Este elemento ya no existe. Cierre el panel y actualice la lista.",
+        "Esta solicitud llegó desde una dirección incorrecta. Abre el panel en su propia dirección e inténtalo de nuevo.",
+      not_found: "Este elemento ya no existe. Cierra el panel y actualiza la lista.",
       slug_taken: "Otro elemento ya usa esta dirección web.",
       rate_overlap: "Otro rango de la misma duración ya cubre estas noches.",
-      in_use: "Esto todavía se usa en otro lugar. Quítelo de allí primero.",
-      published: "Este elemento está publicado. Primero deje de publicarlo.",
+      in_use: "Esto todavía se usa en otro lugar. Quítalo de allí primero.",
+      published: "Este elemento está publicado. Primero deja de publicarlo.",
       publish_incomplete: "Este elemento aún no se puede publicar: faltan datos obligatorios.",
-      has_published_stays: "Algunas estancias de este destino siguen publicadas. Primero deje de publicarlas.",
-      parent_unpublished: "El destino de esta estancia no está publicado. Publique primero el destino.",
+      has_published_stays: "Algunas estancias de este destino siguen publicadas. Primero deja de publicarlas.",
+      parent_unpublished: "El destino de esta estancia no está publicado. Publica primero el destino.",
       amenities_mismatch: "Las comodidades en árabe y español necesitan el mismo número de líneas que en inglés.",
       too_large: "Este archivo es demasiado grande.",
       wrong_type: "Este tipo de archivo no se acepta.",
-      unavailable: "El servidor no respondió. Inténtelo de nuevo en un momento.",
-      network: "Sin conexión. Revise su internet e inténtelo de nuevo.",
+      unavailable: "El servidor no respondió. Inténtalo de nuevo en un momento.",
+      network: "Sin conexión. Revisa tu internet e inténtalo de nuevo.",
     },
 
     chooseDates: "Elegir fechas",
-    datePickFirst: "Elija el primer día.",
-    datePickLast: "Elija el último día. Elija el mismo día otra vez para un solo día.",
-    datePickAfter: "Elija un día desde el {date} en adelante.",
+    datePickFirst: "Elige el primer día.",
+    datePickLast: "Elige el último día. Elige el mismo día otra vez para un solo día.",
+    datePickAfter: "Elige un día a partir del {date}.",
     calendarLabel: "Calendario",
 
     noResults: "Sin resultados",
