@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import test from "node:test";
+import { MEDIA_BASE_URL } from "../../lib/data/media.ts";
 import { SITE_ORIGIN, localeAlternates, localeDir, matchPublicPage, stripLocale } from "../../lib/locale-path.ts";
+import { jsonLdUrlViolations } from "../helpers/json-ld-urls.mjs";
 import { HIDDEN, KNOWN_DEAD, deadKey, readRedirects, resolveInOut } from "../helpers/site-links.mjs";
 
 // Invariants of the assembled out/ folder, true at every stage of the slice (no React page yet, some pages,
@@ -103,16 +105,10 @@ for (const { file, html } of reactDocs) {
   test(`React ${file}: organisation JSON-LD on the real domain`, () => {
     const blocks = [...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)];
     assert.ok(blocks.length > 0, "no JSON-LD block");
-    const urls = (value, out = []) => {
-      if (typeof value === "string") {
-        if (/^https?:\/\//.test(value)) out.push(value);
-      } else if (value && typeof value === "object") {
-        for (const [k, v] of Object.entries(value)) if (k !== "@context") urls(v, out);
-      }
-      return out;
-    };
+    // Every URL is on the real domain, except a BlogPosting's `image` (the post cover, plan 03.3-33), which is on the
+    // media host: allowed by key path only (tests/helpers/json-ld-urls.mjs, proven in tests/json-ld-urls.test.mjs).
     for (const [, body] of blocks) {
-      for (const u of urls(JSON.parse(body))) assert.ok(u.startsWith(`${SITE_ORIGIN}/`), u);
+      assert.deepEqual(jsonLdUrlViolations(JSON.parse(body), SITE_ORIGIN, MEDIA_BASE_URL), [], file);
     }
     assert.equal(html.includes("framer.website"), false);
   });

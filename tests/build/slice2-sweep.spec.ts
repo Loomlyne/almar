@@ -19,8 +19,8 @@ import { getDestinations } from "../../lib/data/destinations";
 //   node scripts/assemble-cloudflare.mjs
 //   PW_PORT=<free> npx playwright test -c playwright.build.config.ts tests/build/slice2-sweep.spec.ts --workers=1
 //
-// A  the document list is computed twice (publicDocuments() and localePath over PUBLIC_PAGES) and the two agree on 48.
-// B+C 48 documents x 390, 834, 1440: status, served lang and dir, structure, images, WhatsApp, footer, the held
+// A  the document list is computed twice (publicDocuments() and localePath over PUBLIC_PAGES) and the two agree (the blog less; it has its own sweep).
+// B+C every document x 390, 834, 1440: status, served lang and dir, structure, images, WhatsApp, footer, the held
 //    controls by name and text (with the Menu closed and, below the nav row, open), one screenshot each.
 // D  /experiences: the overlay and, below 1024, the Filters sheet, checked for the same held controls.
 // E  the /services redirects on local wrangler dev, with the Worker of job 10 in front of the assets.
@@ -80,11 +80,14 @@ const PAGES: Array<{ name: string; base: string; kind: Kind }> = [
 ];
 const DOCUMENTS: Doc[] = LOCALES.flatMap((locale) => PAGES.map((p) => ({ locale, ...p, url: localePath(locale, p.base) })));
 
-test("the sweep list is 48 documents: publicDocuments() and the localePath construction agree, and each is an assembled file", () => {
-  const computed = computedDocuments().map(outToUrl);
-  expect(computed).toHaveLength(48);
-  expect(DOCUMENTS).toHaveLength(48);
-  expect(new Set(DOCUMENTS.map((d) => d.url)).size).toBe(48);
+// The blog's documents (slice 4) are swept by tests/build/blog/sweep.spec.ts; this sweep is every other public document.
+const isBlog = (url: string) => /^\/(?:(?:ar|es)\/)?blog(?:\/|$)/.test(url);
+
+test("the sweep list: publicDocuments() less the blog and the localePath construction agree, and each is an assembled file", () => {
+  const computed = computedDocuments().map(outToUrl).filter((u) => !isBlog(u));
+  expect(computed).toHaveLength(LOCALES.length * PAGES.length);
+  expect(DOCUMENTS).toHaveLength(LOCALES.length * PAGES.length);
+  expect(new Set(DOCUMENTS.map((d) => d.url)).size).toBe(DOCUMENTS.length);
   expect([...computed].sort()).toEqual(DOCUMENTS.map((d) => d.url).sort());
   for (const doc of DOCUMENTS) {
     const file = doc.url.endsWith("/") ? `${doc.url.slice(1)}index.html` : `${doc.url.slice(1)}.html`;
@@ -186,7 +189,7 @@ function heldProblems(s: Surface, ctx: HeldCtx, opts: { homeSearch: boolean; sub
 
 const itemNamesOf = async (locale: Locale) => (await catalogData(locale)).items.map((i) => i.name);
 
-// ---- B + C. 48 documents x 3 widths -------------------------------------------------------------------------------------
+// ---- B + C. every document x 3 widths -------------------------------------------------------------------------------------
 
 test.describe("sweep", () => {
   test.setTimeout(120_000);

@@ -1,9 +1,9 @@
 // publicDocuments() (plan 03.3-12): the out/ path of every public React document, computed from PUBLIC_PAGES and
-// the published stay slugs, so slices 3 and 4 add a page pattern and nothing here changes.
+// the published stay slugs and live post slugs, so a slice adds a page pattern and nothing here changes.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { LOCALES, PUBLIC_PAGES, matchPublicPage, stripLocale } from "../lib/locale-path.ts";
-import { SLICE1_PAGES, publicDocuments, readStaySlugs } from "../scripts/media-lib.mjs";
+import { SLICE1_PAGES, publicDocuments, readPostSlugs, readStaySlugs } from "../scripts/media-lib.mjs";
 import { reactPublicRoutes } from "./helpers/site-links.mjs";
 
 const slugs = readStaySlugs();
@@ -28,8 +28,10 @@ test("publicDocuments(slugs, SLICE1_PAGES) is slice 1's own list: the same paths
 test("publicDocuments() length is computed from PUBLIC_PAGES; locales are symmetric; no duplicates", () => {
   const docs = publicDocuments();
   const statics = PUBLIC_PAGES.filter((p) => !p.includes("[")).length;
-  const dynamic = PUBLIC_PAGES.filter((p) => p.includes("[stay]")).length;
-  assert.equal(docs.length, LOCALES.length * (statics + slugs.length * dynamic));
+  const stayPages = PUBLIC_PAGES.filter((p) => p.includes("[stay]")).length;
+  const postPages = PUBLIC_PAGES.filter((p) => p.includes("[post]")).length;
+  assert.equal(statics + stayPages + postPages, PUBLIC_PAGES.length, "every pattern is static, [stay] or [post]");
+  assert.equal(docs.length, LOCALES.length * (statics + slugs.length * stayPages + readPostSlugs().length * postPages));
   assert.equal(new Set(docs).size, docs.length);
   const perLocale = (l) => docs.filter((d) => (l === "en" ? !/^(ar|es)\//.test(d) : d.startsWith(`${l}/`)));
   const sizes = LOCALES.map((l) => perLocale(l).length);

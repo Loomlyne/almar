@@ -13,6 +13,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { LOCALES, PUBLIC_PAGES } from "../lib/locale-path.ts";
+import { isLivePost } from "./post-live.mjs";
+
+// A post is a document only when it is published and its date has come (lib/data/posts.ts isLive): see post-live.mjs.
+export { isLivePost };
 
 /** The repo root, resolved from this file so the scripts work from any cwd. */
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -245,26 +249,56 @@ export function readStaySlugs(fixturesDir = defaultPaths().fixturesDir) {
 /** The public pages slice 1 shipped. Slice 1's own document list (42 files) is publicDocuments(slugs, SLICE1_PAGES). */
 export const SLICE1_PAGES = ["/", "/private-stays", "/private-stays/[stay]"];
 
+/** The blog pages slice 4 shipped. The blog's own document list is publicDocuments(undefined, BLOG_PAGES, postSlugs). */
+export const BLOG_PAGES = ["/blog", "/blog/[post]"];
+
+/** The slugs of the live posts (the three blog pages), in fixture order. */
+export function readPostSlugs(fixturesDir = defaultPaths().fixturesDir, now = new Date()) {
+  const posts = JSON.parse(fs.readFileSync(path.join(fixturesDir, "posts.json"), "utf8"));
+  return posts.filter((p) => isLivePost(p, now)).map((p) => p.slug);
+}
+
 /**
  * The out/ path of every public React document, computed from PUBLIC_PAGES (lib/locale-path.ts): for each locale
  * (no prefix for en, "<locale>/" otherwise) and each pattern in order, "/" is `<prefix>index.html`, a static path is
- * `<prefix><path>.html` and a `[stay]` pattern gives one document per published stay slug. Slices 3 and 4 add a
- * pattern to PUBLIC_PAGES and nothing here changes; a new dynamic parameter needs its enumerator here and in
- * tests/helpers/site-links.mjs reactPublicRoutes.
+ * `<prefix><path>.html` and a dynamic pattern gives one document per value of its parameter: `[stay]` per published
+ * stay slug (readStaySlugs), `[post]` per live post slug (readPostSlugs). Each enumerator is read only when a
+ * pattern needs it. This is the one document list (reconcile S3-11): a new page is a PUBLIC_PAGES entry; a new
+ * dynamic parameter needs its enumerator here and in tests/helpers/site-links.mjs reactPublicRoutes.
  */
-export function publicDocuments(staySlugs = readStaySlugs(), pages = PUBLIC_PAGES) {
+export function publicDocuments(staySlugs, pages = PUBLIC_PAGES, postSlugs) {
+  const enumerators = {
+    "[stay]": () => (staySlugs ??= readStaySlugs()),
+    "[post]": () => (postSlugs ??= readPostSlugs()),
+  };
   const docs = [];
   for (const locale of LOCALES) {
     const prefix = locale === "en" ? "" : `${locale}/`;
     for (const pattern of pages) {
       const params = pattern.match(/\[[^\]]+\]/g) ?? [];
-      for (const p of params) if (p !== "[stay]") throw new Error(`no enumerator for ${p}`);
+      for (const p of params) if (!(p in enumerators)) throw new Error(`no enumerator for ${p}`);
+      if (params.length > 1) throw new Error(`one parameter per pattern: ${pattern}`);
       if (pattern === "/") docs.push(`${prefix}index.html`);
       else if (params.length === 0) docs.push(`${prefix}${pattern.slice(1)}.html`);
-      else for (const slug of staySlugs) docs.push(`${prefix}${pattern.slice(1).replace("[stay]", slug)}.html`);
+      else for (const slug of enumerators[params[0]]()) docs.push(`${prefix}${pattern.slice(1).replace(params[0], slug)}.html`);
     }
   }
   return docs;
+}
+
+/** Slice 1's documents (42): publicDocuments over SLICE1_PAGES. Kept for main's callers. */
+export function slice1Documents(staySlugs = readStaySlugs()) {
+  return publicDocuments(staySlugs, SLICE1_PAGES);
+}
+
+/** The blog documents (slice 4): publicDocuments over BLOG_PAGES. Kept for main's callers. */
+export function blogDocuments(postSlugs = readPostSlugs()) {
+  return publicDocuments(undefined, BLOG_PAGES, postSlugs);
+}
+
+/** Every React document the media guard scans: publicDocuments() over every PUBLIC_PAGES entry. An alias. */
+export function reactDocuments(staySlugs, postSlugs) {
+  return publicDocuments(staySlugs, PUBLIC_PAGES, postSlugs);
 }
 
 /** Bytes as decimal megabytes with one decimal, e.g. "47.3". */

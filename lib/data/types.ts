@@ -322,3 +322,30 @@ export type HomeBlocks = {
   /** Published stories, in order. An empty array hides the section (SITE-02). */
   stories: HomeStory[];
 };
+
+/** One block of a blog post body (design S4 3.2). Stored without ids; heading ids are assigned at read time. */
+export type PostBlock =
+  | { type: "paragraph"; text: string }
+  | { type: "heading"; text: string; id: string }
+  | { type: "quote"; text: string };
+
+/** A blog post, one language (design S4 3.2). */
+export type Post = RowMeta & {
+  slug: string;
+  title: string;
+  excerpt: string;
+  body: PostBlock[];
+  seo_title: string | null;
+  seo_description: string | null;
+  published_at: Timestamp;
+  date_label: string;
+  reading_minutes: number;
+  destination_id: Uuid | null;
+  destination_slug: string | null;
+  destination_name: string | null;
+  featured_stay_slug: string | null;
+  featured_experience_slug: string | null;
+  /** Always present: a post without a cover is a data error and is refused when it is read. */
+  cover_image: ImageRef;
+  is_published: boolean;
+};

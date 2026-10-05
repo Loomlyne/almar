@@ -7,7 +7,8 @@
 //
 // The controller runs it between the assemble step and every preview or production deploy (runbook C10); plan 08's
 // assembler calls assertMediaReady() for the preview and production targets. It exits 1 while the placeholder is
-// set, while the media base is not an https origin, or while any public React document (publicDocuments, from PUBLIC_PAGES) in the output folder
+// set, while the media base is not an https origin, or while any public React document (publicDocuments, from PUBLIC_PAGES:
+// slice 1, the blog, destinations and experiences, every stay and live post enumerated) in the output folder
 // holds the placeholder, a third-party image host, or an <img> src / srcset / og:image that does not start with the
 // media base, or that names a key under the media base which lib/data/media-manifest.json does not hold (so no
 // document can ship pointing at an object nobody uploaded). The document list is computed (publicDocuments), never a
@@ -17,7 +18,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { MEDIA_BASE_URL, MEDIA_BASE_URL_IS_PLACEHOLDER } from "../lib/data/media.ts";
-import { FORBIDDEN_HOSTS, REPO_ROOT, defaultPaths, isMain, publicDocuments, readManifest, readStaySlugs } from "./media-lib.mjs";
+import { FORBIDDEN_HOSTS, REPO_ROOT, defaultPaths, isMain, publicDocuments, readManifest, readPostSlugs, readStaySlugs } from "./media-lib.mjs";
 
 /**
  * The nav wordmarks (Poly_White, Stacked_Charcoal) are brand assets from brand/: the Next build hashes them to
@@ -177,7 +178,7 @@ export function referencedKeys(html, base) {
  * the `.invalid` check ignores exactly the base's own hostname (any other .invalid host is still a violation); the
  * deploy never passes it, only the coverage test, which runs while the base is still the placeholder.
  */
-export function scanOut(outDir, base, { documents = publicDocuments(readStaySlugs()), manifestKeys, placeholderBase = false } = {}) {
+export function scanOut(outDir, base, { documents = publicDocuments(), manifestKeys, placeholderBase = false } = {}) {
   const ownHost = placeholderBase ? new URL(base).hostname.toLowerCase() : null;
   const violations = [];
   let found = 0;
@@ -256,7 +257,8 @@ export function main(argv = [], { log = console.log } = {}) {
     log(`media-guard: lib/data/media-manifest.json: ${err.message}`);
     return 1;
   }
-  const { violations, documents, images } = scanOut(outDir, base, { documents: publicDocuments(readStaySlugs(paths.fixturesDir)), manifestKeys });
+  const docs = publicDocuments(readStaySlugs(paths.fixturesDir), undefined, readPostSlugs(paths.fixturesDir));
+  const { violations, documents, images } = scanOut(outDir, base, { documents: docs, manifestKeys });
   if (violations.length) {
     for (const v of violations) log(`media-guard: ${v.document}: ${v.problem}`);
     log(`media-guard: ${violations.length} violation(s) in ${out}/`);

@@ -12,6 +12,7 @@ import { getDestinations } from "../../lib/data/destinations";
 import { LOCALES, SITE_ORIGIN, localeAlternates, localeDir, localePath, siteHref, type Locale } from "../../lib/locale-path";
 import { clickClearOfDock } from "../helpers/click-clear-of-dock";
 import { routeMedia } from "../helpers/media-route";
+import { reactPublicRoutes } from "../helpers/site-links.mjs";
 
 // Plan 03.3-08, Task 4. Run on the assembled out/ under local wrangler (playwright.build.config.ts):
 //   node scripts/assemble-cloudflare.mjs
@@ -619,6 +620,9 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     const xml = await response.text();
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(new Set(locs).size, "no address twice").toBe(locs.length);
+    // Every public React page carries alternates: the count is computed (publicDocuments(), and the page files
+    // under app/ with the live posts), not typed; the two computations agree.
+    expect(reactPublicRoutes().length, "publicDocuments() and reactPublicRoutes() agree").toBe(PUBLIC_REACT_DOCUMENTS);
     expect((xml.match(/hreflang="x-default"/g) ?? []).length, "every public React document carries alternates").toBe(PUBLIC_REACT_DOCUMENTS);
     expect(locs.length, "React documents plus the remaining Framer documents").toBe(PUBLIC_REACT_DOCUMENTS + framerDocumentCount());
 

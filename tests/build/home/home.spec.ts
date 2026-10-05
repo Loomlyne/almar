@@ -562,11 +562,11 @@ for (const vp of VIEWPORTS) {
         const cases: Array<[string, () => ReturnType<Page["locator"]>, string, string]> = [
           ["a stay card", () => page.locator("#stays ul a").first(), localePath(locale, `/private-stays/${stays[0].slug}`), ""],
           ["View All Services", () => page.getByRole("link", { name: copy.services.viewAll }), experiences, "?type=service"],
-          ["Read All", () => page.getByRole("link", { name: copy.stories.readAll }), "/blog", ""],
+          ["Read All", () => page.getByRole("link", { name: copy.stories.readAll }), localePath(locale, "/blog"), ""],
           ["Request Consultation (curated)", () => page.locator("#experiences").getByRole("link", { name: copy.moments.cta }), "/contact", ""],
           ["Request Consultation (begin)", () => page.locator("#begin").getByRole("link", { name: copy.begin.cta }), "/contact", ""],
           ["a service card", () => page.locator("#services ul a").first(), experiences, `?type=service&item=${HOME_SERVICE_SLUGS[0]}`],
-          ["a story card", () => page.locator("#stories ul a").first(), `/blog/${blocks.stories[0].slug}`, ""],
+          ["a story card", () => page.locator("#stories ul a").first(), localePath(locale, `/blog/${blocks.stories[0].slug}`), ""],
           ["the wordmark", () => page.getByRole("link", { name: "ALMAR Private Journeys home" }), home(locale), ""],
         ];
         for (const [label, locate, path, search] of cases) {

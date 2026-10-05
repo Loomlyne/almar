@@ -16,7 +16,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { PUBLIC_PAGES } from "../lib/locale-path.ts";
-import { REPO_ROOT, collectFixtureImages, readManifest, readStaySlugs, publicDocuments } from "../scripts/media-lib.mjs";
+import { REPO_ROOT, collectFixtureImages, isLivePost, readManifest, readPostSlugs, readStaySlugs, publicDocuments, reactDocuments } from "../scripts/media-lib.mjs";
+import { loadTs } from "./helpers/load-ts.mjs";
 import { assertMediaReady, imageReferences, main as guardMain, readMediaConstants, referencedKeys, scanOut } from "../scripts/media-guard.mjs";
 
 const THIRD_PARTY = ["framerusercontent.com", "files.catbox.moe", "videos.pexels.com"];
@@ -110,6 +111,7 @@ function scratchTree(label) {
   fs.mkdirSync(path.join(root, "lib", "data", "fixtures"), { recursive: true });
   fs.mkdirSync(path.join(root, "app"), { recursive: true });
   fs.copyFileSync(path.join(REPO_ROOT, "lib", "data", "fixtures", "stays.json"), path.join(root, "lib", "data", "fixtures", "stays.json"));
+  fs.copyFileSync(path.join(REPO_ROOT, "lib", "data", "fixtures", "posts.json"), path.join(root, "lib", "data", "fixtures", "posts.json"));
   // the manifest holds the keys writeDocs uses, so the clean scan has nothing to report
   fs.writeFileSync(path.join(root, "lib", "data", "media-manifest.json"), JSON.stringify(SCRATCH_KEYS.map((key) => ({ key })), null, 2) + "\n");
   return root;
@@ -124,9 +126,14 @@ function setMedia(root, { base, placeholder }) {
 
 const GOOD_BASE = "https://media.example.test";
 
+// The documents of a scratch root: its own stays and posts, passed explicitly.
+const docsOf = (root) => {
+  const fixtures = path.join(root, "lib", "data", "fixtures");
+  return publicDocuments(readStaySlugs(fixtures), undefined, readPostSlugs(fixtures));
+};
+
 function writeDocs(root, base, { out = "out", mutate } = {}) {
-  const slugs = readStaySlugs(path.join(root, "lib", "data", "fixtures"));
-  for (const doc of publicDocuments(slugs)) {
+  for (const doc of docsOf(root)) {
     const file = path.join(root, out, ...doc.split("/"));
     fs.mkdirSync(path.dirname(file), { recursive: true });
     let html = `<!doctype html><html><head><meta content="${base}/home/hero/poster.webp" property="og:image"/></head><body>` +
@@ -135,6 +142,54 @@ function writeDocs(root, base, { out = "out", mutate } = {}) {
     fs.writeFileSync(file, html);
   }
 }
+
+// 0. Which posts are documents --------------------------------------------------------------------------------------
+
+// A post is a document only when it is published and its date has come, as lib/data/posts.ts decides (isLive).
+const NOW = new Date("2026-10-05T00:00:00Z");
+const postRow = (slug, over = {}) => ({ slug, is_published: true, published_at: "2025-06-01T00:00:00+00:00", ...over });
+
+test("readPostSlugs: a scheduled post (published_at in the future) and an unpublished post are not documents", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "almar-post-slugs-"));
+  fs.writeFileSync(
+    path.join(dir, "posts.json"),
+    JSON.stringify([
+      postRow("live-one"),
+      postRow("scheduled", { published_at: "2099-01-01T00:00:00+00:00" }),
+      postRow("draft", { is_published: false }),
+      postRow("live-two", { published_at: "2025-05-01T00:00:00+00:00" }),
+    ]),
+  );
+  assert.deepEqual(readPostSlugs(dir, NOW), ["live-one", "live-two"]);
+  // The clock decides: the same fixture a century later lists the scheduled post too.
+  assert.deepEqual(readPostSlugs(dir, new Date("2100-01-01T00:00:00Z")), ["live-one", "scheduled", "live-two"]);
+  // The default clock is now: 2099 has not come.
+  assert.deepEqual(readPostSlugs(dir), ["live-one", "live-two"]);
+  assert.equal(blogDocs(dir).length, 6, "2 live posts x 3 locales are the post documents; the 3 list pages are extra");
+});
+
+function blogDocs(dir) {
+  return reactDocuments(readStaySlugs(), readPostSlugs(dir)).filter((d) => d.includes("blog/"));
+}
+
+test("isLivePost agrees with lib/data/posts.ts isLive on every case", async () => {
+  const { isLive } = await loadTs("lib/data/posts.ts");
+  const cases = [
+    { is_published: true, published_at: "2025-06-01T00:00:00+00:00" },
+    { is_published: true, published_at: "2026-10-05T00:00:00+00:00" },
+    { is_published: true, published_at: "2026-10-05T00:00:01+00:00" },
+    { is_published: true, published_at: "2099-01-01T00:00:00+00:00" },
+    { is_published: false, published_at: "2025-06-01T00:00:00+00:00" },
+    { is_published: false, published_at: "2099-01-01T00:00:00+00:00" },
+  ];
+  for (const row of cases) assert.equal(isLivePost(row, NOW), isLive(row, NOW), JSON.stringify(row));
+});
+
+test("the real fixtures: readPostSlugs lists the three live posts, as getPostSlugs does", async () => {
+  const { getPostSlugs } = await loadTs("lib/data/posts.ts");
+  assert.deepEqual([...readPostSlugs()].sort(), [...(await getPostSlugs())].sort());
+  assert.equal(readPostSlugs().length, 3);
+});
 
 // 1. Source scan ----------------------------------------------------------------------------------------------------
 
@@ -156,13 +211,15 @@ test("fixtures hold keys: the distinct media_key count of collectFixtureImages e
   assert.equal(distinct.size, readManifest().length);
 });
 
-test("publicDocuments is computed from PUBLIC_PAGES: 3 locales x (static pages + published stays), the new pages named, no services", () => {
-  const stays = readStaySlugs().length;
-  const perLocale = PUBLIC_PAGES.reduce((n, p) => n + (p === "/private-stays/[stay]" ? stays : 1), 0);
+test("publicDocuments is computed from PUBLIC_PAGES: 3 locales x (static pages + published stays + live posts), the new pages named, no services", () => {
+  const per = { "/private-stays/[stay]": readStaySlugs().length, "/blog/[post]": readPostSlugs().length };
+  const perLocale = PUBLIC_PAGES.reduce((n, p) => n + (per[p] ?? 1), 0);
   const docs = publicDocuments();
   assert.equal(docs.length, 3 * perLocale);
   assert.equal(new Set(docs).size, docs.length);
-  for (const d of ["destinations.html", "ar/destinations.html", "es/destinations.html", "experiences.html", "ar/experiences.html", "es/experiences.html"]) {
+  assert.deepEqual(reactDocuments(), docs, "reactDocuments is an alias of publicDocuments: one list");
+  for (const slug of readPostSlugs()) assert.ok(docs.includes(`blog/${slug}.html`) && docs.includes(`ar/blog/${slug}.html`), slug);
+  for (const d of ["blog.html", "ar/blog.html", "es/blog.html", "destinations.html", "ar/destinations.html", "es/destinations.html", "experiences.html", "ar/experiences.html", "es/experiences.html"]) {
     assert.ok(docs.includes(d), `${d} is in the list`);
   }
   assert.ok(!docs.some((d) => d.includes("services")), "services have no page of their own");
@@ -326,7 +383,7 @@ test("assertMediaReady on scratch roots: placeholder, bad base, good base", () =
 test("scanOut: clean documents have no violations and 4 image references each", () => {
   const root = scratchTree("scan-ok");
   writeDocs(root, GOOD_BASE);
-  const docs = publicDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const docs = docsOf(root);
   const r = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
   assert.deepEqual(r.violations, []);
   assert.equal(r.documents, docs.length);
@@ -335,7 +392,7 @@ test("scanOut: clean documents have no violations and 4 image references each", 
 
 test("scanOut allows the same-origin nav wordmarks under /_next/static/media/, and only that shape", () => {
   const root = scratchTree("scan-brand");
-  const docs = publicDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const docs = docsOf(root);
   const BRAND = "/_next/static/media/Poly_White.3f2a9c1d.svg";
   const CHARCOAL = "/_next/static/media/Stacked_Charcoal.7b41e0aa.svg";
   // the nav wordmark is one <img src> on every document, as the build writes it
@@ -382,7 +439,7 @@ const reactAttr = (value) => value.replaceAll("&", "&amp;").replaceAll('"', "&qu
 
 test("scanOut allows the inline brand SVG of the light footer on an <img src>, counts it, and nothing else of that form", () => {
   const root = scratchTree("scan-inline");
-  const docs = publicDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const docs = docsOf(root);
   const reportOf = (src, { as = "img" } = {}) => {
     writeDocs(root, GOOD_BASE, {
       mutate: (doc, html) => {
@@ -453,7 +510,7 @@ test("imageReferences reads attributes in any order, with single or double quote
 
 test("RED: a document with a framerusercontent src, a placeholder host, a foreign srcset candidate, a foreign og:image or no file is reported", () => {
   const root = scratchTree("scan-red");
-  const docs = publicDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const docs = docsOf(root);
   writeDocs(root, GOOD_BASE, {
     mutate: (doc, html) => {
       if (doc === "index.html") return html.replace(`src="${GOOD_BASE}/stays/a/hero.webp"`, 'src="https://framerusercontent.com/images/x.jpg"');
@@ -481,7 +538,7 @@ test("main --deploy: exit 0 and the OK line for a good scratch root; exit 1 for 
   const logs = [];
   const log = (l) => logs.push(l);
   writeDocs(root, GOOD_BASE);
-  const n = publicDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures"))).length;
+  const n = docsOf(root).length;
   assert.equal(guardMain(["--deploy", "--root", root], { log }), 0, logs.join("\n"));
   assert.equal(logs.at(-1), `media-guard: OK ${GOOD_BASE}, ${n} documents, ${n * 4} image references`);
   // another output folder (the preview build writes out-preview/)
@@ -520,7 +577,7 @@ test("referencedKeys drops query and fragment, ignores refs outside the base (th
 
 test("RED: a reference under the base to a key the manifest does not hold is `<kind> key <key> is not in lib/data/media-manifest.json`; the wordmark is not a key", () => {
   const root = scratchTree("scan-key");
-  const docs = publicDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const docs = docsOf(root);
   const manifestKeys = new Set(SCRATCH_KEYS);
   writeDocs(root, GOOD_BASE, {
     mutate: (doc, html) =>
@@ -550,7 +607,7 @@ test("RED: the CLI exits 1 on a key the manifest does not hold, and exits 1 nami
 test("RED: placeholderBase ignores exactly the base's own host; any other .invalid host is still a violation; with the flag off the base's own host is one", () => {
   const PBASE = `https://${PLACEHOLDER}`;
   const root = scratchTree("scan-pb");
-  const docs = publicDocuments(readStaySlugs(path.join(root, "lib", "data", "fixtures")));
+  const docs = docsOf(root);
   writeDocs(root, PBASE);
   const manifestKeys = new Set(SCRATCH_KEYS);
   const on = scanOut(path.join(root, "out"), PBASE, { documents: docs, manifestKeys, placeholderBase: true });
