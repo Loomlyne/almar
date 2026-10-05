@@ -162,3 +162,39 @@ test("no ops section is live in this plan: OPS_LIVE_SECTIONS is empty, so the ow
   assert.deepEqual([...OPS_LIVE_SECTIONS], []);
   for (const path of ["/", "/home", "/bookings", "/catalog/stays", "/dashboard/settings"]) assert.equal(isLiveOpsPath(path), false, path);
 });
+
+// ---- Fable review of 7527f88: a trailing dot is the same host --------------------------------------------------
+
+test("isOpsHost: one trailing dot (and a port after it) is still the ops host; nothing else becomes it", () => {
+  for (const host of ["dashboard.almarprivatejourney.com.", "DASHBOARD.almarprivatejourney.com.", "dashboard.almarprivatejourney.com.:443", " dashboard.almarprivatejourney.com. "]) {
+    assert.equal(isOpsHost(host, "production"), true, JSON.stringify(host));
+    assert.equal(isOpsHost(host), true, JSON.stringify(host));
+  }
+  // The fail-closed direction stays: only one dot, only this name.
+  for (const host of [
+    "dashboard.almarprivatejourney.com..",
+    "dashboard.almarprivatejourney.com..:443",
+    ".dashboard.almarprivatejourney.com",
+    ".",
+    "dashboard.almarprivatejourney.com.evil.com",
+    "dashboard.almarprivatejourney.com.evil.com.",
+    "evil.dashboard.almarprivatejourney.com.",
+    "almarprivatejourney.com.",
+    "www.almarprivatejourney.com.",
+  ]) {
+    assert.equal(isOpsHost(host, "production"), false, JSON.stringify(host));
+  }
+  // dashboard.localhost stays a dev and test name only, with or without the dot.
+  assert.equal(isOpsHost("dashboard.localhost.", "production"), false);
+  assert.equal(isOpsHost("dashboard.localhost.:3010", "development"), true);
+});
+
+test("routeFor: a trailing-dot ops host is routed as the ops host, a trailing-dot marketing host as the marketing host", () => {
+  const dotted = (path, isOwner = false) => routeFor({ host: "dashboard.almarprivatejourney.com.", path, isOwner, production: true });
+  assert.deepEqual(dotted("/", true), { kind: "rewrite", path: "/dashboard/home" });
+  assert.deepEqual(dotted("/catalog/stays"), { kind: "rewrite", path: "/dashboard/catalog/stays" });
+  assert.deepEqual(dotted("/api/health"), { kind: "next" });
+  assert.deepEqual(dotted("/dashboard/bookings"), { kind: "redirect", path: "/bookings" });
+  assert.deepEqual(routeFor({ host: "almarprivatejourney.com.", path: "/dashboard", isOwner: true, production: true }), { kind: "not-found" });
+  assert.deepEqual(routeFor({ host: "almarprivatejourney.com.", path: "/api/ops/stays", isOwner: true, production: true }), { kind: "not-found" });
+});

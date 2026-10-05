@@ -198,12 +198,33 @@ test.describe(`almar-ops on the built Worker (${FOLDER}/)`, () => {
     }
   });
 
-  test("6. the marketing host's own walls hold on this Worker too: /dashboard and /dashboard/home are 404 on the marketing host", async ({ request }) => {
-    for (const path of ["/dashboard", "/dashboard/home", "/dashboard/catalog/stays"]) {
-      const res = await request.get(path, { headers: { host: MARKETING_HOST }, maxRedirects: 0 });
-      expect(res.status(), path).toBe(404);
-      expect(await res.text(), path).not.toContain("sign-in-email");
+  test("6. a request whose host is not the ops host never reaches Next: the static 404 for every path, /api/health excepted", async ({ request }) => {
+    // The Worker's own wall (almar-ops.mjs): only the ops host is handed to Next. Before it, "/" with another host rendered
+    // the marketing home through Next and answered 500 (this Worker holds no prerendered page).
+    const paths = ["/", "/sign-in", "/home", "/bookings", "/auth/confirm", "/dashboard", "/dashboard/home", "/dashboard/catalog/stays", "/catalog/stays"];
+    for (const host of [MARKETING_HOST, "www.almarprivatejourney.com", "preview.almarprivatejourney.com", `${OPS_HOST}.evil.com`]) {
+      for (const path of paths) {
+        const res = await request.get(path, { headers: { host }, maxRedirects: 0 });
+        expect(res.status(), `${host}${path}`).toBe(404);
+        expect(Buffer.compare(await res.body(), nearest404(path)), `${host}${path}`).toBe(0);
+        expect(res.headers()["x-robots-tag"], `${host}${path}`).toBe("noindex, nofollow");
+      }
     }
+    // The one exception holds nothing and lets a readiness poll without the ops host work.
+    const health = await request.get("/api/health", { headers: { host: MARKETING_HOST }, maxRedirects: 0 });
+    expect(health.status()).toBe(200);
+    expect(await health.text()).toBe('{"ok":true}');
+  });
+
+  test("6. a fully qualified ops host (one trailing dot) is the ops host; two dots are not", async ({ request }) => {
+    const dotted = await request.get("/", { headers: { host: `${OPS_HOST}.` }, maxRedirects: 0 });
+    expect(dotted.status()).toBe(200);
+    expect(await dotted.text()).toContain("sign-in-email");
+    const section = await request.get("/catalog/stays", { headers: { host: `${OPS_HOST}.` }, maxRedirects: 0 });
+    expect([302, 303, 307, 308]).toContain(section.status());
+    expect(new URL(section.headers()["location"], "http://x").pathname).toBe("/sign-in");
+    const twice = await request.get("/", { headers: { host: `${OPS_HOST}..` }, maxRedirects: 0 });
+    expect(twice.status()).toBe(404);
   });
 
   test("7. forged x-almar-shell and x-almar-ops-path headers show no page without the owner session", async ({ request }) => {

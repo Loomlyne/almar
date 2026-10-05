@@ -7,7 +7,9 @@ export const SHELL_HEADER = "x-almar-shell";
 export const HOST_OVERRIDE_HEADER = "x-almar-host";
 
 function hostname(host: string | null | undefined): string {
-  return (host ?? "").trim().toLowerCase().replace(/:\d+$/, "");
+  // The port goes first, then ONE trailing dot: `dashboard.almarprivatejourney.com.` (a fully qualified name, with or
+  // without `:443`) is the same host. A second dot, or anything else around the name, is not (fail closed).
+  return (host ?? "").trim().toLowerCase().replace(/:\d+$/, "").replace(/\.$/, "");
 }
 
 /** True only for the ops host, plus dashboard.localhost outside production (local tests). */

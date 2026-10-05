@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
+import { pathToFileURL } from "node:url";
 import { OPS_AUTH_PATHS, OPS_LIVE_SECTIONS, OPS_PATH_HEADER, assertOpsPath, isLiveOpsPath, opsPathsFrom } from "../lib/ops-routes.ts";
 import { OPS_API_PREFIX, serverPathsFrom } from "../lib/server-routes.ts";
 import { assembleOut, writeOpsPaths, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
@@ -220,15 +221,125 @@ test("serverPathsFrom: a malformed /api/ops route still stops the build", () => 
 
 // ---- the entry and the config -----------------------------------------------------------------------------------
 
-test("worker/almar-ops.mjs imports exactly the OpenNext worker, the generated list, the ops rules and the router", () => {
+test("worker/almar-ops.mjs imports exactly the OpenNext worker, the generated list, the ops rules, the host rule and the router", () => {
   const source = readFileSync("worker/almar-ops.mjs", "utf8");
   const imports = [...source.matchAll(/^import .* from "([^"]+)";$/gm)].map((m) => m[1]);
-  assert.deepEqual(imports, ["../.open-next/worker.js", "../.open-next/almar-ops-routes.json", "../lib/ops-routes.ts", "./handle.mjs"]);
+  assert.deepEqual(imports, [
+    "../.open-next/worker.js",
+    "../.open-next/almar-ops-routes.json",
+    "../lib/ops-routes.ts",
+    "../lib/host.ts",
+    "./handle.mjs",
+  ]);
   // The startup check runs before the list becomes the Set the router uses.
   assert.ok(source.indexOf("assertOpsPath(") > -1 && source.indexOf("assertOpsPath(") < source.indexOf("new Set("));
-  assert.match(source, /handle\(request, env, ctx, \{ serverPaths: OPS_PATHS, nextFetch: openNext\.fetch\.bind\(openNext\) \}\)/);
-  // No host check in the Worker: only the custom domain routes to it.
-  assert.equal(/\.hostname|\.host\b|headers\.get\("host"\)/.test(source), false);
+  assert.match(source, /serverPaths: OPS_PATHS, nextFetch/);
+});
+
+// ---- the Worker itself, run for real on a scratch copy (Fable review of 7527f88) --------------------------------
+// worker/almar-ops.mjs imports a build output (.open-next/) that unit tests do not have, so each test copies the real
+// Worker, the real lib/ops-routes.ts, lib/host.ts and worker/handle.mjs into a scratch folder and puts a fake OpenNext
+// worker and a route list where the build would. Only the one JSON import is rewritten (Node wants an import attribute
+// for it; wrangler's bundler does not).
+
+async function opsWorker(routes = WANT) {
+  const base = mkdtempSync(join(tmpdir(), "almar-ops-worker-"));
+  for (const dir of ["worker", "lib", ".open-next"]) mkdirSync(join(base, dir));
+  writeFileSync(join(base, "package.json"), '{"type":"module"}');
+  for (const file of ["lib/ops-routes.ts", "lib/host.ts", "worker/handle.mjs"]) copyFileSync(file, join(base, file));
+  const source = readFileSync("worker/almar-ops.mjs", "utf8").replace('"../.open-next/almar-ops-routes.json"', '"../.open-next/almar-ops-routes.mjs"');
+  assert.notEqual(source, readFileSync("worker/almar-ops.mjs", "utf8"), "the JSON import is the one line the harness rewrites");
+  writeFileSync(join(base, "worker/almar-ops.mjs"), source);
+  writeFileSync(join(base, ".open-next/almar-ops-routes.mjs"), `export default ${JSON.stringify(routes)};\n`);
+  writeFileSync(
+    join(base, ".open-next/worker.js"),
+    `export default { async fetch(request, env, ctx) {
+  globalThis.__opsNext.push({ path: new URL(request.url).pathname, headers: Object.fromEntries(request.headers), body: await request.text() });
+  return new Response("next", { status: 200 });
+} };\n`,
+  );
+  globalThis.__opsNext = [];
+  const mod = await import(pathToFileURL(join(base, "worker/almar-ops.mjs")).href);
+  const next = globalThis.__opsNext;
+  const assets = [];
+  const env = { ASSETS: { fetch: async (request) => (assets.push(new URL(request.url).pathname), new Response("asset", { status: 404 })) } };
+  const run = (url, init) => mod.default.fetch(new Request(url, init), env, {});
+  return { next, assets, run };
+}
+
+const OPS_URL = "https://dashboard.almarprivatejourney.com";
+const MARKETING_URL = "https://almarprivatejourney.com";
+
+test("the ops Worker: on the ops host a listed path goes to Next and anything else to the static assets", async () => {
+  const { next, assets, run } = await opsWorker();
+  await run(`${OPS_URL}/sign-in`);
+  await run(`${OPS_URL}/api/health`);
+  await run(`${OPS_URL}/about`);
+  await run(`${OPS_URL}/api/ops/not-written-yet`);
+  assert.deepEqual(next.map((c) => c.path), ["/sign-in", "/api/health"]);
+  assert.deepEqual(assets, ["/about", "/api/ops/not-written-yet"]);
+});
+
+test("the ops Worker: a request whose host is not the ops host never reaches Next, except /api/health", async () => {
+  const { next, assets, run } = await opsWorker();
+  const paths = ["/", "/sign-in", "/home", "/bookings", "/dashboard", "/dashboard/home", "/auth/confirm", "/auth/handoff", "/auth/sign-out", "/catalog/stays", "/api/ops/stays"];
+  for (const host of [MARKETING_URL, "https://www.almarprivatejourney.com", "https://preview.almarprivatejourney.com", "http://127.0.0.1:8787", "https://dashboard.almarprivatejourney.com.evil.com", "https://evil-dashboard.almarprivatejourney.com", "http://dashboard.localhost:3010"]) {
+    for (const path of paths) await run(`${host}${path}`);
+  }
+  assert.deepEqual(next, [], "nothing from a foreign host is handed to Next");
+  assert.equal(assets.length, 7 * paths.length, "every one of them is answered by the static assets");
+  const before = assets.length;
+  const health = await run(`${MARKETING_URL}/api/health`);
+  assert.equal(health.status, 200, "the readiness poll of the Playwright runs still reaches Next");
+  assert.deepEqual(next.map((c) => c.path), ["/api/health"]);
+  assert.equal(assets.length, before);
+  // Only that exact path is excused.
+  await run(`${MARKETING_URL}/api/health/`);
+  await run(`${MARKETING_URL}/API/health`);
+  await run(`${MARKETING_URL}/api/healthz`);
+  assert.equal(next.length, 1);
+});
+
+test("the ops Worker: the URL host and the Host header must both be the ops host (fail closed on a mismatch)", async () => {
+  const { next, assets, run } = await opsWorker();
+  await run(`${OPS_URL}/sign-in`, { headers: { host: "almarprivatejourney.com" } });
+  await run(`${MARKETING_URL}/sign-in`, { headers: { host: "dashboard.almarprivatejourney.com" } });
+  assert.deepEqual(next, []);
+  assert.equal(assets.length, 2);
+  await run(`${OPS_URL}/sign-in`, { headers: { host: "dashboard.almarprivatejourney.com" } });
+  assert.deepEqual(next.map((c) => c.path), ["/sign-in"]);
+});
+
+test("the ops Worker: a trailing dot on the ops host is still the ops host", async () => {
+  const { next, assets, run } = await opsWorker();
+  await run("https://dashboard.almarprivatejourney.com./sign-in");
+  await run("https://dashboard.almarprivatejourney.com.:443/", { headers: { host: "dashboard.almarprivatejourney.com.:443" } });
+  assert.deepEqual(next.map((c) => c.path), ["/sign-in", "/"]);
+  assert.deepEqual(assets, []);
+  // Two dots is not the ops host.
+  await run("https://dashboard.almarprivatejourney.com../sign-in");
+  assert.equal(next.length, 2);
+});
+
+test("the ops Worker: a client-sent x-almar-ops-path never reaches Next; x-almar-shell is left alone; the body survives", async () => {
+  const { next, run } = await opsWorker();
+  await run(`${OPS_URL}/api/health`, {
+    method: "POST",
+    body: "a=1&b=2",
+    headers: { "x-almar-ops-path": "/catalog/stays", "X-Almar-Ops-Path": "/settings", "x-almar-shell": "ops", "content-type": "text/plain", "cf-connecting-ip": "203.0.113.7" },
+  });
+  await run(`${OPS_URL}/sign-in`, { headers: { "x-almar-ops-path": "/catalog/stays" } });
+  assert.equal(next.length, 2);
+  for (const call of next) assert.equal("x-almar-ops-path" in call.headers, false, call.path);
+  assert.equal(next[0].headers["x-almar-shell"], "ops", "the shell header is the middleware's business, not stripped here");
+  assert.equal(next[0].body, "a=1&b=2");
+  assert.equal(next[0].headers["x-forwarded-for"], "203.0.113.7", "handle()'s own header rules still apply");
+});
+
+test("the ops Worker: a route list that holds a marketing page stops it at startup", async () => {
+  await assert.rejects(opsWorker([...WANT, "/about"]), /ops path "\/about"/);
+  await assert.rejects(opsWorker([...WANT, "/auth/handoff/start"]), /ops path/);
+  await assert.rejects(opsWorker([...WANT, "/api/booking/quote"]), /ops path/);
 });
 
 const OPS = readFileSync("wrangler.ops.toml", "utf8");
