@@ -85,7 +85,32 @@ Branch `gsd/phase-04-p02`, tip below, cut from origin/main `bbc35b7`, merged wit
 3. **Task 3: endpoints, server helpers, /booking unheld** (TDD): `7ce76ec` test (RED), `594ddd8` feat (GREEN), `bdf6976` test (stack lock), `969f658` fix (English line names), `f1f7aea` test (stress bites reliably)
 4. **Merge of origin/main 9ab7e49:** `a47474d`
 
-Tip at hand-over: see the final report (the SUMMARY commit follows it).
+5. **Merge of origin/main 45a07e7** (03.2-03 ops Worker, AR/ES text): `27a51c6`. **Fable review fixes:** `fddd1c8` (limiter order, rate ids), `3d2ced2` (spec numbering). Tip: see the final report (the SUMMARY commit follows it).
+
+## Review fixes and main merge
+
+Merged `origin/main` `45a07e7` (03.2-03 ops Worker `almar-ops`, and the AR/ES text landing `7f3c1d1`) into the branch: no conflicts. Git merged `lib/server-routes.ts`, `tests/server-runtime.test.mjs` and `tests/build/server-runtime.spec.ts` cleanly; the result keeps main's ops additions (`OPS_API_PREFIX`, the `ops` target) and this plan's `/booking` unhold and booking probes. `package-lock.json` did not change (no `npm ci` needed); the AR/ES landing refreshed the committed Playwright screenshots, which come in with the merge as main has them. `--target=ops` still builds and `tests/build/ops-runtime.spec.ts` passes, so the guest booking API stays a 404 on the dashboard host.
+
+Fixes from the Fable 5.1 review (red first, then green):
+
+1. **Limiter slot after the quote.** `createWebHold` claimed the slot before the quote, so five sold_out or blocked answers locked a real guest out for an hour. It now quotes first and claims the slot only after the quote is ok and the pickup address check has passed (also a refusal before the write). Order: `booking_context`, `claim_hold_slot`, `create_web_booking`. Tests: a counting limiter with eight sold_out holds claims nothing and the same guest can still hold free nights; a missing pickup address claims nothing; on the real stack six sold_out answers for one email are followed by a successful hold. The existing test that the limiter's `false` gives `hold_limit` still holds (now after the quote). Plan text amended in `04-02-PLAN.md`; `04-03` and `04-07` state no limiter order, so only 04-03's interface type name was amended (below).
+2. **No rate-range id to the browser.** `PublicPriceSnapshot` (nights as `{ night, rateFils, source }`) is the type of `QuoteResponse.breakdown` and `HoldResponse.breakdown`. `quoteBooking` strips `rateId` (`publicBreakdown`); the new `priceQuote` keeps it and feeds `createWebHold` and `snapshotRow`, so the stored `nights_snapshot` still carries `rate_id`. `snapshotRow` throws on a snapshot without rate ids, so a caller that passes the public quote cannot store it silently without them. Tests assert the quote and the hold answer contain neither the id nor the key `rateId`, and that the stored snapshot keeps the id.
+3. **Spec numbering.** The POST probe in `tests/build/server-runtime.spec.ts` was a second "4."; it is now case "8." at the end.
+
+**For the controller (outside this plan's files):** `05-02-PLAN.md` (lines 14, 65, 67, 70, 166, 167, 263, 273) names `quoteBooking` + `snapshotRow(quote.breakdown)` for the ops create payload. With this fix the ops quote must use `priceQuote` for the snapshot (TypeScript refuses the public quote there, and `snapshotRow` throws at run time); `quoteBooking` stays right for the quote answer the ops screen shows. Not edited here: it is 05-02's plan.
+
+Totals after the merge and the fixes (stack = this worktree's own local stack, stopped afterwards):
+
+| Check | Result |
+|---|---|
+| `npx tsc --noEmit` | clean |
+| `ALMAR_REQUIRE_STACK=1 node --test tests/*.test.mjs`, stack up | 1341 tests, 1328 pass, 0 fail, 13 skipped |
+| `node --test tests/*.test.mjs`, no stack | 1341 tests, 1313 pass, 0 fail, 28 skipped |
+| pgTAP, `node tests/helpers/local-supabase.mjs test` | 634 checks pass (3 files), unchanged |
+| `server-runtime.spec.ts` + `auth-paths.spec.ts`, port 3131, `--workers=2`, `wrangler.toml` | 21 of 21 pass |
+| same, `wrangler.preview.toml` (rebuilt with `--target=preview`) | 21 of 21 pass |
+| `ops-runtime.spec.ts` on the built ops Worker (extra check) | 15 of 15 pass |
+| Worker size after the merge | production 1833 KiB gzip, preview 1824, ops 1822 |
 
 ## 3.2 names as reconciled
 
@@ -110,7 +135,7 @@ Reconciled against the plan: 05-01 wrote `ops_expire_lapsed`, which fails the `r
 - Web hold 30 minutes (`hold_expires_at`); its `booking_nights.expires_at` is 1 minute later (Stripe session margin, research Pitfall 4); a night row stays 2 minutes past its expiry (sweep grace), so a payment confirmed just before expiry still finds its nights. The quote and the hold use the same grace.
 - Hand-made hold: the owner's "hold until" (UAE time), status `awaiting_payment`, must be more than 35 minutes ahead (`almar:hold_too_soon`).
 - No cron. `place_hold` (for its own stay and range) and `ops_lapse_holds()` mark `held` / `awaiting_payment` bookings with `hold_expires_at < now() - 2 minutes` as `expired`, free their timed nights and write a `hold_expired` event.
-- Limiter `claim_hold_slot`: 5 per email per hour, 20 per IP per hour (constants `c_per_email`, `c_per_ip` in the function; the only place to change them). Hashes are keyed (job 02's `limiterHash` under `authSigningKey("limit")`); the raw email and address never reach the database. A request counts when it passes the parser, even if the quote then refuses it.
+- Limiter `claim_hold_slot`: 5 per email per hour, 20 per IP per hour (constants `c_per_email`, `c_per_ip` in the function; the only place to change them). Hashes are keyed (job 02's `limiterHash` under `authSigningKey("limit")`); the raw email and address never reach the database. A slot is claimed only by a request that is about to write: a quote that refuses (sold out, blocked, minimum nights, no rate, a missing pickup address) costs none (review fix below).
 - One hold can span up to 366 nights (the SQL and the quote both refuse more). Owner decision still open: a maximum stay length.
 - Request bodies: 32 KB (hold, quote), 4 KB (release).
 
@@ -130,7 +155,7 @@ Reconciled against the plan: 05-01 wrote `ops_expire_lapsed`, which fails the `r
 
 SQL (all `service_role` only): `ops_set_booking_status(p_booking uuid, p_to text, p_expected_from text, p_actor uuid)` (Confirm, Mark completed, Cancel; Cancel frees nights, never refunds, returns `closed_sessions`), `ops_lapse_holds() returns int`, `ops_create_booking(p jsonb, p_actor uuid)` (idempotent on `ops_request_id`), `new_booking_ref()`, `log_booking_event(p_booking, p_actor, p_action, p_detail)`, `ops_add_block(p jsonb)` (now returns `overlapping_bookings`), `booking_by_ref(p_ref)`, `public_booked_nights()`.
 
-TypeScript: `snapshotRow(breakdown, offers)` in `lib/booking/server.ts` builds the money part of the `ops_create_booking` payload (snake_case, add-on lines with name and `is_home_pickup`); pass offers read in English (see Deviations). `quoteBooking(db, input)` prices a hand-made booking the same way the guest's is priced. `authorizeBookingAccess` and `verifyBookingLink` / `signBookingLink` (`lib/booking/link.ts`) for the link and session rule. `isAllowedPostOrigin` / `bookingOrigin` (`lib/booking/origin.ts`, includes the preview origin) for POSTs and return URLs.
+TypeScript: `snapshotRow(breakdown, offers)` in `lib/booking/server.ts` builds the money part of the `ops_create_booking` payload (snake_case, add-on lines with name and `is_home_pickup`); pass offers read in English (see Deviations). `priceQuote(db, input)` prices a hand-made booking the same way the guest's is priced (it keeps each night's rate id for `snapshotRow`; `quoteBooking` is the browser's answer without rate ids and `snapshotRow` refuses it). `authorizeBookingAccess` and `verifyBookingLink` / `signBookingLink` (`lib/booking/link.ts`) for the link and session rule. `isAllowedPostOrigin` / `bookingOrigin` (`lib/booking/origin.ts`, includes the preview origin) for POSTs and return URLs.
 
 For 04-04: `open_payment` (amount from the stored booking, never the caller), `attach_checkout_session`, `mark_session_expired`, `record_payment`. `record_payment` answers `found: false` for a session it does not know: the webhook must treat that as a retry (500), not as success. `releaseWebHold` already returns the Checkout Session ids to expire; the route does not send them to the browser and does not expire them at Stripe yet (04-04). `liveGate(secret)` (in `server.ts`) is moved by 04-04 into `lib/stripe/server.ts`.
 
@@ -222,6 +247,8 @@ Then, from the Worker (never from the database), one `POST /api/booking/quote` f
 | `grep -n '"/booking"' lib/server-routes.ts` | prints nothing |
 | `grep -rn SUPABASE_SERVICE_ROLE_KEY lib/booking app/api/booking` | prints nothing |
 | Trial merge with origin/main `9ab7e49` | tsc clean, 1275 tests 0 fail (before the last test added) |
+
+The rows above are from before the Fable review fixes and the merge of `45a07e7`; the current totals are under "Review fixes and main merge".
 
 New test files: `tests/booking-link.test.mjs` (17), `tests/booking-api.test.mjs` (70: parsers, access rule, quote, snapshot, hold, release, status and live gate, the three routes' source rules), `tests/booking-hold.db.test.mjs` (6, real database: ten parallel holds give one winner, overlap property, eight parallel payment reports count once, 40-round concurrent mix without deadlock, home-pickup storage, and the server helpers against the real SQL including deposit, own-hold skip, release and the limiter), `tests/booking-routes.db.test.mjs` (8: the three route handlers called with real `Request` objects against the local database).
 
