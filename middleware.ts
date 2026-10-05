@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { allowHostOverride, HOST_OVERRIDE_HEADER, isOpsHost, routeFor, SHELL_HEADER } from "./lib/host";
 import { isOwnerEmail } from "./lib/auth/rules";
+import { sessionCookieOptions } from "./lib/supabase/cookie-options";
 
 // Plan 02-02: keep her Supabase session fresh. Requests without a Supabase auth cookie never
 // wait on Supabase, so the static Framer pages stay fast.
@@ -18,6 +19,7 @@ async function sessionEmail(request: NextRequest, pending: PendingCookie[]): Pro
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
   if (!url || !anonKey || !hasAuthCookie(request)) return undefined;
   const supabase = createServerClient(url, anonKey, {
+    cookieOptions: sessionCookieOptions(),
     cookies: {
       getAll() {
         return request.cookies.getAll();

@@ -5,6 +5,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { createHmac } from "node:crypto";
+import { sessionCookieOptions } from "./cookie-options";
 
 function publicSettings(): { url: string; anonKey: string } | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
@@ -18,6 +19,7 @@ export async function createSupabaseServer(): Promise<SupabaseClient | null> {
   if (!settings) return null;
   const store = await cookies();
   return createServerClient(settings.url, settings.anonKey, {
+    cookieOptions: sessionCookieOptions(),
     cookies: {
       getAll() {
         return store.getAll();
