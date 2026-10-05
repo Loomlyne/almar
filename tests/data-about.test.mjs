@@ -27,7 +27,7 @@ const EN_CARDS = {
     ["a-vision-that-grows", "A Vision That Grows", "Our long-term vision: direct villa and luxury car partnerships across Colombia, then Latin America — earning trust as the reference for safety-led luxury travel throughout the region."],
   ],
   values: [
-    ["intentional-hospitality", "Intentional Hospitality", "We believe great service should feel natural, never forced. Every team member is empowered to create moments that matter - from a warm greeting to a handwritten note."],
+    ["intentional-hospitality", "Intentional Hospitality", "We believe great service should feel natural, never forced. Every team member is empowered to create moments that matter — from a warm greeting to a handwritten note."],
     ["bilingual-trip-support", "Bilingual Trip Support", "Bilingual trip coordination and a 24/7 emergency contact are planned around each confirmed journey."],
     ["privacy-and-discreet-coordination", "Privacy & Discreet Coordination", "Private transfer coordination, discreet planning, and specialist support can be arranged around each client and confirmed before booking."],
   ],
@@ -154,14 +154,14 @@ test("en cards: slugs, order and every title and body byte-equal to the live pag
   }
 });
 
-test("ar and es: everything is a draft with the requested locale; the canvas hero lines; text differs from EN", async () => {
+test("ar and es: everything is published (reviewed and published 2026-10-05, I18N-REVIEW-2026-10-05.md) with the requested locale; the canvas hero lines; text differs from EN", async () => {
   const en = await about("en");
   for (const l of ["ar", "es"]) {
     const b = await about(l);
     const all = [...b.story, ...b.values];
     assert.equal(all.length, 6);
     for (const c of all) {
-      assert.equal(c.translation_status, "draft", `${l} ${c.slug}`);
+      assert.equal(c.translation_status, "published", `${l} ${c.slug}`);
       assert.equal(c.locale, l);
     }
     assert.notEqual(b.hero.image.alt, "");
@@ -246,13 +246,13 @@ test("fixture shape: about.json, about-translations.json and the alt records", (
   }
   for (const block of ["hero", "intro"]) {
     assert.deepEqual(t[block].map((r) => r.locale).sort(), ["ar", "en", "es"], block);
-    for (const r of t[block]) assert.equal(r.status, r.locale === "en" ? "published" : "draft", `${block} ${r.locale}`);
+    for (const r of t[block]) assert.equal(r.status, "published", `${block} ${r.locale}`);
   }
   assert.equal(t.cards.length, 18);
   for (const c of a.cards) {
     const mine = t.cards.filter((r) => r.card_id === c.id);
     assert.deepEqual(mine.map((r) => r.locale).sort(), ["ar", "en", "es"], c.slug);
-    for (const r of mine) assert.equal(r.status, r.locale === "en" ? "published" : "draft");
+    for (const r of mine) assert.equal(r.status, "published");
   }
 
   // Images: expected table, UUIDs, uniqueness, keys.
@@ -305,8 +305,8 @@ test("alt records: 42 appended for the 14 About images, hero published alt, thir
       const by = Object.fromEntries(mine.map((r) => [r.locale, r]));
       assert.equal(by.en.alt, HERO_ALT);
       assert.equal(by.en.status, "published");
-      assert.equal(by.ar.status, "draft");
-      assert.equal(by.es.status, "draft");
+      assert.equal(by.ar.status, "published");
+      assert.equal(by.es.status, "published");
       assert.match(by.ar.alt, ARABIC_LETTER);
       assert.ok(!by.ar.alt.includes("nfinity") && !by.es.alt.includes("nfinity"), "typo not carried into drafts");
     } else {

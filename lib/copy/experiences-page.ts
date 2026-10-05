@@ -1,3 +1,4 @@
+// AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 // Copy for the /experiences page (phase 3.3 plan 14, controller reconcile R-9).
 //
 // EN is the published text of the live Framer page where it has one (the meta title and description) and the signed
@@ -85,7 +86,7 @@ export const EXPERIENCES_PAGE_COPY: Record<ExperiencesPageLocale, ExperiencesPag
   ar: {
     meta: {
       title: "جولات وتجارب خاصة في كولومبيا | ALMAR",
-      description: "رحلات بحرية خاصة وجولات في المدن وجولات طعام وغيرها. كل تجربة مخصصة لك ولمجموعتك فقط.",
+      description: "رحلات بحرية خاصة وجولات في المدن وجولات طعام وغيرها. كل تجربة مخصصة لكم ولمجموعتكم فقط.",
     },
     heading: "التجارب والخدمات",
     filters: { label: "تصفية التجارب والخدمات", button: "التصفية", title: "التصفية" },
@@ -126,7 +127,7 @@ export const EXPERIENCES_PAGE_COPY: Record<ExperiencesPageLocale, ExperiencesPag
       service: "خدمة",
       duration: "المدة",
       stays: "الإقامات الخاصة",
-      requestInquiry: "اطلبوا استفساراً",
+      requestInquiry: "أرسلوا استفساراً",
       close: "إغلاق",
     },
   },

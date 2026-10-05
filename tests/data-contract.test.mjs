@@ -222,10 +222,10 @@ test("getRelatedStays excludes the stay itself, prefers its destination, honours
   assert.equal(med.length, 2);
 });
 
-test("Arabic: draft status, and the home stay's title is the lib/copy/home.ts string", async () => {
+test("Arabic: published status (reviewed 2026-10-05, I18N-REVIEW-2026-10-05.md), and the home stay's title is the lib/copy/home.ts string", async () => {
   const ar = await staysMod.getStay("ar", "getsemani-colonial-house");
   assert.equal(ar.locale, "ar");
-  assert.equal(ar.translation_status, "draft");
+  assert.equal(ar.translation_status, "published");
   assert.equal(ar.title, homeCopy.HOME_COPY.ar.stays[0].name);
   assert.ok(/[؀-ۿ]/.test(ar.description[0]));
   const es = await staysMod.getStay("es", "cartagena-historic-center-house");
@@ -254,7 +254,7 @@ test("destinations: five on the board; the default read is still cartagena and m
   const FIVE = ["cartagena", "medellin", "bogota", "san-andres", "cocora-valley"];
   assert.deepEqual((await destMod.getDestinations("ar", { includeEmpty: true })).map((x) => x.slug), FIVE);
   assert.deepEqual(await destMod.getDestinationSlugs(), FIVE);
-  assert.equal((await destMod.getDestination("es", "medellin")).translation_status, "draft");
+  assert.equal((await destMod.getDestination("es", "medellin")).translation_status, "published");
   assert.equal(await destMod.getDestination("en", "atlantis"), null);
   assert.equal(await destMod.getDestination("en", "eje-cafetero"), null);
   const bogota = await destMod.getDestination("en", "bogota");
@@ -267,7 +267,7 @@ test("destinations: five on the board; the default read is still cartagena and m
   assert.equal(bogota.translation_status, "published");
   const cocora = await destMod.getDestination("es", "cocora-valley");
   assert.equal(cocora.name, "Valle de Cocora");
-  assert.equal(cocora.translation_status, "draft");
+  assert.equal(cocora.translation_status, "published");
   assert.equal((await destMod.getDestination("en", "san-andres")).region, "Caribbean");
 });
 
@@ -296,7 +296,7 @@ test("catalogue: 35 experiences then 10 services in the live page order, split p
   assert.deepEqual((await expMod.getCatalogItems("en", { query: "yacht" })).map((c) => c.slug), ["yacht-island-charters", "pop-up-bar-experiences"]);
   const med = await expMod.getCatalogItems("en", { destinationSlug: "medellin", kind: "experience" });
   assert.ok(med.some((c) => c.slug === "medellin-renaissance") && med.some((c) => c.slug === "welcome-cocktail"));
-  assert.equal((await expMod.getCatalogItem("ar", "welcome-cocktail")).translation_status, "draft");
+  assert.equal((await expMod.getCatalogItem("ar", "welcome-cocktail")).translation_status, "published");
   const guides = await expMod.getCatalogItem("en", "private-city-guides");
   assert.deepEqual(guides.destination_slugs, ["cartagena", "medellin", "bogota"]);
   assert.deepEqual(guides.stay_slugs, []);
@@ -449,7 +449,7 @@ test("getTeam returns [] and home blocks carry hero, welcome (5 photos), 8 galle
   for (const s of h.stories) assert.ok(s.image.url.startsWith(`${mediaMod.MEDIA_BASE_URL}/home/stories/`) && s.image.alt && s.excerpt);
   const ar = await homeMod.getHomeBlocks("ar");
   assert.equal(ar.hero.headline, homeCopy.HOME_COPY.ar.heroTitle);
-  assert.equal(ar.stories[0].translation_status, "draft");
+  assert.equal(ar.stories[0].translation_status, "published");
   assert.deepEqual((await homeMod.getJourneyTiers("es")).map((t) => t.name), ["The Explorer", "The Resident", "The Sovereign"]);
 });
 
@@ -555,13 +555,13 @@ test("posts: getPostSlugs and getPosts('en') return the three posts newest first
   assert.deepEqual(posts.map((p) => p.id), ["9616c101-0b63-58c5-a525-9eb1c910765a", "544d5a28-0412-53ca-8822-5ab420600aac", "26cb9d6c-202e-518e-8892-281f854eff5c"]);
 });
 
-test("posts: AR and ES are drafts with the drafted body; title and excerpt equal the home story drafts", async () => {
+test("posts: AR and ES are published (reviewed and published 2026-10-05, I18N-REVIEW-2026-10-05.md) with the reviewed body; title and excerpt equal the home story rows", async () => {
   const fx = JSON.parse(readFileSync(join(process.cwd(), "lib/data/fixtures/post-translations.json"), "utf8"));
   for (const locale of ["ar", "es"]) {
     const posts = await postsMod.getPosts(locale);
     const stories = (await homeMod.getHomeBlocks(locale)).stories;
     for (const [i, p] of posts.entries()) {
-      assert.equal(p.translation_status, "draft");
+      assert.equal(p.translation_status, "published");
       assert.equal(p.locale, locale);
       assert.equal(p.title, stories[i].title);
       assert.equal(p.excerpt, stories[i].excerpt);

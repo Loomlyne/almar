@@ -1,3 +1,4 @@
+// AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 // Home page copy for the React home (phase 3.3 plan 04). The eleven live sections keep their live order;
 // the words come from here, the images and the welcome letter come from lib/data.
 //
@@ -106,45 +107,45 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
   },
   ar: {
     meta: {
-      title: "رحلات خاصة فاخرة في كولومبيا | المار",
+      title: "رحلات خاصة فاخرة في كولومبيا | ALMAR",
       description:
-        "تخطّط المار رحلات خاصة في كولومبيا. نحجز الفلل وننظّم الجولات ونوفّر لكم كونسيرج طوال إقامتكم.",
+        "تخطّط ALMAR رحلات خاصة في كولومبيا. نحجز الفلل وننظّم الجولات ونوفّر لكم كونسيرج طوال إقامتكم.",
     },
     hero: { barLabel: "خطّط لرحلتك" },
     stays: {
       kicker: "إقامات خاصة",
-      heading: "إقامات خاصة، تم التحقق منها",
+      heading: "إقامات خاصة، موثّقة بالكامل",
       intro:
-        "بيوت خاصة موثّقة وعزب جزر ومنتجعات ريفية في كارتاخينا وأنتيوكيا — اختيرت كلٌّ منها للأمان وجاهزية الطاقم والخصوصية التامة.",
+        "بيوت خاصة موثّقة وضيعات على الجزر وملاذات ريفية في كارتاخينا وأنتيوكيا، اختيرت كلٌّ منها لأمانها وجاهزية طاقمها وخصوصيتها التامة.",
       viewAll: "عرض كل الإقامات الخاصة",
     },
     services: {
       kicker: "التجارب والخدمات",
       heading: "كل شيء مُرتَّب. لا شيء متروك للصدفة.",
-      intro: "من الفلل الخاصة إلى كونسيرج مخصّص، تدير المار كل تفصيل في رحلتكم إلى كولومبيا، لتعيشوها فقط.",
+      intro: "من الفلل الخاصة إلى الكونسيرج المخصّص، تتولى ALMAR كل تفصيل في رحلتكم إلى كولومبيا، فلا يبقى لكم إلا أن تعيشوها.",
       viewAll: "عرض كل الخدمات",
     },
     moments: {
       kicker: "تجارب منتقاة",
       heading: "لحظات صُمّمت لكم",
-      intro: "من رحلات اليخوت الخاصة إلى جولات الطائرات المروحية، تُصمَّم كل تجربة من تجارب المار حصرياً حولكم.",
+      intro: "من استئجار اليخوت الخاصة إلى الجولات بالمروحية، تُنتقى كل تجربة من تجارب ALMAR خصيصاً لكم.",
       cta: "اطلبوا استشارة",
     },
     journeys: {
       heading: "اختاروا رحلتكم",
-      intro: "ثلاثة مستويات من الخصوصية والفخامة والانغماس في كولومبيا — لكلٍّ منها عمق مختلف من التجربة.",
+      intro: "ثلاثة مستويات من الخصوصية والفخامة والانغماس في كولومبيا، صُمّم كلٌّ منها لعمق مختلف من التجربة.",
       featured: "الأكثر طلباً",
       ratesOf: "حُوِّلت المبالغ بسعر الصرف بتاريخ {date}.",
     },
     stories: {
       kicker: "رؤى السفر",
-      heading: "حكايات المار",
+      heading: "حكايات ALMAR",
       intro: "اكتشفوا كولومبيا بعيوننا: أدلة الوجهات ونصائح محلية ورؤى من فريقنا على الأرض.",
       readAll: "عرض كل الحكايات",
     },
     begin: {
       heading: "ابدأوا رحلتكم",
-      intro: "تبدأ رحلتكم الخاصة في كولومبيا بمحادثة: شاركونا رؤيتكم ويصمّم فريقنا الباقي.",
+      intro: "تبدأ رحلتكم الخاصة في كولومبيا بمحادثة: شاركونا رؤيتكم وسيصمّم فريقنا الباقي.",
       cta: "اطلبوا استشارة",
     },
     team: { kicker: "الأشخاص وراء رحلتكم", heading: "معرفة محلية، تُقدَّم شخصياً." },
@@ -159,32 +160,32 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
     meta: {
       title: "Viajes privados de lujo en Colombia | ALMAR",
       description:
-        "ALMAR organiza viajes privados por Colombia. Reservamos villas, armamos recorridos y les damos un conserje durante toda la estancia.",
+        "ALMAR organiza viajes privados por Colombia. Reservamos villas, armamos recorridos y te asignamos un concierge durante toda tu estancia.",
     },
     hero: { barLabel: "Planea tu viaje" },
     stays: {
       kicker: "Estancias privadas",
-      heading: "Estancias privadas, ya revisadas",
+      heading: "Estancias privadas, totalmente verificadas",
       intro:
-        "Casas privadas verificadas, fincas de isla y retiros de campo en Cartagena y Antioquia, cada una elegida por seguridad, personal preparado y total discreción.",
+        "Casas privadas verificadas, fincas en islas y retiros de campo en Cartagena y Antioquia, cada una elegida por su seguridad, su personal preparado y su total discreción.",
       viewAll: "Ver todas las estancias privadas",
     },
     services: {
       kicker: "Experiencias y servicios",
       heading: "Todo resuelto. Nada dejado al azar.",
       intro:
-        "De villas privadas a un conserje dedicado, ALMAR lleva cada detalle del viaje por Colombia, para que ustedes solo lo vivan.",
+        "De villas privadas a un concierge dedicado, ALMAR se ocupa de cada detalle de tu viaje por Colombia, para que solo tengas que vivirlo.",
       viewAll: "Ver todos los servicios",
     },
     moments: {
       kicker: "Experiencias seleccionadas",
-      heading: "Momentos pensados para ustedes",
+      heading: "Momentos pensados para ti",
       intro:
-        "De yates privados a vuelos en helicóptero, cada experiencia de ALMAR se diseña en exclusiva alrededor de ustedes.",
-      cta: "Soliciten una consulta",
+        "De yates privados a vuelos en helicóptero, cada experiencia de ALMAR se diseña en exclusiva para ti.",
+      cta: "Solicita una consulta",
     },
     journeys: {
-      heading: "Elijan su viaje",
+      heading: "Elige tu viaje",
       intro:
         "Tres niveles de privacidad, lujo e inmersión en Colombia, cada uno pensado para una profundidad distinta de experiencia.",
       featured: "Más popular",
@@ -194,16 +195,16 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
       kicker: "Guías de viaje",
       heading: "Historias ALMAR",
       intro:
-        "Descubran Colombia a través de nuestros ojos: guías de destinos, consejos locales y perspectivas de nuestro equipo sobre el terreno.",
+        "Descubre Colombia a través de nuestros ojos: guías de destinos, consejos locales y perspectivas de nuestro equipo sobre el terreno.",
       readAll: "Ver todas las historias",
     },
     begin: {
-      heading: "Empiecen su viaje",
+      heading: "Comienza tu viaje",
       intro:
-        "Su viaje privado por Colombia empieza con una conversación: compartan su visión y nuestro equipo diseñará el resto.",
-      cta: "Soliciten una consulta",
+        "Tu viaje privado por Colombia comienza con una conversación: comparte tu visión y nuestro equipo diseñará el resto.",
+      cta: "Solicita una consulta",
     },
-    team: { kicker: "Las personas detrás de su viaje", heading: "Conocimiento local, entregado en persona." },
+    team: { kicker: "Las personas detrás de tu viaje", heading: "Conocimiento local, entregado en persona." },
     gallery: {
       previous: "Imagen anterior",
       next: "Imagen siguiente",

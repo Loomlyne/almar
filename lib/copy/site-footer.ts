@@ -1,3 +1,4 @@
+// AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 // The public footer's strings: ONE table that every React public page reads (phase 3.3 integration fix f).
 // The home, the stays list and the stay page each carried their own copy of these six lines; their Arabic
 // drifted apart (three different "opens in a new tab" lines, two copyright lines, two Instagram labels).

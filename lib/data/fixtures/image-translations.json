@@ -9,13 +9,13 @@
     "image_id": "57712fa2-a2e8-5d2c-8b02-e3fd3fb586a3",
     "locale": "ar",
     "alt": "كارتاخينا، كولومبيا",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "57712fa2-a2e8-5d2c-8b02-e3fd3fb586a3",
     "locale": "es",
     "alt": "Cartagena, Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "0037bd48-66fa-5e80-b853-e85b23c14458",
@@ -27,13 +27,13 @@
     "image_id": "0037bd48-66fa-5e80-b853-e85b23c14458",
     "locale": "ar",
     "alt": "ميديلين، كولومبيا",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "0037bd48-66fa-5e80-b853-e85b23c14458",
     "locale": "es",
     "alt": "Medellín, Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "bf310a54-f008-5120-bc7a-d30ed3f2586b",
@@ -44,14 +44,14 @@
   {
     "image_id": "bf310a54-f008-5120-bc7a-d30ed3f2586b",
     "locale": "ar",
-    "alt": "بيت خيتسيماني الاستعماري، إقامة خاصة في كارتاخينا",
-    "status": "draft"
+    "alt": "بيت خيتسيماني الاستعماري — الصورة الرئيسية",
+    "status": "published"
   },
   {
     "image_id": "bf310a54-f008-5120-bc7a-d30ed3f2586b",
     "locale": "es",
-    "alt": "Casa colonial de Getsemaní, una estancia privada en Cartagena",
-    "status": "draft"
+    "alt": "Casa colonial de Getsemaní — principal",
+    "status": "published"
   },
   {
     "image_id": "0c04c4d8-2a45-5955-aee8-6b86e69a1ed8",
@@ -63,13 +63,13 @@
     "image_id": "0c04c4d8-2a45-5955-aee8-6b86e69a1ed8",
     "locale": "ar",
     "alt": "بيت خيتسيماني الاستعماري — معرض 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "0c04c4d8-2a45-5955-aee8-6b86e69a1ed8",
     "locale": "es",
     "alt": "Casa colonial de Getsemaní — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "ad83da8f-7ad5-52b6-82db-275d1dccf1ac",
@@ -81,13 +81,13 @@
     "image_id": "ad83da8f-7ad5-52b6-82db-275d1dccf1ac",
     "locale": "ar",
     "alt": "بيت خيتسيماني الاستعماري — معرض 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "ad83da8f-7ad5-52b6-82db-275d1dccf1ac",
     "locale": "es",
     "alt": "Casa colonial de Getsemaní — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2433d28e-95c8-5f4c-a811-f76b74eadde4",
@@ -99,13 +99,13 @@
     "image_id": "2433d28e-95c8-5f4c-a811-f76b74eadde4",
     "locale": "ar",
     "alt": "بيت خيتسيماني الاستعماري — معرض 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2433d28e-95c8-5f4c-a811-f76b74eadde4",
     "locale": "es",
     "alt": "Casa colonial de Getsemaní — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a8138d32-dc34-5b4a-91a7-b03abdf00789",
@@ -117,13 +117,13 @@
     "image_id": "a8138d32-dc34-5b4a-91a7-b03abdf00789",
     "locale": "ar",
     "alt": "بيت خيتسيماني الاستعماري — معرض 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a8138d32-dc34-5b4a-91a7-b03abdf00789",
     "locale": "es",
     "alt": "Casa colonial de Getsemaní — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "3cc0aac9-3b4b-5002-aeb0-49053333e657",
@@ -134,14 +134,14 @@
   {
     "image_id": "3cc0aac9-3b4b-5002-aeb0-49053333e657",
     "locale": "ar",
-    "alt": "إقامة فناء خيتسيماني، إقامة خاصة في كارتاخينا",
-    "status": "draft"
+    "alt": "إقامة فناء خيتسيماني — الصورة الرئيسية",
+    "status": "published"
   },
   {
     "image_id": "3cc0aac9-3b4b-5002-aeb0-49053333e657",
     "locale": "es",
-    "alt": "Residencia con patio en Getsemaní, una estancia privada en Cartagena",
-    "status": "draft"
+    "alt": "Residencia con patio en Getsemaní — principal",
+    "status": "published"
   },
   {
     "image_id": "f05ecace-f79c-5130-bb58-7fa7f2b9fc90",
@@ -153,13 +153,13 @@
     "image_id": "f05ecace-f79c-5130-bb58-7fa7f2b9fc90",
     "locale": "ar",
     "alt": "إقامة فناء خيتسيماني — معرض 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "f05ecace-f79c-5130-bb58-7fa7f2b9fc90",
     "locale": "es",
     "alt": "Residencia con patio en Getsemaní — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "5a03c2e0-3b82-5dd2-9b51-0692c20f45af",
@@ -171,13 +171,13 @@
     "image_id": "5a03c2e0-3b82-5dd2-9b51-0692c20f45af",
     "locale": "ar",
     "alt": "إقامة فناء خيتسيماني — معرض 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "5a03c2e0-3b82-5dd2-9b51-0692c20f45af",
     "locale": "es",
     "alt": "Residencia con patio en Getsemaní — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "58f37df8-c5c0-5e5b-8cd5-60ecc5569247",
@@ -189,13 +189,13 @@
     "image_id": "58f37df8-c5c0-5e5b-8cd5-60ecc5569247",
     "locale": "ar",
     "alt": "إقامة فناء خيتسيماني — معرض 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "58f37df8-c5c0-5e5b-8cd5-60ecc5569247",
     "locale": "es",
     "alt": "Residencia con patio en Getsemaní — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "77235106-be8c-502e-bb45-2805da8e76d2",
@@ -207,13 +207,13 @@
     "image_id": "77235106-be8c-502e-bb45-2805da8e76d2",
     "locale": "ar",
     "alt": "إقامة فناء خيتسيماني — معرض 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "77235106-be8c-502e-bb45-2805da8e76d2",
     "locale": "es",
     "alt": "Residencia con patio en Getsemaní — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "6319d498-cf50-5c7a-a0df-96835e31596d",
@@ -225,13 +225,13 @@
     "image_id": "6319d498-cf50-5c7a-a0df-96835e31596d",
     "locale": "ar",
     "alt": "إقامة فناء خيتسيماني — معرض 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "6319d498-cf50-5c7a-a0df-96835e31596d",
     "locale": "es",
     "alt": "Residencia con patio en Getsemaní — galería 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "1687c160-5699-5ea4-b949-3aeb5652791d",
@@ -243,13 +243,13 @@
     "image_id": "1687c160-5699-5ea4-b949-3aeb5652791d",
     "locale": "ar",
     "alt": "إقامة فناء خيتسيماني — معرض 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "1687c160-5699-5ea4-b949-3aeb5652791d",
     "locale": "es",
     "alt": "Residencia con patio en Getsemaní — galería 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "5e0a620e-ae44-50c0-a212-d682c99a938e",
@@ -260,14 +260,14 @@
   {
     "image_id": "5e0a620e-ae44-50c0-a212-d682c99a938e",
     "locale": "ar",
-    "alt": "بيت المركز التاريخي في كارتاخينا، إقامة خاصة",
-    "status": "draft"
+    "alt": "بيت المركز التاريخي في كارتاخينا — الصورة الرئيسية",
+    "status": "published"
   },
   {
     "image_id": "5e0a620e-ae44-50c0-a212-d682c99a938e",
     "locale": "es",
-    "alt": "Casa del centro histórico de Cartagena, una estancia privada",
-    "status": "draft"
+    "alt": "Casa del centro histórico de Cartagena — principal",
+    "status": "published"
   },
   {
     "image_id": "3ff8ff18-d0f2-576e-9a7f-54265d3b341d",
@@ -279,13 +279,13 @@
     "image_id": "3ff8ff18-d0f2-576e-9a7f-54265d3b341d",
     "locale": "ar",
     "alt": "بيت المركز التاريخي في كارتاخينا — معرض 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "3ff8ff18-d0f2-576e-9a7f-54265d3b341d",
     "locale": "es",
     "alt": "Casa del centro histórico de Cartagena — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "3a424ac7-20f4-569c-a693-39b4feca5ac2",
@@ -297,13 +297,13 @@
     "image_id": "3a424ac7-20f4-569c-a693-39b4feca5ac2",
     "locale": "ar",
     "alt": "بيت المركز التاريخي في كارتاخينا — معرض 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "3a424ac7-20f4-569c-a693-39b4feca5ac2",
     "locale": "es",
     "alt": "Casa del centro histórico de Cartagena — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "b2fec886-b93d-59c8-96d6-396ac59a1273",
@@ -315,13 +315,13 @@
     "image_id": "b2fec886-b93d-59c8-96d6-396ac59a1273",
     "locale": "ar",
     "alt": "بيت المركز التاريخي في كارتاخينا — معرض 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "b2fec886-b93d-59c8-96d6-396ac59a1273",
     "locale": "es",
     "alt": "Casa del centro histórico de Cartagena — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "eff7129e-5e40-5dbf-9902-7c59f28337e2",
@@ -333,13 +333,13 @@
     "image_id": "eff7129e-5e40-5dbf-9902-7c59f28337e2",
     "locale": "ar",
     "alt": "بيت المركز التاريخي في كارتاخينا — معرض 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "eff7129e-5e40-5dbf-9902-7c59f28337e2",
     "locale": "es",
     "alt": "Casa del centro histórico de Cartagena — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "6ef3ac3d-13eb-5380-982f-fdda7b1b41ac",
@@ -351,13 +351,13 @@
     "image_id": "6ef3ac3d-13eb-5380-982f-fdda7b1b41ac",
     "locale": "ar",
     "alt": "بيت المركز التاريخي في كارتاخينا — معرض 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "6ef3ac3d-13eb-5380-982f-fdda7b1b41ac",
     "locale": "es",
     "alt": "Casa del centro histórico de Cartagena — galería 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "b8b8ce47-53d4-53d8-8f58-1d893892a8fb",
@@ -369,13 +369,13 @@
     "image_id": "b8b8ce47-53d4-53d8-8f58-1d893892a8fb",
     "locale": "ar",
     "alt": "بيت المركز التاريخي في كارتاخينا — معرض 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "b8b8ce47-53d4-53d8-8f58-1d893892a8fb",
     "locale": "es",
     "alt": "Casa del centro histórico de Cartagena — galería 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d0e7df71-5db5-5839-93e1-52beef528a00",
@@ -387,13 +387,13 @@
     "image_id": "d0e7df71-5db5-5839-93e1-52beef528a00",
     "locale": "ar",
     "alt": "كاسا خاردين سان دييغو — الصورة الرئيسية",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d0e7df71-5db5-5839-93e1-52beef528a00",
     "locale": "es",
     "alt": "Casa Jardín San Diego — principal",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "9f88f7d2-214f-50a1-9adc-b29977af0543",
@@ -405,13 +405,13 @@
     "image_id": "9f88f7d2-214f-50a1-9adc-b29977af0543",
     "locale": "ar",
     "alt": "كاسا خاردين سان دييغو — معرض 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "9f88f7d2-214f-50a1-9adc-b29977af0543",
     "locale": "es",
     "alt": "Casa Jardín San Diego — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "51defef1-5a8a-5c59-9ee3-bd008f0994a6",
@@ -423,13 +423,13 @@
     "image_id": "51defef1-5a8a-5c59-9ee3-bd008f0994a6",
     "locale": "ar",
     "alt": "كاسا خاردين سان دييغو — معرض 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "51defef1-5a8a-5c59-9ee3-bd008f0994a6",
     "locale": "es",
     "alt": "Casa Jardín San Diego — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "50bcb645-7177-5785-8031-ccf3389bb27c",
@@ -441,13 +441,13 @@
     "image_id": "50bcb645-7177-5785-8031-ccf3389bb27c",
     "locale": "ar",
     "alt": "كاسا خاردين سان دييغو — معرض 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "50bcb645-7177-5785-8031-ccf3389bb27c",
     "locale": "es",
     "alt": "Casa Jardín San Diego — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "4de707ac-52ce-5ffa-a9fd-00cc464e0ab0",
@@ -459,13 +459,13 @@
     "image_id": "4de707ac-52ce-5ffa-a9fd-00cc464e0ab0",
     "locale": "ar",
     "alt": "كاسا خاردين سان دييغو — معرض 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "4de707ac-52ce-5ffa-a9fd-00cc464e0ab0",
     "locale": "es",
     "alt": "Casa Jardín San Diego — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "e597a1dc-1b3a-50d2-a5e4-779fe9a744ab",
@@ -477,13 +477,13 @@
     "image_id": "e597a1dc-1b3a-50d2-a5e4-779fe9a744ab",
     "locale": "ar",
     "alt": "كاسا خاردين سان دييغو — معرض 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "e597a1dc-1b3a-50d2-a5e4-779fe9a744ab",
     "locale": "es",
     "alt": "Casa Jardín San Diego — galería 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "783047ec-519d-58f6-a5e1-2e7ba457aa81",
@@ -495,13 +495,13 @@
     "image_id": "783047ec-519d-58f6-a5e1-2e7ba457aa81",
     "locale": "ar",
     "alt": "كاسا خاردين سان دييغو — معرض 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "783047ec-519d-58f6-a5e1-2e7ba457aa81",
     "locale": "es",
     "alt": "Casa Jardín San Diego — galería 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "0eb34390-241d-52eb-b2a5-f8e5d321a676",
@@ -513,13 +513,13 @@
     "image_id": "0eb34390-241d-52eb-b2a5-f8e5d321a676",
     "locale": "ar",
     "alt": "كاسا خوليانا في المركز التاريخي — الصورة الرئيسية",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "0eb34390-241d-52eb-b2a5-f8e5d321a676",
     "locale": "es",
     "alt": "Casa Juliana, centro histórico — principal",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "c756daf3-91a8-5b2f-acc9-b3c80662f338",
@@ -531,13 +531,13 @@
     "image_id": "c756daf3-91a8-5b2f-acc9-b3c80662f338",
     "locale": "ar",
     "alt": "كاسا خوليانا في المركز التاريخي — معرض 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "c756daf3-91a8-5b2f-acc9-b3c80662f338",
     "locale": "es",
     "alt": "Casa Juliana, centro histórico — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "528de6c8-69fc-5666-b410-6ae967116f19",
@@ -549,13 +549,13 @@
     "image_id": "528de6c8-69fc-5666-b410-6ae967116f19",
     "locale": "ar",
     "alt": "كاسا خوليانا في المركز التاريخي — معرض 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "528de6c8-69fc-5666-b410-6ae967116f19",
     "locale": "es",
     "alt": "Casa Juliana, centro histórico — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "29b1e68b-e190-5d65-802d-883267362f9d",
@@ -567,13 +567,13 @@
     "image_id": "29b1e68b-e190-5d65-802d-883267362f9d",
     "locale": "ar",
     "alt": "كاسا خوليانا في المركز التاريخي — معرض 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "29b1e68b-e190-5d65-802d-883267362f9d",
     "locale": "es",
     "alt": "Casa Juliana, centro histórico — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2a227620-6b40-5660-a6bc-2b5927a84d19",
@@ -585,13 +585,13 @@
     "image_id": "2a227620-6b40-5660-a6bc-2b5927a84d19",
     "locale": "ar",
     "alt": "كاسا خوليانا في المركز التاريخي — معرض 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2a227620-6b40-5660-a6bc-2b5927a84d19",
     "locale": "es",
     "alt": "Casa Juliana, centro histórico — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2909178c-a89e-53a8-8e36-4a7f1b13f28d",
@@ -603,13 +603,13 @@
     "image_id": "2909178c-a89e-53a8-8e36-4a7f1b13f28d",
     "locale": "ar",
     "alt": "كاسا خوليانا في المركز التاريخي — معرض 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2909178c-a89e-53a8-8e36-4a7f1b13f28d",
     "locale": "es",
     "alt": "Casa Juliana, centro histórico — galería 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "5be2597b-705c-5b08-bab7-7b7c29a71d20",
@@ -621,13 +621,13 @@
     "image_id": "5be2597b-705c-5b08-bab7-7b7c29a71d20",
     "locale": "ar",
     "alt": "كاسا خوليانا في المركز التاريخي — معرض 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "5be2597b-705c-5b08-bab7-7b7c29a71d20",
     "locale": "es",
     "alt": "Casa Juliana, centro histórico — galería 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "1c01f400-2e1a-5139-8605-dd8b1c40453b",
@@ -639,13 +639,13 @@
     "image_id": "1c01f400-2e1a-5139-8605-dd8b1c40453b",
     "locale": "ar",
     "alt": "كاسا ماريانا في المركز التاريخي — الصورة الرئيسية",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "1c01f400-2e1a-5139-8605-dd8b1c40453b",
     "locale": "es",
     "alt": "Casa Mariana, centro histórico — principal",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2d0e0b32-cec0-5fb3-8c6f-13ea768c27f2",
@@ -657,13 +657,13 @@
     "image_id": "2d0e0b32-cec0-5fb3-8c6f-13ea768c27f2",
     "locale": "ar",
     "alt": "كاسا ماريانا في المركز التاريخي — معرض 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2d0e0b32-cec0-5fb3-8c6f-13ea768c27f2",
     "locale": "es",
     "alt": "Casa Mariana, centro histórico — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "247910ff-b3b6-5669-8c6d-ea0eb8fc2139",
@@ -675,13 +675,13 @@
     "image_id": "247910ff-b3b6-5669-8c6d-ea0eb8fc2139",
     "locale": "ar",
     "alt": "كاسا ماريانا في المركز التاريخي — معرض 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "247910ff-b3b6-5669-8c6d-ea0eb8fc2139",
     "locale": "es",
     "alt": "Casa Mariana, centro histórico — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "fd62d681-662f-5049-bc37-ccb54586e029",
@@ -693,13 +693,13 @@
     "image_id": "fd62d681-662f-5049-bc37-ccb54586e029",
     "locale": "ar",
     "alt": "كاسا ماريانا في المركز التاريخي — معرض 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "fd62d681-662f-5049-bc37-ccb54586e029",
     "locale": "es",
     "alt": "Casa Mariana, centro histórico — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d238c511-d19e-5837-8eef-a19f5dbc10ec",
@@ -711,13 +711,13 @@
     "image_id": "d238c511-d19e-5837-8eef-a19f5dbc10ec",
     "locale": "ar",
     "alt": "كاسا ماريانا في المركز التاريخي — معرض 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d238c511-d19e-5837-8eef-a19f5dbc10ec",
     "locale": "es",
     "alt": "Casa Mariana, centro histórico — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "f754a8d4-ffe5-54a4-b8bd-da9710e28a46",
@@ -729,13 +729,13 @@
     "image_id": "f754a8d4-ffe5-54a4-b8bd-da9710e28a46",
     "locale": "ar",
     "alt": "كاسا ماريانا في المركز التاريخي — معرض 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "f754a8d4-ffe5-54a4-b8bd-da9710e28a46",
     "locale": "es",
     "alt": "Casa Mariana, centro histórico — galería 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "6107c9da-ca4c-516d-9b5a-eda72687378d",
@@ -747,13 +747,13 @@
     "image_id": "6107c9da-ca4c-516d-9b5a-eda72687378d",
     "locale": "ar",
     "alt": "كاسا ماريانا في المركز التاريخي — معرض 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "6107c9da-ca4c-516d-9b5a-eda72687378d",
     "locale": "es",
     "alt": "Casa Mariana, centro histórico — galería 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "29a2ec34-413a-559d-aca2-ee69c03eaaa2",
@@ -765,13 +765,13 @@
     "image_id": "29a2ec34-413a-559d-aca2-ee69c03eaaa2",
     "locale": "ar",
     "alt": "فيلا خاصة في جزيرة بارو — الصورة الرئيسية",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "29a2ec34-413a-559d-aca2-ee69c03eaaa2",
     "locale": "es",
     "alt": "Villa privada en la isla de Barú — principal",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "b0766d08-c3b5-562d-8e8d-7bd88a70ac07",
@@ -783,13 +783,13 @@
     "image_id": "b0766d08-c3b5-562d-8e8d-7bd88a70ac07",
     "locale": "ar",
     "alt": "فيلا خاصة في جزيرة بارو — معرض 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "b0766d08-c3b5-562d-8e8d-7bd88a70ac07",
     "locale": "es",
     "alt": "Villa privada en la isla de Barú — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "03a2e80c-cc60-573d-8a36-6cf88657e1c0",
@@ -801,13 +801,13 @@
     "image_id": "03a2e80c-cc60-573d-8a36-6cf88657e1c0",
     "locale": "ar",
     "alt": "فيلا خاصة في جزيرة بارو — معرض 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "03a2e80c-cc60-573d-8a36-6cf88657e1c0",
     "locale": "es",
     "alt": "Villa privada en la isla de Barú — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d9829c2b-ffe2-5f29-9f32-18fa435896ba",
@@ -819,13 +819,13 @@
     "image_id": "d9829c2b-ffe2-5f29-9f32-18fa435896ba",
     "locale": "ar",
     "alt": "فيلا خاصة في جزيرة بارو — معرض 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d9829c2b-ffe2-5f29-9f32-18fa435896ba",
     "locale": "es",
     "alt": "Villa privada en la isla de Barú — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "9869354b-2b6a-564c-90ed-ca88e85d93d1",
@@ -837,13 +837,13 @@
     "image_id": "9869354b-2b6a-564c-90ed-ca88e85d93d1",
     "locale": "ar",
     "alt": "فيلا خاصة في جزيرة بارو — معرض 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "9869354b-2b6a-564c-90ed-ca88e85d93d1",
     "locale": "es",
     "alt": "Villa privada en la isla de Barú — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "b102fdde-ebd8-517c-988c-7b85789ec4d0",
@@ -855,13 +855,13 @@
     "image_id": "b102fdde-ebd8-517c-988c-7b85789ec4d0",
     "locale": "ar",
     "alt": "فيلا خاصة في جزيرة بارو — معرض 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "b102fdde-ebd8-517c-988c-7b85789ec4d0",
     "locale": "es",
     "alt": "Villa privada en la isla de Barú — galería 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "fd790b40-c42d-5114-bcb2-b9b0d5127fd2",
@@ -873,13 +873,13 @@
     "image_id": "fd790b40-c42d-5114-bcb2-b9b0d5127fd2",
     "locale": "ar",
     "alt": "فيلا خاصة في جزيرة بارو — معرض 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "fd790b40-c42d-5114-bcb2-b9b0d5127fd2",
     "locale": "es",
     "alt": "Villa privada en la isla de Barú — galería 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "cd160525-69aa-50d9-987c-4c8b425eaa3e",
@@ -890,14 +890,14 @@
   {
     "image_id": "cd160525-69aa-50d9-987c-4c8b425eaa3e",
     "locale": "ar",
-    "alt": "بيت شاطئ بوكاغراندي — الصورة الرئيسية",
-    "status": "draft"
+    "alt": "بيت شاطئي في بوكاغراندي — الصورة الرئيسية",
+    "status": "published"
   },
   {
     "image_id": "cd160525-69aa-50d9-987c-4c8b425eaa3e",
     "locale": "es",
     "alt": "Casa de playa en Bocagrande — principal",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "3d59a6c7-a56a-5d79-be57-657648ac0068",
@@ -908,14 +908,14 @@
   {
     "image_id": "3d59a6c7-a56a-5d79-be57-657648ac0068",
     "locale": "ar",
-    "alt": "بيت شاطئ بوكاغراندي — معرض 1",
-    "status": "draft"
+    "alt": "بيت شاطئي في بوكاغراندي — معرض 1",
+    "status": "published"
   },
   {
     "image_id": "3d59a6c7-a56a-5d79-be57-657648ac0068",
     "locale": "es",
     "alt": "Casa de playa en Bocagrande — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "63fe8f8a-e172-53a0-b76f-a4d04566b7ab",
@@ -926,14 +926,14 @@
   {
     "image_id": "63fe8f8a-e172-53a0-b76f-a4d04566b7ab",
     "locale": "ar",
-    "alt": "بيت شاطئ بوكاغراندي — معرض 2",
-    "status": "draft"
+    "alt": "بيت شاطئي في بوكاغراندي — معرض 2",
+    "status": "published"
   },
   {
     "image_id": "63fe8f8a-e172-53a0-b76f-a4d04566b7ab",
     "locale": "es",
     "alt": "Casa de playa en Bocagrande — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "65d81eeb-a25b-5149-aa43-faf0c261bb85",
@@ -944,14 +944,14 @@
   {
     "image_id": "65d81eeb-a25b-5149-aa43-faf0c261bb85",
     "locale": "ar",
-    "alt": "بيت شاطئ بوكاغراندي — معرض 3",
-    "status": "draft"
+    "alt": "بيت شاطئي في بوكاغراندي — معرض 3",
+    "status": "published"
   },
   {
     "image_id": "65d81eeb-a25b-5149-aa43-faf0c261bb85",
     "locale": "es",
     "alt": "Casa de playa en Bocagrande — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "27b56fd7-507c-543f-bb92-e3df2432ab68",
@@ -962,14 +962,14 @@
   {
     "image_id": "27b56fd7-507c-543f-bb92-e3df2432ab68",
     "locale": "ar",
-    "alt": "بيت شاطئ بوكاغراندي — معرض 4",
-    "status": "draft"
+    "alt": "بيت شاطئي في بوكاغراندي — معرض 4",
+    "status": "published"
   },
   {
     "image_id": "27b56fd7-507c-543f-bb92-e3df2432ab68",
     "locale": "es",
     "alt": "Casa de playa en Bocagrande — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "5ad509cb-6117-5510-92ca-9a2b5503a43b",
@@ -980,14 +980,14 @@
   {
     "image_id": "5ad509cb-6117-5510-92ca-9a2b5503a43b",
     "locale": "ar",
-    "alt": "بيت شاطئ بوكاغراندي — معرض 5",
-    "status": "draft"
+    "alt": "بيت شاطئي في بوكاغراندي — معرض 5",
+    "status": "published"
   },
   {
     "image_id": "5ad509cb-6117-5510-92ca-9a2b5503a43b",
     "locale": "es",
     "alt": "Casa de playa en Bocagrande — galería 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "840d074e-831c-511a-90f3-637dda2a659f",
@@ -998,14 +998,14 @@
   {
     "image_id": "840d074e-831c-511a-90f3-637dda2a659f",
     "locale": "ar",
-    "alt": "بيت شاطئ بوكاغراندي — معرض 6",
-    "status": "draft"
+    "alt": "بيت شاطئي في بوكاغراندي — معرض 6",
+    "status": "published"
   },
   {
     "image_id": "840d074e-831c-511a-90f3-637dda2a659f",
     "locale": "es",
     "alt": "Casa de playa en Bocagrande — galería 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "039bfa7f-147c-5083-916b-7cdaa8d5a41b",
@@ -1017,13 +1017,13 @@
     "image_id": "039bfa7f-147c-5083-916b-7cdaa8d5a41b",
     "locale": "ar",
     "alt": "جزيرة خاصة في كارتاخينا — الصورة الرئيسية",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "039bfa7f-147c-5083-916b-7cdaa8d5a41b",
     "locale": "es",
     "alt": "Isla privada en Cartagena — principal",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "0ceb68dd-cf5d-545d-a0e5-346c5fc1782a",
@@ -1035,13 +1035,13 @@
     "image_id": "0ceb68dd-cf5d-545d-a0e5-346c5fc1782a",
     "locale": "ar",
     "alt": "جزيرة خاصة في كارتاخينا — معرض 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "0ceb68dd-cf5d-545d-a0e5-346c5fc1782a",
     "locale": "es",
     "alt": "Isla privada en Cartagena — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a7b0c4bb-4a1a-5fc0-b756-b15fc64149e0",
@@ -1053,13 +1053,13 @@
     "image_id": "a7b0c4bb-4a1a-5fc0-b756-b15fc64149e0",
     "locale": "ar",
     "alt": "جزيرة خاصة في كارتاخينا — معرض 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a7b0c4bb-4a1a-5fc0-b756-b15fc64149e0",
     "locale": "es",
     "alt": "Isla privada en Cartagena — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "1c311d67-6fa7-5e88-a604-669494c123d3",
@@ -1071,13 +1071,13 @@
     "image_id": "1c311d67-6fa7-5e88-a604-669494c123d3",
     "locale": "ar",
     "alt": "جزيرة خاصة في كارتاخينا — معرض 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "1c311d67-6fa7-5e88-a604-669494c123d3",
     "locale": "es",
     "alt": "Isla privada en Cartagena — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "3ea9ef50-f0ae-5183-b638-e551d534d9a3",
@@ -1089,13 +1089,13 @@
     "image_id": "3ea9ef50-f0ae-5183-b638-e551d534d9a3",
     "locale": "ar",
     "alt": "جزيرة خاصة في كارتاخينا — معرض 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "3ea9ef50-f0ae-5183-b638-e551d534d9a3",
     "locale": "es",
     "alt": "Isla privada en Cartagena — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "fc653b6c-e9cf-587e-8839-f2315787b357",
@@ -1107,13 +1107,13 @@
     "image_id": "fc653b6c-e9cf-587e-8839-f2315787b357",
     "locale": "ar",
     "alt": "جزيرة خاصة في كارتاخينا — معرض 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "fc653b6c-e9cf-587e-8839-f2315787b357",
     "locale": "es",
     "alt": "Isla privada en Cartagena — galería 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "c54a4845-ecaf-5703-a883-a7df5e1a1bc7",
@@ -1125,13 +1125,13 @@
     "image_id": "c54a4845-ecaf-5703-a883-a7df5e1a1bc7",
     "locale": "ar",
     "alt": "جزيرة خاصة في كارتاخينا — معرض 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "c54a4845-ecaf-5703-a883-a7df5e1a1bc7",
     "locale": "es",
     "alt": "Isla privada en Cartagena — galería 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "165b5e01-e0e4-5610-9d94-edbc28594c39",
@@ -1142,14 +1142,14 @@
   {
     "image_id": "165b5e01-e0e4-5610-9d94-edbc28594c39",
     "locale": "ar",
-    "alt": "عزبة جزيرة خاصة في كارتاخينا — الصورة الرئيسية",
-    "status": "draft"
+    "alt": "ضيعة جزيرة خاصة في كارتاخينا — الصورة الرئيسية",
+    "status": "published"
   },
   {
     "image_id": "165b5e01-e0e4-5610-9d94-edbc28594c39",
     "locale": "es",
     "alt": "Finca en isla privada de Cartagena — principal",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "f1934b3d-193d-54ea-a714-1868da5b7bdf",
@@ -1160,14 +1160,14 @@
   {
     "image_id": "f1934b3d-193d-54ea-a714-1868da5b7bdf",
     "locale": "ar",
-    "alt": "عزبة جزيرة خاصة في كارتاخينا — معرض 1",
-    "status": "draft"
+    "alt": "ضيعة جزيرة خاصة في كارتاخينا — معرض 1",
+    "status": "published"
   },
   {
     "image_id": "f1934b3d-193d-54ea-a714-1868da5b7bdf",
     "locale": "es",
     "alt": "Finca en isla privada de Cartagena — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "60a4d29d-b722-5467-ad5a-980d2df44442",
@@ -1178,14 +1178,14 @@
   {
     "image_id": "60a4d29d-b722-5467-ad5a-980d2df44442",
     "locale": "ar",
-    "alt": "عزبة جزيرة خاصة في كارتاخينا — معرض 2",
-    "status": "draft"
+    "alt": "ضيعة جزيرة خاصة في كارتاخينا — معرض 2",
+    "status": "published"
   },
   {
     "image_id": "60a4d29d-b722-5467-ad5a-980d2df44442",
     "locale": "es",
     "alt": "Finca en isla privada de Cartagena — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "47a7a3af-c2d3-503d-b256-6d39e8f40aa9",
@@ -1196,14 +1196,14 @@
   {
     "image_id": "47a7a3af-c2d3-503d-b256-6d39e8f40aa9",
     "locale": "ar",
-    "alt": "عزبة جزيرة خاصة في كارتاخينا — معرض 3",
-    "status": "draft"
+    "alt": "ضيعة جزيرة خاصة في كارتاخينا — معرض 3",
+    "status": "published"
   },
   {
     "image_id": "47a7a3af-c2d3-503d-b256-6d39e8f40aa9",
     "locale": "es",
     "alt": "Finca en isla privada de Cartagena — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "8cff20fc-7735-5945-baf3-e508dd4f6c9a",
@@ -1214,14 +1214,14 @@
   {
     "image_id": "8cff20fc-7735-5945-baf3-e508dd4f6c9a",
     "locale": "ar",
-    "alt": "عزبة جزيرة خاصة في كارتاخينا — معرض 4",
-    "status": "draft"
+    "alt": "ضيعة جزيرة خاصة في كارتاخينا — معرض 4",
+    "status": "published"
   },
   {
     "image_id": "8cff20fc-7735-5945-baf3-e508dd4f6c9a",
     "locale": "es",
     "alt": "Finca en isla privada de Cartagena — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "8329c69d-b9c7-5fba-9235-97bbc9cae9cd",
@@ -1232,14 +1232,14 @@
   {
     "image_id": "8329c69d-b9c7-5fba-9235-97bbc9cae9cd",
     "locale": "ar",
-    "alt": "عزبة جزيرة خاصة في كارتاخينا — معرض 5",
-    "status": "draft"
+    "alt": "ضيعة جزيرة خاصة في كارتاخينا — معرض 5",
+    "status": "published"
   },
   {
     "image_id": "8329c69d-b9c7-5fba-9235-97bbc9cae9cd",
     "locale": "es",
     "alt": "Finca en isla privada de Cartagena — galería 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "33296ffe-41a4-5a12-9170-d4f559abc465",
@@ -1250,14 +1250,14 @@
   {
     "image_id": "33296ffe-41a4-5a12-9170-d4f559abc465",
     "locale": "ar",
-    "alt": "عزبة جزيرة خاصة في كارتاخينا — معرض 6",
-    "status": "draft"
+    "alt": "ضيعة جزيرة خاصة في كارتاخينا — معرض 6",
+    "status": "published"
   },
   {
     "image_id": "33296ffe-41a4-5a12-9170-d4f559abc465",
     "locale": "es",
     "alt": "Finca en isla privada de Cartagena — galería 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "abc7fd4d-8e6b-5803-97a0-4e7f70796f1e",
@@ -1269,13 +1269,13 @@
     "image_id": "abc7fd4d-8e6b-5803-97a0-4e7f70796f1e",
     "locale": "ar",
     "alt": "مزرعة سانتا في في أنتيوكيا — الصورة الرئيسية",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "abc7fd4d-8e6b-5803-97a0-4e7f70796f1e",
     "locale": "es",
     "alt": "Finca Santa Fe, Antioquia — principal",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "983c839f-c304-5a4e-a58f-41a2aad93d0a",
@@ -1287,13 +1287,13 @@
     "image_id": "983c839f-c304-5a4e-a58f-41a2aad93d0a",
     "locale": "ar",
     "alt": "مزرعة سانتا في في أنتيوكيا — معرض 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "983c839f-c304-5a4e-a58f-41a2aad93d0a",
     "locale": "es",
     "alt": "Finca Santa Fe, Antioquia — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "0180f362-328a-54c0-8bfe-b7e576497801",
@@ -1305,13 +1305,13 @@
     "image_id": "0180f362-328a-54c0-8bfe-b7e576497801",
     "locale": "ar",
     "alt": "مزرعة سانتا في في أنتيوكيا — معرض 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "0180f362-328a-54c0-8bfe-b7e576497801",
     "locale": "es",
     "alt": "Finca Santa Fe, Antioquia — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "11c6657f-5493-53b6-8964-ed468a99e813",
@@ -1323,13 +1323,13 @@
     "image_id": "11c6657f-5493-53b6-8964-ed468a99e813",
     "locale": "ar",
     "alt": "مزرعة سانتا في في أنتيوكيا — معرض 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "11c6657f-5493-53b6-8964-ed468a99e813",
     "locale": "es",
     "alt": "Finca Santa Fe, Antioquia — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "6c95ce2e-c397-5876-bc2e-f1fd180adbce",
@@ -1341,13 +1341,13 @@
     "image_id": "6c95ce2e-c397-5876-bc2e-f1fd180adbce",
     "locale": "ar",
     "alt": "مزرعة سانتا في في أنتيوكيا — معرض 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "6c95ce2e-c397-5876-bc2e-f1fd180adbce",
     "locale": "es",
     "alt": "Finca Santa Fe, Antioquia — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d518950c-08d9-57a4-a777-7727846bbfa2",
@@ -1359,13 +1359,13 @@
     "image_id": "d518950c-08d9-57a4-a777-7727846bbfa2",
     "locale": "ar",
     "alt": "مزرعة سانتا في في أنتيوكيا — معرض 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d518950c-08d9-57a4-a777-7727846bbfa2",
     "locale": "es",
     "alt": "Finca Santa Fe, Antioquia — galería 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "3a3904d4-f936-59ea-a2a2-5ad5a2634bd5",
@@ -1377,13 +1377,13 @@
     "image_id": "3a3904d4-f936-59ea-a2a2-5ad5a2634bd5",
     "locale": "ar",
     "alt": "مزرعة سانتا في في أنتيوكيا — معرض 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "3a3904d4-f936-59ea-a2a2-5ad5a2634bd5",
     "locale": "es",
     "alt": "Finca Santa Fe, Antioquia — galería 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "063be6e8-a7a1-5a4e-bf7b-ccb0d7e0de6a",
@@ -1394,14 +1394,14 @@
   {
     "image_id": "063be6e8-a7a1-5a4e-bf7b-ccb0d7e0de6a",
     "locale": "ar",
-    "alt": "عزبة سوبيتران الريفية — الصورة الرئيسية",
-    "status": "draft"
+    "alt": "ضيعة سوبيتران الريفية — الصورة الرئيسية",
+    "status": "published"
   },
   {
     "image_id": "063be6e8-a7a1-5a4e-bf7b-ccb0d7e0de6a",
     "locale": "es",
     "alt": "Finca campestre en Sopetrán — principal",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "9003acfd-9c1a-51c9-a436-4ad00eb1d261",
@@ -1412,14 +1412,14 @@
   {
     "image_id": "9003acfd-9c1a-51c9-a436-4ad00eb1d261",
     "locale": "ar",
-    "alt": "عزبة سوبيتران الريفية — معرض 1",
-    "status": "draft"
+    "alt": "ضيعة سوبيتران الريفية — معرض 1",
+    "status": "published"
   },
   {
     "image_id": "9003acfd-9c1a-51c9-a436-4ad00eb1d261",
     "locale": "es",
     "alt": "Finca campestre en Sopetrán — galería 1",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "5cecc6ca-47ac-5b5e-98e0-42b4b98fa343",
@@ -1430,14 +1430,14 @@
   {
     "image_id": "5cecc6ca-47ac-5b5e-98e0-42b4b98fa343",
     "locale": "ar",
-    "alt": "عزبة سوبيتران الريفية — معرض 2",
-    "status": "draft"
+    "alt": "ضيعة سوبيتران الريفية — معرض 2",
+    "status": "published"
   },
   {
     "image_id": "5cecc6ca-47ac-5b5e-98e0-42b4b98fa343",
     "locale": "es",
     "alt": "Finca campestre en Sopetrán — galería 2",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "8821441b-ae47-5c93-9602-7677ab40d419",
@@ -1448,14 +1448,14 @@
   {
     "image_id": "8821441b-ae47-5c93-9602-7677ab40d419",
     "locale": "ar",
-    "alt": "عزبة سوبيتران الريفية — معرض 3",
-    "status": "draft"
+    "alt": "ضيعة سوبيتران الريفية — معرض 3",
+    "status": "published"
   },
   {
     "image_id": "8821441b-ae47-5c93-9602-7677ab40d419",
     "locale": "es",
     "alt": "Finca campestre en Sopetrán — galería 3",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a8660eea-3f59-5252-8611-a298c3a5e80e",
@@ -1466,14 +1466,14 @@
   {
     "image_id": "a8660eea-3f59-5252-8611-a298c3a5e80e",
     "locale": "ar",
-    "alt": "عزبة سوبيتران الريفية — معرض 4",
-    "status": "draft"
+    "alt": "ضيعة سوبيتران الريفية — معرض 4",
+    "status": "published"
   },
   {
     "image_id": "a8660eea-3f59-5252-8611-a298c3a5e80e",
     "locale": "es",
     "alt": "Finca campestre en Sopetrán — galería 4",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "1fb3607c-5fd9-5541-8ac8-ee087b4d7975",
@@ -1484,14 +1484,14 @@
   {
     "image_id": "1fb3607c-5fd9-5541-8ac8-ee087b4d7975",
     "locale": "ar",
-    "alt": "عزبة سوبيتران الريفية — معرض 5",
-    "status": "draft"
+    "alt": "ضيعة سوبيتران الريفية — معرض 5",
+    "status": "published"
   },
   {
     "image_id": "1fb3607c-5fd9-5541-8ac8-ee087b4d7975",
     "locale": "es",
     "alt": "Finca campestre en Sopetrán — galería 5",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "f317e635-4802-573d-890d-3e0780a4ac56",
@@ -1502,14 +1502,14 @@
   {
     "image_id": "f317e635-4802-573d-890d-3e0780a4ac56",
     "locale": "ar",
-    "alt": "عزبة سوبيتران الريفية — معرض 6",
-    "status": "draft"
+    "alt": "ضيعة سوبيتران الريفية — معرض 6",
+    "status": "published"
   },
   {
     "image_id": "f317e635-4802-573d-890d-3e0780a4ac56",
     "locale": "es",
     "alt": "Finca campestre en Sopetrán — galería 6",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "0f28d1c4-47c9-5251-a4fc-696dc90caa77",
@@ -1520,14 +1520,14 @@
   {
     "image_id": "0f28d1c4-47c9-5251-a4fc-696dc90caa77",
     "locale": "ar",
-    "alt": "كونسيرج خاص على مدار الساعة، خدمة المار في كولومبيا",
-    "status": "draft"
+    "alt": "كونسيرج خاص على مدار الساعة، خدمة كونسيرج من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "0f28d1c4-47c9-5251-a4fc-696dc90caa77",
     "locale": "es",
-    "alt": "Conserje privado 24/7, un servicio de ALMAR en Colombia",
-    "status": "draft"
+    "alt": "Concierge privado 24/7, un servicio de conserjería de ALMAR en Colombia",
+    "status": "published"
   },
   {
     "image_id": "2144b93b-a5c6-5671-893e-5aae8ef47cb8",
@@ -1539,13 +1539,13 @@
     "image_id": "2144b93b-a5c6-5671-893e-5aae8ef47cb8",
     "locale": "ar",
     "alt": "نقل بري فاخر",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2144b93b-a5c6-5671-893e-5aae8ef47cb8",
     "locale": "es",
     "alt": "Transporte terrestre de lujo",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "667fc851-be00-5640-93a2-fa3d89658c29",
@@ -1556,14 +1556,14 @@
   {
     "image_id": "667fc851-be00-5640-93a2-fa3d89658c29",
     "locale": "ar",
-    "alt": "استقبال كبار الشخصيات في المطار، خدمة المار في كولومبيا",
-    "status": "draft"
+    "alt": "استقبال كبار الشخصيات في المطار، خدمة كونسيرج من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "667fc851-be00-5640-93a2-fa3d89658c29",
     "locale": "es",
-    "alt": "Recibimiento VIP en el aeropuerto, un servicio de ALMAR en Colombia",
-    "status": "draft"
+    "alt": "Recibimiento VIP en el aeropuerto, un servicio de conserjería de ALMAR en Colombia",
+    "status": "published"
   },
   {
     "image_id": "8974aa01-5eed-570c-9a95-ab2381f8004b",
@@ -1574,14 +1574,14 @@
   {
     "image_id": "8974aa01-5eed-570c-9a95-ab2381f8004b",
     "locale": "ar",
-    "alt": "كوكتيل الترحيب عند الغروب، تجربة طهي خاصة من المار في كولومبيا",
-    "status": "draft"
+    "alt": "كوكتيل الترحيب عند الغروب، تجربة طهي خاصة من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "8974aa01-5eed-570c-9a95-ab2381f8004b",
     "locale": "es",
     "alt": "Cóctel de bienvenida al atardecer, una experiencia culinaria privada de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "857186c3-85a9-59d8-8e88-aa046c00438d",
@@ -1593,13 +1593,13 @@
     "image_id": "857186c3-85a9-59d8-8e88-aa046c00438d",
     "locale": "ar",
     "alt": "ليلة في مدينة كارتاخينا المسوّرة",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "857186c3-85a9-59d8-8e88-aa046c00438d",
     "locale": "es",
     "alt": "Noche en la ciudad amurallada de Cartagena",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d7c9d68a-5697-5a17-9530-16250f5a2280",
@@ -1610,14 +1610,14 @@
   {
     "image_id": "d7c9d68a-5697-5a17-9530-16250f5a2280",
     "locale": "ar",
-    "alt": "جولات تراث كارتاخينا، خدمة ثقافية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "جولات تراث كارتاخينا، خدمة ثقافية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "d7c9d68a-5697-5a17-9530-16250f5a2280",
     "locale": "es",
     "alt": "Recorridos patrimoniales por Cartagena, un servicio cultural de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "421aa8d8-678f-5607-b708-810365bc1266",
@@ -1628,14 +1628,14 @@
   {
     "image_id": "421aa8d8-678f-5607-b708-810365bc1266",
     "locale": "ar",
-    "alt": "رحلة إلى جزر الروساريو، خدمة بحرية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "رحلة إلى جزر الروساريو، خدمة بحرية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "421aa8d8-678f-5607-b708-810365bc1266",
     "locale": "es",
     "alt": "Escapada a las Islas del Rosario, un servicio marino de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "1e02db5a-5ac1-5415-a05f-66c9b7d81cae",
@@ -1646,14 +1646,14 @@
   {
     "image_id": "1e02db5a-5ac1-5415-a05f-66c9b7d81cae",
     "locale": "ar",
-    "alt": "رحلات اليخوت والجزر، خدمة بحرية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "استئجار اليخوت ورحلات الجزر، خدمة بحرية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "1e02db5a-5ac1-5415-a05f-66c9b7d81cae",
     "locale": "es",
     "alt": "Chárteres de yate e islas, un servicio marino de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "49a20a34-c831-544d-b6d2-a1bb80e602a0",
@@ -1664,14 +1664,14 @@
   {
     "image_id": "49a20a34-c831-544d-b6d2-a1bb80e602a0",
     "locale": "ar",
-    "alt": "نهضة ميديلين، تجربة ثقافية خاصة من المار في كولومبيا",
-    "status": "draft"
+    "alt": "نهضة ميديلين، تجربة ثقافية خاصة من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "49a20a34-c831-544d-b6d2-a1bb80e602a0",
     "locale": "es",
     "alt": "Renacimiento de Medellín, una experiencia cultural privada de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "09dde168-3631-5fb2-aade-99ced23244cf",
@@ -1682,104 +1682,104 @@
   {
     "image_id": "09dde168-3631-5fb2-aade-99ced23244cf",
     "locale": "ar",
-    "alt": "جولات اكتشاف ميديلين، خدمة ثقافية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "جولات اكتشاف ميديلين، خدمة ثقافية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "09dde168-3631-5fb2-aade-99ced23244cf",
     "locale": "es",
     "alt": "Recorridos de descubrimiento de Medellín, un servicio cultural de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "9753bc8f-3411-5a1f-bae6-73bea6bcfb8e",
     "locale": "en",
-    "alt": "close up of a handcrafted-woodendoor with arched",
+    "alt": "Close-up of a handcrafted arched wooden door",
     "status": "published"
   },
   {
     "image_id": "9753bc8f-3411-5a1f-bae6-73bea6bcfb8e",
     "locale": "ar",
-    "alt": "باب خشبي مصنوع يدوياً بقوس، لقطة قريبة",
-    "status": "draft"
+    "alt": "لقطة قريبة لباب خشبي مصنوع يدوياً بقوس",
+    "status": "published"
   },
   {
     "image_id": "9753bc8f-3411-5a1f-bae6-73bea6bcfb8e",
     "locale": "es",
     "alt": "Primer plano de una puerta de madera artesanal con arco",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "f719ebbb-8175-5eed-b948-9743496bfdee",
     "locale": "en",
-    "alt": "mid-range-view-of-the-villa-s-private-beach-entran",
+    "alt": "Mid-range view of the villa's private beach entrance",
     "status": "published"
   },
   {
     "image_id": "f719ebbb-8175-5eed-b948-9743496bfdee",
     "locale": "ar",
     "alt": "منظر متوسط لمدخل الشاطئ الخاص للفيلا",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "f719ebbb-8175-5eed-b948-9743496bfdee",
     "locale": "es",
     "alt": "Vista media de la entrada a la playa privada de la villa",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "7c106731-d85f-50a4-9800-4538dcd69ead",
     "locale": "en",
-    "alt": "minimalist-living-room-inside-a-mediterranean-villa",
+    "alt": "Minimalist living room inside a Mediterranean villa",
     "status": "published"
   },
   {
     "image_id": "7c106731-d85f-50a4-9800-4538dcd69ead",
     "locale": "ar",
     "alt": "غرفة جلوس بسيطة داخل فيلا متوسطية",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "7c106731-d85f-50a4-9800-4538dcd69ead",
     "locale": "es",
     "alt": "Sala de estar minimalista dentro de una villa mediterránea",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "31c51862-2819-5887-adef-b93a5e8a7067",
     "locale": "en",
-    "alt": "morning breakfast in the garden patio set for breakfast",
+    "alt": "Morning breakfast table set in the garden patio",
     "status": "published"
   },
   {
     "image_id": "31c51862-2819-5887-adef-b93a5e8a7067",
     "locale": "ar",
-    "alt": "إفطار صباحي في فناء الحديقة مُعدّ للإفطار",
-    "status": "draft"
+    "alt": "مائدة إفطار صباحي معدّة في فناء الحديقة",
+    "status": "published"
   },
   {
     "image_id": "31c51862-2819-5887-adef-b93a5e8a7067",
     "locale": "es",
     "alt": "Desayuno matutino en el patio del jardín, mesa puesta",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "faeb1647-aff7-5b93-8d59-393a29e2736b",
     "locale": "en",
-    "alt": "flat lay shot of spa amenities by the bathtub",
+    "alt": "Flat lay of spa amenities by the bathtub",
     "status": "published"
   },
   {
     "image_id": "faeb1647-aff7-5b93-8d59-393a29e2736b",
     "locale": "ar",
     "alt": "لقطة علوية لمستلزمات السبا بجانب حوض الاستحمام",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "faeb1647-aff7-5b93-8d59-393a29e2736b",
     "locale": "es",
     "alt": "Vista cenital de los artículos de spa junto a la bañera",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d6ad2fd2-b58c-5ebf-954a-1bde264d626e",
@@ -1790,14 +1790,14 @@
   {
     "image_id": "d6ad2fd2-b58c-5ebf-954a-1bde264d626e",
     "locale": "ar",
-    "alt": "كولومبيا، كما تُرى — 6",
-    "status": "draft"
+    "alt": "كولومبيا، في أبهى صورها — 6",
+    "status": "published"
   },
   {
     "image_id": "d6ad2fd2-b58c-5ebf-954a-1bde264d626e",
     "locale": "es",
-    "alt": "Colombia, bien mirada — 6",
-    "status": "draft"
+    "alt": "Colombia, bellamente retratada — 6",
+    "status": "published"
   },
   {
     "image_id": "a4582d8f-320a-5bde-9d66-1c110f2c40cf",
@@ -1808,14 +1808,14 @@
   {
     "image_id": "a4582d8f-320a-5bde-9d66-1c110f2c40cf",
     "locale": "ar",
-    "alt": "كولومبيا، كما تُرى — 7",
-    "status": "draft"
+    "alt": "كولومبيا، في أبهى صورها — 7",
+    "status": "published"
   },
   {
     "image_id": "a4582d8f-320a-5bde-9d66-1c110f2c40cf",
     "locale": "es",
-    "alt": "Colombia, bien mirada — 7",
-    "status": "draft"
+    "alt": "Colombia, bellamente retratada — 7",
+    "status": "published"
   },
   {
     "image_id": "56cbd1e8-6d9e-5ead-8803-28e9d33901f3",
@@ -1826,14 +1826,14 @@
   {
     "image_id": "56cbd1e8-6d9e-5ead-8803-28e9d33901f3",
     "locale": "ar",
-    "alt": "كولومبيا، كما تُرى — 8",
-    "status": "draft"
+    "alt": "كولومبيا، في أبهى صورها — 8",
+    "status": "published"
   },
   {
     "image_id": "56cbd1e8-6d9e-5ead-8803-28e9d33901f3",
     "locale": "es",
-    "alt": "Colombia, bien mirada — 8",
-    "status": "draft"
+    "alt": "Colombia, bellamente retratada — 8",
+    "status": "published"
   },
   {
     "image_id": "a8e812c4-74e1-5f53-95fb-412ffa6c1bc2",
@@ -1844,14 +1844,14 @@
   {
     "image_id": "a8e812c4-74e1-5f53-95fb-412ffa6c1bc2",
     "locale": "ar",
-    "alt": "كولومبيا، كما تُرى — 9",
-    "status": "draft"
+    "alt": "كولومبيا، في أبهى صورها — 9",
+    "status": "published"
   },
   {
     "image_id": "a8e812c4-74e1-5f53-95fb-412ffa6c1bc2",
     "locale": "es",
-    "alt": "Colombia, bien mirada — 9",
-    "status": "draft"
+    "alt": "Colombia, bellamente retratada — 9",
+    "status": "published"
   },
   {
     "image_id": "d74b29b8-8330-57ac-96c6-0266f544a8cc",
@@ -1862,14 +1862,14 @@
   {
     "image_id": "d74b29b8-8330-57ac-96c6-0266f544a8cc",
     "locale": "ar",
-    "alt": "كولومبيا، كما تُرى — 10",
-    "status": "draft"
+    "alt": "كولومبيا، في أبهى صورها — 10",
+    "status": "published"
   },
   {
     "image_id": "d74b29b8-8330-57ac-96c6-0266f544a8cc",
     "locale": "es",
-    "alt": "Colombia, bien mirada — 10",
-    "status": "draft"
+    "alt": "Colombia, bellamente retratada — 10",
+    "status": "published"
   },
   {
     "image_id": "6732e5ee-5cb4-5535-b3b4-fff4cf5f0715",
@@ -1880,14 +1880,14 @@
   {
     "image_id": "6732e5ee-5cb4-5535-b3b4-fff4cf5f0715",
     "locale": "ar",
-    "alt": "كولومبيا، كما تُرى — 11",
-    "status": "draft"
+    "alt": "كولومبيا، في أبهى صورها — 11",
+    "status": "published"
   },
   {
     "image_id": "6732e5ee-5cb4-5535-b3b4-fff4cf5f0715",
     "locale": "es",
-    "alt": "Colombia, bien mirada — 11",
-    "status": "draft"
+    "alt": "Colombia, bellamente retratada — 11",
+    "status": "published"
   },
   {
     "image_id": "8a1741a5-e7dc-52d4-b5cf-94e31210a5ab",
@@ -1898,14 +1898,14 @@
   {
     "image_id": "8a1741a5-e7dc-52d4-b5cf-94e31210a5ab",
     "locale": "ar",
-    "alt": "كولومبيا، كما تُرى — 12",
-    "status": "draft"
+    "alt": "كولومبيا، في أبهى صورها — 12",
+    "status": "published"
   },
   {
     "image_id": "8a1741a5-e7dc-52d4-b5cf-94e31210a5ab",
     "locale": "es",
-    "alt": "Colombia, bien mirada — 12",
-    "status": "draft"
+    "alt": "Colombia, bellamente retratada — 12",
+    "status": "published"
   },
   {
     "image_id": "c7dbd229-e8f3-54f4-80bb-095f0c8ee514",
@@ -1916,14 +1916,14 @@
   {
     "image_id": "c7dbd229-e8f3-54f4-80bb-095f0c8ee514",
     "locale": "ar",
-    "alt": "كولومبيا، كما تُرى — 13",
-    "status": "draft"
+    "alt": "كولومبيا، في أبهى صورها — 13",
+    "status": "published"
   },
   {
     "image_id": "c7dbd229-e8f3-54f4-80bb-095f0c8ee514",
     "locale": "es",
-    "alt": "Colombia, bien mirada — 13",
-    "status": "draft"
+    "alt": "Colombia, bellamente retratada — 13",
+    "status": "published"
   },
   {
     "image_id": "a40b3fd4-2bdf-5c57-986c-a01a74eebaac",
@@ -1935,13 +1935,13 @@
     "image_id": "a40b3fd4-2bdf-5c57-986c-a01a74eebaac",
     "locale": "ar",
     "alt": "فناء استعماري في المدينة المسوّرة في كارتاخينا",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a40b3fd4-2bdf-5c57-986c-a01a74eebaac",
     "locale": "es",
     "alt": "Patio colonial en la ciudad amurallada de Cartagena",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a4f1c1f1-9052-5318-b344-e22521f67d79",
@@ -1953,13 +1953,13 @@
     "image_id": "a4f1c1f1-9052-5318-b344-e22521f67d79",
     "locale": "ar",
     "alt": "التوقيع",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a4f1c1f1-9052-5318-b344-e22521f67d79",
     "locale": "es",
     "alt": "Firma",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d4c6beca-389d-564b-bfc4-63a818620bf5",
@@ -1971,13 +1971,13 @@
     "image_id": "d4c6beca-389d-564b-bfc4-63a818620bf5",
     "locale": "ar",
     "alt": "شرفات استعمارية ملوّنة في كارتاخينا لرحلة المستكشف الخاصة",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d4c6beca-389d-564b-bfc4-63a818620bf5",
     "locale": "es",
     "alt": "Balcones coloniales de colores en Cartagena para el viaje privado The Explorer",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "f2f2d6c9-833a-51f8-835d-70ef61b3f755",
@@ -1989,13 +1989,13 @@
     "image_id": "f2f2d6c9-833a-51f8-835d-70ef61b3f755",
     "locale": "ar",
     "alt": "مسبح منتجع فاخر تحيط به جبال استوائية لرحلة المقيم",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "f2f2d6c9-833a-51f8-835d-70ef61b3f755",
     "locale": "es",
     "alt": "Piscina de un resort de lujo entre montañas tropicales para el viaje The Resident",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2263da97-fe37-5eed-98c2-2f7e15b4d5ae",
@@ -2007,13 +2007,13 @@
     "image_id": "2263da97-fe37-5eed-98c2-2f7e15b4d5ae",
     "locale": "ar",
     "alt": "يخت خاص في عرض البحر لرحلة السيادة",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2263da97-fe37-5eed-98c2-2f7e15b4d5ae",
     "locale": "es",
     "alt": "Yate privado en mar abierto para el viaje The Sovereign",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "fecf7741-a79b-5436-8c7a-9380bf3e9aa9",
@@ -2024,14 +2024,14 @@
   {
     "image_id": "fecf7741-a79b-5436-8c7a-9380bf3e9aa9",
     "locale": "ar",
-    "alt": "فناء استعماري في المدينة المسوّرة في كارتاخينا مع واجهات ملوّنة وجهنمية",
-    "status": "draft"
+    "alt": "فناء استعماري في المدينة المسوّرة في كارتاخينا مع واجهات ملوّنة وأزهار الجهنمية",
+    "status": "published"
   },
   {
     "image_id": "fecf7741-a79b-5436-8c7a-9380bf3e9aa9",
     "locale": "es",
     "alt": "Patio colonial en la ciudad amurallada de Cartagena, con fachadas de color y buganvilla",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d2f69dd4-13a8-5954-b9a5-00f51bcb7b32",
@@ -2043,13 +2043,13 @@
     "image_id": "d2f69dd4-13a8-5954-b9a5-00f51bcb7b32",
     "locale": "ar",
     "alt": "بانوراما ميديلين عند الغسق وأضواء أحياء التلال",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d2f69dd4-13a8-5954-b9a5-00f51bcb7b32",
     "locale": "es",
     "alt": "Panorama de Medellín al anochecer, con luces en los barrios de la ladera",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "8b26bd0c-e3cb-59e3-9689-103c57132f03",
@@ -2060,14 +2060,14 @@
   {
     "image_id": "8b26bd0c-e3cb-59e3-9689-103c57132f03",
     "locale": "ar",
-    "alt": "حبّات قهوة على غصن في منطقة إيخي كافيتيرو في كولومبيا",
-    "status": "draft"
+    "alt": "ثمار قهوة على غصن في منطقة إيخي كافيتيرو في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "8b26bd0c-e3cb-59e3-9689-103c57132f03",
     "locale": "es",
     "alt": "Cerezas de café en una rama en la región del Eje Cafetero de Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2c67f906-588f-4577-ab20-a0b43f09c85d",
@@ -2079,13 +2079,13 @@
     "image_id": "2c67f906-588f-4577-ab20-a0b43f09c85d",
     "locale": "ar",
     "alt": "كارتاخينا، كولومبيا",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2c67f906-588f-4577-ab20-a0b43f09c85d",
     "locale": "es",
     "alt": "Cartagena, Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "40ddd3d0-4e53-4ff0-8ed3-f58d9cbf6e81",
@@ -2097,13 +2097,13 @@
     "image_id": "40ddd3d0-4e53-4ff0-8ed3-f58d9cbf6e81",
     "locale": "ar",
     "alt": "أنتيوكيا، كولومبيا",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "40ddd3d0-4e53-4ff0-8ed3-f58d9cbf6e81",
     "locale": "es",
     "alt": "Antioquia, Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "1f38ffbc-1180-41da-adc6-766171cca7fc",
@@ -2115,13 +2115,13 @@
     "image_id": "1f38ffbc-1180-41da-adc6-766171cca7fc",
     "locale": "ar",
     "alt": "ابدأوا رحلتكم",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "1f38ffbc-1180-41da-adc6-766171cca7fc",
     "locale": "es",
-    "alt": "Empiecen su viaje",
-    "status": "draft"
+    "alt": "Comienza tu viaje",
+    "status": "published"
   },
   {
     "image_id": "bffe05fb-a5fd-52d5-9151-6c60388479e2",
@@ -2133,13 +2133,13 @@
     "image_id": "bffe05fb-a5fd-52d5-9151-6c60388479e2",
     "locale": "ar",
     "alt": "بوغوتا",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "bffe05fb-a5fd-52d5-9151-6c60388479e2",
     "locale": "es",
     "alt": "Bogotá",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "3c3794eb-59e4-5531-a80c-f3d04f5a3edd",
@@ -2151,13 +2151,13 @@
     "image_id": "3c3794eb-59e4-5531-a80c-f3d04f5a3edd",
     "locale": "ar",
     "alt": "سان أندريس",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "3c3794eb-59e4-5531-a80c-f3d04f5a3edd",
     "locale": "es",
     "alt": "San Andrés",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "83ed6607-36a8-5e27-9b01-dd3c58af9e3a",
@@ -2169,13 +2169,13 @@
     "image_id": "83ed6607-36a8-5e27-9b01-dd3c58af9e3a",
     "locale": "ar",
     "alt": "وادي كوكورا",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "83ed6607-36a8-5e27-9b01-dd3c58af9e3a",
     "locale": "es",
     "alt": "Valle de Cocora",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "ff46451d-ceb0-52df-9112-6d18e61e98a8",
@@ -2186,14 +2186,14 @@
   {
     "image_id": "ff46451d-ceb0-52df-9112-6d18e61e98a8",
     "locale": "ar",
-    "alt": "حفل خاص في كولومبيا، تجربة احتفال خاصة من المار في كولومبيا",
-    "status": "draft"
+    "alt": "حفل خاص في كولومبيا، تجربة احتفال خاصة من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "ff46451d-ceb0-52df-9112-6d18e61e98a8",
     "locale": "es",
     "alt": "Ceremonia privada en Colombia, una experiencia de celebración privada de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "f66b4ec1-f66f-5e07-bf3d-68728d537134",
@@ -2204,14 +2204,14 @@
   {
     "image_id": "f66b4ec1-f66f-5e07-bf3d-68728d537134",
     "locale": "ar",
-    "alt": "ريتريت العافية في الأنديز",
-    "status": "draft"
+    "alt": "ملاذ العافية في الأنديز",
+    "status": "published"
   },
   {
     "image_id": "f66b4ec1-f66f-5e07-bf3d-68728d537134",
     "locale": "es",
     "alt": "Retiro de bienestar andino",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "27fd924f-3e99-5556-b66d-77d855ed07e8",
@@ -2222,14 +2222,14 @@
   {
     "image_id": "27fd924f-3e99-5556-b66d-77d855ed07e8",
     "locale": "ar",
-    "alt": "الانغماس في منطقة القهوة، تجربة مغامرة خاصة من المار في كولومبيا",
-    "status": "draft"
+    "alt": "الانغماس في منطقة القهوة، تجربة مغامرة خاصة من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "27fd924f-3e99-5556-b66d-77d855ed07e8",
     "locale": "es",
     "alt": "Inmersión en la región cafetera, una experiencia de aventura privada de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a7bc3a78-30a7-5471-b1db-810e611f5948",
@@ -2240,14 +2240,14 @@
   {
     "image_id": "a7bc3a78-30a7-5471-b1db-810e611f5948",
     "locale": "ar",
-    "alt": "رحلة استكشاف غابات الأمازون المطيرة، تجربة استكشاف خاصة من المار في كولومبيا",
-    "status": "draft"
+    "alt": "رحلة استكشاف غابات الأمازون المطيرة، تجربة استكشاف خاصة من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "a7bc3a78-30a7-5471-b1db-810e611f5948",
     "locale": "es",
     "alt": "Expedición a la selva amazónica, una experiencia de expedición privada de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "6a81e5b7-64f7-5752-82ea-b48b98c147e5",
@@ -2258,14 +2258,14 @@
   {
     "image_id": "6a81e5b7-64f7-5752-82ea-b48b98c147e5",
     "locale": "ar",
-    "alt": "رحلة هروب ساحلية إلى تايرونا، تجربة ساحلية خاصة من المار في كولومبيا",
-    "status": "draft"
+    "alt": "رحلة ساحلية إلى تايرونا، تجربة ساحلية خاصة من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "6a81e5b7-64f7-5752-82ea-b48b98c147e5",
     "locale": "es",
     "alt": "Escapada costera a Tayrona, una experiencia costera privada de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "9e16e4f8-9aa3-5fa1-8362-0b0e05cac5ca",
@@ -2277,13 +2277,13 @@
     "image_id": "9e16e4f8-9aa3-5fa1-8362-0b0e05cac5ca",
     "locale": "ar",
     "alt": "تجربة فن وفنون طهي في بوغوتا مع عشاء خاص ودخول ثقافي",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "9e16e4f8-9aa3-5fa1-8362-0b0e05cac5ca",
     "locale": "es",
     "alt": "Experiencia de arte y gastronomía en Bogotá con cena privada y acceso cultural",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "d0b2609b-cb60-525f-93f8-3fc931b54706",
@@ -2294,14 +2294,14 @@
   {
     "image_id": "d0b2609b-cb60-525f-93f8-3fc931b54706",
     "locale": "ar",
-    "alt": "رحلة غوص إلى سان أندريس، تجربة مغامرة خاصة من المار في كولومبيا",
-    "status": "draft"
+    "alt": "رحلة غوص إلى سان أندريس، تجربة مغامرة خاصة من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "d0b2609b-cb60-525f-93f8-3fc931b54706",
     "locale": "es",
     "alt": "Escapada de buceo a San Andrés, una experiencia de aventura privada de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "c65a807d-5dc7-594d-84e4-a38f258fc22f",
@@ -2312,14 +2312,14 @@
   {
     "image_id": "c65a807d-5dc7-594d-84e4-a38f258fc22f",
     "locale": "ar",
-    "alt": "تجارب هاسيندا القهوة، خدمة ثقافية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "تجارب هاسيندا القهوة، خدمة ثقافية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "c65a807d-5dc7-594d-84e4-a38f258fc22f",
     "locale": "es",
     "alt": "Experiencias en haciendas cafeteras, un servicio cultural de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "33e56d34-20b5-5d67-8017-b65d84a2687c",
@@ -2330,14 +2330,14 @@
   {
     "image_id": "33e56d34-20b5-5d67-8017-b65d84a2687c",
     "locale": "ar",
-    "alt": "منطاد الهواء الساخن، منطقة القهوة، خدمة مغامرات من المار في كولومبيا",
-    "status": "draft"
+    "alt": "منطاد الهواء الساخن، منطقة القهوة، خدمة مغامرات من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "33e56d34-20b5-5d67-8017-b65d84a2687c",
     "locale": "es",
     "alt": "Globo aerostático, región cafetera, un servicio de aventura de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "7be1f4a7-9185-5ea1-afa1-9856ac5c9028",
@@ -2348,14 +2348,14 @@
   {
     "image_id": "7be1f4a7-9185-5ea1-afa1-9856ac5c9028",
     "locale": "ar",
-    "alt": "جولات المدن بالمروحية، خدمة مغامرات من المار في كولومبيا",
-    "status": "draft"
+    "alt": "جولات المدن بالمروحية، خدمة مغامرات من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "7be1f4a7-9185-5ea1-afa1-9856ac5c9028",
     "locale": "es",
     "alt": "Recorridos en helicóptero por la ciudad, un servicio de aventura de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "198313d7-168b-582a-83a7-a01479230155",
@@ -2366,14 +2366,14 @@
   {
     "image_id": "198313d7-168b-582a-83a7-a01479230155",
     "locale": "ar",
-    "alt": "تجارب الشاطئ الخاص، خدمة بحرية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "تجارب الشاطئ الخاص، خدمة بحرية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "198313d7-168b-582a-83a7-a01479230155",
     "locale": "es",
     "alt": "Experiencias privadas en la playa, un servicio marino de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "25723acf-3b4a-5f22-ac92-d51009ab7b17",
@@ -2384,14 +2384,14 @@
   {
     "image_id": "25723acf-3b4a-5f22-ac92-d51009ab7b17",
     "locale": "ar",
-    "alt": "دخول ثقافي لكبار الشخصيات، خدمة ثقافية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "دخول ثقافي لكبار الشخصيات، خدمة ثقافية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "25723acf-3b4a-5f22-ac92-d51009ab7b17",
     "locale": "es",
     "alt": "Acceso cultural VIP, un servicio cultural de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "7cdd5a8b-7a55-59a4-9a97-dc36040cfa06",
@@ -2402,14 +2402,14 @@
   {
     "image_id": "7cdd5a8b-7a55-59a4-9a97-dc36040cfa06",
     "locale": "ar",
-    "alt": "جولات طعام فاخرة، خدمة طعام من المار في كولومبيا",
-    "status": "draft"
+    "alt": "جولات طعام فاخرة، خدمة طعام من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "7cdd5a8b-7a55-59a4-9a97-dc36040cfa06",
     "locale": "es",
     "alt": "Recorridos gastronómicos gourmet, un servicio gastronómico de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "8e0a1895-c6bd-5b77-9050-b70394d79a0d",
@@ -2420,14 +2420,14 @@
   {
     "image_id": "8e0a1895-c6bd-5b77-9050-b70394d79a0d",
     "locale": "ar",
-    "alt": "تجارب نزهات خاصة، خدمة طعام من المار في كولومبيا",
-    "status": "draft"
+    "alt": "تجارب نزهات خاصة، خدمة طعام من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "8e0a1895-c6bd-5b77-9050-b70394d79a0d",
     "locale": "es",
     "alt": "Experiencias de picnic privado, un servicio gastronómico de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "9248dad4-158f-5965-a0a8-d3d17141e5a8",
@@ -2438,14 +2438,14 @@
   {
     "image_id": "9248dad4-158f-5965-a0a8-d3d17141e5a8",
     "locale": "ar",
-    "alt": "ورشة متقدمة في المعجنات والحلويات، خدمة طعام من المار في كولومبيا",
-    "status": "draft"
+    "alt": "ورشة متقدمة في المعجنات والحلويات، خدمة طعام من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "9248dad4-158f-5965-a0a8-d3d17141e5a8",
     "locale": "es",
     "alt": "Clase magistral de pastelería y postres, un servicio gastronómico de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "8e5d31f7-3a93-5fc6-974f-6985e2311ec4",
@@ -2457,13 +2457,13 @@
     "image_id": "8e5d31f7-3a93-5fc6-974f-6985e2311ec4",
     "locale": "ar",
     "alt": "تجارب ورش الحرفيين",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "8e5d31f7-3a93-5fc6-974f-6985e2311ec4",
     "locale": "es",
     "alt": "Experiencias en talleres artesanales",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a0b9ac4b-54d0-5979-9506-e9d76d393667",
@@ -2474,14 +2474,14 @@
   {
     "image_id": "a0b9ac4b-54d0-5979-9506-e9d76d393667",
     "locale": "ar",
-    "alt": "دروس ركوب الأمواج الخاصة، خدمة مغامرات من المار في كولومبيا",
-    "status": "draft"
+    "alt": "دروس ركوب الأمواج الخاصة، خدمة مغامرات من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "a0b9ac4b-54d0-5979-9506-e9d76d393667",
     "locale": "es",
     "alt": "Clases privadas de surf, un servicio de aventura de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "87268dfa-43ef-52f9-98b2-273588e77396",
@@ -2492,14 +2492,14 @@
   {
     "image_id": "87268dfa-43ef-52f9-98b2-273588e77396",
     "locale": "ar",
-    "alt": "تجارب المتاحف الخاصة، خدمة ثقافية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "تجارب المتاحف الخاصة، خدمة ثقافية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "87268dfa-43ef-52f9-98b2-273588e77396",
     "locale": "es",
     "alt": "Experiencias privadas en museos, un servicio cultural de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "7bf218fa-4371-50d0-b252-bc779d204dd1",
@@ -2510,14 +2510,14 @@
   {
     "image_id": "7bf218fa-4371-50d0-b252-bc779d204dd1",
     "locale": "ar",
-    "alt": "رحلات الغوص بالأسطوانات، خدمة بحرية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "رحلات الغوص بالأسطوانات، خدمة بحرية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "7bf218fa-4371-50d0-b252-bc779d204dd1",
     "locale": "es",
     "alt": "Expediciones de buceo, un servicio marino de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "0f757217-6516-532b-aace-c2e2048e496b",
@@ -2528,14 +2528,14 @@
   {
     "image_id": "0f757217-6516-532b-aace-c2e2048e496b",
     "locale": "ar",
-    "alt": "مغامرات الغطس السطحي، خدمة بحرية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "مغامرات الغطس السطحي، خدمة بحرية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "0f757217-6516-532b-aace-c2e2048e496b",
     "locale": "es",
     "alt": "Aventuras de snorkel, un servicio marino de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a2cf57a5-b5de-5543-8922-7c7030784e7d",
@@ -2546,14 +2546,14 @@
   {
     "image_id": "a2cf57a5-b5de-5543-8922-7c7030784e7d",
     "locale": "ar",
-    "alt": "رحلات مغامرات الجبال، خدمة مغامرات من المار في كولومبيا",
-    "status": "draft"
+    "alt": "رحلات مغامرات الجبال، خدمة مغامرات من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "a2cf57a5-b5de-5543-8922-7c7030784e7d",
     "locale": "es",
     "alt": "Excursiones de aventura en la montaña, un servicio de aventura de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "770393cf-3ad7-5127-9e05-ed4db401f776",
@@ -2564,14 +2564,14 @@
   {
     "image_id": "770393cf-3ad7-5127-9e05-ed4db401f776",
     "locale": "ar",
-    "alt": "تجارب المشي في المرتفعات، خدمة مغامرات من المار في كولومبيا",
-    "status": "draft"
+    "alt": "تجارب المشي في المرتفعات، خدمة مغامرات من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "770393cf-3ad7-5127-9e05-ed4db401f776",
     "locale": "es",
     "alt": "Experiencias de trekking en las tierras altas, un servicio de aventura de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "30aa5754-13c0-574a-8567-562f4d7be9cf",
@@ -2582,14 +2582,14 @@
   {
     "image_id": "30aa5754-13c0-574a-8567-562f4d7be9cf",
     "locale": "ar",
-    "alt": "دروس الطبخ التقليدي، خدمة طعام من المار في كولومبيا",
-    "status": "draft"
+    "alt": "دروس الطبخ التقليدي، خدمة طعام من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "30aa5754-13c0-574a-8567-562f4d7be9cf",
     "locale": "es",
     "alt": "Clases de cocina tradicional, un servicio gastronómico de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "ca7c9716-df27-54a6-9493-6438247f90bf",
@@ -2600,14 +2600,14 @@
   {
     "image_id": "ca7c9716-df27-54a6-9493-6438247f90bf",
     "locale": "ar",
-    "alt": "تجارب جمع الكمأة والمأكولات البرية، خدمة طعام من المار في كولومبيا",
-    "status": "draft"
+    "alt": "تجارب جمع الكمأة والمأكولات البرية، خدمة طعام من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "ca7c9716-df27-54a6-9493-6438247f90bf",
     "locale": "es",
     "alt": "Experiencias de trufas y recolección, un servicio gastronómico de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "8c3a22db-80e7-5edb-a3f3-9e5c035a52e2",
@@ -2618,14 +2618,14 @@
   {
     "image_id": "8c3a22db-80e7-5edb-a3f3-9e5c035a52e2",
     "locale": "ar",
-    "alt": "تجارب العشاء والعروض لكبار الشخصيات، خدمة ترفيه من المار في كولومبيا",
-    "status": "draft"
+    "alt": "تجارب العشاء والعروض لكبار الشخصيات، خدمة ترفيه من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "8c3a22db-80e7-5edb-a3f3-9e5c035a52e2",
     "locale": "es",
     "alt": "Experiencias VIP de cena y espectáculo, un servicio de entretenimiento de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "2b2d9931-ed5b-505d-b256-58d0cbd1bc33",
@@ -2636,14 +2636,14 @@
   {
     "image_id": "2b2d9931-ed5b-505d-b256-58d0cbd1bc33",
     "locale": "ar",
-    "alt": "زيارات المزارع الريفية والطبيعة، خدمة ثقافية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "زيارات المزارع الريفية والطبيعة، خدمة ثقافية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "2b2d9931-ed5b-505d-b256-58d0cbd1bc33",
     "locale": "es",
     "alt": "Visitas rurales a fincas y naturaleza, un servicio cultural de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "342c7540-1953-51bc-9371-21f38305fece",
@@ -2654,14 +2654,14 @@
   {
     "image_id": "342c7540-1953-51bc-9371-21f38305fece",
     "locale": "ar",
-    "alt": "تذوق النبيذ والمشروبات الروحية، خدمة طعام من المار في كولومبيا",
-    "status": "draft"
+    "alt": "تذوق النبيذ والمشروبات الروحية، خدمة طعام من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "342c7540-1953-51bc-9371-21f38305fece",
     "locale": "es",
     "alt": "Degustaciones de vinos y licores, un servicio gastronómico de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "a7025bfe-b21e-54a4-a0d9-502761d2789c",
@@ -2672,14 +2672,14 @@
   {
     "image_id": "a7025bfe-b21e-54a4-a0d9-502761d2789c",
     "locale": "ar",
-    "alt": "ريتريتات اليوغا والعافية عند الشروق، خدمة عافية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "ملاذات اليوغا والعافية عند الشروق، خدمة عافية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "a7025bfe-b21e-54a4-a0d9-502761d2789c",
     "locale": "es",
     "alt": "Retiros de yoga y bienestar al amanecer, un servicio de bienestar de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "eb9bdab1-9feb-5251-9eeb-b40ce8ac4215",
@@ -2690,14 +2690,14 @@
   {
     "image_id": "eb9bdab1-9feb-5251-9eeb-b40ce8ac4215",
     "locale": "ar",
-    "alt": "رحلات المروحية الخاصة، خدمة نقل من المار في كولومبيا",
-    "status": "draft"
+    "alt": "تنقّلات بالمروحية، خدمة نقل من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "eb9bdab1-9feb-5251-9eeb-b40ce8ac4215",
     "locale": "es",
     "alt": "Traslados en helicóptero, un servicio de transporte de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "9fb21c65-ca5d-5dc1-af40-9bd10b1b065f",
@@ -2708,14 +2708,14 @@
   {
     "image_id": "9fb21c65-ca5d-5dc1-af40-9bd10b1b065f",
     "locale": "ar",
-    "alt": "شيف خاص في الفيلا، خدمة طعام من المار في كولومبيا",
-    "status": "draft"
+    "alt": "شيف خاص في الفيلا، خدمة طعام من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "9fb21c65-ca5d-5dc1-af40-9bd10b1b065f",
     "locale": "es",
     "alt": "Chef privado en la villa, un servicio gastronómico de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "66101cbf-5978-5eea-8f80-b9772263a8fb",
@@ -2726,14 +2726,14 @@
   {
     "image_id": "66101cbf-5978-5eea-8f80-b9772263a8fb",
     "locale": "ar",
-    "alt": "تنسيق العافية والسبا، خدمة عافية من المار في كولومبيا",
-    "status": "draft"
+    "alt": "تنسيق العافية والسبا، خدمة عافية من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "66101cbf-5978-5eea-8f80-b9772263a8fb",
     "locale": "es",
     "alt": "Coordinación de bienestar y spa, un servicio de bienestar de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "e6156104-9f6f-5075-a86f-9491fda66d95",
@@ -2744,14 +2744,14 @@
   {
     "image_id": "e6156104-9f6f-5075-a86f-9491fda66d95",
     "locale": "ar",
-    "alt": "فريق الحماية الشخصية، خدمة أمن من المار في كولومبيا",
-    "status": "draft"
+    "alt": "فريق الحماية الشخصية، خدمة أمن من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "e6156104-9f6f-5075-a86f-9491fda66d95",
     "locale": "es",
     "alt": "Equipo de seguridad personal, un servicio de seguridad de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "f313cfb6-a919-5df2-ad49-30741561aaab",
@@ -2762,14 +2762,14 @@
   {
     "image_id": "f313cfb6-a919-5df2-ad49-30741561aaab",
     "locale": "ar",
-    "alt": "تجارب البار المؤقت، خدمة طعام من المار في كولومبيا",
-    "status": "draft"
+    "alt": "تجارب البار المؤقت، خدمة طعام من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "f313cfb6-a919-5df2-ad49-30741561aaab",
     "locale": "es",
     "alt": "Experiencias de bar pop-up, un servicio gastronómico de ALMAR en Colombia",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "ebf7b78d-4aba-52fc-b098-bb9523c2b49d",
@@ -2780,14 +2780,14 @@
   {
     "image_id": "ebf7b78d-4aba-52fc-b098-bb9523c2b49d",
     "locale": "ar",
-    "alt": "سينما مؤقتة في فيلتكم، خدمة ترفيه من المار في كولومبيا",
-    "status": "draft"
+    "alt": "سينما مؤقتة في فيلتكم، خدمة ترفيه من ALMAR في كولومبيا",
+    "status": "published"
   },
   {
     "image_id": "ebf7b78d-4aba-52fc-b098-bb9523c2b49d",
     "locale": "es",
-    "alt": "Cine pop-up en su villa, un servicio de entretenimiento de ALMAR en Colombia",
-    "status": "draft"
+    "alt": "Cine pop-up en tu villa, un servicio de entretenimiento de ALMAR en Colombia",
+    "status": "published"
   },
   {
     "image_id": "ab7f3687-b165-5e7a-95dd-553594cc2e2a",
@@ -2799,13 +2799,13 @@
     "image_id": "ab7f3687-b165-5e7a-95dd-553594cc2e2a",
     "locale": "ar",
     "alt": "مرشدون خاصون للمدن",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "ab7f3687-b165-5e7a-95dd-553594cc2e2a",
     "locale": "es",
     "alt": "Guías privados de ciudad",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "bf7b9a70-9beb-51d1-bf9e-a7dbc25082d3",
@@ -2817,13 +2817,13 @@
     "image_id": "bf7b9a70-9beb-51d1-bf9e-a7dbc25082d3",
     "locale": "ar",
     "alt": "غرفة جلوس بسيطة داخل فيلا متوسطية",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "bf7b9a70-9beb-51d1-bf9e-a7dbc25082d3",
     "locale": "es",
     "alt": "Sala de estar minimalista dentro de una villa mediterránea",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "c2d5f871-6ce2-5486-88a9-ea8a09b2deeb",
@@ -2835,13 +2835,13 @@
     "image_id": "c2d5f871-6ce2-5486-88a9-ea8a09b2deeb",
     "locale": "ar",
     "alt": "حمّام من الرخام الأسود مع حوض استحمام قائم بذاته وإطلالة على البحر",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "c2d5f871-6ce2-5486-88a9-ea8a09b2deeb",
     "locale": "es",
     "alt": "Baño de mármol negro con bañera exenta y vista al mar",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "338e83be-3378-55e2-851c-c0a741183b2e",
@@ -2853,13 +2853,13 @@
     "image_id": "338e83be-3378-55e2-851c-c0a741183b2e",
     "locale": "ar",
     "alt": "ممر مقوّس داخل فندق متوسطي حديث",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "338e83be-3378-55e2-851c-c0a741183b2e",
     "locale": "es",
     "alt": "Pasillo arqueado dentro de un hotel mediterráneo moderno",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "db3c31d3-d6ae-5e4a-a0a7-72f7dc85cf74",
@@ -2871,13 +2871,13 @@
     "image_id": "db3c31d3-d6ae-5e4a-a0a7-72f7dc85cf74",
     "locale": "ar",
     "alt": "مسبح لا متناهي الحافة يمتزج مع إطلالة المحيط، وكراسي تشمّس بسيطة بقماش محايد ناعم، وعمارة منحنية",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "db3c31d3-d6ae-5e4a-a0a7-72f7dc85cf74",
     "locale": "es",
     "alt": "Piscina infinita que se funde con la vista al océano, tumbonas minimalistas en tela neutra suave y arquitectura curva",
-    "status": "draft"
+    "status": "published"
   },
   {
     "image_id": "7e0793f0-d705-50a7-af26-a2cde2580463",
