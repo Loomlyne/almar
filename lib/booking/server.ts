@@ -346,7 +346,9 @@ export async function createWebHold(db: BookingDb, input: HoldRequest, ctx: Hold
 
   const quote = await quoteBooking(
     db,
-    { stay: input.stay, from: input.from, to: input.to, adults: input.adults, children: input.children, infants: input.infants, addons: input.addons, plan: input.plan, locale: input.locale },
+    // English texts: the booking's add-on lines store the English name (the plan's "EN snapshot"); the guest's own
+    // language is the booking's `locale`, which the emails use. The amounts do not depend on the language.
+    { stay: input.stay, from: input.from, to: input.to, adults: input.adults, children: input.children, infants: input.infants, addons: input.addons, plan: input.plan, locale: "en" },
     { now: ctx.now },
   );
   if (!quote.ok) return refuse(quote.reasons);

@@ -721,6 +721,19 @@ test("hold: the payload is the snapshot plus the guest, booker first, no price t
   assert.equal("hold" in p, false);
 });
 
+test("hold: the add-on lines store the English name whatever the guest's language (EN snapshot)", async () => {
+  const names = { en: "Breakfast", ar: "Fatoor", es: "Desayuno" };
+  const db = fakeDb({
+    create_web_booking: () => created,
+    booking_context: (a) => ctx(a, { offers: OFFERS.map((o) => ({ ...o, name: o.id === PERSON_ITEM ? names[a.p_locale] : o.name })) }),
+  });
+  await createWebHold(db, guest({ locale: "ar", addons: [{ id: PERSON_ITEM, qty: 2 }] }), CTX);
+  assert.equal(db.calls.find((c) => c.name === "booking_context").args.p_locale, "en", "the server's quote reads the English texts");
+  const p = db.calls.find((c) => c.name === "create_web_booking").args.p;
+  assert.equal(p.locale, "ar", "the booking itself keeps the guest's language");
+  assert.deepEqual(p.lines.map((l) => l.name), ["Breakfast"]);
+});
+
 test("hold: children and infants carry their ages, adults carry none", async () => {
   const db = fakeDb({ create_web_booking: () => created });
   await createWebHold(db, guest({
