@@ -70,6 +70,13 @@ for (const route of ROUTES) {
         await page.goto(route.path);
         await page.waitForLoadState("networkidle");
         if (locale === "ar") await chooseArabic(page, route.ownLanguageControl);
+        // /account harness has no backend: the language switch calls savePreferences, which fails, and its status line
+        // appeared at a varying time (page height 23px off). Wait for it so every run captures the same final state.
+        if (locale === "ar" && route.slug === "account") {
+          await expect(
+            page.getByRole("status").filter({ hasText: "لم يتم الحفظ. حاول مرة أخرى." }),
+          ).toBeVisible({ timeout: 15000 });
+        }
         await page.waitForLoadState("networkidle");
         await page.evaluate(() => document.fonts.ready);
         // Next dev overlay is not part of the product look.
