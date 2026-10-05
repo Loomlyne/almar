@@ -7,6 +7,7 @@ import { stripLocale } from "../../lib/locale-path";
 import { CloseIcon } from "../icons/icons";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { LocaleSelect } from "./locale-select";
+import { AccountMenu, type NavAccount } from "./account-menu";
 import { revealProps } from "./reveal";
 import charcoalLogo from "../../brand/Logo Typography/Stacked_Charcoal.svg";
 import whiteLogo from "../../brand/Logo Typography/Poly_White.svg";
@@ -24,6 +25,9 @@ const DEFAULT_LABELS = {
   bookings: "Bookings",
   account: "Account",
   signOut: "Sign out",
+  profile: "Profile",
+  preferences: "Preferences",
+  accountMenu: "Account menu",
   /** Shown in the currency control while no currency has been chosen. */
   currencyNone: "Currency",
 } as const;
@@ -59,8 +63,7 @@ export function SiteNav({
   markCurrent = true,
   currency: currencyProp,
   onCurrency,
-  signedIn = false,
-  onSignOut,
+  account = null,
   tone = "solid",
   links: linksProp,
   homeHref = "#content",
@@ -83,9 +86,8 @@ export function SiteNav({
    */
   currency?: Currency | null | false;
   onCurrency?: (next: Currency) => void;
-  /** No session exists this phase. Default false. Do not pass true from a call site. */
-  signedIn?: boolean;
-  onSignOut?: () => void;
+  /** The signed-in guest, read on the server (plan 02-02). Null shows Login. */
+  account?: NavAccount | null;
   /** on-image sits over the hero: transparent bar, ivory text, Poly_White logo. */
   tone?: "solid" | "on-image";
   /** Real, locale-aware links. Omitted: the four page anchors of the one-page layout. */
@@ -293,25 +295,19 @@ export function SiteNav({
               copy={localeCopy}
               onChange={(next) => onLocale?.(next as Locale)}
             />
-            {signedIn ? (
-              <>
-                <a className={login} href="/bookings" onClick={closeMenuIfOpen}>
-                  {text.bookings}
-                </a>
-                <a className={login} href="/account" onClick={closeMenuIfOpen}>
-                  {text.account}
-                </a>
-                <button
-                  type="button"
-                  className={cn(login, "cursor-pointer bg-transparent")}
-                  onClick={() => {
-                    closeMenuIfOpen();
-                    onSignOut?.();
-                  }}
-                >
-                  {text.signOut}
-                </button>
-              </>
+            {account ? (
+              <AccountMenu
+                account={account}
+                tone={tools}
+                onNavigate={closeMenuIfOpen}
+                labels={{
+                  menuLabel: text.accountMenu,
+                  bookings: text.bookings,
+                  profile: text.profile,
+                  preferences: text.preferences,
+                  signOut: text.signOut,
+                }}
+              />
             ) : loginProp === false ? null : (
               <a className={login} href={loginHref} onClick={closeMenuIfOpen}>
                 {text.login}

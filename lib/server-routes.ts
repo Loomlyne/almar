@@ -19,10 +19,7 @@
  */
 export const HELD_PATHS = [
   "/dashboard",
-  "/account",
-  "/login",
   "/booking",
-  "/bookings",
   "/fx",
   "/newsletter",
   "/embed",
@@ -30,10 +27,18 @@ export const HELD_PATHS = [
 ] as const;
 
 /**
- * Exact server paths outside /api. Empty in job 10. Known future users: slice 3 plan 27 (`/newsletter`, moved out
- * of HELD_PATHS in the same commit) and Phase 2's sign-in.
+ * Exact server paths outside /api. Phase 2's sign-in (plan 02-23 task 3): the same six as JOB02_SERVER_PATHS in
+ * lib/auth/server-paths.ts (tests/server-runtime.test.mjs asserts they are equal). Known future user: slice 3
+ * plan 27 (`/newsletter`, moved out of HELD_PATHS in the same commit).
  */
-export const SERVER_PATHS_OUTSIDE_API: readonly string[] = [];
+export const SERVER_PATHS_OUTSIDE_API: readonly string[] = [
+  "/login",
+  "/auth/confirm",
+  "/auth/sign-out",
+  "/auth/handoff/start",
+  "/account",
+  "/bookings",
+];
 
 const LOCALE_PREFIXES = ["/ar", "/es"];
 

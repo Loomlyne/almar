@@ -41,7 +41,7 @@ test("locale setter sets dir rtl only for ar", () => {
 
 test("shell is utility-styled: no module css, no Framer logo URL, logos from brand/", () => {
   assert.equal(existsSync(CSS), false, "dashboard.module.css must be deleted");
-  const layout = readFileSync("app/dashboard/(ops)/layout.tsx", "utf8");
+  const layout = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
   assert.equal(/styles\.|module\.css/.test(layout), false);
   assert.equal(layout.includes("framerusercontent"), false);
   assert.equal(layout.includes("encodeURIComponent"), false);
@@ -49,33 +49,38 @@ test("shell is utility-styled: no module css, no Framer logo URL, logos from bra
   assert.match(layout, /charcoalLogo\.src/);
 });
 
-test("sign-in entry does not contain the text dashboard", () => {
-  if (!existsSync(ENTRY)) return;
+test("ops sign-in entry is titled Sign in and renders the ops variant of board 6a", () => {
+  // Plan 02-04: the entry is the ops sign-in; its visible strings come from the sign-in screen.
   const text = readFileSync(ENTRY, "utf8");
-  assert.equal(/dashboard/i.test(text), false);
   assert.equal(text.includes("use client"), false);
   assert.match(text, /title:\s*"Sign in"/);
-  assert.match(text, /<h1>Sign in<\/h1>/);
-  assert.match(text, /NODE_ENV/);
-  assert.match(text, /notFound\(\)/);
+  assert.match(text, /variant="ops"/);
+  assert.match(text, /action=\{opsSignIn\}/);
+  assert.match(text, /if \(!opsHost && process\.env\.NODE_ENV === "production"\) notFound\(\);/);
+  const screen = readFileSync("app/login/sign-in-screen.tsx", "utf8");
+  assert.equal(/>[^<{]*dashboard/i.test(screen), false, "no visible dashboard text");
+  assert.match(screen, /variant === "ops" \? copy\.signIn : copy\.auth\.heading/);
+  assert.match(screen, /variant === "public" \? <WhatsApp \/> : null/);
 });
 
 test("ops rail lists the eight labels and the interior mark", () => {
-  const layout = "app/dashboard/(ops)/layout.tsx";
-  if (!existsSync(layout)) return;
-  const text = readFileSync(layout, "utf8");
-  for (const label of ["Home", "Bookings", "Customers", "Calendar", "Catalog", "Content", "Settings", "Profile", "DASHBOARD"]) {
+  const text = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
+  for (const label of ["Home", "Bookings", "Customers", "Calendar", "Catalog", "Content", "Settings", "Profile"]) {
     assert.equal(text.includes(label), true, label);
   }
-  assert.equal(text.includes("Sign out"), false);
-  assert.equal(text.includes("Logout-all"), false);
+  // Plan 02-04: the interior mark is the Dashboard copy, uppercased by CSS on Latin only.
+  assert.match(text, /uppercase tracking-kicker xl:inline ar:normal-case/);
+  assert.match(text, /\{copy\.dashboardName\}/);
+  // Sign out and Logout-all exist only in ops mode, from the copy catalog.
+  assert.match(text, /mode === "ops" \? \(\s*<div className="mt-4 flex flex-col gap-4/);
+  assert.equal(text.includes(">Sign out<"), false);
   assert.equal(text.includes("maria@"), false);
   assert.equal(/<tr[\s>]/.test(text), false);
   assert.match(text, /from ["'].*sidebar["']/);
 });
 
 test("ops rail keeps every route and the Catalog group is a disclosure", () => {
-  const text = readFileSync("app/dashboard/(ops)/layout.tsx", "utf8");
+  const text = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
   for (const href of [
     "/dashboard/home", "/dashboard/bookings", "/dashboard/customers", "/dashboard/calendar",
     "/dashboard/catalog/destinations", "/dashboard/catalog/stays", "/dashboard/catalog/experiences", "/dashboard/catalog/packages",

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
+import { JOB02_SERVER_PATHS } from "../lib/auth/server-paths.ts";
 
 // Plan 03.3-08, Task 2. The review host's Worker config, and the three things that keep its noindex off the live
 // site: wrangler.toml untouched, the root _headers free of any robots header, public/ free of crawl files.
@@ -56,7 +57,10 @@ test("wrangler.preview.toml: the compatibility date and the account are wrangler
 test("wrangler.preview.toml: [assets] is wrangler.toml's, except that it serves out-preview/", () => {
   const previewAssets = block(preview, "[assets]");
   const liveAssets = block(live, "[assets]");
-  assert.deepEqual(liveAssets, ['directory = "./out"', 'binding = "ASSETS"', 'run_worker_first = ["/api/*"]', 'html_handling = "auto-trailing-slash"', 'not_found_handling = "404-page"']);
+  // The 7 entries: /api/* plus the six paths job 02 opens, built from JOB02_SERVER_PATHS (same list in lib/server-routes.ts).
+  const workerFirst = `run_worker_first = ${JSON.stringify(["/api/*", ...JOB02_SERVER_PATHS])}`.replace(/,/g, ", ");
+  assert.equal(JOB02_SERVER_PATHS.length + 1, 7);
+  assert.deepEqual(liveAssets, ['directory = "./out"', 'binding = "ASSETS"', workerFirst, 'html_handling = "auto-trailing-slash"', 'not_found_handling = "404-page"']);
   assert.deepEqual(previewAssets, ['directory = "./out-preview"', ...liveAssets.slice(1)]);
 });
 
