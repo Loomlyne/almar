@@ -3,7 +3,7 @@
 -- Run: node tests/helpers/local-supabase.mjs test supabase/tests/bookings-and-ops.test.sql
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(348);
+select plan(352);
 
 -- Helpers (temporary, gone with the transaction) -----------------------------------------------------------------
 create function pg_temp.d(n int) returns date language sql as $$ select ((now() at time zone 'Asia/Dubai')::date + n) $$;
@@ -161,9 +161,9 @@ select is((select array_agg(p.proname::text order by p.proname) from pg_proc p j
               'ops_create_booking', 'ops_set_booking_status', 'ops_lapse_holds', 'booking_drop_hold', 'open_payment',
               'attach_checkout_session', 'mark_session_expired', 'record_payment', 'set_payment_card', 'record_refund',
               'record_dispute', 'claim_stripe_event', 'finish_stripe_event', 'drop_stripe_event', 'log_booking_event',
-              'public_booked_nights', 'ops_add_block'])
+              'public_booked_nights', 'ops_add_block', 'booking_by_ref'])
               and (has_function_privilege('anon', p.oid, 'execute') or has_function_privilege('authenticated', p.oid, 'execute'))),
-          array['public_booked_nights'], 'of the 30 functions of this migration only public_booked_nights is executable by anon or authenticated');
+          array['public_booked_nights'], 'of the 31 functions of this migration only public_booked_nights is executable by anon or authenticated');
 select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
             where n.nspname = 'public' and p.proname = any (array[
               'booking_set_updated_at', 'booking_fail', 'new_booking_ref', 'booking_lock', 'booking_int', 'booking_txt', 'booking_date',
@@ -171,10 +171,10 @@ select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.
               'ops_create_booking', 'ops_set_booking_status', 'ops_lapse_holds', 'booking_drop_hold', 'open_payment',
               'attach_checkout_session', 'mark_session_expired', 'record_payment', 'set_payment_card', 'record_refund',
               'record_dispute', 'claim_stripe_event', 'finish_stripe_event', 'drop_stripe_event', 'log_booking_event',
-              'public_booked_nights', 'ops_add_block'])
+              'public_booked_nights', 'ops_add_block', 'booking_by_ref'])
               and p.prosecdef and has_function_privilege('service_role', p.oid, 'execute')
               and exists (select 1 from unnest(p.proconfig) cfg where cfg = 'search_path=""')),
-          30, 'all 30 are definer functions with search_path empty and executable by service_role');
+          31, 'all 31 are definer functions with search_path empty and executable by service_role');
 
 -- B. Names the plan takes from 3.2, and the table shapes -----------------------------------------------------------
 select is((select array_agg(a.attname::text order by a.attnum) from pg_attribute a
@@ -287,6 +287,17 @@ select is((select vat_bp::text || '/' || deposit_bp::text || '/' || coalesce(bal
 select ok((select is_test from public.bookings where id = pg_temp.bid('b1')), 'create: the booking is marked TEST');
 select ok(pg_temp.r('b1', 'hold_expires_at') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z$', 'create: hold_expires_at is an ISO UTC string');
 select is((select balance_due_date from public.bookings where id = pg_temp.bid('b1')), pg_temp.d(20) - 30, 'create: balance due date = arrival minus the due days');
+
+-- booking_by_ref: the lookup the signed-link check uses.
+select is(public.booking_by_ref(pg_temp.r('b1', 'ref')),
+          (select jsonb_build_object('id', b.id, 'email', 'a@example.com', 'link_version', b.link_version, 'status', 'held') from public.bookings b where b.id = pg_temp.bid('b1')),
+          'by_ref: a known reference gives its id, email, link version and status and nothing else');
+select is(public.booking_by_ref('ALMAR-AAAAAA'), null::jsonb, 'by_ref: an unknown reference gives null');
+set local role anon;
+select throws_ok($$select public.booking_by_ref('ALMAR-AAAAAA')$$, '42501', null, 'by_ref: anon cannot call it');
+set local role authenticated;
+select throws_ok($$select public.booking_by_ref('ALMAR-AAAAAA')$$, '42501', null, 'by_ref: authenticated cannot call it');
+reset role;
 
 -- The race outcome in SQL: the same nights, another guest, and the same guest, both sold out.
 select is(public.create_web_booking(pg_temp.web('stay-one', pg_temp.d(20), pg_temp.d(23), 'other@example.com')) ->> 'reason', 'sold_out', 'create: a second guest for the same nights is sold_out');

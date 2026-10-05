@@ -662,6 +662,27 @@ revoke execute on function public.booking_context(text, date, date, text, uuid) 
 grant execute on function public.booking_context(text, date, date, text, uuid) to service_role;
 
 -- ------------------------------------------------------------------------------------------------------------
+-- booking_by_ref: the one lookup of a booking by its reference, for the signed-link check (04-02 quote and release,
+-- 04-04 pay, 04-05 view). Returns only what that check needs; null when the reference is unknown. The reference alone
+-- grants nothing: the caller must also verify the signed link or the session email (lib/booking/access.ts).
+-- ------------------------------------------------------------------------------------------------------------
+
+create or replace function public.booking_by_ref(p_ref text)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select jsonb_build_object('id', b.id, 'email', b.email, 'link_version', b.link_version, 'status', b.status)
+  from public.bookings b
+  where b.ref = p_ref
+$$;
+
+revoke execute on function public.booking_by_ref(text) from public, anon, authenticated;
+grant execute on function public.booking_by_ref(text) to service_role;
+
+-- ------------------------------------------------------------------------------------------------------------
 -- claim_hold_slot: the hold limiter, a copy of claim_link_slot's pattern (job 02). Five holds per email per hour and
 -- twenty per IP per hour (the plan's numbers; the two constants below are the only place to change them). Only keyed
 -- hashes arrive. True when the hold may go ahead and is counted.
