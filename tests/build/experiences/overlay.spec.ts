@@ -138,7 +138,16 @@ for (const locale of LOCALES) {
           ["Escape", () => page.keyboard.press("Escape")],
           ["the close square", () => overlayOf(page, d, HERITAGE).getByRole("button", { name: d.copy.overlay.close, exact: true }).click()],
         ];
-        if (W >= MD) closers.push(["the scrim", () => page.mouse.click(5, 5)]);
+        if (W >= MD) {
+          closers.push([
+            "the scrim",
+            async () => {
+              // Radix attaches its outside-pointer listener a tick after mount: let the panel finish arriving before the click.
+              await settledBox(page, overlayOf(page, d, HERITAGE));
+              await page.mouse.click(5, 5);
+            },
+          ]);
+        }
         for (const [how, close] of closers) {
           await open(page, d, HERITAGE);
           await close();
