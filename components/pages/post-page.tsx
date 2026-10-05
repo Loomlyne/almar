@@ -42,9 +42,7 @@ export async function postMetadata(locale: Locale, slug: string): Promise<Metada
   const title = `${post.seo_title ?? post.title} | ALMAR`;
   const description = post.seo_description ?? post.excerpt;
   const cover = post.cover_image;
-  const images = cover
-    ? [{ url: cover.url, width: cover.width ?? undefined, height: cover.height ?? undefined, alt: cover.alt }]
-    : undefined;
+  const images = [{ url: cover.url, width: cover.width ?? undefined, height: cover.height ?? undefined, alt: cover.alt }];
   return {
     title,
     description,
@@ -58,7 +56,7 @@ export async function postMetadata(locale: Locale, slug: string): Promise<Metada
       publishedTime: post.published_at,
       images,
     },
-    twitter: { card: "summary_large_image", title, description, images: cover ? [cover.url] : undefined },
+    twitter: { card: "summary_large_image", title, description, images: [cover.url] },
   };
 }
 
@@ -104,7 +102,7 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
   const destinationSlugById = Object.fromEntries(destinations.map((destination) => [destination.id, destination.slug]));
 
   const url = absoluteLocaleUrl(locale, `/blog/${slug}`);
-  const cover = post.cover_image ? { src: post.cover_image.url, alt: post.cover_image.alt } : null;
+  const cover = { src: post.cover_image.url, alt: post.cover_image.alt };
   const headings = post.body.flatMap((block) => (block.type === "heading" ? [{ id: block.id, text: block.text }] : []));
   // One paragraph reads as a lead and is centred; from the second block on the body is start-aligned.
   const lead = post.body.length === 1 && post.body[0].type === "paragraph";
@@ -132,7 +130,6 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
         />
       </li>
     ) : null;
-  const relatedCards = related.filter((item) => item.cover_image);
 
   const article = (
     <article
@@ -210,15 +207,15 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
                 </CardRow>
               </PageShell>
             ) : null}
-            {relatedCards.length > 0 ? (
+            {related.length > 0 ? (
               <PageShell className="grid gap-12 pb-16 md:pb-section">
                 <CentredHead kicker={copy.relatedKicker} heading={copy.related} />
                 <CardRow>
-                  {relatedCards.map((item) => (
+                  {related.map((item) => (
                     <li key={item.slug} className="min-w-0">
                       <PortraitCard
                         href={localePath(locale, `/blog/${item.slug}`)}
-                        image={{ src: item.cover_image!.url, alt: item.cover_image!.alt }}
+                        image={{ src: item.cover_image.url, alt: item.cover_image.alt }}
                         title={item.title}
                         kicker={item.date_label}
                       />

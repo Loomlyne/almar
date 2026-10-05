@@ -66,6 +66,11 @@ async function resolvePost(base: PostBase, locale: Locale): Promise<Post> {
     throw new Error(`post ${base.slug}: unknown experience ${base.featured_experience_id}`);
   }
 
+  // Every post has a cover: the list, the post page, the sitemap, the home stories and the media guard all keep a post,
+  // so a post without one stops the build here instead of vanishing from one page only.
+  const cover = image(base.cover_image, locale);
+  if (!cover) throw new Error(`post ${base.slug}: no cover image`);
+
   // Storage ids (featured_*_id) and the raw image shape are not part of the returned row.
   const { featured_stay_id: _s, featured_experience_id: _e, cover_image: _c, ...rest } = row;
   void _s;
@@ -80,7 +85,7 @@ async function resolvePost(base: PostBase, locale: Locale): Promise<Post> {
     destination_name: dest?.name ?? null,
     featured_stay_slug: stay?.slug ?? null,
     featured_experience_slug: exp?.slug ?? null,
-    cover_image: image(base.cover_image, locale),
+    cover_image: cover,
   } as Post;
 }
 

@@ -341,6 +341,7 @@ export type Post = RowMeta & {
   destination_name: string | null;
   featured_stay_slug: string | null;
   featured_experience_slug: string | null;
-  cover_image: ImageRef | null;
+  /** Always present: a post without a cover is a data error and is refused when it is read. */
+  cover_image: ImageRef;
   is_published: boolean;
 };

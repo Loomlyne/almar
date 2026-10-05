@@ -17,7 +17,7 @@ const PATH = "/blog";
 /** The blog list (design 1, board 5j): every published post, newest first, as the home's Stories card. No filter, no paging. */
 export async function BlogPage({ locale }: { locale: Locale }) {
   const copy = BLOG_COPY[locale].list;
-  const posts = (await getPosts(locale)).filter((post) => post.cover_image);
+  const posts = await getPosts(locale);
   const { nav, links } = blogFrameLinks(locale);
 
   return (
@@ -47,7 +47,7 @@ export async function BlogPage({ locale }: { locale: Locale }) {
                 <li key={post.slug} className="min-w-0">
                   <MediaCard
                     href={localePath(locale, `${PATH}/${post.slug}`)}
-                    image={{ src: post.cover_image!.url, alt: post.cover_image!.alt }}
+                    image={{ src: post.cover_image.url, alt: post.cover_image.alt }}
                     title={post.title}
                     titleSize="title"
                     ratio={2 / 3}
@@ -72,7 +72,7 @@ export async function BlogPage({ locale }: { locale: Locale }) {
 /** Title, description, canonical, the four hreflang links, og:image (the newest post's cover). */
 export async function blogMetadata(locale: Locale): Promise<Metadata> {
   const { meta } = BLOG_COPY[locale].list;
-  const newest = (await getPosts(locale, { limit: 1 }))[0]?.cover_image ?? null;
+  const newest = (await getPosts(locale, { limit: 1 }))[0]?.cover_image ?? null; // none only while there is no post
   const images = newest ? [{ url: newest.url, alt: newest.alt }] : undefined;
   return {
     title: meta.title,
