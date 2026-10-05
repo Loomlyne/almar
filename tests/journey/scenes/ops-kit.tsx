@@ -1,9 +1,9 @@
 "use client";
 
 import { useLayoutEffect, useState, type ReactNode } from "react";
-// The ops shell as it is on this branch (the layout). When job 02 lands, its OpsShell replaces this file's frame:
-// swap `OpsLayout` for `<OpsShell mode="preview">` in Frame below and nothing else changes.
-import OpsLayout from "../../../app/dashboard/(ops)/layout";
+// The ops shell the owner sees (job 02: the layout picks a mode, the shell itself is a client component). The scene
+// frames every state in the preview shell so the rail and the density match.
+import { OpsShell } from "../../../app/dashboard/(ops)/ops-shell";
 import { ConnectPicker } from "../../../components/ops/connect-picker";
 import { DateRangeField } from "../../../components/ops/date-range-field";
 import { EditPanel } from "../../../components/ops/edit-panel";
@@ -121,7 +121,7 @@ function Frame({ locale, children }: { locale: Locale3; children: ReactNode }) {
     document.cookie = `almar-locale=${locale}; path=/`;
     setReady(true);
   }, [locale]);
-  return ready ? <OpsLayout>{children}</OpsLayout> : null;
+  return ready ? <OpsShell mode="preview">{children}</OpsShell> : null;
 }
 
 /** Hidden record of every handler the kit called, so a test can prove each control reaches its prop. */
