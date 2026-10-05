@@ -37,7 +37,10 @@ Design tokens live in `tokens.json`; `npm run tokens` regenerates the theme bloc
 `node scripts/assemble-cloudflare.mjs` runs the OpenNext build (`opennextjs-cloudflare build`, which runs
 `next build`) into `.open-next/`, then writes `out/`: `public/`, every static page body from
 `.next/server/app` as `.html`, the branded `404.html` and `_headers`, plus `.open-next/almar-server-routes.json`.
-It refuses to start when a `NEXT_PUBLIC_*` variable is set in the shell, and refuses to finish when a `.env`
+It refuses to start when a `NEXT_PUBLIC_*` variable other than `NEXT_PUBLIC_SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` is set in the shell, when a service-role variable is set, or (for `--target=preview`,
+`production` and `ops`, which read the catalogue from the database) when one of those two names is missing. It never
+passes those two names to Next, so they are not inlined into any Worker or browser file. It refuses to finish when a `.env`
 value would be bundled into the Worker or when the Worker bundle is over 2,560 KiB gzipped (measured with
 `wrangler deploy --dry-run`, which uploads nothing; `scripts/worker-size.mjs`).
 

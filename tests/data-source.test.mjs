@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { build } from "esbuild";
-import { assertNoPublicEnv, assertNoServiceKey, BUILD_PUBLIC_ENV, dataSourceFor } from "../scripts/assemble-cloudflare.mjs";
+import { assertNoPublicEnv, assertNoServiceKey, BUILD_HANDOVER_ENV, BUILD_PUBLIC_ENV, dataSourceFor, nextBuildEnv } from "../scripts/assemble-cloudflare.mjs";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
 let counter = 0;
@@ -39,7 +39,7 @@ async function loadSourceModule() {
   return import(pathToFileURL(file).href);
 }
 
-const ENV_NAMES = ["ALMAR_DATA_SOURCE", "ALMAR_FIXTURE_DIR", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+const ENV_NAMES = ["ALMAR_DATA_SOURCE", "ALMAR_FIXTURE_DIR", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "ALMAR_BUILD_SUPABASE_URL", "ALMAR_BUILD_SUPABASE_ANON_KEY"];
 
 /** Runs `fn` with exactly these variables set (the others of ENV_NAMES removed), then puts everything back. */
 async function withEnv(env, fn) {
@@ -477,7 +477,7 @@ test("main() decides the source before assertMediaReady and before anything is b
   assert.ok(at("dataSourceFor(") < at("assertPublicClean("), "before the public folder check");
   assert.ok(at("dataSourceFor(") < at("opennextjs-cloudflare"), "before the build");
   assert.ok(at("dataSourceFor(") < at("assembleOut("), "before out/ is touched");
-  assert.match(main, /ALMAR_DATA_SOURCE: source/, "the build environment carries the decided source");
+  assert.match(main, /env: nextBuildEnv\(process\.env, source\)/, "the build environment is nextBuildEnv: the decided source, no NEXT_PUBLIC_*");
 });
 
 // What the build shell may hold (job 10's rule, reconciled with this plan) -------------------------------------------
@@ -517,6 +517,53 @@ test("assertNoServiceKey: a service-role variable in the build shell stops the b
       name,
     );
   }
+});
+
+test("nextBuildEnv: Next never sees a NEXT_PUBLIC_* name; the data layer gets the two public values under hand-over names", () => {
+  assert.deepEqual(BUILD_HANDOVER_ENV, { NEXT_PUBLIC_SUPABASE_URL: "ALMAR_BUILD_SUPABASE_URL", NEXT_PUBLIC_SUPABASE_ANON_KEY: "ALMAR_BUILD_SUPABASE_ANON_KEY" });
+  const shell = { PATH: "/usr/bin", HOME: "/h", ...PUBLIC, ALMAR_BUILD_SUPABASE_URL: "stale", ALMAR_DATA_SOURCE: "supabase" };
+  const database = nextBuildEnv(shell, "supabase");
+  assert.deepEqual(database, {
+    PATH: "/usr/bin",
+    HOME: "/h",
+    ALMAR_BUILD_SUPABASE_URL: PUBLIC.NEXT_PUBLIC_SUPABASE_URL,
+    ALMAR_BUILD_SUPABASE_ANON_KEY: PUBLIC.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    ALMAR_DATA_SOURCE: "supabase",
+    WRANGLER_SEND_METRICS: "false",
+  });
+  assert.equal(Object.keys(database).some((name) => name.startsWith("NEXT_PUBLIC_")), false);
+  // Fixtures mode: nothing public and no stale hand-over value at all, so a local build is what it was before this plan.
+  const fixtures = nextBuildEnv(shell, "fixtures");
+  assert.deepEqual(fixtures, { PATH: "/usr/bin", HOME: "/h", ALMAR_DATA_SOURCE: "fixtures", WRANGLER_SEND_METRICS: "false" });
+  // Values are trimmed; the shell object is not changed.
+  assert.equal(nextBuildEnv({ NEXT_PUBLIC_SUPABASE_URL: " u ", NEXT_PUBLIC_SUPABASE_ANON_KEY: " k " }, "supabase").ALMAR_BUILD_SUPABASE_URL, "u");
+  assert.equal(shell.NEXT_PUBLIC_SUPABASE_URL, PUBLIC.NEXT_PUBLIC_SUPABASE_URL);
+});
+
+test("the data layer reads the hand-over names first and the NEXT_PUBLIC names second (tests, next dev); both missing is named", async () => {
+  const seen = [];
+  const run = async (env) => {
+    const mod = await loadSourceModule();
+    const fake = fakeClient(defaultTables());
+    mod.__testing.setClientFactory((url, key) => {
+      seen.push([url, key]);
+      return fake.client;
+    });
+    return withEnv(env, () => mod.loadSource().then(() => "ok", (e) => e));
+  };
+  assert.equal(await run({ ALMAR_DATA_SOURCE: "supabase", ALMAR_BUILD_SUPABASE_URL: "https://build.invalid", ALMAR_BUILD_SUPABASE_ANON_KEY: "build-key" }), "ok");
+  assert.equal(await run({ ALMAR_DATA_SOURCE: "supabase", ...PUBLIC }), "ok");
+  assert.equal(
+    await run({ ALMAR_DATA_SOURCE: "supabase", ALMAR_BUILD_SUPABASE_URL: "https://build.invalid", ALMAR_BUILD_SUPABASE_ANON_KEY: "build-key", ...PUBLIC }),
+    "ok",
+  );
+  assert.deepEqual(seen, [
+    ["https://build.invalid", "build-key"],
+    [PUBLIC.NEXT_PUBLIC_SUPABASE_URL, PUBLIC.NEXT_PUBLIC_SUPABASE_ANON_KEY],
+    ["https://build.invalid", "build-key"],
+  ]);
+  const none = await run({ ALMAR_DATA_SOURCE: "supabase" });
+  assert.match(none.message, /NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY/);
 });
 
 test("main() refuses the shell before it chooses the source: public names, service key, then dataSourceFor", () => {

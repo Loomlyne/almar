@@ -31,8 +31,20 @@ function scratch({ placeholder = false, publicFile = null } = {}) {
   return root;
 }
 
+// Plan 03.2-02: an assembled target now also needs the two public Supabase names in the shell (dataSourceFor). These tests
+// are about the older refusals (media host, public/ files), so the child gets a shell that holds exactly those two names
+// (dummy public values, nothing is ever called) and nothing else of ALMAR_*, NEXT_PUBLIC_* or service-role. The refusal
+// for a missing name has its own tests in tests/data-source.test.mjs.
+function childEnv() {
+  const env = { ...process.env };
+  for (const name of Object.keys(env)) {
+    if (name.startsWith("ALMAR_") || name.startsWith("NEXT_PUBLIC_") || /SERVICE_ROLE/i.test(name)) delete env[name];
+  }
+  return { ...env, NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:1", NEXT_PUBLIC_SUPABASE_ANON_KEY: "dummy-public-value" };
+}
+
 function run(root, args) {
-  const result = spawnSync(process.execPath, [join(root, "scripts", "assemble-cloudflare.mjs"), ...args], { cwd: root, encoding: "utf8", timeout: 60_000 });
+  const result = spawnSync(process.execPath, [join(root, "scripts", "assemble-cloudflare.mjs"), ...args], { cwd: root, encoding: "utf8", timeout: 60_000, env: childEnv() });
   return { status: result.status, text: `${result.stdout}\n${result.stderr}`, root };
 }
 

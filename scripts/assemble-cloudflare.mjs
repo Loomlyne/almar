@@ -186,17 +186,49 @@ export function assertNoBundledEnv(file) {
 }
 
 /**
- * The only NEXT_PUBLIC_* names a build may see (plan 03.2-02): the project's public URL and its public (anon) key. The
- * build reads the catalogue through them (lib/data/source.ts, anon key, published views only, C-04), and Supabase says
- * both are public by design. Next substitutes their values into the server chunks that name them (middleware, the
- * Supabase clients, the data layer); no browser bundle names them. Every other NEXT_PUBLIC_* stays refused.
+ * The only NEXT_PUBLIC_* names the SHELL may hold when it runs the assembler (plan 03.2-02): the project's public URL and
+ * its public (anon) key. The catalogue is read through them at build time (lib/data/source.ts, anon key, published views
+ * only, C-04). Supabase says both are public by design.
+ *
+ * They never reach Next. `nextBuildEnv` removes them from the environment of `opennextjs-cloudflare build` and hands the
+ * values to the data layer under other names (BUILD_HANDOVER_ENV), which Next does not inline. Measured: with
+ * NEXT_PUBLIC_SUPABASE_URL set in the Next build's environment Next writes its value as a string into the middleware,
+ * the auth pages and the OpenNext Worker bundles, which then ignore the Worker's secret at request time; and
+ * `almar-preview`, which holds no secret on purpose (fail closed), would carry the project's address. So job 10's rule
+ * stays whole for Next (no NEXT_PUBLIC_* in the Next build) and every Worker still reads its Worker secrets at request time.
  */
 export const BUILD_PUBLIC_ENV = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"];
 
+/** The names under which the data layer receives the two public values during the build (read by lib/data/source.ts). */
+export const BUILD_HANDOVER_ENV = {
+  NEXT_PUBLIC_SUPABASE_URL: "ALMAR_BUILD_SUPABASE_URL",
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "ALMAR_BUILD_SUPABASE_ANON_KEY",
+};
+
+/**
+ * The environment of the OpenNext / Next build: the shell's, without any NEXT_PUBLIC_* and without a stale hand-over
+ * name, plus ALMAR_DATA_SOURCE and, for the database source, the two public values under their hand-over names.
+ */
+export function nextBuildEnv(env, source) {
+  const handover = new Set(Object.values(BUILD_HANDOVER_ENV));
+  const out = {};
+  for (const [name, value] of Object.entries(env)) {
+    if (name.startsWith("NEXT_PUBLIC_") || handover.has(name)) continue;
+    out[name] = value;
+  }
+  if (source === "supabase") {
+    for (const [from, to] of Object.entries(BUILD_HANDOVER_ENV)) out[to] = String(env[from] ?? "").trim();
+  }
+  out.ALMAR_DATA_SOURCE = source;
+  out.WRANGLER_SEND_METRICS = "false";
+  return out;
+}
+
 /**
  * Job 10 review: assertNoBundledEnv only sees the project's .env files. The build also inherits the shell it runs in,
- * and Next inlines every NEXT_PUBLIC_* value it finds there into the bundles that name it. Since plan 03.2-02 exactly two
- * names are allowed (BUILD_PUBLIC_ENV); any other NEXT_PUBLIC_* may not be set.
+ * and Next inlines every NEXT_PUBLIC_* value it finds there into the bundles that name it. Since plan 03.2-02 the shell
+ * may hold exactly two such names (BUILD_PUBLIC_ENV, which nextBuildEnv keeps away from Next); any other NEXT_PUBLIC_*
+ * may not be set.
  * Only the names are reported, never the values. `env` is process.env in the build, a plain object in the test.
  */
 export function assertNoPublicEnv(env) {
@@ -337,7 +369,7 @@ function main(argv = process.argv.slice(2)) {
   execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
     cwd: root,
     stdio: "inherit",
-    env: { ...process.env, ALMAR_DATA_SOURCE: source, WRANGLER_SEND_METRICS: "false" },
+    env: nextBuildEnv(process.env, source),
   });
   assertNoBundledEnv(path.join(root, ".open-next/cloudflare/next-env.mjs"));
   const folder = outDirNameFor(target);

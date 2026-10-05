@@ -116,10 +116,14 @@ let clientFactory: ClientFactory | null = null;
 let loading: Promise<void> | null = null;
 let rows: Map<SourceName, unknown[]> | null = null;
 
-/** Names only, never values. */
+/**
+ * The public project URL and anon key. In an assembled build the assembler hands them over as ALMAR_BUILD_SUPABASE_URL and
+ * ALMAR_BUILD_SUPABASE_ANON_KEY (names Next does not inline; see nextBuildEnv in scripts/assemble-cloudflare.mjs); node
+ * tests and `next dev` set NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY. Names only in every message, never values.
+ */
 function publicSettings(): { url: string; anonKey: string } {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  const url = (process.env.ALMAR_BUILD_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)?.trim();
+  const anonKey = (process.env.ALMAR_BUILD_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)?.trim();
   const missing = [!url && "NEXT_PUBLIC_SUPABASE_URL", !anonKey && "NEXT_PUBLIC_SUPABASE_ANON_KEY"].filter(Boolean);
   if (missing.length > 0 || !url || !anonKey) {
     throw new Error(`ALMAR_DATA_SOURCE=supabase needs ${missing.join(" and ")} in the build environment`);

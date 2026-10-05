@@ -277,9 +277,13 @@ after(async () => {
 });
 
 test("local stack: --apply --local imports, the public views return the fixtures, a second run writes nothing", { timeout: 600000 }, async (t) => {
-  const stack = requireStack(t);
-  if (!stack) return;
-  await withStackLock(() => importAndCheck(stack));
+  // requireStack inside the lock: `supabase status` fails while the other test process resets the database, and
+  // localStack() remembers a failure for the rest of the process.
+  await withStackLock(async () => {
+    const stack = requireStack(t);
+    if (!stack) return;
+    await importAndCheck(stack);
+  });
 });
 
 async function importAndCheck(stack) {

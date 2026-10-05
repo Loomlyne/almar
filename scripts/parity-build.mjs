@@ -10,7 +10,9 @@
 //                         dropped, min_nights 1), a scratch folder named by ALMAR_FIXTURE_DIR
 //                reset + import: the stack is rebuilt from the migrations and filled by scripts/import-catalog.mjs
 //                build B: ALMAR_DATA_SOURCE=supabase against the local stack
-//                Both builds get the same NEXT_PUBLIC_SUPABASE_* values (the local stack's), so inlined values cannot differ.
+//                Both builds run in the same shell settings (NEXT_PUBLIC_SUPABASE_* = the local stack's). The assembler keeps
+//                those two names away from Next (nextBuildEnv), so nothing is inlined; the run fails if the anon key shows up
+//                in any file Next or OpenNext wrote.
 //                Every file of A's out/ and B's out/ is compared byte for byte once each build id is replaced by BUILD_ID.
 //                Exit 0 only when no file differs, except for one known kind of noise: React streams the rows of a page's
 //                inline Flight payload (`self.__next_f.push`) in an order that varies from build to build, even for two
@@ -313,6 +315,7 @@ async function main(argv = process.argv.slice(2)) {
   const fixturesDir = path.join(tmp, "fixtures");
   let ok = false;
   let failed = null;
+  let inlinedKey = false;
   try {
     writeLiveShapedFixtures(fixturesDir);
     const envFor = (extra) => buildEnv(process.env, { ...publicEnv, ...extra });
@@ -340,12 +343,20 @@ async function main(argv = process.argv.slice(2)) {
     const leftTitle = `A (live-shaped fixtures) vs B (${args.live ? "the live database" : "the local database"})`;
     const parity = report(leftTitle, a, b);
 
-    const inlined = findValues(b.out, { "the public URL": publicEnv.NEXT_PUBLIC_SUPABASE_URL, "the public anon key": publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY });
+    // Build B's own output is still on disk here (build C, if asked for, overwrites .next/ and .open-next/). The assembler
+    // hands the public settings to the data layer under names Next does not inline (nextBuildEnv), so neither value may
+    // appear in any file Next or OpenNext wrote: not in the browser files, not in the server bundles, not in the Worker
+    // bundles. Finding the anon key means NEXT_PUBLIC_* reached Next again: the run fails (the URL alone is reported only).
+    const places = [["out/", b.out], [".next/static/", path.join(root, ".next", "static")], [".next/server/", path.join(root, ".next", "server")], [".open-next/", path.join(root, ".open-next")]];
+    const scan = (needles) => places.flatMap(([name, dir]) => (fs.existsSync(dir) ? findValues(dir, needles).map((h) => `${h.label} in ${name}${h.file}`) : []));
+    const keyHits = scan({ "the public anon key": publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY });
+    const urlHits = scan({ "the public URL": publicEnv.NEXT_PUBLIC_SUPABASE_URL });
     console.log(
-      inlined.length === 0
-        ? "\npublic Supabase settings found inside out/ (HTML and browser bundles): none"
-        : `\nNOTE public Supabase settings found inside out/: ${inlined.map((h) => `${h.label} in ${h.file}`).join("; ")}`,
+      keyHits.length === 0 && urlHits.length === 0
+        ? "\npublic Supabase settings found in out/, .next/static, .next/server or .open-next: none (Next was not given them, so nothing is inlined into any Worker or browser file)"
+        : `\npublic Supabase settings found in the build output: ${[...keyHits, ...urlHits].slice(0, 12).join("; ")}`,
     );
+    inlinedKey = keyHits.length > 0;
 
     if (args.againstToday) {
       const c = runBuild({ label: "C", tmp, env: envFor({ ALMAR_DATA_SOURCE: "fixtures" }) });
@@ -358,12 +369,12 @@ async function main(argv = process.argv.slice(2)) {
     fs.cpSync(b.out, path.join(root, "out"), { recursive: true });
 
     const strictFailures = args.strict ? parity.orderOnly.length : 0;
-    ok = parity.differing.length === 0 && strictFailures === 0;
+    ok = parity.differing.length === 0 && strictFailures === 0 && !inlinedKey;
     const noise = parity.orderOnly.length > 0 ? ` (${parity.orderOnly.length} of them differ in Flight row order only)` : "";
     console.log(
       ok
         ? `\nPARITY OK: ${parity.compared} files, 0 differing${noise}`
-        : `\nPARITY FAILED: ${parity.differing.length + strictFailures} of ${parity.compared} files differ${noise}`,
+        : `\nPARITY FAILED: ${parity.differing.length + strictFailures} of ${parity.compared} files differ${noise}${inlinedKey ? "; the public anon key was found in the build output" : ""}`,
     );
   } catch (error) {
     failed = error;

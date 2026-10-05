@@ -3,7 +3,7 @@
 //
 // The two sides run in separate child processes (tests/helpers/data-reads.mjs), because the source is chosen per
 // process. Key ORDER is compared as well as values: the build serialises rows into client props, so it reaches the HTML
-// bytes (scripts/parity-build.mjs proves the bytes). Stack cases call requireStack(t): they skip without a stack and
+// bytes (scripts/parity-build.mjs proves the bytes). Stack cases call requireStack(t) INSIDE the stack lock (a status call while the other process resets fails and is remembered): they skip without a stack and
 // FAIL under ALMAR_REQUIRE_STACK=1. Every case holds the stack lock: tests/import-catalog.test.mjs also resets and fills the database.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
@@ -128,9 +128,9 @@ const SAMPLE_SLUG = "getsemani-colonial-house";
 // ---------------------------------------------------------------------------------------------------------------
 
 test("every read x en/ar/es: live-shaped fixtures = the local database, key order included", { timeout: 900000 }, async (t) => {
-  const stack = requireStack(t);
-  if (!stack) return;
   await withStackLock(async () => {
+    const stack = requireStack(t);
+    if (!stack) return;
     ensureImported(stack, { fresh: true });
 
     const dir = mkdtempSync(join(tmpdir(), "almar-live-shaped-"));
@@ -170,9 +170,9 @@ test("every read x en/ar/es: live-shaped fixtures = the local database, key orde
 });
 
 test("per-source row counts equal the import payload's counts (a truncated read would show here)", { timeout: 600000 }, async (t) => {
-  const stack = requireStack(t);
-  if (!stack) return;
   await withStackLock(async () => {
+    const stack = requireStack(t);
+    if (!stack) return;
     ensureImported(stack);
     const database = supabaseSide(stack);
     const { counts } = buildImportPayload({ root: process.cwd() });
@@ -195,9 +195,9 @@ test("per-source row counts equal the import payload's counts (a truncated read 
 });
 
 test("an ops block on a stay reaches getBlockedDates through api_stay_blocked_days (the one read the import leaves empty)", { timeout: 600000 }, async (t) => {
-  const stack = requireStack(t);
-  if (!stack) return;
   await withStackLock(async () => {
+    const stack = requireStack(t);
+    if (!stack) return;
     const db = (sql) => {
       const res = runSql(sql);
       assert.equal(res.code, 0, res.output.slice(-1500));
