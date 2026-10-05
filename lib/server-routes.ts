@@ -9,6 +9,8 @@
 // 2. A path outside /api also goes in SERVER_PATHS_OUTSIDE_API and in `run_worker_first` of wrangler.toml and
 //    wrangler.preview.toml, and leaves HELD_PATHS, in the same commit (tests/server-runtime.test.mjs checks all three).
 // 3. tests/build/server-runtime.spec.ts lists what must stay 404; flip its entry in the same commit.
+// 4. /api/ops/* (the owner's dashboard endpoints) is never served here: it belongs to Worker almar-ops only
+//    (lib/ops-routes.ts, plan 03.2-03). serverPathsFrom skips it and worker/almar.mjs refuses it at startup.
 //
 // A leaf module (no imports): the assembler, the node tests and the build spec load it directly.
 
@@ -25,6 +27,9 @@ export const HELD_PATHS = [
   "/embed",
   "/__harness",
 ] as const;
+
+/** The owner's dashboard endpoints. Served by Worker almar-ops only (plan 03.2-03), never by `almar` or `almar-preview`. */
+export const OPS_API_PREFIX = "/api/ops/";
 
 /**
  * Exact server paths outside /api. Phase 2's sign-in (plan 02-23 task 3): the same six as JOB02_SERVER_PATHS in
@@ -71,7 +76,8 @@ function assertWellFormed(path: string): void {
  * The exact server paths, sorted: every static app/api route (from the keys of Next's app-paths-manifest.json,
  * such as `/api/health/route`) plus `extra` (SERVER_PATHS_OUTSIDE_API by default).
  * Throws on a page under app/api, on a dynamic, catch-all, grouped or parallel segment under app/api, on a
- * malformed extra path, on an extra path under /api, and on any path that is held.
+ * malformed extra path, on an extra path under /api, and on any path that is held. A route under /api/ops is skipped
+ * (it is served by almar-ops only), after the same shape checks.
  */
 export function serverPathsFrom(manifestKeys: readonly string[], extra: readonly string[] = SERVER_PATHS_OUTSIDE_API): string[] {
   const found = new Set<string>();
@@ -88,6 +94,8 @@ export function serverPathsFrom(manifestKeys: readonly string[], extra: readonly
       throw new Error(`${key}: dynamic, catch-all, grouped and parallel segments under app/api are not served`);
     }
     assertWellFormed(path);
+    // Served by almar-ops only (03.2-03): the public Worker never forwards it, so it is not on this list.
+    if (path === "/api/ops" || path.startsWith(OPS_API_PREFIX)) continue;
     found.add(path);
   }
   for (const path of extra) {
