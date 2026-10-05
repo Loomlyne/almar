@@ -1,0 +1,174 @@
+{
+  "hero": {
+    "image": {
+      "id": "db3c31d3-d6ae-5e4a-a0a7-72f7dc85cf74",
+      "media_key": "about/hero.webp",
+      "width": 1820,
+      "height": 1024,
+      "position": 0
+    }
+  },
+  "intro": {
+    "images": [
+      {
+        "id": "7e0793f0-d705-50a7-af26-a2cde2580463",
+        "media_key": "about/intro/01.webp",
+        "width": 1820,
+        "height": 1024,
+        "position": 1
+      },
+      {
+        "id": "94ffea10-71fa-5bd9-a4b3-291b2ff7047a",
+        "media_key": "home/gallery/13.webp",
+        "width": 1820,
+        "height": 1024,
+        "position": 2
+      },
+      {
+        "id": "3df5047a-17e8-5df3-9dcc-2f6d6904f75f",
+        "media_key": "about/intro/03.webp",
+        "width": 1820,
+        "height": 1024,
+        "position": 3
+      },
+      {
+        "id": "ee95b930-35d5-52a8-9c5c-566b464ebf7a",
+        "media_key": "about/intro/04.webp",
+        "width": 1820,
+        "height": 1024,
+        "position": 4
+      },
+      {
+        "id": "785783d1-8c16-5778-8938-d56b32a818a0",
+        "media_key": "about/intro/05.webp",
+        "width": 1820,
+        "height": 1024,
+        "position": 5
+      }
+    ],
+    "still": {
+      "id": "ed7466de-f9a3-51b7-a170-987601defa6d",
+      "media_key": "home/hero/poster.webp",
+      "width": 1920,
+      "height": 1077,
+      "position": 0
+    }
+  },
+  "cta_image": {
+    "id": "b7011d5f-d9d9-5e4f-8e1a-86f16c65ecfe",
+    "media_key": "about/cta/band.webp",
+    "width": 1920,
+    "height": 1010,
+    "position": 0
+  },
+  "cards": [
+    {
+      "id": "a05fe6d3-0feb-5cde-aeba-5f79bc71926d",
+      "created_at": "2026-10-03T00:00:00+00:00",
+      "updated_at": "2026-10-03T00:00:00+00:00",
+      "is_sample": false,
+      "sample_fields": [],
+      "slug": "designed-with-heart",
+      "section": "story",
+      "image": {
+        "id": "1e06f20e-03da-5c9f-b6f9-eea7cde2b73f",
+        "media_key": "about/story/designed-with-heart.webp",
+        "width": 1920,
+        "height": 1277,
+        "position": 0
+      },
+      "is_published": true,
+      "position": 1
+    },
+    {
+      "id": "a9e6d48c-0f61-5c20-a2be-92928700a3f5",
+      "created_at": "2026-10-03T00:00:00+00:00",
+      "updated_at": "2026-10-03T00:00:00+00:00",
+      "is_sample": false,
+      "sample_fields": [],
+      "slug": "bridging-curiosity-and-confidence",
+      "section": "story",
+      "image": {
+        "id": "b42c46da-536d-5cc7-8bd1-2cca4a021e43",
+        "media_key": "about/story/bridging-curiosity-and-confidence.webp",
+        "width": 992,
+        "height": 1200,
+        "position": 0
+      },
+      "is_published": true,
+      "position": 2
+    },
+    {
+      "id": "6c902218-e0ac-5c78-9182-928b035775c9",
+      "created_at": "2026-10-03T00:00:00+00:00",
+      "updated_at": "2026-10-03T00:00:00+00:00",
+      "is_sample": false,
+      "sample_fields": [],
+      "slug": "a-vision-that-grows",
+      "section": "story",
+      "image": {
+        "id": "1493a030-7ae7-5c4c-949d-1dffeb451b9b",
+        "media_key": "about/story/a-vision-that-grows.webp",
+        "width": 1408,
+        "height": 768,
+        "position": 0
+      },
+      "is_published": true,
+      "position": 3
+    },
+    {
+      "id": "8066d158-ea36-519f-8f3c-38006e6ea8d6",
+      "created_at": "2026-10-03T00:00:00+00:00",
+      "updated_at": "2026-10-03T00:00:00+00:00",
+      "is_sample": false,
+      "sample_fields": [],
+      "slug": "intentional-hospitality",
+      "section": "values",
+      "image": {
+        "id": "0ef47bf1-b746-598d-9180-3fc172e4914b",
+        "media_key": "about/values/intentional-hospitality.webp",
+        "width": 1536,
+        "height": 1024,
+        "position": 0
+      },
+      "is_published": true,
+      "position": 1
+    },
+    {
+      "id": "15195615-f711-5de8-b13e-087cc9bc0e30",
+      "created_at": "2026-10-03T00:00:00+00:00",
+      "updated_at": "2026-10-03T00:00:00+00:00",
+      "is_sample": false,
+      "sample_fields": [],
+      "slug": "bilingual-trip-support",
+      "section": "values",
+      "image": {
+        "id": "87bed148-2b68-55ee-96ed-de615e445b43",
+        "media_key": "about/values/bilingual-trip-support.webp",
+        "width": 1536,
+        "height": 1024,
+        "position": 0
+      },
+      "is_published": true,
+      "position": 2
+    },
+    {
+      "id": "07fc4c83-1256-5bca-b900-a1d3616966ea",
+      "created_at": "2026-10-03T00:00:00+00:00",
+      "updated_at": "2026-10-03T00:00:00+00:00",
+      "is_sample": false,
+      "sample_fields": [],
+      "slug": "privacy-and-discreet-coordination",
+      "section": "values",
+      "image": {
+        "id": "3293b75c-05a3-5c9e-87ad-a10800211432",
+        "media_key": "about/values/privacy-and-discreet-coordination.webp",
+        "width": 1536,
+        "height": 1024,
+        "position": 0
+      },
+      "is_published": true,
+      "position": 3
+    }
+  ]
+}

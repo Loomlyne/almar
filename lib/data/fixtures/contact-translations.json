@@ -1,0 +1,23 @@
+[
+  {
+    "contact_id": "a5cdb02f-066d-532a-97ce-fe001a5a966e",
+    "locale": "en",
+    "status": "published",
+    "location_label": "Bogotá, Colombia",
+    "whatsapp_message": "Hello ALMAR, I would like to plan a private journey."
+  },
+  {
+    "contact_id": "a5cdb02f-066d-532a-97ce-fe001a5a966e",
+    "locale": "ar",
+    "status": "draft",
+    "location_label": "بوغوتا، كولومبيا",
+    "whatsapp_message": "مرحباً ALMAR، أودّ التخطيط لرحلة خاصة."
+  },
+  {
+    "contact_id": "a5cdb02f-066d-532a-97ce-fe001a5a966e",
+    "locale": "es",
+    "status": "draft",
+    "location_label": "Bogotá, Colombia",
+    "whatsapp_message": "Hola ALMAR, me gustaría planificar un viaje privado."
+  }
+]

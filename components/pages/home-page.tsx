@@ -10,6 +10,7 @@ import { HomeJourneys } from "./home/home-journeys";
 import { HomeWelcome } from "./home/home-welcome";
 import { HomeGallery } from "./home/home-gallery";
 import { Begin, Moments, Services, Stories, Team } from "./home/home-sections";
+import { toCatalogQuery } from "../../lib/data/catalog-filter";
 import { getCatalogItems } from "../../lib/data/experiences";
 import { getDestinations } from "../../lib/data/destinations";
 import { getHomeBlocks, getJourneyTiers } from "../../lib/data/home";
@@ -30,6 +31,9 @@ import { absoluteLocaleUrl, localeAlternates, localePath, siteHref } from "../..
 // ALMAR Stories, Begin Your Journey, Meet the Team, Footer (the footer belongs to the frame).
 
 const HOME = "/";
+
+// The three services the signed home shows (slice 1, owner-signed); chosen by slug, not position — S2-2.
+export const HOME_SERVICE_SLUGS = ["24-7-private-concierge", "luxury-ground-transport", "vip-airport-meet-greet"] as const;
 
 export async function homeMetadata(locale: Locale): Promise<Metadata> {
   const { meta } = HOME_PAGE_COPY[locale];
@@ -52,7 +56,7 @@ export async function homeMetadata(locale: Locale): Promise<Metadata> {
 }
 
 export async function HomePage({ locale }: { locale: Locale }) {
-  const [blocks, tiers, stays, services, destinations, team, rates] = await Promise.all([
+  const [blocks, tiers, stays, allServices, destinations, team, rates] = await Promise.all([
     getHomeBlocks(locale),
     getJourneyTiers(locale),
     getStays(locale),
@@ -61,6 +65,11 @@ export async function HomePage({ locale }: { locale: Locale }) {
     getTeam(locale),
     getRates(),
   ]);
+  const services = HOME_SERVICE_SLUGS.map((slug) => {
+    const item = allServices.find((s) => s.slug === slug);
+    if (!item) throw new Error(`home: no published service ${slug}`);
+    return item;
+  });
   const copy = HOME_PAGE_COPY[locale];
   const nav = HOME_COPY[locale].nav;
 
@@ -73,6 +82,9 @@ export async function HomePage({ locale }: { locale: Locale }) {
     { label: nav.contact, href: siteHref(locale, "/contact") },
   ];
   const contactHref = siteHref(locale, "/contact");
+  // Services live on the one /experiences page (design 4.2): the card opens that service's overlay, View All
+  // selects Services. The query goes after localePath, which refuses a "?".
+  const experiencesPath = localePath(locale, "/experiences");
 
   // The first three published stays with a photo, fixed: the hero bar does not filter them (Search does that on the list page).
   const stayCards: HomeStayCard[] = stays
@@ -141,8 +153,13 @@ export async function HomePage({ locale }: { locale: Locale }) {
               <PageShell className="grid">
                 <Services
                   items={services}
-                  hrefs={Object.fromEntries(services.map((item) => [item.slug, siteHref(locale, `/services/${item.slug}`)]))}
-                  viewAllHref={siteHref(locale, "/experiences")}
+                  hrefs={Object.fromEntries(
+                    services.map((item) => [
+                      item.slug,
+                      experiencesPath + toCatalogQuery({ kind: "service", destinations: [], stays: [], item: item.slug }),
+                    ]),
+                  )}
+                  viewAllHref={experiencesPath + toCatalogQuery({ kind: "service", destinations: [], stays: [] })}
                   copy={copy.services}
                 />
                 <Moments destinations={destinations} contactHref={contactHref} copy={copy.moments} />

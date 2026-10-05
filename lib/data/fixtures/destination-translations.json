@@ -58,5 +58,95 @@
     "summary": "Medellín es el ancla de la Colombia moderna: barrios seguros, gastronomía refinada y cultura. En el inventario verificado actual de ALMAR, el campo más allá de la ciudad es el gran activo: estancias privadas en fincas y haciendas de Antioquia.",
     "nights_label": "2–5 noches",
     "status": "draft"
+  },
+  {
+    "destination_id": "8f446e7f-412f-537c-9910-1135dadd421c",
+    "locale": "en",
+    "name": "Bogotá",
+    "short_line": null,
+    "region": "Andes",
+    "summary": null,
+    "nights_label": null,
+    "status": "published"
+  },
+  {
+    "destination_id": "8f446e7f-412f-537c-9910-1135dadd421c",
+    "locale": "ar",
+    "name": "بوغوتا",
+    "short_line": null,
+    "region": "الأنديز",
+    "summary": null,
+    "nights_label": null,
+    "status": "draft"
+  },
+  {
+    "destination_id": "8f446e7f-412f-537c-9910-1135dadd421c",
+    "locale": "es",
+    "name": "Bogotá",
+    "short_line": null,
+    "region": "Andes",
+    "summary": null,
+    "nights_label": null,
+    "status": "draft"
+  },
+  {
+    "destination_id": "9b70fbde-8d84-5cba-bf16-c5690f6c1607",
+    "locale": "en",
+    "name": "San Andrés",
+    "short_line": null,
+    "region": "Caribbean",
+    "summary": null,
+    "nights_label": null,
+    "status": "published"
+  },
+  {
+    "destination_id": "9b70fbde-8d84-5cba-bf16-c5690f6c1607",
+    "locale": "ar",
+    "name": "سان أندريس",
+    "short_line": null,
+    "region": "الكاريبي",
+    "summary": null,
+    "nights_label": null,
+    "status": "draft"
+  },
+  {
+    "destination_id": "9b70fbde-8d84-5cba-bf16-c5690f6c1607",
+    "locale": "es",
+    "name": "San Andrés",
+    "short_line": null,
+    "region": "Caribe",
+    "summary": null,
+    "nights_label": null,
+    "status": "draft"
+  },
+  {
+    "destination_id": "37171873-91c7-5acc-8d67-6a616202fa2d",
+    "locale": "en",
+    "name": "Cocora Valley",
+    "short_line": null,
+    "region": "Coffee region",
+    "summary": null,
+    "nights_label": null,
+    "status": "published"
+  },
+  {
+    "destination_id": "37171873-91c7-5acc-8d67-6a616202fa2d",
+    "locale": "ar",
+    "name": "وادي كوكورا",
+    "short_line": null,
+    "region": "منطقة القهوة",
+    "summary": null,
+    "nights_label": null,
+    "status": "draft"
+  },
+  {
+    "destination_id": "37171873-91c7-5acc-8d67-6a616202fa2d",
+    "locale": "es",
+    "name": "Valle de Cocora",
+    "short_line": null,
+    "region": "Región cafetera",
+    "summary": null,
+    "nights_label": null,
+    "status": "draft"
   }
 ]

@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { stripLocale } from "../../lib/locale-path";
 import { CloseIcon } from "../icons/icons";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { LocaleSelect } from "./locale-select";
@@ -256,7 +257,11 @@ export function SiteNav({
             className="flex flex-col items-start @6xl:flex-row @6xl:items-center @6xl:gap-3"
           >
             {links.map(({ label, href }, index) => {
-              const active = currentPath !== undefined ? href === currentPath : markCurrent && index === 0;
+              // Compare paths without the locale prefix: PublicFrame passes the English path, the links are localised.
+              const active =
+                currentPath !== undefined
+                  ? stripLocale(href).path === stripLocale(currentPath).path
+                  : markCurrent && index === 0;
               return (
                 <a
                   key={href}

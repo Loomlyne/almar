@@ -210,58 +210,5 @@
       "is_published": true,
       "position": 3
     }
-  ],
-  "stories": [
-    {
-      "id": "9616c101-0b63-58c5-a525-9eb1c910765a",
-      "created_at": "2026-10-03T00:00:00+00:00",
-      "updated_at": "2026-10-03T00:00:00+00:00",
-      "is_sample": false,
-      "sample_fields": [],
-      "slug": "discovering-cartagenas-hidden-colonial-courtyards",
-      "image": {
-        "id": "fecf7741-a79b-5436-8c7a-9380bf3e9aa9",
-        "media_key": "home/stories/discovering-cartagenas-hidden-colonial-courtyards.webp",
-        "width": 1600,
-        "height": 1067,
-        "position": 0
-      },
-      "is_published": true,
-      "position": 1
-    },
-    {
-      "id": "544d5a28-0412-53ca-8822-5ab420600aac",
-      "created_at": "2026-10-03T00:00:00+00:00",
-      "updated_at": "2026-10-03T00:00:00+00:00",
-      "is_sample": false,
-      "sample_fields": [],
-      "slug": "why-medellin-is-redefining-luxury-travel",
-      "image": {
-        "id": "d2f69dd4-13a8-5954-b9a5-00f51bcb7b32",
-        "media_key": "home/stories/why-medellin-is-redefining-luxury-travel.webp",
-        "width": 1600,
-        "height": 1060,
-        "position": 0
-      },
-      "is_published": true,
-      "position": 2
-    },
-    {
-      "id": "26cb9d6c-202e-518e-8892-281f854eff5c",
-      "created_at": "2026-10-03T00:00:00+00:00",
-      "updated_at": "2026-10-03T00:00:00+00:00",
-      "is_sample": false,
-      "sample_fields": [],
-      "slug": "colombias-coffee-triangle-eje-cafetero",
-      "image": {
-        "id": "8b26bd0c-e3cb-59e3-9689-103c57132f03",
-        "media_key": "home/stories/colombias-coffee-triangle-eje-cafetero.webp",
-        "width": 1600,
-        "height": 1200,
-        "position": 0
-      },
-      "is_published": true,
-      "position": 3
-    }
   ]
 }

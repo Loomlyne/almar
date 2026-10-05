@@ -227,6 +227,10 @@ export type CatalogItem = RowMeta & {
 
   destination_ids: Uuid[];
   stay_ids: Uuid[];
+  /** Slugs of destination_ids, same order. Joined from destination_ids / stay_ids; a join on catalog_destinations / catalog_stays in Supabase (design 3.2). */
+  destination_slugs: string[];
+  /** Slugs of stay_ids, same order (joined, see destination_slugs). */
+  stay_slugs: string[];
 
   is_published: boolean;
   position: number;
@@ -317,4 +321,76 @@ export type HomeBlocks = {
   tiers: JourneyTier[];
   /** Published stories, in order. An empty array hides the section (SITE-02). */
   stories: HomeStory[];
+};
+
+// ---------------------------------------------------------------------------------------------------------
+// About and Contact (slice 3, design 3.1; one inbox only, owner answer 11 row 3)
+// ---------------------------------------------------------------------------------------------------------
+
+/** One card of About's Our Story or Our Values. */
+export type AboutCard = RowMeta & {
+  slug: string;
+  section: "story" | "values";
+  title: string;
+  body: string;
+  image: ImageRef | null;
+  is_published: boolean;
+  position: number;
+};
+
+export type AboutBlocks = {
+  hero: { kicker: string; headline: string; image: ImageRef | null };
+  intro: {
+    statement: string;
+    /** The collage's five photos (design 12.1 row 2); alt is "" in all three languages, as published. */
+    images: ImageRef[];
+    /** The full-width arches still (the home video's poster), design 12.1 row 3. */
+    still: ImageRef | null;
+  };
+  /** The Get In Touch band's still (design 12.1 row 7, S3-25); alt "" in all three languages. */
+  cta_image: ImageRef | null;
+  /** Published cards only, in order. A section with no card is not rendered. */
+  story: AboutCard[];
+  values: AboutCard[];
+};
+
+/** The business's own contact details: Dashboard > Settings > Business and brand (D-92). */
+export type ContactDetails = {
+  business_name: string;
+  location_label: string;
+  location_url: string;
+  phone_e164: string;
+  phone_display: string;
+  email: string;
+  whatsapp_message: string;
+  instagram_url: string;
+  locale: Locale;
+  translation_status: TranslationStatus;
+};
+
+/** One block of a blog post body (design S4 3.2). Stored without ids; heading ids are assigned at read time. */
+export type PostBlock =
+  | { type: "paragraph"; text: string }
+  | { type: "heading"; text: string; id: string }
+  | { type: "quote"; text: string };
+
+/** A blog post, one language (design S4 3.2). */
+export type Post = RowMeta & {
+  slug: string;
+  title: string;
+  excerpt: string;
+  body: PostBlock[];
+  seo_title: string | null;
+  seo_description: string | null;
+  published_at: Timestamp;
+  date_label: string;
+  reading_minutes: number;
+  destination_id: Uuid | null;
+  destination_slug: string | null;
+  destination_name: string | null;
+  featured_stay_slug: string | null;
+  featured_experience_slug: string | null;
+  /** Always present: a post without a cover is a data error and is refused when it is read. */
+  cover_image: ImageRef;
+  is_published: boolean;
 };

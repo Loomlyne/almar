@@ -123,5 +123,5 @@ From the 3.1 hand-over (open items 1–5): dead controls W6 (Phase 3.2 and 2), g
 ## Session Continuity
 
 Last session: 2026-10-03T15:28:00.000Z
-Stopped at: job 10 (server runtime) shipped and live 2026-10-05 03:32 (main 8d6352e, Worker almar 1a2e7498); next job 02 sign-in, then slices 2, 3A, 4
+Stopped at: slice 2 shipped and live 2026-10-05 09:51 (main 8bd0364, Worker almar 1f17ddbe): every public page React; Phase 3.3 left = slice 3 part B after job 02; job 02 and the v1 database lanes wait for Supabase access; 03.2-11 at picture checkpoint
 Resume file: .planning/CONTROL-BOARD.md
