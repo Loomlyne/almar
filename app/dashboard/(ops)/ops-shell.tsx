@@ -8,12 +8,14 @@ import { cn } from "../../../lib/cn";
 import { Sidebar } from "../../../components/ui/sidebar";
 import { ConfirmDialog } from "../../../components/ui/confirm-dialog";
 import { signOutEverywhere } from "../actions";
+import { SoonChip } from "./content/coming-soon";
 import { DASHBOARD_COPY, type DashboardCopy } from "../../../lib/copy/dashboard";
 import { isDocumentLocale, setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
 import charcoalLogo from "../../../brand/Logo Typography/Stacked_Charcoal.svg";
 
 type RailKey = keyof DashboardCopy["rail"];
-type RailLink = { key: RailKey; label: string; href: string };
+/** `soon`: the editor is not built yet, so the entry carries the Soon chip (plan 03.2-12). */
+type RailLink = { key: RailKey; label: string; href: string; soon?: true };
 type RailGroup = { key: RailKey; label: string; children: RailLink[] };
 type RailItem = RailLink | RailGroup;
 
@@ -36,10 +38,12 @@ const RAIL: RailItem[] = [
     key: "content",
     label: "Content",
     children: [
-      { key: "pages", label: "Pages", href: "/dashboard/content/pages" },
-      { key: "blog", label: "Blog", href: "/dashboard/content/blog" },
+      { key: "pages", label: "Pages", href: "/dashboard/content/pages", soon: true },
+      { key: "blog", label: "Blog", href: "/dashboard/content/blog", soon: true },
       { key: "team", label: "Team", href: "/dashboard/content/team" },
-      { key: "legal", label: "Legal", href: "/dashboard/content/legal" },
+      { key: "legal", label: "Legal", href: "/dashboard/content/legal", soon: true },
+      { key: "media", label: "Media", href: "/dashboard/content/media" },
+      { key: "navigation", label: "Navigation and footer", href: "/dashboard/content/navigation", soon: true },
     ],
   },
   { key: "settings", label: "Settings", href: "/dashboard/settings" },
@@ -181,11 +185,25 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
       <Link
         key={href}
         href={href}
-        className={cn(RAIL_ITEM, nested && "ps-4", current ? "bg-teal-tint text-teal" : "text-ink hover:bg-ivory")}
+        className={cn(
+          RAIL_ITEM,
+          item.soon && "justify-between gap-2",
+          nested && "ps-4",
+          current ? "bg-teal-tint text-teal" : "text-ink hover:bg-ivory",
+        )}
         aria-current={current ? "page" : undefined}
+        // The name ends with the chip's word: "Pages, Soon" ("الصفحات، قريبًا"). It holds both visible words.
+        aria-label={item.soon ? `${copy.rail[item.key]}${locale === "ar" ? "، " : ", "}${copy.soon}` : undefined}
         onClick={() => setMenuOpen(false)}
       >
-        {copy.rail[item.key]}
+        {item.soon ? (
+          <>
+            <span>{copy.rail[item.key]}</span>
+            <SoonChip>{copy.soon}</SoonChip>
+          </>
+        ) : (
+          copy.rail[item.key]
+        )}
       </Link>
     );
   }

@@ -49,6 +49,8 @@ export type DashboardCopy = {
   menu: string;
   closeMenu: string;
   skip: string;
+  /** Plan 03.2-12: the chip on a rail entry whose editor is not built yet (Pages, Blog, Legal, Navigation and footer). */
+  soon: string;
   currencies: {
     aed: string;
     usd: string;
@@ -69,6 +71,8 @@ export type DashboardCopy = {
     blog: string;
     team: string;
     legal: string;
+    media: string;
+    navigation: string;
     settings: string;
     profile: string;
   };
@@ -116,6 +120,7 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     menu: "Menu",
     closeMenu: "Close menu",
     skip: "Skip to content",
+    soon: "Soon",
     currencies,
     rail: {
       home: "Home",
@@ -132,6 +137,8 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
       blog: "Blog",
       team: "Team",
       legal: "Legal",
+      media: "Media",
+      navigation: "Navigation and footer",
       settings: "Settings",
       profile: "Profile",
     },
@@ -175,6 +182,7 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     menu: "القائمة",
     closeMenu: "إغلاق القائمة",
     skip: "تخطي إلى المحتوى",
+    soon: "قريبًا",
     currencies,
     rail: {
       home: "الرئيسية",
@@ -191,6 +199,8 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
       blog: "المدونة",
       team: "الفريق",
       legal: "القانوني",
+      media: "الوسائط",
+      navigation: "التنقل والتذييل",
       settings: "الإعدادات",
       profile: "الملف",
     },
@@ -234,6 +244,7 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     menu: "Menú",
     closeMenu: "Cerrar menú",
     skip: "Saltar al contenido",
+    soon: "Pronto",
     currencies,
     rail: {
       home: "Inicio",
@@ -250,6 +261,8 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
       blog: "Blog",
       team: "Equipo",
       legal: "Legal",
+      media: "Medios",
+      navigation: "Navegación y pie",
       settings: "Ajustes",
       profile: "Perfil",
     },
