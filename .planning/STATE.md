@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-05 21:36 (+04):** Dependabot fix landed (`b3fc57f`, 0 open alerts); 03.2-04 owner API landed as `ce411d9`, live on `almar-ops` `08c248e9` (fails closed until the service-role and Resend keys); public `almar` `4cf66ade`. Next: 03.2-02 landing; 03.2-12 at his signature.
+
 **2026-10-05 19:45 (+04):** 04-02 (bookings database) landed as `6558388`; migration `20261005110000` live; Worker `almar` `4666edd0` (rollback `f36f9de4`). Holds stay closed until 04-03 and `BOOKING_LINK_SECRET`. Next: 03.2-04 landing, Dependabot fix, 03.2-02.
 
 **2026-10-05 18:43 (+04):** 03.2-03 landed as `45a07e7`; Worker `almar` `f36f9de4` (rollback `3bec59e7`); Worker `almar-ops` live at dashboard.almarprivatejourney.com (`d7fdccd4`, sign-in fails closed until the service-role and Resend keys). 03.2-02 and 03.2-04 building; 04-02 in review fixes; 03.2-12 at his signature.
