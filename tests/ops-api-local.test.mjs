@@ -38,8 +38,12 @@ const OWNER_ID = "0b0b0b0b-0000-4000-8000-000000000001";
 let owner;
 let reset = false;
 
-after(() => {
-  if (reset && localStack()) resetLocal();
+after(async () => {
+  const stack = localStack();
+  if (!reset || !stack) return;
+  resetLocal();
+  // Leave the API ready for the next file that uses the stack (its schema cache reloads after the reset).
+  await settle(createClient(stack.url, stack.serviceKey, { auth: { persistSession: false, autoRefreshToken: false } }));
 });
 
 async function get(handler, query = "") {
@@ -102,20 +106,44 @@ const publish = (entity, id, published) => post(parse.parsePublish, h.postPublis
 
 const has = (missing, locale, field) => missing.some((m) => m.locale === locale && m.field === field);
 
+/**
+ * `supabase db reset` restarts the database container ("Restarting containers..."), and for some seconds after it the REST
+ * API's schema cache is not reloaded ("Could not find the function ... in the schema cache") and its pooled connections to
+ * the old database fail (measured 2026-10-05: a call with no SQLSTATE, mapped to 503; the import refused). Flush the pool
+ * with two parallel bursts, then wait for 15 calls in a row to succeed. Used before the import and after the final reset,
+ * so the next file that uses the stack (tests/import-catalog.test.mjs in a later run) finds the API ready.
+ */
+async function settle(admin) {
+  for (let burst = 0; burst < 2; burst++) {
+    await Promise.all(Array.from({ length: 20 }, () => admin.rpc("ops_list", { p_entity: "destination" })));
+  }
+  let streak = 0;
+  for (let i = 0; i < 120 && streak < 15; i++) {
+    const { error } = await admin.rpc("ops_list", { p_entity: "destination" });
+    streak = error ? 0 : streak + 1;
+    if (error) await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  assert.equal(streak, 15, "the local REST API did not settle after the reset");
+}
+
 test("local stack: the owner API end to end on the imported catalogue", { timeout: 600_000 }, async (t) => {
   const stack = requireStack(t);
   if (!stack) return;
 
   reset = true;
-  const r = resetLocal();
-  assert.equal(r.code, 0, r.output.slice(-2000));
-  const env = { ...process.env, SUPABASE_URL: stack.url, SUPABASE_SERVICE_ROLE_KEY: stack.serviceKey };
-  const imported = spawnSync(process.execPath, ["scripts/import-catalog.mjs", "--apply", "--local"], { env, encoding: "utf8" });
-  assert.equal(imported.status, 0, imported.stderr + imported.stdout);
+  const existing = runSql("select count(*)::int as n from public.destinations").rows[0]?.n;
+  if (existing !== 0) {
+    const r = resetLocal();
+    assert.equal(r.code, 0, r.output.slice(-2000));
+  }
   owner = {
     profile: { id: OWNER_ID, email: "maria@almarprivatejourney.com", role: "owner" },
     admin: createClient(stack.url, stack.serviceKey, { auth: { persistSession: false, autoRefreshToken: false } }),
   };
+  await settle(owner.admin);
+  const env = { ...process.env, SUPABASE_URL: stack.url, SUPABASE_SERVICE_ROLE_KEY: stack.serviceKey };
+  const imported = spawnSync(process.execPath, ["scripts/import-catalog.mjs", "--apply", "--local"], { env, encoding: "utf8" });
+  assert.equal(imported.status, 0, imported.stderr + imported.stdout);
 
   await t.test("destinations: list with stay counts; create, publish rules, unpublish refusal, delete rules", async () => {
     const list = await D.get();
