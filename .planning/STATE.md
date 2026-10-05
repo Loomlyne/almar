@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-05 18:40 (+04):** AR/ES text landed as `7f3c1d1` and is live (Worker `almar` `3bec59e7`, rollback `82569c44`); the catalogue (1,127 rows, no prices) is imported into the live database. Next: 03.2-03 landing and the ops Worker; 04-02 in review; 03.2-12 pictures at his signature.
+
 **2026-10-05 17:10 (+04):** 03.2-11 dashboard editor kit landed as `bf309c4` (no deploy). In landing checks: AR/ES text, 03.2-03 ops Worker. Building: 04-02.
 
 **2026-10-05 17:00 (+04):** 03.2-01 (catalogue and team database) landed as `bbc35b7`; migration `20261005100000` applied to live and read back. Phase 4 04-02 building. Next landings: AR/ES text, 03.2-11 kit, 03.2-03 ops Worker; then the live fixture import, 03.2-02, 03.2-04.
