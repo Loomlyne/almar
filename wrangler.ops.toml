@@ -1,0 +1,34 @@
+# Second Worker, `almar-ops`: the dashboard at dashboard.almarprivatejourney.com (C-20, B-22; it reverses plan 02-07's
+# "no second Worker" on the owner's 2026-10-05 answer). It is built from the same Next build as the public site and holds
+# every owner-power binding: Workers AI (Translate) and the R2 bucket (uploads). Secrets (the Supabase names, the
+# service-role key, the Resend key, later the publish hook) are set by the owner from his terminal, never here.
+# Never deployed by a work session: the controller deploys it on the owner's word, by the runbook
+# .planning/phases/03.2-real-catalog-and-team-inserted/03.2-OPS-DEPLOY.md. Deploy only from an out-ops/ built with
+# `node scripts/assemble-cloudflare.mjs --target=ops`. Flags and date are wrangler.toml's (global_fetch_strictly_public
+# matters: plan 03.2-05 fetches https://almarprivatejourney.com/site-version.json from this Worker).
+# html_handling stays at its default: out-ops/ ships no page HTML. run_worker_first = true: every request runs
+# worker/almar-ops.mjs, which forwards only the exact paths of .open-next/almar-ops-routes.json to Next.
+name = "almar-ops"
+account_id = "f1d9a1fa3abdda98c15161b00b40385c"
+compatibility_date = "2026-09-23"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+main = "worker/almar-ops.mjs"
+workers_dev = false
+preview_urls = false
+
+[assets]
+directory = "./out-ops"
+binding = "ASSETS"
+run_worker_first = true
+not_found_handling = "404-page"
+
+[ai]
+binding = "AI"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "almar-media"
+
+[[routes]]
+pattern = "dashboard.almarprivatejourney.com"
+custom_domain = true
