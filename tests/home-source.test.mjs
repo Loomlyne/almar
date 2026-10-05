@@ -123,14 +123,39 @@ test("the client parts import only types and the stay filter from lib/data", () 
   }
 });
 
-test("links to the pages that stay English-only go through siteHref, and the stay pages through localePath", () => {
-  const source = read("components/pages/home-page.tsx");
+test("nav links go through siteHref; the stay pages and the /experiences deep links through localePath", () => {
+  const raw = read("components/pages/home-page.tsx");
+  const source = code(raw);
   for (const path of ['"/destinations"', '"/experiences"', '"/about"', '"/contact"', '"/blog"']) {
     assert.ok(source.includes(`siteHref(locale, ${path})`), path);
   }
-  assert.ok(source.includes("`/services/${item.slug}`") && source.includes("`/blog/${story.slug}`"));
+  assert.ok(source.includes("`/blog/${story.slug}`"));
   assert.match(source, /localePath\(locale, `\/private-stays\/\$\{stay\.slug\}`\)/);
   assert.match(source, /localePath\(locale, "\/private-stays"\)/);
+  assert.match(source, /localePath\(locale, "\/experiences"\)[\s\S]*?\+ toCatalogQuery\(/);
+  assert.match(raw, /import \{ toCatalogQuery \} from "\.\.\/\.\.\/lib\/data\/catalog-filter"/);
+  assert.equal(/(?<![\w-])\.?\/services\b/.test(source), false, "the home names a /services path");
+});
+
+test("no React source links /services", () => {
+  const files = [];
+  const walk = (dir, keep) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) walk(path, keep);
+      else if (keep(path)) files.push(path);
+    }
+  };
+  walk("components", (p) => /\.(ts|tsx)$/.test(p));
+  walk("app", (p) => /\/(page|layout)\.tsx$/.test(p));
+  walk("lib/copy", (p) => /\.ts$/.test(p));
+  walk("lib/data", (p) => /\.(ts|json)$/.test(p));
+  assert.ok(files.length >= 50, `the walk saw only ${files.length} files`);
+  assert.ok(files.includes("components/pages/home-page.tsx"));
+  for (const file of files) {
+    const source = /\.(ts|tsx)$/.test(file) ? code(read(file)) : read(file);
+    assert.equal(/(?<![\w-])\.?\/services\b/.test(source), false, `${file} names a /services address`);
+  }
 });
 
 test("the destination cards are not links: the live cards are not and /destinations/<slug> has no page", () => {

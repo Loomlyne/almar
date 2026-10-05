@@ -10,6 +10,7 @@ import { HomeJourneys } from "./home/home-journeys";
 import { HomeWelcome } from "./home/home-welcome";
 import { HomeGallery } from "./home/home-gallery";
 import { Begin, Moments, Services, Stories, Team } from "./home/home-sections";
+import { toCatalogQuery } from "../../lib/data/catalog-filter";
 import { getCatalogItems } from "../../lib/data/experiences";
 import { getDestinations } from "../../lib/data/destinations";
 import { getHomeBlocks, getJourneyTiers } from "../../lib/data/home";
@@ -81,6 +82,9 @@ export async function HomePage({ locale }: { locale: Locale }) {
     { label: nav.contact, href: siteHref(locale, "/contact") },
   ];
   const contactHref = siteHref(locale, "/contact");
+  // Services live on the one /experiences page (design 4.2): the card opens that service's overlay, View All
+  // selects Services. The query goes after localePath, which refuses a "?".
+  const experiencesPath = localePath(locale, "/experiences");
 
   // The first three published stays with a photo, fixed: the hero bar does not filter them (Search does that on the list page).
   const stayCards: HomeStayCard[] = stays
@@ -149,8 +153,13 @@ export async function HomePage({ locale }: { locale: Locale }) {
               <PageShell className="grid">
                 <Services
                   items={services}
-                  hrefs={Object.fromEntries(services.map((item) => [item.slug, siteHref(locale, `/services/${item.slug}`)]))}
-                  viewAllHref={siteHref(locale, "/experiences")}
+                  hrefs={Object.fromEntries(
+                    services.map((item) => [
+                      item.slug,
+                      experiencesPath + toCatalogQuery({ kind: "service", destinations: [], stays: [], item: item.slug }),
+                    ]),
+                  )}
+                  viewAllHref={experiencesPath + toCatalogQuery({ kind: "service", destinations: [], stays: [] })}
                   copy={copy.services}
                 />
                 <Moments destinations={destinations} contactHref={contactHref} copy={copy.moments} />
