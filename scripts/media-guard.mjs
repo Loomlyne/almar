@@ -7,7 +7,7 @@
 //
 // The controller runs it between the assemble step and every preview or production deploy (runbook C10); plan 08's
 // assembler calls assertMediaReady() for the preview and production targets. It exits 1 while the placeholder is
-// set, while the media base is not an https origin, or while any of the 54 React documents (slice 1 and the blog) in the output folder
+// set, while the media base is not an https origin, or while any React document (slice 1, the blog, and About and Contact once they are in PUBLIC_PAGES) in the output folder
 // holds the placeholder, a third-party image host, or an <img> src / srcset / og:image that does not start with the
 // media base. Two same-site shapes are let through for an <img src>: the nav wordmark files under /_next/static/media/
 // and the light footer's inline brand SVG (a data:image/svg+xml URL whose markup names nothing outside itself).
@@ -151,7 +151,7 @@ export function imageReferences(html) {
 }
 
 /**
- * Scans the slice-1 documents under outDir. Returns
+ * Scans the guarded documents under outDir. Returns
  * `{ violations: [{ document, problem }], documents, images }`: `documents` is how many were found and read,
  * `images` how many image references were checked.
  */

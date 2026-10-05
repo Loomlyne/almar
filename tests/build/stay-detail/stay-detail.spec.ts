@@ -9,7 +9,7 @@ import { STAY_DETAIL_COPY } from "../../../lib/copy/stay-detail";
 import { formatDate } from "../../../lib/format";
 import { JOURNEY_CHOICE_KEY, parseJourneyChoice, serializeJourneyChoice } from "../../../lib/journey-choice";
 import { fill, formatGuestSummary } from "../../../lib/journey-format";
-import { absoluteLocaleUrl, localePath, type Locale } from "../../../lib/locale-path";
+import { absoluteLocaleUrl, localeDir, localePath, type Locale } from "../../../lib/locale-path";
 import { buildStayRequestMessage, stayRequestHref } from "../../../lib/whatsapp-request";
 import { clickClearOfDock } from "../../helpers/click-clear-of-dock";
 import { FIXED_NOW, FOCUS, LOCALES, WIDTHS, openStay, stayUrl, watch } from "./_helpers";
@@ -774,20 +774,23 @@ for (const slug of FOCUS) {
 
       // ---- Request Inquiry -----------------------------------------------------------------------------------
       for (const size of PHONE) {
-        test(`Request Inquiry @${size.width}: one link to /contact in every language`, async ({ page }) => {
+        test(`Request Inquiry @${size.width}: one link to this language's /contact`, async ({ page }) => {
           const c = await context(locale, slug);
           const watched = await load(page, c, size);
           const link = page.getByRole("link", { name: c.copy.requestInquiry });
+          const target = localePath(locale, "/contact");
           await expect(link).toHaveCount(1);
-          await expect(link).toHaveAttribute("href", "/contact");
-          // /contact is a Framer page that loads its scripts from a CDN; this test follows the link, not the CDN.
-          await page.route((url) => url.pathname !== "/contact" && url.hostname !== "127.0.0.1" && url.hostname !== "localhost", (route) => route.abort());
+          await expect(link).toHaveAttribute("href", target);
           const [response] = await Promise.all([
-            page.waitForResponse((r) => new URL(r.url()).pathname === "/contact" && r.request().resourceType() === "document"),
+            page.waitForResponse((r) => new URL(r.url()).pathname === target && r.request().resourceType() === "document"),
             link.click(),
           ]);
           expect(response.status()).toBe(200);
-          await expect(page).toHaveURL(/\/contact$/);
+          await expect(page).toHaveURL(new RegExp(`${target}$`));
+          const tag = /<html\b[^>]*>/i.exec(await response.text())?.[0] ?? "";
+          expect(/\blang="([^"]*)"/.exec(tag)?.[1]).toBe(locale);
+          expect(/\bdir="([^"]*)"/.exec(tag)?.[1]).toBe(localeDir(locale));
+          expect(watched.problems).toEqual([]);
           expect(watched.media.missing).toEqual([]);
         });
       }

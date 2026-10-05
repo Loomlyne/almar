@@ -54,7 +54,7 @@ const POSTS = (
 )
   .filter((p) => isLivePost(p))
   .map((p) => p.slug);
-const DEFAULT_PATHS = ["/", "/private-stays", ...STAYS.map((s) => `/private-stays/${s}`)];
+const DEFAULT_PATHS = ["/", "/private-stays", ...STAYS.map((s) => `/private-stays/${s}`), "/about", "/contact"];
 const list = (value: string | undefined) => (value ? value.split(",").map((v) => v.trim()).filter(Boolean) : null);
 
 const PATHS = list(process.env.ROUTING_PATHS) ?? DEFAULT_PATHS;

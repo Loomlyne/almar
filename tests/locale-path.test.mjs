@@ -90,26 +90,40 @@ test("localeHrefs gives the three URLs of one page", () => {
     ar: "/ar/private-stays",
     es: "/es/private-stays",
   });
+  assert.deepEqual(localeHrefs("/contact"), { en: "/contact", ar: "/ar/contact", es: "/es/contact" });
 });
 
-test("matchPublicPage matches the three patterns and one [a-z0-9-] segment", () => {
+test("matchPublicPage matches the five patterns and one [a-z0-9-] segment", () => {
   assert.equal(matchPublicPage("/"), "/");
   assert.equal(matchPublicPage("/private-stays"), "/private-stays");
   assert.equal(matchPublicPage(STAY), "/private-stays/[stay]");
-  for (const p of ["/private-stays/a/b", "/about", "/private-stays/Bad_Slug", "/private-stays/", "/ar"]) {
+  assert.equal(matchPublicPage("/about"), "/about");
+  assert.equal(matchPublicPage("/contact"), "/contact");
+  for (const p of [
+    "/private-stays/a/b",
+    "/about/x",
+    "/aboutus",
+    "/contacts",
+    "/private-stays/Bad_Slug",
+    "/private-stays/",
+    "/ar",
+  ]) {
     assert.equal(matchPublicPage(p), null, p);
   }
   assert.equal(matchPublicPage("/blog/why-medellin-is-redefining-luxury-travel"), "/blog/[post]");
   assert.equal(matchPublicPage("/blog/a/b"), null);
   assert.equal(siteHref("ar", "/blog"), "/ar/blog");
-  assert.deepEqual([...PUBLIC_PAGES], ["/", "/private-stays", "/private-stays/[stay]", "/blog", "/blog/[post]"]);
+  assert.deepEqual([...PUBLIC_PAGES], ["/", "/private-stays", "/private-stays/[stay]", "/about", "/contact", "/blog", "/blog/[post]"]);
 });
 
 test("siteHref localises only pages that exist in every locale", () => {
   assert.equal(siteHref("ar", "/private-stays"), "/ar/private-stays");
-  assert.equal(siteHref("ar", "/about"), "/about");
-  assert.equal(siteHref("es", "/contact"), "/contact");
+  assert.equal(siteHref("ar", "/about"), "/ar/about");
+  assert.equal(siteHref("es", "/contact"), "/es/contact");
   assert.equal(siteHref("en", "/about"), "/about");
+  assert.equal(siteHref("ar", "/contact#inquiry"), "/ar/contact#inquiry");
+  assert.equal(siteHref("ar", "/blog"), "/ar/blog");
+  assert.equal(siteHref("ar", "/destinations"), "/destinations");
   assert.equal(siteHref("es", "/"), "/es/");
   assert.equal(siteHref("ar", "/private-stays#filters"), "/ar/private-stays#filters");
 });
@@ -135,7 +149,16 @@ test("localeAlternates: canonical plus four alternates, x-default is English", (
   assert.equal(home.canonical, `${o}/es/`);
   assert.equal(home.languages.ar, `${o}/ar/`);
   assert.equal(home.languages["x-default"], `${o}/`);
-  assert.throws(() => localeAlternates("en", "/about"));
+  assert.deepEqual(localeAlternates("ar", "/about"), {
+    canonical: `${o}/ar/about`,
+    languages: {
+      en: `${o}/about`,
+      ar: `${o}/ar/about`,
+      es: `${o}/es/about`,
+      "x-default": `${o}/about`,
+    },
+  });
+  assert.throws(() => localeAlternates("en", "/destinations"));
 });
 
 test("isLocale and localeDir", () => {
