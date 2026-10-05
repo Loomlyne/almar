@@ -286,11 +286,6 @@ export function publicDocuments(staySlugs, pages = PUBLIC_PAGES, postSlugs) {
   return docs;
 }
 
-/** Slice 1's documents (42): publicDocuments over SLICE1_PAGES. Kept for main's callers. */
-export function slice1Documents(staySlugs = readStaySlugs()) {
-  return publicDocuments(staySlugs, SLICE1_PAGES);
-}
-
 /** The blog documents (slice 4): publicDocuments over BLOG_PAGES. Kept for main's callers. */
 export function blogDocuments(postSlugs = readPostSlugs()) {
   return publicDocuments(undefined, BLOG_PAGES, postSlugs);
