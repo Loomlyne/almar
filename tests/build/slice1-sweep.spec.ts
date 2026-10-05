@@ -9,9 +9,9 @@ import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
 import { getDestinations } from "../../lib/data/destinations";
 import { LOCALES, SITE_ORIGIN, localeAlternates, localeDir, localePath, siteHref, type Locale } from "../../lib/locale-path";
-import { reactDocuments } from "../../scripts/media-lib.mjs";
 import { clickClearOfDock } from "../helpers/click-clear-of-dock";
 import { routeMedia } from "../helpers/media-route";
+import { reactPublicRoutes } from "../helpers/site-links.mjs";
 
 // Plan 03.3-08, Task 4. Run on the assembled out/ under local wrangler (playwright.build.config.ts):
 //   node scripts/assemble-cloudflare.mjs
@@ -595,8 +595,9 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     const xml = await response.text();
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(new Set(locs).size, "no address twice").toBe(locs.length);
-    // Every React document (slice 1's 42 plus the blog's 12 today) carries alternates: the count is computed from the fixtures, not typed.
-    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "every React document carries alternates").toBe(reactDocuments().length);
+    // Every React page (slice 1's 42 plus the blog's 12 today) carries alternates: the count is computed from the page
+    // files under app/ and the live posts, not typed.
+    expect((xml.match(/hreflang="x-default"/g) ?? []).length, "every React document carries alternates").toBe(reactPublicRoutes().length);
 
     // The 42 documents of this slice are all listed, once each, at the address the locale helper builds.
     for (const doc of DOCUMENTS) expect(locs, doc.url).toContain(SITE_ORIGIN + doc.url);

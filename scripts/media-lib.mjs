@@ -12,6 +12,10 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { isLivePost } from "./post-live.mjs";
+
+// A post is a document only when it is published and its date has come (lib/data/posts.ts isLive): see post-live.mjs.
+export { isLivePost };
 
 /** The repo root, resolved from this file so the scripts work from any cwd. */
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -210,14 +214,6 @@ export function writeManifest(manifest, manifestPath = defaultPaths().manifestPa
 export function readStaySlugs(fixturesDir = defaultPaths().fixturesDir) {
   const stays = JSON.parse(fs.readFileSync(path.join(fixturesDir, "stays.json"), "utf8"));
   return stays.filter((s) => s.is_published !== false).map((s) => s.slug);
-}
-
-/**
- * A post is a document only when it is published and its date has come: the rule of lib/data/posts.ts (isLive),
- * kept here because that module cannot be loaded by Node itself. tests/media-guard.test.mjs holds the two equal.
- */
-export function isLivePost(row, now = new Date()) {
-  return row.is_published === true && new Date(row.published_at).getTime() <= now.getTime();
 }
 
 /** The slugs of the live posts (the three blog pages), in fixture order. */

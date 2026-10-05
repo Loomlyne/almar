@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { matchPublicPage, stripLocale } from "../../lib/locale-path.ts";
-import { isLivePost } from "../../scripts/media-lib.mjs";
+import { isLivePost } from "../../scripts/post-live.mjs";
 
 // Shared by tests/no-dead-links.test.mjs (Framer HTML, in source) and tests/build/assembled-site.test.mjs
 // (every document in out/). One list of hidden and known-dead paths, in one place.

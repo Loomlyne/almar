@@ -10,7 +10,7 @@ import {
   localePath,
   type Locale,
 } from "../../lib/locale-path";
-import { isLivePost } from "../../scripts/media-lib.mjs";
+import { isLivePost } from "../../scripts/post-live.mjs";
 import { framerRoutes } from "../helpers/site-links.mjs";
 import { clickClearOfDock } from "../helpers/click-clear-of-dock";
 import { routeMedia } from "../helpers/media-route";
