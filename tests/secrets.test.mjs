@@ -65,3 +65,12 @@ test("no Stripe key or signing secret appears as a literal under app/, component
   const hits = ALL.filter((path) => /^(app|components|lib)\//.test(path)).filter((path) => KEY.test(readFileSync(path, "utf8")));
   assert.deepEqual(hits, []);
 });
+
+// Plan 04-04, Task 3: the two Stripe key variables are read in one file (the hold route's interim key check moved into
+// stripeMode()). The publishable key reaches the browser only in an API answer.
+test("STRIPE_SECRET_KEY and STRIPE_PUBLISHABLE_KEY are named only in lib/stripe/server.ts", () => {
+  for (const name of ["STRIPE_SECRET_KEY", "STRIPE_PUBLISHABLE_KEY"]) {
+    const hits = ALL.filter((path) => readFileSync(path, "utf8").includes(name));
+    assert.deepEqual(hits, [join("lib", "stripe", "server.ts")], name);
+  }
+});
