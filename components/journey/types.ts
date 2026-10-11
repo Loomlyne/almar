@@ -53,3 +53,25 @@ export type TeamMember = {
   photo?: ImageRef;
   email?: string;
 };
+
+/** One guest line on the Travellers step. `age` is text while the guest types; only children and infants have one. */
+export type TravellerLine = { name: string; age: string };
+
+/** Everything the guest types on the Travellers step (IDEN-01, IDEN-02, JOUR-02). All text, nothing parsed here. */
+export type TravellersValue = {
+  name: string;
+  email: string;
+  phone: string;
+  nationality: string;
+  specialRequests: string;
+  emergencyName: string;
+  emergencyPhone: string;
+  /** "I am not staying": line 1 is then someone else, named by the booker. */
+  notStaying: boolean;
+  /** One line per guest: adults, then children, then infants. */
+  lines: TravellerLine[];
+  pickupAddress: string;
+};
+
+/** A field the step can flag. Keys: contact.name, contact.email, contact.phone, contact.emergencyPhone, travellers.<i>.fullName, travellers.<i>.age, pickupAddress. */
+export type TravellerErrors = Record<string, "required" | "email" | "phone" | "age">;

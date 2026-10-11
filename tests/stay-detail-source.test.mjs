@@ -108,7 +108,12 @@ test("the template and its parts never name a rate, a minimum stay or a price fi
 test("the template and its parts hold no submit, no form and no Add or Continue control", () => {
   for (const file of TEMPLATE_FILES) {
     const text = readFileSync(file, "utf8");
-    assert.equal(/<form\b|type="submit"|onSearch=|action=\{(?!\s*<(?:StayRequestLink|LinkButton)\b)|<Button\b/.test(text), false, `${file} has a held control`);
+    // Plan 04-03: Book is the one Phase 4 control. It is a link with dates; without dates it is a <Button> that
+    // only asks for dates and never submits, so book-link.tsx alone may hold a <Button>.
+    const held = file.endsWith("stay-detail/book-link.tsx")
+      ? /<form\b|type="submit"|onSearch=/
+      : /<form\b|type="submit"|onSearch=|action=\{(?!\s*<(?:StayRequestLink|LinkButton)\b)|<Button\b/;
+    assert.equal(held.test(text), false, `${file} has a held control`);
   }
 });
 
