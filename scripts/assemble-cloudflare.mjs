@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { renderStaticNotFound } from "../lib/not-found-document.ts";
 import { LOCALES, isLocale, localePath, matchPublicPage, stripLocale } from "../lib/locale-path.ts";
 import { opsPathsFrom } from "../lib/ops-routes.ts";
-import { assertAnonKey } from "../lib/supabase/anon-key.ts";
+import { assertAnonKey } from "../lib/data/anon-key.ts";
 import { isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { assertPublicClean, assertTargetFiles, outDirNameFor, parseTarget, writeTargetFiles } from "./crawl-files.mjs";
 import { assertMediaReady } from "./media-guard.mjs";
@@ -281,7 +281,7 @@ export function assertNoServiceKey(env) {
  *                    setting in the shell (the 03.2-04 ops build steps run without one); ALMAR_DATA_SOURCE=supabase, a
  *                    typo and ALMAR_FIXTURE_DIR are refused.
  *
- * The database source also checks the anon key's value (lib/supabase/anon-key.ts): a secret key is refused.
+ * The database source also checks the anon key's value (lib/data/anon-key.ts): a secret key is refused.
  *
  * Returns "fixtures" | "supabase". Names only in every message, never a value (a data-source word is not a secret).
  */

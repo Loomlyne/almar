@@ -1,10 +1,10 @@
-// lib/supabase/anon-key.ts (plan 03.2-02 review): the anon-key variable is checked by VALUE, not only by name, in the
+// lib/data/anon-key.ts (plan 03.2-02 review): the anon-key variable is checked by VALUE, not only by name, in the
 // three places the build takes it (scripts/assemble-cloudflare.mjs, scripts/parity-build.mjs, lib/data/source.ts).
 // Every key here is fabricated for the test: an unsigned JWT with a chosen payload, or a made-up sb_* string.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { assertAnonKey } from "../lib/supabase/anon-key.ts";
+import { assertAnonKey } from "../lib/data/anon-key.ts";
 import { dataSourceFor } from "../scripts/assemble-cloudflare.mjs";
 import { livePublicEnv } from "../scripts/parity-build.mjs";
 
@@ -61,6 +61,6 @@ test("parity-build --live refuses a secret value in the anon-key variable", () =
 
 test("lib/data/source.ts checks the key it reads with assertAnonKey, under the name it read it from", () => {
   const src = readFileSync("lib/data/source.ts", "utf8");
-  assert.match(src, /import \{ assertAnonKey \} from "\.\.\/supabase\/anon-key";/);
+  assert.match(src, /import \{ assertAnonKey \} from "\.\/anon-key";/);
   assert.match(src, /anonKey: assertAnonKey\(keyName, anonKey\)/);
 });

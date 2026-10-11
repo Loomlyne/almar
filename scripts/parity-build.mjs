@@ -46,7 +46,7 @@ import { fileURLToPath } from "node:url";
 import { importIntoLocal, resetAndWait, underStackLock } from "../tests/helpers/import-local.mjs";
 import { writeLiveShapedFixtures } from "../tests/helpers/live-shaped-fixtures.mjs";
 import { localStack } from "../tests/helpers/local-supabase.mjs";
-import { assertAnonKey } from "../lib/supabase/anon-key.ts";
+import { assertAnonKey } from "../lib/data/anon-key.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -80,7 +80,7 @@ export function parseArgs(argv) {
 /**
  * The public settings of a --live run, from the shell. Names only in every message. Refuses what is not a hosted
  * Supabase project over https (a local stack is the default mode), any service-role variable in the shell, and an anon
- * key whose value is a secret key (lib/supabase/anon-key.ts).
+ * key whose value is a secret key (lib/data/anon-key.ts).
  */
 export function livePublicEnv(env) {
   const serviceNames = Object.keys(env).filter((name) => /SERVICE_ROLE/i.test(name) && String(env[name] ?? "").trim() !== "");

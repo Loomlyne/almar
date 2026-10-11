@@ -462,8 +462,8 @@ test("source.ts: anon client only, no cookies, no session, no service key, no ot
   assert.equal(/^import .*@supabase\/supabase-js/m.test(src.replace(/import type[^\n]*\n/g, "")), false, "supabase-js is imported lazily, inside supabase mode only");
   assert.deepEqual(
     [...src.matchAll(/from "(\.[^"]*)"/g)].map((m) => m[1]),
-    ["../supabase/anon-key"],
-    "source.ts imports no sibling module (resolve.ts imports it), only the pure anon-key check",
+    ["./anon-key"],
+    "source.ts imports no sibling module but the pure anon-key check (resolve.ts imports source.ts)",
   );
 });
 

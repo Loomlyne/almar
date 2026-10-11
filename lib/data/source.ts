@@ -19,7 +19,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { assertAnonKey } from "../supabase/anon-key";
+import { assertAnonKey } from "./anon-key";
 
 export type DataSourceMode = "fixtures" | "supabase";
 
@@ -121,7 +121,7 @@ let rows: Map<SourceName, unknown[]> | null = null;
  * The public project URL and anon key. In an assembled build the assembler hands them over as ALMAR_BUILD_SUPABASE_URL and
  * ALMAR_BUILD_SUPABASE_ANON_KEY (names Next does not inline; see nextBuildEnv in scripts/assemble-cloudflare.mjs); node
  * tests and `next dev` set NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY. The key's value must be an anon key
- * (lib/supabase/anon-key.ts). Names only in every message, never values.
+ * (lib/data/anon-key.ts). Names only in every message, never values.
  */
 function publicSettings(): { url: string; anonKey: string } {
   const url = (process.env.ALMAR_BUILD_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)?.trim();
