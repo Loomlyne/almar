@@ -1,0 +1,90 @@
+# Hand-over: 03.2-09 owner media library
+
+- Branch `gsd/phase-3.2-p09`, cut from origin/main `3a458c6`, origin/main `c195d5d` merged (`d4c9eea`); origin/main
+  had not moved again at 22:49 +04. Tip: the commit that adds this file (sent to the controller).
+- Worktree `.claude/worktrees/phase-3.2-p09`: clean after the push.
+- Summary: `03.2-09-SUMMARY.md` (owner answers, all 20 strings, deviations, review).
+- The wip commits (`3e3d28a`, `f502d23`, `c4caf7d`) are saved session restarts; the squash at landing absorbs them.
+
+## Checks (2026-10-11 22:49 +04, in this worktree, not a clean clone)
+
+| Check | Result |
+|---|---|
+| `npx tsc --noEmit` | clean |
+| `npm run tokens:check` | theme up to date |
+| `node --test tests/*.test.mjs` with this worktree's local stack | 1,453 tests, 1,440 pass, 0 fail, 13 skipped (pre-existing Framer-route skips) |
+| Playwright `ops-media`, `ops-kit`, `phase-03-dashboard`, `host-gate`, `review-fixes`, `--workers=4` | 120 passed, 114 skipped (pictures behind `OPS_MEDIA_PICTURES`), 0 failed |
+| `npm run build` | passes: `ƒ /api/ops/media`, `ƒ /dashboard/content/media` |
+| Signed PNGs `pictures/03.2-09/` | unchanged since `40c428a` |
+| Fresh review (Sonnet, Opus wrote the diff) | 11 findings: 6 fixed, 1 moot, 4 open (below) |
+
+## Shared files, migrations, environment
+
+- `lib/ops-routes.ts`: the one additive line, `OPS_LIVE_SECTIONS = ["/content/media"]`. Other jobs that add a section
+  merge by appending.
+- `tests/host-gate.test.mjs`, `tests/ops-runtime.test.mjs`: the live-section assertion changed from a deepEqual to
+  `includes("/content/media")`.
+- No migrations. No new environment names: the route uses the existing R2 binding `MEDIA` from `wrangler.ops.toml`.
+- No change to `next.config.ts`, `package.json`, the lockfile, `tokens.json`, `app/globals.css` or an existing copy file.
+
+## Not verified (needs almar-ops and a real phone)
+
+1. A real upload to `almar-media` through `almar-ops` (no live R2 or live database was touched).
+2. CPU on the Free plan (10 ms): a 10 MB upload and the list GET (which reads the whole `ops_list('media')`). Check with
+   `wrangler tail` over about 20 runs.
+3. R2 rejecting a wrong `sha256`, and the exact error message (the test fake mimics "The SHA-256 checksum you specified
+   did not match…"; a different real message would show as 503 instead of the "did not arrive complete" line).
+4. HEIC from the owner's iPhone: Safari usually hands over a JPEG; if it hands HEIC the picker shows "Use a JPEG, PNG or
+   WebP photo."
+5. **Middleware body size**: Next's `experimental.middlewareClientMaxBodySize` defaults to 10 MB, so an upload of
+   10-15 MB may be cut off before the route. The fix is in the shared `next.config.ts` (set it to `"16mb"`) or a
+   middleware matcher that skips `/api/ops/media`; the controller's call.
+
+## Open review notes (not fixed)
+
+- Two uploads of the same new file at the same moment: the second gets `slug_taken` (409) instead of `created: false`.
+- The server trusts `content-type`; there is no magic-byte check (the browser re-encodes, and R2 serves with the stored
+  type).
+- The client refuses an original over 15 MB before re-encoding (plan text, signed picture `picker-error-size`).
+- Translate button empty until 03.2-10 lands; `applyAltDrafts` in `components/ops/media-alt.ts` is ready for it.
+
+## Proposed board / state changes (for the controller)
+
+- `CONTROL-BOARD.md` / `STATE.md`: 03.2-09 handed over 2026-10-11, waiting for the landing check.
+- New follow-ups: (a) `next.config.ts` middleware body size, before the owner uploads large photos; (b) 03.2-01:
+  `ops_list_media(q, after, lim)` paged server-side; (c) 03.2-10: wire `TranslateButton` into the two `// 03.2-10:` slots.
+
+## Owner test steps (after deploy of almar-ops)
+
+Page: `https://dashboard.almarprivatejourney.com/content/media`, signed in as the owner.
+
+1. Open the page. Expected: a grid of photos, each card with its name, "Alt text: EN AR ES" and a usage line ("Used in
+   1 place" / "Used in N places").
+2. Type `bogota` in Search. Expected: after a moment only photos whose name or English alt text has "bogota".
+3. Clear Search, scroll down, click Load more. Expected: more photos below; none repeat.
+4. Click a photo. Expected: a side panel (full screen on the phone) with the photo and Alt text EN / AR / ES.
+5. Change the AR alt text, tick "I checked this translation", click Save. Expected: Save turns grey again; reload the
+   page and the new AR text is there.
+6. Click Upload, choose a JPEG from the computer, type an English alt text, click Upload. Expected: "Uploaded", and the
+   photo is first in the grid.
+7. Open that new photo and click Delete image, then Delete image in the dialog. Expected: the message "The file stays in
+   storage; it is no longer offered here." and the photo leaves the grid.
+8. Open an imported photo (any from the original site) or one that is used. Expected: Delete image is grey and the panel
+   says "This photo is used, so it cannot be deleted."
+9. Switch the dashboard to العربية, then Español. Expected: every label on the page changes, the Arabic page reads right
+   to left, and the corners stay square.
+10. On a destination or stay edit screen (once 03.2-05..08 use the field), click Choose photo, search, pick one.
+    Expected: the photo shows in the field with Change photo / Remove photo.
+
+## Lessons
+
+- An ops panel that covers the grid must be closed (Escape) before a test clicks another card; a click through an
+  overlay times out instead of failing fast.
+- Tests that list live sections should check `includes`, not deepEqual, so screen jobs land in any order.
+- `mediaUrl` (`lib/data/media.ts`) already refuses keys with `..`; validating the cursor again in the route was not
+  needed.
+
+## Stack
+
+- This worktree's local Supabase stack is stopped at hand-over.
+- colima was started by this session (it was off). Other sessions may now use it, so it is left running.
