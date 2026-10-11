@@ -28,8 +28,10 @@ test("assertAnonKey: an anon JWT, a publishable key and an opaque test value pas
   }
 });
 
-test("assertAnonKey: a secret key is refused by value, the message names the variable only", () => {
-  assert.throws(() => assertAnonKey(NAME, FAKE_SECRET), refusal(FAKE_SECRET, /secret key/));
+test("assertAnonKey: a secret key is refused by value (any case, quoted), the message names the variable only", () => {
+  for (const value of [FAKE_SECRET, FAKE_SECRET.toUpperCase(), `"${FAKE_SECRET}"`, `'${FAKE_SECRET}'`, ` ${FAKE_SECRET}`]) {
+    assert.throws(() => assertAnonKey(NAME, value), refusal(value.trim(), /secret key/));
+  }
 });
 
 test("assertAnonKey: a JWT whose role is not anon is refused (service_role, authenticated, no role, unreadable payload)", () => {
@@ -38,6 +40,9 @@ test("assertAnonKey: a JWT whose role is not anon is refused (service_role, auth
     jwt({ role: "authenticated" }),
     jwt({ iss: "supabase-demo" }),
     `${b64({ alg: "HS256" })}.not-json-at-all.fabricated-signature-for-a-test`,
+    // a mangled header is still the shape of a JWT: refused unless its payload says anon
+    `${Buffer.from(' {"alg":"HS256"}').toString("base64url")}.${b64({ role: "service_role" })}.fabricated-signature-for-a-test`,
+    `"${FAKE_SERVICE_JWT}"`,
   ];
   for (const value of bad) assert.throws(() => assertAnonKey(NAME, value), refusal(value, /role is not "anon"/));
 });

@@ -207,7 +207,8 @@ function blockImageIds(): Set<string> {
 
 /**
  * Alt texts in supabase mode: every database record, plus the fixture records of the images of the page blocks that stay
- * in fixtures (BLOCK_FIXTURES) that the database has no record of, so one (image_id, locale) is never present twice. A
+ * in fixtures (BLOCK_FIXTURES) that the database has no record of. Merged per image, never per locale: an image the
+ * database knows takes all its alts from the database, so one (image_id, locale) is never present twice. A
  * fixture alt of a stay, destination, catalogue item, team member or tier never mixes into database content. No database
  * record at all, while stays exist, is a broken read (the import writes every catalogue image's alts): it throws.
  */

@@ -236,6 +236,16 @@ test("finishOutput: --keep leaves both folders, out/ holds build B, and says re-
   rmSync(run.rootDir, { recursive: true, force: true });
 });
 
+test("finishOutput: --keep without a finished build B removes both folders (never a partial run left in place)", () => {
+  const run = fakeRun();
+  const lines = [];
+  assert.equal(finishOutput(run.rootDir, { keep: true, buildB: null, log: (l) => lines.push(l) }), "removed");
+  assert.equal(existsSync(join(run.rootDir, "out")), false);
+  assert.equal(existsSync(join(run.rootDir, ".open-next")), false);
+  assert.match(lines.join("\n"), /build B never finished/);
+  rmSync(run.rootDir, { recursive: true, force: true });
+});
+
 test("main() calls finishOutput in its finally block (every run ends there)", () => {
   const src = readFileSync("scripts/parity-build.mjs", "utf8");
   const main = src.slice(src.indexOf("async function main("));

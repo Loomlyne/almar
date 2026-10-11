@@ -1,27 +1,15 @@
 // lib/data/anon-key.ts (plan 03.2-02 review, threat T-3.2-10)
 //
 // The build reads the public views with the anon key and nothing else. A variable NAMED like the anon key could still hold
-// a secret key, so its VALUE is checked too: a Supabase secret key (`sb_secret_…`) is refused, and so is a JWT whose
-// payload `role` is not "anon" (the legacy service_role key is a JWT with role "service_role"). An opaque value that is
-// neither (`sb_publishable_…`, a test value) passes. Pure, no imports: used by scripts/assemble-cloudflare.mjs,
-// scripts/parity-build.mjs and lib/data/source.ts (it sits in lib/data because the data tests build scratch copies of that
-// folder). Every message names the variable, never prints any part of the value.
+// a secret key, so its VALUE is checked too: a Supabase secret key (`sb_secret_…`, any case, quoted or not) is refused, and
+// so is every value of three dot-separated parts (the shape of a JWT) unless its payload decodes and its `role` is "anon"
+// (the legacy service_role key is a JWT with role "service_role"). An opaque value that is neither (`sb_publishable_…`, a
+// test value) passes. Pure, no imports: used by scripts/assemble-cloudflare.mjs, scripts/parity-build.mjs and
+// lib/data/source.ts (it sits in lib/data because the data tests build scratch copies of that folder). Every message names
+// the variable, never prints any part of the value.
 
-/** A base64url segment as JSON, or undefined when it is not one. */
-function jsonSegment(segment: string): unknown {
-  try {
-    return JSON.parse(Buffer.from(segment, "base64url").toString("utf8"));
-  } catch {
-    return undefined;
-  }
-}
-
-/** undefined: not a JWT (no three segments, or a first segment that is not a JSON header). null: a JWT without a role. */
-function jwtRole(value: string): string | null | undefined {
-  const parts = value.split(".");
-  if (parts.length !== 3) return undefined;
-  const header = jsonSegment(parts[0]);
-  if (!header || typeof header !== "object") return undefined;
+/** The `role` of a three-part value's payload; null when the payload is not a JSON object with a string role. */
+function jwtRole(parts: string[]): string | null {
   try {
     const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
     return payload && typeof payload === "object" && typeof payload.role === "string" ? payload.role : null;
@@ -32,12 +20,13 @@ function jwtRole(value: string): string | null | undefined {
 
 /** Throws when `value` (the content of variable `name`) is not a public anon key. Returns the value unchanged. */
 export function assertAnonKey(name: string, value: string): string {
-  if (value.startsWith("sb_secret_")) {
+  const bare = value.trim().replace(/^["'`]+|["'`]+$/g, "");
+  if (bare.toLowerCase().startsWith("sb_secret_")) {
     throw new Error(`${name} holds a Supabase secret key (sb_secret_…): the build reads with the public anon key only`);
   }
-  const role = jwtRole(value);
-  if (role !== undefined && role !== "anon") {
-    throw new Error(`${name} holds a JWT whose role is not "anon": the build reads with the public anon key only`);
+  const parts = bare.split(".");
+  if (parts.length === 3 && jwtRole(parts) !== "anon") {
+    throw new Error(`${name} holds a JWT whose role is not "anon" (or that cannot be read): the build reads with the public anon key only`);
   }
   return value;
 }

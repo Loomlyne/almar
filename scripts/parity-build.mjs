@@ -32,7 +32,8 @@
 //                but reads fixtures, so it makes no request at all. Compared as above.
 //   --strict   fail on ORDER ONLY files too (byte-identical or nothing).
 //   --keep     keep the temporary folder (the copies of out/ and the build logs) instead of removing it, and leave out/
-//                (build B) and .open-next/ (the last build: B, or C with --against-today) in place for a look. It prints
+//                (build B) and .open-next/ (the last build: B, or C with --against-today, so the two are mixed) in place for
+//                a look; when build B never finished both are removed anyway. It prints
 //                "re-assemble before deploy": those folders are a parity run's, never a deploy's.
 //
 // A build that fails prints the tail of its log; the log stays in the temporary folder, whose path is printed (common
@@ -311,22 +312,25 @@ function report(title, left, right) {
 
 /**
  * The end of every run, passed or failed: without --keep, out/ and .open-next/ are removed, so nothing a parity run built
- * can be deployed by mistake (with --against-today .open-next/ is build C's while out/ would be B's). With --keep, out/
- * holds build B when it finished, and "re-assemble before deploy" is printed. `log` is console.log in the script.
+ * can be deployed by mistake (with --against-today .open-next/ is build C's while out/ would be B's). With --keep and a
+ * finished build B, out/ holds build B, .open-next/ the last build (B, or C with --against-today), and "re-assemble before
+ * deploy" is printed; with --keep and no build B (an early failure) both are removed as without it. `log` is console.log in the script.
  * Returns "removed" | "kept".
  */
 export function finishOutput(rootDir, { keep, buildB = null, log = console.log }) {
-  if (keep) {
-    if (buildB) {
-      fs.rmSync(path.join(rootDir, "out"), { recursive: true, force: true });
-      fs.cpSync(buildB.out, path.join(rootDir, "out"), { recursive: true });
-    }
+  if (keep && buildB) {
+    fs.rmSync(path.join(rootDir, "out"), { recursive: true, force: true });
+    fs.cpSync(buildB.out, path.join(rootDir, "out"), { recursive: true });
     log("\n--keep: out/ and .open-next/ are left from this parity run: re-assemble before deploy (node scripts/assemble-cloudflare.mjs --target=<target>)");
     return "kept";
   }
   fs.rmSync(path.join(rootDir, "out"), { recursive: true, force: true });
   fs.rmSync(path.join(rootDir, ".open-next"), { recursive: true, force: true });
-  log("\nremoved out/ and .open-next/ (a parity run never leaves a deployable build; --keep leaves them)");
+  log(
+    keep
+      ? "\n--keep, but build B never finished: removed out/ and .open-next/ anyway (they would hold a partial run)"
+      : "\nremoved out/ and .open-next/ (a parity run never leaves a deployable build; --keep leaves them)",
+  );
   return "removed";
 }
 
