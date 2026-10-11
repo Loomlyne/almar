@@ -245,12 +245,13 @@ export async function loadSource(): Promise<void> {
   await loading;
 }
 
-// Supabase mode: the load is part of importing this module, so it has finished before any page that imports lib/data
-// starts to render. A page that waited for the network itself would stream its React Flight rows in another order than
-// the same page built from fixtures, and the built bytes would differ for nothing a visitor can see (parity-build).
-// Fixtures mode and the Worker at request time (no ALMAR_DATA_SOURCE there) do nothing here. A failed load rejects the
-// import: the build stops.
-if (process.env.ALMAR_DATA_SOURCE === "supabase") await loadSource();
+// Supabase mode: the load starts as this module is imported, so it is usually done before a page that imports lib/data
+// starts to render (a page that waited for the network itself streams its React Flight rows in another order than the
+// same page built from fixtures; parity-build lists that as ORDER ONLY). No top-level await: the Playwright build specs
+// load lib/data as CommonJS, where it is a syntax error. The rejection is caught here only so an import never raises an
+// unhandled rejection; every read still awaits the same memoised promise, gets the same error, and the build stops.
+// Fixtures mode and the Worker at request time (no ALMAR_DATA_SOURCE there) do nothing here.
+if (process.env.ALMAR_DATA_SOURCE === "supabase") loadSource().catch(() => {});
 
 /**
  * The rows of one source, under the fixture file's name. Sync; in supabase mode `await loadSource()` must have resolved

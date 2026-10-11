@@ -359,13 +359,19 @@ test("__testing.reset forgets the loaded rows, the failure and the injected clie
   });
 });
 
-// the load at import (byte parity depends on it) -------------------------------------------------------------------------
+// the load starts at import (Flight row order depends on it), without a top-level await ------------------------------
 
-test("importing source.ts in supabase mode loads the views before any read; in fixtures mode it does nothing", async () => {
-  // The stub throws when supabase-js is imported, so a rejected import proves the import started the load.
-  const refused = await withEnv(SUPABASE_ENV, () => loadSourceModule().then(() => null, (e) => e));
+test("importing source.ts in supabase mode starts the load without rejecting the import; every read gets its error; fixtures mode does nothing", async () => {
+  // The stub throws when supabase-js is imported: the import itself resolves, and the first read gets the load's error.
+  const refused = await withEnv(SUPABASE_ENV, async () => {
+    const mod = await loadSourceModule();
+    const first = await mod.loadSource().then(() => null, (e) => e);
+    const second = await mod.loadSource().then(() => null, (e) => e);
+    assert.equal(first, second, "a failed load stays failed: every later read gets the same error");
+    return first;
+  });
   assert.match(refused.message, /@supabase\/supabase-js was imported/);
-  const noSettings = await withEnv({ ALMAR_DATA_SOURCE: "supabase" }, () => loadSourceModule().then(() => null, (e) => e));
+  const noSettings = await withEnv({ ALMAR_DATA_SOURCE: "supabase" }, async () => (await loadSourceModule()).loadSource().then(() => null, (e) => e));
   assert.match(noSettings.message, /NEXT_PUBLIC_SUPABASE_URL/);
   await withEnv({}, () => loadSourceModule());
   await withEnv({ ALMAR_DATA_SOURCE: "fixtures", ...PUBLIC_FOR_IMPORT }, () => loadSourceModule());
@@ -650,4 +656,13 @@ test("main() refuses the shell before it chooses the source: public names, servi
   const order = ["parseTarget(", "assertNoPublicEnv(", "assertNoServiceKey(", "dataSourceFor(", "assertPublicClean("].map((n) => main.indexOf(n));
   assert.ok(order.every((n) => n > 0), "every call is in main");
   assert.deepEqual([...order].sort((a, b) => a - b), order);
+});
+
+test("no lib/data module has a top-level await: the Playwright build specs load lib/data as CommonJS", async () => {
+  const { readdirSync } = await import("node:fs");
+  const files = readdirSync("lib/data").filter((name) => name.endsWith(".ts"));
+  // A statement that starts at column 0 is module scope in these files (every function body is indented).
+  const offenders = files.filter((name) => /^(?:if \([^\n]*\) )?(?:const [^\n]*= )?await\b/m.test(readFileSync(`lib/data/${name}`, "utf8")));
+  assert.deepEqual(offenders, []);
+  assert.match(readFileSync("lib/data/source.ts", "utf8"), /^if \(process\.env\.ALMAR_DATA_SOURCE === "supabase"\) loadSource\(\)\.catch\(\(\) => \{\}\);$/m);
 });
