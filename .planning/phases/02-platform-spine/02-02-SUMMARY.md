@@ -29,3 +29,9 @@ Commit `2598290`. Follows the plan's REVISED 2 block (owner-signed discuss refre
 
 Deviations: no Create account tab (owner answer 1); no browser Supabase client (nothing needs one);
 the terms line on board 6a is left out until legal copy exists.
+
+## Landing on main (added 2026-10-11)
+
+- The commit named above sits on the cloud branch `claude/project-thread-8h6bed` and is not on `main`. The work was rebuilt and landed as one squash in job 02: `01d9304` (2026-10-05 14:40 +04), covering plans 02-02, 02-03, 02-04, 02-23 to 02-26.
+- Live: Worker `almar` `82569c44` (rollback `e1d0add8`), 2026-10-05 14:50 +04 per STATE. Six server paths open (/login, /auth/confirm, /auth/sign-out, /auth/handoff/start, /account, /bookings).
+- Migration `20260925120000_platform_spine` applied to live Supabase "Almar" 2026-10-05 11:21 (+04) per STATE (the "Not applied" line above was true when this summary was written). Sign-in emails need `RESEND_API_KEY` on Worker `almar`: STATE 2026-10-05 14:50 records it as missing; a later set on `almar` is not recorded (only `almar-ops`, 2026-10-11 18:17).

@@ -19,3 +19,9 @@ Commit `5b6739d`.
 
 Deviation: TOUCHWORD is a literal in `components/ui/account-menu.tsx`, not a copy key (it is never
 translated); `tests/locale.test.mjs` guards that.
+
+## Landing on main (added 2026-10-11)
+
+- The commit named above sits on the cloud branch `claude/project-thread-8h6bed` and is not on `main`. The work was rebuilt and landed as one squash in job 02: `01d9304` (2026-10-05 14:40 +04), covering plans 02-02, 02-03, 02-04, 02-23 to 02-26.
+- Live: Worker `almar` `82569c44` (rollback `e1d0add8`), 2026-10-05 14:50 +04 per STATE. Six server paths open (/login, /auth/confirm, /auth/sign-out, /auth/handoff/start, /account, /bookings).
+- Landed with 02-02 and 02-04; language cookie behaviour is part of the live Worker `almar` version below. No separate live check of AR/ES on these pages is recorded.
