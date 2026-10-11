@@ -47,3 +47,21 @@ test("Supabase storage is never called", () => {
   const hits = ALL.filter((path) => /\.storage\b|storage\.from\(/.test(readFileSync(path, "utf8")));
   assert.deepEqual(hits, []);
 });
+
+// Plan 04-04: Stripe. The webhook signing secret is read by the webhook route only; no Stripe value is ever a public
+// build variable or a literal anywhere that can reach a bundle or a Worker.
+test("the Stripe webhook signing secret is named only in app/api/stripe/webhook/route.ts", () => {
+  const hits = ALL.filter((path) => readFileSync(path, "utf8").includes("STRIPE_WEBHOOK_SECRET"));
+  assert.deepEqual(hits, [join("app", "api", "stripe", "webhook", "route.ts")]);
+});
+
+test("no public build variable carries a Stripe value", () => {
+  const hits = ALL.filter((path) => /NEXT_PUBLIC_STRIPE/.test(readFileSync(path, "utf8")));
+  assert.deepEqual(hits, []);
+});
+
+test("no Stripe key or signing secret appears as a literal under app/, components/ or lib/", () => {
+  const KEY = /\b(sk|pk|rk)_(test|live)_[A-Za-z0-9]{8,}|\bwhsec_[A-Za-z0-9]{8,}/;
+  const hits = ALL.filter((path) => /^(app|components|lib)\//.test(path)).filter((path) => KEY.test(readFileSync(path, "utf8")));
+  assert.deepEqual(hits, []);
+});
