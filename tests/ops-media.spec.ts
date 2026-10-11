@@ -304,6 +304,9 @@ test.describe("behaviour", () => {
         await page.getByRole("button", { name: /pool-dusk/ }).click();
         await expect(page.getByRole("button", { name: copy.deleteImage, exact: true })).toBeDisabled();
         await expect(page.getByText(copy.usedBlocksDelete).first()).toBeVisible();
+        // The panel covers the grid (a sheet at 390, a dock with an overlay at 1440): close it before the next photo.
+        await page.keyboard.press("Escape");
+        await expect(page.getByRole("button", { name: copy.deleteImage, exact: true })).toHaveCount(0);
         await page.getByRole("button", { name: /old-town/ }).click();
         await expect(page.getByText(copy.staysInStorage).first()).toBeVisible();
         await page.getByRole("button", { name: copy.deleteImage, exact: true }).click();
