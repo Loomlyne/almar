@@ -15,6 +15,9 @@ import type { SceneContext, Scenes } from "../scene-types";
  * Every state of the Translate button (plan 03.2-10), in the kit's edit panel on the EN tab, bracket data only. The
  * button sits in LocaleTabs' `toolbar` slot, where the wave-4 screens place it. No request is made: `idle` and
  * `disabled-no-english` render the real TranslateButton; the other states render its view in that state. Test-only.
+ * The `live` variants (scene file ops-translate-live.tsx, kept apart so the signed pictures' state list never grows)
+ * render the real button wired to /api/ops/translate, which the spec answers with page.route; every onDrafts call is
+ * written to a hidden log.
  */
 type Text = { details: string; name: string; shortLine: string; description: string; nameValue: string; shortValue: string; descriptionValue: string };
 
@@ -58,7 +61,7 @@ function Frame({ locale, children }: { locale: Locale3; children: ReactNode }) {
   return ready ? <OpsShell mode="preview">{children}</OpsShell> : null;
 }
 
-type Variant = "idle" | "disabled-no-english" | Exclude<TranslateView, "idle">;
+type Variant = "idle" | "disabled-no-english" | "live" | "live-existing" | Exclude<TranslateView, "idle">;
 
 /** Which AR / ES tabs hold text in each picture: after a run the filled tabs are drafts. */
 function tabStates(variant: Variant): Record<Locale3, TranslationState> {
@@ -68,7 +71,16 @@ function tabStates(variant: Variant): Record<Locale3, TranslationState> {
   return { en: "published", ar: "missing", es: "missing" };
 }
 
-function TranslateScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }) {
+/** Hidden record of every onDrafts call (target and field names), so a test can count them. */
+function DraftLog({ entries }: { entries: string[] }) {
+  return (
+    <output data-testid="ops-translate-log" className="sr-only">
+      {entries.join(" | ")}
+    </output>
+  );
+}
+
+export function TranslateScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }) {
   const locale = ctx.locale as Locale3;
   const t = TEXT[locale];
   const empty = variant === "disabled-no-english";
@@ -77,9 +89,24 @@ function TranslateScene({ ctx, variant }: { ctx: SceneContext; variant: Variant 
   );
   const source = { name: values.name, short_line: values.short, summary: values.description };
   const noop = () => undefined;
+  const live = variant === "live" || variant === "live-existing";
+  const [log, setLog] = useState<string[]>([]);
+  const [filled, setFilled] = useState<{ ar: boolean; es: boolean }>({ ar: variant === "live-existing", es: variant === "live-existing" });
+  const tabs = live
+    ? { en: "published" as const, ar: filled.ar ? ("draft" as const) : ("missing" as const), es: filled.es ? ("draft" as const) : ("missing" as const) }
+    : tabStates(variant);
 
-  const button =
-    variant === "idle" || variant === "disabled-no-english" ? (
+  const button = live ? (
+    <TranslateButton
+      source={source}
+      hasExisting={variant === "live-existing"}
+      onDrafts={(target, fields) => {
+        setLog((l) => [...l, `${target}:${Object.keys(fields).sort().join(",")}`]);
+        setFilled((f) => ({ ...f, [target]: true }));
+      }}
+      locale={locale}
+    />
+  ) : variant === "idle" || variant === "disabled-no-english" ? (
       <TranslateButton source={source} hasExisting={false} onDrafts={noop} locale={locale} />
     ) : (
       <TranslateButtonView view={variant} locale={locale} onTranslate={noop} onConfirm={noop} onKeep={noop} />
@@ -112,7 +139,7 @@ function TranslateScene({ ctx, variant }: { ctx: SceneContext; variant: Variant 
           />
         }
       >
-        <LocaleTabs value="en" onChange={noop} state={tabStates(variant)} checked={{ ar: false, es: false }} onCheckedChange={noop} toolbar={button}>
+        <LocaleTabs value="en" onChange={noop} state={tabs} checked={{ ar: false, es: false }} onCheckedChange={noop} toolbar={button}>
           <Field id="tr-name" label={t.name} className="max-w-none" value={values.name} onChange={(event) => setValues((v) => ({ ...v, name: event.target.value }))} />
           <Field id="tr-short" label={t.shortLine} className="max-w-none" value={values.short} onChange={(event) => setValues((v) => ({ ...v, short: event.target.value }))} />
           <Field
@@ -124,6 +151,7 @@ function TranslateScene({ ctx, variant }: { ctx: SceneContext; variant: Variant 
             onChange={(event) => setValues((v) => ({ ...v, description: event.target.value }))}
           />
         </LocaleTabs>
+        {live ? <DraftLog entries={log} /> : null}
       </EditPanel>
     </Frame>
   );

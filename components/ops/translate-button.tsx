@@ -4,6 +4,7 @@ import { useId, useState, type JSX } from "react";
 import { Button } from "../ui/button";
 import { ConfirmDialog } from "../ui/confirm-dialog";
 import { OPS_TRANSLATE_COPY } from "../../lib/copy/ops-translate";
+import { opsSend, type OpsResponse } from "./ops-client";
 
 /**
  * What the button shows. `idle` and `confirm` are the resting and asking states; `busy` while the two requests run;
@@ -102,11 +103,41 @@ export function TranslateButtonView({
   );
 }
 
+type Target = "ar" | "es";
+type Drafts = Record<string, string | string[]>;
+type TranslateReply = { target: Target; fields: Drafts };
+
 /**
- * One button "Translate to Arabic and Spanish". DRAFT (plan 03.2-10 Task 1, for the owner's pictures): the props are
- * final, the request is not wired yet. Task 2 sends two POSTs to /api/ops/translate in parallel (target ar and es)
- * through the kit client; each target that succeeds calls onDrafts, a target that fails leaves its tab unchanged and
- * the line says which one failed. Until then a click (after the replace question when AR or ES has text) does nothing.
+ * What is sent: strings with text, and lists whose every item has text (a list's length is the contract the answer
+ * must keep, so a list with a blank item is left for the owner). The route applies the same rule server side.
+ */
+export function sendable(source: Source): Drafts {
+  const out: Drafts = {};
+  for (const [name, value] of Object.entries(source)) {
+    if (typeof value === "string" && value.trim() !== "") out[name] = value;
+    else if (Array.isArray(value) && value.length > 0 && value.every((item) => item.trim() !== "")) out[name] = value;
+  }
+  return out;
+}
+
+/** The result line from the two answers: both ok, one ok, the daily limit on either, or nothing. */
+export function outcomeView(ar: OpsResponse<TranslateReply> | null, es: OpsResponse<TranslateReply> | null): TranslateView {
+  const limited = [ar, es].some((r) => r !== null && !r.ok && r.status === 429 && r.error.code === "translate_limit");
+  if (limited) return "limit";
+  const arOk = ar?.ok === true;
+  const esOk = es?.ok === true;
+  if (arOk && esOk) return "done";
+  if (arOk) return "partial-ar";
+  if (esOk) return "partial-es";
+  return "failed";
+}
+
+/**
+ * One button "Translate to Arabic and Spanish". Two POSTs to /api/ops/translate run in parallel (target ar and es)
+ * through the kit client (components/ops/ops-client.ts: owner redirect on 403 not_owner, network errors as status 0).
+ * Each target that succeeds calls onDrafts (the screen sets that tab to draft); a target that fails leaves its tab
+ * unchanged and the line says which one failed. It never writes AR or ES itself. When AR or ES already has text, the
+ * replace question comes first.
  */
 export function TranslateButton(props: {
   source: Record<string, string | string[] | null>;
@@ -115,12 +146,25 @@ export function TranslateButton(props: {
   locale: "en" | "ar" | "es";
   disabled?: boolean;
 }): JSX.Element {
-  const { source, hasExisting, locale, disabled } = props;
+  const { source, hasExisting, onDrafts, locale, disabled } = props;
   const [view, setView] = useState<TranslateView>("idle");
 
-  function run() {
-    // Task 2: the two requests, then onDrafts per target that succeeded and the matching result view.
-    setView("idle");
+  async function run() {
+    const fields = sendable(source);
+    if (Object.keys(fields).length === 0) {
+      setView("failed");
+      return;
+    }
+    setView("busy");
+    const targets: Target[] = ["ar", "es"];
+    const settled = await Promise.allSettled(
+      targets.map((target) => opsSend<TranslateReply>("/api/ops/translate", { target, fields })),
+    );
+    const [ar, es] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
+    for (const [i, answer] of [ar, es].entries()) {
+      if (answer?.ok) onDrafts(targets[i], answer.fields);
+    }
+    setView(outcomeView(ar, es));
   }
 
   return (
@@ -129,8 +173,11 @@ export function TranslateButton(props: {
       locale={locale}
       disabled={disabled}
       needsEnglish={!hasEnglish(source)}
-      onTranslate={() => (hasExisting ? setView("confirm") : run())}
-      onConfirm={run}
+      onTranslate={() => {
+        if (hasExisting) setView("confirm");
+        else void run();
+      }}
+      onConfirm={() => void run()}
       onKeep={() => setView("idle")}
     />
   );
