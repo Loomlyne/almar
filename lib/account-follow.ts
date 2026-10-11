@@ -3,8 +3,8 @@
 // local-stack session.
 //
 // A returning account: almar-locale := her saved language, and her saved currency goes to the browser in the one-shot
-// almar-prefs-sync cookie (the currency lives in localStorage, which the server cannot write). A new account (its row
-// was made by this very confirmation, so it holds only the defaults) keeps what she was already using: the browser's
+// almar-prefs-sync cookie (the currency lives in localStorage, which the server cannot write). A new account (its first
+// sign-in, and its row was made by this very confirmation, so it holds only the defaults) keeps what she was already using: the browser's
 // language is saved to her row, and almar-prefs-sync = "push" asks the browser to send its currency. On the ops host
 // there are no public pages, so no sync cookie is set there.
 
@@ -33,6 +33,7 @@ type RowClient = {
 export async function followAccount({
   client,
   userId,
+  firstSignIn,
   readCookie,
   setCookie,
   ops,
@@ -41,6 +42,8 @@ export async function followAccount({
 }: {
   client: unknown;
   userId: string | undefined;
+  /** isFirstSignIn(verified.user): a second sign-in inside the window is a returning account. */
+  firstSignIn: boolean;
   readCookie: (name: string) => string | undefined;
   setCookie: (name: string, value: string, options: FollowCookieOptions) => void;
   ops: boolean;
@@ -55,7 +58,7 @@ export async function followAccount({
     const row = data as { locale?: unknown; currency?: unknown; created_at?: unknown };
     const sync: FollowCookieOptions = { path: "/", maxAge: PREFS_SYNC_MAX_AGE, sameSite: "lax", secure: production };
 
-    if (isNewAccount(row.created_at, now)) {
+    if (firstSignIn && isNewAccount(row.created_at, now)) {
       const browser = parseAccountLocale(readCookie(LOCALE_COOKIE));
       if (browser && browser !== row.locale) await saveOwnPreferences(db, userId, { locale: browser });
       if (!ops) setCookie(PREFS_SYNC_COOKIE, "push", sync);

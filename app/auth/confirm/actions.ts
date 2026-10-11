@@ -4,7 +4,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { authSigningKey, createSupabaseAdmin, createSupabaseServer } from "../../../lib/supabase/clients";
 import { returnCookieName, returnCookieOptions, safeReturnPath } from "../../../lib/auth/rules";
-import { localizedReturnPath } from "../../../lib/account-preferences";
+import { isFirstSignIn, localizedReturnPath } from "../../../lib/account-preferences";
 import { followAccount } from "../../../lib/account-follow";
 import { checkContinue, isConfirmType, linkNonceCookieName } from "../../../lib/auth/continue";
 import { isTokenHashShape, limiterHash, visitorIpKey } from "../../../lib/auth/limit";
@@ -67,6 +67,7 @@ export async function confirmSignIn(_previous: ConfirmState, form: FormData): Pr
     const locale = await followAccount({
       client: supabase,
       userId: verified.user?.id,
+      firstSignIn: isFirstSignIn(verified.user),
       readCookie: (name) => store.get(name)?.value,
       setCookie: (name, value, options) => store.set(name, value, options),
       ops,

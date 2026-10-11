@@ -43,6 +43,20 @@ export function isNewAccount(createdAt: unknown, now: number): boolean {
 }
 
 /**
+ * True when this verification is the account's first sign-in: the auth user's email was confirmed by this same
+ * verification (its last sign-in is within a minute of its confirmation). A later sign-in inside the new-account
+ * window (a second device) is not first, so it restores her saved row instead of overwriting it.
+ */
+export function isFirstSignIn(user: unknown): boolean {
+  if (typeof user !== "object" || user === null) return false;
+  const { email_confirmed_at: confirmed, last_sign_in_at: signedIn } = user as Record<string, unknown>;
+  if (typeof confirmed !== "string" || typeof signedIn !== "string") return false;
+  const a = Date.parse(confirmed);
+  const b = Date.parse(signedIn);
+  return Number.isFinite(a) && Number.isFinite(b) && Math.abs(b - a) <= 60_000;
+}
+
+/**
  * The body of POST /api/preferences: a plain object with only `locale` and/or `currency`, each allowed, at least one.
  * Anything else is null.
  */

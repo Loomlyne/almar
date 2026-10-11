@@ -43,12 +43,13 @@ function fake(row, { selectError = null, throws = false } = {}) {
   return { client, updates };
 }
 
-async function run(row, { cookies = {}, ops = false, options } = {}) {
+async function run(row, { cookies = {}, ops = false, options, firstSignIn = true } = {}) {
   const { client, updates } = fake(row, options);
   const set = {};
   const locale = await followAccount({
     client,
     userId: ID,
+    firstSignIn,
     readCookie: (name) => cookies[name],
     setCookie: (name, value, opts) => (set[name] = { value, ...opts }),
     ops,
@@ -72,6 +73,23 @@ test("new account: the browser's language is saved to her row and kept; the brow
   assert.deepEqual(updates, [{ values: { locale: "ar" }, column: "id", value: ID }]);
   assert.equal(set["almar-locale"], undefined, "the browser's cookie already says ar");
   assert.equal(set["almar-prefs-sync"].value, "push");
+});
+
+test("a second sign-in inside the window (another device) is a returning account: her row wins, nothing is written", async () => {
+  const { locale, set, updates } = await run({ locale: "ar", currency: "AED", created_at: FRESH }, { cookies: { "almar-locale": "es" }, firstSignIn: false });
+  assert.equal(locale, "ar");
+  assert.equal(updates.length, 0);
+  assert.equal(set["almar-locale"].value, "ar");
+  assert.equal(set["almar-prefs-sync"].value, "AED");
+});
+
+test("isFirstSignIn: confirmed by this verification (within a minute of the sign-in) only", async () => {
+  const { isFirstSignIn } = await loadTs("lib/account-preferences.ts");
+  assert.equal(isFirstSignIn({ email_confirmed_at: "2026-10-11T12:00:00Z", last_sign_in_at: "2026-10-11T12:00:01Z" }), true);
+  assert.equal(isFirstSignIn({ email_confirmed_at: "2026-10-11T11:52:00Z", last_sign_in_at: "2026-10-11T12:00:00Z" }), false);
+  for (const bad of [null, undefined, {}, { email_confirmed_at: "x", last_sign_in_at: "y" }, { email_confirmed_at: "2026-10-11T12:00:00Z" }]) {
+    assert.equal(isFirstSignIn(bad), false);
+  }
 });
 
 test("new account without a valid browser language keeps the row's default and writes nothing", async () => {
@@ -99,7 +117,7 @@ test("bad row values are never copied into a cookie", async () => {
 });
 
 test("no user, no row, a select error or a throw: null, no cookie, no throw", async () => {
-  assert.equal(await followAccount({ client: {}, userId: undefined, readCookie: () => undefined, setCookie: () => assert.fail(), ops: false, now: NOW, production: true }), null);
+  assert.equal(await followAccount({ client: {}, userId: undefined, firstSignIn: true, readCookie: () => undefined, setCookie: () => assert.fail(), ops: false, now: NOW, production: true }), null);
   for (const [row, options] of [[null, {}], [{ locale: "ar" }, { selectError: { code: "42501" } }], [{ locale: "ar" }, { throws: true }]]) {
     const { locale, set } = await run(row, { options });
     assert.equal(locale, null);
@@ -110,6 +128,7 @@ test("no user, no row, a select error or a throw: null, no cookie, no throw", as
 test("source guard: the confirm action calls followAccount after verifyOtp and never localises on the ops host", () => {
   const source = readFileSync("app/auth/confirm/actions.ts", "utf8");
   assert.ok(source.indexOf("verifyOtp(") < source.indexOf("followAccount("));
+  assert.match(source, /firstSignIn: isFirstSignIn\(verified\.user\)/);
   assert.match(source, /redirect\(locale && !ops \? localizedReturnPath\(back, locale\) : back\)/);
   assert.doesNotMatch(source.slice(source.indexOf("followAccount(")), /createSupabaseAdmin|admin\./, "her row is read with her session, not the admin client");
 });

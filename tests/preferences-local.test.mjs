@@ -34,7 +34,7 @@ async function guest(stack) {
   const client = createClient(stack.url, stack.anonKey, NO_PERSIST);
   const verified = await client.auth.verifyOtp({ type: "magiclink", token_hash: link.data.properties.hashed_token });
   assert.ifError(verified.error);
-  return { id: data.user.id, client };
+  return { id: data.user.id, client, user: verified.data.user };
 }
 
 async function row(id) {
@@ -79,18 +79,21 @@ test("followAccount on real sessions: a new account saves the browser's language
   if (!release) release = await acquireStackLock();
   admin ??= createClient(stack.url, stack.serviceKey, NO_PERSIST);
   const { followAccount } = await loadTs("lib/account-follow.ts");
+  const { isFirstSignIn } = await loadTs("lib/account-preferences.ts");
 
   const fresh = await guest(stack);
   const set = {};
   const common = { readCookie: (name) => (name === "almar-locale" ? "es" : undefined), setCookie: (n, v) => (set[n] = v), ops: false, production: false };
-  assert.equal(await followAccount({ ...common, client: fresh.client, userId: fresh.id, now: Date.now() }), "es");
+  // The real verifyOtp user of a just-confirmed account reads as its first sign-in.
+  assert.equal(isFirstSignIn(fresh.user), true);
+  assert.equal(await followAccount({ ...common, firstSignIn: true, client: fresh.client, userId: fresh.id, now: Date.now() }), "es");
   assert.equal((await row(fresh.id)).locale, "es");
   assert.equal(set["almar-prefs-sync"], "push");
 
   // The same account an hour later is a returning account: her saved row wins over the browser.
   await saveOwnPreferences(fresh.client, fresh.id, { locale: "ar", currency: "EUR" });
   const later = {};
-  const locale = await followAccount({ ...common, setCookie: (n, v) => (later[n] = v), client: fresh.client, userId: fresh.id, now: Date.now() + 60 * 60 * 1000 });
+  const locale = await followAccount({ ...common, setCookie: (n, v) => (later[n] = v), firstSignIn: false, client: fresh.client, userId: fresh.id, now: Date.now() + 60 * 60 * 1000 });
   assert.equal(locale, "ar");
   assert.deepEqual(later, { "almar-locale": "ar", "almar-prefs-sync": "EUR" });
 });

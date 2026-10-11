@@ -36,16 +36,17 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
 
   useEffect(() => setDocumentLocale(locale), [locale]);
 
-  // Plan 02-05: her saved currency is this browser's choice too, so the public pages show it. Right after a new
-  // account's first sign-in ("push") it is the other way round: the browser's choice was just sent to her profile,
-  // so the screen shows it instead of the row's default.
+  // Plan 02-05: right after sign-in the handoff cookie carries her saved currency into this browser (applyAccountSync
+  // stores it). After a new account's first sign-in ("push") it is the other way round: the browser's choice was just
+  // sent to her profile, so the screen shows it instead of the row's default. Otherwise her row fills the browser
+  // choice only when it has none, so a pick whose save has not landed yet is not overwritten.
   useEffect(() => {
     if (applyAccountSync() === "push") {
       const chosen = readCurrencyChoice();
       if (chosen) setCurrency(chosen);
       return;
     }
-    storeCurrencyChoice(profile.currency);
+    if (!readCurrencyChoice()) storeCurrencyChoice(profile.currency);
   }, [profile.currency]);
 
   function storePreferences(nextLocale: DocumentLocale, nextCurrency: Currency) {
