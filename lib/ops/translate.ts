@@ -145,15 +145,16 @@ export function parseAnswer(raw: unknown): unknown {
 
 /**
  * What the Workers AI binding threw: the daily limit or anything else. The Wave 0 check made 18 calls and none
- * failed, so the real limit error shape was NOT seen [unverified]: the match is on an HTTP-like status 429 or the
- * words neuron / daily / limit in the message (Cloudflare's pricing page: on Free, past 10,000 neurons a day the
- * allocation stops until 00:00 UTC).
+ * failed, so the real limit error shape was NOT seen [unverified]: the match is on status or code 429, or a message
+ * about the daily allocation (daily / neuron, neurons). Cloudflare's pricing page: on Free, past 10,000 neurons a day
+ * the allocation stops until 00:00 UTC. A bare "limit" (a per-minute rate limit, a context or token limit) is not the
+ * daily limit: it is "failed", so the owner is told to try again, not to wait until tomorrow.
  */
 export function classifyAiError(error: unknown): "limit" | "failed" {
   const e = (isRecord(error) || error instanceof Error ? error : {}) as { status?: unknown; code?: unknown; message?: unknown };
   if (e.status === 429 || e.code === 429) return "limit";
   const message = typeof e.message === "string" ? e.message : typeof error === "string" ? error : "";
-  return /neuron|daily|limit/i.test(message) ? "limit" : "failed";
+  return /daily|neurons?/i.test(message) ? "limit" : "failed";
 }
 
 /** One target: skip empties, one model call, parse, same-shape check. Never throws. */

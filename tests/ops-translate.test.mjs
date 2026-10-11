@@ -134,13 +134,18 @@ test("a well-formed answer of the wrong shape -> translate_failed", async () => 
 
 // ---- classifyAiError -----------------------------------------------------------------------------------------------
 
-test("classifyAiError: status 429 or a neuron/daily/limit message -> limit; everything else -> failed", () => {
+test("classifyAiError: status or code 429, or a daily-allocation message -> limit; everything else -> failed", () => {
   const status = Object.assign(new Error("Too Many Requests"), { status: 429 });
   assert.equal(t.classifyAiError(status), "limit");
   assert.equal(t.classifyAiError({ status: 429 }), "limit");
   assert.equal(t.classifyAiError(new Error("AiError: you have used up your daily free allocation of 10,000 neurons")), "limit");
-  assert.equal(t.classifyAiError(new Error("Rate LIMIT exceeded")), "limit");
+  assert.equal(t.classifyAiError({ code: 429 }), "limit");
+  assert.equal(t.classifyAiError(new Error("Neuron allocation exhausted")), "limit");
   assert.equal(t.classifyAiError("daily cap"), "limit");
+  // A bare "limit" is not the daily allocation: a per-minute rate limit, a context or token limit.
+  for (const bare of ["Rate LIMIT exceeded", "context length limit exceeded", "max token limit reached"]) {
+    assert.equal(t.classifyAiError(new Error(bare)), "failed", bare);
+  }
   for (const other of [new Error("InferenceUpstreamError: 500"), Object.assign(new Error("bad"), { status: 500 }), new Error("binding missing"), null, undefined, 42]) {
     assert.equal(t.classifyAiError(other), "failed", String(other));
   }
