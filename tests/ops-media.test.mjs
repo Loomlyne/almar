@@ -9,6 +9,7 @@ const prep = await loadTs("components/ops/image-prep.ts");
 const alt = await loadTs("components/ops/media-alt.ts");
 const { OPS_MEDIA_COPY } = await loadTs("lib/copy/ops-media.ts");
 const { OPS_LIVE_SECTIONS, isLiveOpsPath } = await loadTs("lib/ops-routes.ts");
+const { formatPlural } = await loadTs("lib/journey-format.ts");
 
 const read = (path) => readFileSync(path, "utf8");
 
@@ -128,10 +129,28 @@ test("OPS_MEDIA_COPY has the same keys in en, ar and es, none empty", () => {
     assert.deepEqual(Object.keys(OPS_MEDIA_COPY[locale]).sort(), keys, locale);
   }
   for (const locale of ["en", "ar", "es"]) {
-    for (const key of keys) assert.ok(OPS_MEDIA_COPY[locale][key].trim().length > 0, `${locale}.${key} is empty`);
+    for (const key of keys) {
+      const value = OPS_MEDIA_COPY[locale][key];
+      const texts = typeof value === "string" ? [value] : Object.values(value);
+      for (const text of texts) assert.ok(text.trim().length > 0, `${locale}.${key} is empty`);
+    }
   }
-  assert.match(OPS_MEDIA_COPY.en.usedIn, /\{n\}/);
-  assert.equal(OPS_MEDIA_COPY.en.usedInOne, "Used in 1 place");
+});
+
+test("the usage line follows each language's plural rules (Arabic one, two, few, many)", () => {
+  const used = (locale, n) => formatPlural(OPS_MEDIA_COPY[locale].usedIn, n, locale);
+  assert.equal(used("en", 1), "Used in 1 place");
+  assert.equal(used("en", 2), "Used in 2 places");
+  assert.equal(used("en", 0), "Used in 0 places");
+  assert.equal(used("es", 1), "Usada en 1 lugar");
+  assert.equal(used("es", 11), "Usada en 11 lugares");
+  assert.equal(used("ar", 1), "مستخدمة في مكان واحد");
+  assert.equal(used("ar", 2), "مستخدمة في مكانين");
+  assert.equal(used("ar", 3), "مستخدمة في 3 أماكن");
+  assert.equal(used("ar", 10), "مستخدمة في 10 أماكن");
+  assert.equal(used("ar", 11), "مستخدمة في 11 مكانًا");
+  assert.equal(used("ar", 100), "مستخدمة في 100 مكان");
+  assert.equal(used("ar", 0), "غير مستخدمة في أي مكان");
 });
 
 // ---- wiring guards ------------------------------------------------------------------------------------------------

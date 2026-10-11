@@ -33,7 +33,7 @@ export function MediaLibrary({ slotOf }: { slotOf?: (apply: ApplyAltDrafts) => R
   const locale = useDashboardLocale();
   const copy = OPS_MEDIA_COPY[locale];
   const kit = OPS_KIT_COPY[locale];
-  const { library, setItems } = useMediaLibrary({ enabled: true, locale });
+  const { library, setItems, removeItem } = useMediaLibrary({ enabled: true, locale });
 
   const [openId, setOpenId] = useState<string | null>(null);
   const [draft, setDraft] = useState<AltDraft>(EMPTY);
@@ -82,7 +82,7 @@ export function MediaLibrary({ slotOf }: { slotOf?: (apply: ApplyAltDrafts) => R
     const reply = await opsSend<{ id: string; affects_site: boolean }>(PATH, { action: "delete", id: open.id });
     setBusy(false);
     if (reply.ok) {
-      setItems((known) => known.filter((item) => item.id !== open.id));
+      removeItem(open.id);
       setOpenId(null);
       setNotice({ kind: "info", text: copy.staysInStorage });
       return;

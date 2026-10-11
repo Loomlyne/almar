@@ -28,8 +28,10 @@ function mergeById(known: MediaItem[], more: MediaItem[]): MediaItem[] {
 export type MediaLibrary = {
   /** What MediaPicker takes. */
   library: PickerLibrary;
-  /** The screen edits the list after a save or a delete without asking the server again. */
+  /** The screen edits the list after a save without asking the server again. */
   setItems: Dispatch<SetStateAction<MediaItem[]>>;
+  /** After a delete: drops the photo from the list and from this session's uploads, so a later list never brings it back. */
+  removeItem: (id: string) => void;
 };
 
 /**
@@ -180,6 +182,9 @@ export function useMediaLibrary({
         else if (status === 415) settle({ phase: "rejected", error: copy.wrongType });
         else if (error.code === "invalid" && (error.field === "sha256" || error.field === "content_length")) {
           settle({ phase: "failed", error: copy.incomplete });
+        } else if (error.code === "slug_taken") {
+          // The same file was being stored by another upload at that moment: a retry finds it (created false).
+          settle({ phase: "failed", error: kit.errors.unavailable });
         } else settle({ phase: "failed", error: errorText(kit, error) });
         return;
       }
@@ -212,6 +217,11 @@ export function useMediaLibrary({
     }
   }, [copy, kit, onUploaded]);
 
+  const removeItem = useCallback((id: string) => {
+    uploaded.current = uploaded.current.filter((item) => item.id !== id);
+    setItems((known) => known.filter((item) => item.id !== id));
+  }, []);
+
   return {
     library: {
       items,
@@ -227,5 +237,6 @@ export function useMediaLibrary({
       listError,
     },
     setItems,
+    removeItem,
   };
 }

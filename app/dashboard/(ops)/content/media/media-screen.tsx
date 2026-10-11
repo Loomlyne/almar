@@ -12,7 +12,8 @@ import type { Locale3 } from "../../../../../components/ops/api-types";
 import { altStateOf, type AltDraft } from "../../../../../components/ops/media-alt";
 import { FileName, fileNameOf } from "../../../../../components/ops/media-picker";
 import { UPLOAD_TYPES, type MediaAltStatus, type MediaItem } from "../../../../../components/ops/media-types";
-import { OPS_KIT_COPY, fillCopy } from "../../../../../lib/copy/ops-kit";
+import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
+import { formatPlural } from "../../../../../lib/journey-format";
 import { OPS_MEDIA_COPY, type OpsMediaLocale } from "../../../../../lib/copy/ops-media";
 
 const LOCALES: readonly Locale3[] = ["en", "ar", "es"];
@@ -214,7 +215,7 @@ export function MediaScreen({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={open.url} alt={open.alt_en} className="block h-36 w-full bg-ivory object-cover" />
           <p className="m-0 text-label text-ink">
-            {open.used_by === 1 ? copy.usedInOne : fillCopy(copy.usedIn, { n: open.used_by })}
+            {formatPlural(copy.usedIn, open.used_by, locale)}
           </p>
           <div className="flex min-w-0 flex-col gap-4">
             {LOCALES.map((code) => (

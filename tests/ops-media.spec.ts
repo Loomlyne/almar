@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { DASHBOARD_COPY } from "../lib/copy/dashboard";
 import { OPS_MEDIA_COPY } from "../lib/copy/ops-media";
 import { VIEWPORTS, sceneStates, settle, type Viewport } from "./journey/matrix";
 
@@ -344,6 +345,49 @@ test.describe("behaviour", () => {
         await form.getByRole("button", { name: copy.close, exact: true }).first().click();
         await expect(page.getByRole("dialog")).toHaveCount(0);
         await expect(page.getByRole("list", { name: copy.media }).getByRole("listitem").first()).toContainText("0123456789abcdef0123456789abcdef.webp");
+      });
+
+      test(`library page: the rail's Content group links to Media in this language and marks it current (${at})`, async ({ page, baseURL }) => {
+        await mockApi(page);
+        await openRealPage(page, viewport, locale, baseURL);
+        if (width < 1280) await page.getByRole("button", { name: DASHBOARD_COPY[locale].menu }).click();
+        const link = page.getByRole("link", { name: copy.media, exact: true });
+        await expect(link).toBeVisible();
+        await expect(link).toHaveAttribute("href", "/dashboard/content/media");
+        await expect(link).toHaveAttribute("aria-current", "page");
+      });
+
+      test(`library page: a photo uploaded then deleted stays gone after a search is typed and cleared (${at})`, async ({ page, baseURL }) => {
+        const api = await mockApi(page);
+        await openRealPage(page, viewport, locale, baseURL);
+        const chooser = page.waitForEvent("filechooser");
+        await page.getByRole("button", { name: copy.upload, exact: true }).click();
+        await (await chooser).setFiles({ name: "new.png", mimeType: "image/png", buffer: PNG });
+        const form = dialog(page);
+        await form.getByLabel(copy.altEnRequired).fill("Fresh photo");
+        await form.getByRole("button", { name: copy.upload, exact: true }).click();
+        await expect(form.getByText(copy.uploaded)).toBeVisible();
+        await form.getByRole("button", { name: copy.close, exact: true }).first().click();
+        await expect(page.getByRole("dialog")).toHaveCount(0);
+        const fresh = page.locator("li", { hasText: "0123456789abcdef0123456789abcdef.webp" });
+        await expect(fresh).toHaveCount(1);
+        await page.getByRole("button", { name: /0123456789abcdef/ }).click();
+        await page.getByRole("button", { name: copy.deleteImage, exact: true }).click();
+        await dialog(page).getByRole("button", { name: copy.deleteImage, exact: true }).click();
+        await expect.poll(() => api.posts.length).toBe(1);
+        expect(api.posts[0]).toEqual({ action: "delete", id: UPLOADED_ID });
+        await expect(fresh).toHaveCount(0);
+        // The fixture list never holds the upload: only this session's memory could bring it back.
+        const search = page.getByLabel(copy.search);
+        const gets = api.gets.length;
+        await search.fill("pool");
+        await expect.poll(() => api.gets.length).toBeGreaterThan(gets);
+        await expect(page.locator("li", { hasText: "pool-dusk.webp" })).toHaveCount(1);
+        const again = api.gets.length;
+        await search.fill("");
+        await expect.poll(() => api.gets.length).toBeGreaterThan(again);
+        await expect(page.locator("li", { hasText: "old-town.webp" })).toHaveCount(1);
+        await expect(fresh).toHaveCount(0);
       });
 
       test(`Translate slot: applyAltDrafts fills AR and ES as Draft, unticked, and Save sends draft (${at})`, async ({ page }) => {

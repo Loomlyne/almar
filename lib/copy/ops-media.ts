@@ -4,7 +4,10 @@
 // CANVAS strings are taken verbatim from the design canvas board DashMediaNav in all three languages. Every other EN
 // string is DRAFTED UI COPY for the owner's review at the picture gate. AR (Gulf-friendly Modern Standard Arabic) and ES
 // (Latin American, formal "usted", owner 2026-10-11) are DRAFTS written from the EN, flagged for the owner's review.
-// `{n}` is filled with fillCopy (lib/copy/ops-kit.ts). Imported directly; deliberately not registered in lib/copy/index.ts.
+// usedIn holds Intl.PluralRules forms (`#` is the number), picked by formatPlural (lib/journey-format.ts). Imported
+// directly; deliberately not registered in lib/copy/index.ts.
+
+import type { PluralForms } from "../journey-format";
 
 export type OpsMediaLocale = "en" | "ar" | "es";
 
@@ -38,9 +41,9 @@ export type OpsMediaCopy = {
   tooLarge: string;
   wrongType: string;
   incomplete: string;
-  /** Replaces the canvas "Used in: [00] pages, [00] stays": the contract returns one count. */
-  usedIn: string;
-  usedInOne: string;
+  /** Replaces the canvas "Used in: [00] pages, [00] stays": the contract returns one count. Intl.PluralRules forms,
+   * `#` is the number (formatPlural, lib/journey-format.ts). */
+  usedIn: PluralForms;
   usedBlocksDelete: string;
   staysInStorage: string;
   checkedTranslation: string;
@@ -71,8 +74,7 @@ export const OPS_MEDIA_COPY: Record<OpsMediaLocale, OpsMediaCopy> = {
     tooLarge: "This file is larger than 15 MB.",
     wrongType: "Use a JPEG, PNG or WebP photo.",
     incomplete: "The upload did not arrive complete. Try again.",
-    usedIn: "Used in {n} places",
-    usedInOne: "Used in 1 place",
+    usedIn: { one: "Used in 1 place", other: "Used in # places" },
     usedBlocksDelete: "This photo is used, so it cannot be deleted.",
     staysInStorage: "The file stays in storage; it is no longer offered here.",
     checkedTranslation: "I checked this translation",
@@ -101,8 +103,14 @@ export const OPS_MEDIA_COPY: Record<OpsMediaLocale, OpsMediaCopy> = {
     tooLarge: "حجم هذا الملف أكبر من 15 ميغابايت.",
     wrongType: "استخدم صورة بصيغة JPEG أو PNG أو WebP.",
     incomplete: "لم يصل الرفع كاملًا. حاول مرة أخرى.",
-    usedIn: "مستخدمة في {n} أماكن",
-    usedInOne: "مستخدمة في مكان واحد",
+    usedIn: {
+      zero: "غير مستخدمة في أي مكان",
+      one: "مستخدمة في مكان واحد",
+      two: "مستخدمة في مكانين",
+      few: "مستخدمة في # أماكن",
+      many: "مستخدمة في # مكانًا",
+      other: "مستخدمة في # مكان",
+    },
     usedBlocksDelete: "هذه الصورة مستخدمة، لذلك لا يمكن حذفها.",
     staysInStorage: "يبقى الملف في التخزين؛ ولن يُعرض هنا بعد الآن.",
     checkedTranslation: "راجعت هذه الترجمة",
@@ -131,8 +139,7 @@ export const OPS_MEDIA_COPY: Record<OpsMediaLocale, OpsMediaCopy> = {
     tooLarge: "Este archivo supera los 15 MB.",
     wrongType: "Use una foto JPEG, PNG o WebP.",
     incomplete: "La subida no llegó completa. Inténtelo de nuevo.",
-    usedIn: "Usada en {n} lugares",
-    usedInOne: "Usada en 1 lugar",
+    usedIn: { one: "Usada en 1 lugar", other: "Usada en # lugares" },
     usedBlocksDelete: "Esta foto está en uso, así que no se puede eliminar.",
     staysInStorage: "El archivo permanece en el almacenamiento; ya no se ofrece aquí.",
     checkedTranslation: "Revisé esta traducción",
