@@ -170,7 +170,13 @@ function rejects(body, field) {
 
 test("parse accepts ar and es with strings and lists", () => {
   assert.deepEqual(t.parseTranslate({ target: "ar", fields: SOURCE }), { target: "ar", fields: SOURCE });
-  assert.deepEqual(t.parseTranslate({ target: "es", fields: { a: "" } }), { target: "es", fields: { a: "" } });
+  assert.deepEqual(t.parseTranslate({ target: "es", fields: { a: "", b: null, c: "x" } }), { target: "es", fields: { a: "", b: null, c: "x" } });
+});
+
+test("parse: every field null or empty is 400 invalid on fields, like an empty object", () => {
+  rejects({ target: "ar", fields: { a: "" } }, "fields");
+  rejects({ target: "ar", fields: { a: null, b: "", c: "   " } }, "fields");
+  rejects({ target: "es", fields: { a: null, tags: [] } }, "fields");
 });
 
 test("parse rejects: target other than ar/es, empty fields, more than 40 fields, over 8,000 chars, over 60 items", () => {
@@ -190,6 +196,7 @@ test("parse rejects: target other than ar/es, empty fields, more than 40 fields,
   rejects({ target: "ar", fields: { tags: ["x".repeat(8001)] } }, "fields.tags");
   rejects({ target: "ar", fields: { tags: ["x", 2] } }, "fields.tags");
   rejects({ target: "ar", fields: { n: 1 } }, "fields.n");
+  rejects({ target: "ar", fields: { tags: ["x", null] } }, "fields.tags");
   rejects({ target: "ar", fields: { n: { x: "y" } } }, "fields.n");
   rejects({ target: "ar", fields: JSON.parse('{"__proto__": "x"}') }, "fields");
   rejects({ target: "ar", fields: { "Bad Name": "x" } }, "fields");
@@ -229,6 +236,11 @@ test("route: 200 with the drafts, 429 translate_limit, 502 translate_failed, 400
   assert.equal(invalid.body.error.code, "invalid");
   assert.equal(invalid.body.error.field, "target");
   assert.equal(calls.length, 0, "an invalid body never reaches the model");
+
+  const blank = await call({ target: "ar", fields: { name: null, summary: "" } }, run);
+  assert.equal(blank.status, 400);
+  assert.equal(blank.body.error.field, "fields");
+  assert.equal(calls.length, 0, "a body with no text never reaches the model");
 });
 
 test("route: a non-owner gets 403 and the model is never called", async () => {

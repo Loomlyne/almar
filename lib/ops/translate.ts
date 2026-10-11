@@ -24,7 +24,7 @@ export const TRANSLATE_LIMITS = { fields: 40, chars: 8000, items: 60 } as const;
 /** One call to the model: `input` is the request body below; it resolves to the model's raw reply. */
 export type AiRun = (input: unknown) => Promise<unknown>;
 
-export type TranslateBody = { target: TranslateTarget; fields: TranslateFields };
+export type TranslateBody = { target: TranslateTarget; fields: Record<string, string | string[] | null> };
 export type TranslateOutcome = { ok: true; fields: TranslateFields } | { ok: false; code: "translate_limit" | "translate_failed" };
 
 const FIELD_NAME = /^[a-z][a-z0-9_]{0,63}$/;
@@ -33,7 +33,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** The POST body. Throws OpsInvalid (400 invalid) on the first bad part. */
+/** The POST body. Throws OpsInvalid (400 invalid) on the first bad part, and when no field has text. */
 export function parseTranslate(body: unknown): TranslateBody {
   if (!isRecord(body)) throw new OpsInvalid("body");
   const target = body.target;
@@ -41,11 +41,13 @@ export function parseTranslate(body: unknown): TranslateBody {
   if (!isRecord(body.fields)) throw new OpsInvalid("fields");
   const entries = Object.entries(body.fields);
   if (entries.length === 0 || entries.length > TRANSLATE_LIMITS.fields) throw new OpsInvalid("fields");
-  const fields: TranslateFields = {};
+  const fields: TranslateBody["fields"] = {};
   for (const [name, value] of entries) {
     if (!FIELD_NAME.test(name)) throw new OpsInvalid("fields");
     const field = `fields.${name}`;
-    if (typeof value === "string") {
+    if (value === null) {
+      fields[name] = null;
+    } else if (typeof value === "string") {
       if (value.length > TRANSLATE_LIMITS.chars) throw new OpsInvalid(field);
       fields[name] = value;
     } else if (Array.isArray(value)) {
@@ -58,6 +60,8 @@ export function parseTranslate(body: unknown): TranslateBody {
       throw new OpsInvalid(field);
     }
   }
+  // Every value null or empty: nothing to translate, the same answer as an empty fields object.
+  if (Object.keys(withoutEmpty(fields)).length === 0) throw new OpsInvalid("fields");
   return { target, fields };
 }
 
