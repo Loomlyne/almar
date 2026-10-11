@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type JSX } from "react";
+import { useEffect, useId, useRef, useState, type JSX } from "react";
 import { Button } from "../ui/button";
 import { ConfirmDialog } from "../ui/confirm-dialog";
 import { OPS_TRANSLATE_COPY } from "../../lib/copy/ops-translate";
@@ -138,6 +138,10 @@ export function outcomeView(ar: OpsResponse<TranslateReply> | null, es: OpsRespo
  * Each target that succeeds calls onDrafts (the screen sets that tab to draft); a target that fails leaves its tab
  * unchanged and the line says which one failed. It never writes AR or ES itself. When AR or ES already has text, the
  * replace question comes first.
+ *
+ * The English is snapshotted at the click. If it changed before the answers came back, or the button is gone, the
+ * answers are dropped: no onDrafts call (a draft of old English must not land), and the failed line ("type it or try
+ * again") when still on screen.
  */
 export function TranslateButton(props: {
   source: Record<string, string | string[] | null>;
@@ -148,23 +152,43 @@ export function TranslateButton(props: {
 }): JSX.Element {
   const { source, hasExisting, onDrafts, locale, disabled } = props;
   const [view, setView] = useState<TranslateView>("idle");
+  // The latest English, read when the answers come back, and whether the button is still on screen.
+  const sourceRef = useRef(source);
+  const mounted = useRef(true);
+  const snapshot = useRef<Source>(source);
+  useEffect(() => {
+    sourceRef.current = source;
+  }, [source]);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
-  async function run() {
-    const fields = sendable(source);
+  async function run(clicked: Source) {
+    const fields = sendable(clicked);
     if (Object.keys(fields).length === 0) {
       setView("failed");
       return;
     }
     setView("busy");
-    const targets: Target[] = ["ar", "es"];
-    const settled = await Promise.allSettled(
-      targets.map((target) => opsSend<TranslateReply>("/api/ops/translate", { target, fields })),
-    );
-    const [ar, es] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
-    for (const [i, answer] of [ar, es].entries()) {
-      if (answer?.ok) onDrafts(targets[i], answer.fields);
+    let next: TranslateView = "failed";
+    try {
+      const targets: Target[] = ["ar", "es"];
+      const settled = await Promise.allSettled(
+        targets.map((target) => opsSend<TranslateReply>("/api/ops/translate", { target, fields })),
+      );
+      if (!mounted.current || JSON.stringify(sourceRef.current) !== JSON.stringify(clicked)) return;
+      const [ar, es] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
+      for (const [i, answer] of [ar, es].entries()) {
+        if (answer?.ok) onDrafts(targets[i], answer.fields);
+      }
+      next = outcomeView(ar, es);
+    } finally {
+      // The busy state always ends, even when onDrafts throws.
+      if (mounted.current) setView(next);
     }
-    setView(outcomeView(ar, es));
   }
 
   return (
@@ -174,10 +198,11 @@ export function TranslateButton(props: {
       disabled={disabled}
       needsEnglish={!hasEnglish(source)}
       onTranslate={() => {
+        snapshot.current = source;
         if (hasExisting) setView("confirm");
-        else void run();
+        else void run(source);
       }}
-      onConfirm={() => void run()}
+      onConfirm={() => void run(snapshot.current)}
       onKeep={() => setView("idle")}
     />
   );

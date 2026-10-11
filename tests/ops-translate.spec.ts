@@ -190,6 +190,21 @@ test.describe("behaviour", () => {
         });
       }
 
+      test(`English changed during the request: the answers are dropped, onDrafts never called (${width} ${locale})`, async ({ page }) => {
+        let release = () => undefined as void;
+        const hold = new Promise<void>((resolve) => (release = resolve));
+        const bodies = await answerTranslate(page, { ar: 200, es: 200 }, hold);
+        await openScene(page, "live", viewport, locale, "ops-translate-live");
+        await button(page).click();
+        await expect.poll(() => bodies.length).toBe(2);
+        // The owner edits the English while both requests are out.
+        await page.locator("#tr-name").fill("[Name, edited]");
+        release();
+        await expect(statusLine(page)).toHaveText(copy.failed);
+        expect(await logOf(page)).toEqual([]);
+        await expect(page.getByRole("button", { name: copy.action, exact: true })).toBeEnabled();
+      });
+
       test(`AR or ES already filled: the replace question first, Keep sends nothing (${width} ${locale})`, async ({ page }) => {
         const bodies = await answerTranslate(page, { ar: 200, es: 200 });
         await openScene(page, "live-existing", viewport, locale, "ops-translate-live");
