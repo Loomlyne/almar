@@ -3,7 +3,7 @@
 //
 // CANVAS strings are taken verbatim from the design canvas board DashMediaNav in all three languages. Every other EN
 // string is DRAFTED UI COPY for the owner's review at the picture gate. AR (Gulf-friendly Modern Standard Arabic) and ES
-// (neutral Latin American, informal "tu") are DRAFTS written from the EN, flagged for the owner's review.
+// (Latin American, formal "usted", owner 2026-10-11) are DRAFTS written from the EN, flagged for the owner's review.
 // `{n}` is filled with fillCopy (lib/copy/ops-kit.ts). Imported directly; deliberately not registered in lib/copy/index.ts.
 
 export type OpsMediaLocale = "en" | "ar" | "es";
@@ -121,7 +121,7 @@ export const OPS_MEDIA_COPY: Record<OpsMediaLocale, OpsMediaCopy> = {
     choosePhoto: "Elegir foto",
     changePhoto: "Cambiar foto",
     removePhoto: "Quitar foto",
-    addPhotos: "Añadir fotos",
+    addPhotos: "Agregar fotos",
     choose: "Elegir",
     uploadPhoto: "Subir una foto",
     altEnRequired: "Texto alternativo en inglés (obligatorio)",
@@ -129,8 +129,8 @@ export const OPS_MEDIA_COPY: Record<OpsMediaLocale, OpsMediaCopy> = {
     uploading: "Subiendo…",
     uploaded: "Subida",
     tooLarge: "Este archivo supera los 15 MB.",
-    wrongType: "Usa una foto JPEG, PNG o WebP.",
-    incomplete: "La subida no llegó completa. Inténtalo de nuevo.",
+    wrongType: "Use una foto JPEG, PNG o WebP.",
+    incomplete: "La subida no llegó completa. Inténtelo de nuevo.",
     usedIn: "Usada en {n} lugares",
     usedInOne: "Usada en 1 lugar",
     usedBlocksDelete: "Esta foto está en uso, así que no se puede eliminar.",
