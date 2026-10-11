@@ -1,0 +1,100 @@
+{
+  "http_status": 200,
+  "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  "target": "es",
+  "request": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You translate website text for ALMAR, a private luxury travel company in Colombia, from English into Latin American Spanish, Colombian usage.\nWrite in a calm, refined luxury-travel register: natural, precise, never salesy, never literal word for word.\nKeep these names exactly as written, in Latin letters, with their accents: ALMAR, Getsemaní, Cartagena, Barú, Medellín, Bogotá, San Andrés, Cocora, Antioquia, Colombia.\nKeep every other proper noun, place name, brand, vehicle model and airport code (for example BOG, MDE, CTG) unchanged.\nKeep numbers, prices, currency codes, times and units exactly as written.\nYou receive a JSON object of English fields. Return only a JSON object with exactly the same keys.\nA string field becomes one translated string. A list field becomes a list of the same length, item by item, in the same order.\nNever leave a value empty, never add a key, never add notes, explanations or anything outside the JSON object."
+      },
+      {
+        "role": "user",
+        "content": "{\"body\":\"A private journey framework shaped around your dates, group, and confirmed availability. Stays, transfers, guides, dining, and experiences are proposed after inquiry and confirmed before booking.\"}"
+      }
+    ],
+    "max_tokens": 718,
+    "temperature": 0.2,
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "raw": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "annotations": null,
+          "audio": null,
+          "content": "{\"body\": \"Un marco de viaje privado diseñado alrededor de sus fechas, grupo y disponibilidad confirmada. Las estancias, traslados, guías, comidas y experiencias se proponen después de la consulta y se confirman antes de la reserva.\"}",
+          "function_call": null,
+          "reasoning": null,
+          "refusal": null,
+          "role": "assistant"
+        },
+        "routed_experts": null,
+        "stop_reason": null,
+        "token_ids": null
+      }
+    ],
+    "created": 1791735923,
+    "ec_transfer_params": null,
+    "id": "chatcmpl-c418def3-5b7c-492a-81c5-ca6f68e3ff77",
+    "kv_transfer_params": null,
+    "metrics": null,
+    "model": "@cf/meta/llama-3.3-70b-json",
+    "object": "chat.completion",
+    "prompt_logprobs": null,
+    "prompt_text": null,
+    "prompt_token_ids": null,
+    "response": {
+      "body": "Un marco de viaje privado diseñado alrededor de sus fechas, grupo y disponibilidad confirmada. Las estancias, traslados, guías, comidas y experiencias se proponen después de la consulta y se confirman antes de la reserva."
+    },
+    "service_tier": null,
+    "tool_calls": [],
+    "usage": {
+      "prompt_tokens": 292,
+      "completion_tokens": 65,
+      "total_tokens": 357,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "neurons": 21.099306106567383
+    }
+  },
+  "parsed": {
+    "body": "Un marco de viaje privado diseñado alrededor de sus fechas, grupo y disponibilidad confirmada. Las estancias, traslados, guías, comidas y experiencias se proponen después de la consulta y se confirman antes de la reserva."
+  },
+  "extra_text": false,
+  "usage": {
+    "prompt_tokens": 292,
+    "completion_tokens": 65,
+    "total_tokens": 357,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "neurons": 21.099306106567383
+  },
+  "shape": {
+    "ok": true,
+    "fields": {
+      "body": "Un marco de viaje privado diseñado alrededor de sus fechas, grupo y disponibilidad confirmada. Las estancias, traslados, guías, comidas y experiencias se proponen después de la consulta y se confirman antes de la reserva."
+    }
+  },
+  "ms": 1837
+}

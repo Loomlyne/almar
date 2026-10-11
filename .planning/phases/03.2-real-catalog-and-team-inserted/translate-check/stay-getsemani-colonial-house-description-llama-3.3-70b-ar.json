@@ -1,0 +1,117 @@
+{
+  "http_status": 200,
+  "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  "target": "ar",
+  "request": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You translate website text for ALMAR, a private luxury travel company in Colombia, from English into Modern Standard Arabic.\nWrite in a calm, refined luxury-travel register: natural, precise, never salesy, never literal word for word.\nKeep these names exactly as written, in Latin letters, with their accents: ALMAR, Getsemaní, Cartagena, Barú, Medellín, Bogotá, San Andrés, Cocora, Antioquia, Colombia.\nKeep every other proper noun, place name, brand, vehicle model and airport code (for example BOG, MDE, CTG) unchanged.\nKeep numbers, prices, currency codes, times and units exactly as written.\nYou receive a JSON object of English fields. Return only a JSON object with exactly the same keys.\nA string field becomes one translated string. A list field becomes a list of the same length, item by item, in the same order.\nNever leave a value empty, never add a key, never add notes, explanations or anything outside the JSON object."
+      },
+      {
+        "role": "user",
+        "content": "{\"description\":[\"Getsemaní Colonial House is a vetted ALMAR private stay in Casa Centro Getsemaní, curated for international guests who want hotel-level discretion with the space and privacy of a residence.\",\"Layout: 5 bedrooms, 5 bathrooms, 5 double beds, hosting up to 10 guests.\",\"Property highlights include Private pool, rooftop terrace, living room, dining room.\"]}"
+      }
+    ],
+    "max_tokens": 883,
+    "temperature": 0.2,
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "required": [
+          "description"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "raw": {
+    "id": "chatcmpl-c461da73-85e4-4d39-bfef-fbf603ad177f",
+    "object": "chat.completion",
+    "created": 1791735897,
+    "model": "@cf/meta/llama-3.3-70b-json",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"description\": [\"منزل جيتسماني الكولونيالي هو منزل خاص متوفر من قبل ALMAR في كاسا سنترو جيتسماني، وقد تمت صقله لاستقبال الضيوف الدوليين الذين يرغبون في الحفاظ على الخصوصية على مستوى الفنادق مع مساحة وخصوصية المنزل.\", \"التصميم: 5 غرف نوم، 5 حمامات، 5 أسرة مزدوجة، يستوعب lên إلى 10 ضيوف.\", \"تتضمن ميزات الملكية حمام سباحة خاص، شرفة على السطح، غرفة معيشة، غرفة طعام.\"]}",
+          "refusal": null,
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "reasoning": null
+        },
+        "logprobs": null,
+        "finish_reason": "stop",
+        "stop_reason": null,
+        "token_ids": null,
+        "routed_experts": null
+      }
+    ],
+    "service_tier": null,
+    "usage": {
+      "prompt_tokens": 331,
+      "completion_tokens": 152,
+      "total_tokens": 483,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "neurons": 39.9574089050293
+    },
+    "prompt_logprobs": null,
+    "prompt_token_ids": null,
+    "prompt_text": null,
+    "kv_transfer_params": null,
+    "ec_transfer_params": null,
+    "metrics": null,
+    "response": {
+      "description": [
+        "منزل جيتسماني الكولونيالي هو منزل خاص متوفر من قبل ALMAR في كاسا سنترو جيتسماني، وقد تمت صقله لاستقبال الضيوف الدوليين الذين يرغبون في الحفاظ على الخصوصية على مستوى الفنادق مع مساحة وخصوصية المنزل.",
+        "التصميم: 5 غرف نوم، 5 حمامات، 5 أسرة مزدوجة، يستوعب lên إلى 10 ضيوف.",
+        "تتضمن ميزات الملكية حمام سباحة خاص، شرفة على السطح، غرفة معيشة، غرفة طعام."
+      ]
+    },
+    "tool_calls": []
+  },
+  "parsed": {
+    "description": [
+      "منزل جيتسماني الكولونيالي هو منزل خاص متوفر من قبل ALMAR في كاسا سنترو جيتسماني، وقد تمت صقله لاستقبال الضيوف الدوليين الذين يرغبون في الحفاظ على الخصوصية على مستوى الفنادق مع مساحة وخصوصية المنزل.",
+      "التصميم: 5 غرف نوم، 5 حمامات، 5 أسرة مزدوجة، يستوعب lên إلى 10 ضيوف.",
+      "تتضمن ميزات الملكية حمام سباحة خاص، شرفة على السطح، غرفة معيشة، غرفة طعام."
+    ]
+  },
+  "extra_text": false,
+  "usage": {
+    "prompt_tokens": 331,
+    "completion_tokens": 152,
+    "total_tokens": 483,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "neurons": 39.9574089050293
+  },
+  "shape": {
+    "ok": true,
+    "fields": {
+      "description": [
+        "منزل جيتسماني الكولونيالي هو منزل خاص متوفر من قبل ALMAR في كاسا سنترو جيتسماني، وقد تمت صقله لاستقبال الضيوف الدوليين الذين يرغبون في الحفاظ على الخصوصية على مستوى الفنادق مع مساحة وخصوصية المنزل.",
+        "التصميم: 5 غرف نوم، 5 حمامات، 5 أسرة مزدوجة، يستوعب lên إلى 10 ضيوف.",
+        "تتضمن ميزات الملكية حمام سباحة خاص، شرفة على السطح، غرفة معيشة، غرفة طعام."
+      ]
+    }
+  },
+  "ms": 4370
+}

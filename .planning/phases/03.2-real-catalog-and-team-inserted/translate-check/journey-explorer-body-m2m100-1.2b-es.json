@@ -1,0 +1,37 @@
+{
+  "http_status": 200,
+  "model": "@cf/meta/m2m100-1.2b",
+  "target": "es",
+  "request": {
+    "per_string": {
+      "source_lang": "english",
+      "target_lang": "spanish"
+    }
+  },
+  "raw": [
+    {
+      "translated_text": "Un marco de viaje privado diseñado alrededor de sus fechas, grupo y disponibilidad confirmada. Las estancias, traslados, guías, comidas y experiencias se proponen después de la consulta y se confirman antes de la reserva.",
+      "usage": {
+        "prompt_tokens": 50,
+        "completion_tokens": 56,
+        "total_tokens": 106,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 3.291300058364868
+      }
+    }
+  ],
+  "parsed": {
+    "body": "Un marco de viaje privado diseñado alrededor de sus fechas, grupo y disponibilidad confirmada. Las estancias, traslados, guías, comidas y experiencias se proponen después de la consulta y se confirman antes de la reserva."
+  },
+  "extra_text": false,
+  "usage": null,
+  "shape": {
+    "ok": true,
+    "fields": {
+      "body": "Un marco de viaje privado diseñado alrededor de sus fechas, grupo y disponibilidad confirmada. Las estancias, traslados, guías, comidas y experiencias se proponen después de la consulta y se confirman antes de la reserva."
+    }
+  },
+  "ms": 1841
+}

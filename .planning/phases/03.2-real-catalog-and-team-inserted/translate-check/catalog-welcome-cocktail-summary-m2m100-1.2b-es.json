@@ -1,0 +1,37 @@
+{
+  "http_status": 200,
+  "model": "@cf/meta/m2m100-1.2b",
+  "target": "es",
+  "request": {
+    "per_string": {
+      "source_lang": "english",
+      "target_lang": "spanish"
+    }
+  },
+  "raw": [
+    {
+      "translated_text": "Su primera noche en Colombia en una villa privada de Cartagena.Un chef personal prepara un menú estacional de las cosechas del Caribe, servido a medida que el sol se disuelve en el mar.",
+      "usage": {
+        "prompt_tokens": 44,
+        "completion_tokens": 49,
+        "total_tokens": 93,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 2.8876500129699707
+      }
+    }
+  ],
+  "parsed": {
+    "summary": "Su primera noche en Colombia en una villa privada de Cartagena.Un chef personal prepara un menú estacional de las cosechas del Caribe, servido a medida que el sol se disuelve en el mar."
+  },
+  "extra_text": false,
+  "usage": null,
+  "shape": {
+    "ok": true,
+    "fields": {
+      "summary": "Su primera noche en Colombia en una villa privada de Cartagena.Un chef personal prepara un menú estacional de las cosechas del Caribe, servido a medida que el sol se disuelve en el mar."
+    }
+  },
+  "ms": 823
+}

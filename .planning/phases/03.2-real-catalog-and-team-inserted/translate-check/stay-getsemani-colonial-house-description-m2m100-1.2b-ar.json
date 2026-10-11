@@ -1,0 +1,69 @@
+{
+  "http_status": 200,
+  "model": "@cf/meta/m2m100-1.2b",
+  "target": "ar",
+  "request": {
+    "per_string": {
+      "source_lang": "english",
+      "target_lang": "arabic"
+    }
+  },
+  "raw": [
+    {
+      "translated_text": "وتشمل الخصائص المميزة البحيرات الخاصة، ورشة السقف، غرفة المعيشة، غرفة المعيشة.",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 35,
+        "total_tokens": 59,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 1.831950068473816
+      }
+    },
+    {
+      "translated_text": "Getsemaní Colonial House هو إقامة خاصة من ALMAR في Casa Centro Getsemaní ، مخصصة للضيوف الدوليين الذين يرغبون في التفكير على مستوى الفندق مع مساحة وحرية سكنية.",
+      "usage": {
+        "prompt_tokens": 50,
+        "completion_tokens": 58,
+        "total_tokens": 108,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 3.3533999919891357
+      }
+    },
+    {
+      "translated_text": "إعداد: 5 غرف نوم، 5 غرف حمام، 5 سرير مزدوج، يستضيف ما يصل إلى 10 الضيوف.",
+      "usage": {
+        "prompt_tokens": 26,
+        "completion_tokens": 35,
+        "total_tokens": 61,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 1.894050121307373
+      }
+    }
+  ],
+  "parsed": {
+    "description": [
+      "Getsemaní Colonial House هو إقامة خاصة من ALMAR في Casa Centro Getsemaní ، مخصصة للضيوف الدوليين الذين يرغبون في التفكير على مستوى الفندق مع مساحة وحرية سكنية.",
+      "إعداد: 5 غرف نوم، 5 غرف حمام، 5 سرير مزدوج، يستضيف ما يصل إلى 10 الضيوف.",
+      "وتشمل الخصائص المميزة البحيرات الخاصة، ورشة السقف، غرفة المعيشة، غرفة المعيشة."
+    ]
+  },
+  "extra_text": false,
+  "usage": null,
+  "shape": {
+    "ok": true,
+    "fields": {
+      "description": [
+        "Getsemaní Colonial House هو إقامة خاصة من ALMAR في Casa Centro Getsemaní ، مخصصة للضيوف الدوليين الذين يرغبون في التفكير على مستوى الفندق مع مساحة وحرية سكنية.",
+        "إعداد: 5 غرف نوم، 5 غرف حمام، 5 سرير مزدوج، يستضيف ما يصل إلى 10 الضيوف.",
+        "وتشمل الخصائص المميزة البحيرات الخاصة، ورشة السقف، غرفة المعيشة، غرفة المعيشة."
+      ]
+    }
+  },
+  "ms": 2146
+}
