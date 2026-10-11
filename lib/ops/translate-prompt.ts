@@ -21,8 +21,8 @@ export const KEEP_UNCHANGED = [
 
 const LANGUAGE: Record<TranslateTarget, string> = {
   ar: "Modern Standard Arabic",
-  // [ASSUMED A10] Latin American Spanish with Colombian usage; the owner confirms the register at the checkpoint.
-  es: "Latin American Spanish, Colombian usage",
+  // Owner, 2026-10-11 (03.2-10-NOTES.md): Latin American / Colombian Spanish, formal "usted".
+  es: "Latin American Spanish, Colombian usage, formal usted",
 };
 
 /** The system prompt for one target language. */

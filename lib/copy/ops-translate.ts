@@ -2,8 +2,9 @@
 // is edited. Imported directly by the button; deliberately not registered in lib/copy/index.ts (same as ops-kit.ts).
 //
 // EN lines are the plan's own wording (03.2-10-PLAN.md Task 1), for the owner's review at the picture gate.
-// AR (Modern Standard Arabic) and ES (Latin American, informal "tú", the house rule of lib/copy/ops-kit.ts) are DRAFTS
-// written from the EN, flagged for the owner's review. Nothing here is a price, a rate or legal text.
+// AR (Modern Standard Arabic) and ES are DRAFTS written from the EN, flagged for the owner's review. ES is Latin
+// American / Colombian, formal "usted" (owner, 2026-10-11, 03.2-10-NOTES.md), unlike the "tú" of lib/copy/ops-kit.ts.
+// Nothing here is a price, a rate or legal text.
 
 export type OpsTranslateLocale = "en" | "ar" | "es";
 
@@ -60,12 +61,12 @@ export const OPS_TRANSLATE_COPY: Record<OpsTranslateLocale, OpsTranslateCopy> = 
   es: {
     action: "Traducir al árabe y al español",
     busy: "Traduciendo…",
-    done: "Árabe y español completados como borradores. Revísalos antes de publicar.",
-    partialArabicOnly: "Árabe completado como borrador. El español falló: escríbelo o inténtalo de nuevo.",
-    partialSpanishOnly: "Español completado como borrador. El árabe falló: escríbelo o inténtalo de nuevo.",
-    failed: "La traducción falló, escríbela o inténtalo de nuevo.",
-    limit: "Se alcanzó el límite de traducción de hoy (se reinicia a las 04:00, hora de Dubái). Escríbela o inténtalo mañana.",
-    needEnglish: "Escribe primero el texto en inglés.",
+    done: "Árabe y español completados como borradores. Revíselos antes de publicar.",
+    partialArabicOnly: "Árabe completado como borrador. El español falló: escríbalo o inténtelo de nuevo.",
+    partialSpanishOnly: "Español completado como borrador. El árabe falló: escríbalo o inténtelo de nuevo.",
+    failed: "La traducción falló, escríbala o inténtelo de nuevo.",
+    limit: "Se alcanzó el límite de traducción de hoy (se reinicia a las 04:00, hora de Dubái). Escríbala o inténtelo mañana.",
+    needEnglish: "Escriba primero el texto en inglés.",
     confirmTitle: "¿Reemplazar el texto en árabe y español?",
     replace: "Reemplazar",
     keep: "Conservar",
