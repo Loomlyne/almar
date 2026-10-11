@@ -1,8 +1,9 @@
 "use client";
 
-import type { ComponentProps, ReactNode } from "react";
+import { useEffect, type ComponentProps, type ReactNode } from "react";
 import { SiteFooter, type FooterCopy } from "../ui/footer";
 import { MotionController } from "./motion-controller";
+import { applyAccountSync } from "./account-sync";
 import { SiteNav, type NavLabels } from "../ui/nav";
 import { WhatsApp } from "../ui/whatsapp";
 import type { SelectedCurrency } from "../../lib/fx/rates";
@@ -93,6 +94,12 @@ export function PublicFrame({
   whatsapp?: boolean;
   children: ReactNode;
 }) {
+  // Plan 02-05: right after sign-in, her saved currency becomes this browser's choice. This child effect runs before
+  // the page's CurrencyChoiceProvider reads localStorage in its own effect.
+  useEffect(() => {
+    applyAccountSync();
+  }, []);
+
   const hrefs = localeHrefs ?? (matchPublicPage(currentPath) ? localeHrefsOf(currentPath) : undefined);
   const home = homeHref ?? localePath(locale, "/");
 

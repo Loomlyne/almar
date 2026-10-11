@@ -3,10 +3,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { CURRENCY_CHOICE_KEY, parseCurrencyChoice } from "../../../lib/currency-choice";
 import type { SelectedCurrency } from "../../../lib/fx/rates";
+import { postPreferences } from "../../site/account-sync";
 
 // The visitor's saved currency (owner answer 1, design 6.1): a browser choice in localStorage. No cookie, no
 // URL parameter. The first render, on the server and in the browser, is "no choice yet" so the two agree;
 // the saved value is read in an effect. A stored value that is not exactly AED, USD or EUR is ignored.
+// A pick is also offered to her account (plan 02-05, fire-and-forget; saved only when she is signed in).
 
 type CurrencyChoice = { selected: SelectedCurrency | null; choose: (next: SelectedCurrency) => void };
 
@@ -29,6 +31,7 @@ export function CurrencyChoiceProvider({ children }: { children: ReactNode }) {
     const checked = parseCurrencyChoice(next);
     if (!checked) return;
     setSelected(checked);
+    postPreferences({ currency: checked });
     try {
       window.localStorage.setItem(CURRENCY_CHOICE_KEY, checked);
     } catch {

@@ -2,6 +2,7 @@
 
 import { isDocumentLocale, setDocumentLocale } from "../../lib/set-document-locale";
 import { Select, type SelectOption } from "./select";
+import { postPreferences } from "../site/account-sync";
 
 const LOCALE_COOKIE = "almar-locale";
 
@@ -36,7 +37,9 @@ export function isSitePath(href: unknown): href is string {
  * in place. With `hrefs` (the public pages, one pre-built document per language) choosing a language
  * remembers it in the almar-locale cookie and navigates to `hrefs[next]`; the next document already
  * has the right lang and dir, so nothing is set here. A radix listbox row cannot be an anchor: the
- * crawlable, no-JavaScript language links are the footer's language row.
+ * crawlable, no-JavaScript language links are the footer's language row. That public pick is also offered
+ * to her account (plan 02-05, fire-and-forget; the server saves it only when she is signed in). The
+ * screens without `hrefs` save through their own action (account) or have no account (sign-in).
  */
 export function LocaleSelect({
   kind,
@@ -77,6 +80,7 @@ export function LocaleSelect({
         // T-3.3-04: only a same-origin path is followed; anything else is ignored.
         if (!isSitePath(target)) return;
         document.cookie = `${LOCALE_COOKIE}=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
+        postPreferences({ locale: next });
         window.location.assign(target);
         return;
       }

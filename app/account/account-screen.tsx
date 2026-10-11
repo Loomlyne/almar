@@ -13,6 +13,7 @@ import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { setDocumentLocale, type DocumentLocale } from "../../lib/set-document-locale";
 import type { SessionProfile } from "../../lib/supabase/clients";
 import { savePreferences, saveProfile, type SaveState } from "./actions";
+import { applyAccountSync, readCurrencyChoice, storeCurrencyChoice } from "../../components/site/account-sync";
 
 type Currency = SessionProfile["currency"];
 
@@ -35,13 +36,29 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
 
   useEffect(() => setDocumentLocale(locale), [locale]);
 
+  // Plan 02-05: her saved currency is this browser's choice too, so the public pages show it. Right after a new
+  // account's first sign-in ("push") it is the other way round: the browser's choice was just sent to her profile,
+  // so the screen shows it instead of the row's default.
+  useEffect(() => {
+    if (applyAccountSync() === "push") {
+      const chosen = readCurrencyChoice();
+      if (chosen) setCurrency(chosen);
+      return;
+    }
+    storeCurrencyChoice(profile.currency);
+  }, [profile.currency]);
+
   function storePreferences(nextLocale: DocumentLocale, nextCurrency: Currency) {
     setLocale(nextLocale);
     setCurrency(nextCurrency);
     const form = new FormData();
     form.set("locale", nextLocale);
     form.set("currency", nextCurrency);
-    startPrefs(async () => setPrefState(await savePreferences(form)));
+    startPrefs(async () => {
+      const result = await savePreferences(form);
+      setPrefState(result);
+      if (result.status === "saved") storeCurrencyChoice(nextCurrency);
+    });
   }
 
   function onSaveProfile(event: FormEvent<HTMLFormElement>) {
