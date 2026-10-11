@@ -58,6 +58,10 @@ export function useMediaLibrary({
   const [applied, setApplied] = useState("");
   const [listError, setListError] = useState<string | null>(null);
   const request = useRef(0);
+  // A list request is on its way: Load more waits, so a page of an older search is never merged into a newer one.
+  const [loading, setLoading] = useState(false);
+  // Photos uploaded while the picker is open: a list reply that left before the upload still shows them.
+  const uploaded = useRef<MediaItem[]>([]);
 
   useEffect(() => {
     if (query === applied) return;
@@ -68,10 +72,15 @@ export function useMediaLibrary({
   useEffect(() => {
     if (!enabled) return;
     const mine = ++request.current;
-    void opsFetch<ListReply>(PATH, { q: applied.trim() === "" ? undefined : applied.trim() }).then((reply) => {
+    const q = applied.trim();
+    setNext(null);
+    setLoading(true);
+    void opsFetch<ListReply>(PATH, { q: q === "" ? undefined : q }).then((reply) => {
       if (mine !== request.current) return;
+      setLoading(false);
       if (reply.ok) {
-        setItems(reply.items);
+        const fresh = q === "" ? uploaded.current.filter((item) => !reply.items.some((row) => row.id === item.id)) : [];
+        setItems([...fresh, ...reply.items]);
         setNext(reply.next);
         setListError(null);
       } else {
@@ -81,10 +90,12 @@ export function useMediaLibrary({
   }, [enabled, applied]);
 
   const onLoadMore = useCallback(() => {
-    if (next === null) return;
+    if (next === null || loading) return;
     const mine = ++request.current;
+    setLoading(true);
     void opsFetch<ListReply>(PATH, { q: applied.trim() === "" ? undefined : applied.trim(), after: next }).then((reply) => {
       if (mine !== request.current) return;
+      setLoading(false);
       if (reply.ok) {
         setItems((known) => mergeById(known, reply.items));
         setNext(reply.next);
@@ -93,7 +104,7 @@ export function useMediaLibrary({
         setListError(errorText(kitRef.current, reply.error));
       }
     });
-  }, [next, applied]);
+  }, [next, applied, loading]);
 
   // ---- upload ----------------------------------------------------------------------------------------------------
   const [upload, setUpload] = useState<UploadDraft | null>(null);
@@ -172,7 +183,14 @@ export function useMediaLibrary({
         } else settle({ phase: "failed", error: errorText(kit, error) });
         return;
       }
-      const stored: MediaItem = {
+      // The same file was already in the library (created false): the server kept its row and its alt text, so show
+      // that row as it is, not the text typed here.
+      let existing: MediaItem | undefined;
+      if (!reply.created) {
+        const found = await opsFetch<ListReply>(PATH, { q: reply.key });
+        if (found.ok) existing = found.items.find((item) => item.id === reply.id);
+      }
+      const stored: MediaItem = existing ?? {
         id: reply.id,
         key: reply.key,
         url: reply.url,
@@ -185,6 +203,7 @@ export function useMediaLibrary({
         alt_status: { en: "published", ar: "missing", es: "missing" },
         used_by: 0,
       };
+      uploaded.current = [stored, ...uploaded.current.filter((item) => item.id !== stored.id)];
       setItems((known) => [stored, ...known.filter((item) => item.id !== stored.id)]);
       settle({ phase: "done", error: null });
       onUploaded?.(stored);

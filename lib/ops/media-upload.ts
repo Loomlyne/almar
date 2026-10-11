@@ -130,14 +130,18 @@ export async function uploadCore({
     );
 
     let stored = false;
+    let digestRefused = false;
     try {
       const object = await media.put(key, lengthStream.readable, {
         httpMetadata: { contentType, cacheControl: CACHE_CONTROL },
         sha256,
       });
       stored = object !== null && object !== undefined;
-    } catch {
-      stored = false;
+      // put returns null when a precondition fails; with no condition set here, treat it like a refused digest.
+      digestRefused = !stored;
+    } catch (error) {
+      // R2 names an integrity failure in its message ("…SHA-256…" / "digest"); anything else is R2 not answering.
+      digestRefused = /sha-?256|digest|checksum/i.test(error instanceof Error ? error.message : String(error));
     }
     if (!stored && pipe.outcome === "pending") {
       // Let a pipe that is about to fail on length say so first (one task), then stop it: a put that never read the
@@ -151,8 +155,8 @@ export async function uploadCore({
     await piping;
 
     if (pipe.outcome === "length") return refuse(400, "invalid", "content_length");
-    // R2 refused the bytes (sha256 mismatch: its integrity check) or did not store them.
-    if (!stored) return refuse(400, "invalid", "sha256");
+    // R2 refused the bytes (sha256 mismatch: its integrity check); any other failure is R2 not answering.
+    if (!stored) return digestRefused ? refuse(400, "invalid", "sha256") : refuse(503, "unavailable");
   }
 
   const { data, error } = await saveMedia({

@@ -86,7 +86,7 @@ function Thumb({ item }: { item: MediaItem }) {
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={item.url}
-      alt={item.alt_en}
+      alt=""
       width={item.width ?? undefined}
       height={item.height ?? undefined}
       loading="lazy"

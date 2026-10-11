@@ -97,8 +97,9 @@ const row = (n: number, key: string, altEn: string, extra: Record<string, unknow
 });
 const ITEMS = [
   row(1, "test/pool-dusk.webp", "Pool at dusk"),
-  row(2, "test/old-town.webp", "Old town street"),
-  row(3, "test/coffee-farm.webp", "Coffee farm"),
+  // Only an uploaded photo can be deleted (ops_delete_media refuses imports).
+  row(2, "test/old-town.webp", "Old town street", { source: "upload" }),
+  row(3, "test/coffee-farm.webp", "Coffee farm", { source: "upload" }),
   row(4, "test/beach-walk.webp", "Beach walk"),
   row(5, "test/market-day.webp", "Market day"),
 ];
@@ -299,6 +300,10 @@ test.describe("behaviour", () => {
       test(`library page: Delete on an unused photo removes it and says the file stays in storage (${at})`, async ({ page, baseURL }) => {
         const api = await mockApi(page);
         await openRealPage(page, viewport, locale, baseURL);
+        // An imported photo is kept by the site pages: Delete stays off and says it is used.
+        await page.getByRole("button", { name: /pool-dusk/ }).click();
+        await expect(page.getByRole("button", { name: copy.deleteImage, exact: true })).toBeDisabled();
+        await expect(page.getByText(copy.usedBlocksDelete).first()).toBeVisible();
         await page.getByRole("button", { name: /old-town/ }).click();
         await expect(page.getByText(copy.staysInStorage).first()).toBeVisible();
         await page.getByRole("button", { name: copy.deleteImage, exact: true }).click();

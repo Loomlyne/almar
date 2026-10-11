@@ -83,7 +83,8 @@ function fakeBucket({ existing = {}, putMode = "check" } = {}) {
       }
       const bytes = Buffer.concat(chunks);
       if (putMode === "null") return null;
-      if (sha(bytes) !== options.sha256) throw new Error("integrity");
+      // The message R2 gives for a digest mismatch.
+      if (sha(bytes) !== options.sha256) throw new Error("put: The SHA-256 checksum you specified did not match what we received.");
       objects.set(key, bytes);
       return { key, size: bytes.length };
     },
@@ -292,17 +293,19 @@ test("upload: a body shorter or longer than Content-Length fails the put (conten
   assert.equal(none.save.calls.length + none.bucket.calls.put.length, 0);
 });
 
-test("upload: a sha256 that does not match the bytes (R2 integrity) or a put that returns null is refused (sha256)", async () => {
+test("upload: a sha256 that does not match the bytes (R2 integrity) or a put that returns null is refused (sha256); R2 failing otherwise is 503", async () => {
   const bytes = new Uint8Array(1000).fill(2);
   const wrong = await upload({ bytes, headers: headersFor(bytes, { "x-almar-sha256": sha(new Uint8Array(1000).fill(3)) }) });
   refusal(wrong.result, 400, "invalid", "sha256");
   assert.equal(wrong.save.calls.length, 0);
   assert.equal(wrong.bucket.objects.size, 0);
-  for (const putMode of ["null", "throw"]) {
-    const r = await upload({ bytes, bucket: fakeBucket({ putMode }) });
-    refusal(r.result, 400, "invalid", "sha256");
-    assert.equal(r.save.calls.length, 0, putMode);
-  }
+  const refused = await upload({ bytes, bucket: fakeBucket({ putMode: "null" }) });
+  refusal(refused.result, 400, "invalid", "sha256");
+  assert.equal(refused.save.calls.length, 0);
+  // R2 not answering is not the owner's file: 503, nothing saved.
+  const down = await upload({ bytes, bucket: fakeBucket({ putMode: "throw" }) });
+  refusal(down.result, 503, "unavailable");
+  assert.equal(down.save.calls.length, 0);
 });
 
 test("upload: a database error is handed to the wrapper; no bucket is 503 unavailable", async () => {

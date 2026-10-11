@@ -192,7 +192,7 @@ export function MediaScreen({
                 </Button>
                 <Button
                   variant="danger"
-                  disabled={open.used_by > 0}
+                  disabled={open.used_by > 0 || open.source === "import"}
                   aria-describedby="media-delete-note"
                   onClick={() => setConfirming(true)}
                 >
@@ -205,7 +205,8 @@ export function MediaScreen({
                 </p>
               ) : null}
               <p id="media-delete-note" className="m-0 text-label text-muted">
-                {open.used_by > 0 ? copy.usedBlocksDelete : copy.staysInStorage}
+                {/* An imported photo is kept by the site pages (ops_delete_media refuses it), so it reads as used. */}
+                {open.used_by > 0 || open.source === "import" ? copy.usedBlocksDelete : copy.staysInStorage}
               </p>
             </div>
           }
