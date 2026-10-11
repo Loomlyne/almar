@@ -18,7 +18,8 @@
 //                inline Flight payload (`self.__next_f.push`) in an order that varies from build to build, even for two
 //                builds of the same input, on the home pages. A file that differs ONLY in that order (the same rows, sorted,
 //                are equal) is listed as ORDER ONLY, counted, and does not fail the run; `--strict` makes it fail.
-//                At the end the stack is reset to empty (the pgTAP files expect it) and out/ holds build B.
+//                At the end the stack is reset to empty (the pgTAP files expect it) and out/ and .open-next/ are removed
+//                (finishOutput): a parity run never leaves a deployable-looking mix of builds behind.
 //   --against-today
 //                also build C from today's real fixtures (sample blocked dates included) and print, for the owner, every
 //                file that differs from A. Expected (measured 2026-10-05, 39 files = /private-stays and the 12 stay pages x
@@ -28,9 +29,11 @@
 //   --live     read-only, for the controller after the import. No stack, no reset, no import. Build B reads the LIVE
 //                project through the public views with the anon key from the shell (NEXT_PUBLIC_SUPABASE_URL and
 //                NEXT_PUBLIC_SUPABASE_ANON_KEY); only GET requests of that read reach it. Build A gets the same values
-//                but reads fixtures, so it makes no request at all. Compared as above; out/ holds build B afterwards.
+//                but reads fixtures, so it makes no request at all. Compared as above.
 //   --strict   fail on ORDER ONLY files too (byte-identical or nothing).
-//   --keep     keep the temporary folder (the copies of out/ and the build logs) instead of removing it.
+//   --keep     keep the temporary folder (the copies of out/ and the build logs) instead of removing it, and leave out/
+//                (build B) and .open-next/ (the last build: B, or C with --against-today) in place for a look. It prints
+//                "re-assemble before deploy": those folders are a parity run's, never a deploy's.
 //
 // A build that fails prints the tail of its log; the log stays in the temporary folder, whose path is printed (common
 // rules: capture the stack of a `next build` crash before rerunning).
@@ -43,6 +46,7 @@ import { fileURLToPath } from "node:url";
 import { importIntoLocal, resetAndWait, underStackLock } from "../tests/helpers/import-local.mjs";
 import { writeLiveShapedFixtures } from "../tests/helpers/live-shaped-fixtures.mjs";
 import { localStack } from "../tests/helpers/local-supabase.mjs";
+import { assertAnonKey } from "../lib/supabase/anon-key.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -75,7 +79,8 @@ export function parseArgs(argv) {
 
 /**
  * The public settings of a --live run, from the shell. Names only in every message. Refuses what is not a hosted
- * Supabase project over https (a local stack is the default mode), and any service-role variable in the shell.
+ * Supabase project over https (a local stack is the default mode), any service-role variable in the shell, and an anon
+ * key whose value is a secret key (lib/supabase/anon-key.ts).
  */
 export function livePublicEnv(env) {
   const serviceNames = Object.keys(env).filter((name) => /SERVICE_ROLE/i.test(name) && String(env[name] ?? "").trim() !== "");
@@ -91,7 +96,8 @@ export function livePublicEnv(env) {
   if (url.protocol !== "https:" || !url.hostname.endsWith(".supabase.co") || url.username || url.password) {
     throw new Error("--live needs NEXT_PUBLIC_SUPABASE_URL to be https://<project>.supabase.co (the local stack is the default mode)");
   }
-  return { NEXT_PUBLIC_SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL.trim(), NEXT_PUBLIC_SUPABASE_ANON_KEY: env.NEXT_PUBLIC_SUPABASE_ANON_KEY.trim() };
+  const anonKey = assertAnonKey("NEXT_PUBLIC_SUPABASE_ANON_KEY", env.NEXT_PUBLIC_SUPABASE_ANON_KEY.trim());
+  return { NEXT_PUBLIC_SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL.trim(), NEXT_PUBLIC_SUPABASE_ANON_KEY: anonKey };
 }
 
 /** The environment of a build: nothing ALMAR_*, NEXT_PUBLIC_* or service-role inherited, then exactly `extra`. */
@@ -303,6 +309,27 @@ function report(title, left, right) {
   return { compared, differing, orderOnly };
 }
 
+/**
+ * The end of every run, passed or failed: without --keep, out/ and .open-next/ are removed, so nothing a parity run built
+ * can be deployed by mistake (with --against-today .open-next/ is build C's while out/ would be B's). With --keep, out/
+ * holds build B when it finished, and "re-assemble before deploy" is printed. `log` is console.log in the script.
+ * Returns "removed" | "kept".
+ */
+export function finishOutput(rootDir, { keep, buildB = null, log = console.log }) {
+  if (keep) {
+    if (buildB) {
+      fs.rmSync(path.join(rootDir, "out"), { recursive: true, force: true });
+      fs.cpSync(buildB.out, path.join(rootDir, "out"), { recursive: true });
+    }
+    log("\n--keep: out/ and .open-next/ are left from this parity run: re-assemble before deploy (node scripts/assemble-cloudflare.mjs --target=<target>)");
+    return "kept";
+  }
+  fs.rmSync(path.join(rootDir, "out"), { recursive: true, force: true });
+  fs.rmSync(path.join(rootDir, ".open-next"), { recursive: true, force: true });
+  log("\nremoved out/ and .open-next/ (a parity run never leaves a deployable build; --keep leaves them)");
+  return "removed";
+}
+
 async function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
   if (args.unknown.length > 0) {
@@ -330,13 +357,13 @@ async function main(argv = process.argv.slice(2)) {
   let failed = null;
   let inlinedKey = false;
   let resetFailed = false;
+  let b = null;
   try {
     writeLiveShapedFixtures(fixturesDir);
     const envFor = (extra) => buildEnv(process.env, { ...publicEnv, ...extra });
 
     const a = runBuild({ label: "A", tmp, env: envFor({ ALMAR_DATA_SOURCE: "fixtures", ALMAR_FIXTURE_DIR: fixturesDir }) });
 
-    let b;
     if (args.live) {
       b = runBuild({ label: "B", tmp, env: envFor({ ALMAR_DATA_SOURCE: "supabase" }) });
     } else {
@@ -401,10 +428,6 @@ async function main(argv = process.argv.slice(2)) {
       report("A (live-shaped fixtures) vs C (today's fixtures)", a, c);
     }
 
-    // out/ holds build B (the build that read the database) when the script ends.
-    fs.rmSync(path.join(root, "out"), { recursive: true, force: true });
-    fs.cpSync(b.out, path.join(root, "out"), { recursive: true });
-
     const strictFailures = args.strict ? parity.orderOnly.length : 0;
     ok = parity.differing.length === 0 && strictFailures === 0 && !inlinedKey && !resetFailed;
     const noise = parity.orderOnly.length > 0 ? ` (${parity.orderOnly.length} of them differ in Flight row order only)` : "";
@@ -416,6 +439,11 @@ async function main(argv = process.argv.slice(2)) {
   } catch (error) {
     failed = error;
   } finally {
+    try {
+      finishOutput(root, { keep: args.keep, buildB: b });
+    } catch (error) {
+      failed ??= error;
+    }
     if (args.keep || failed) console.log(`\ntemporary folder kept: ${tmp}`);
     else fs.rmSync(tmp, { recursive: true, force: true });
   }

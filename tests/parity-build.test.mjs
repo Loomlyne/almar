@@ -3,7 +3,7 @@
 // themselves are run by hand (the summary holds their output).
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
@@ -14,6 +14,7 @@ import {
   digestTree,
   diffContext,
   findValues,
+  finishOutput,
   isBuildCache,
   livePublicEnv,
   parseArgs,
@@ -199,4 +200,45 @@ test("differsInFlightOrderOnly: html only, after the build id is replaced", () =
   assert.equal(differsInFlightOrderOnly(join(a, "i.js"), join(b, "i.js"), "i.js", "aa-bb", "cc-dd"), false);
   const c = tree({ "i.html": `<!--cc_dd-->${push('2:"y"\n1:"z"\n')}` });
   assert.equal(differsInFlightOrderOnly(join(a, "i.html"), join(c, "i.html"), "i.html", "aa-bb", "cc-dd"), false);
+});
+
+// Review fix (plan 03.2-02): a parity run never leaves a deployable-looking mix of builds in out/ and .open-next/.
+function fakeRun() {
+  const rootDir = mkdtempSync(join(tmpdir(), "almar-parity-finish-"));
+  for (const rel of ["out/index.html", ".open-next/worker.js", "buildB/out/index.html", ".next/BUILD_ID"]) {
+    mkdirSync(dirname(join(rootDir, rel)), { recursive: true });
+    writeFileSync(join(rootDir, rel), rel.startsWith("buildB") ? "build B" : "whatever was there");
+  }
+  return { rootDir, buildB: { out: join(rootDir, "buildB", "out") } };
+}
+
+test("finishOutput: without --keep, out/ and .open-next/ are removed, passed or failed, and nothing else", () => {
+  for (const buildB of ["passed", "failed"]) {
+    const run = fakeRun();
+    const lines = [];
+    const result = finishOutput(run.rootDir, { keep: false, buildB: buildB === "passed" ? run.buildB : null, log: (l) => lines.push(l) });
+    assert.equal(result, "removed");
+    assert.equal(existsSync(join(run.rootDir, "out")), false, `${buildB}: out/ removed`);
+    assert.equal(existsSync(join(run.rootDir, ".open-next")), false, `${buildB}: .open-next/ removed`);
+    assert.equal(existsSync(join(run.rootDir, ".next", "BUILD_ID")), true, "the build cache is not touched");
+    assert.match(lines.join("\n"), /removed out\/ and \.open-next\//);
+    rmSync(run.rootDir, { recursive: true, force: true });
+  }
+});
+
+test("finishOutput: --keep leaves both folders, out/ holds build B, and says re-assemble before deploy", () => {
+  const run = fakeRun();
+  const lines = [];
+  assert.equal(finishOutput(run.rootDir, { keep: true, buildB: run.buildB, log: (l) => lines.push(l) }), "kept");
+  assert.equal(readFileSync(join(run.rootDir, "out", "index.html"), "utf8"), "build B");
+  assert.equal(existsSync(join(run.rootDir, ".open-next", "worker.js")), true);
+  assert.match(lines.join("\n"), /re-assemble before deploy/);
+  rmSync(run.rootDir, { recursive: true, force: true });
+});
+
+test("main() calls finishOutput in its finally block (every run ends there)", () => {
+  const src = readFileSync("scripts/parity-build.mjs", "utf8");
+  const main = src.slice(src.indexOf("async function main("));
+  assert.ok(main.indexOf("finishOutput(root") > main.indexOf("} finally {"), "inside the finally block");
+  assert.doesNotMatch(main, /fs\.cpSync\(b\.out/, "out/ is no longer refilled outside finishOutput");
 });

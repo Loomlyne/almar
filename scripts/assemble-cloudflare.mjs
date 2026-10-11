@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { renderStaticNotFound } from "../lib/not-found-document.ts";
 import { LOCALES, isLocale, localePath, matchPublicPage, stripLocale } from "../lib/locale-path.ts";
 import { opsPathsFrom } from "../lib/ops-routes.ts";
+import { assertAnonKey } from "../lib/supabase/anon-key.ts";
 import { isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { assertPublicClean, assertTargetFiles, outDirNameFor, parseTarget, writeTargetFiles } from "./crawl-files.mjs";
 import { assertMediaReady } from "./media-guard.mjs";
@@ -271,10 +272,16 @@ export function assertNoServiceKey(env) {
  * removed, so a refused run leaves the previous output intact.
  *
  *   local            fixtures, unless ALMAR_DATA_SOURCE=supabase (the parity build uses both)
- *   preview, production, ops
+ *   preview, production
  *                    the database, always: ALMAR_DATA_SOURCE=fixtures, a typo, a missing NEXT_PUBLIC_SUPABASE_URL or
  *                    NEXT_PUBLIC_SUPABASE_ANON_KEY, and ALMAR_FIXTURE_DIR are refused, so an assembled build can never
  *                    silently ship fixture content for the catalogue (T-3.2-09).
+ *   ops              fixtures, always: out-ops/ ships no page HTML, so no catalogue page of this build is ever served, and
+ *                    the dashboard Worker reads the database at request time with its own secrets. It needs no public
+ *                    setting in the shell (the 03.2-04 ops build steps run without one); ALMAR_DATA_SOURCE=supabase, a
+ *                    typo and ALMAR_FIXTURE_DIR are refused.
+ *
+ * The database source also checks the anon key's value (lib/supabase/anon-key.ts): a secret key is refused.
  *
  * Returns "fixtures" | "supabase". Names only in every message, never a value (a data-source word is not a secret).
  */
@@ -284,6 +291,15 @@ export function dataSourceFor(target, env = process.env) {
     throw new Error(`ALMAR_DATA_SOURCE must be "fixtures" or "supabase" (got ${JSON.stringify(asked.slice(0, 40))})`);
   }
   const assembled = target !== "local";
+  if (target === "ops") {
+    if (asked === "supabase") {
+      throw new Error("--target=ops refuses ALMAR_DATA_SOURCE=supabase: the ops build ships no catalogue page and reads fixtures");
+    }
+    if (env.ALMAR_FIXTURE_DIR) {
+      throw new Error("--target=ops refuses ALMAR_FIXTURE_DIR: an assembled build reads the page blocks from lib/data/fixtures");
+    }
+    return "fixtures";
+  }
   if (assembled && asked === "fixtures") {
     throw new Error(`--target=${target} refuses ALMAR_DATA_SOURCE=fixtures: an assembled build reads the database only`);
   }
@@ -296,6 +312,7 @@ export function dataSourceFor(target, env = process.env) {
     if (missing.length > 0) {
       throw new Error(`the database source needs ${missing.join(" and ")} in the build shell (public values; names only, never printed)`);
     }
+    assertAnonKey("NEXT_PUBLIC_SUPABASE_ANON_KEY", String(env.NEXT_PUBLIC_SUPABASE_ANON_KEY).trim());
   }
   return source;
 }

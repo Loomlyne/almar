@@ -375,14 +375,33 @@ test("importing source.ts in supabase mode loads the views before any read; in f
 
 // image-translations in supabase mode -----------------------------------------------------------------------------
 
-test("image-translations in supabase mode: every database record plus fixture records of images the database does not know, never two for one (image_id, locale)", async () => {
+/** The ids of every image object ({ id, media_key }) inside a fixture value: the test's own copy of the rule. */
+const imageIdsIn = (value, into = new Set()) => {
+  if (Array.isArray(value)) value.forEach((v) => imageIdsIn(v, into));
+  else if (value && typeof value === "object") {
+    if (typeof value.id === "string" && typeof value.media_key === "string") into.add(value.id);
+    Object.values(value).forEach((v) => imageIdsIn(v, into));
+  }
+  return into;
+};
+
+test("image-translations in supabase mode: database records, plus fixture records only of the fixture-kept blocks' images the database does not know", async () => {
   const dir = mkdtempSync(join(tmpdir(), "almar-image-merge-"));
+  const img = (id) => ({ id, media_key: `blocks/${id}.webp`, width: 1, height: 1, position: 1 });
+  // A and B are block images (home, posts); T is a tier image inside home (tiers come from the database); C, S are not in
+  // any block (a stay's or catalogue item's picture).
+  writeFileSync(join(dir, "home.json"), JSON.stringify({ hero: { image: img("A") }, tiers: [{ id: "tier-1", image: img("T") }] }));
+  writeFileSync(join(dir, "about.json"), JSON.stringify({ hero: {} }));
+  writeFileSync(join(dir, "posts.json"), JSON.stringify([{ id: "post-1", cover_image: img("B") }]));
+  writeFileSync(join(dir, "destinations-page.json"), JSON.stringify({ hero: [] }));
   const fixtureRecords = [
     { image_id: "A", locale: "en", alt: "fixture A en", status: "published" },
     { image_id: "A", locale: "ar", alt: "fixture A ar", status: "published" },
     { image_id: "B", locale: "en", alt: "fixture B en", status: "published" },
     { image_id: "B", locale: "es", alt: "fixture B es", status: "draft" },
     { image_id: "C", locale: "en", alt: "fixture C en", status: "published" },
+    { image_id: "S", locale: "en", alt: "fixture S en", status: "published" },
+    { image_id: "T", locale: "en", alt: "fixture T en", status: "published" },
   ];
   writeFileSync(join(dir, "image-translations.json"), JSON.stringify(fixtureRecords));
   const database = [
@@ -402,10 +421,27 @@ test("image-translations in supabase mode: every database record plus fixture re
   });
 });
 
-test("image-translations in supabase mode: the real fixtures against an empty database keep every record once", async () => {
-  const { mod, result } = await loadedWith({ api_image_translations: [] });
+test("image-translations in supabase mode: the real fixtures add only the alts of home (without tiers), about, posts and destinations-page", async () => {
+  const database = [{ image_id: "database-only", locale: "en", alt: "x", status: "published" }];
+  const { mod, result } = await loadedWith({ api_image_translations: database });
   assert.equal(result, "ok");
-  await withEnv(SUPABASE_ENV, () => assert.deepEqual(mod.readSource("image-translations"), fixture("image-translations")));
+  const blocks = new Set();
+  imageIdsIn({ ...fixture("home"), tiers: undefined }, blocks);
+  for (const name of ["about", "posts", "destinations-page"]) imageIdsIn(fixture(name), blocks);
+  assert.ok(blocks.size > 0, "the fixture-kept blocks have images");
+  const expected = fixture("image-translations").filter((r) => blocks.has(r.image_id));
+  assert.ok(expected.length < fixture("image-translations").length, "some fixture alts belong to database content");
+  await withEnv(SUPABASE_ENV, () => assert.deepEqual(mod.readSource("image-translations"), [...database, ...expected]));
+  const stayImages = imageIdsIn(fixture("stays"));
+  await withEnv(SUPABASE_ENV, () =>
+    assert.equal(mod.readSource("image-translations").filter((r) => stayImages.has(r.image_id)).length, 0, "no fixture alt of a stay picture"),
+  );
+});
+
+test("image-translations in supabase mode: no database alt record while stays exist throws (never a silent fixture fall back)", async () => {
+  const { result } = await loadedWith({ api_image_translations: [] });
+  assert.ok(result instanceof Error);
+  assert.match(result.message, /api_image_translations: no alt texts while stays exist/);
 });
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -424,7 +460,11 @@ test("source.ts: anon client only, no cookies, no session, no service key, no ot
   assert.match(src, /autoRefreshToken:\s*false/);
   assert.match(src, /await import\("@supabase\/supabase-js"\)/);
   assert.equal(/^import .*@supabase\/supabase-js/m.test(src.replace(/import type[^\n]*\n/g, "")), false, "supabase-js is imported lazily, inside supabase mode only");
-  assert.deepEqual([...src.matchAll(/from "(\.[^"]*)"/g)].map((m) => m[1]), [], "source.ts imports no sibling module (resolve.ts imports it)");
+  assert.deepEqual(
+    [...src.matchAll(/from "(\.[^"]*)"/g)].map((m) => m[1]),
+    ["../supabase/anon-key"],
+    "source.ts imports no sibling module (resolve.ts imports it), only the pure anon-key check",
+  );
 });
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -442,7 +482,7 @@ test("dataSourceFor('local'): fixtures unless supabase is asked for, and then bo
   assert.throws(() => dataSourceFor("local", { ALMAR_DATA_SOURCE: "supabse" }), /ALMAR_DATA_SOURCE/);
 });
 
-for (const target of ["preview", "production", "ops"]) {
+for (const target of ["preview", "production"]) {
   test(`dataSourceFor('${target}'): the database only; refuses a missing public setting, fixtures, a typo and a fixture folder`, () => {
     assert.equal(dataSourceFor(target, { ...PUBLIC }), "supabase");
     assert.equal(dataSourceFor(target, { ...PUBLIC, ALMAR_DATA_SOURCE: "supabase" }), "supabase");
@@ -455,6 +495,16 @@ for (const target of ["preview", "production", "ops"]) {
     assert.throws(() => dataSourceFor(target, { ...PUBLIC, ALMAR_FIXTURE_DIR: "/somewhere/else" }), /ALMAR_FIXTURE_DIR/);
   });
 }
+
+test("dataSourceFor('ops'): fixtures always, no public setting needed (out-ops ships no catalogue page); refuses supabase, a typo and a fixture folder", () => {
+  assert.equal(dataSourceFor("ops", {}), "fixtures");
+  assert.equal(dataSourceFor("ops", { ...PUBLIC }), "fixtures");
+  assert.equal(dataSourceFor("ops", { ALMAR_DATA_SOURCE: "fixtures" }), "fixtures");
+  assert.equal(dataSourceFor("ops", { ALMAR_DATA_SOURCE: "" }), "fixtures");
+  assert.throws(() => dataSourceFor("ops", { ...PUBLIC, ALMAR_DATA_SOURCE: "supabase" }), /--target=ops refuses ALMAR_DATA_SOURCE=supabase/);
+  assert.throws(() => dataSourceFor("ops", { ALMAR_DATA_SOURCE: "supabse" }), /ALMAR_DATA_SOURCE/);
+  assert.throws(() => dataSourceFor("ops", { ALMAR_FIXTURE_DIR: "/somewhere/else" }), /ALMAR_FIXTURE_DIR/);
+});
 
 test("dataSourceFor names the setting and never prints a value", () => {
   const url = "https://value-that-must-not-appear.invalid";

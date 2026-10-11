@@ -19,6 +19,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { assertAnonKey } from "../supabase/anon-key";
 
 export type DataSourceMode = "fixtures" | "supabase";
 
@@ -119,16 +120,18 @@ let rows: Map<SourceName, unknown[]> | null = null;
 /**
  * The public project URL and anon key. In an assembled build the assembler hands them over as ALMAR_BUILD_SUPABASE_URL and
  * ALMAR_BUILD_SUPABASE_ANON_KEY (names Next does not inline; see nextBuildEnv in scripts/assemble-cloudflare.mjs); node
- * tests and `next dev` set NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY. Names only in every message, never values.
+ * tests and `next dev` set NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY. The key's value must be an anon key
+ * (lib/supabase/anon-key.ts). Names only in every message, never values.
  */
 function publicSettings(): { url: string; anonKey: string } {
   const url = (process.env.ALMAR_BUILD_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)?.trim();
-  const anonKey = (process.env.ALMAR_BUILD_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)?.trim();
+  const keyName = process.env.ALMAR_BUILD_SUPABASE_ANON_KEY ? "ALMAR_BUILD_SUPABASE_ANON_KEY" : "NEXT_PUBLIC_SUPABASE_ANON_KEY";
+  const anonKey = process.env[keyName]?.trim();
   const missing = [!url && "NEXT_PUBLIC_SUPABASE_URL", !anonKey && "NEXT_PUBLIC_SUPABASE_ANON_KEY"].filter(Boolean);
   if (missing.length > 0 || !url || !anonKey) {
     throw new Error(`ALMAR_DATA_SOURCE=supabase needs ${missing.join(" and ")} in the build environment`);
   }
-  return { url, anonKey };
+  return { url, anonKey: assertAnonKey(keyName, anonKey) };
 }
 
 // Why the build clears Next's fetch cache instead of this file asking for fresh reads (plan 03.2-02, Fable's review):
@@ -177,13 +180,44 @@ async function readView(client: ViewClient, name: SourceName): Promise<unknown[]
 
 type ImageAlt = { image_id: string; locale: string };
 
+/** The fixture files whose page blocks stay in fixtures in supabase mode (C-21); home's `tiers` come from the database. */
+const BLOCK_FIXTURES = ["home", "about", "posts", "destinations-page"] as const;
+
+/** The ids of every image (an object with a string `id` and `media_key`) inside `value`. */
+function collectImageIds(value: unknown, into: Set<string>): Set<string> {
+  if (Array.isArray(value)) {
+    for (const item of value) collectImageIds(item, into);
+  } else if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    if (typeof record.id === "string" && typeof record.media_key === "string") into.add(record.id);
+    for (const item of Object.values(record)) collectImageIds(item, into);
+  }
+  return into;
+}
+
+/** The images of the page blocks that stay in fixtures: their alt texts are the only ones fixtures may still supply. */
+function blockImageIds(): Set<string> {
+  const ids = new Set<string>();
+  for (const name of BLOCK_FIXTURES) {
+    const blocks = readFixtureFile<Record<string, unknown>>(name);
+    collectImageIds(name === "home" ? { ...blocks, tiers: undefined } : blocks, ids);
+  }
+  return ids;
+}
+
 /**
- * Alt texts in supabase mode: every database record, plus the fixture records of images the database has no record of
- * (the pictures of the page blocks that stay in fixtures, C-21), so one (image_id, locale) is never present twice.
+ * Alt texts in supabase mode: every database record, plus the fixture records of the images of the page blocks that stay
+ * in fixtures (BLOCK_FIXTURES) that the database has no record of, so one (image_id, locale) is never present twice. A
+ * fixture alt of a stay, destination, catalogue item, team member or tier never mixes into database content. No database
+ * record at all, while stays exist, is a broken read (the import writes every catalogue image's alts): it throws.
  */
 function mergeImageTranslations(database: ImageAlt[]): ImageAlt[] {
+  if (database.length === 0) {
+    throw new Error("api_image_translations: no alt texts while stays exist (an empty read never ships; the live site stays as it was)");
+  }
   const known = new Set(database.map((r) => r.image_id));
-  const fromFixtures = readFixtureFile<ImageAlt[]>("image-translations").filter((r) => !known.has(r.image_id));
+  const blocks = blockImageIds();
+  const fromFixtures = readFixtureFile<ImageAlt[]>("image-translations").filter((r) => blocks.has(r.image_id) && !known.has(r.image_id));
   return [...database, ...fromFixtures];
 }
 
