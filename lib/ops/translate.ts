@@ -24,6 +24,11 @@ export const TRANSLATE_LIMITS = { fields: 40, chars: 8000, items: 60 } as const;
 /** One call to the model: `input` is the request body below; it resolves to the model's raw reply. */
 export type AiRun = (input: unknown) => Promise<unknown>;
 
+/**
+ * The POST body. Field names are lowercase snake_case (`/^[a-z][a-z0-9_]{0,63}$/`, e.g. `short_line`): the 06/07/08
+ * screens send their column names as they are; anything else is 400 invalid. A value is a string, a list of strings,
+ * or null (null and empty values are skipped and come back absent).
+ */
 export type TranslateBody = { target: TranslateTarget; fields: Record<string, string | string[] | null> };
 export type TranslateOutcome = { ok: true; fields: TranslateFields } | { ok: false; code: "translate_limit" | "translate_failed" };
 
