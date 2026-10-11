@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-11 18:17 (+04):** `SUPABASE_SERVICE_ROLE_KEY` and `RESEND_API_KEY` set on `almar-ops` by the owner (his terminal, after renewing the ALMAR wrangler login); `wrangler secret list` shows both plus the two `NEXT_PUBLIC_SUPABASE_*`. `almar-ops` is now `1ef92954` (two Secret Change versions, rollback `08c248e9`, then `d7fdccd4`). Read live: `/sign-in` 200, `/api/ops/stays` 403. Not yet done: his owner sign-in on dashboard.almarprivatejourney.com, then runbook section 5 item 4.
+
 **2026-10-05 21:36 (+04):** Dependabot fix landed (`b3fc57f`, 0 open alerts); 03.2-04 owner API landed as `ce411d9`, live on `almar-ops` `08c248e9` (fails closed until the service-role and Resend keys); public `almar` `4cf66ade`. Next: 03.2-02 landing; 03.2-12 at his signature.
 
 **2026-10-05 19:45 (+04):** 04-02 (bookings database) landed as `6558388`; migration `20261005110000` live; Worker `almar` `4666edd0` (rollback `f36f9de4`). Holds stay closed until 04-03 and `BOOKING_LINK_SECRET`. Next: 03.2-04 landing, Dependabot fix, 03.2-02.
