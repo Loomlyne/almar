@@ -92,13 +92,12 @@ export async function handlePreferences(
 }
 
 /** The Supabase surface saveOwnPreferences uses (her session client in the route, a test client in the stack test). */
-type ProfilesClient = {
-  from: (table: "profiles") => {
-    update: (values: PreferenceFields) => {
-      eq: (column: "id", value: string) => { select: (columns: "id") => PromiseLike<{ data: unknown[] | null; error: unknown }> };
-    };
+export type ProfilesUpdate = {
+  update: (values: PreferenceFields) => {
+    eq: (column: "id", value: string) => { select: (columns: "id") => PromiseLike<{ data: unknown[] | null; error: unknown }> };
   };
 };
+type ProfilesClient = { from: (table: "profiles") => ProfilesUpdate };
 
 /** Writes `fields` to her own row only. True when exactly one row (hers) changed. */
 export async function saveOwnPreferences(client: ProfilesClient, userId: string, fields: PreferenceFields): Promise<boolean> {
