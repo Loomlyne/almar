@@ -120,8 +120,8 @@ test("opsPathsFrom: a section named like a server prefix stops the build", () =>
 
 // ---- the live-section gate --------------------------------------------------------------------------------------
 
-test("OPS_LIVE_SECTIONS is empty in this plan, so no section is live; the header name is fixed", () => {
-  assert.deepEqual([...OPS_LIVE_SECTIONS], []);
+test("OPS_LIVE_SECTIONS holds wired sections only (03.2-09: /content/media); unwired ones stay off; the header name is fixed", () => {
+  assert.ok(OPS_LIVE_SECTIONS.includes("/content/media"));
   assert.equal(isLiveOpsPath("/catalog/stays"), false);
   assert.equal(isLiveOpsPath("/"), false);
   assert.equal(OPS_PATH_HEADER, "x-almar-ops-path");

@@ -116,7 +116,7 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
     if (!context) throw new ImagePrepError("wrong_type");
     if (type === "image/jpeg") {
       // JPEG has no transparency: a transparent PNG would turn black.
-      context.fillStyle = "#ffffff";
+      context.fillStyle = "white";
       context.fillRect(0, 0, width, height);
     }
     context.drawImage(bitmap, 0, 0, width, height);
