@@ -1,5 +1,5 @@
 {
-  "model_profile": "balanced",
+  "model_profile": "adaptive",
   "commit_docs": true,
   "parallelization": true,
   "search_gitignored": false,
@@ -53,6 +53,5 @@
   "project_code": null,
   "phase_naming": "sequential",
   "agent_skills": {},
-  "claude_md_path": "./HERMES.md",
-  "resolve_model_ids": "omit"
+  "claude_md_path": "./HERMES.md"
 }

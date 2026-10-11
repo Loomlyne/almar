@@ -13,7 +13,7 @@ Rebuild the Framer HTML export into a live booking OS. Tokens and components fir
 
 - [x] **Phase 1: Design system** - Tokens, core components, RTL states, owner `/design` (completed 2026-09-23)
 - [ ] **Phase 2: Platform spine** - Supabase auth, host gate, locale/currency, no ops leak
-- [ ] **Phase 3: Public site and dashboard** - Public site and dashboard screens first; catalogue, connections, and calculations after
+- [x] **Phase 3: Public site and dashboard** - Public site and dashboard screens first; catalogue, connections, and calculations after (13/13 plans built 2026-09-27, landed in `9fd6786` 2026-10-02; catalogue criteria carried by 3.2)
 - [x] **Phase 3.1: Design system and journey bar** (INSERTED) - One token set, CSS per component, journey bar and booking components from the design canvas
 - [ ] **Phase 3.3: Public site in React** (INSERTED, reshaped 2026-10-02) - All 26 public pages in React on one fixture-backed data layer; the Framer bridge comes out
 - [ ] **Phase 3.2: Real catalog and team** (INSERTED, moved after Phase 2) - The data layer swaps fixtures for Supabase; dashboard Catalog and Team built already wired
@@ -74,7 +74,7 @@ Plans:
   3. Guest hitting `/ops` or ops APIs gets 404 / denied; dashboard host (when gated) does not serve marketing
   4. Same URLs for EN/AR/ES; header language + currency; AR is `dir=rtl`; dates DD/MM/YYYY, week Monday, Western numerals
 
-**Plans:** 1/10 plans executed
+**Plans:** 6/10 plans executed (02-09, 02-10 superseded; 02-05, 02-06 open)
 
 Plans:
 
@@ -84,23 +84,23 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-08: Server runtime on Worker almar, no deploy (wave 2) — Task 1 done 2026-09-26 (approved packages, Next 15.5.26); Task 2 and the summary open
+- [x] 02-08: Server runtime on Worker almar, no deploy (wave 2) — Task 1 2026-09-26 (Next 15.5.26); Task 2 replaced by job 10 (02-20..22), `7c4ae8d`, live 2026-10-05
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-02: Magic-link account, confirm, and account page (wave 3)
+- [x] 02-02: Magic-link account, confirm, and account page (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 02-03: Auth, account, and 404 in EN/AR/ES, with dates and Western numerals (wave 4)
+- [x] 02-03: Auth, account, and 404 in EN/AR/ES, with dates and Western numerals (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 02-04: Ops host sign-in, guest rejection, touchword handoff, logout-all (wave 5)
+- [x] 02-04: Ops host sign-in, guest rejection, touchword handoff, logout-all (wave 5)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 02-09: Same-URL string map on every Framer page (wave 6) — PAUSED 2026-09-28: Framer HTML is not patched further; React pages in 3.3 and 6 carry EN/AR/ES
+- [~] 02-09: SUPERSEDED (paused 2026-09-28; pages moved to 3.3). Same-URL string map on every Framer page (wave 6) — Framer HTML is not patched further; React pages in 3.3 and 6 carry EN/AR/ES
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
@@ -108,7 +108,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 02-10: Convert written prices on every priced page (wave 8) — PAUSED 2026-09-28: prices come from the catalog in 3.2/3.3, not Framer strings
+- [~] 02-10: SUPERSEDED (paused 2026-09-28; prices moved to 3.2). Convert written prices on every priced page (wave 8) — prices come from the catalog in 3.2/3.3, not Framer strings
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
@@ -116,7 +116,7 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 02-07: Owner applies the runtime and the ops host route, then wait (wave 10)
+- [x] 02-07: Owner applies the runtime and the ops host route, then wait (wave 10) — done 2026-10-05 via job 10, job 02 and Worker `almar-ops` (second Worker, not a route on `almar`)
 
 ### Phase 3: Public site and dashboard
 

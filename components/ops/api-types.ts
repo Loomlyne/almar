@@ -289,6 +289,22 @@ export type JourneyDetail = {
   updated_at: string;
 };
 
+// Write replies (03.2-04). Every save and delete answers `{ ok, id, affects_site }`; a reorder `{ ok, affects_site }`.
+// After 03.2-05 a reply whose affects_site is true also carries `site: SiteStatus`.
+export type WriteResult = { id: string; affects_site: boolean; site?: SiteStatus };
+export type ReorderResult = { affects_site: boolean; site?: SiteStatus };
+/** 5.4 add: overlapping_bookings is 0 until Phase 4 (plan 04-02); the screen shows the D-87 warning when above 0. */
+export type BlockAddResult = WriteResult & { overlapping_bookings: number };
+/** 5.3 set_base. */
+export type BaseRateResult = WriteResult & { stay_id: string; base_nightly_rate_aed: Aed | null };
+/** 5.4 GET. */
+export type BlocksView = { blocks: Block[] };
+/** 5.5 GET (and the save reply carries stay_id). */
+export type StayAccessView = { stay_id: string; access: StayAccess | null };
+/** The list and detail replies of 5.1, 5.2, 5.6, 5.7, 5.8. */
+export type ListReply<T> = { items: T[] };
+export type DetailReply<T> = { item: T };
+
 // 5.9 Publish
 export type PublishWarningCode = "no_base_rate" | "no_price";
 

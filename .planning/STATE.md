@@ -25,6 +25,16 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-11 20:25 (+04):** Building (controller-launched T3 threads, Opus 5.5 per Jev route `worker-deep`, each in its own worktree from origin/main `3a458c6`): 02-05 (`gsd/phase-02-p05`, thread `fe778a70`), 03.2-09 (`gsd/phase-3.2-p09`, `fcd6f2e1`, pictures first), 03.2-10 (`gsd/phase-3.2-p10`, `8b6fb962`, pictures first). Landing check of 03.2-02 running: clean clone `.claude/worktrees/check-p02` from GitHub, `archive/phase-3.2-p02` merged onto main; SC5 empty; Opus review running. 03.2-05 starts after 03.2-02 lands; 02-06 after 02-05.
+
+**2026-10-11 20:12 (+04):** Phase 4 run stopped (thread "Execute phase 04" replied "stopped" 20:11:32; process gone). Parked: leftover 04-04 files committed in the worktree as `491da9e` (WIP, tests not green, not reviewed); tag `archive/phase-04-book-and-pay` on GitHub. Worktree `phase-04-book-and-pay` stays untouched until the 3.2 list lands. Owner rule (20:11): the controller talks to work threads itself (`t3_thread_send`); he talks only to the controller.
+
+**2026-10-11 20:10 (+04):** New controller: T3 thread `8f8a7977-…` (hand-off `ed50750`). Read live 19:54: `almar` `4cf66ade`, `almar-preview` `407dae26`, `almar-ops` `1ef92954`; `main` = `origin/main`. Archive tags `archive/phase-3.2-p02` (`e9a96c9`) and `-p12` (`db1a2aa`) confirmed on GitHub. Owner (question form, 20:06): **stop the Phase 4 run now and park it** (`phase-04-book-and-pay`, local only, tip `e6eb266` plus uncommitted 04-04 Stripe files) until the 3.2 list has landed; archive it as `archive/phase-04-book-and-pay` once the run has stopped.
+
+**2026-10-11 18:17 (+04):** `SUPABASE_SERVICE_ROLE_KEY` and `RESEND_API_KEY` set on `almar-ops` by the owner (his terminal, after renewing the ALMAR wrangler login); `wrangler secret list` shows both plus the two `NEXT_PUBLIC_SUPABASE_*`. `almar-ops` is now `1ef92954` (two Secret Change versions, rollback `08c248e9`, then `d7fdccd4`). Read live: `/sign-in` 200, `/api/ops/stays` 403. Not yet done: his owner sign-in on dashboard.almarprivatejourney.com, then runbook section 5 item 4.
+
+**2026-10-05 21:36 (+04):** Dependabot fix landed (`b3fc57f`, 0 open alerts); 03.2-04 owner API landed as `ce411d9`, live on `almar-ops` `08c248e9` (fails closed until the service-role and Resend keys); public `almar` `4cf66ade`. Next: 03.2-02 landing; 03.2-12 at his signature.
+
 **2026-10-05 19:45 (+04):** 04-02 (bookings database) landed as `6558388`; migration `20261005110000` live; Worker `almar` `4666edd0` (rollback `f36f9de4`). Holds stay closed until 04-03 and `BOOKING_LINK_SECRET`. Next: 03.2-04 landing, Dependabot fix, 03.2-02.
 
 **2026-10-05 18:43 (+04):** 03.2-03 landed as `45a07e7`; Worker `almar` `f36f9de4` (rollback `3bec59e7`); Worker `almar-ops` live at dashboard.almarprivatejourney.com (`d7fdccd4`, sign-in fails closed until the service-role and Resend keys). 03.2-02 and 03.2-04 building; 04-02 in review fixes; 03.2-12 at his signature.

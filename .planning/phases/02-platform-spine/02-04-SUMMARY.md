@@ -25,3 +25,9 @@ Commit `e0be58a`. Owner answers B (reuse dashboard) and C (React header) applied
   it used in one statement and signs her in there. Referrer-Policy no-referrer.
 - Tests: `host-gate`, `auth-owner`, `host-gate.spec.ts`; phase-03 page-gate tests now assert the
   layout gate instead.
+
+## Landing on main (added 2026-10-11)
+
+- The commit named above sits on the cloud branch `claude/project-thread-8h6bed` and is not on `main`. The work was rebuilt and landed as one squash in job 02: `01d9304` (2026-10-05 14:40 +04), covering plans 02-02, 02-03, 02-04, 02-23 to 02-26.
+- Live: Worker `almar` `82569c44` (rollback `e1d0add8`), 2026-10-05 14:50 +04 per STATE. Six server paths open (/login, /auth/confirm, /auth/sign-out, /auth/handoff/start, /account, /bookings).
+- Ops host `dashboard.almarprivatejourney.com` is served by Worker `almar-ops` (plan 03.2-03, `45a07e7`, live 2026-10-05 18:43), `d7fdccd4` then `08c248e9`, `1ef92954` from 2026-10-11 18:17 with owner keys set. Owner signed in there 2026-10-11 18:30 (CONTROL-BOARD).

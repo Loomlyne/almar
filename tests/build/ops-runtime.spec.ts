@@ -53,7 +53,7 @@ const SECTIONS = opsPaths.filter(
 );
 
 // Not served on the ops host: marketing pages, the guest APIs, the held and test sections, the public Worker's sign-in
-// paths and the marketing host's handoff start, the owner's API routes that no plan has written yet, and near misses.
+// paths and the marketing host's handoff start, owner API paths that do not exist, and near misses.
 const MISSES = [
   "/about",
   "/private-stays",
@@ -74,8 +74,9 @@ const MISSES = [
   "/services",
   "/services/concierge",
   "/auth/handoff/start",
-  "/api/ops/stays",
-  "/api/ops/publish",
+  // The owner API routes exist since plan 03.2-04 (tests/build/ops-api.spec.ts); near misses of them stay 404.
+  "/api/ops/nope",
+  "/api/ops/stays/x",
   "/api/nope",
   "/sitemap.xml",
   "/nope",

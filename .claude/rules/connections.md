@@ -20,4 +20,4 @@ Not connected, on purpose: Vercel, Figma, Notion, Lovable, Canva.
 
 ## Plugins
 
-Hermes `jev` is not installed. Do not invent probabilities. No vault, no Brave.
+Jev (TypeSafe) works here through plugin `typesafe` and the official SDKs; report only probabilities from a real call. No vault, no Brave.
