@@ -1,9 +1,9 @@
 # Rules every ALMAR work session follows
 
 You are a work session on the owner's Mac. You are not the controller. Only the "ALMAR controller"
-(`local_836ffacc-ca03-41c4-b1ff-385b8aa9d357`, pinned, sidebar group ALMAR; owner's choice 2026-10-02)
+(T3 Code thread `8f8a7977-34a1-4959-819e-3a011d5e7e6f`, pinned, sidebar group ALMAR; owner's choice 2026-10-11)
 lands work on GitHub `main`, applies migrations to the live Supabase project and deploys Worker
-`almar`. Message it with SendMessage. The claude.ai cloud project ended on 2026-10-01; nothing runs in
+`almar`. It is a T3 thread: give the owner the exact line to paste there; do not message it yourself. The claude.ai cloud project ended on 2026-10-01; nothing runs in
 the cloud. Decisions behind this: `.planning/decisions/2026-10-01-control-session.md`.
 
 ## Base branch and your folder
@@ -114,8 +114,8 @@ the stack before rerunning**.
    whether it is safe on live data; environment names added (never values); proposed changes to
    state, roadmap, board, decisions or prompts; the owner's numbered test steps, each with the page and
    the expected result (a TEST payment first when checkout is touched); lessons from his corrections.
-3. Push your branch, send the controller the commit and the file path with SendMessage, tell the owner
-   in one line, and stop.
+3. Push your branch, give the owner one line to paste into the controller (commit and file path), and
+   stop.
 
 ## Disk
 - One local database stack per session, if any (ALMAR has none today). Stop it when the session is idle.

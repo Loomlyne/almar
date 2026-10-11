@@ -144,7 +144,7 @@ marked draft), and no secret value is ever written into chat or a file.
 
 Team model, his words ("make sure this is how you work as well as my previous orchestrator"): Opus 5.5 plans and
 lands; Sonnet 5.5 writes code in isolated worktrees; Fable 5.1 reviews every diff before it lands; mechanical calls
-go to a cheaper model (Haiku 4.5; Jev is Hermes-only and is not simulated).
+go to a cheaper model (Haiku 4.5; Jev (TypeSafe) takes typed routing and gate calls, real calls only).
 
 ## v1 backend, controller calls (2026-10-05 ~06:00 +04)
 

@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-11 20:10 (+04):** New controller: T3 thread `8f8a7977-…` (hand-off `ed50750`). Read live 19:54: `almar` `4cf66ade`, `almar-preview` `407dae26`, `almar-ops` `1ef92954`; `main` = `origin/main`. Archive tags `archive/phase-3.2-p02` (`e9a96c9`) and `-p12` (`db1a2aa`) confirmed on GitHub. Owner (question form, 20:06): **stop the Phase 4 run now and park it** (`phase-04-book-and-pay`, local only, tip `e6eb266` plus uncommitted 04-04 Stripe files) until the 3.2 list has landed; archive it as `archive/phase-04-book-and-pay` once the run has stopped.
+
 **2026-10-11 18:17 (+04):** `SUPABASE_SERVICE_ROLE_KEY` and `RESEND_API_KEY` set on `almar-ops` by the owner (his terminal, after renewing the ALMAR wrangler login); `wrangler secret list` shows both plus the two `NEXT_PUBLIC_SUPABASE_*`. `almar-ops` is now `1ef92954` (two Secret Change versions, rollback `08c248e9`, then `d7fdccd4`). Read live: `/sign-in` 200, `/api/ops/stays` 403. Not yet done: his owner sign-in on dashboard.almarprivatejourney.com, then runbook section 5 item 4.
 
 **2026-10-05 21:36 (+04):** Dependabot fix landed (`b3fc57f`, 0 open alerts); 03.2-04 owner API landed as `ce411d9`, live on `almar-ops` `08c248e9` (fails closed until the service-role and Resend keys); public `almar` `4cf66ade`. Next: 03.2-02 landing; 03.2-12 at his signature.
