@@ -9,10 +9,13 @@ import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { acquireStackLock, requireStack } from "./helpers/local-supabase.mjs";
 import { loadRoute } from "./helpers/load-route.mjs";
+import { installFakeStripe } from "./helpers/fake-stripe.mjs";
 
 const ORIGIN = "https://preview.almarprivatejourney.com";
 const SECRET = "route-test-secret-".padEnd(48, "r");
-const SAVED = { url: process.env.NEXT_PUBLIC_SUPABASE_URL, key: process.env.SUPABASE_SERVICE_ROLE_KEY, link: process.env.BOOKING_LINK_SECRET, stripe: process.env.STRIPE_SECRET_KEY };
+const SAVED = { url: process.env.NEXT_PUBLIC_SUPABASE_URL, key: process.env.SUPABASE_SERVICE_ROLE_KEY, link: process.env.BOOKING_LINK_SECRET, stripe: process.env.STRIPE_SECRET_KEY, publishable: process.env.STRIPE_PUBLISHABLE_KEY };
+const TEST_KEY = "sk_test_route_test_only_value";
+let fakeStripe = null; // plan 04-04: the hold route opens a Checkout Session; this answers for api.stripe.com only
 let state = null;
 let releaseStackLock = null; // the stack is shared with the other files of `node --test`: take turns
 
@@ -40,7 +43,9 @@ async function seed(t) {
   process.env.NEXT_PUBLIC_SUPABASE_URL = stack.url;
   process.env.SUPABASE_SERVICE_ROLE_KEY = stack.serviceKey;
   process.env.BOOKING_LINK_SECRET = SECRET;
-  delete process.env.STRIPE_SECRET_KEY;
+  process.env.STRIPE_SECRET_KEY = TEST_KEY;
+  process.env.STRIPE_PUBLISHABLE_KEY = "pk_test_route_test_only_value";
+  fakeStripe = installFakeStripe();
   const admin = createClient(stack.url, stack.serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   await waitReady(admin);
   const suffix = randomUUID().slice(0, 8);
@@ -61,7 +66,8 @@ async function seed(t) {
 }
 
 after(async () => {
-  for (const [name, value] of [["NEXT_PUBLIC_SUPABASE_URL", SAVED.url], ["SUPABASE_SERVICE_ROLE_KEY", SAVED.key], ["BOOKING_LINK_SECRET", SAVED.link], ["STRIPE_SECRET_KEY", SAVED.stripe]]) {
+  fakeStripe?.restore();
+  for (const [name, value] of [["NEXT_PUBLIC_SUPABASE_URL", SAVED.url], ["SUPABASE_SERVICE_ROLE_KEY", SAVED.key], ["BOOKING_LINK_SECRET", SAVED.link], ["STRIPE_SECRET_KEY", SAVED.stripe], ["STRIPE_PUBLISHABLE_KEY", SAVED.publishable]]) {
     if (value === undefined) delete process.env[name];
     else process.env[name] = value;
   }
@@ -162,7 +168,10 @@ test("hold route: 200 with the reference, the end of the hold and a signed link 
   if (!s) return;
   const guest = email();
   const body = await expectJson(await post(s.hold, holdBody(s, guest, { from: dubaiDay(2100), to: dubaiDay(2102) })), 200);
-  assert.deepEqual(Object.keys(body).sort(), ["breakdown", "holdExpiresAt", "linkToken", "ok", "ref"]);
+  assert.deepEqual(Object.keys(body).sort(), ["breakdown", "checkout", "holdExpiresAt", "linkToken", "ok", "ref"]);
+  assert.deepEqual(Object.keys(body.checkout).sort(), ["clientSecret", "publishableKey", "sessionId"]);
+  assert.equal(body.checkout.publishableKey, "pk_test_route_test_only_value");
+  assert.match(body.checkout.sessionId, /^cs_test_/);
   assert.match(body.ref, /^ALMAR-[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$/);
   assert.match(body.linkToken, /^[A-Za-z0-9_-]{43}$/);
   const row = await s.admin.from("bookings").select("id, status, is_test, hold_expires_at, email").eq("ref", body.ref).single();
@@ -215,7 +224,7 @@ test("hold route: 400 for a body that is not a hold, 409 for blocked or unknown 
   assert.deepEqual(statuses, [200, 200, 200, 200, 200, 429]);
 });
 
-test("hold route: 503 without the link secret, with a live Stripe key while the terms are the placeholder, and without the database; nothing is created", async (t) => {
+test("hold route: 503 without the link secret, with a live Stripe key while the terms are the placeholder, without a Stripe key and without the database; nothing is created", async (t) => {
   const s = await seed(t);
   if (!s) return;
   const count = async () => (await s.admin.from("bookings").select("id", { count: "exact", head: true }).eq("stay_id", s.ids.stay)).count;
@@ -232,7 +241,13 @@ test("hold route: 503 without the link secret, with a live Stripe key while the 
   try {
     assert.deepEqual(await expectJson(await post(s.hold, body), 503), { ok: false, reasons: [{ code: "unavailable" }] }, "live stays closed while the terms are a placeholder");
   } finally {
-    delete process.env.STRIPE_SECRET_KEY;
+    process.env.STRIPE_SECRET_KEY = TEST_KEY;
+  }
+  delete process.env.STRIPE_SECRET_KEY;
+  try {
+    assert.deepEqual(await expectJson(await post(s.hold, body), 503), { ok: false, reasons: [{ code: "unavailable" }] }, "no Stripe key: nothing is held");
+  } finally {
+    process.env.STRIPE_SECRET_KEY = TEST_KEY;
   }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   delete process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -241,13 +256,13 @@ test("hold route: 503 without the link secret, with a live Stripe key while the 
   } finally {
     process.env.NEXT_PUBLIC_SUPABASE_URL = url;
   }
-  assert.equal(await count(), before, "no booking was created by any of the three refusals");
+  assert.equal(await count(), before, "no booking was created by any of the four refusals");
 
   process.env.STRIPE_SECRET_KEY = "sk_test_not_a_real_key";
   try {
     assert.equal((await post(s.hold, body)).status, 200, "a test key is fine");
   } finally {
-    delete process.env.STRIPE_SECRET_KEY;
+    process.env.STRIPE_SECRET_KEY = TEST_KEY;
   }
 });
 

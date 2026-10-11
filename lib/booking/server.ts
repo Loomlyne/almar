@@ -11,7 +11,7 @@ import { daysBetween, dubaiToday, isIsoDate } from "../money/dates";
 import { authorizeBookingAccess } from "./access";
 import { bookingLinkConfigured, signBookingLink, verifyBookingLink } from "./link";
 import { isBookingRef } from "./ref";
-import { BOOKING_TERMS_IS_PLACEHOLDER, BOOKING_TERMS_VERSION } from "./terms";
+import { BOOKING_TERMS_VERSION } from "./terms";
 import type { AddOnOffering, BookingReason, HoldRequest, HoldResponse, PublicPriceSnapshot, QuoteRequest, QuoteResponse, StayCard } from "./types";
 import { needsPickupAddress } from "./validate";
 
@@ -157,15 +157,16 @@ function readContext(data: unknown): Context {
 
 // ---------------------------------------------------------------- the booking row behind a reference
 
-type BookingRow = { id: string; email: string; linkVersion: number };
+export type BookingRow = { id: string; email: string; linkVersion: number; status: string };
 
-async function bookingByRef(db: BookingDb, ref: string): Promise<BookingRow | null> {
+/** The booking behind a reference (`booking_by_ref`), or null. The reference alone grants nothing: see lib/booking/access.ts. */
+export async function bookingByRef(db: BookingDb, ref: string): Promise<BookingRow | null> {
   const data = await call(db, "booking_by_ref", { p_ref: ref });
   if (data === null || data === undefined) return null;
   if (!isObj(data) || typeof data.id !== "string" || typeof data.email !== "string" || typeof data.link_version !== "number" || !Number.isSafeInteger(data.link_version)) {
     throw new Error("rpc booking_by_ref: unreadable answer");
   }
-  return { id: data.id, email: data.email, linkVersion: data.link_version };
+  return { id: data.id, email: data.email, linkVersion: data.link_version, status: typeof data.status === "string" ? data.status : "" };
 }
 
 /** The id of the guest's own booking, only when the signed link for exactly that booking and version checks out. */
@@ -331,7 +332,7 @@ export type HoldContext = {
   now?: Date;
 };
 
-/** `bookingId` is for 04-04's Checkout Session and is never part of `response`. */
+/** `bookingId` is for the Checkout Session (lib/stripe/pay.ts) and is never part of `response`. */
 export type HoldOutcome = { response: HoldResponse; bookingId: string | null };
 
 const refuse = (reasons: BookingReason[]): HoldOutcome => ({ response: { ok: false, reasons }, bookingId: null });
@@ -444,15 +445,6 @@ export function holdStatus(response: HoldResponse): 200 | 400 | 409 | 429 | 503 
   return 409;
 }
 
-/**
- * TEST unless the Stripe secret key says live (`sk_live_`); a live key stays closed while the booking terms are the
- * placeholder (B-13: the owner's text does not exist yet). 04-04 moves this into lib/stripe/server.ts.
- */
-export function liveGate(stripeSecret: string | undefined, termsArePlaceholder: boolean = BOOKING_TERMS_IS_PLACEHOLDER): { isTest: boolean; open: boolean } {
-  const isTest = !(stripeSecret ?? "").trim().startsWith("sk_live_");
-  return { isTest, open: isTest || !termsArePlaceholder };
-}
-
 // ---------------------------------------------------------------- the release
 
 export type ReleaseDeps = { readSession?: () => Promise<{ email: string } | null> };
@@ -461,7 +453,7 @@ export type ReleaseResult = { ok: true; dropped: boolean; sessionIds: string[] }
 /**
  * The guest drops their own hold (B-16): the signed link, or, without a token, the signed-in guest whose email is the
  * booking's. Only a `held` booking is touched (the SQL decides): its nights are free at once and its open Checkout
- * Sessions come back for 04-04 to expire at Stripe. Any other status is `ok` with nothing dropped. Refused is `{ ok: false }`.
+ * Sessions come back for lib/stripe/pay.ts to expire at Stripe. Any other status is `ok` with nothing dropped. Refused is `{ ok: false }`.
  */
 export async function releaseWebHold(db: BookingDb, input: { ref: unknown; t?: unknown }, deps: ReleaseDeps = {}): Promise<ReleaseResult> {
   const access = await authorizeBookingAccess(input, {

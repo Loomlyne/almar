@@ -3,15 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 3.3 slice 1 wave 2 done (plan 07 merged 4969f63; R2 bucket almar-media and media.almarprivatejourney.com live with 117 images); next wave 3, plans 04-06"
-last_updated: "2026-10-03T15:28:00.000Z"
-last_activity: 2026-10-02
+last_updated: "2026-10-11T14:58:39.149Z"
+last_activity: 2026-10-11 -- Phase 04 execution started
 progress:
   total_phases: 9
   completed_phases: 3
-  total_plans: 58
-  completed_plans: 49
-  percent: 22
+  total_plans: 130
+  completed_plans: 103
+  percent: 33
 ---
 
 # Project State
@@ -21,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-22)
 
 **Core value:** A guest can complete a real trip booking (stay + add-ons + pay) and ops can run that booking and the public site from one branded system — no fake controls.
-**Current focus:** Phase 3.3 — all 26 public pages in React on one fixture-backed data layer (owner, 2026-10-02 13:30: finish the frontend, then connect the backend). Phase 2's auth chain is parked behind it
+**Current focus:** Phase 04 — book-and-pay
 
 ## Current Position
 
@@ -41,12 +40,13 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 **2026-10-05 11:21 (+04):** live Supabase "Almar" `jkdkaldgeiowkhlfmsft` ready for job 02: migration `20260925120000` applied and read back, owner user `maria@almarprivatejourney.com` (role owner), sign-ups off, three Supabase secrets on Worker `almar` (version `e1d0add8`). Missing: `RESEND_API_KEY` (owner). Job 02 merged with `main` at `11962cf`, landing check running.
 
-Phase: **3.3 (public site in React)** — reshaped and starting. Phases 1, 3 and 3.1 are complete; 3.1 landed as `9fd6786` and job 04 as `97005a0`, live as `b769e01a`.
+Phase: 04 (book-and-pay) — EXECUTING
+Plan: 1 of 7
 Execution order is no longer numeric: 1 → 3 → 3.1 → **3.3** → **2** → **3.2** → 4 → 5 → 6 (`ROADMAP.md`, Execution Order).
 Next: Phase 3.3 slice 1 — wave 3 merged 2026-10-03 20:59 (`84deec2`); money fix and integration fix, then wave 4 (plan 08), his local preview, and the slice Ship, which lands the media flip (runbook C8–C9). Jobs 07–09 (slices 2–4) design and plans in parallel, no code until slice 1 lands
 Open: the owner reviews each 3.3 slice on `preview.almarprivatejourney.com` — Worker `almar-preview` is one numbered Cloudflare step at job 06's hand-over.
-Last activity: 2026-10-02
-Status: job 05 landed as `2180b14` and deployed as `f9ba2378` (15:15 +04, his Ship and deploy word); live-verified in Chromium — the sentence is in the DOM but 0 visible nodes and absent from `innerText` at 390 and 1440 on 3 pages, both hosts byte-identical to the build, all 12 pages 200. Job 06's design is running for his signature. The footer Contact stopgap was dropped and archived as tag `archive/footer-contact-click`; the live footer Contact link still navigates to `/legal/privacy-policy` on a click until the React `/contact` page lands.
+Last activity: 2026-10-11 -- Phase 04 execution started
+Status: Executing Phase 04
 
 Progress: [██████████] 100% of 3.1 · 3.3 not started
 

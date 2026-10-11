@@ -85,7 +85,11 @@ function fakeStripe({ create, expire, retrieve } = {}) {
         },
       },
     },
-    paymentIntents: { async retrieve() { return { id: "pi_1", amount: 31500, currency: "aed", metadata: { amount_fils: "31500" }, latest_charge: null }; } },
+    paymentIntents: {
+      async retrieve() {
+        return { id: "pi_1", amount: 31500, currency: "aed", metadata: { amount_fils: "31500" }, latest_charge: { id: "ch_1", payment_method_details: { card: { brand: "visa", last4: "4242", wallet: null } } } };
+      },
+    },
     refunds: { async list() { return { data: [], has_more: false }; } },
   };
 }
@@ -387,11 +391,13 @@ test("pay: access is the signed link or the signed-in email; anything else is a 
   assert.equal(other.status, 404);
 });
 
+const LONG_HOLD = iso(NOW.getTime() + 2 * 60 * MIN);
+
 test("pay: the booking's status picks the kind: held and awaiting_payment pay their plan, deposit_paid and confirmed pay the balance", async () => {
   for (const [status, expected] of [["held", ["deposit", "full"]], ["awaiting_payment", ["deposit", "full"]], ["deposit_paid", ["balance"]], ["confirmed", ["balance"]]]) {
     const db = fakeDb({
       booking_by_ref: bookingRow(status),
-      open_payment: (args) => ({ data: expected.length === 2 && args.p_kind === "deposit" ? { ok: false, reason: "not_payable" } : open({ kind: args.p_kind }), error: null }),
+      open_payment: (args) => ({ data: expected.length === 2 && args.p_kind === "deposit" ? { ok: false, reason: "not_payable" } : open({ kind: args.p_kind, hold_expires_at: LONG_HOLD }), error: null }),
     });
     const out = await startPayment(payDeps(db, fakeStripe()), { ref: REF, t: TOKEN, termsAccepted: false });
     assert.equal(out.status, 200, status);
@@ -420,7 +426,7 @@ test("pay: nothing due and a hold that ended are 409 with their reason", async (
 });
 
 test("pay: terms are required for a booking that has none (hand-made) and the version is sent only when the guest accepted", async () => {
-  const script = (args) => ({ data: args.p_terms_version ? open() : { ok: false, reason: "terms_required" }, error: null });
+  const script = (args) => ({ data: args.p_terms_version ? open({ hold_expires_at: LONG_HOLD }) : { ok: false, reason: "terms_required" }, error: null });
   const db = fakeDb({ booking_by_ref: bookingRow("awaiting_payment"), open_payment: script });
   const refused = await startPayment(payDeps(db, fakeStripe()), { ref: REF, t: TOKEN, termsAccepted: false });
   assert.equal(refused.status, 400);

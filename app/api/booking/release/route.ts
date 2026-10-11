@@ -1,12 +1,13 @@
 // POST /api/booking/release { ref, t }: the guest drops their own hold (plan 04-02), for "Change" and the deposit/full
 // switch. The signed link token is the only key; a wrong token, an unknown reference and a malformed one all answer 404
 // with the same body. 200 { ok: true } also when the booking was no longer held. 400 for a body that is not a release
-// request; 403 for a foreign origin; 503 when the server cannot answer. 04-04 adds expiring the returned Checkout
-// Sessions at Stripe. Nothing is logged.
+// request; 403 for a foreign origin; 503 when the server cannot answer. The Checkout Sessions the release closed are
+// expired at Stripe too (plan 04-04); a Stripe failure changes nothing for the guest. Nothing is logged.
 import { readJsonBody } from "../../../../lib/booking/http";
 import { isAllowedPostOrigin } from "../../../../lib/booking/origin";
-import { releaseWebHold } from "../../../../lib/booking/server";
 import { parseReleaseRequest } from "../../../../lib/booking/validate";
+import { releaseAndExpire } from "../../../../lib/stripe/pay";
+import { stripeServer } from "../../../../lib/stripe/server";
 import { createSupabaseAdmin } from "../../../../lib/supabase/clients";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +29,7 @@ export async function POST(request: Request): Promise<Response> {
   const admin = createSupabaseAdmin();
   if (!admin) return reply({ ok: false, reasons: [{ code: "unavailable" }] }, 503);
   try {
-    const released = await releaseWebHold(admin, parsed.value);
+    const released = await releaseAndExpire(admin, stripeServer(), parsed.value);
     return released.ok ? reply({ ok: true }, 200) : reply({ ok: false }, 404);
   } catch {
     return reply({ ok: false, reasons: [{ code: "unavailable" }] }, 503);

@@ -4,6 +4,7 @@
 // (research Pitfall 2). The publishable key is returned to the browser in API answers only, never inlined in a build
 // (B-19: switching Stripe accounts is a secret change, not a rebuild).
 import Stripe from "stripe";
+import { BOOKING_TERMS_IS_PLACEHOLDER } from "../booking/terms";
 
 export type StripeMode = "test" | "live" | "none";
 
@@ -29,4 +30,13 @@ export function stripeServer(): Stripe | null {
 export function stripePublishableKey(): string | null {
   const key = (process.env.STRIPE_PUBLISHABLE_KEY ?? "").trim();
   return /^pk_(test|live)_/.test(key) ? key : null;
+}
+
+/**
+ * B-13: payments are open with a TEST key, and with a live key only once the booking terms are the owner's real text
+ * (not the placeholder). No key is closed. The hold and pay routes answer 503 while this is false.
+ */
+export function paymentsOpen(mode: StripeMode, termsArePlaceholder: boolean = BOOKING_TERMS_IS_PLACEHOLDER): boolean {
+  if (mode === "none") return false;
+  return mode === "test" || !termsArePlaceholder;
 }

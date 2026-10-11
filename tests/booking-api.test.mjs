@@ -329,7 +329,7 @@ test("access.ts takes its dependencies as arguments (no environment, no database
 process.env.BOOKING_LINK_SECRET = "test-secret-".padEnd(48, "x");
 const server = await loadTs("lib/booking/server.ts");
 const linkModule = await loadTs("lib/booking/link.ts");
-const { quoteBooking, priceQuote, createWebHold, releaseWebHold, snapshotRow, holdStatus, liveGate } = server;
+const { quoteBooking, priceQuote, createWebHold, releaseWebHold, snapshotRow, holdStatus } = server;
 const { signBookingLink } = linkModule;
 
 const NOW = new Date("2026-10-05T10:00:00Z"); // 14:00 in Dubai, so "today" is 2026-10-05
@@ -902,7 +902,7 @@ test("hold: a hold without the link secret is refused rather than answered witho
   }
 });
 
-// ---------------------------------------------------------------- holdStatus, liveGate
+// ---------------------------------------------------------------- holdStatus (the live gate moved to lib/stripe/server.ts in 04-04: paymentsOpen, tested in tests/stripe-checkout.test.mjs)
 
 test("holdStatus: the HTTP status of a hold answer", () => {
   assert.equal(holdStatus({ ok: true, ref: OWN_REF, holdExpiresAt: "x", linkToken: "y", breakdown: {} }), 200);
@@ -911,15 +911,6 @@ test("holdStatus: the HTTP status of a hold answer", () => {
   assert.equal(holdStatus({ ok: false, reasons: [{ code: "hold_limit" }] }), 429);
   assert.equal(holdStatus({ ok: false, reasons: [{ code: "invalid", field: "x" }] }), 400);
   assert.equal(holdStatus({ ok: false, reasons: [{ code: "unavailable" }] }), 503);
-});
-
-test("liveGate: Stripe is TEST unless the key says live, and live stays closed while the terms are a placeholder (B-13)", () => {
-  assert.deepEqual(liveGate(undefined, true), { isTest: true, open: true });
-  assert.deepEqual(liveGate("sk_test_abc", true), { isTest: true, open: true });
-  assert.deepEqual(liveGate("rk_live_abc", true), { isTest: true, open: true }, "only sk_live_ is live; anything else is TEST");
-  assert.deepEqual(liveGate("sk_live_abc", true), { isTest: false, open: false });
-  assert.deepEqual(liveGate("sk_live_abc", false), { isTest: false, open: true });
-  assert.deepEqual(liveGate("  sk_live_abc ", true), { isTest: false, open: false }, "a key with spaces is still read as live");
 });
 
 // ---------------------------------------------------------------- releaseWebHold
