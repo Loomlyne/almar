@@ -3,7 +3,9 @@
 import { useLayoutEffect, useState, type ReactNode } from "react";
 // The ops shell the owner sees (job 02). The scene frames every state in the preview shell, like the ops-kit scene.
 import { OpsShell } from "../../../app/dashboard/(ops)/ops-shell";
-import { MediaScreen, type AltDraft } from "../../../app/dashboard/(ops)/content/media/media-screen";
+import { MediaLibrary } from "../../../app/dashboard/(ops)/content/media/media-library";
+import { MediaScreen } from "../../../app/dashboard/(ops)/content/media/media-screen";
+import type { AltDraft } from "../../../components/ops/media-alt";
 import type { Locale3, MediaRef } from "../../../components/ops/api-types";
 import { MediaField, MediaListField } from "../../../components/ops/media-field";
 import { MediaPicker, type PickerLibrary } from "../../../components/ops/media-picker";
@@ -133,23 +135,21 @@ const LABEL: Record<Locale3, { hero: string; gallery: string; heading: string }>
 /** The screen the field lives on: a heading and the field, so the picture shows it in its place. */
 function FieldBehind({ locale }: { locale: Locale3 }) {
   const [photo, setPhoto] = useState<MediaRef | null>(null);
-  const library = useLibrary(null);
   return (
     <div className="flex max-w-dialog min-w-0 flex-col gap-6">
       <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{LABEL[locale].heading}</h1>
-      <MediaField id="media-behind" label={LABEL[locale].hero} value={photo} onChange={setPhoto} required locale={locale} library={library} />
+      <MediaField id="media-behind" label={LABEL[locale].hero} value={photo} onChange={setPhoto} required locale={locale} />
     </div>
   );
 }
 
 function FieldScene({ ctx, chosen }: { ctx: SceneContext; chosen: boolean }) {
   const [photo, setPhoto] = useState<MediaRef | null>(chosen ? ITEMS[0]! : null);
-  const library = useLibrary(null);
   return (
     <Frame locale={ctx.locale}>
       <div className="flex max-w-dialog min-w-0 flex-col gap-6">
         <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{LABEL[ctx.locale].heading}</h1>
-        <MediaField id="media-hero" label={LABEL[ctx.locale].hero} value={photo} onChange={setPhoto} required locale={ctx.locale} library={library} />
+        <MediaField id="media-hero" label={LABEL[ctx.locale].hero} value={photo} onChange={setPhoto} required locale={ctx.locale} />
       </div>
     </Frame>
   );
@@ -157,12 +157,11 @@ function FieldScene({ ctx, chosen }: { ctx: SceneContext; chosen: boolean }) {
 
 function GalleryScene({ ctx }: { ctx: SceneContext }) {
   const [photos, setPhotos] = useState<MediaRef[]>(ITEMS.slice(0, 4));
-  const library = useLibrary(null);
   return (
     <Frame locale={ctx.locale}>
       <div className="flex max-w-dialog min-w-0 flex-col gap-6">
         <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{LABEL[ctx.locale].heading}</h1>
-        <MediaListField id="media-gallery" label={LABEL[ctx.locale].gallery} value={photos} onChange={setPhotos} locale={ctx.locale} library={library} />
+        <MediaListField id="media-gallery" label={LABEL[ctx.locale].gallery} value={photos} onChange={setPhotos} locale={ctx.locale} />
       </div>
     </Frame>
   );
@@ -217,6 +216,30 @@ function LibraryScene({ ctx, panel }: { ctx: SceneContext; panel: boolean }) {
   );
 }
 
+/**
+ * The connected Media screen (MediaLibrary) as the page mounts it, for the behaviour tests: its requests are answered by
+ * page.route fixtures. The Translate slot gets a test button that calls the panel's handler with a fixed reply, standing
+ * in for 03.2-10's TranslateButton (not on main yet). Not one of the signed pictures.
+ */
+function LiveScene({ ctx }: { ctx: SceneContext }) {
+  return (
+    <Frame locale={ctx.locale}>
+      <MediaLibrary
+        slotOf={(apply) => (
+          <>
+            <button type="button" data-testid="fake-translate-ar" onClick={() => apply("ar", { alt: "[AR draft]" })}>
+              ar
+            </button>
+            <button type="button" data-testid="fake-translate-es" onClick={() => apply("es", { alt: ["[ES draft]"] })}>
+              es
+            </button>
+          </>
+        )}
+      />
+    </Frame>
+  );
+}
+
 export const scenes: Scenes = {
   "field-empty": (ctx) => <FieldScene ctx={ctx} chosen={false} />,
   "field-chosen": (ctx) => <FieldScene ctx={ctx} chosen />,
@@ -227,4 +250,5 @@ export const scenes: Scenes = {
   "picker-error-size": (ctx) => <PickerScene ctx={ctx} upload="size" />,
   library: (ctx) => <LibraryScene ctx={ctx} panel={false} />,
   "library-panel": (ctx) => <LibraryScene ctx={ctx} panel />,
+  "library-live": (ctx) => <LiveScene ctx={ctx} />,
 };

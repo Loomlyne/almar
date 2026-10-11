@@ -9,6 +9,7 @@ import { Field } from "../../../../../components/ui/field";
 import { PlusIcon } from "../../../../../components/icons/icons";
 import { EditPanel } from "../../../../../components/ops/edit-panel";
 import type { Locale3 } from "../../../../../components/ops/api-types";
+import { altStateOf, type AltDraft } from "../../../../../components/ops/media-alt";
 import { FileName, fileNameOf } from "../../../../../components/ops/media-picker";
 import { UPLOAD_TYPES, type MediaAltStatus, type MediaItem } from "../../../../../components/ops/media-types";
 import { OPS_KIT_COPY, fillCopy } from "../../../../../lib/copy/ops-kit";
@@ -16,11 +17,10 @@ import { OPS_MEDIA_COPY, type OpsMediaLocale } from "../../../../../lib/copy/ops
 
 const LOCALES: readonly Locale3[] = ["en", "ar", "es"];
 
-/** What the open photo's panel is editing: one alt text per language and the two "I checked" boxes. */
-export type AltDraft = {
-  alt: Record<Locale3, string>;
-  checked: { ar: boolean; es: boolean };
-};
+export type { AltDraft };
+
+/** A line under the heading: `info` is a plain status, `error` is read out as an alert. */
+export type ScreenNotice = { kind: "info" | "error"; text: string };
 
 function StatusChips({ item, locale }: { item: MediaItem; locale: OpsMediaLocale }) {
   const kit = OPS_KIT_COPY[locale];
@@ -63,6 +63,8 @@ export function MediaScreen({
   onSave,
   onDelete,
   translateSlot,
+  notice,
+  panelError,
 }: {
   locale: OpsMediaLocale;
   items: MediaItem[];
@@ -82,6 +84,10 @@ export function MediaScreen({
   onDelete: () => void;
   /** Where 03.2-10's Translate button goes (props fixed by its draft). */
   translateSlot?: ReactNode;
+  /** A line above the list, such as "The file stays in storage" after a delete. */
+  notice?: ScreenNotice | null;
+  /** A refusal shown in the open panel, such as "This photo is used, so it cannot be deleted." */
+  panelError?: string | null;
 }) {
   const copy = OPS_MEDIA_COPY[locale];
   const kit = OPS_KIT_COPY[locale];
@@ -89,11 +95,7 @@ export function MediaScreen({
   const [confirming, setConfirming] = useState(false);
   const open = items.find((item) => item.id === openId) ?? null;
 
-  function stateOf(code: Locale3): MediaAltStatus {
-    if (draft.alt[code].trim() === "") return "missing";
-    if (code === "en") return "published";
-    return draft.checked[code] ? "published" : "draft";
-  }
+  const stateOf = (code: Locale3): MediaAltStatus => altStateOf(draft, code);
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -117,6 +119,11 @@ export function MediaScreen({
           {copy.upload}
         </Button>
       </div>
+      {notice ? (
+        <p role={notice.kind === "error" ? "alert" : "status"} className={notice.kind === "error" ? "m-0 text-label text-error" : "m-0 text-label text-ink"}>
+          {notice.text}
+        </p>
+      ) : null}
       <Field
         id="media-search"
         label={copy.search}
@@ -192,6 +199,11 @@ export function MediaScreen({
                   {copy.deleteImage}
                 </Button>
               </div>
+              {panelError ? (
+                <p role="alert" className="m-0 text-label text-error">
+                  {panelError}
+                </p>
+              ) : null}
               <p id="media-delete-note" className="m-0 text-label text-muted">
                 {open.used_by > 0 ? copy.usedBlocksDelete : copy.staysInStorage}
               </p>
@@ -206,7 +218,8 @@ export function MediaScreen({
           <div className="flex min-w-0 flex-col gap-4">
             {LOCALES.map((code) => (
               <div key={code} className="flex min-w-0 flex-col gap-2">
-                {code === "ar" ? (
+                {/* 03.2-10: render <TranslateButton source={{ alt: draft.alt.en }} hasExisting onDrafts={applyAltDrafts} locale disabled> here (media-library.tsx passes it in). */}
+                {code === "ar" && translateSlot ? (
                   <div className="flex items-center gap-2">{translateSlot}</div>
                 ) : null}
                 <Field

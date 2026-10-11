@@ -46,7 +46,7 @@ export function sizeText(bytes: number, locale: OpsMediaLocale): string {
   }).format(bytes / (1024 * 1024));
 }
 
-/** What the picker needs from its owner. The picker holds no data and sends no request: Task 3 of 03.2-09 wires it. */
+/** What the picker needs from its owner. The picker holds no data and sends no request: use-media-library.ts supplies it. */
 export type PickerLibrary = {
   items: MediaItem[];
   query: string;
@@ -61,6 +61,8 @@ export type PickerLibrary = {
   onSubmitUpload: () => void;
   /** Back from the upload form to the library. */
   onCancelUpload: () => void;
+  /** Plain sentence when the list could not be read; null or absent when it could. */
+  listError?: string | null;
 };
 
 type PickerProps = PickerLibrary & {
@@ -72,6 +74,11 @@ type PickerProps = PickerLibrary & {
   selected: string[];
   onSelectedChange: (ids: string[]) => void;
   onChoose: (items: MediaItem[]) => void;
+  /**
+   * The Media screen's Upload: the dialog shows the upload form only (title "Upload", Close instead of the way back to
+   * the library) and renders nothing while `upload` is null.
+   */
+  uploadOnly?: boolean;
 };
 
 function Thumb({ item }: { item: MediaItem }) {
@@ -122,12 +129,17 @@ export function MediaPicker({
   onAltChange,
   onSubmitUpload,
   onCancelUpload,
+  listError,
+  uploadOnly,
 }: PickerProps) {
   const copy = OPS_MEDIA_COPY[locale];
   const base = useId();
   const fileInput = useRef<HTMLInputElement>(null);
   const wide = useWide();
-  const picked = items.filter((item) => selected.includes(item.id));
+  // A photo chosen under one search is still chosen after the next: keep every row seen while the picker is open.
+  const seen = useRef(new Map<string, MediaItem>());
+  for (const item of items) seen.current.set(item.id, item);
+  const picked = selected.flatMap((id) => seen.current.get(id) ?? []);
 
   function toggle(id: string, on: boolean) {
     if (!multiple) onSelectedChange(on ? [id] : []);
@@ -172,7 +184,7 @@ export function MediaPicker({
         {upload.phase === "uploading" ? copy.uploading : copy.upload}
       </Button>
       <Button variant="ghost" onClick={onCancelUpload}>
-        {copy.choosePhoto}
+        {uploadOnly ? copy.close : copy.choosePhoto}
       </Button>
     </>
   ) : (
@@ -254,8 +266,14 @@ export function MediaPicker({
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
       />
+      {listError ? (
+        <p role="alert" className="m-0 flex items-start gap-2 text-label text-error">
+          <AlertCircleIcon size={20} className="shrink-0" />
+          <span>{listError}</span>
+        </p>
+      ) : null}
       {items.length === 0 ? (
-        <p className="m-0 text-label text-muted">{copy.noMatch}</p>
+        listError ? null : <p className="m-0 text-label text-muted">{copy.noMatch}</p>
       ) : (
         <ul
           aria-label={copy.media}
@@ -313,11 +331,13 @@ export function MediaPicker({
     </div>
   );
 
+  if (uploadOnly && !upload) return null;
+
   return (
     <Dialog
       open={open}
-      onOpenChange={onOpenChange}
-      title={multiple ? copy.addPhotos : copy.choosePhoto}
+      onOpenChange={uploadOnly ? (next) => (next ? onOpenChange(true) : onCancelUpload()) : onOpenChange}
+      title={uploadOnly ? copy.upload : multiple ? copy.addPhotos : copy.choosePhoto}
       closeLabel={copy.close}
       size={wide ? "wide" : "full"}
       footer={

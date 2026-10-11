@@ -33,7 +33,7 @@ export const OPS_PATH_HEADER = "x-almar-ops-path";
  * section, such as "/catalog/stays", in the commit that wires it; a section lists everything under it too. The owner's
  * Home is "/" in the browser and "/home" once rewritten: wiring it lists both.
  */
-export const OPS_LIVE_SECTIONS: readonly string[] = [];
+export const OPS_LIVE_SECTIONS: readonly string[] = ["/content/media"];
 
 /**
  * True when `path` is, or sits under, a live section. The path is the browser's (`/catalog/stays`) or the rewrite

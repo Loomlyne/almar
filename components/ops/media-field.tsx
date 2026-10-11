@@ -6,7 +6,8 @@ import { CameraIcon } from "../icons/icons";
 import { OPS_MEDIA_COPY, type OpsMediaLocale } from "../../lib/copy/ops-media";
 import { OPS_KIT_COPY } from "../../lib/copy/ops-kit";
 import type { MediaRef } from "./api-types";
-import { FileName, MediaPicker, fileNameOf, type PickerLibrary } from "./media-picker";
+import { FileName, MediaPicker, fileNameOf } from "./media-picker";
+import { useMediaLibrary } from "./use-media-library";
 
 function Thumb({ photo }: { photo: MediaRef }) {
   return (
@@ -33,8 +34,8 @@ function PhotoText({ photo }: { photo: MediaRef }) {
 }
 
 /**
- * The one photo control of every dashboard screen (one photo): choose from the library or upload. `library` is the
- * picker's data and handlers; 03.2-09 Task 3 replaces it with the real client, the visible props stay.
+ * The one photo control of every dashboard screen (one photo): choose from the library or upload. It reads the library
+ * and sends the upload itself (use-media-library.ts), only while the picker is open.
  */
 export function MediaField({
   id,
@@ -43,7 +44,6 @@ export function MediaField({
   onChange,
   required,
   locale,
-  library,
 }: {
   id: string;
   label: string;
@@ -51,11 +51,12 @@ export function MediaField({
   onChange: (next: MediaRef | null) => void;
   required?: boolean;
   locale: OpsMediaLocale;
-  library: PickerLibrary;
 }) {
   const copy = OPS_MEDIA_COPY[locale];
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  // A photo just uploaded is the one selected: Choose then returns it.
+  const { library } = useMediaLibrary({ enabled: open, locale, onUploaded: (item) => setSelected([item.id]) });
 
   return (
     <div className="flex min-w-0 flex-col gap-2">
@@ -96,13 +97,17 @@ export function MediaField({
       <MediaPicker
         {...library}
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={(next) => {
+          if (!next) library.onCancelUpload();
+          setOpen(next);
+        }}
         locale={locale}
         multiple={false}
         selected={selected}
         onSelectedChange={setSelected}
         onChoose={(items) => {
           if (items[0]) onChange(items[0]);
+          library.onCancelUpload();
           setOpen(false);
           document.getElementById(id)?.focus();
         }}
@@ -118,19 +123,18 @@ export function MediaListField({
   value,
   onChange,
   locale,
-  library,
 }: {
   id: string;
   label: string;
   value: MediaRef[];
   onChange: (next: MediaRef[]) => void;
   locale: OpsMediaLocale;
-  library: PickerLibrary;
 }) {
   const copy = OPS_MEDIA_COPY[locale];
   const kit = OPS_KIT_COPY[locale];
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const { library } = useMediaLibrary({ enabled: open, locale, onUploaded: (item) => setSelected((ids) => [...ids, item.id]) });
 
   function move(at: number, by: -1 | 1) {
     const to = at + by;
@@ -188,7 +192,10 @@ export function MediaListField({
       <MediaPicker
         {...library}
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={(next) => {
+          if (!next) library.onCancelUpload();
+          setOpen(next);
+        }}
         locale={locale}
         multiple
         selected={selected}
@@ -196,6 +203,7 @@ export function MediaListField({
         onChoose={(items) => {
           const have = new Set(value.map((photo) => photo.id));
           onChange([...value, ...items.filter((item) => !have.has(item.id))]);
+          library.onCancelUpload();
           setOpen(false);
           document.getElementById(id)?.focus();
         }}
