@@ -85,6 +85,7 @@ test("ops rail keeps every route and the Catalog group is a disclosure", () => {
     "/dashboard/home", "/dashboard/bookings", "/dashboard/customers", "/dashboard/calendar",
     "/dashboard/catalog/destinations", "/dashboard/catalog/stays", "/dashboard/catalog/experiences", "/dashboard/catalog/packages",
     "/dashboard/content/pages", "/dashboard/content/blog", "/dashboard/content/team", "/dashboard/content/legal",
+    "/dashboard/content/media",
     "/dashboard/settings", "/dashboard/profile",
   ]) {
     assert.equal(text.includes(`"${href}"`), true, href);

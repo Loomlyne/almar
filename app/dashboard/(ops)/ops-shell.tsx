@@ -9,10 +9,12 @@ import { Sidebar } from "../../../components/ui/sidebar";
 import { ConfirmDialog } from "../../../components/ui/confirm-dialog";
 import { signOutEverywhere } from "../actions";
 import { DASHBOARD_COPY, type DashboardCopy } from "../../../lib/copy/dashboard";
+import { OPS_MEDIA_COPY } from "../../../lib/copy/ops-media";
 import { isDocumentLocale, setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
 import charcoalLogo from "../../../brand/Logo Typography/Stacked_Charcoal.svg";
 
-type RailKey = keyof DashboardCopy["rail"];
+// "media" takes its label from the Media screen's own copy (plan 03.2-09), so the shared dashboard copy is not edited.
+type RailKey = keyof DashboardCopy["rail"] | "media";
 type RailLink = { key: RailKey; label: string; href: string };
 type RailGroup = { key: RailKey; label: string; children: RailLink[] };
 type RailItem = RailLink | RailGroup;
@@ -40,6 +42,7 @@ const RAIL: RailItem[] = [
       { key: "blog", label: "Blog", href: "/dashboard/content/blog" },
       { key: "team", label: "Team", href: "/dashboard/content/team" },
       { key: "legal", label: "Legal", href: "/dashboard/content/legal" },
+      { key: "media", label: "Media", href: "/dashboard/content/media" },
     ],
   },
   { key: "settings", label: "Settings", href: "/dashboard/settings" },
@@ -94,6 +97,7 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
   const [compact, setCompact] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const copy = DASHBOARD_COPY[locale];
+  const railLabel = (key: RailKey) => (key === "media" ? OPS_MEDIA_COPY[locale].media : copy.rail[key]);
 
   useEffect(() => {
     const next = readLocale();
@@ -185,7 +189,7 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
         aria-current={current ? "page" : undefined}
         onClick={() => setMenuOpen(false)}
       >
-        {copy.rail[item.key]}
+        {railLabel(item.key)}
       </Link>
     );
   }
@@ -202,7 +206,7 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
             aria-controls={subId}
             onClick={() => setCatalogOpen((value) => !value)}
           >
-            <span>{copy.rail[item.key]}</span>
+            <span>{railLabel(item.key)}</span>
             <ChevronIcon
               size={16}
               className={cn("shrink-0 text-teal rtl:-scale-x-100", catalogOpen ? "-rotate-90" : "rotate-90")}
@@ -211,7 +215,7 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
           <div
             id={subId}
             role="group"
-            aria-label={copy.rail[item.key]}
+            aria-label={railLabel(item.key)}
             className={cn("ms-4 flex-col border-s border-line", catalogOpen ? "flex" : "hidden")}
           >
             {item.children.map((child) => renderLink(child, true))}
@@ -222,7 +226,7 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
     return (
       <div className="flex flex-col" key={item.key}>
         <p className="m-0 flex min-h-control items-center px-2 text-caption uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">
-          {copy.rail[item.key]}
+          {railLabel(item.key)}
         </p>
         <div className="ms-4 flex flex-col border-s border-line">{item.children.map((child) => renderLink(child, true))}</div>
       </div>

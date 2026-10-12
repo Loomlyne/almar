@@ -157,9 +157,9 @@ test("the (ops) layout renders a section's page only when isLiveOpsPath says so,
   assert.equal((layout.match(/\? children : null/g) ?? []).length, 1, "and behind the live-section gate on the ops host, nowhere else");
 });
 
-test("no ops section is live in this plan: OPS_LIVE_SECTIONS is empty, so the owner sees Not ready everywhere", async () => {
+test("live sections are only the wired ones (03.2-09 adds /content/media); the rest show Not ready", async () => {
   const { OPS_LIVE_SECTIONS, isLiveOpsPath } = await import("../lib/ops-routes.ts");
-  assert.deepEqual([...OPS_LIVE_SECTIONS], []);
+  assert.ok(OPS_LIVE_SECTIONS.includes("/content/media"));
   for (const path of ["/", "/home", "/bookings", "/catalog/stays", "/dashboard/settings"]) assert.equal(isLiveOpsPath(path), false, path);
 });
 
