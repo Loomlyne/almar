@@ -254,7 +254,8 @@ export async function checkLanguage(page: Page, locale: Locale, path: string, wi
     await page.getByRole("option", { name: LANGUAGE_NAMES[target] }).click();
     expect((await landed).status()).toBe(200);
     expect(new URL(page.url()).pathname).toBe(expected);
-    expect(await htmlAttr(page, "lang")).toBe(target);
+    // The response can land before the new document commits (documentElement is briefly null): retry on the locator.
+    await expect(page.locator("html")).toHaveAttribute("lang", target);
   }
   expect(statuses.filter((s) => s >= 300 && s < 400), "no redirect on any language change").toEqual([]);
   expect(watched.problems).toEqual([]);

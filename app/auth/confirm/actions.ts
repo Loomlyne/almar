@@ -4,6 +4,8 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { authSigningKey, createSupabaseAdmin, createSupabaseServer } from "../../../lib/supabase/clients";
 import { returnCookieName, returnCookieOptions, safeReturnPath } from "../../../lib/auth/rules";
+import { SIGNED_IN_HINT_COOKIE, isFirstSignIn, localizedReturnPath, signedInHintOptions } from "../../../lib/account-preferences";
+import { followAccount } from "../../../lib/account-follow";
 import { checkContinue, isConfirmType, linkNonceCookieName } from "../../../lib/auth/continue";
 import { isTokenHashShape, limiterHash, visitorIpKey } from "../../../lib/auth/limit";
 import { SHELL_HEADER } from "../../../lib/host";
@@ -56,11 +58,27 @@ export async function confirmSignIn(_previous: ConfirmState, form: FormData): Pr
   if (verdict === "closed") redirect(expired);
   if (verdict === "wrong-email") return { status: "wrong-email", email: email.slice(0, 254) };
 
-  const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+  const { data: verified, error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
   if (!error) {
     // Not delete(): its Set-Cookie has no Secure, and a __Host- cookie is only cleared by one that has it.
     store.set(returnCookieName(), "", returnCookieOptions(0));
-    redirect(back);
+    const ops = list.get(SHELL_HEADER) === "ops";
+    // Plan 02-05: the readable "signed in" hint ("1", nothing secret) lets a public pick post to /api/preferences;
+    // without it the browser sends nothing. The ops host has no public pages, so it gets none.
+    if (!ops) store.set(SIGNED_IN_HINT_COOKIE, "1", signedInHintOptions(process.env.NODE_ENV === "production"));
+    // Plan 02-05: her saved language and currency follow her into this browser (lib/account-follow.ts).
+    const locale = await followAccount({
+      client: supabase,
+      userId: verified.user?.id,
+      firstSignIn: isFirstSignIn(verified.user),
+      readCookie: (name) => store.get(name)?.value,
+      setCookie: (name, value, options) => store.set(name, value, options),
+      ops,
+      now: Date.now(),
+      production: process.env.NODE_ENV === "production",
+    });
+    // The ops host has no /ar or /es pages: its return path is never localised.
+    redirect(locale && !ops ? localizedReturnPath(back, locale) : back);
   }
   redirect(expired);
 }
