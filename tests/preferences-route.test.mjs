@@ -228,3 +228,23 @@ test("source guard: callers fire and forget; login and account selects do not ca
   const provider = readFileSync("components/pages/home/currency-choice.tsx", "utf8");
   assert.match(provider, /postPreferences\(\{ currency: checked \}\)/);
 });
+
+test("source guard: the sign-in sets the hint to \"1\" on the public host only; both sign-outs clear it", () => {
+  const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  const confirm = strip(readFileSync("app/auth/confirm/actions.ts", "utf8"));
+  assert.match(confirm, /if \(!ops\) store\.set\(SIGNED_IN_HINT_COOKIE, "1", signedInHintOptions\(process\.env\.NODE_ENV === "production"\)\);/);
+  assert.ok(confirm.indexOf("verifyOtp(") < confirm.indexOf("SIGNED_IN_HINT_COOKIE, \"1\""), "set only after a successful verifyOtp");
+  assert.equal((confirm.match(/SIGNED_IN_HINT_COOKIE, "/g) ?? []).length, 1, "the only value ever written is 1");
+  const signOut = strip(readFileSync("app/auth/sign-out/route.ts", "utf8"));
+  assert.match(signOut, /response\.cookies\.set\(SIGNED_IN_HINT_COOKIE, "", signedInHintOptions\([^)]*, 0\)\)/);
+  const everywhere = strip(readFileSync("app/dashboard/actions.ts", "utf8"));
+  const body = everywhere.slice(everywhere.indexOf("export async function signOutEverywhere"));
+  assert.match(body, /\.set\(SIGNED_IN_HINT_COOKIE, "", signedInHintOptions\([^)]*, 0\)\)/);
+});
+
+test("source guard: postPreferences sends nothing without the hint, before any fetch", () => {
+  const sync = readFileSync("components/site/account-sync.ts", "utf8");
+  const fn = sync.slice(sync.indexOf("export function postPreferences"));
+  assert.ok(fn.indexOf("if (!hasSignedInHint()) return;") >= 0);
+  assert.ok(fn.indexOf("if (!hasSignedInHint()) return;") < fn.indexOf("fetch("));
+});

@@ -17,6 +17,19 @@ export type PreferenceFields = { locale?: Locale; currency?: AccountCurrency };
 export const PREFS_SYNC_COOKIE = "almar-prefs-sync";
 export const PREFS_SYNC_MAX_AGE = 600;
 
+/**
+ * A readable hint that this browser signed in (value "1", nothing secret: the session cookie itself is HttpOnly).
+ * Set by the confirm action on the public host, cleared by both sign-outs. Without it a public pick sends no request,
+ * so a signed-out visitor costs no Worker call and logs nothing. A stale hint (session expired) only gets a 204.
+ */
+export const SIGNED_IN_HINT_COOKIE = "almar-signed-in";
+/** The @supabase/ssr session cookie's own lifetime (400 days), so the hint never outlives a fresh session by much. */
+export const SIGNED_IN_HINT_MAX_AGE = 400 * 24 * 60 * 60;
+
+export function signedInHintOptions(production: boolean, maxAge: number = SIGNED_IN_HINT_MAX_AGE) {
+  return { path: "/", maxAge, sameSite: "lax" as const, secure: production, httpOnly: false };
+}
+
 /** A profile row created this recently was created by this very confirmation: a new account. */
 export const NEW_ACCOUNT_WINDOW_MS = 15 * 60 * 1000;
 

@@ -94,7 +94,7 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(FOLDER === "out-preview").toBe(IS_PREVIEW);
     expect(existsSync(join(FOLDER, "index.html"))).toBe(true);
     expect(JSON.parse(readFileSync(".open-next/almar-server-routes.json", "utf8"))).toEqual(
-      ["/api/booking/hold", "/api/booking/quote", "/api/booking/release", "/api/health", ...[...JOB02_SERVER_PATHS].sort()].sort(),
+      ["/api/booking/hold", "/api/booking/quote", "/api/booking/release", "/api/health", "/api/preferences", ...[...JOB02_SERVER_PATHS].sort()].sort(),
     );
   });
 

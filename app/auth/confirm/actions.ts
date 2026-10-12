@@ -4,7 +4,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { authSigningKey, createSupabaseAdmin, createSupabaseServer } from "../../../lib/supabase/clients";
 import { returnCookieName, returnCookieOptions, safeReturnPath } from "../../../lib/auth/rules";
-import { isFirstSignIn, localizedReturnPath } from "../../../lib/account-preferences";
+import { SIGNED_IN_HINT_COOKIE, isFirstSignIn, localizedReturnPath, signedInHintOptions } from "../../../lib/account-preferences";
 import { followAccount } from "../../../lib/account-follow";
 import { checkContinue, isConfirmType, linkNonceCookieName } from "../../../lib/auth/continue";
 import { isTokenHashShape, limiterHash, visitorIpKey } from "../../../lib/auth/limit";
@@ -63,6 +63,9 @@ export async function confirmSignIn(_previous: ConfirmState, form: FormData): Pr
     // Not delete(): its Set-Cookie has no Secure, and a __Host- cookie is only cleared by one that has it.
     store.set(returnCookieName(), "", returnCookieOptions(0));
     const ops = list.get(SHELL_HEADER) === "ops";
+    // Plan 02-05: the readable "signed in" hint ("1", nothing secret) lets a public pick post to /api/preferences;
+    // without it the browser sends nothing. The ops host has no public pages, so it gets none.
+    if (!ops) store.set(SIGNED_IN_HINT_COOKIE, "1", signedInHintOptions(process.env.NODE_ENV === "production"));
     // Plan 02-05: her saved language and currency follow her into this browser (lib/account-follow.ts).
     const locale = await followAccount({
       client: supabase,

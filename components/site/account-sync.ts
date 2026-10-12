@@ -4,6 +4,7 @@
 
 import {
   PREFS_SYNC_COOKIE,
+  SIGNED_IN_HINT_COOKIE,
   parseAccountCurrency,
   parseSyncValue,
   type AccountCurrency,
@@ -12,12 +13,23 @@ import {
 } from "../../lib/account-preferences";
 import { CURRENCY_CHOICE_KEY } from "../../lib/currency-choice";
 
+/** True when the sign-in left its readable hint (value "1"). Without it a pick stays in this browser. */
+export function hasSignedInHint(): boolean {
+  try {
+    return new RegExp(`(?:^|;\\s*)${SIGNED_IN_HINT_COOKIE}=1(?:;|$)`).test(document.cookie);
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Fire-and-forget POST /api/preferences. The server writes only when she is signed in (else 204). `keepalive` lets it
+ * Fire-and-forget POST /api/preferences, only when the sign-in hint is present: a signed-out visitor sends nothing.
+ * The server still writes only for a real session (a stale hint gets a 204). `keepalive` lets it
  * finish while a language pick navigates away; `same-origin` referrer policy keeps a real Origin header on it even if
  * a page sets `no-referrer`. Never awaited by a caller.
  */
 export function postPreferences(fields: PreferenceFields): void {
+  if (!hasSignedInHint()) return;
   try {
     void fetch("/api/preferences", {
       method: "POST",

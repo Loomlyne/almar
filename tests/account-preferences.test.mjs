@@ -65,3 +65,9 @@ test("localizedReturnPath never turns a path into another origin", () => {
     }
   }
 });
+
+test("the signed-in hint: value-free name, readable by the page, lax, Secure in production, cleared with Max-Age 0", () => {
+  assert.equal(p.SIGNED_IN_HINT_COOKIE, "almar-signed-in");
+  assert.deepEqual(p.signedInHintOptions(true), { path: "/", maxAge: 400 * 24 * 60 * 60, sameSite: "lax", secure: true, httpOnly: false });
+  assert.deepEqual(p.signedInHintOptions(false, 0), { path: "/", maxAge: 0, sameSite: "lax", secure: false, httpOnly: false });
+});
