@@ -6,6 +6,7 @@
 // copy (lib/copy/about-page.ts), not data.
 
 import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { loadSource } from "./source";
 import type { AboutBlocks, AboutCard, Locale } from "./types";
 
 type CardBase = {
@@ -59,6 +60,7 @@ function cardsFor(section: AboutCard["section"], locale: Locale): AboutCard[] {
 }
 
 export async function getAboutBlocks(locale: Locale): Promise<AboutBlocks> {
+  await loadSource(); // the blocks stay fixtures (C-21); their pictures' alt texts come from the shared source
   const a = about();
   const t = aboutT();
   const hero = block(t.hero, locale);

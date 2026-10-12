@@ -47,3 +47,21 @@ test("Supabase storage is never called", () => {
   const hits = ALL.filter((path) => /\.storage\b|storage\.from\(/.test(readFileSync(path, "utf8")));
   assert.deepEqual(hits, []);
 });
+
+// Plan 03.2-02 (threat T-3.2-10): the build reads the catalogue with the anon key only, through lib/data.
+const stripComments = (text) => text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "").replace(/\s\/\/ .*$/gm, "");
+
+test("lib/data never imports lib/supabase/clients and never names a service key", () => {
+  const dataFiles = ALL.filter((path) => path.startsWith(join("lib", "data") + "/"));
+  assert.ok(dataFiles.some((path) => path.endsWith("source.ts")), "the scan covers lib/data/source.ts");
+  const hits = dataFiles.filter((path) =>
+    /supabase\/clients|createSupabaseServer|createSupabaseAdmin|SERVICE_ROLE|service[_-]role/i.test(stripComments(readFileSync(path, "utf8"))),
+  );
+  assert.deepEqual(hits, []);
+});
+
+test("the assembler names no service-role variable: it refuses one by pattern, so the key name stays in two files", () => {
+  const src = readFileSync(join("scripts", "assemble-cloudflare.mjs"), "utf8");
+  assert.equal(src.includes("SUPABASE_SERVICE_ROLE_KEY"), false);
+  assert.match(src, /SERVICE_ROLE/);
+});

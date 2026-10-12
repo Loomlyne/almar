@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { renderStaticNotFound } from "../lib/not-found-document.ts";
 import { LOCALES, isLocale, localePath, matchPublicPage, stripLocale } from "../lib/locale-path.ts";
 import { opsPathsFrom } from "../lib/ops-routes.ts";
+import { assertAnonKey } from "../lib/data/anon-key.ts";
 import { isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { assertPublicClean, assertTargetFiles, outDirNameFor, parseTarget, writeTargetFiles } from "./crawl-files.mjs";
 import { assertMediaReady } from "./media-guard.mjs";
@@ -186,17 +187,134 @@ export function assertNoBundledEnv(file) {
 }
 
 /**
+ * The only NEXT_PUBLIC_* names the SHELL may hold when it runs the assembler (plan 03.2-02): the project's public URL and
+ * its public (anon) key. The catalogue is read through them at build time (lib/data/source.ts, anon key, published views
+ * only, C-04). Supabase says both are public by design.
+ *
+ * They never reach Next. `nextBuildEnv` removes them from the environment of `opennextjs-cloudflare build` and hands the
+ * values to the data layer under other names (BUILD_HANDOVER_ENV), which Next does not inline. Measured: with
+ * NEXT_PUBLIC_SUPABASE_URL set in the Next build's environment Next writes its value as a string into the middleware,
+ * the auth pages and the OpenNext Worker bundles, which then ignore the Worker's secret at request time; and
+ * `almar-preview`, which holds no secret on purpose (fail closed), would carry the project's address. So job 10's rule
+ * stays whole for Next (no NEXT_PUBLIC_* in the Next build) and every Worker still reads its Worker secrets at request time.
+ */
+export const BUILD_PUBLIC_ENV = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+
+/** The names under which the data layer receives the two public values during the build (read by lib/data/source.ts). */
+export const BUILD_HANDOVER_ENV = {
+  NEXT_PUBLIC_SUPABASE_URL: "ALMAR_BUILD_SUPABASE_URL",
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "ALMAR_BUILD_SUPABASE_ANON_KEY",
+};
+
+/**
+ * The environment of the OpenNext / Next build: the shell's, without any NEXT_PUBLIC_* and without a stale hand-over
+ * name, plus ALMAR_DATA_SOURCE and, for the database source, the two public values under their hand-over names.
+ */
+export function nextBuildEnv(env, source) {
+  const handover = new Set(Object.values(BUILD_HANDOVER_ENV));
+  const out = {};
+  for (const [name, value] of Object.entries(env)) {
+    if (name.startsWith("NEXT_PUBLIC_") || handover.has(name)) continue;
+    out[name] = value;
+  }
+  if (source === "supabase") {
+    for (const [from, to] of Object.entries(BUILD_HANDOVER_ENV)) out[to] = String(env[from] ?? "").trim();
+  }
+  out.ALMAR_DATA_SOURCE = source;
+  out.WRANGLER_SEND_METRICS = "false";
+  return out;
+}
+
+/**
+ * Next 15 stores the result of every `fetch` of a build in <root>/.next/cache/fetch-cache with revalidate 31536000 (a
+ * year). The data layer reads the api_* views through supabase-js, which uses fetch, so a later build in the same checkout
+ * finds those entries and rebuilds the OLD catalogue: a title changed in the database kept its old text (proved on the
+ * local stack by tests/rebuild-fresh.test.mjs). Deleted before every build; only this folder, the webpack cache beside it
+ * keeps builds fast and deterministic. Not fixable in the data layer (see lib/data/source.ts). Safe to call when the
+ * folder does not exist.
+ */
+export function clearFetchCache(rootDir) {
+  fs.rmSync(path.join(rootDir, ".next", "cache", "fetch-cache"), { recursive: true, force: true });
+}
+
+/**
  * Job 10 review: assertNoBundledEnv only sees the project's .env files. The build also inherits the shell it runs in,
- * and Next inlines every NEXT_PUBLIC_* value it finds there into the browser bundle. No such variable may be set.
+ * and Next inlines every NEXT_PUBLIC_* value it finds there into the bundles that name it. Since plan 03.2-02 the shell
+ * may hold exactly two such names (BUILD_PUBLIC_ENV, which nextBuildEnv keeps away from Next); any other NEXT_PUBLIC_*
+ * may not be set.
  * Only the names are reported, never the values. `env` is process.env in the build, a plain object in the test.
  */
 export function assertNoPublicEnv(env) {
   const names = Object.keys(env)
-    .filter((name) => name.startsWith("NEXT_PUBLIC_"))
+    .filter((name) => name.startsWith("NEXT_PUBLIC_") && !BUILD_PUBLIC_ENV.includes(name))
     .sort();
   if (names.length > 0) {
     throw new Error(`NEXT_PUBLIC_* in the build shell would be inlined into the browser bundle: ${names.join(", ")}`);
   }
+}
+
+/**
+ * Plan 03.2-02 (threat T-3.2-10): the build reads the public views with the anon key and nothing else. A service-role
+ * variable in the build shell is refused before anything runs, whatever its value, so it can never reach `next build`,
+ * the OpenNext bundle or a Worker. Names only; an empty variable is ignored.
+ */
+export function assertNoServiceKey(env) {
+  const names = Object.keys(env)
+    .filter((name) => /SERVICE_ROLE/i.test(name) && String(env[name] ?? "").trim() !== "")
+    .sort();
+  if (names.length > 0) {
+    throw new Error(`a service-role key in the build shell may never reach a build: unset ${names.join(", ")}`);
+  }
+}
+
+/**
+ * Plan 03.2-02: where the public pages read the catalogue (lib/data/source.ts). Decided before anything is built or
+ * removed, so a refused run leaves the previous output intact.
+ *
+ *   local            fixtures, unless ALMAR_DATA_SOURCE=supabase (the parity build uses both)
+ *   preview, production
+ *                    the database, always: ALMAR_DATA_SOURCE=fixtures, a typo, a missing NEXT_PUBLIC_SUPABASE_URL or
+ *                    NEXT_PUBLIC_SUPABASE_ANON_KEY, and ALMAR_FIXTURE_DIR are refused, so an assembled build can never
+ *                    silently ship fixture content for the catalogue (T-3.2-09).
+ *   ops              fixtures, always: out-ops/ ships no page HTML, so no catalogue page of this build is ever served, and
+ *                    the dashboard Worker reads the database at request time with its own secrets. It needs no public
+ *                    setting in the shell (the 03.2-04 ops build steps run without one); ALMAR_DATA_SOURCE=supabase, a
+ *                    typo and ALMAR_FIXTURE_DIR are refused.
+ *
+ * The database source also checks the anon key's value (lib/data/anon-key.ts): a secret key is refused.
+ *
+ * Returns "fixtures" | "supabase". Names only in every message, never a value (a data-source word is not a secret).
+ */
+export function dataSourceFor(target, env = process.env) {
+  const asked = env.ALMAR_DATA_SOURCE === undefined || env.ALMAR_DATA_SOURCE === "" ? null : env.ALMAR_DATA_SOURCE;
+  if (asked !== null && asked !== "fixtures" && asked !== "supabase") {
+    throw new Error(`ALMAR_DATA_SOURCE must be "fixtures" or "supabase" (got ${JSON.stringify(asked.slice(0, 40))})`);
+  }
+  const assembled = target !== "local";
+  if (target === "ops") {
+    if (asked === "supabase") {
+      throw new Error("--target=ops refuses ALMAR_DATA_SOURCE=supabase: the ops build ships no catalogue page and reads fixtures");
+    }
+    if (env.ALMAR_FIXTURE_DIR) {
+      throw new Error("--target=ops refuses ALMAR_FIXTURE_DIR: an assembled build reads the page blocks from lib/data/fixtures");
+    }
+    return "fixtures";
+  }
+  if (assembled && asked === "fixtures") {
+    throw new Error(`--target=${target} refuses ALMAR_DATA_SOURCE=fixtures: an assembled build reads the database only`);
+  }
+  if (assembled && env.ALMAR_FIXTURE_DIR) {
+    throw new Error(`--target=${target} refuses ALMAR_FIXTURE_DIR: an assembled build reads the page blocks from lib/data/fixtures`);
+  }
+  const source = assembled || asked === "supabase" ? "supabase" : "fixtures";
+  if (source === "supabase") {
+    const missing = BUILD_PUBLIC_ENV.filter((name) => !String(env[name] ?? "").trim());
+    if (missing.length > 0) {
+      throw new Error(`the database source needs ${missing.join(" and ")} in the build shell (public values; names only, never printed)`);
+    }
+    assertAnonKey("NEXT_PUBLIC_SUPABASE_ANON_KEY", String(env.NEXT_PUBLIC_SUPABASE_ANON_KEY).trim());
+  }
+  return source;
 }
 
 /**
@@ -265,20 +383,24 @@ function assertBuiltWorkerSize(config) {
  */
 function main(argv = process.argv.slice(2)) {
   const target = parseTarget(argv);
-  // 03.2-02 adds dataSourceFor(target) here: the catalogue source check, before anything is built or removed.
-  // Before anything is built or removed, like the target check above.
+  // Before anything is built or removed, like the target check above: what the shell may hold, and where the pages read
+  // the catalogue from (plan 03.2-02).
   assertNoPublicEnv(process.env);
+  assertNoServiceKey(process.env);
+  const source = dataSourceFor(target);
   process.chdir(root);
   assertPublicClean(root);
   // Before the build and before any folder is wiped: a refused run leaves the previous output intact.
   if (target !== "local") assertMediaReady();
+  // Every build reads the database again: Next's fetch cache would serve the rows of an earlier build (clearFetchCache).
+  clearFetchCache(root);
   // Job 10: OpenNext runs the project's `next build` (standalone) and bundles the server into .open-next/. The
   // prerendered pages below come from that same build, so the static folder and the Worker script always match.
   const config = target === "preview" ? "wrangler.preview.toml" : target === "ops" ? "wrangler.ops.toml" : "wrangler.toml";
   execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
     cwd: root,
     stdio: "inherit",
-    env: { ...process.env, WRANGLER_SEND_METRICS: "false" },
+    env: nextBuildEnv(process.env, source),
   });
   assertNoBundledEnv(path.join(root, ".open-next/cloudflare/next-env.mjs"));
   const folder = outDirNameFor(target);

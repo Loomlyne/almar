@@ -7,7 +7,8 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildImportPayload, checkApplyTarget, formatReport, PAYLOAD_TABLES } from "../scripts/import-catalog.mjs";
-import { acquireStackLock, localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
+import { acquireStackLock, localStack, requireStack, runSql } from "./helpers/local-supabase.mjs";
+import { resetAndWait } from "./helpers/import-local.mjs";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
 const manifest = JSON.parse(readFileSync("lib/data/media-manifest.json", "utf8"));
@@ -270,19 +271,28 @@ async function readView(stack, view) {
 
 let importedLocally = false;
 let releaseStackLock = null;
-after(() => {
-  // The pgTAP files expect an empty catalogue: leave the local database as the migrations make it.
-  if (importedLocally && localStack()) resetLocal();
-  releaseStackLock?.();
+after(async () => {
+  // The pgTAP files expect an empty catalogue: leave the local database as the migrations make it, and wait until PostgREST
+  // serves it again (the next file to take the lock must not meet a stale schema cache).
+  try {
+    if (importedLocally && localStack()) {
+      const reset = await resetAndWait();
+      assert.equal(reset.code, 0, `the final local reset failed (the pgTAP files expect an empty catalogue): ${reset.output.slice(-1000)}`);
+    }
+  } finally {
+    releaseStackLock?.();
+  }
 });
 
 test("local stack: --apply --local imports, the public views return the fixtures, a second run writes nothing", { timeout: 600000 }, async (t) => {
+  // The booking tests (plan 04-02) and tests/data-parity.test.mjs (plan 03.2-02) write to the same stack: take turns
+  // (node --test runs the files in parallel). The lock is taken BEFORE the stack is looked for: `supabase status` fails
+  // while another file resets the database, and localStack() remembers a failure for the rest of the process.
+  releaseStackLock = await acquireStackLock();
   const stack = requireStack(t);
   if (!stack) return;
-  // The booking tests (plan 04-02) write to the same stack: take turns (node --test runs the files in parallel).
-  releaseStackLock = await acquireStackLock();
   const existing = runSql("select count(*)::int as n from public.destinations").rows[0]?.n;
-  if (existing !== 0) resetLocal();
+  if (existing !== 0) assert.equal((await resetAndWait()).code, 0, "reset of the local stack");
   importedLocally = true;
 
   const env = { SUPABASE_URL: stack.url, SUPABASE_SERVICE_ROLE_KEY: stack.serviceKey };

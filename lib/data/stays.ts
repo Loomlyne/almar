@@ -1,11 +1,12 @@
 // lib/data/stays.ts
 //
-// Server only: reads the fixtures at build time. Phase 3.2 swaps readFixture for a Supabase query here;
-// every field of StayFilter then becomes a `where` clause and no component changes.
+// Server only: reads through ./source at build time (the JSON fixtures, or the Supabase api_stays views when the build
+// is assembled, plan 03.2-02). Every exported read starts with `await loadSource()`; no component changes.
 
 import { amenityIcon } from "./amenity-icon";
 import { filterStays } from "./stay-filter";
-import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { image, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { loadSource, readSource } from "./source";
 import type { IsoDate, Locale, Stay, StayFilter } from "./types";
 
 export type { StayFilter };
@@ -51,20 +52,20 @@ type StayTranslation = {
 };
 
 function published(): StayBase[] {
-  return readFixture<StayBase[]>("stays")
+  return readSource<StayBase[]>("stays")
     .filter((s) => s.is_published)
     .sort((a, b) => a.position - b.position);
 }
 
 function resolveStay(base: StayBase, locale: Locale): Stay {
-  const own = readFixture<StayTranslation[]>("stay-translations").filter((t) => t.stay_id === base.id);
+  const own = readSource<StayTranslation[]>("stay-translations").filter((t) => t.stay_id === base.id);
   const row = resolveRow(base, own, locale);
   // The destination's name is joined in the stay's own locale, so the locked bar reads in one language.
-  const dest = readFixture<Array<{ id: string; slug: string }>>("destinations").find(
+  const dest = readSource<Array<{ id: string; slug: string }>>("destinations").find(
     (d) => d.id === base.destination_id,
   );
   if (!dest) throw new Error(`stay ${base.slug}: unknown destination ${base.destination_id}`);
-  const destT = readFixture<Array<{ destination_id: string; locale: Locale; name: string }>>(
+  const destT = readSource<Array<{ destination_id: string; locale: Locale; name: string }>>(
     "destination-translations",
   ).filter((t) => t.destination_id === dest.id);
   const destName = (destT.find((t) => t.locale === locale) ?? destT.find((t) => t.locale === "en"))?.name ?? dest.slug;
@@ -87,6 +88,7 @@ function resolveStay(base: StayBase, locale: Locale): Stay {
 }
 
 export async function getStays(locale: Locale, filter?: StayFilter): Promise<Stay[]> {
+  await loadSource();
   return filterStays(
     published().map((b) => resolveStay(b, locale)),
     filter,
@@ -94,12 +96,14 @@ export async function getStays(locale: Locale, filter?: StayFilter): Promise<Sta
 }
 
 export async function getStay(locale: Locale, slug: string): Promise<Stay | null> {
+  await loadSource();
   const base = published().find((s) => s.slug === slug);
   return base ? resolveStay(base, locale) : null;
 }
 
 /** No locale: slugs do not translate. For generateStaticParams. Published stays only. */
 export async function getStaySlugs(): Promise<string[]> {
+  await loadSource();
   return published().map((s) => s.slug);
 }
 
@@ -112,6 +116,7 @@ export async function getRelatedStays(
   slug: string,
   opts?: { limit?: number },
 ): Promise<Stay[]> {
+  await loadSource();
   const limit = opts?.limit ?? 3;
   const all = published();
   const self = all.find((s) => s.slug === slug);
@@ -121,8 +126,14 @@ export async function getRelatedStays(
   return others.slice(0, limit).map((b) => resolveStay(b, locale));
 }
 
-/** D-63. Read through the data layer so Phase 3.2 can move it to a bookings join with no page change. */
+/**
+ * D-63. Read through the data layer so a later phase can move it to a bookings join with no page change. In an
+ * assembled build this is the ops-blocked days of the api_stays view at BUILD time: a hint the booking bar shows,
+ * never the truth. Phase 4 re-checks availability live through /api/* (C-04); a day freed or blocked after the last
+ * rebuild is only corrected there.
+ */
 export async function getBlockedDates(slug: string): Promise<IsoDate[]> {
+  await loadSource();
   const base = published().find((s) => s.slug === slug);
   return base ? [...base.blocked_dates].sort() : [];
 }

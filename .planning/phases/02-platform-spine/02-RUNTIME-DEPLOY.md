@@ -25,7 +25,13 @@ login), never `opennextjs-cloudflare deploy`, never an `npm run` deploy (there i
 
 ## 1. Preview, only on the owner's word for the preview deploy
 
-1. `node scripts/assemble-cloudflare.mjs --target=preview`
+1. Build shell first (plan 03.2-02): the assembled targets read the catalogue from the database, so the shell holds exactly two public
+   names, `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the live project's URL and anon key;
+   public values, never printed). No other `NEXT_PUBLIC_*`, and no service-role variable (`env | grep -ci service_role`
+   must print `0`): the assembler refuses a missing name, any other `NEXT_PUBLIC_*` and a service-role variable before it
+   builds anything. It does not pass the two names on to Next (it hands the values to the data layer as
+   `ALMAR_BUILD_SUPABASE_*`), so nothing is inlined and the Workers still read their Worker secrets at request time.
+   Then run `node scripts/assemble-cloudflare.mjs --target=preview`.
    Expected last line: `assembled 57 html files into out-preview/ (target: preview) … server paths: /api/health;
    Worker N KiB gzip` (the page count grows as slices land). The assembler has already bundled the Worker with a
    dry run and refused to finish above 2,560 KiB gzipped (`scripts/worker-size.mjs`); N was 1,644 on 2026-10-05.
@@ -80,7 +86,13 @@ login), never `opennextjs-cloudflare deploy`, never an `npm run` deploy (there i
 
 ## 3. Production, only on the owner's separate word for production
 
-1. `node scripts/assemble-cloudflare.mjs --target=production`
+1. Build shell first (plan 03.2-02): the assembled targets read the catalogue from the database, so the shell holds exactly two public
+   names, `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the live project's URL and anon key;
+   public values, never printed). No other `NEXT_PUBLIC_*`, and no service-role variable (`env | grep -ci service_role`
+   must print `0`): the assembler refuses a missing name, any other `NEXT_PUBLIC_*` and a service-role variable before it
+   builds anything. It does not pass the two names on to Next (it hands the values to the data layer as
+   `ALMAR_BUILD_SUPABASE_*`), so nothing is inlined and the Workers still read their Worker secrets at request time.
+   Then run `node scripts/assemble-cloudflare.mjs --target=production`.
 2. The same "what will run" check as 1.2 (`git status --short` empty; the routes file as expected), then the size
    check:
 
