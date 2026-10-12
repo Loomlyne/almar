@@ -438,9 +438,9 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-const EXPECTED_ROUTES = ["blocks", "catalog", "destinations", "journeys", "publish", "stay-access", "stay-rates", "stays", "team"];
+const EXPECTED_ROUTES = ["blocks", "catalog", "destinations", "journeys", "publish", "stay-access", "stay-rates", "stays", "team", "translate"];
 
-test("source guard: every file under app/api/ops is a route.ts built with the wrapper; nine routes; no dynamic segment", () => {
+test("source guard: every file under app/api/ops is a route.ts built with the wrapper; ten routes; no dynamic segment", () => {
   const files = walk(join("app", "api", "ops")).sort();
   const names = files.map((f) => f.split("/").slice(3, -1).join("/"));
   for (const name of EXPECTED_ROUTES) assert.ok(names.includes(name), `app/api/ops/${name}/route.ts`);

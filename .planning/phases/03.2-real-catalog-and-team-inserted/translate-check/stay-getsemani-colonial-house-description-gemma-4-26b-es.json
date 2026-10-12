@@ -1,0 +1,101 @@
+{
+  "http_status": 200,
+  "model": "@cf/google/gemma-4-26b-a4b-it",
+  "target": "es",
+  "request": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You translate website text for ALMAR, a private luxury travel company in Colombia, from English into Latin American Spanish, Colombian usage.\nWrite in a calm, refined luxury-travel register: natural, precise, never salesy, never literal word for word.\nKeep these names exactly as written, in Latin letters, with their accents: ALMAR, Getsemaní, Cartagena, Barú, Medellín, Bogotá, San Andrés, Cocora, Antioquia, Colombia.\nKeep every other proper noun, place name, brand, vehicle model and airport code (for example BOG, MDE, CTG) unchanged.\nKeep numbers, prices, currency codes, times and units exactly as written.\nYou receive a JSON object of English fields. Return only a JSON object with exactly the same keys.\nA string field becomes one translated string. A list field becomes a list of the same length, item by item, in the same order.\nNever leave a value empty, never add a key, never add notes, explanations or anything outside the JSON object."
+      },
+      {
+        "role": "user",
+        "content": "{\"description\":[\"Getsemaní Colonial House is a vetted ALMAR private stay in Casa Centro Getsemaní, curated for international guests who want hotel-level discretion with the space and privacy of a residence.\",\"Layout: 5 bedrooms, 5 bathrooms, 5 double beds, hosting up to 10 guests.\",\"Property highlights include Private pool, rooftop terrace, living room, dining room.\"]}"
+      }
+    ],
+    "max_completion_tokens": 883,
+    "temperature": 0.2,
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "translation",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "description"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    },
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  },
+  "raw": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"description\":[\"Getsemaní Colonial House es una propiedad privada de ALMAR en Casa Centro Getsemaní, seleccionada cuidadosamente para huéspedes internacionales que buscan la discreción de un hotel con la amplitud y privacidad de una residencia.\",\"Distribución: 5 dormitorios, 5 baños, 5 camas dobles, con capacidad para hasta 10 huéspedes.\",\"Los aspectos destacados de la propiedad incluyen piscina privada, terraza en la azotea, sala de estar y comedor.\"]}",
+          "role": "assistant"
+        }
+      }
+    ],
+    "created": 1791735904,
+    "id": "fea617f324b845c1929ebe3b4c8e1ab0",
+    "model": "@cf/google/gemma-4-26b-a4b-it-external",
+    "object": "chat.completion",
+    "usage": {
+      "prompt_tokens": 319,
+      "completion_tokens": 99,
+      "total_tokens": 418,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "neurons": 5.599999904632568
+    }
+  },
+  "parsed": {
+    "description": [
+      "Getsemaní Colonial House es una propiedad privada de ALMAR en Casa Centro Getsemaní, seleccionada cuidadosamente para huéspedes internacionales que buscan la discreción de un hotel con la amplitud y privacidad de una residencia.",
+      "Distribución: 5 dormitorios, 5 baños, 5 camas dobles, con capacidad para hasta 10 huéspedes.",
+      "Los aspectos destacados de la propiedad incluyen piscina privada, terraza en la azotea, sala de estar y comedor."
+    ]
+  },
+  "extra_text": false,
+  "usage": {
+    "prompt_tokens": 319,
+    "completion_tokens": 99,
+    "total_tokens": 418,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "neurons": 5.599999904632568
+  },
+  "shape": {
+    "ok": true,
+    "fields": {
+      "description": [
+        "Getsemaní Colonial House es una propiedad privada de ALMAR en Casa Centro Getsemaní, seleccionada cuidadosamente para huéspedes internacionales que buscan la discreción de un hotel con la amplitud y privacidad de una residencia.",
+        "Distribución: 5 dormitorios, 5 baños, 5 camas dobles, con capacidad para hasta 10 huéspedes.",
+        "Los aspectos destacados de la propiedad incluyen piscina privada, terraza en la azotea, sala de estar y comedor."
+      ]
+    }
+  },
+  "ms": 4031
+}

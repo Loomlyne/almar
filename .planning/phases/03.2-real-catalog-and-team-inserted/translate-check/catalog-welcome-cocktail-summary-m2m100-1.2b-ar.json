@@ -1,0 +1,37 @@
+{
+  "http_status": 200,
+  "model": "@cf/meta/m2m100-1.2b",
+  "target": "ar",
+  "request": {
+    "per_string": {
+      "source_lang": "english",
+      "target_lang": "arabic"
+    }
+  },
+  "raw": [
+    {
+      "translated_text": "أول ليلة في كولومبيا في فندق خاص في كاراثاينا.",
+      "usage": {
+        "prompt_tokens": 44,
+        "completion_tokens": 22,
+        "total_tokens": 66,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 2.049299955368042
+      }
+    }
+  ],
+  "parsed": {
+    "summary": "أول ليلة في كولومبيا في فندق خاص في كاراثاينا."
+  },
+  "extra_text": false,
+  "usage": null,
+  "shape": {
+    "ok": true,
+    "fields": {
+      "summary": "أول ليلة في كولومبيا في فندق خاص في كاراثاينا."
+    }
+  },
+  "ms": 2033
+}

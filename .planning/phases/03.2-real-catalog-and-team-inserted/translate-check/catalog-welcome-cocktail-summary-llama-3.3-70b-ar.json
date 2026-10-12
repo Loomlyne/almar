@@ -1,0 +1,100 @@
+{
+  "http_status": 200,
+  "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  "target": "ar",
+  "request": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You translate website text for ALMAR, a private luxury travel company in Colombia, from English into Modern Standard Arabic.\nWrite in a calm, refined luxury-travel register: natural, precise, never salesy, never literal word for word.\nKeep these names exactly as written, in Latin letters, with their accents: ALMAR, Getsemaní, Cartagena, Barú, Medellín, Bogotá, San Andrés, Cocora, Antioquia, Colombia.\nKeep every other proper noun, place name, brand, vehicle model and airport code (for example BOG, MDE, CTG) unchanged.\nKeep numbers, prices, currency codes, times and units exactly as written.\nYou receive a JSON object of English fields. Return only a JSON object with exactly the same keys.\nA string field becomes one translated string. A list field becomes a list of the same length, item by item, in the same order.\nNever leave a value empty, never add a key, never add notes, explanations or anything outside the JSON object."
+      },
+      {
+        "role": "user",
+        "content": "{\"summary\":\"Your first evening in Colombia at a private Cartagena villa. A personal chef crafts a seasonal menu from Caribbean harvests, served as the sun dissolves into the sea.\"}"
+      }
+    ],
+    "max_tokens": 692,
+    "temperature": 0.2,
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "summary"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "raw": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "annotations": null,
+          "audio": null,
+          "content": "{\"summary\": \"مساءك الأول في كولومبيا في فيلا خاصة في كارتاجينا. يُقدم طاهٍ شخصي قائمة موسمية من محاصيل البحر الكاريبي، مع شروق الشمس الذي يغمر البحر بالضوء.\"}",
+          "function_call": null,
+          "reasoning": null,
+          "refusal": null,
+          "role": "assistant"
+        },
+        "routed_experts": null,
+        "stop_reason": null,
+        "token_ids": null
+      }
+    ],
+    "created": 1791735928,
+    "ec_transfer_params": null,
+    "id": "chatcmpl-31190097-8b8b-4c14-95a3-d27708f156f7",
+    "kv_transfer_params": null,
+    "metrics": null,
+    "model": "@cf/meta/llama-3.3-70b-json",
+    "object": "chat.completion",
+    "prompt_logprobs": null,
+    "prompt_text": null,
+    "prompt_token_ids": null,
+    "response": {
+      "summary": "مساءك الأول في كولومبيا في فيلا خاصة في كارتاجينا. يُقدم طاهٍ شخصي قائمة موسمية من محاصيل البحر الكاريبي، مع شروق الشمس الذي يغمر البحر بالضوء."
+    },
+    "service_tier": null,
+    "tool_calls": [],
+    "usage": {
+      "prompt_tokens": 289,
+      "completion_tokens": 62,
+      "total_tokens": 351,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "neurons": 20.40488624572754
+    }
+  },
+  "parsed": {
+    "summary": "مساءك الأول في كولومبيا في فيلا خاصة في كارتاجينا. يُقدم طاهٍ شخصي قائمة موسمية من محاصيل البحر الكاريبي، مع شروق الشمس الذي يغمر البحر بالضوء."
+  },
+  "extra_text": false,
+  "usage": {
+    "prompt_tokens": 289,
+    "completion_tokens": 62,
+    "total_tokens": 351,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "neurons": 20.40488624572754
+  },
+  "shape": {
+    "ok": true,
+    "fields": {
+      "summary": "مساءك الأول في كولومبيا في فيلا خاصة في كارتاجينا. يُقدم طاهٍ شخصي قائمة موسمية من محاصيل البحر الكاريبي، مع شروق الشمس الذي يغمر البحر بالضوء."
+    }
+  },
+  "ms": 2084
+}

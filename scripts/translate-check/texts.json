@@ -1,0 +1,43 @@
+[
+  {
+    "id": "stay-getsemani-colonial-house-description",
+    "source": {
+      "file": "lib/data/fixtures/stay-translations.json",
+      "stay_id": "38f3ed2e-e6d2-50df-886c-c90c815252ad",
+      "locale": "en",
+      "field": "description"
+    },
+    "fields": {
+      "description": [
+        "Getsemaní Colonial House is a vetted ALMAR private stay in Casa Centro Getsemaní, curated for international guests who want hotel-level discretion with the space and privacy of a residence.",
+        "Layout: 5 bedrooms, 5 bathrooms, 5 double beds, hosting up to 10 guests.",
+        "Property highlights include Private pool, rooftop terrace, living room, dining room."
+      ]
+    }
+  },
+  {
+    "id": "journey-explorer-body",
+    "source": {
+      "file": "lib/data/fixtures/home-translations.json",
+      "path": "tiers",
+      "tier_id": "25af917e-8005-5ec2-9782-a0c2d002ddc0",
+      "locale": "en",
+      "field": "body"
+    },
+    "fields": {
+      "body": "A private journey framework shaped around your dates, group, and confirmed availability. Stays, transfers, guides, dining, and experiences are proposed after inquiry and confirmed before booking."
+    }
+  },
+  {
+    "id": "catalog-welcome-cocktail-summary",
+    "source": {
+      "file": "lib/data/fixtures/catalog-translations.json",
+      "item_id": "f9f2fa01-8a29-5343-a1a1-8de64593212b",
+      "locale": "en",
+      "field": "summary"
+    },
+    "fields": {
+      "summary": "Your first evening in Colombia at a private Cartagena villa. A personal chef crafts a seasonal menu from Caribbean harvests, served as the sun dissolves into the sea."
+    }
+  }
+]
