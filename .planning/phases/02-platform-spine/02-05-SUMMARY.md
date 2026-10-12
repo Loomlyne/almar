@@ -19,6 +19,7 @@ Rescoped by the owner on 2026-10-11 (answer A) to items 1-4 of `02-05-ADDENDUM.m
   - `/account` fills the browser currency from her row only when the browser has none.
 - **Item 3, public picks are offered to the account.** `LocaleSelect` (the public `hrefs` branch only) and the home currency provider call `postPreferences`.
   - The call is fire-and-forget: `keepalive`, `referrerPolicy: "same-origin"`, and `.catch`. It never blocks or breaks navigation.
+  - It is sent only when the readable hint cookie `almar-signed-in=1` is present (send-back, 2026-10-12). The confirm action sets it on a non-ops sign-in (value `1`, not HttpOnly, lax, Secure in production, 400 days); both sign-outs (`/auth/sign-out` and "sign out everywhere") clear it with max-age 0. A signed-out visitor sends nothing, so no 403 is logged. The hint grants nothing: the server's Origin check and session check are unchanged, and a stale hint only gets a 204.
 - **POST `/api/preferences`.** The handler is `lib/preferences-route.ts`; the route file is `app/api/preferences/route.ts`.
   - Checks run in order: same-origin (`Origin`/`Sec-Fetch-Site`; `Origin: null` is accepted only with `Sec-Fetch-Site: same-origin`), then content type and the 1 KiB limit, then JSON, then the allow-list (en/ar/es, AED/USD/EUR).
   - Then the session: no session cookie or no user returns 204 and writes nothing.
@@ -33,4 +34,6 @@ Rescoped by the owner on 2026-10-11 (answer A) to items 1-4 of `02-05-ADDENDUM.m
 - **Tests:**
   - `account-preferences`, `preferences-route`, `account-follow` (node).
   - `preferences-local` (local stack: own row only, `role` not writable, check constraint, `followAccount` on real sessions).
-  - `header-i18n.spec.ts` (Playwright).
+  - `header-i18n.spec.ts` (Playwright, 8 tests: the signed-out pick sends no request; sign-out clears the hint).
+  - `tests/build/server-runtime.spec.ts` now lists `/api/preferences` among the Worker's server paths.
+  - `tests/build/slice3-pages.ts` `checkLanguage`: the `lang` read after the header pick retries on the `html` locator. The one-shot read raced the new document and failed on plain `origin/main` too (4 of 18).
