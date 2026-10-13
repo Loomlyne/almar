@@ -3,7 +3,9 @@
 // isolate. A failed or unconfigured read gives null: callers fall back to the design system (a Supabase outage must not
 // close sign-in, blank the dashboard or stop an email).
 
-import { fetchSiteSettings, type PublicSiteSettings } from "./site-settings";
+import { brandColor, fetchSiteSettings, LOGO_KEY, type PublicSiteSettings } from "./site-settings";
+import { mediaUrl } from "./data/media";
+import type { EmailBrand } from "./email/magic-link";
 
 export const SITE_SETTINGS_CACHE_MS = 30_000;
 
@@ -36,6 +38,31 @@ export async function readSiteSettings(
   }
   cached = { at: now, settings };
   return settings;
+}
+
+/**
+ * The saved logo straight from the image host, for surfaces rendered at request time (the ops shell, the sign-in email,
+ * the closed page the public Worker answers): a /brand/ copy exists only after the next publish rebuild. Null when no
+ * logo is saved.
+ */
+export function logoMediaUrl(logoKey: string | null): string | null {
+  if (logoKey === null) return null;
+  if (!LOGO_KEY.test(logoKey)) throw new Error("logoMediaUrl: not a media key");
+  return mediaUrl(logoKey);
+}
+
+/** The values the sign-in email takes from the saved settings (lib/email/magic-link.ts EmailBrand), or null. */
+export function emailBrand(settings: PublicSiteSettings | null): EmailBrand | null {
+  if (!settings) return null;
+  return {
+    teal: brandColor(settings, "teal"),
+    gold: brandColor(settings, "gold"),
+    ivory: brandColor(settings, "ivory"),
+    ink: brandColor(settings, "charcoal"),
+    titleFace: settings.titleFace,
+    bodyFace: settings.bodyFace,
+    logoUrl: logoMediaUrl(settings.logoKey),
+  };
 }
 
 /** For node tests only. */

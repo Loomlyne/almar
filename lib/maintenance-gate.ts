@@ -6,8 +6,8 @@
 // read leaves the page open (the static site follows the last good build; a Supabase outage must not close sign-in on
 // its own). Pure apart from the injected fetch: middleware.ts binds it, node tests fake it.
 
-import { brandStyle, logoMediaUrl, WORDMARK_PATH, type fetchSiteSettings } from "./site-settings";
-import { readSiteSettings, __testing as readTesting, SITE_SETTINGS_CACHE_MS } from "./site-settings-read";
+import { brandStyle, WORDMARK_PATH, type fetchSiteSettings } from "./site-settings";
+import { logoMediaUrl, readSiteSettings, __testing as readTesting, SITE_SETTINGS_CACHE_MS } from "./site-settings-read";
 import { renderMaintenancePage, type MaintenanceLocale } from "./maintenance-document";
 
 /** The HTML pages of the public Worker that maintenance closes (lib/server-routes.ts SERVER_PATHS_OUTSIDE_API). */

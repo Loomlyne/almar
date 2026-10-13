@@ -37,7 +37,8 @@ export const DEFAULT_SITE_SETTINGS: PublicSiteSettings = {
 };
 
 const HEX = /^#[0-9a-f]{6}$/;
-const LOGO_KEY = /^[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_.-]*)*\.(webp|jpg|png)$/;
+/** A media key the logo column may hold (lib/site-settings-read.ts logoMediaUrl checks it too). */
+export const LOGO_KEY = /^[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_.-]*)*\.(webp|jpg|png)$/;
 
 /**
  * One row of api_site_settings -> PublicSiteSettings. A field that is not exactly what the database's checks allow is
@@ -126,19 +127,6 @@ export const BRAND_FILES: readonly { from: string; to: string }[] = [
 /** The same-origin file the build copies the saved logo to, or the design system's wordmark (also copied by the build). */
 export const WORDMARK_PATH = "/brand/wordmark.svg";
 
-/** The image host (lib/data/media.ts MEDIA_BASE_URL; repeated here because this module imports nothing). */
-export const MEDIA_ORIGIN = "https://media.almarprivatejourney.com";
-
-/**
- * The saved logo straight from R2, for surfaces rendered at request time (the ops shell, the sign-in email, the closed
- * page the public Worker answers): those cannot rely on a /brand/ copy, which only the next publish rebuild writes.
- * Null when no logo is saved.
- */
-export function logoMediaUrl(logoKey: string | null): string | null {
-  if (logoKey === null) return null;
-  if (!LOGO_KEY.test(logoKey)) throw new Error("logoMediaUrl: not a media key");
-  return `${MEDIA_ORIGIN}/${logoKey}`;
-}
 export function logoPath(logoKey: string | null): string {
   if (logoKey === null) return WORDMARK_PATH;
   const ext = logoKey.slice(logoKey.lastIndexOf(".") + 1);
@@ -161,24 +149,3 @@ export async function fetchSiteSettings(url: string, anonKey: string, fetcher: F
   return parseSiteSettingsRow(rows[0]);
 }
 
-/** The values the sign-in email takes from the saved settings (lib/email/magic-link.ts EmailBrand), or null. */
-export function emailBrand(settings: PublicSiteSettings | null): {
-  teal: string;
-  gold: string;
-  ivory: string;
-  ink: string;
-  titleFace: string;
-  bodyFace: string;
-  logoUrl: string | null;
-} | null {
-  if (!settings) return null;
-  return {
-    teal: brandColor(settings, "teal"),
-    gold: brandColor(settings, "gold"),
-    ivory: brandColor(settings, "ivory"),
-    ink: brandColor(settings, "charcoal"),
-    titleFace: settings.titleFace,
-    bodyFace: settings.bodyFace,
-    logoUrl: logoMediaUrl(settings.logoKey),
-  };
-}

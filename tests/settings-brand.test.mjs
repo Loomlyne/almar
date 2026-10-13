@@ -32,11 +32,10 @@ test("brandCss: nothing for the design system; a saved colour is a CSS variable,
 });
 
 test("logoMediaUrl: null without a logo, the image host's URL with one, refuses anything else", () => {
-  assert.equal(s.logoMediaUrl(null), null);
-  assert.equal(s.logoMediaUrl("uploads/logo-1.webp"), LOGO_URL);
-  for (const bad of ["../x.webp", "https://evil/x.png", "x.svg", "/abs.png"]) assert.throws(() => s.logoMediaUrl(bad), bad);
-  // site-settings.ts imports nothing, so it repeats the image host: it must stay lib/data/media.ts's.
-  assert.equal(s.MEDIA_ORIGIN, media.MEDIA_BASE_URL);
+  assert.equal(r.logoMediaUrl(null), null);
+  assert.equal(r.logoMediaUrl("uploads/logo-1.webp"), LOGO_URL);
+  for (const bad of ["../x.webp", "https://evil/x.png", "x.svg", "/abs.png"]) assert.throws(() => r.logoMediaUrl(bad), bad);
+  assert.equal(LOGO_URL, `${media.MEDIA_BASE_URL}/uploads/logo-1.webp`, "the host is lib/data/media.ts's");
 });
 
 test("readSiteSettings: maxAgeMs 0 reads every time; the default keeps a read 30 s; a failure is null", async () => {
@@ -63,14 +62,14 @@ test("email: the design system without settings; the saved colours, faces and lo
   for (const hex of ["#1f3b40", "#d4ba8a", "#fffaf0", "#262626"]) assert.ok(plain.html.includes(hex), hex);
   assert.match(plain.html, />ALMAR Private Journey<\/td>/);
   assert.equal(plain.html.includes("<img"), false);
-  assert.deepEqual(renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY, brand: s.emailBrand(null) }), plain);
+  assert.deepEqual(renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY, brand: r.emailBrand(null) }), plain);
   assert.deepEqual(
-    renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY, brand: s.emailBrand(s.DEFAULT_SITE_SETTINGS) }),
+    renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY, brand: r.emailBrand(s.DEFAULT_SITE_SETTINGS) }),
     plain,
     "a row with every colour null is the design system",
   );
 
-  const branded = renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY, brand: s.emailBrand(s.parseSiteSettingsRow(SAVED)) });
+  const branded = renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY, brand: r.emailBrand(s.parseSiteSettingsRow(SAVED)) });
   for (const hex of ["#7a1f3b", "#c9a227", "#f6f1e7", "#1a1a1a"]) assert.ok(branded.html.includes(hex), hex);
   for (const hex of ["#1f3b40", "#d4ba8a", "#fffaf0", "#262626"]) assert.equal(branded.html.includes(hex), false, `${hex} replaced`);
   assert.match(branded.html, new RegExp(`<img src="${LOGO_URL.replace(/[.]/g, "\\.")}" alt="ALMAR Private Journey" width="140"`));
@@ -78,14 +77,14 @@ test("email: the design system without settings; the saved colours, faces and lo
   assert.match(branded.html, /font-family:Lato,Arial,sans-serif/);
   assert.equal(branded.text, plain.text, "the text part does not change");
 
-  const ar = renderMagicLinkEmail({ href: HREF, locale: "ar", kind: "sign-in", copy: COPY, brand: s.emailBrand(s.parseSiteSettingsRow(SAVED)) });
+  const ar = renderMagicLinkEmail({ href: HREF, locale: "ar", kind: "sign-in", copy: COPY, brand: r.emailBrand(s.parseSiteSettingsRow(SAVED)) });
   assert.match(ar.html, /font-family:'Noto Naskh Arabic',Georgia,serif/, "Arabic keeps its own faces (D-123)");
   assert.match(ar.html, /font-family:'Noto Sans Arabic',Arial,sans-serif/);
   assert.equal(/style="[^"]*"[^ >]/.test(ar.html), false, "no quote breaks a style attribute");
 });
 
 test("email: refuses a brand that did not come from the checked row", () => {
-  const good = s.emailBrand(s.parseSiteSettingsRow(SAVED));
+  const good = r.emailBrand(s.parseSiteSettingsRow(SAVED));
   for (const bad of [{ ...good, teal: "red" }, { ...good, titleFace: "Arial" }, { ...good, logoUrl: "http://media.almarprivatejourney.com/x.png" },
     { ...good, logoUrl: 'https://media.almarprivatejourney.com/x.png" onerror="x' }]) {
     assert.throws(() => renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY, brand: bad }));

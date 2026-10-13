@@ -6,8 +6,8 @@ import { SHELL_HEADER } from "../../../lib/host";
 import { isOwnerProfile } from "../../../lib/auth/rules";
 import { OPS_PATH_HEADER, isLiveOpsPath } from "../../../lib/ops-routes";
 import { readSessionProfile } from "../../../lib/supabase/clients";
-import { brandCss, logoMediaUrl } from "../../../lib/site-settings";
-import { readSiteSettings, siteSettingsEnv } from "../../../lib/site-settings-read";
+import { brandCss } from "../../../lib/site-settings";
+import { logoMediaUrl, readSiteSettings, siteSettingsEnv } from "../../../lib/site-settings-read";
 
 export const dynamic = "force-dynamic";
 

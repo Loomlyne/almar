@@ -59,7 +59,7 @@ const SAFE_STYLE = /^(<style id="almar-brand">:root\{[^<]*\}<\/style>)?$/;
 
 /**
  * The closed page for one locale. `logoSrc` is a same-origin /brand/ file (lib/site-settings.ts logoPath) or the saved
- * logo's media URL (logoMediaUrl); `brandStyle`
+ * logo's media URL (lib/site-settings-read.ts logoMediaUrl); `brandStyle`
  * is lib/site-settings.ts brandStyle() output, so the saved colours apply here too.
  */
 export function renderMaintenancePage(locale: MaintenanceLocale, { logoSrc, brandStyle = "" }: { logoSrc: string; brandStyle?: string }): string {

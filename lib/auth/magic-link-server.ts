@@ -3,8 +3,7 @@ import { Resend } from "resend";
 import { cookies, headers } from "next/headers";
 import { authSigningKey, createSupabaseAdmin } from "../supabase/clients";
 import { renderMagicLinkEmail } from "../email/magic-link";
-import { readSiteSettings, siteSettingsEnv } from "../site-settings-read";
-import { emailBrand } from "../site-settings";
+import { emailBrand, readSiteSettings, siteSettingsEnv } from "../site-settings-read";
 import { GUEST_COPY } from "../copy/guest";
 import { sendMagicLink, type SendLinkResult } from "./send-link";
 import {
