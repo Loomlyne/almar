@@ -779,6 +779,11 @@ test("README: --target=ops needs neither public name (the code reads fixtures fo
   assert.match(readme, /--target=ops` reads fixtures and needs neither name/);
   assert.match(readme, /`--target=preview` and `production`/);
   assert.match(readme, /https:\/\/jkdkaldgeiowkhlfmsft\.supabase\.co/);
+  // the ops runbook says the same (Grok's re-check of PR #7)
+  const runbook = readFileSync(".planning/phases/03.2-real-catalog-and-team-inserted/03.2-OPS-DEPLOY.md", "utf8").replace(/\s+/g, " ");
+  assert.doesNotMatch(runbook, /every assembled target reads the catalogue/);
+  assert.doesNotMatch(runbook, /exports \*\*exactly two\*\* public names/);
+  assert.match(runbook, /`--target=ops` reads \*\*fixtures\*\* and ships no catalogue page, so it needs \*\*neither\*\*/);
   // and the code agrees: ops needs nothing
   assert.equal(dataSourceFor("ops", {}), "fixtures");
 });
