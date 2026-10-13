@@ -130,6 +130,16 @@ export async function requestSiteUpdate(admin: SiteAdmin, deps: SiteDeps = {}): 
   return computeSiteStatus(effective, live, now());
 }
 
+/**
+ * The stable entry point for other jobs (02-06 settings: maintenance mode and brand). Requests one public-site rebuild
+ * and returns the status. Owner endpoints built with opsPost/opsPut need not call it: a reply with affects_site: true
+ * already does (runOps afterWrite). `admin` is the service-role client of OwnerContext. Throws SiteStateError only when
+ * the sequence could not be bumped; a failed hook call is a returned "failed" status, never a throw.
+ */
+export function requestPublish({ admin }: { admin: unknown }): Promise<SiteStatus> {
+  return requestSiteUpdate(admin as SiteAdmin);
+}
+
 /** The status now: the database's request against the live site's sequence. */
 export async function siteStatus(admin: SiteAdmin, deps: SiteDeps = {}): Promise<SiteStatus> {
   const fetchImpl = deps.fetchImpl ?? globalThis.fetch;

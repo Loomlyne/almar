@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { loadTs } from "./helpers/load-ts.mjs";
 
-const { requestSiteUpdate, siteStatus, readLiveVersion, parseSiteUpdate, LIVE_VERSION_URL } = await loadTs("lib/ops/site-update.ts");
+const { requestPublish, requestSiteUpdate, siteStatus, readLiveVersion, parseSiteUpdate, LIVE_VERSION_URL } = await loadTs("lib/ops/site-update.ts");
 
 const HOOK = "https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/abc123";
 const NOW = new Date("2026-10-13T10:05:00.000Z");
@@ -187,5 +187,19 @@ test("source: the hook URL is read only in lib/ops/site-update.ts, never logged 
   assert.equal(/console\./.test(src), false, "site-update.ts never logs");
   for (const file of ["lib/ops/route.ts", "lib/ops/route-core.ts", "lib/ops/site-status.ts", "app/api/ops/site-status/route.ts", "app/api/ops/site-update/route.ts"]) {
     assert.equal(readFileSync(file, "utf8").includes("PUBLISH_DEPLOY_HOOK_URL"), false, file);
+  }
+});
+
+test("requestPublish({ admin }) is the stable entry point for 02-06: one bump, one hook call (no hook set here: error:no_hook)", async () => {
+  const saved = process.env.PUBLISH_DEPLOY_HOOK_URL;
+  delete process.env.PUBLISH_DEPLOY_HOOK_URL;
+  try {
+    const admin = fakeAdmin();
+    const site = await requestPublish({ admin });
+    assert.deepEqual(admin.calls.map((c) => c[0]), ["site_request_update", "site_record_hook", "site_publish_state"]);
+    assert.equal(admin.calls[1][1].p_result, "error:no_hook");
+    assert.equal(site.state, "failed");
+  } finally {
+    if (saved !== undefined) process.env.PUBLISH_DEPLOY_HOOK_URL = saved;
   }
 });
