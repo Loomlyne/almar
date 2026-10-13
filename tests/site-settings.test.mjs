@@ -89,9 +89,8 @@ test("gate: closes only /login, /account, /bookings on the public host while mai
   assert.equal(await g.maintenanceResponse({ path: "/api/booking/quote", opsHost: false, cookieLocale: undefined, env, now: 3, fetcher: on }), null);
   assert.equal(await g.maintenanceResponse({ path: "/auth/confirm", opsHost: false, cookieLocale: undefined, env, now: 3, fetcher: on }), null);
 
-  // Cached for 30 s, then read again.
-  assert.ok(await g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: undefined, env, now: 1 + 29_999, fetcher: off }));
-  assert.equal(await g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: undefined, env, now: 1 + 30_000, fetcher: off }), null);
+  // Read on every request (PR #14 review): saved off opens on the next request, no 30 s wait.
+  assert.equal(await g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: undefined, env, now: 4, fetcher: off }), null);
 
   g.__testing.reset();
   assert.equal(await g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: undefined, env, now: 1, fetcher: broken }), null);

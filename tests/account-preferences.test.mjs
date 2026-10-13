@@ -77,3 +77,30 @@ test("/account shows the currency the site uses: the browser choice, else her ro
   assert.equal(p.shownAccountCurrency("EUR", "EUR"), "EUR");
   for (const bad of [null, undefined, "", "usd", "GBP", "USD "]) assert.equal(p.shownAccountCurrency(bad, "AED"), "AED");
 });
+
+test("saveTracker (PR #14 review): only the latest /account click changes the screen; a failure shows the last saved value", () => {
+  const t = p.saveTracker("AED");
+  const a = t.begin(); // she picks USD
+  const b = t.begin(); // then EUR before the first answer
+  assert.equal(t.settle(a, true, "USD"), null, "the first answer is overtaken: ignored on screen");
+  assert.equal(t.settle(b, false, "EUR"), "USD", "the latest failed: show what the database holds (USD committed)");
+
+  const u = p.saveTracker("AED");
+  const c = u.begin();
+  const d = u.begin();
+  assert.equal(u.settle(d, true, "EUR"), "EUR");
+  assert.equal(u.settle(c, false, "USD"), null, "a late failure of an older click changes nothing");
+  assert.equal(u.settle(u.begin(), false, "USD"), "EUR");
+
+  const w = p.saveTracker("AED");
+  w.adopt("USD");
+  assert.equal(w.settle(w.begin(), false, "EUR"), "USD", "the currency the page opened with is the fallback");
+});
+
+test("/account wires the tracker: an overtaken result returns before touching the screen", async () => {
+  const { readFileSync } = await import("node:fs");
+  const screen = readFileSync("app/account/account-screen.tsx", "utf8");
+  assert.match(screen, /const ticket = prefSaves\.current\.begin\(\);/);
+  assert.match(screen, /const shown = prefSaves\.current\.settle\(ticket, ok, nextCurrency\);\s*if \(shown === null\) return;\s*setPrefState\(result\);\s*setCurrency\(shown\);/);
+  assert.match(screen, /prefSaves\.current\.adopt\(shown\);/);
+});

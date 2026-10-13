@@ -120,3 +120,29 @@ export function localizedReturnPath(back: string, locale: Locale): string {
     return back;
   }
 }
+
+/**
+ * /account preference saves (PR #14 review): only the latest click may change the screen. `begin()` numbers a save;
+ * `settle()` returns null for a result that a later click has overtaken (ignore it), else the value to show: the new
+ * value when it saved, the last saved value when it did not. A save that committed is remembered even when overtaken,
+ * so a later failure falls back to what the database really holds. `adopt()` sets that value without a save (the
+ * currency the page opened with).
+ */
+export function saveTracker<T>(initial: T) {
+  let generation = 0;
+  let saved = initial;
+  return {
+    begin(): number {
+      generation += 1;
+      return generation;
+    },
+    adopt(value: T): void {
+      saved = value;
+    },
+    settle(ticket: number, ok: boolean, value: T): T | null {
+      if (ok) saved = value;
+      if (ticket !== generation) return null;
+      return saved;
+    },
+  };
+}

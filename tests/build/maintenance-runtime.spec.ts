@@ -82,3 +82,10 @@ test("a static page is still the file in out/ (the rebuild closes it); the API s
   const health = await request.get("/api/health");
   expect(health.status()).toBe(200);
 });
+
+test("the flag is read on every request (PR #14 review): saved off opens /login at once, saved on closes it at once", async ({ request }) => {
+  await saveSettings(request, { maintenance: false });
+  expect((await request.get("/login", { headers: NAV, maxRedirects: 0 })).status()).toBe(200);
+  await saveSettings(request, { maintenance: true });
+  expect((await request.get("/login", { headers: NAV, maxRedirects: 0 })).status()).toBe(503);
+});

@@ -40,10 +40,11 @@ test("logoMediaUrl: null without a logo, the image host's URL with one, refuses 
   assert.equal(LOGO_URL, `${media.MEDIA_BASE_URL}/uploads/logo-1.webp`, "the host is lib/data/media.ts's");
 });
 
-test("readSiteSettings: maxAgeMs 0 reads every time; the default keeps a read 30 s; a failure is null", async () => {
+test("readSiteSettings: maxAgeMs 0 reads every time; the default reuses a good read 30 s; a failure keeps the last good read", async () => {
   const env = { url: "https://x.supabase.co", anonKey: "k" };
   let calls = 0;
   const fetcher = async () => ({ ok: true, status: 200, json: async () => { calls += 1; return [SAVED]; } });
+  const broken = async () => { throw new Error("offline"); };
   r.__testing.reset();
   await r.readSiteSettings(env, { now: 1, fetcher, maxAgeMs: 0 });
   await r.readSiteSettings(env, { now: 2, fetcher, maxAgeMs: 0 });
@@ -53,10 +54,28 @@ test("readSiteSettings: maxAgeMs 0 reads every time; the default keeps a read 30
   const again = await r.readSiteSettings(env, { now: 29_000, fetcher });
   assert.equal(calls, 3);
   assert.equal(again.colors.teal, "#7a1f3b");
+  const afterError = await r.readSiteSettings(env, { now: 40_000, fetcher: broken, maxAgeMs: 0 });
+  assert.equal(afterError.colors.teal, "#7a1f3b", "a failed read returns the last good one, never null");
   r.__testing.reset();
-  assert.equal(await r.readSiteSettings(env, { now: 1, fetcher: async () => { throw new Error("offline"); } }), null);
-  r.__testing.reset();
+  assert.equal(await r.readSiteSettings(env, { now: 1, fetcher: broken }), null, "no good read ever: null");
   assert.equal(await r.readSiteSettings({}, { now: 1, fetcher }), null);
+});
+
+test("gate (PR #14 review): saved on closes on the next request; an error after a closed read stays closed; an error with no prior read is open", async () => {
+  const env = { url: "https://x.supabase.co", anonKey: "k" };
+  const row = (maintenance) => async () => ({ ok: true, status: 200, json: async () => [{ ...ROW, maintenance }] });
+  const broken = async () => { throw new Error("offline"); };
+  const ask = (now, fetcher) => g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: undefined, env, now, fetcher });
+
+  g.__testing.reset();
+  assert.equal(await ask(1, row(false)), null, "open while maintenance is off");
+  assert.equal((await ask(2, row(true)))?.status, 503, "saved on: the very next request is closed (no 30 s cache)");
+  assert.equal((await ask(3, broken))?.status, 503, "a failed read after a closed one stays closed");
+  assert.equal((await ask(60_000, broken))?.status, 503, "and still later");
+  assert.equal(await ask(60_001, row(false)), null, "saved off: open on the next good read");
+
+  g.__testing.reset();
+  assert.equal(await ask(1, broken), null, "an error with no prior good read leaves the page open");
 });
 
 test("email: the design system without settings; the saved colours, faces and logo with them", () => {

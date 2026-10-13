@@ -140,6 +140,14 @@ export async function postSettings({
   const colorColumns: Record<string, string | null> = {};
   for (const key of BRAND_KEYS) colorColumns[key] = body.colors[key] === BRAND_DEFAULTS[key] ? null : body.colors[key];
 
+  // All or nothing (PR #14 review): her profile first. If it fails nothing is written. If the settings row then fails,
+  // her profile is put back to what it was, and the reply is the error either way: success only when both committed.
+  const { error: profileError } = await owner.admin
+    .from("profiles")
+    .update({ locale: body.locale, currency: body.currency })
+    .eq("id", owner.profile.id);
+  if (profileError) return { dbError: profileError };
+
   const { error: settingsError } = await owner.admin
     .from("site_settings")
     .update({
@@ -152,13 +160,13 @@ export async function postSettings({
       logo_media_id: body.logo_media_id,
     })
     .eq("id", 1);
-  if (settingsError) return { dbError: settingsError };
-
-  const { error: profileError } = await owner.admin
-    .from("profiles")
-    .update({ locale: body.locale, currency: body.currency })
-    .eq("id", owner.profile.id);
-  if (profileError) return { dbError: profileError };
+  if (settingsError) {
+    await owner.admin
+      .from("profiles")
+      .update({ locale: owner.profile.locale, currency: owner.profile.currency })
+      .eq("id", owner.profile.id);
+    return { dbError: settingsError };
+  }
 
   const affects = affectsSite(before, body);
   if (affects) await requestRebuild(owner.admin);

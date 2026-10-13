@@ -2,18 +2,17 @@
 // (scripts/assemble-cloudflare.mjs); the pages the public Worker renders itself (/login, /account, /bookings) read the
 // flag on each request instead, so they close on Save even before the rebuild finishes. The ops host is never closed.
 //
-// The flag is read with the anon key from api_site_settings and kept for MAINTENANCE_CACHE_MS in this isolate. A failed
-// read leaves the page open (the static site follows the last good build; a Supabase outage must not close sign-in on
-// its own). Pure apart from the injected fetch: middleware.ts binds it, node tests fake it.
+// The flag is read with the anon key from api_site_settings on every request to these three paths (PR #14 review: a
+// cached open read must not keep them open after a save). A failed read keeps the last good answer, so a closed site
+// stays closed; only with no good read ever does the page stay open (a Supabase outage must not close sign-in on its
+// own). Pure apart from the injected fetch: middleware.ts binds it, node tests fake it.
 
 import { brandStyle, WORDMARK_PATH, type fetchSiteSettings } from "./site-settings";
-import { logoMediaUrl, readSiteSettings, __testing as readTesting, SITE_SETTINGS_CACHE_MS } from "./site-settings-read";
+import { logoMediaUrl, readSiteSettings, __testing as readTesting } from "./site-settings-read";
 import { renderMaintenancePage, type MaintenanceLocale } from "./maintenance-document";
 
 /** The HTML pages of the public Worker that maintenance closes (lib/server-routes.ts SERVER_PATHS_OUTSIDE_API). */
 export const MAINTENANCE_SERVER_PATHS: readonly string[] = ["/login", "/account", "/bookings"];
-
-export const MAINTENANCE_CACHE_MS = SITE_SETTINGS_CACHE_MS;
 
 export function closesOnMaintenance(path: string): boolean {
   const bare = path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
@@ -43,7 +42,7 @@ export async function maintenanceResponse({
   fetcher?: FetchLike;
 }): Promise<Response | null> {
   if (opsHost || !closesOnMaintenance(path)) return null;
-  const settings = await readSiteSettings(env, { now, fetcher });
+  const settings = await readSiteSettings(env, { now, fetcher, maxAgeMs: 0 });
   if (!settings?.maintenance) return null;
   // The saved logo straight from R2: a /brand/ copy exists only after the next publish rebuild.
   const logoSrc = logoMediaUrl(settings.logoKey) ?? WORDMARK_PATH;

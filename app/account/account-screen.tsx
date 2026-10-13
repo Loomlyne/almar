@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { pageLinks } from "../../components/site/page-links";
 import { SiteNav } from "../../components/ui/nav";
 import { Button } from "../../components/ui/button";
@@ -14,7 +14,7 @@ import { setDocumentLocale, type DocumentLocale } from "../../lib/set-document-l
 import type { SessionProfile } from "../../lib/supabase/clients";
 import { savePreferences, saveProfile, type SaveState } from "./actions";
 import { applyAccountSync, readCurrencyChoice, storeCurrencyChoice } from "../../components/site/account-sync";
-import { shownAccountCurrency } from "../../lib/account-preferences";
+import { saveTracker, shownAccountCurrency } from "../../lib/account-preferences";
 
 type Currency = SessionProfile["currency"];
 
@@ -30,6 +30,8 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
   const [prefState, setPrefState] = useState<SaveState>({ status: "idle" });
   const [savingProfile, startProfile] = useTransition();
   const [, startPrefs] = useTransition();
+  // Only the latest preference click may change the screen (PR #14 review).
+  const prefSaves = useRef(saveTracker<Currency>(profile.currency));
   const copy = GUEST_COPY[locale];
   const hub = copy.hub;
   const localeCopy = JOURNEY_COPY[locale].locale;
@@ -44,14 +46,17 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
   useEffect(() => {
     applyAccountSync();
     const chosen = readCurrencyChoice();
-    if (chosen) setCurrency(shownAccountCurrency(chosen, profile.currency));
+    const shown = chosen ? shownAccountCurrency(chosen, profile.currency) : profile.currency;
+    prefSaves.current.adopt(shown);
+    if (chosen) setCurrency(shown);
     else storeCurrencyChoice(profile.currency);
   }, [profile.currency]);
 
-  // A save writes her row and the browser choice together; a failed save puts the currency back, so the screen never
-  // shows a currency the site is not using (language keeps its 02-05 behaviour).
+  // A save writes her row and the browser choice together; a failed save puts back the last saved currency, so the
+  // screen never shows a currency the site is not using (language keeps its 02-05 behaviour). A result that a later
+  // click has overtaken changes nothing on screen; a committed one still reaches the browser choice.
   function storePreferences(nextLocale: DocumentLocale, nextCurrency: Currency) {
-    const previousCurrency = currency;
+    const ticket = prefSaves.current.begin();
     setLocale(nextLocale);
     setCurrency(nextCurrency);
     const form = new FormData();
@@ -59,12 +64,12 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
     form.set("currency", nextCurrency);
     startPrefs(async () => {
       const result = await savePreferences(form);
+      const ok = result.status === "saved";
+      if (ok) storeCurrencyChoice(nextCurrency);
+      const shown = prefSaves.current.settle(ticket, ok, nextCurrency);
+      if (shown === null) return;
       setPrefState(result);
-      if (result.status === "saved") {
-        storeCurrencyChoice(nextCurrency);
-      } else {
-        setCurrency(previousCurrency);
-      }
+      setCurrency(shown);
     });
   }
 

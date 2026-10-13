@@ -145,3 +145,22 @@ test("getSettings: the row's VAT and deposit, design-system colours for nulls, l
   assert.equal(none.body.settings.fx, null);
   assert.equal(none.body.settings.vat_percent, null);
 });
+
+test("postSettings is all or nothing: a failed profile write leaves the settings row unwritten and replies with the error", async () => {
+  const { admin, writes } = fakeAdmin({ failOn: "write:profiles" });
+  let rebuilds = 0;
+  const out = await h.postSettings({ owner: owner(admin), body: { ...SAVE, maintenance: true, locale: "ar" }, requestRebuild: async () => { rebuilds += 1; } });
+  assert.ok(out.dbError, "the reply is the error, not ok");
+  assert.equal(out.body, undefined);
+  assert.equal(writes.some((w) => w.table === "site_settings"), false, "the settings row is unchanged");
+  assert.equal(rebuilds, 0);
+});
+
+test("postSettings is all or nothing: a failed settings write puts her profile back and replies with the error", async () => {
+  const { admin, writes } = fakeAdmin({ failOn: "write:site_settings" });
+  const out = await h.postSettings({ owner: owner(admin), body: { ...SAVE, locale: "ar", currency: "USD" }, requestRebuild: async () => undefined });
+  assert.ok(out.dbError);
+  const profileWrites = writes.filter((w) => w.table === "profiles").map((w) => w.values);
+  assert.deepEqual(profileWrites, [{ locale: "ar", currency: "USD" }, { locale: "en", currency: "AED" }], "written, then restored");
+  assert.equal(writes.some((w) => w.table === "site_settings"), false);
+});
