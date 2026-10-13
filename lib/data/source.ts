@@ -232,21 +232,6 @@ const ALT_LOCALES = ["en", "ar", "es"] as const;
 /** The entity rows whose pictures are published through the database (the page blocks that stay in fixtures are not checked here). */
 const PICTURE_SOURCES: readonly SourceName[] = ["stays", "destinations", "catalog", "team", "journey-tiers"];
 
-/**
- * The publish sequence the database reports (api_site_version.requested_seq). The build reads it before the first view and
- * after the last one: the 11 views are read one after another, so a publish in between would give a list that links to a
- * detail page this build never generated (a 404). A different number fails the build; the live site stays as it was.
- */
-async function readSequence(client: ViewClient): Promise<string> {
-  const { data, error } = await client.from("api_site_version").select("requested_seq").range(0, 0);
-  if (error) throw new Error(`api_site_version: ${error.message}`);
-  const seq = Array.isArray(data) && data.length === 1 ? (data[0] as { requested_seq?: unknown }).requested_seq : undefined;
-  if (typeof seq !== "number" && typeof seq !== "string") {
-    throw new Error("api_site_version: expected one row with a requested_seq (the publish sequence the build is checked against)");
-  }
-  return String(seq);
-}
-
 /** Throws, naming the pictures, when a published picture lacks a non-empty alt text in en, ar or es. */
 function assertAltTexts(loaded: Map<SourceName, unknown[]>, alts: ImageAlt[]): void {
   const ids = new Set<string>();
@@ -263,13 +248,10 @@ function assertAltTexts(loaded: Map<SourceName, unknown[]>, alts: ImageAlt[]): v
 async function readAll(): Promise<void> {
   const { url, anonKey } = publicSettings();
   const client = await makeClient(url, anonKey);
-  const before = await readSequence(client);
   const loaded = new Map<SourceName, unknown[]>();
   for (const name of Object.keys(SOURCE_VIEWS) as SourceName[]) loaded.set(name, await readView(client, name));
-  const after = await readSequence(client);
-  if (after !== before) {
-    throw new Error(`api_site_version: requested_seq moved from ${before} to ${after} while the build read the database (a publish during a build never ships; start the build again)`);
-  }
+  // No publish-sequence check here: Next caches every fetch of a static build, so a second read in this process would be a
+  // cache hit. scripts/assemble-cloudflare.mjs (guardPublishSequence) reads api_site_version before and after the build.
   for (const name of MUST_HAVE_ROWS) {
     if (loaded.get(name)!.length === 0) {
       throw new Error(`${SOURCE_VIEWS[name]}: no published rows (an empty ${name} never ships; the live site stays as it was)`);

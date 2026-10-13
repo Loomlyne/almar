@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { build } from "esbuild";
-import { assertLiveSupabaseUrl, assertNoPublicEnv, assertNoServiceKey, BUILD_HANDOVER_ENV, BUILD_PUBLIC_ENV, dataSourceFor, LIVE_SUPABASE_HOST, nextBuildEnv } from "../scripts/assemble-cloudflare.mjs";
+import { assertLiveSupabaseUrl, assertNoPublicEnv, guardPublishSequence, assertNoServiceKey, BUILD_HANDOVER_ENV, BUILD_PUBLIC_ENV, dataSourceFor, LIVE_SUPABASE_HOST, nextBuildEnv } from "../scripts/assemble-cloudflare.mjs";
 import * as assembler from "../scripts/assemble-cloudflare.mjs";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
@@ -73,22 +73,15 @@ const VIEW_NAMES = [
 
 const rowsOf = (n, make = (i) => ({ id: `row-${i}` })) => Array.from({ length: n }, (_, i) => make(i));
 
-/** The publish sequence view (03.2-02b): read before the first and after the last of VIEW_NAMES. */
-const SEQ_VIEW = "api_site_version";
-
-/** Every view with one row, unless `tables` says otherwise; api_site_version answers sequence 7 (see fakeClient's `seq`). */
-const defaultTables = (tables = {}) => ({
-  ...Object.fromEntries(VIEW_NAMES.map((v) => [v, tables[v] ?? rowsOf(1)])),
-  [SEQ_VIEW]: tables[SEQ_VIEW] ?? [{ requested_seq: 7 }],
-});
+/** Every view with one row, unless `tables` says otherwise. */
+const defaultTables = (tables = {}) => Object.fromEntries(VIEW_NAMES.map((v) => [v, tables[v] ?? rowsOf(1)]));
 
 /**
  * A PostgREST-shaped fake: from(view).select(cols, { count }).order(col)....range(a, b) answers rows a..b inclusive,
  * at most `cap` of them (the server's max-rows setting), with the exact total when `count: "exact"` was asked for.
  */
-function fakeClient(tables, { cap = Infinity, noCount = false, errors = {}, lie = {}, seq = null } = {}) {
+function fakeClient(tables, { cap = Infinity, noCount = false, errors = {}, lie = {} } = {}) {
   const calls = [];
-  let seqReads = 0;
   const client = {
     from(view) {
       const q = { orders: [], options: null, columns: null };
@@ -105,8 +98,7 @@ function fakeClient(tables, { cap = Infinity, noCount = false, errors = {}, lie 
         range(from, to) {
           calls.push({ view, from, to, orders: [...q.orders], columns: q.columns, count: q.options?.count ?? null });
           if (errors[view]) return Promise.resolve({ data: null, error: { message: errors[view] }, count: null });
-          // `seq`: the answers of api_site_version one read after another (the last one repeats), as a publish would change them.
-          const all = view === SEQ_VIEW && seq ? [{ requested_seq: seq[Math.min(seqReads++, seq.length - 1)] }] : tables[view];
+          const all = tables[view];
           if (!all) {
             return Promise.resolve({ data: null, error: { message: `Could not find the table 'public.${view}' in the schema cache` }, count: null });
           }
@@ -236,8 +228,8 @@ test("supabase mode without the public settings: loadSource rejects naming the m
 test("supabase mode: every view is read, in the order the data layer expects, with an exact count", async () => {
   const { mod, fake, result } = await loadedWith({});
   assert.equal(result, "ok");
-  assert.deepEqual([...new Set(fake.calls.map((c) => c.view))].sort(), [...VIEW_NAMES, SEQ_VIEW].sort());
-  for (const c of fake.calls.filter((c) => c.view !== SEQ_VIEW)) {
+  assert.deepEqual([...new Set(fake.calls.map((c) => c.view))].sort(), [...VIEW_NAMES].sort());
+  for (const c of fake.calls) {
     assert.equal(c.columns, "*", c.view);
     assert.equal(c.count, "exact", c.view);
     assert.deepEqual([c.from, c.to], [0, 999], c.view);
@@ -295,37 +287,13 @@ for (const view of ["api_catalog", "api_journey_tiers", "api_destinations"]) {
   });
 }
 
-// 03.2-02b finding 2: the publish sequence is read before the first and after the last view ---------------------------
+// 03.2-02b finding 2: no publish-sequence read inside the build's data layer (Next caches it; see guardPublishSequence) ---
 
-test("supabase mode: api_site_version.requested_seq is read before the first view and after the last", async () => {
+test("source.ts reads no api_site_version (a second read inside a Next build would be a cache hit); the assembler guards the build", async () => {
   const { fake, result } = await loadedWith({});
   assert.equal(result, "ok");
-  const views = fake.calls.map((c) => c.view);
-  assert.equal(views[0], SEQ_VIEW);
-  assert.equal(views.at(-1), SEQ_VIEW);
-  assert.equal(views.filter((v) => v === SEQ_VIEW).length, 2);
-  assert.equal(fake.calls[0].columns, "requested_seq");
-});
-
-test("supabase mode: a publish during the read (requested_seq moved) fails the load, naming both numbers", async () => {
-  const { result } = await loadedWith({}, { seq: [7, 8] });
-  assert.ok(result instanceof Error);
-  assert.match(result.message, /api_site_version: requested_seq moved from 7 to 8/);
-});
-
-test("supabase mode: an unchanged requested_seq loads; a bigint-as-string answer compares equal to itself", async () => {
-  assert.equal((await loadedWith({}, { seq: [7, 7] })).result, "ok");
-  assert.equal((await loadedWith({}, { seq: ["9007199254740993", "9007199254740993"] })).result, "ok");
-  assert.match((await loadedWith({}, { seq: ["9007199254740993", "9007199254740994"] })).result.message, /moved from/);
-});
-
-test("supabase mode: a missing, empty or erroring api_site_version fails the load (the migration was not applied)", async () => {
-  for (const options of [{ errors: { [SEQ_VIEW]: "permission denied" } }]) {
-    const { result } = await loadedWith({}, options);
-    assert.match(result.message, /^api_site_version: permission denied/);
-  }
-  assert.match((await loadedWith({ [SEQ_VIEW]: [] })).result.message, /api_site_version: expected one row/);
-  assert.match((await loadedWith({ [SEQ_VIEW]: [{ requested_seq: null }] })).result.message, /api_site_version: expected one row/);
+  assert.equal(fake.calls.some((c) => c.view === "api_site_version"), false);
+  assert.equal(readFileSync("lib/data/source.ts", "utf8").includes('from("api_site_version")'), false);
 });
 
 // 03.2-02b finding 4: every published picture has an alt in en, ar and es ---------------------------------------------
@@ -444,7 +412,7 @@ test("loadSource called 20 times makes one set of requests; concurrent callers s
     await Promise.all(Array.from({ length: 20 }, () => mod.loadSource()));
     await mod.loadSource();
   });
-  assert.equal(fake.calls.length, VIEW_NAMES.length + 2, "every view once, and the publish sequence before and after");
+  assert.equal(fake.calls.length, VIEW_NAMES.length);
 });
 
 test("a failed load stays failed: every later caller gets the error, no second set of requests", async () => {
@@ -813,4 +781,79 @@ test("README: --target=ops needs neither public name (the code reads fixtures fo
   assert.match(readme, /https:\/\/jkdkaldgeiowkhlfmsft\.supabase\.co/);
   // and the code agrees: ops needs nothing
   assert.equal(dataSourceFor("ops", {}), "fixtures");
+});
+
+// 03.2-02b finding 2, review of PR #10: the publish sequence is read around the whole build, outside Next ---------------
+
+const GUARD_ENV = { NEXT_PUBLIC_SUPABASE_URL: LIVE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-a-test" };
+
+/** A stub of fetch that answers api_site_version with these sequences one read after another (the last repeats) and records the calls. */
+function stubFetch(sequences, { status = 200, body } = {}) {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, init });
+    const seq = sequences[Math.min(calls.length - 1, sequences.length - 1)];
+    return { ok: status >= 200 && status < 300, status, json: async () => (body !== undefined ? body : [{ requested_seq: seq }]) };
+  };
+  return { fetchImpl, calls };
+}
+
+test("guardPublishSequence: the sequence moving between the read before and the read after the build throws, naming both numbers", async () => {
+  for (const target of ["preview", "production"]) {
+    const { fetchImpl, calls } = stubFetch([5, 6]);
+    let built = 0;
+    await assert.rejects(
+      guardPublishSequence({ target, source: "supabase", env: GUARD_ENV, fetchImpl, build: () => built++ }),
+      new RegExp(`api_site_version: requested_seq moved from 5 to 6 while --target=${target} was built`),
+    );
+    assert.equal(built, 1, "the build ran once, between the two reads");
+    assert.equal(calls.length, 2);
+  }
+});
+
+test("guardPublishSequence: an unchanged sequence passes; the reads are plain GETs of the pinned view with the anon key, never cached", async () => {
+  const { fetchImpl, calls } = stubFetch(["9007199254740993"]);
+  const order = [];
+  const tracked = async (...args) => (order.push("read"), fetchImpl(...args));
+  assert.equal(await guardPublishSequence({ target: "production", source: "supabase", env: GUARD_ENV, fetchImpl: tracked, build: () => order.push("build") }), "9007199254740993");
+  assert.deepEqual(order, ["read", "build", "read"], "read, build, read");
+  assert.equal(calls[0].url, `${LIVE_URL}/rest/v1/api_site_version?select=requested_seq`);
+  assert.equal(calls[0].init.cache, "no-store");
+  assert.equal(calls[0].init.headers.apikey, GUARD_ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  assert.equal(calls[0].init.method, undefined, "a GET");
+  assert.match((await guardPublishSequence({ target: "production", source: "supabase", env: GUARD_ENV, fetchImpl: stubFetch(["9007199254740993", "9007199254740994"]).fetchImpl, build() {} }).catch((e) => e)).message, /moved from/);
+});
+
+test("guardPublishSequence: local, ops and fixtures builds read nothing and just build", async () => {
+  for (const [target, source] of [["local", "supabase"], ["local", "fixtures"], ["ops", "fixtures"]]) {
+    const { fetchImpl, calls } = stubFetch([1, 2]);
+    let built = 0;
+    await guardPublishSequence({ target, source, env: GUARD_ENV, fetchImpl, build: () => built++ });
+    assert.equal(built, 1);
+    assert.equal(calls.length, 0, `${target}/${source}`);
+  }
+});
+
+test("guardPublishSequence: a failed build is the error to see (no second read); a failed or odd read fails before the build starts", async () => {
+  const { fetchImpl, calls } = stubFetch([3]);
+  await assert.rejects(guardPublishSequence({ target: "preview", source: "supabase", env: GUARD_ENV, fetchImpl, build() { throw new Error("next build failed"); } }), /next build failed/);
+  assert.equal(calls.length, 1);
+  let built = 0;
+  const build = () => built++;
+  const run = (fetchImpl) => guardPublishSequence({ target: "preview", source: "supabase", env: GUARD_ENV, fetchImpl, build });
+  await assert.rejects(run(stubFetch([1], { status: 401 }).fetchImpl), /api_site_version: the publish sequence could not be read \(HTTP 401\)/);
+  await assert.rejects(run(stubFetch([1], { body: [] }).fetchImpl), /expected one row/);
+  await assert.rejects(run(stubFetch([1], { body: [{ requested_seq: null }] }).fetchImpl), /expected one row/);
+  await assert.rejects(run(async () => { throw new Error(`boom ${LIVE_URL} anon-key-for-a-test`); }), (e) => /could not be read \(network error or timeout\)/.test(e.message) && !e.message.includes("anon-key") && !e.message.includes(LIVE_URL));
+  assert.equal(built, 0, "no build starts when the first read fails");
+});
+
+test("main() reads the sequence around the build: guardPublishSequence wraps the OpenNext build call, after the checks that can refuse a run", () => {
+  const src = readFileSync("scripts/assemble-cloudflare.mjs", "utf8");
+  const main = src.slice(src.indexOf("async function main("));
+  const at = (needle) => main.indexOf(needle);
+  assert.ok(at("await guardPublishSequence(") > at("assertMediaReady()"), "after the media check");
+  assert.ok(at("await guardPublishSequence(") > at("clearFetchCache(root)"));
+  assert.ok(at("await guardPublishSequence(") < at('opennextjs-cloudflare'), "the build is inside the guard");
+  assert.ok(at('opennextjs-cloudflare') < at("assertNoBundledEnv("), "the guard ends before the output is assembled");
 });
