@@ -48,10 +48,10 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
     else storeCurrencyChoice(profile.currency);
   }, [profile.currency]);
 
-  // A save writes her row and the browser choice together; a failed save puts the screen back, so it never shows a
-  // currency the site is not using.
+  // A save writes her row and the browser choice together; a failed save puts the currency back, so the screen never
+  // shows a currency the site is not using (language keeps its 02-05 behaviour).
   function storePreferences(nextLocale: DocumentLocale, nextCurrency: Currency) {
-    const previous = { locale, currency };
+    const previousCurrency = currency;
     setLocale(nextLocale);
     setCurrency(nextCurrency);
     const form = new FormData();
@@ -63,8 +63,7 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
       if (result.status === "saved") {
         storeCurrencyChoice(nextCurrency);
       } else {
-        setLocale(previous.locale);
-        setCurrency(previous.currency);
+        setCurrency(previousCurrency);
       }
     });
   }
