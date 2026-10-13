@@ -11,16 +11,16 @@ the cloud. Decisions behind this: `.planning/decisions/2026-10-01-control-sessio
 - `main` holds everything landed (Phase 3.1 landed 2026-10-02 as `9fd6786`). Cut your branch from
   `origin/main` and merge `origin/main` into it before every hand-over. The base wins a conflict unless
   the owner says otherwise.
-- Your folder is a git worktree inside the main folder: `.claude/worktrees/<job>` (owner, 2026-10-02).
-  Start the session from the desktop app in a new worktree, or run
-  `git worktree add .claude/worktrees/<job> -b <branch> origin/main` from the main folder. Never a sibling
-  folder, never the main folder itself. Run `npm ci` in your folder first.
+- Your folder is a git worktree. A thread the controller starts in T3 Code gets its worktree from T3
+  (`~/.t3/worktrees/Almar Private Journey/<branch>`, owner 2026-10-13); otherwise use
+  `git worktree add .claude/worktrees/<job> -b <branch> origin/main` from the main folder. Never the main
+  folder itself. Run `npm ci` in your folder first.
 - One job, one branch, named in your prompt (`gsd/phase-<n>-<slug>` or `fix/<slug>`). Push only it.
 
 ## Read first, in this order
-1. `/Users/koss/Developer/almarprod-Website-Code/CLAUDE.local.md` by that absolute path (it is gitignored,
+1. `/Users/koss/Developer/Almar Private Journey/CLAUDE.local.md` by that absolute path (it is gitignored,
    so it is not in your folder), section "One job, one branch, one ship"; then the memory index
-   `~/.claude/projects/-Users-koss-Developer-almarprod-Website-Code/memory/MEMORY.md`.
+   `~/.claude/projects/-Users-koss-Developer-Almar-Private-Journey/memory/MEMORY.md`.
 2. `.claude/rules/connections.md`, `.hermes.md` and `HERMES.md` (GSD's project instructions, refreshed
    2026-10-02). Where any of them disagrees with the code, the code wins; say so in your hand-over.
 3. `.planning/GOAL.md`, then `.planning/CONTROL-BOARD.md`.
