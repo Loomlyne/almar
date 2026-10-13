@@ -45,7 +45,13 @@ export async function buildLive(deps) {
   };
 
   const branch = String(deps.branch() ?? "").trim();
-  if (branch !== LIVE_BRANCH) return fail(`builds only from branch ${LIVE_BRANCH} (this build is on ${JSON.stringify(branch.slice(0, 60))})`);
+  if (branch !== LIVE_BRANCH) {
+    // WORKERS_CI_BRANCH is [ASSUMED] (research §1.1): if the image names it differently, the first build fails here and
+    // this line shows which names it does set (names only, never values).
+    const names = Object.keys(env).filter((name) => /^WORKERS_CI/.test(name)).sort();
+    log(`build-live: WORKERS_CI* variables in this build: ${names.length > 0 ? names.join(", ") : "none"}`);
+    return fail(`builds only from branch ${LIVE_BRANCH} (this build is on ${JSON.stringify(branch.slice(0, 60))})`);
+  }
 
   const settle = settleSeconds(env.ALMAR_PUBLISH_SETTLE_SECONDS);
   if (settle === null) return fail(`ALMAR_PUBLISH_SETTLE_SECONDS must be a whole number of seconds from 0 to ${MAX_SETTLE_SECONDS}`);

@@ -48,6 +48,15 @@ test("branch main: exit 1 'builds only from branch live' before sleeping, readin
   assert.match(f.lines.join("\n"), /builds only from branch live/);
 });
 
+test("a refused branch logs the WORKERS_CI* variable names present, never their values", async () => {
+  const f = fakes({ branch: () => "HEAD", env: { WORKERS_CI_COMMIT_SHA: "abc123", WORKERS_CI_BUILD_UUID: "uuid-secretish", OTHER: "x" } });
+  assert.equal(await buildLive(f.deps), 1);
+  const all = f.lines.join("\n");
+  assert.match(all, /WORKERS_CI\* variables in this build: WORKERS_CI_BUILD_UUID, WORKERS_CI_COMMIT_SHA/);
+  assert.equal(all.includes("uuid-secretish"), false);
+  assert.equal(all.includes("OTHER"), false);
+});
+
 test("an empty or detached branch (HEAD) is refused the same way", async () => {
   for (const branch of ["", "HEAD", "live-2", " Live "]) {
     const f = fakes({ branch: () => branch });
