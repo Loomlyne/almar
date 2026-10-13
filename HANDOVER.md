@@ -25,10 +25,11 @@ No migration, no change to the database, Cloudflare, Stripe or Resend. No push t
 | Local stack (`tests/helpers/local-supabase.mjs start`, colima) then `ALMAR_REQUIRE_STACK=1 node --test tests/data-parity.test.mjs tests/import-catalog.test.mjs` | 23 pass, 0 fail, 0 skipped: the real views, `api_site_version` read, and the three-language alt check pass on the imported live-shaped catalogue |
 | `node --test tests/*.test.mjs` (stack up, after merging `origin/main`) | 1,599 tests: 1,582 pass, 0 fail, 17 skipped (the "route deleted, skipped" cases) |
 | `npx tsc --noEmit` | no output |
+| `ALMAR_REBUILD_PROOF=1 ALMAR_REQUIRE_STACK=1 node --test tests/rebuild-fresh.test.mjs` (two real `next build`s, `--target=local`, local stack, new checks active) | 1 pass, 0 fail |
 
 ## Not checked
 
-- Playwright (`playwright test`) and the build shards: nothing here touches page output; `scripts/parity-build.mjs` and `tests/rebuild-fresh.test.mjs` (full `next build`) were not run separately (rebuild-fresh is inside the node run above only if it did not skip; it uses `--target=local`, which this job does not change).
+- Playwright (`playwright test`) and the build shards: nothing here touches page output. `scripts/parity-build.mjs` (full A/B build parity) was not run.
 - No real `--target=preview|production` assemble (it needs the live URL and key in a shell; secrets stay out of this session). The pin is tested as a function and by the order test in `main()`, not by a real run.
 - The cross-process publish race (finding 2, see above).
 - Local stack left running for this worktree; the controller can `node tests/helpers/local-supabase.mjs stop`.
