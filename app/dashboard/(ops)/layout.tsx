@@ -30,8 +30,8 @@ async function OpsBrand(): Promise<{ style: ReactNode; logoSrc: string | null }>
   const settings = await readSiteSettings(siteSettingsEnv(), { maxAgeMs: 0 });
   const css = settings ? brandCss(settings) : "";
   return {
-    // Only #rrggbb values reach brandCss (parseSiteSettingsRow), so the text cannot leave the style element.
-    style: css ? <style id="almar-brand" dangerouslySetInnerHTML={{ __html: css }} /> : null,
+    // Only #rrggbb values and fixed names reach brandCss (parseSiteSettingsRow): no character React would escape.
+    style: css ? <style id="almar-brand">{css}</style> : null,
     logoSrc: settings ? logoMediaUrl(settings.logoKey) : null,
   };
 }

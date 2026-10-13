@@ -97,7 +97,8 @@ test("the sign-in email reads the settings at send time; the ops layout reads th
   assert.match(server, /brand: emailBrand\(await readSiteSettings\(siteSettingsEnv\(\)\)\)/);
   const layout = read("app/dashboard/(ops)/layout.tsx");
   assert.match(layout, /readSiteSettings\(siteSettingsEnv\(\), \{ maxAgeMs: 0 \}\)/);
-  assert.match(layout, /<style id="almar-brand" dangerouslySetInnerHTML=\{\{ __html: css \}\} \/>/);
+  assert.match(layout, /<style id="almar-brand">\{css\}<\/style>/);
+  assert.equal(layout.includes("dangerouslySetInnerHTML"), false);
   assert.match(layout, /logoSrc: settings \? logoMediaUrl\(settings\.logoKey\) : null/);
   assert.ok(layout.indexOf('redirect("/sign-in")') < layout.indexOf("await OpsBrand()"), "the row is read after the owner gate");
   const shell = read("app/dashboard/(ops)/ops-shell.tsx");
