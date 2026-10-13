@@ -53,14 +53,23 @@ pgTAP `supabase/tests/site_settings_access.test.sql` (27 tests): anon reads exac
 `/account` shows the currency the public site uses (`shownAccountCurrency`); a failed save puts the currency back.
 Language keeps its 02-05 behaviour (reverting it flipped the signed AR screenshot).
 
+## Round 2 (controller, 2026-10-13)
+
+- The dashboard (ops shell) reads the settings row on every request: saved colours as CSS variables, a saved logo in
+  the header from the image host; a brand save refreshes the shell. The sign-in email reads the row at send time:
+  colours inline, faces in the font stacks, the logo as an absolute media URL (D-108, D-110, D-113, D-116).
+- `/login`, `/account`, `/bookings` are Worker paths (`run_worker_first`, live `x-opennext: 1`), so the middleware gate
+  closes them; proven on the built Worker against the local stack. The three 404s now take the colours and close too.
+- Brand reach measured over every page in `out/`: all design-Teal elements take a saved Teal (0 Framer pages remain).
+
 ## Not done
 
-- Email (`lib/email/magic-link.ts`) and the ops shell do not take the saved colours or logo.
-- Framer-exported pages take the colours only where they use the design system's CSS variables.
 - The settings write and the profile write are two updates, not one transaction.
+- `lib/supabase/database.types.ts` refresh: a separate job after landing.
 
 ## Tests
 
-Node: `settings`, `settings-api`, `settings-form`, `site-settings`, `account-preferences`, updated `host-gate`,
+Node: `settings`, `settings-api`, `settings-form`, `site-settings`, `settings-brand`, `account-preferences`, updated `host-gate`,
 `ops-media`, `phase-03-settings`. pgTAP: `site_settings_access`. Playwright: `ops-settings.spec.ts` (3 languages x 3
-widths, Save flow, logo, leave dialog), `maintenance.spec.ts` (closed page 3 x 3). Results are in `02-06-HANDOVER.md`.
+widths, Save flow, logo, leave dialog), `maintenance.spec.ts` (closed page 3 x 3); built Worker:
+`tests/build/maintenance-runtime.spec.ts`, `tests/build/ops-brand.spec.ts`. Results are in `02-06-HANDOVER.md`.

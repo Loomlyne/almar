@@ -1,7 +1,7 @@
 # Hand-over: 02-06 Settings (work session, not the controller)
 
-Branch `gsd/phase-02-p06-settings`, cut from `origin/main` `fa5033c`; `origin/main` `e776411` merged in (`4535fea`,
-planning notes only, no conflict). Code tip `5105d15`; this file and `02-06-SUMMARY.md` are the only later change.
+Branch `gsd/phase-02-p06-settings`, cut from `origin/main` `fa5033c`; `origin/main` merged twice (`4535fea`: `e776411`,
+planning notes only; `9aa36e5`: `aee65eb`, 03.2-02b, merged with `-X theirs`, exit 0; my assembler hunks checked present after it). Round 2 (controller items 1-3, 2026-10-13) is on top of the first hand-over (`c72c50e`).
 No push to `main`, no PR, no deploy, no live database, no Cloudflare or DNS change. Stripe untouched.
 
 ## Per task
@@ -19,28 +19,163 @@ No push to `main`, no PR, no deploy, no live database, no Cloudflare or DNS chan
    `lib/settings/{validate,handlers,site-rebuild}.ts`).
 7. **Screen** (`771f906`, `0114a2a`): `app/dashboard/(ops)/settings/*`, `/settings` in `OPS_LIVE_SECTIONS`, copy in its
    own file `lib/copy/ops-settings.ts`; browser specs; old placeholder tests updated.
+8. **Round 2, item 1: dashboard and email wear the brand** (`2c2d57f`, `0a0730e`, `eedee97`; D-108, D-110, D-113, D-116).
+   - Ops shell: `app/dashboard/(ops)/layout.tsx` reads `api_site_settings` on every request after the owner gate
+     (`lib/site-settings-read.ts`, `maxAgeMs: 0`). Saved colours go in as `<style id="almar-brand">:root{…}</style>`
+     (`brandCss`); a saved logo is the shell header image, straight from `media.almarprivatejourney.com`. A brand save
+     calls `router.refresh()`, so the shell changes at once. A failed read keeps the design system.
+   - Sign-in email (guest and ops, `lib/auth/magic-link-server.ts`): settings read at send time (30 s cache); Teal,
+     Gold, Ivory, Charcoal inline; the saved faces first in each font stack (Arabic keeps Noto, D-123); a saved logo as
+     `<img src="https://media.almarprivatejourney.com/<key>" width="140">`. `lib/email/magic-link.ts` stays import-free
+     and refuses any colour, face or logo URL that did not come from the checked row.
+   - Faces: the selects offer only the design system's faces (D-115, D-121: Questa, Lato), which the CSS already uses,
+     so a saved face never needs a CSS rule; the email names them in its font stacks.
+   - Tests: `tests/settings-brand.test.mjs` (8, node); `tests/build/ops-brand.spec.ts` (2, built ops Worker, owner signed
+     in on the local stack: no style and the wordmark with nothing saved; the saved Teal variable and the media logo
+     after a save).
+9. **Round 2, item 2: the three server pages really close** (`5afe029`). Proof below. Also: the closed page the Worker
+   answers takes a saved logo from the image host (a `/brand/` copy exists only after a rebuild), and the three 404s
+   now take the saved colours and close with the site (they were not in the rebuild's page list).
+10. **Round 2, item 3: brand reach measured** (`5afe029`, `tests/build/measure-brand-reach.mjs`). Table below.
+11. **Spec upkeep** (`f7ff0e3`): `tests/build/ops-api.spec.ts` route list adds `media` (03.2-09, already on
+    `main`: A1 failed there too) and `settings`.
 
-## Checks (on `5105d15`, detached, logs in `~/almar-logs/02-06-*.log`)
+## Checks
 
-Ran 2026-10-13 23:20-23:23 (+04), local stack `almar-931ac25e` up.
+Code tip `eedee97`. Logs in `~/almar-logs/02-06-*.log`. Machine rule kept: one chain at a time, one stack, at most
+`--workers=2`; the local stack is stopped (`stack_stop=0`, 2026-10-14 00:20 +04).
 
-- `npm ci`: exit 0.
-- `npx tsc --noEmit`: exit 0.
-- `ALMAR_REQUIRE_STACK=1 node --test tests/*.test.mjs`: 1628 tests, 1611 pass, **3 fail**, 14 skipped (opt-in or
-  retired: 7 "route.ts is gone", 2 media-staging absent, 4 `MEDIA_CHECK_OUT=1`, 1 `ALMAR_REBUILD_PROOF=1`). The 3 failures all said "no local Supabase stack"
-  (`ops-api-local` owner API end to end, `preferences-local` x2) while 18 other stack tests passed in the same run.
-  The likely cause is my `supabase gen types` call touching the stack at that moment. Rerun of those two files alone,
-  stack required: 13/13 pass, exit 0 (`02-06-node-stack-rerun.log`). An earlier full run without the stack (before
-  `0114a2a`/`5105d15`, same code except the account revert) had 1593 pass, 0 fail, 35 skipped.
-- `npm run tokens:check`: exit 0.
-- `npm run build` (`next build`): exit 0.
-- `node scripts/assemble-cloudflare.mjs --target=local` (fixtures): exit 0, 69 html files, `out/brand/` has
-  `wordmark.svg`, `questa.woff`, `lato.ttf`; "settings applied to 0 pages" (defaults change nothing, as designed).
-  `--target=production` refuses to build without the database values in the shell (by design); not run.
-- pgTAP (`local-supabase.mjs test`): 4 files, 661 tests, all pass (incl. `site_settings_access` 27).
-- Playwright `--workers=2`, PW_PORT 3061: `maintenance.spec.ts`, `ops-settings.spec.ts`, `account-select.spec.ts`,
-  `header-i18n.spec.ts`: 37/37 pass. Before `5105d15`, `account-select` failed `ar-closed.png` (18% pixels): the
-  finding-4 language revert; fixed by reverting the currency only.
+On `9aa36e5` (merge commit; chain 2026-10-13 23:46 to 2026-10-14 00:11) and again on `eedee97` (00:15 to 00:20) unless noted:
+
+- `npm ci` (9aa36e5): exit 0. `npx tsc --noEmit`: exit 0 (both).
+- `npm run tokens:check`: exit 0. `npm run build` (`next build`): exit 0.
+- pgTAP: 4 files, 661 tests, PASS.
+- Built ops Worker (`--target=ops`, local stack): `ops-brand.spec.ts` + `ops-api.spec.ts` + `ops-runtime.spec.ts`:
+  27/27 pass. (On `5afe029`, before the route-list fix, `A1` failed on `/api/ops/media`, which `main` also lacks.)
+- Built public Worker (`--target=local`, local stack): `maintenance-runtime.spec.ts` 3/3; `locale-404`,
+  `auth-paths`, `server-runtime` 49/49.
+- Brand reach: 2661 of 2661 teal elements follow (table above).
+- Dev server, `--workers=2`: `maintenance`, `ops-settings`, `account-select`, `header-i18n`: 37/37.
+- `ALMAR_REQUIRE_STACK=1 node --test tests/*.test.mjs` on `eedee97`: 1656 tests, 1639 pass, **3 fail**, 14 skipped
+  (opt-in or retired: 7 "route.ts is gone", 2 media-staging absent, 4 `MEDIA_CHECK_OUT=1`, 1 `ALMAR_REBUILD_PROOF=1`).
+  The 3 are `preferences-local` x2 and `ops-api-local` "owner API end to end", each failing with "no local Supabase
+  stack" in the parallel run. Cause (test harness, not 02-06): `requireStack` runs `supabase status` before the file
+  takes `acquireStackLock`, and `status` fails while another file (`import-catalog`) resets the database. Round 1's
+  same three failures had the same cause (I blamed my types call then: wrong). Each of the 8 stack files run alone on
+  `9aa36e5`, stack required: 54/54 pass (`02-06-stack2.log`). Proposed fix, shared helper, not changed here: take the
+  lock before `requireStack` in those files, or retry `status` a few seconds in `localStack`.
+- On `9aa36e5` the full node run also had a guard failure that was mine: the media host literal in
+  `lib/site-settings.ts` (`tests/data-contract.test.mjs`). Fixed in `eedee97` (the media URL helpers moved to
+  `lib/site-settings-read.ts`, which imports `mediaUrl`). That run's 20-minute lock waits (5 stack tests) did not recur.
+
+## Item 2 proof: which of /login, /account, /bookings the Worker serves
+
+The premise "the Worker runs only for /api/*" is from job 10. Plan 02-23 task 3 added the sign-in paths to
+`run_worker_first` in both Worker files (`wrangler.toml` line 17 on the branch and on `origin/main`):
+`["/api/*", "/login", "/auth/confirm", "/auth/sign-out", "/auth/handoff/start", "/account", "/bookings"]`.
+
+| Path | File in `out/` after `--target=local` | In `run_worker_first` | Live 2026-10-13 23:35 +04 (navigate GET) | Served by |
+|---|---|---|---|---|
+| `/login` | none | yes | 200, `x-opennext: 1` | Worker (middleware runs) |
+| `/account` | none | yes | 307 to `/login?return=account`, `x-opennext: 1` | Worker (middleware runs) |
+| `/bookings` | none | yes | 307 to `/login?return=bookings`, `x-opennext: 1` | Worker (middleware runs) |
+| `/ar/login`, `/es/account` | none | no | (static 404) | asset 404 page, closed by the rebuild |
+| `/about` | `out/about.html` | no | 200, no `x-opennext` | asset, closed by the rebuild |
+| `/` | `out/index.html` | no | 200, no `x-opennext` | asset, closed by the rebuild |
+
+None of the three is a static file, so the middleware gate is what closes them. Proven end to end on the built public
+Worker (`wrangler dev`, local stack, `tests/build/maintenance-runtime.spec.ts`, 3 tests): with `maintenance = true`
+saved in the database, all three answer 503 with the closed page (navigate and plain requests; `no-store`, `noindex`,
+tel link, saved Teal, Spanish with `almar-locale=es`); `/about` is still the file (no `x-opennext`); `/api/health` 200.
+Bite: the same run with `maintenance = false` saved fails (`/login` 200, expected 503). Every static page, and now the
+three 404s, get the closed page from the publish rebuild (`applySiteSettings`, unit-tested).
+
+## Item 3: how far a saved Teal reaches the public pages
+
+`tests/build/measure-brand-reach.mjs` on `out/` (`--target=local`, fixtures). The build has **0 Framer pages**: every
+public page is React since plans 23/24 deleted the Framer `route.ts` files ("0 Framer, React en 22 / ar 22 / es 22,
+3 404s"). For each page, Chromium at 1440 px: elements whose computed colour, background, border, outline, fill,
+stroke or underline is the design Teal, then the same page with the rebuild's `<style id="almar-brand">` for Teal
+`#7a1f3b` (transitions off). Before the 404 fix the three 404 links stayed design Teal (literal hex); now nothing stays.
+The SVG images are the two logo files (`Poly_White` x54, `Stacked_Charcoal` x12, white and charcoal, not teal); the
+rebuild swaps them for a saved logo.
+
+Saved Teal #7a1f3b over the design Teal #1f3b40, 69 pages in out/.
+
+| Page | Teal elements | Take the saved Teal | Stay design Teal | SVG images (colour baked in, not measured) | Examples that stay |
+|---|---:|---:|---:|---:|---|
+| `/404` | 1 | 1 | 0 | 0 | - |
+| `/about` | 15 | 15 | 0 | 1 | - |
+| `/ar/404` | 1 | 1 | 0 | 0 | - |
+| `/ar/about` | 15 | 15 | 0 | 1 | - |
+| `/ar/blog` | 7 | 7 | 0 | 1 | - |
+| `/ar/blog/colombias-coffee-triangle-eje-cafetero` | 15 | 15 | 0 | 1 | - |
+| `/ar/blog/discovering-cartagenas-hidden-colonial-courtyards` | 16 | 16 | 0 | 1 | - |
+| `/ar/blog/why-medellin-is-redefining-luxury-travel` | 16 | 16 | 0 | 1 | - |
+| `/ar/contact` | 38 | 38 | 0 | 1 | - |
+| `/ar/destinations` | 6 | 6 | 0 | 1 | - |
+| `/ar/experiences` | 54 | 54 | 0 | 1 | - |
+| `/ar/` | 59 | 59 | 0 | 1 | - |
+| `/ar/private-stays` | 20 | 20 | 0 | 1 | - |
+| `/ar/private-stays/baru-island-private-villa` | 51 | 51 | 0 | 1 | - |
+| `/ar/private-stays/bocagrande-beach-house` | 66 | 66 | 0 | 1 | - |
+| `/ar/private-stays/cartagena-historic-center-house` | 41 | 41 | 0 | 1 | - |
+| `/ar/private-stays/casa-jardin-san-diego` | 58 | 58 | 0 | 1 | - |
+| `/ar/private-stays/casa-juliana-historic-center` | 58 | 58 | 0 | 1 | - |
+| `/ar/private-stays/casa-mariana-historic-center` | 58 | 58 | 0 | 1 | - |
+| `/ar/private-stays/getsemani-colonial-house` | 48 | 48 | 0 | 1 | - |
+| `/ar/private-stays/getsemani-courtyard-residence` | 59 | 59 | 0 | 1 | - |
+| `/ar/private-stays/private-island-cartagena` | 37 | 37 | 0 | 1 | - |
+| `/ar/private-stays/private-island-estate-cartagena` | 62 | 62 | 0 | 1 | - |
+| `/ar/private-stays/santa-fe-farm-antioquia` | 59 | 59 | 0 | 1 | - |
+| `/ar/private-stays/sopetran-country-estate` | 43 | 43 | 0 | 1 | - |
+| `/blog` | 7 | 7 | 0 | 1 | - |
+| `/blog/colombias-coffee-triangle-eje-cafetero` | 15 | 15 | 0 | 1 | - |
+| `/blog/discovering-cartagenas-hidden-colonial-courtyards` | 16 | 16 | 0 | 1 | - |
+| `/blog/why-medellin-is-redefining-luxury-travel` | 16 | 16 | 0 | 1 | - |
+| `/contact` | 38 | 38 | 0 | 1 | - |
+| `/destinations` | 6 | 6 | 0 | 1 | - |
+| `/es/404` | 1 | 1 | 0 | 0 | - |
+| `/es/about` | 15 | 15 | 0 | 1 | - |
+| `/es/blog` | 7 | 7 | 0 | 1 | - |
+| `/es/blog/colombias-coffee-triangle-eje-cafetero` | 15 | 15 | 0 | 1 | - |
+| `/es/blog/discovering-cartagenas-hidden-colonial-courtyards` | 16 | 16 | 0 | 1 | - |
+| `/es/blog/why-medellin-is-redefining-luxury-travel` | 16 | 16 | 0 | 1 | - |
+| `/es/contact` | 38 | 38 | 0 | 1 | - |
+| `/es/destinations` | 6 | 6 | 0 | 1 | - |
+| `/es/experiences` | 54 | 54 | 0 | 1 | - |
+| `/es/` | 59 | 59 | 0 | 1 | - |
+| `/es/private-stays` | 20 | 20 | 0 | 1 | - |
+| `/es/private-stays/baru-island-private-villa` | 51 | 51 | 0 | 1 | - |
+| `/es/private-stays/bocagrande-beach-house` | 66 | 66 | 0 | 1 | - |
+| `/es/private-stays/cartagena-historic-center-house` | 41 | 41 | 0 | 1 | - |
+| `/es/private-stays/casa-jardin-san-diego` | 58 | 58 | 0 | 1 | - |
+| `/es/private-stays/casa-juliana-historic-center` | 58 | 58 | 0 | 1 | - |
+| `/es/private-stays/casa-mariana-historic-center` | 58 | 58 | 0 | 1 | - |
+| `/es/private-stays/getsemani-colonial-house` | 48 | 48 | 0 | 1 | - |
+| `/es/private-stays/getsemani-courtyard-residence` | 59 | 59 | 0 | 1 | - |
+| `/es/private-stays/private-island-cartagena` | 37 | 37 | 0 | 1 | - |
+| `/es/private-stays/private-island-estate-cartagena` | 62 | 62 | 0 | 1 | - |
+| `/es/private-stays/santa-fe-farm-antioquia` | 59 | 59 | 0 | 1 | - |
+| `/es/private-stays/sopetran-country-estate` | 43 | 43 | 0 | 1 | - |
+| `/experiences` | 54 | 54 | 0 | 1 | - |
+| `/` | 59 | 59 | 0 | 1 | - |
+| `/private-stays` | 20 | 20 | 0 | 1 | - |
+| `/private-stays/baru-island-private-villa` | 51 | 51 | 0 | 1 | - |
+| `/private-stays/bocagrande-beach-house` | 66 | 66 | 0 | 1 | - |
+| `/private-stays/cartagena-historic-center-house` | 41 | 41 | 0 | 1 | - |
+| `/private-stays/casa-jardin-san-diego` | 58 | 58 | 0 | 1 | - |
+| `/private-stays/casa-juliana-historic-center` | 58 | 58 | 0 | 1 | - |
+| `/private-stays/casa-mariana-historic-center` | 58 | 58 | 0 | 1 | - |
+| `/private-stays/getsemani-colonial-house` | 48 | 48 | 0 | 1 | - |
+| `/private-stays/getsemani-courtyard-residence` | 59 | 59 | 0 | 1 | - |
+| `/private-stays/private-island-cartagena` | 37 | 37 | 0 | 1 | - |
+| `/private-stays/private-island-estate-cartagena` | 62 | 62 | 0 | 1 | - |
+| `/private-stays/santa-fe-farm-antioquia` | 59 | 59 | 0 | 1 | - |
+| `/private-stays/sopetran-country-estate` | 43 | 43 | 0 | 1 | - |
+| **All** | **2661** | **2661** | **0** | **66** | |
+
+(Same table in `02-06-BRAND-REACH.md`.)
 
 ## Migration `20261013120000_site_settings_brand.sql`: live safety
 
@@ -68,13 +203,15 @@ deploy; `/login`, `/account`, `/bookings` close within 30 s regardless.
 
 ## Not verified
 
-- No real publish rebuild ran against a saved row (the assembler path is unit-tested on a temp `out/`).
-- The `/login` gate against a live flag in a browser (unit-tested with a fake fetch).
-- Email (`lib/email/magic-link.ts`) and the ops shell do not take the saved colours or logo: **not done**.
-- Framer-exported pages take the saved colours only where they use the design system's CSS variables.
+- No real publish rebuild against a saved live row (the assembler step is unit-tested on a temp `out/`; the seam waits
+  for 03.2-05).
+- The email in real mail clients: WebP logos do not show in Outlook desktop (the upload accepts PNG/JPEG/WebP); the
+  saved faces only show where the client has them installed (Questa never is: Georgia shows).
+- Owner question: the email button is Teal text on a Gold background, and Gold is not contrast-checked (signed). A
+  dark saved Gold makes that button hard to read. Options: check Teal on Gold too, or make the email button the site's
+  teal primary.
 - The settings write and the profile write are two updates, not one transaction.
-- `lib/supabase/database.types.ts` is stale for this migration and for earlier ones (bookings, disputes, …);
-  regenerating it here would pull other jobs' tables into this branch. Proposal: one separate refresh after landing.
+- `lib/supabase/database.types.ts` is stale (this and earlier migrations): a separate refresh after landing (agreed).
 
 ## Deviations from the plan
 
@@ -92,7 +229,7 @@ deploy; `/login`, `/account`, `/bookings` close within 30 s regardless.
 ## Proposed board / state lines (controller edits them)
 
 - CONTROL-BOARD: `02-06 Settings: hand-over at <tip>, waiting for review and Ship. Migration 20261013120000 to apply.`
-- STATE: `02-06 complete on branch; maintenance/brand at the next publish rebuild (seam for 03.2-05).`
+- STATE: `02-06 complete on branch; public site at the next publish rebuild (seam for 03.2-05); dashboard, sign-in email and /login, /account, /bookings at once.`
 
 ## UAT for the owner (after the migration is applied and the branch is deployed to the ops host)
 
@@ -107,7 +244,11 @@ deploy; `/login`, `/account`, `/bookings` close within 30 s regardless.
 6. Logo → Upload a PNG over 1 MB. Expected: "Use a PNG, JPEG or WebP file up to 1 MB." and Save off.
 7. Tick "Maintenance is on", Save. Open `https://almarprivatejourney.com/login` in a private window within a minute.
    Expected: the closed page with the phone and email links; the dashboard still opens. Untick and Save.
-8. Switch to العربية and Español in Settings. Expected: the page reloads in that language, right-to-left for Arabic,
+8. Set Teal to `#2b4f56`, Save. Expected: the dashboard header, buttons and links turn that colour at once.
+9. Logo → pick a square PNG from the library, Save. Expected: the dashboard header shows it at once.
+10. Sign out, then ask for a sign-in link. Expected: the email shows the new logo and colours. Put Teal back and
+    Remove logo, Save.
+11. Switch to العربية and Español in Settings. Expected: the page reloads in that language, right-to-left for Arabic,
    and "Settings saved." shows.
 
 ## Draft copy for review (correctable at UAT)
