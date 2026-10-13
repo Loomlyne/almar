@@ -98,7 +98,7 @@ type Plan = { ar: Answer; es: Answer };
 const SOURCE_KEYS = ["name", "short_line", "summary"];
 
 /** Answers each target's POST with its fixture; `hold` keeps every answer back until it resolves. */
-async function answerTranslate(page: Page, plan: Plan, hold?: Promise<void>) {
+async function answerTranslate(page: Page, plan: Plan, hold?: Promise<void>, left: Partial<Record<"ar" | "es", string[]>> = {}) {
   const bodies: { target: string; fields: Record<string, unknown> }[] = [];
   await page.route("**/api/ops/translate", async (route: Route) => {
     const request = route.request();
@@ -109,7 +109,12 @@ async function answerTranslate(page: Page, plan: Plan, hold?: Promise<void>) {
     const status = plan[body.target];
     const json =
       status === 200
-        ? { ok: true, target: body.target, fields: Object.fromEntries(Object.keys(body.fields).map((k) => [k, `[${body.target} ${k}]`])) }
+        ? {
+            ok: true,
+            target: body.target,
+            fields: Object.fromEntries(Object.keys(body.fields).filter((k) => !left[body.target]?.includes(k)).map((k) => [k, `[${body.target} ${k}]`])),
+            ...(left[body.target]?.length ? { left: left[body.target] } : {}),
+          }
         : { ok: false, error: { code: status === 429 ? "translate_limit" : status === 503 ? "translate_busy" : "translate_failed", field: null, locale: null, detail: null } };
     await route.fulfill({ status, contentType: "application/json", headers: { "cache-control": "no-store" }, body: JSON.stringify(json) });
   });
@@ -195,6 +200,15 @@ test.describe("behaviour", () => {
           expect(await logOf(page)).toEqual(expected);
         });
       }
+
+      // Both targets came back, some fields were not usable (`left`): the drafts of the others, and the line that says so.
+      test(`200 with fields left: only the usable fields are drafted, the someLeft line (${width} ${locale})`, async ({ page }) => {
+        await answerTranslate(page, { ar: 200, es: 200 }, undefined, { ar: ["summary"], es: ["name", "summary"] });
+        await openScene(page, "live", viewport, locale, "ops-translate-live");
+        await button(page).click();
+        await expect(statusLine(page)).toHaveText(copy.someLeft);
+        expect((await logOf(page)).sort()).toEqual(["ar:name,short_line", "es:short_line"]);
+      });
 
       // A rate or capacity answer (503 translate_busy): "try again in a minute", never the "resets 04:00" line (03.2-10b, round 3).
       for (const [plan, line] of [

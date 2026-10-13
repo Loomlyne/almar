@@ -19,6 +19,8 @@ export type OpsTranslateCopy = {
   partialArabicOnly: string;
   /** Spanish came back, Arabic failed (the mirror line). */
   partialSpanishOnly: string;
+  /** Both targets came back but some fields were left empty (not a usable translation): the owner writes those. */
+  someLeft: string;
   /** Neither target came back and the service was busy (503 translate_busy: a rate or capacity answer). */
   retryLater: string;
   /** Arabic came back, Spanish hit the daily limit (429 translate_limit). */
@@ -44,6 +46,7 @@ export const OPS_TRANSLATE_COPY: Record<OpsTranslateLocale, OpsTranslateCopy> = 
     done: "Arabic and Spanish filled as drafts. Check them before you publish.",
     partialArabicOnly: "Arabic filled as a draft. Spanish failed: type it or try again.",
     partialSpanishOnly: "Spanish filled as a draft. Arabic failed: type it or try again.",
+    someLeft: "Drafts filled, but some fields were left empty. Type those yourself and check the rest before you publish.",
     retryLater: "Translation is busy right now. Try again in a minute.",
     partialArabicLimit: "Arabic filled as a draft. Spanish: translation limit reached for today (resets 04:00 Dubai). Type it or try tomorrow.",
     partialSpanishLimit: "Spanish filled as a draft. Arabic: translation limit reached for today (resets 04:00 Dubai). Type it or try tomorrow.",
@@ -60,6 +63,7 @@ export const OPS_TRANSLATE_COPY: Record<OpsTranslateLocale, OpsTranslateCopy> = 
     done: "تمت تعبئة العربية والإسبانية كمسودتين. راجعهما قبل النشر.",
     partialArabicOnly: "تمت تعبئة العربية كمسودة. تعذّرت الإسبانية: اكتبها أو حاول مرة أخرى.",
     partialSpanishOnly: "تمت تعبئة الإسبانية كمسودة. تعذّرت العربية: اكتبها أو حاول مرة أخرى.",
+    someLeft: "تمت تعبئة المسودات، لكن تُركت بعض الحقول فارغة. اكتبها بنفسك وراجع الباقي قبل النشر.",
     retryLater: "الترجمة مشغولة الآن. حاول مرة أخرى بعد دقيقة.",
     partialArabicLimit: "تمت تعبئة العربية كمسودة. الإسبانية: بلغت الترجمة حدّها لهذا اليوم (يُعاد ضبطه الساعة 04:00 بتوقيت دبي). اكتبها أو حاول غدًا.",
     partialSpanishLimit: "تمت تعبئة الإسبانية كمسودة. العربية: بلغت الترجمة حدّها لهذا اليوم (يُعاد ضبطه الساعة 04:00 بتوقيت دبي). اكتبها أو حاول غدًا.",
@@ -76,6 +80,7 @@ export const OPS_TRANSLATE_COPY: Record<OpsTranslateLocale, OpsTranslateCopy> = 
     done: "Árabe y español completados como borradores. Revíselos antes de publicar.",
     partialArabicOnly: "Árabe completado como borrador. El español falló: escríbalo o inténtelo de nuevo.",
     partialSpanishOnly: "Español completado como borrador. El árabe falló: escríbalo o inténtelo de nuevo.",
+    someLeft: "Borradores completados, pero algunos campos quedaron vacíos. Escríbalos usted y revise el resto antes de publicar.",
     retryLater: "La traducción está ocupada en este momento. Inténtelo de nuevo en un minuto.",
     partialArabicLimit: "Árabe completado como borrador. Español: se alcanzó el límite de traducción de hoy (se reinicia a las 04:00, hora de Dubái). Escríbalo o inténtelo mañana.",
     partialSpanishLimit: "Español completado como borrador. Árabe: se alcanzó el límite de traducción de hoy (se reinicia a las 04:00, hora de Dubái). Escríbalo o inténtelo mañana.",

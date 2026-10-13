@@ -15,6 +15,7 @@ export type TranslateView =
   | "confirm"
   | "busy"
   | "done"
+  | "done-left"
   | "partial-ar"
   | "partial-es"
   | "partial-ar-limit"
@@ -60,6 +61,7 @@ export function TranslateButtonView({
   const busy = view === "busy";
   const lines: Partial<Record<TranslateView, string>> = {
     done: copy.done,
+    "done-left": copy.someLeft,
     "partial-ar": copy.partialArabicOnly,
     "partial-es": copy.partialSpanishOnly,
     "partial-ar-limit": copy.partialArabicLimit,
@@ -107,7 +109,7 @@ export function TranslateButtonView({
 
 type Target = "ar" | "es";
 type Drafts = Record<string, string | string[]>;
-type TranslateReply = { target: Target; fields: Drafts };
+type TranslateReply = { target: Target; fields: Drafts; left?: string[] };
 
 /**
  * What is sent: strings with text, and lists whose every item has text (a list's length is the contract the answer
@@ -125,6 +127,8 @@ export function sendable(source: Source): Drafts {
 /** How long one request may take before it is given up as failed; a stalled AI call otherwise holds "Translating…" ~100 s. */
 export const TRANSLATE_TIMEOUT_MS = 45_000;
 
+/** An answer that came back with some fields left empty (they were not a usable translation). */
+const hasLeft = (r: OpsResponse<TranslateReply> | null) => r?.ok === true && (r.left?.length ?? 0) > 0;
 const isBusy = (r: OpsResponse<TranslateReply> | null) => r !== null && !r.ok && r.error.code === "translate_busy";
 const isLimit = (r: OpsResponse<TranslateReply> | null) => r !== null && !r.ok && r.status === 429 && r.error.code === "translate_limit";
 
@@ -138,7 +142,7 @@ export function outcomeView(ar: OpsResponse<TranslateReply> | null, es: OpsRespo
   if (arOk && isLimit(es)) return "partial-ar-limit";
   if (esOk && isLimit(ar)) return "partial-es-limit";
   if (isLimit(ar) || isLimit(es)) return "limit";
-  if (arOk && esOk) return "done";
+  if (arOk && esOk) return hasLeft(ar) || hasLeft(es) ? "done-left" : "done";
   if (arOk) return "partial-ar";
   if (esOk) return "partial-es";
   // Nothing came back: busy (try again in a minute) when either was a rate or capacity answer, else failed.

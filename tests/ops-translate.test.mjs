@@ -33,8 +33,8 @@ function fakeRun(reply) {
 
 test("checkSameShape is re-exported from translate-prompt (one function, not a copy)", () => {
   assert.equal(typeof t.checkSameShape, "function");
-  assert.match(readFileSync("lib/ops/translate.ts", "utf8"), /export \{ checkSameShape \};/);
-  assert.match(readFileSync("lib/ops/translate.ts", "utf8"), /import \{ checkSameShape,[^}]*\} from "\.\/translate-prompt";/);
+  assert.match(readFileSync("lib/ops/translate.ts", "utf8"), /export \{ checkFields, checkSameShape \};/);
+  assert.match(readFileSync("lib/ops/translate.ts", "utf8"), /import \{ checkFields, checkSameShape,[^}]*\} from "\.\/translate-prompt";/);
 });
 
 test("checkSameShape: same keys and list lengths ok; each break gives its reason", () => {
@@ -125,9 +125,19 @@ test("two JSON objects, no JSON, or visible thinking text -> translate_failed", 
   assert.deepEqual(await t.translateFields(fakeRun(null).run, SOURCE, "ar"), failed);
 });
 
-test("a well-formed answer of the wrong shape -> translate_failed", async () => {
+test("a well-formed answer of the wrong shape: the broken field is left, the rest kept; nothing usable -> translate_failed", async () => {
   const failed = { ok: false, code: "translate_failed" };
-  for (const bad of [{ name: AR.name, summary: AR.summary }, { ...AR, amenities: ["مسبح"] }, { ...AR, name: "" }, { ...AR, extra: "x" }]) {
+  const cases = [
+    [{ name: AR.name, summary: AR.summary }, { name: AR.name, summary: AR.summary }, ["amenities"]],
+    [{ ...AR, amenities: ["مسبح"] }, { name: AR.name, summary: AR.summary }, ["amenities"]],
+    [{ ...AR, name: "" }, { summary: AR.summary, amenities: AR.amenities }, ["name"]],
+    [{ ...AR, extra: "x" }, AR, undefined],
+  ];
+  for (const [bad, fields, left] of cases) {
+    const expected = left ? { ok: true, fields, left } : { ok: true, fields };
+    assert.deepEqual(await t.translateFields(fakeRun(gemmaReply(JSON.stringify(bad))).run, SOURCE, "ar"), expected);
+  }
+  for (const bad of [{}, { name: "", summary: "", amenities: [] }, { extra: "x" }, [AR], "text"]) {
     assert.deepEqual(await t.translateFields(fakeRun(gemmaReply(JSON.stringify(bad))).run, SOURCE, "ar"), failed);
   }
 });
@@ -352,7 +362,8 @@ test("review 1: Spanish identical to the English is refused (a sentence, or the 
 test("review 1: names, codes and numbers may stay as written (no false refusals)", () => {
   const names = { name: "Casa Ébano", route: "BOG", nights: "2" };
   assert.equal(t.checkSameShape(names, names, "es").ok, true);
-  assert.equal(t.checkSameShape(names, names, "ar").ok, true);
+  // Arabic keeps codes and numbers, but a name is written in Arabic (round 4: no name exemption for ar).
+  assert.equal(t.checkSameShape(names, { ...names, name: "كاسا إيبانو" }, "ar").ok, true);
   const withName = { name: "ALMAR Getsemaní", pickup: "BOG airport" };
   assert.equal(t.checkSameShape(withName, { name: "ALMAR Getsemaní", pickup: "Aeropuerto BOG" }, "es").ok, true);
   // Pool -> Piscina is one capitalised word: not held to the script rule, the answer as a whole still must have Arabic.
@@ -369,10 +380,11 @@ test("review 1: an answer more than 4x the English length is refused, at the bou
   assert.match(over.reason, /times the English length/);
 });
 
-test("review 1: translateFields passes the target, so the wrong script or unchanged English is translate_failed", async () => {
+test("review 1: translateFields passes the target, so the wrong script or unchanged English is not accepted", async () => {
   const failed = { ok: false, code: "translate_failed" };
+  // Spanish for ar: every field is left (nothing usable). English for es: the name stays, the sentence and the list are left.
   assert.deepEqual(await t.translateFields(fakeRun(gemmaReply(JSON.stringify(ES_OK))).run, OWN, "ar"), failed);
-  assert.deepEqual(await t.translateFields(fakeRun(gemmaReply(JSON.stringify(OWN))).run, OWN, "es"), failed);
+  assert.deepEqual(await t.translateFields(fakeRun(gemmaReply(JSON.stringify(OWN))).run, OWN, "es"), { ok: true, fields: { name: OWN.name }, left: ["summary", "amenities"] });
   assert.deepEqual(await t.translateFields(fakeRun(gemmaReply(JSON.stringify(ES_OK))).run, OWN, "es"), { ok: true, fields: ES_OK });
 });
 
@@ -514,7 +526,7 @@ test("round 2, echo: names, codes and numbers kept as written stay allowed, deci
     ["ALMAR", "ALMAR"],
     ["Casa Ébano", "Casa Ébano"],
     ["Casa Luna", "Casa Luna"],
-    ["Hacienda Santa Clara de la Sierra", "Hacienda Santa Clara de la Sierra"],
+    ["Finca Santa Clara", "Finca Santa Clara"],
     ["BOG", "BOG"],
     ["MDE BOG", "MDE BOG"],
     ["24", "24"],
@@ -522,7 +534,9 @@ test("round 2, echo: names, codes and numbers kept as written stay allowed, deci
   ];
   for (const [english, value] of kept) {
     assert.equal(prompt.checkSameShape({ a: english, b: "A quiet house." }, { a: value, b: "Una casa tranquila." }, "es").ok, true, english);
-    assert.equal(prompt.checkSameShape({ a: english, b: "A quiet house." }, { a: value, b: "منزل هادئ." }, "ar").ok, true, `ar ${english}`);
+    // Arabic: codes, numbers and kept names pass as they are; other names need Arabic letters.
+    const keptInArabic = /^(ALMAR|BOG|MDE BOG|24|ALMAR Getsemaní)$/.test(english);
+    assert.equal(prompt.checkSameShape({ a: english, b: "A quiet house." }, { a: value, b: "منزل هادئ." }, "ar").ok, keptInArabic, `ar ${english}`);
   }
   // The exemption follows the English: the same text as Title Case English is not exempt.
   assert.equal(prompt.checkSameShape({ a: "Private Chef", b: "x y z" }, { a: "Private Chef", b: "x y z" }, "es").ok, false);
@@ -635,4 +649,154 @@ test("round 3, deadline: through the route, the request's signal reaches the han
 test("round 3: raceDeadline passes the work's own result and error through", async () => {
   assert.equal(await t.raceDeadline(Promise.resolve(7), 1000), 7);
   await assert.rejects(t.raceDeadline(Promise.reject(new Error("boom")), 1000), /boom/);
+});
+
+// ---- 03.2-10b round 4 (Grok 4.7 review of ff37cfc) ------------------------------------------------------------------------
+// Each test fails on 2bfe8d4.
+
+/** Every published EN -> AR / ES text pair of the fixtures (lib/data/fixtures/*-translations.json), as { at, english, value, target }. */
+function publishedPairs() {
+  const files = ["catalog", "stay", "destination", "post", "image", "contact", "home", "about"];
+  const skip = /(_id|^id)$|locale|status|created|updated|slug|^type$|url|href|path/;
+  const out = [];
+  const walk = (en, tr, at, target) => {
+    if (typeof en === "string" && typeof tr === "string") {
+      if (en.trim() !== "" && tr.trim() !== "") out.push({ at, english: en, value: tr, target });
+    } else if (Array.isArray(en) && Array.isArray(tr) && en.length === tr.length) {
+      if (en.every((x) => typeof x === "string") && tr.every((x) => typeof x === "string")) out.push({ at, english: en, value: tr, target });
+      else en.forEach((x, i) => walk(x, tr[i], `${at}[${i}]`, target));
+    } else if (en && tr && typeof en === "object" && typeof tr === "object" && !Array.isArray(en) && !Array.isArray(tr)) {
+      for (const key of Object.keys(en)) if (!skip.test(key)) walk(en[key], tr[key], `${at}.${key}`, target);
+    }
+  };
+  const groups = (rows) => {
+    const by = new Map();
+    for (const row of rows) {
+      const id = Object.entries(row).filter(([k]) => k.endsWith("_id")).map(([, v]) => v).join("/");
+      if (!by.has(id)) by.set(id, {});
+      by.get(id)[row.locale] = row;
+    }
+    return [...by.values()];
+  };
+  for (const name of files) {
+    const data = JSON.parse(readFileSync(`lib/data/fixtures/${name}-translations.json`, "utf8"));
+    const sets = Array.isArray(data) ? [groups(data).map((g) => g)] : Object.entries(data).map(([section, rows]) => groups(rows.map((r) => ({ ...r, section_id: section }))));
+    for (const set of sets) {
+      for (const g of set) {
+        if (!g.en) continue;
+        for (const target of ["ar", "es"]) if (g[target]) walk(g.en, g[target], `${name}`, target);
+      }
+    }
+  }
+  return out;
+}
+
+test("round 4, data: every published EN -> AR and EN -> ES pair of the fixtures that differs from the English still passes the check", () => {
+  const fold = (x) => JSON.stringify(x).normalize("NFKC").toLowerCase().replace(/[\p{P}\p{S}]+/gu, " ").replace(/\s+/g, " ").trim();
+  const same = (a, b) => fold(a) === fold(b);
+  // A published text that is the English unchanged, ignoring case and punctuation (a place name kept in Latin, "The
+  // Explorer", "Casa Jardino, calle San Diego") is not a translation and is refused on purpose (Grok 4.7, round 2: accepted;
+  // the owner types such a field); every pair that differs from the English must pass.
+  const pairs = publishedPairs().filter(({ english, value }) => !same(english, value));
+  // Counted in texts (a list is one field but each item is a text); the fixtures hold 632 English texts, 1,264 pairs.
+  const texts = pairs.reduce((n, { english }) => n + (Array.isArray(english) ? english.length : 1), 0);
+  assert.ok(texts >= 1100, `${texts} differing texts found: the loader reads the fixtures`);
+  const failed = [];
+  for (const { at, english, value, target } of pairs) {
+    const r = prompt.checkFields({ f: english }, { f: value }, target);
+    if (!r.ok || Object.keys(r.left).length > 0) failed.push(`${target} ${at}: ${JSON.stringify(english).slice(0, 60)} -> ${r.ok ? Object.values(r.left)[0] : r.reason}`);
+  }
+  assert.deepEqual(failed, []);
+});
+
+test("round 4, echo: Grok's five Title Case titles are refused as echoes for es and ar", () => {
+  const titles = ["Coffee Hacienda Experiences", "Casa Juliana Historic Center", "Casa Mariana Historic Center", "Santa Fe Farm Antioquia", "Sopetrán Country Estate"];
+  for (const title of titles) {
+    for (const target of ["es", "ar"]) {
+      const r = prompt.checkFields({ title, other: "A quiet house above the sea." }, { title, other: target === "ar" ? "منزل هادئ فوق البحر." : "Una casa tranquila sobre el mar." }, target);
+      assert.equal(r.ok, true, `${target} ${title}: the other field is kept`);
+      assert.deepEqual(Object.keys(r.left), ["title"], `${target} ${title}`);
+      assert.equal(prompt.checkSameShape({ title }, { title }, target).ok, false, `${target} ${title} (strict)`);
+    }
+  }
+  // A real short name stays allowed in Spanish, and a published translation of each title passes.
+  assert.equal(prompt.checkSameShape({ n: "Casa Ébano" }, { n: "Casa Ébano" }, "es").ok, true);
+  assert.equal(prompt.checkSameShape({ n: "Sopetrán Country Estate" }, { n: "Finca campestre Sopetrán" }, "es").ok, true);
+  assert.equal(prompt.checkSameShape({ n: "Sopetrán Country Estate" }, { n: "عقار سوبيتران الريفي" }, "ar").ok, true);
+  assert.equal(prompt.MAX_NAME_WORDS, 3);
+  // Four words is a title, not a name, even with every mark of a name.
+  assert.equal(prompt.checkSameShape({ n: "Casa Luna Azul Ébano" }, { n: "Casa Luna Azul Ébano" }, "es").ok, false);
+});
+
+test("round 4, Arabic: no name exemption; two or more Latin words and no Arabic letter is refused, a name inside an Arabic sentence passes", () => {
+  assert.equal(prompt.checkSameShape({ n: "Casa Ébano" }, { n: "Casa Ébano" }, "ar").ok, false);
+  assert.equal(prompt.checkSameShape({ n: "Finca Santa Clara" }, { n: "Finca Santa Clara" }, "ar").ok, false);
+  assert.equal(prompt.checkSameShape({ n: "Casa Ébano" }, { n: "كاسا إيبانو" }, "ar").ok, true);
+  const sentence = prompt.checkSameShape({ s: "Stay at Casa Ébano near the old town." }, { s: "أقم في Casa Ébano قرب البلدة القديمة." }, "ar");
+  assert.equal(sentence.ok, true, sentence.reason);
+  // Codes and numbers stay.
+  assert.equal(prompt.checkSameShape({ a: "BOG", b: "24" }, { a: "BOG", b: "24" }, "ar").ok, true);
+});
+
+test("round 4, price lines: a kept price line passes, in both languages, and does not sink the answer next to it", () => {
+  const price = "From USD $20,000/person · Est. AED 200,000–250,000+";
+  assert.equal(prompt.isPriceLine(price), true);
+  assert.equal(prompt.isPriceLine("From USD $3,000/person · Est. AED 80,000–90,000"), true);
+  assert.equal(prompt.isPriceLine("Private Chef"), false);
+  assert.equal(prompt.isPriceLine("3–7 nights"), false);
+  assert.equal(prompt.isPriceLine("From the old town to the beach"), false);
+  for (const target of ["ar", "es"]) {
+    const tagline = target === "ar" ? "رحلة خاصة عبر كولومبيا" : "Un viaje privado por Colombia";
+    const r = prompt.checkFields({ tagline: "A private journey through Colombia", price_label: price }, { tagline, price_label: price }, target);
+    assert.equal(r.ok, true);
+    assert.deepEqual(r.left, {});
+    assert.deepEqual(r.fields, { tagline, price_label: price });
+  }
+  // A line that is not the price line, in English, is not rescued by it.
+  assert.equal(prompt.checkSameShape({ a: "Private Chef" }, { a: "Private Chef" }, "es").ok, false);
+});
+
+test("round 4, per field: a field that fails is left, the others are kept; the answer fails only when nothing is usable", async () => {
+  const src = { name: "Casa Ébano", tagline: "A quiet house above Cartagena.", things: ["Pool", "Private chef"] };
+  const good = { name: "Casa Ébano", tagline: "Una casa tranquila sobre Cartagena.", things: ["Piscina", "Chef privado"] };
+  // One echoed field and one list of the wrong length: both left.
+  const answer = { ...good, tagline: src.tagline, things: ["Piscina"] };
+  const r = prompt.checkFields(src, answer, "es");
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.fields, { name: "Casa Ébano" });
+  assert.deepEqual(Object.keys(r.left).sort(), ["tagline", "things"]);
+  // An extra key is ignored, a missing key is left.
+  const extra = prompt.checkFields(src, { name: good.name, tagline: good.tagline, injected: "x" }, "es");
+  assert.deepEqual(extra.fields, { name: good.name, tagline: good.tagline });
+  assert.deepEqual(Object.keys(extra.left), ["things"]);
+  // The strict form is unchanged: any left field, or an extra key, fails it.
+  assert.equal(prompt.checkSameShape(src, answer, "es").ok, false);
+  assert.match(prompt.checkSameShape(src, { ...good, injected: "x" }, "es").reason, /extra key injected/);
+  // Nothing usable: every field left.
+  const none = prompt.checkFields(src, { name: "", tagline: src.tagline, things: [] }, "es");
+  assert.equal(none.ok, false);
+
+  // Through translateFields and the route: the good fields come back, with `left`.
+  const out = await t.translateFields(fakeRun(gemmaReply(JSON.stringify(answer))).run, src, "es");
+  assert.deepEqual(out, { ok: true, fields: { name: "Casa Ébano" }, left: ["tagline", "things"] });
+  const clean = await t.translateFields(fakeRun(gemmaReply(JSON.stringify(good))).run, src, "es");
+  assert.deepEqual(clean, { ok: true, fields: good }, "no `left` key when nothing was left");
+  const failed = await t.translateFields(fakeRun(gemmaReply(JSON.stringify({ name: "", tagline: "", things: [] }))).run, src, "es");
+  assert.deepEqual(failed, { ok: false, code: "translate_failed" });
+  const res = await call({ target: "es", fields: src }, fakeRun(gemmaReply(JSON.stringify(answer))).run);
+  assert.deepEqual(res, { status: 200, body: { ok: true, target: "es", fields: { name: "Casa Ébano" }, left: ["tagline", "things"] }, cache: "no-store" });
+  const whole = await call({ target: "es", fields: src }, fakeRun(gemmaReply(JSON.stringify(good))).run);
+  assert.equal("left" in whole.body, false);
+});
+
+test("round 4, button: someLeft line in en, ar, es (usted); done-left when both targets came back with fields left", () => {
+  for (const locale of ["en", "ar", "es"]) assert.ok(OPS_TRANSLATE_COPY[locale].someLeft.trim().length > 0, locale);
+  assert.match(OPS_TRANSLATE_COPY.es.someLeft, /Escríbalos usted y revise/);
+  const src = readFileSync("components/ops/translate-button.tsx", "utf8");
+  assert.match(src, /hasLeft\(ar\) \|\| hasLeft\(es\) \? "done-left" : "done"/);
+});
+
+test("round 4, config: only almar-ops has enable_request_signal (the flag's docs name no minimum compatibility date)", () => {
+  assert.match(readFileSync("wrangler.ops.toml", "utf8"), /^compatibility_flags = \[.*"enable_request_signal".*\]$/m);
+  assert.equal(/enable_request_signal/.test(readFileSync("wrangler.toml", "utf8")), false);
 });

@@ -1,8 +1,10 @@
 // Translate, plan 03.2-10 (contract §5.11). Pure: no binding, no Next, no network. The route
 // (app/api/ops/translate/route.ts) binds `run` to Workers AI through lib/ops/translate-route.ts; node tests pass a fake.
 //
-// POST { target: "ar"|"es", fields: { <name>: string | string[] } } -> { ok, target, fields } (same keys, same list
-// lengths, nothing empty) | 429 translate_limit (daily) | 503 translate_busy (rate or capacity) | 502 translate_failed | 502 translate_too_long (cut off at the token budget). Nothing is saved and no field text is logged.
+// POST { target: "ar"|"es", fields: { <name>: string | string[] } } -> { ok, target, fields[, left] } (the fields that
+// passed, same list lengths, nothing empty; `left` names the fields that did not and stay empty for the owner) | 429
+// translate_limit (daily) | 503 translate_busy (rate or capacity) | 502 translate_failed | 502 translate_too_long (cut
+// off at the token budget). Nothing is saved and no field text is logged.
 //
 // Model: the owner's pick after the Wave 0 check (2026-10-11, 03.2-10-NOTES.md): Gemma 4 26B. What really came back in
 // that check (.planning/phases/03.2-real-catalog-and-team-inserted/translate-check/*-gemma-4-26b-*.json, 6 of 6 HTTP
@@ -11,9 +13,9 @@
 // Request shape: developers.cloudflare.com/workers-ai/models/gemma-4-26b-a4b-it/ (sync-input.json).
 
 import { errorBody, OpsInvalid, type OpsResult } from "./route-core";
-import { checkSameShape, schemaFor, systemPrompt, userMessage, type TranslateFields, type TranslateTarget } from "./translate-prompt";
+import { checkFields, checkSameShape, schemaFor, systemPrompt, userMessage, type TranslateFields, type TranslateTarget } from "./translate-prompt";
 
-export { checkSameShape };
+export { checkFields, checkSameShape };
 export type { TranslateFields, TranslateTarget };
 
 export const TRANSLATE_MODEL = "@cf/google/gemma-4-26b-a4b-it";
@@ -41,7 +43,7 @@ export type AiRun = (input: unknown) => Promise<unknown>;
  */
 export type TranslateBody = { target: TranslateTarget; fields: Record<string, string | string[] | null> };
 export type TranslateOutcome =
-  | { ok: true; fields: TranslateFields }
+  | { ok: true; fields: TranslateFields; left?: string[] }
   | { ok: false; code: "translate_limit" | "translate_busy" | "translate_failed" | "translate_too_long" };
 
 const FIELD_NAME = /^[a-z][a-z0-9_]{0,63}$/;
@@ -245,8 +247,11 @@ export async function translateFields(
   }
   // A reply cut off at the token budget is its own failure, never read as a (possibly shortened) answer.
   if (finishReason(raw) === "length") return { ok: false, code: "translate_too_long" };
-  const shape = checkSameShape(sent, parseAnswer(raw), target);
-  return shape.ok ? { ok: true, fields: shape.fields } : { ok: false, code: "translate_failed" };
+  // Field by field: a field that is not a translation is left for the owner, the others are kept (03.2-10b, round 4).
+  const shape = checkFields(sent, parseAnswer(raw), target);
+  if (!shape.ok) return { ok: false, code: "translate_failed" };
+  const left = Object.keys(shape.left);
+  return left.length === 0 ? { ok: true, fields: shape.fields } : { ok: true, fields: shape.fields, left };
 }
 
 /**
@@ -257,7 +262,10 @@ export async function translateFields(
 export function translateHandler(getRun: () => AiRun) {
   return async ({ body, request }: { body: TranslateBody; request?: Request }): Promise<OpsResult> => {
     const outcome = await translateFields(getRun(), body.fields, body.target, { signal: request?.signal });
-    if (outcome.ok) return { body: { ok: true, target: body.target, fields: outcome.fields } };
+    if (outcome.ok) {
+      // `left` (only when not empty): the fields of this target that were not usable and stay empty for the owner to write.
+      return { body: outcome.left ? { ok: true, target: body.target, fields: outcome.fields, left: outcome.left } : { ok: true, target: body.target, fields: outcome.fields } };
+    }
     const status = outcome.code === "translate_limit" ? 429 : outcome.code === "translate_busy" ? 503 : 502;
     return { status, body: errorBody(outcome.code) };
   };
