@@ -2,7 +2,7 @@
 //
 // Strings marked CANVAS are taken verbatim from the design canvas board DashCalendar (EN, AR, ES). Every other string
 // is DRAFTED UI COPY for the owner's review at the picture gate. AR (Gulf-friendly Modern Standard Arabic) and ES
-// (neutral Latin American, informal "tú", the house rule) are DRAFTS written from the EN, in the same practice as
+// (neutral Latin American, formal "usted": owner decision 2026-10-14, dashboard only) are DRAFTS written from the EN, in the same practice as
 // lib/copy/ops-kit.ts. Never a price, a rate or legal text. `{name}` style tokens are filled with fillCopy.
 // Imported directly by the Calendar; deliberately not registered in lib/copy/index.ts.
 
@@ -185,7 +185,7 @@ export const OPS_CALENDAR_COPY: Record<Locale3, OpsCalendarCopy> = {
     dates: "Fechas",
     from: "Desde",
     to: "Hasta",
-    sameDayHint: "Elige la misma fecha dos veces para bloquear un día. El bloqueo cubre siempre el día completo.",
+    sameDayHint: "Elija la misma fecha dos veces para bloquear un día. El bloqueo cubre siempre el día completo.",
     reasonOptional: "Motivo (opcional)",
     all: "Todo",
     weekdays: ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"],
@@ -195,21 +195,21 @@ export const OPS_CALENDAR_COPY: Record<Locale3, OpsCalendarCopy> = {
     },
 
     block: "Bloquear",
-    chooseDestination: "Elige un destino",
-    chooseStay: "Elige una estancia",
+    chooseDestination: "Elija un destino",
+    chooseStay: "Elija una estancia",
     filterLabel: "Mostrar: {name}",
     previousMonth: "Mes anterior",
     nextMonth: "Mes siguiente",
     monthGrid: "Días del mes",
     blockedDay: "Bloqueado",
     noBlocks: "No hay fechas bloqueadas este mes.",
-    changeHint: "Para cambiar un bloqueo, elimínalo y vuelve a bloquear.",
+    changeHint: "Para cambiar un bloqueo, elimínelo y vuelva a bloquear.",
     deleteTitle: "¿Eliminar este bloqueo?",
     deleteBody: "Las fechas podrán reservarse de nuevo, salvo que otro bloqueo las cubra.",
     deleteNamed: "Eliminar el bloqueo {name}, {dates}",
-    needDestination: "Elige un destino.",
-    needStay: "Elige una estancia.",
-    needDates: "Elige las fechas.",
+    needDestination: "Elija un destino.",
+    needStay: "Elija una estancia.",
+    needDates: "Elija las fechas.",
   },
 };
 

@@ -45,6 +45,11 @@ test("copy: every Calendar label is a non-empty string in EN, AR and ES", () => 
       expect((value as string).trim().length, `${path} is empty`).toBeGreaterThan(0);
       expect(BAD_TEXT.test(value as string), `${path} says ${value}`).toBe(false);
     }
+    // Dashboard Spanish speaks usted (owner, 2026-10-14): no tú imperative or verb form.
+    if (locale === "es") {
+      const spanish = leaves(copy, "es").map((one) => one.value as string).join("\n");
+      expect(spanish, "informal Spanish").not.toMatch(/\b(Elige|Elimínalo|vuelve|Revisa|Confirma)\b/);
+    }
     // The overlap sentence names its number, in every plural form the language can ask for.
     for (const n of [1, 2, 3, 11, 100]) expect(overlapLine(locale, n), `${locale} overlap ${n}`).toMatch(/\d|حجز(ان| واحد)/);
   }
@@ -148,7 +153,7 @@ async function expectState(page: Page, state: string, locale: Locale) {
 
 // ---- pictures -----------------------------------------------------------------------------------------------------
 // Full-page PNGs for the owner's signature, written outside tests/ (page.screenshot, not toHaveScreenshot), so no
-// baseline is committed under tests/. 7 states x 3 widths x 3 languages. They run only when asked, so a full
+// baseline is committed under tests/. 4 states x 3 widths x 3 languages (3 more are held). They run only when asked, so a full
 // Playwright run never rewrites a signed picture: OPS_CALENDAR_PICTURES=1 writes into the planning folder,
 // OPS_CALENDAR_PICTURES=<absolute folder> writes there.
 
@@ -157,6 +162,8 @@ const PICTURES_TO = process.env.OPS_CALENDAR_PICTURES;
 const PICTURES = PICTURES_TO && isAbsolute(PICTURES_TO) ? PICTURES_TO : PLANNING_PICTURES;
 const WIDTHS: Viewport[] = ["phone", "tablet", "desktop"];
 const PICTURE_LOCALES: Locale[] = ["en", "ar", "es"];
+/** States drawn inside the shared edit panel, which is being redesigned: not shot until the chosen option arrives. */
+const HELD = new Set(["form-everything", "form-stay-prefilled", "form-one-day"]);
 
 test.describe("pictures", () => {
   test.skip(!PICTURES_TO, "set OPS_CALENDAR_PICTURES=1 (or a folder) to shoot the pictures");
@@ -165,6 +172,8 @@ test.describe("pictures", () => {
   if (PICTURES_TO) mkdirSync(PICTURES, { recursive: true });
 
   for (const state of sceneStates("ops-calendar")) {
+    // The form pictures wait for the owner's choice of the new edit panel (controller, 2026-10-14).
+    if (HELD.has(state) && !process.env.OPS_CALENDAR_HELD) continue;
     for (const viewport of WIDTHS) {
       for (const locale of PICTURE_LOCALES) {
         const width = VIEWPORTS[viewport].width;
