@@ -67,22 +67,74 @@ export type ShapeCheck = { ok: true; fields: TranslateFields } | { ok: false; re
 
 const filled = (value: unknown): value is string => typeof value === "string" && value.trim() !== "";
 
-/** Arabic, Arabic Supplement, Arabic Extended-A and the two presentation-form blocks. */
-const ARABIC_SCRIPT = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+/** An Arabic letter. Punctuation of the Arabic blocks (the comma U+060C, the semicolon, the question mark, the full stop) is not a letter. */
+const ARABIC_LETTER = /(?=\p{L})\p{Script=Arabic}/u;
+const ARABIC_LETTERS = /(?=\p{L})\p{Script=Arabic}/gu;
+const LATIN_LETTERS = /\p{Script=Latin}/gu;
 
 /** A translation longer than this many times its English (plus a little slack for very short texts) is runaway output. */
 export const MAX_LENGTH_RATIO = 4;
 const LENGTH_SLACK = 20;
 
-/**
- * The lowercase English words of a text, outside the names kept as written: the sign that it is a sentence or phrase to
- * translate and not a name, a code or a number (those stay as they are in a translation: "Casa Ébano", "BOG", "2 nights").
- * Only a text with such words is held to the script and not-identical checks.
- */
-function prose(text: string): number {
+/** In an Arabic text at least this share of the letters (kept names and codes not counted) must be Arabic. */
+export const MIN_ARABIC_SHARE = 0.5;
+
+/** Spanish-only words (not ones English shares, such as villa or hotel) that start the names of Colombian places and houses; with the lowercase particles below they mark a name. */
+const SPANISH_NAME_WORDS = new Set(["casa", "finca", "hacienda", "posada", "calle", "isla", "islas", "cerro", "playa", "parque", "bahia", "bahía", "santa", "santo", "san", "valle", "rio", "río", "monte", "cabo", "punta", "convento"]);
+const NAME_PARTICLES = new Set(["de", "del", "la", "las", "los", "el", "y", "e", "da", "do"]);
+
+/** The words of a text outside the names kept as written (KEEP_UNCHANGED), numbers and punctuation. */
+function words(text: string): string[] {
   let rest = text;
   for (const name of KEEP_UNCHANGED) rest = rest.split(name).join(" ");
-  return (rest.match(/(?<![\p{L}])\p{Ll}[\p{L}]{2,}/gu) ?? []).length;
+  return rest.match(/\p{L}[\p{L}\p{M}'’]*/gu) ?? [];
+}
+
+/**
+ * True when the English source is a name, a code or a number, which a translation keeps as written: nothing left but
+ * kept names and numbers; only three-capital codes (BOG, MDE); or a short run of capitalised words that looks like a
+ * Spanish name (it has a letter outside ASCII, or a word such as Casa, Villa, Finca, Santa) such as "Casa Ébano". Title
+ * Case or ALL CAPS English ("Private Chef", "WELCOME TO ALMAR") is none of these. Decided from the English, never from
+ * what the model returned. A name that matches none of this (an accent-less name with no such word) is refused as an echo
+ * like any English text: the owner types it, the cost of a false refusal.
+ */
+function keptAsWritten(english: string): boolean {
+  const tokens = words(english);
+  if (tokens.length === 0) return true;
+  const code = (t: string) => /^\p{Lu}{3}$/u.test(t);
+  if (tokens.every(code)) return true;
+  const capitalised = (t: string) => /^\p{Lu}/u.test(t);
+  const shaped = tokens.length <= 6 && tokens.every((t) => code(t) || capitalised(t) || NAME_PARTICLES.has(t));
+  const marked = tokens.some((t) => /[^\u0000-\u007F]/.test(t) || SPANISH_NAME_WORDS.has(t.toLowerCase()));
+  return shaped && marked;
+}
+
+/** Case-folded, punctuation (Latin and Arabic) removed, spaces collapsed: what "the same text" means for an echo. */
+function normalised(text: string): string {
+  return text
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[\p{P}\p{S}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * The share of Arabic among the letters of an Arabic text. Kept names and three-capital codes are not counted; in a
+ * sentence (English with a lowercase word) neither are capitalised words copied from the English, the proper nouns the
+ * prompt tells the model to keep. Title Case English gets no such allowance, so an echo of it cannot hide in its own words.
+ */
+function arabicShare(value: string, english: string): { arabic: number; share: number } {
+  let rest = value;
+  for (const name of KEEP_UNCHANGED) rest = rest.split(name).join(" ");
+  rest = rest.replace(/\b\p{Lu}{3}\b/gu, " ");
+  if (words(english).some((t) => /^\p{Ll}/u.test(t))) {
+    const copied = new Set(words(english).filter((t) => /^\p{Lu}/u.test(t)));
+    rest = rest.replace(/\p{L}[\p{L}\p{M}'’]*/gu, (t) => (copied.has(t) ? " " : t));
+  }
+  const arabic = (rest.match(ARABIC_LETTERS) ?? []).length;
+  const latin = (rest.match(LATIN_LETTERS) ?? []).length;
+  return { arabic, share: arabic + latin === 0 ? 0 : arabic / (arabic + latin) };
 }
 
 /** The pairs (English, translated) of every string and list item, with the key (and index) they came from. */
@@ -103,10 +155,11 @@ function pairs(source: TranslateFields, fields: TranslateFields): { at: string; 
  * Accept the model's answer only if it has every key of the source and no other, every list has the English length,
  * and nothing is empty or not a string. The reason names the first problem (for the check outputs and the tests).
  *
- * With `target`, three more checks catch a well-formed answer that is not a translation (03.2-10b): no text is more than
- * MAX_LENGTH_RATIO times its English; for `ar`, a text with English words has Arabic script in it, and some text does
- * whatever the English holds; a text with at least two English words is not returned as the English, and the whole
- * answer is not the English. Names, codes and numbers alone may stay as they are.
+ * With `target`, more checks catch a well-formed answer that is not a translation (03.2-10b): no text is more than
+ * MAX_LENGTH_RATIO times its English; for `ar`, every text that is not a name, code or number has Arabic letters and at
+ * least MIN_ARABIC_SHARE of its letters are Arabic (punctuation does not count); a phrase of two or more English words
+ * is not returned as the English once case and punctuation are ignored, and the whole answer is not the English. What
+ * may stay as written is decided from the English (`keptAsWritten`), not from the answer.
  */
 export function checkSameShape(source: TranslateFields, output: unknown, target?: TranslateTarget): ShapeCheck {
   if (output === null || typeof output !== "object" || Array.isArray(output)) return { ok: false, reason: "not an object" };
@@ -133,15 +186,22 @@ export function checkSameShape(source: TranslateFields, output: unknown, target?
   if (target === undefined) return { ok: true, fields };
 
   const all = pairs(source, fields);
+  const checked = all.filter(({ english }) => !keptAsWritten(english));
   for (const { at, english, value } of all) {
     if (value.length > english.length * MAX_LENGTH_RATIO + LENGTH_SLACK) return { ok: false, reason: `${at} is more than ${MAX_LENGTH_RATIO} times the English length` };
-    const words = prose(english);
-    if (target === "ar" && words >= 1 && !ARABIC_SCRIPT.test(value)) return { ok: false, reason: `${at} has no Arabic script` };
-    if (words >= 2 && value.trim().toLowerCase() === english.trim().toLowerCase()) return { ok: false, reason: `${at} is the English unchanged` };
   }
-  if (all.some(({ english }) => prose(english) >= 1)) {
-    if (target === "ar" && !all.some(({ value }) => ARABIC_SCRIPT.test(value))) return { ok: false, reason: "no Arabic script in the answer" };
-    if (all.every(({ english, value }) => value.trim().toLowerCase() === english.trim().toLowerCase())) return { ok: false, reason: "the answer is the English unchanged" };
+  for (const { at, english, value } of checked) {
+    if (target === "ar") {
+      const { arabic, share } = arabicShare(value, english);
+      if (arabic === 0) return { ok: false, reason: `${at} has no Arabic script` };
+      if (share < MIN_ARABIC_SHARE) return { ok: false, reason: `${at} is mostly English, not Arabic` };
+    }
+    // A single word may be the same in Spanish (Spa, Taxi, Chef): only a phrase of two or more words must differ.
+    if (words(english).length >= 2 && normalised(value) === normalised(english)) return { ok: false, reason: `${at} is the English unchanged` };
+  }
+  if (checked.length > 0) {
+    if (target === "ar" && !all.some(({ value }) => ARABIC_LETTER.test(value))) return { ok: false, reason: "no Arabic script in the answer" };
+    if (checked.every(({ english, value }) => normalised(value) === normalised(english))) return { ok: false, reason: "the answer is the English unchanged" };
   }
   return { ok: true, fields };
 }

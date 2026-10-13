@@ -473,3 +473,75 @@ test("review 4: a stall while the reply body is read is also a timeout; a prompt
 function AR_OWN() {
   return { name: "كاسا إيبانو", summary: "منزل هادئ فوق قرطاجنة مع مسبح وطاهٍ خاص.", amenities: ["مسبح", "طاهٍ خاص"] };
 }
+
+// ---- 03.2-10b round 2 (Grok 4.7 review of PR #9) -------------------------------------------------------------------------
+// Each test fails on 08a4629.
+
+test("round 2, echo: Title Case and ALL CAPS English handed back is refused in both languages", () => {
+  for (const english of ["Welcome to ALMAR", "Private Chef", "WELCOME TO ALMAR", "Private chef service"]) {
+    const src = { a: english };
+    for (const target of ["es", "ar"]) {
+      const r = prompt.checkSameShape(src, { a: english }, target);
+      assert.equal(r.ok, false, `${target}: ${english}`);
+    }
+    // Case alone does not make a translation.
+    assert.equal(prompt.checkSameShape(src, { a: english.toUpperCase() }, "es").ok, false, `es upper: ${english}`);
+    assert.equal(prompt.checkSameShape(src, { a: english.toLowerCase() }, "es").ok, false, `es lower: ${english}`);
+  }
+  // In a list, one echoed item is enough.
+  const list = prompt.checkSameShape({ amenities: ["Pool", "Private Chef"] }, { amenities: ["Piscina", "Private Chef"] }, "es");
+  assert.equal(list.ok, false);
+  assert.match(list.reason, /amenities\[1\] is the English unchanged/);
+  assert.equal(prompt.checkSameShape({ amenities: ["Pool", "Private Chef"] }, { amenities: ["Piscina", "Chef privado"] }, "es").ok, true);
+});
+
+test("round 2, echo: the sentence-case Spanish echo without its final period, or with other punctuation, is refused", () => {
+  const sentence = { s: "A quiet house above Cartagena." };
+  for (const echoed of ["A quiet house above Cartagena", "a quiet house above cartagena!", "A quiet house, above Cartagena.", "A quiet house above Cartagena،", "  A  quiet house above Cartagena  "]) {
+    const r = prompt.checkSameShape(sentence, { s: echoed }, "es");
+    assert.equal(r.ok, false, echoed);
+    assert.match(r.reason, /English unchanged/);
+  }
+  assert.equal(prompt.checkSameShape(sentence, { s: "Una casa tranquila sobre Cartagena." }, "es").ok, true);
+});
+
+test("round 2, echo: names, codes and numbers kept as written stay allowed, decided from the English", () => {
+  const kept = [
+    ["ALMAR", "ALMAR"],
+    ["Casa Ébano", "Casa Ébano"],
+    ["Casa Luna", "Casa Luna"],
+    ["Hacienda Santa Clara de la Sierra", "Hacienda Santa Clara de la Sierra"],
+    ["BOG", "BOG"],
+    ["MDE BOG", "MDE BOG"],
+    ["24", "24"],
+    ["ALMAR Getsemaní", "ALMAR Getsemaní"],
+  ];
+  for (const [english, value] of kept) {
+    assert.equal(prompt.checkSameShape({ a: english, b: "A quiet house." }, { a: value, b: "Una casa tranquila." }, "es").ok, true, english);
+    assert.equal(prompt.checkSameShape({ a: english, b: "A quiet house." }, { a: value, b: "منزل هادئ." }, "ar").ok, true, `ar ${english}`);
+  }
+  // The exemption follows the English: the same text as Title Case English is not exempt.
+  assert.equal(prompt.checkSameShape({ a: "Private Chef", b: "x y z" }, { a: "Private Chef", b: "x y z" }, "es").ok, false);
+});
+
+test("round 2, script: English plus an Arabic comma, or one stray Arabic word, is not Arabic", () => {
+  const src = { s: "A quiet house above Cartagena with a pool." };
+  assert.equal(prompt.checkSameShape(src, { s: "A quiet house above Cartagena with a pool،" }, "ar").ok, false);
+  const comma = prompt.checkSameShape(src, { s: "،" }, "ar");
+  assert.equal(comma.ok, false);
+  assert.match(comma.reason, /no Arabic script/);
+  for (const punct of ["؟", "؛", "۔", "٪"]) assert.equal(prompt.checkSameShape(src, { s: `A quiet house with a pool ${punct}` }, "ar").ok, false, punct);
+  const stray = prompt.checkSameShape(src, { s: "A quiet house above Cartagena with a pool هادئ" }, "ar");
+  assert.equal(stray.ok, false);
+  assert.match(stray.reason, /mostly English/);
+  assert.equal(prompt.MIN_ARABIC_SHARE, 0.5);
+  // A real Arabic text with kept names and codes and a proper noun copied from the English is fine.
+  const ok = prompt.checkSameShape({ s: "A quiet house above Hacienda Santa Clara near BOG, in Cartagena." }, { s: "منزل هادئ فوق Hacienda Santa Clara قرب BOG في Cartagena." }, "ar");
+  assert.equal(ok.ok, true, ok.reason);
+  // Title Case English: its own words are not a pass.
+  assert.equal(prompt.checkSameShape({ s: "Private Chef" }, { s: "Private Chef مرحبا" }, "ar").ok, false);
+});
+
+test("round 2: the Wave 0 check worker passes the target to checkSameShape", () => {
+  assert.match(readFileSync("scripts/translate-check/worker.ts", "utf8"), /checkSameShape\(fields, out\.parsed, target\)/);
+});
