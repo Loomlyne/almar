@@ -106,6 +106,45 @@ test("a tampered handoff cookie is ignored and cleared", async ({ page, context 
   expect(await page.evaluate(() => window.localStorage.getItem("almar-currency"))).toBeNull();
 });
 
+// Fix-up 02-05b (review of PR #6, finding 1): the footer's language row (plain links, the crawlable no-JS row) offers
+// the pick to her account like the header picker does, and still navigates as a plain link.
+const footerLanguages = (page: Page) => page.getByRole("contentinfo").getByRole("navigation", { name: "Language" });
+
+test("footer, signed in (hint set): the Español link offers the pick to the account and still navigates", async ({ page, context }) => {
+  await context.addCookies([HINT]);
+  await open(page, "/about");
+  const posted = page.waitForRequest((r) => r.url().endsWith("/api/preferences") && r.method() === "POST");
+  await footerLanguages(page).getByRole("link", { name: "Español" }).click();
+  const request = await posted;
+  expect(request.postDataJSON()).toEqual({ locale: "es" });
+  expect(request.headers()["content-type"]).toBe("application/json");
+  await page.waitForURL((url) => /^\/es\/about\/?$/.test(url.pathname));
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+});
+
+test("footer, signed out (no hint): the العربية link sends no request and still navigates", async ({ page }) => {
+  const posts: string[] = [];
+  page.on("request", (r) => r.url().includes("/api/preferences") && posts.push(r.method()));
+  await open(page, "/about");
+  await footerLanguages(page).getByRole("link", { name: "العربية" }).click();
+  await page.waitForURL((url) => /^\/ar\/about\/?$/.test(url.pathname));
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  expect(posts).toEqual([]);
+});
+
+test("footer, signed in: the current language's link is no change and sends nothing", async ({ page, context }) => {
+  await context.addCookies([HINT]);
+  await open(page, "/about");
+  const posts: string[] = [];
+  page.on("request", (r) => r.url().includes("/api/preferences") && posts.push(r.method()));
+  const english = footerLanguages(page).getByRole("link", { name: "English" });
+  await expect(english).toHaveAttribute("aria-current", "true");
+  await english.click();
+  await page.waitForLoadState("load");
+  await page.waitForTimeout(500);
+  expect(posts).toEqual([]);
+});
+
 test("the endpoint refuses a cross-origin POST and answers a same-origin signed-out POST with 204", async ({ request, baseURL }) => {
   const cross = await request.post("/api/preferences", {
     data: { locale: "ar" },

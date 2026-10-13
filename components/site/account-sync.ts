@@ -1,6 +1,6 @@
 // Plan 02-05 (addendum 2026-10-11), browser side: a pick on a public page is offered to her account, and the sign-in's
 // handoff cookie copies her saved currency into the browser choice. Nothing here may block or break the page: every
-// failure (offline, signed out, storage blocked, a 4xx/5xx) is swallowed.
+// failure (offline, signed out, storage blocked, a 4xx/5xx) is swallowed; a 503 is retried once first.
 
 import {
   PREFS_SYNC_COOKIE,
@@ -26,19 +26,29 @@ export function hasSignedInHint(): boolean {
  * Fire-and-forget POST /api/preferences, only when the sign-in hint is present: a signed-out visitor sends nothing.
  * The server still writes only for a real session (a stale hint gets a 204). `keepalive` lets it
  * finish while a language pick navigates away; `same-origin` referrer policy keeps a real Origin header on it even if
- * a page sets `no-referrer`. Never awaited by a caller.
+ * a page sets `no-referrer`. A 503 (the save failed on the server) is sent once more (02-05b); any other answer, a
+ * second 503 or a network error is dropped. A retry needs the first answer to arrive while this page is still open:
+ * a language pick that has already navigated away cannot retry. Never awaited by a caller.
  */
 export function postPreferences(fields: PreferenceFields): void {
   if (!hasSignedInHint()) return;
+  sendPreferences(JSON.stringify(fields), true);
+}
+
+function sendPreferences(body: string, retryOn503: boolean): void {
   try {
     void fetch("/api/preferences", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(fields),
+      body,
       credentials: "same-origin",
       referrerPolicy: "same-origin",
       keepalive: true,
-    }).catch(() => undefined);
+    })
+      .then((response) => {
+        if (retryOn503 && response.status === 503) sendPreferences(body, false);
+      })
+      .catch(() => undefined);
   } catch {
     // fetch itself threw (very old browser, blocked): the pick still applies in this browser.
   }
