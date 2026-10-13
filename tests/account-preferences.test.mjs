@@ -106,6 +106,33 @@ test("saveTracker (PR #14 review round 2): USD clicked, EUR clicked, EUR succeed
   assert.deepEqual(t.settle(t.begin(), false, "AED"), { show: "EUR", store: false }, "the saved value is still EUR, not USD");
 });
 
+test("saveTracker (PR #14 review round 3): USD clicked, EUR clicked, EUR fails first, then the USD success arrives: the screen shows USD", () => {
+  const t = p.saveTracker("AED");
+  const usd = t.begin();
+  const eur = t.begin();
+  assert.deepEqual(t.settle(eur, false, "EUR"), { show: "AED", store: false }, "EUR failed: back to the saved AED for now");
+  assert.deepEqual(t.settle(usd, true, "USD"), { show: "USD", store: true }, "USD is stored and, the latest having failed, shown");
+  assert.deepEqual(t.settle(t.begin(), false, "EUR"), { show: "USD", store: false }, "the saved value is USD");
+});
+
+test("saveTracker (PR #14 review round 3): USD clicked, EUR clicked, USD succeeds, then EUR fails: the screen shows USD", () => {
+  const t = p.saveTracker("AED");
+  const usd = t.begin();
+  const eur = t.begin();
+  assert.deepEqual(t.settle(usd, true, "USD"), { show: null, store: true }, "EUR still pending: the screen keeps EUR for now");
+  assert.deepEqual(t.settle(eur, false, "EUR"), { show: "USD", store: false }, "EUR failed: the screen shows the saved USD");
+});
+
+test("saveTracker: an older success while the latest click is pending stays off screen; a new click clears the failed state", () => {
+  const t = p.saveTracker("AED");
+  const a = t.begin();
+  const b = t.begin();
+  assert.deepEqual(t.settle(b, false, "EUR"), { show: "AED", store: false });
+  const c = t.begin(); // a third click, still pending
+  assert.deepEqual(t.settle(a, true, "USD"), { show: null, store: true }, "the latest (c) has not failed: no screen change");
+  assert.deepEqual(t.settle(c, false, "AED"), { show: "USD", store: false });
+});
+
 test("/account wires the tracker: an overtaken result returns before touching the screen", async () => {
   const { readFileSync } = await import("node:fs");
   const screen = readFileSync("app/account/account-screen.tsx", "utf8");

@@ -53,8 +53,9 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
   }, [profile.currency]);
 
   // A save writes her row and the browser choice together; a failed save puts back the last saved currency, so the
-  // screen never shows a currency the site is not using (language keeps its 02-05 behaviour). A result that a later
-  // click has overtaken changes nothing on screen; only the newest successful save writes the browser choice.
+  // screen never shows a currency the site is not using (language keeps its 02-05 behaviour). Only the newest
+  // successful save writes the browser choice; an overtaken result reaches the screen only when it is that save and the
+  // latest click has already failed (saveTracker).
   function storePreferences(nextLocale: DocumentLocale, nextCurrency: Currency) {
     const ticket = prefSaves.current.begin();
     setLocale(nextLocale);

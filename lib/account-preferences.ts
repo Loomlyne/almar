@@ -122,20 +122,24 @@ export function localizedReturnPath(back: string, locale: Locale): string {
 }
 
 /**
- * /account preference saves (PR #14 review): only the latest click may change the screen, and only the newest
- * successful save may set the saved value and the browser choice. `begin()` numbers a save. `settle()` returns
- * `store: true` only for a success newer than every earlier success (write the browser choice then); an older success
- * arriving late changes nothing. `show` is null for a result that a later click has overtaken (ignore it), else the
- * value to show: the new value when it saved, the newest saved value when it did not. `adopt()` sets the saved value
- * without a save (the currency the page opened with).
+ * /account preference saves (PR #14 review): only the newest successful save may set the saved value and the browser
+ * choice. `begin()` numbers a save. `settle()` returns `store: true` only for a success newer than every earlier success
+ * (write the browser choice then); an older success arriving after a newer one changes nothing. `show` is the value to
+ * put on screen, or null to leave the screen alone: the latest click shows the new value when it saved, the newest
+ * saved value when it did not. An overtaken result shows nothing while the latest click is pending or saved, but once
+ * the latest click has failed, a success that is the newest success is shown (the screen had fallen back to an older
+ * value; the database and the browser now hold this one). `adopt()` sets the saved value without a save (the currency
+ * the page opened with).
  */
 export function saveTracker<T>(initial: T) {
   let generation = 0;
   let newestSaved = 0;
+  let latestFailed = false;
   let saved = initial;
   return {
     begin(): number {
       generation += 1;
+      latestFailed = false;
       return generation;
     },
     adopt(value: T): void {
@@ -147,7 +151,11 @@ export function saveTracker<T>(initial: T) {
         newestSaved = ticket;
         saved = value;
       }
-      return { show: ticket === generation ? saved : null, store };
+      if (ticket === generation) {
+        latestFailed = !ok;
+        return { show: saved, store };
+      }
+      return { show: store && latestFailed ? saved : null, store };
     },
   };
 }

@@ -113,6 +113,15 @@ pgTAP `save_site_settings` + `site_settings_access` 42/42 (first run failed 1: m
 1/1, `preferences-local` 2/2; built public Worker `maintenance-runtime.spec.ts` 4/4; dev server `--workers=2`
 `account-select`, `ops-settings` 17/17.
 
+## Round 6: PR #14 review round 3 (Grok 4.7: RPC approved, migration safe to apply)
+
+LOW, `/account`: USD clicked, EUR clicked, EUR fails first (screen back to AED), then the USD success arrives: stored
+but not shown. `saveTracker` now remembers that the latest click failed; a success that is the newest success is then
+shown too (`show` = USD). Tests for that order and the reverse (USD succeeds, then EUR fails: the screen shows USD),
+plus a pending third click keeping an older success off screen. Bite: the old rule fails the new test.
+Checks (2026-10-14 01:15 to 01:17 +04, no stack): tsc exit 0; `account-preferences`, `account-save`, `account-follow`
+26 pass, 0 fail; `account-select.spec.ts` `--workers=2` 3/3.
+
 ## Item 2 proof: which of /login, /account, /bookings the Worker serves
 
 The premise "the Worker runs only for /api/*" is from job 10. Plan 02-23 task 3 added the sign-in paths to
