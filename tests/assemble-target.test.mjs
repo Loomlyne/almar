@@ -40,7 +40,7 @@ function childEnv() {
   for (const name of Object.keys(env)) {
     if (name.startsWith("ALMAR_") || name.startsWith("NEXT_PUBLIC_") || /SERVICE_ROLE/i.test(name)) delete env[name];
   }
-  return { ...env, NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:1", NEXT_PUBLIC_SUPABASE_ANON_KEY: "dummy-public-value" };
+  return { ...env, NEXT_PUBLIC_SUPABASE_URL: "https://jkdkaldgeiowkhlfmsft.supabase.co", NEXT_PUBLIC_SUPABASE_ANON_KEY: "dummy-public-value" };
 }
 
 function run(root, args) {

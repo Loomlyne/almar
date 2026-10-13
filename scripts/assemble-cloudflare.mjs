@@ -272,6 +272,85 @@ export function assertNoServiceKey(env) {
 }
 
 /**
+ * Plan 03.2-02b (review of 03.2-02, finding 1): the one Supabase project an assembled build may read. A shell that still
+ * exports the local stack's URL and its anon key would otherwise assemble preview or production from the local sample rows.
+ * Names only in the message, never the value that was given (the expected host is public).
+ */
+export const LIVE_SUPABASE_HOST = "jkdkaldgeiowkhlfmsft.supabase.co";
+
+/** Throws unless `value` (the content of variable `name`) is https://<LIVE_SUPABASE_HOST>, no port, no credentials, no path. */
+export function assertLiveSupabaseUrl(name, value) {
+  let url = null;
+  try {
+    url = new URL(String(value).trim());
+  } catch {
+    // reported below, with the same words as every other wrong value
+  }
+  const ok =
+    url !== null &&
+    url.protocol === "https:" &&
+    url.hostname === LIVE_SUPABASE_HOST &&
+    url.port === "" &&
+    url.username === "" &&
+    url.password === "" &&
+    url.pathname === "/" &&
+    url.search === "" &&
+    url.hash === "";
+  if (!ok) throw new Error(`${name} must be https://${LIVE_SUPABASE_HOST}: an assembled build reads the live project only`);
+  return value;
+}
+
+/**
+ * The publish sequence the database reports (api_site_version.requested_seq), read with a plain fetch of the PostgREST
+ * view, the anon key and the pinned URL: outside Next, so nothing caches it. `cache: "no-store"` is fine here (this is the
+ * assembler process, not the static build). Messages name the view and the HTTP status, never the URL or the key.
+ */
+export async function readPublishSequence({ url, anonKey, fetchImpl = globalThis.fetch }) {
+  let res;
+  try {
+    res = await fetchImpl(`${new URL(String(url).trim()).origin}/rest/v1/api_site_version?select=requested_seq`, {
+      headers: { apikey: String(anonKey).trim(), authorization: `Bearer ${String(anonKey).trim()}`, accept: "application/json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+  } catch {
+    throw new Error("api_site_version: the publish sequence could not be read (network error or timeout)");
+  }
+  if (!res.ok) throw new Error(`api_site_version: the publish sequence could not be read (HTTP ${res.status})`);
+  const rows = await res.json().catch(() => null);
+  const seq = Array.isArray(rows) && rows.length === 1 ? rows[0]?.requested_seq : undefined;
+  if (typeof seq !== "number" && typeof seq !== "string") {
+    throw new Error("api_site_version: expected one row with a requested_seq (the publish sequence the build is checked against)");
+  }
+  return String(seq);
+}
+
+/**
+ * 03.2-02b (Grok 4.7 review of PR #10): the 11 catalogue views are read one after another, and Next 15.5 caches every
+ * fetch of a static build (implicit build-time cache, shared between export workers), so a second read INSIDE the build
+ * would only be a cache hit. The check therefore lives here, around the whole build: for preview and production, the
+ * sequence is read before `build()` starts and again after it ends; a different number throws and the live site stays as
+ * it was. A failed build skips the second read (its own error is the one to see). Local, ops and fixtures builds read
+ * nothing. Returns the sequence ("n/a" when nothing was checked).
+ */
+export async function guardPublishSequence({ target, source, env = process.env, fetchImpl, build }) {
+  if (target === "local" || source !== "supabase") {
+    build();
+    return "n/a";
+  }
+  const settings = { url: env.NEXT_PUBLIC_SUPABASE_URL, anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY, fetchImpl };
+  const before = await readPublishSequence(settings);
+  build();
+  const after = await readPublishSequence(settings);
+  if (after !== before) {
+    throw new Error(
+      `api_site_version: requested_seq moved from ${before} to ${after} while --target=${target} was built (a publish during a build never ships; start the build again)`,
+    );
+  }
+  return before;
+}
+
+/**
  * Plan 03.2-02: where the public pages read the catalogue (lib/data/source.ts). Decided before anything is built or
  * removed, so a refused run leaves the previous output intact.
  *
@@ -279,7 +358,8 @@ export function assertNoServiceKey(env) {
  *   preview, production
  *                    the database, always: ALMAR_DATA_SOURCE=fixtures, a typo, a missing NEXT_PUBLIC_SUPABASE_URL or
  *                    NEXT_PUBLIC_SUPABASE_ANON_KEY, and ALMAR_FIXTURE_DIR are refused, so an assembled build can never
- *                    silently ship fixture content for the catalogue (T-3.2-09).
+ *                    silently ship fixture content for the catalogue (T-3.2-09). NEXT_PUBLIC_SUPABASE_URL must also be
+ *                    https://<LIVE_SUPABASE_HOST> (03.2-02b): never the local stack, never another project.
  *   ops              fixtures, always: out-ops/ ships no page HTML, so no catalogue page of this build is ever served, and
  *                    the dashboard Worker reads the database at request time with its own secrets. It needs no public
  *                    setting in the shell (the 03.2-04 ops build steps run without one); ALMAR_DATA_SOURCE=supabase, a
@@ -317,6 +397,8 @@ export function dataSourceFor(target, env = process.env) {
       throw new Error(`the database source needs ${missing.join(" and ")} in the build shell (public values; names only, never printed)`);
     }
     assertAnonKey("NEXT_PUBLIC_SUPABASE_ANON_KEY", String(env.NEXT_PUBLIC_SUPABASE_ANON_KEY).trim());
+    // Only an assembled target is pinned: --target=local keeps reading the local stack (the parity and rebuild tests).
+    if (assembled) assertLiveSupabaseUrl("NEXT_PUBLIC_SUPABASE_URL", env.NEXT_PUBLIC_SUPABASE_URL);
   }
   return source;
 }
@@ -478,10 +560,16 @@ async function main(argv = process.argv.slice(2)) {
   // Job 10: OpenNext runs the project's `next build` (standalone) and bundles the server into .open-next/. The
   // prerendered pages below come from that same build, so the static folder and the Worker script always match.
   const config = target === "preview" ? "wrangler.preview.toml" : target === "ops" ? "wrangler.ops.toml" : "wrangler.toml";
-  execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
-    cwd: root,
-    stdio: "inherit",
-    env: nextBuildEnv(process.env, source),
+  // 03.2-02b: for preview and production the publish sequence is read before and after the build, outside Next.
+  await guardPublishSequence({
+    target,
+    source,
+    build: () =>
+      execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
+        cwd: root,
+        stdio: "inherit",
+        env: nextBuildEnv(process.env, source),
+      }),
   });
   assertNoBundledEnv(path.join(root, ".open-next/cloudflare/next-env.mjs"));
   const folder = outDirNameFor(target);
@@ -528,6 +616,6 @@ async function main(argv = process.argv.slice(2)) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main().catch((error) => {
     console.error(error);
-    process.exit(1);
+    process.exitCode = 1;
   });
 }

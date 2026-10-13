@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { build } from "esbuild";
-import { assertNoPublicEnv, assertNoServiceKey, BUILD_HANDOVER_ENV, BUILD_PUBLIC_ENV, dataSourceFor, nextBuildEnv } from "../scripts/assemble-cloudflare.mjs";
+import { assertLiveSupabaseUrl, assertNoPublicEnv, guardPublishSequence, assertNoServiceKey, BUILD_HANDOVER_ENV, BUILD_PUBLIC_ENV, dataSourceFor, LIVE_SUPABASE_HOST, nextBuildEnv } from "../scripts/assemble-cloudflare.mjs";
 import * as assembler from "../scripts/assemble-cloudflare.mjs";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
@@ -272,9 +272,95 @@ test("supabase mode: api_stays with no rows rejects (an empty catalogue never sh
   assert.match(result.message, /api_stays/);
 });
 
-test("supabase mode: other views may be empty (team imports empty, C-17)", async () => {
-  const { result } = await loadedWith({ api_team: [], api_team_translations: [], api_catalog: [], api_catalog_translations: [] });
+test("supabase mode: the team may be empty (team imports empty, C-17), and so may the translation views", async () => {
+  const { result } = await loadedWith({ api_team: [], api_team_translations: [], api_catalog_translations: [], api_destination_translations: [] });
   assert.equal(result, "ok");
+});
+
+// 03.2-02b finding 3: an empty catalogue, journey list or destination list never ships silently ------------------------
+
+for (const view of ["api_catalog", "api_journey_tiers", "api_destinations"]) {
+  test(`supabase mode: ${view} with no rows rejects, naming the view (an empty ${view} never ships)`, async () => {
+    const { result } = await loadedWith({ [view]: [] });
+    assert.ok(result instanceof Error);
+    assert.match(result.message, new RegExp(`^${view}: no published rows`));
+  });
+}
+
+// 03.2-02b finding 2: no publish-sequence read inside the build's data layer (Next caches it; see guardPublishSequence) ---
+
+test("source.ts reads no api_site_version (a second read inside a Next build would be a cache hit); the assembler guards the build", async () => {
+  const { fake, result } = await loadedWith({});
+  assert.equal(result, "ok");
+  assert.equal(fake.calls.some((c) => c.view === "api_site_version"), false);
+  assert.equal(readFileSync("lib/data/source.ts", "utf8").includes('from("api_site_version")'), false);
+});
+
+// 03.2-02b finding 4: every published picture has an alt in en, ar and es ---------------------------------------------
+
+const pictureOf = (id) => ({ id, media_key: `stays/${id}.webp`, width: 1, height: 1, position: 1 });
+const altsOf = (id, locales = ["en", "ar", "es"]) => locales.map((locale) => ({ image_id: id, locale, alt: `${id} ${locale}`, status: "published" }));
+
+test("supabase mode: a published picture with all three alts loads", async () => {
+  const { result } = await loadedWith({ api_stays: [{ id: "s1", images: [pictureOf("p1")] }], api_image_translations: altsOf("p1") });
+  assert.equal(result, "ok");
+});
+
+for (const missing of ["en", "ar", "es"]) {
+  test(`supabase mode: a published picture with no ${missing} alt fails the load, naming the picture and the language`, async () => {
+    const present = ["en", "ar", "es"].filter((l) => l !== missing);
+    const { result } = await loadedWith({ api_stays: [{ id: "s1", images: [pictureOf("p1")] }], api_image_translations: altsOf("p1", present) });
+    assert.ok(result instanceof Error);
+    assert.match(result.message, new RegExp(`api_image_translations: 1 alt text\\(s\\) missing for published pictures, p1 \\(${missing}\\)`));
+  });
+}
+
+test("supabase mode: a blank alt counts as missing, for pictures of every database-read entity", async () => {
+  const blank = altsOf("p1").map((r) => (r.locale === "ar" ? { ...r, alt: "  " } : r));
+  const entities = { api_stays: "stays", api_destinations: "cover", api_catalog: "image", api_team: "photo", api_journey_tiers: "image" };
+  for (const [view, key] of Object.entries(entities)) {
+    const { result } = await loadedWith({ [view]: [{ id: "x", [key]: pictureOf("p1") }], api_image_translations: blank });
+    assert.match(result.message, /p1 \(ar\)/, view);
+  }
+});
+
+test("supabase mode: pictures of the fixture-kept page blocks are not checked here (their alts come from the fixtures)", async () => {
+  const database = altsOf("p1");
+  const { result } = await loadedWith({ api_stays: [{ id: "s1", images: [pictureOf("p1")] }], api_image_translations: database });
+  assert.equal(result, "ok");
+});
+
+// 03.2-02b finding 1: assembled builds read the live project only -------------------------------------------------------
+
+test("assertLiveSupabaseUrl accepts the live project's https origin and nothing else (names only in the message)", () => {
+  assert.equal(LIVE_SUPABASE_HOST, "jkdkaldgeiowkhlfmsft.supabase.co");
+  assert.equal(assertLiveSupabaseUrl("X", LIVE_URL), LIVE_URL);
+  assert.equal(assertLiveSupabaseUrl("X", `${LIVE_URL}/`), `${LIVE_URL}/`);
+  assert.equal(assertLiveSupabaseUrl("X", ` ${LIVE_URL} `), ` ${LIVE_URL} `);
+  const bad = [
+    "http://127.0.0.1:54321",
+    "http://localhost:54321",
+    "https://127.0.0.1",
+    "http://jkdkaldgeiowkhlfmsft.supabase.co",
+    "https://abcdefghijklmnopqrst.supabase.co",
+    "https://jkdkaldgeiowkhlfmsft.supabase.co.evil.example",
+    "https://evil.example/jkdkaldgeiowkhlfmsft.supabase.co",
+    "https://jkdkaldgeiowkhlfmsft.supabase.co@evil.example",
+    "https://user:pw@jkdkaldgeiowkhlfmsft.supabase.co",
+    "https://jkdkaldgeiowkhlfmsft.supabase.co:8443",
+    `${LIVE_URL}/rest/v1`,
+    `${LIVE_URL}?x=1`,
+    "jkdkaldgeiowkhlfmsft.supabase.co",
+    "not a url",
+    "",
+  ];
+  for (const value of bad) {
+    assert.throws(
+      () => assertLiveSupabaseUrl("NEXT_PUBLIC_SUPABASE_URL", value),
+      (error) => /^NEXT_PUBLIC_SUPABASE_URL must be https:\/\/jkdkaldgeiowkhlfmsft\.supabase\.co/.test(error.message) && (value === "" || value === LIVE_SUPABASE_HOST || !error.message.includes(value)),
+      JSON.stringify(value),
+    );
+  }
 });
 
 test("supabase mode: a view with 2,500 rows is read in three .range pages", async () => {
@@ -477,7 +563,8 @@ test("source.ts: anon client only, no cookies, no session, no service key, no ot
 // the assembler's rule (Task 2): dataSourceFor(target, env)
 // ---------------------------------------------------------------------------------------------------------------
 
-const PUBLIC = { NEXT_PUBLIC_SUPABASE_URL: "https://example-project.invalid", NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-a-test" };
+const LIVE_URL = "https://jkdkaldgeiowkhlfmsft.supabase.co";
+const PUBLIC = { NEXT_PUBLIC_SUPABASE_URL: LIVE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-a-test" };
 
 test("dataSourceFor('local'): fixtures unless supabase is asked for, and then both public settings are needed", () => {
   assert.equal(dataSourceFor("local", {}), "fixtures");
@@ -501,6 +588,23 @@ for (const target of ["preview", "production"]) {
     assert.throws(() => dataSourceFor(target, { ...PUBLIC, ALMAR_FIXTURE_DIR: "/somewhere/else" }), /ALMAR_FIXTURE_DIR/);
   });
 }
+
+for (const target of ["preview", "production"]) {
+  test(`dataSourceFor('${target}'): the local stack's URL, another project and a non-https URL are refused, before anything is built`, () => {
+    for (const url of ["http://127.0.0.1:54321", "http://localhost:54321", "https://example-project.invalid", "https://abcdefghijklmnopqrst.supabase.co", "http://jkdkaldgeiowkhlfmsft.supabase.co"]) {
+      assert.throws(
+        () => dataSourceFor(target, { ...PUBLIC, NEXT_PUBLIC_SUPABASE_URL: url }),
+        (error) => /NEXT_PUBLIC_SUPABASE_URL must be https:\/\/jkdkaldgeiowkhlfmsft\.supabase\.co/.test(error.message) && !error.message.includes(url),
+        url,
+      );
+    }
+    assert.equal(dataSourceFor(target, { ...PUBLIC, NEXT_PUBLIC_SUPABASE_URL: ` ${LIVE_URL} ` }), "supabase");
+  });
+}
+
+test("dataSourceFor('local') still accepts the local stack's URL (the parity and rebuild tests build against it)", () => {
+  assert.equal(dataSourceFor("local", { ALMAR_DATA_SOURCE: "supabase", NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321", NEXT_PUBLIC_SUPABASE_ANON_KEY: "k" }), "supabase");
+});
 
 test("dataSourceFor('ops'): fixtures always, no public setting needed (out-ops ships no catalogue page); refuses supabase, a typo and a fixture folder", () => {
   assert.equal(dataSourceFor("ops", {}), "fixtures");
@@ -665,4 +769,96 @@ test("no lib/data module has a top-level await: the Playwright build specs load 
   const offenders = files.filter((name) => /^(?:if \([^\n]*\) )?(?:const [^\n]*= )?await\b/m.test(readFileSync(`lib/data/${name}`, "utf8")));
   assert.deepEqual(offenders, []);
   assert.match(readFileSync("lib/data/source.ts", "utf8"), /^if \(process\.env\.ALMAR_DATA_SOURCE === "supabase"\) loadSource\(\)\.catch\(\(\) => \{\}\);$/m);
+});
+
+// 03.2-02b finding 6: the README says which targets need the two public names ---------------------------------------------
+
+test("README: --target=ops needs neither public name (the code reads fixtures for it); preview and production need both and the live URL", () => {
+  const readme = readFileSync("README.md", "utf8").replace(/\s+/g, " ");
+  assert.doesNotMatch(readme, /`production` and `ops`/);
+  assert.match(readme, /--target=ops` reads fixtures and needs neither name/);
+  assert.match(readme, /`--target=preview` and `production`/);
+  assert.match(readme, /https:\/\/jkdkaldgeiowkhlfmsft\.supabase\.co/);
+  // the ops runbook says the same (Grok's re-check of PR #7)
+  const runbook = readFileSync(".planning/phases/03.2-real-catalog-and-team-inserted/03.2-OPS-DEPLOY.md", "utf8").replace(/\s+/g, " ");
+  assert.doesNotMatch(runbook, /every assembled target reads the catalogue/);
+  assert.doesNotMatch(runbook, /exports \*\*exactly two\*\* public names/);
+  assert.match(runbook, /`--target=ops` reads \*\*fixtures\*\* and ships no catalogue page, so it needs \*\*neither\*\*/);
+  // and the code agrees: ops needs nothing
+  assert.equal(dataSourceFor("ops", {}), "fixtures");
+});
+
+// 03.2-02b finding 2, review of PR #10: the publish sequence is read around the whole build, outside Next ---------------
+
+const GUARD_ENV = { NEXT_PUBLIC_SUPABASE_URL: LIVE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-a-test" };
+
+/** A stub of fetch that answers api_site_version with these sequences one read after another (the last repeats) and records the calls. */
+function stubFetch(sequences, { status = 200, body } = {}) {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, init });
+    const seq = sequences[Math.min(calls.length - 1, sequences.length - 1)];
+    return { ok: status >= 200 && status < 300, status, json: async () => (body !== undefined ? body : [{ requested_seq: seq }]) };
+  };
+  return { fetchImpl, calls };
+}
+
+test("guardPublishSequence: the sequence moving between the read before and the read after the build throws, naming both numbers", async () => {
+  for (const target of ["preview", "production"]) {
+    const { fetchImpl, calls } = stubFetch([5, 6]);
+    let built = 0;
+    await assert.rejects(
+      guardPublishSequence({ target, source: "supabase", env: GUARD_ENV, fetchImpl, build: () => built++ }),
+      new RegExp(`api_site_version: requested_seq moved from 5 to 6 while --target=${target} was built`),
+    );
+    assert.equal(built, 1, "the build ran once, between the two reads");
+    assert.equal(calls.length, 2);
+  }
+});
+
+test("guardPublishSequence: an unchanged sequence passes; the reads are plain GETs of the pinned view with the anon key, never cached", async () => {
+  const { fetchImpl, calls } = stubFetch(["9007199254740993"]);
+  const order = [];
+  const tracked = async (...args) => (order.push("read"), fetchImpl(...args));
+  assert.equal(await guardPublishSequence({ target: "production", source: "supabase", env: GUARD_ENV, fetchImpl: tracked, build: () => order.push("build") }), "9007199254740993");
+  assert.deepEqual(order, ["read", "build", "read"], "read, build, read");
+  assert.equal(calls[0].url, `${LIVE_URL}/rest/v1/api_site_version?select=requested_seq`);
+  assert.equal(calls[0].init.cache, "no-store");
+  assert.equal(calls[0].init.headers.apikey, GUARD_ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  assert.equal(calls[0].init.method, undefined, "a GET");
+  assert.match((await guardPublishSequence({ target: "production", source: "supabase", env: GUARD_ENV, fetchImpl: stubFetch(["9007199254740993", "9007199254740994"]).fetchImpl, build() {} }).catch((e) => e)).message, /moved from/);
+});
+
+test("guardPublishSequence: local, ops and fixtures builds read nothing and just build", async () => {
+  for (const [target, source] of [["local", "supabase"], ["local", "fixtures"], ["ops", "fixtures"]]) {
+    const { fetchImpl, calls } = stubFetch([1, 2]);
+    let built = 0;
+    await guardPublishSequence({ target, source, env: GUARD_ENV, fetchImpl, build: () => built++ });
+    assert.equal(built, 1);
+    assert.equal(calls.length, 0, `${target}/${source}`);
+  }
+});
+
+test("guardPublishSequence: a failed build is the error to see (no second read); a failed or odd read fails before the build starts", async () => {
+  const { fetchImpl, calls } = stubFetch([3]);
+  await assert.rejects(guardPublishSequence({ target: "preview", source: "supabase", env: GUARD_ENV, fetchImpl, build() { throw new Error("next build failed"); } }), /next build failed/);
+  assert.equal(calls.length, 1);
+  let built = 0;
+  const build = () => built++;
+  const run = (fetchImpl) => guardPublishSequence({ target: "preview", source: "supabase", env: GUARD_ENV, fetchImpl, build });
+  await assert.rejects(run(stubFetch([1], { status: 401 }).fetchImpl), /api_site_version: the publish sequence could not be read \(HTTP 401\)/);
+  await assert.rejects(run(stubFetch([1], { body: [] }).fetchImpl), /expected one row/);
+  await assert.rejects(run(stubFetch([1], { body: [{ requested_seq: null }] }).fetchImpl), /expected one row/);
+  await assert.rejects(run(async () => { throw new Error(`boom ${LIVE_URL} anon-key-for-a-test`); }), (e) => /could not be read \(network error or timeout\)/.test(e.message) && !e.message.includes("anon-key") && !e.message.includes(LIVE_URL));
+  assert.equal(built, 0, "no build starts when the first read fails");
+});
+
+test("main() reads the sequence around the build: guardPublishSequence wraps the OpenNext build call, after the checks that can refuse a run", () => {
+  const src = readFileSync("scripts/assemble-cloudflare.mjs", "utf8");
+  const main = src.slice(src.indexOf("async function main("));
+  const at = (needle) => main.indexOf(needle);
+  assert.ok(at("await guardPublishSequence(") > at("assertMediaReady()"), "after the media check");
+  assert.ok(at("await guardPublishSequence(") > at("clearFetchCache(root)"));
+  assert.ok(at("await guardPublishSequence(") < at('opennextjs-cloudflare'), "the build is inside the guard");
+  assert.ok(at('opennextjs-cloudflare') < at("assertNoBundledEnv("), "the guard ends before the output is assembled");
 });
