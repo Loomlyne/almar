@@ -85,15 +85,15 @@ const LENGTH_SLACK = 20;
 /** In an Arabic text at least this share of the letters (kept names, codes and currencies not counted) must be Arabic. */
 export const MIN_ARABIC_SHARE = 0.5;
 
-/** A Spanish name has at most this many words to be kept as written; a longer Title Case string is a title to translate. */
-export const MAX_NAME_WORDS = 3;
+/** A Spanish name has at most this many words to be kept as written; a longer Title Case string is a title to translate. Six covers the published house names ("Casa Juliana Calle Quero Centro Histórico"); the English-word list, not the count, refuses titles like "Casa Juliana Historic Center". */
+export const MAX_NAME_WORDS = 6;
 
 const CURRENCY_CODES = new Set(["USD", "AED", "COP", "EUR"]);
 const CURRENCY = /\b(?:USD|AED|COP|EUR)\b|[$€£]/;
 /** Words a price line is made of besides its currencies and numbers: "From USD $3,000/person · Est. AED 80,000–90,000". */
 const PRICE_WORDS = new Set(["from", "est", "per", "person"]);
 
-/** Spanish-only words (not ones English shares, such as villa or hotel) that start the names of Colombian places and houses; with the lowercase particles below they mark a name. */
+/** Spanish-only words (not ones English shares, such as hotel) that start the names of Colombian places and houses; with the lowercase particles below they mark a name. */
 const SPANISH_NAME_WORDS = new Set(["casa", "finca", "hacienda", "posada", "calle", "isla", "islas", "cerro", "playa", "parque", "bahia", "bahía", "santa", "santo", "san", "valle", "rio", "río", "monte", "cabo", "punta", "convento"]);
 const NAME_PARTICLES = new Set(["de", "del", "la", "las", "los", "el", "y", "e", "da", "do"]);
 
@@ -112,7 +112,7 @@ const ENGLISH_WORDS = new Set(
     "old new heritage downtown residence residences apartment apartments penthouse lounge spa pool terrace rooftop sunset sunrise " +
     "adventure adventures cultural guided day days night nights week weeks family group couple couples wine food culinary dining " +
     "market park national reserve forest jungle coast bay port walled cathedral church museum gallery art street ride flight flights " +
-    "helicopter yacht catamaran charter bar restaurant villa villas hotel hotels plaza square tower towers fort castle bridge " +
+    "helicopter yacht catamaran charter bar restaurant hotel hotels plaza square tower towers fort castle bridge " +
     "plantation vineyard winery brewery cellar kitchen bedroom bedrooms bathroom guest guests host welcome safety bespoke " +
     "premium exclusive signature classic modern grand royal golden blue green white black red north south east west central " +
     "upper lower little big small best top first second third full half open sea lake falls waterfall thermal hot springs " +

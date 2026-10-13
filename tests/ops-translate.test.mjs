@@ -724,9 +724,9 @@ test("round 4, echo: Grok's five Title Case titles are refused as echoes for es 
   assert.equal(prompt.checkSameShape({ n: "Casa Ébano" }, { n: "Casa Ébano" }, "es").ok, true);
   assert.equal(prompt.checkSameShape({ n: "Sopetrán Country Estate" }, { n: "Finca campestre Sopetrán" }, "es").ok, true);
   assert.equal(prompt.checkSameShape({ n: "Sopetrán Country Estate" }, { n: "عقار سوبيتران الريفي" }, "ar").ok, true);
-  assert.equal(prompt.MAX_NAME_WORDS, 3);
-  // Four words is a title, not a name, even with every mark of a name.
-  assert.equal(prompt.checkSameShape({ n: "Casa Luna Azul Ébano" }, { n: "Casa Luna Azul Ébano" }, "es").ok, false);
+  assert.equal(prompt.MAX_NAME_WORDS, 6);
+  // Seven words is a title, not a name, even with every mark of a name.
+  assert.equal(prompt.checkSameShape({ n: "Casa Luna Azul Ébano Real Mar Sur" }, { n: "Casa Luna Azul Ébano Real Mar Sur" }, "es").ok, false);
 });
 
 test("round 4, Arabic: two or more Latin words and no Arabic letter is refused (unless a name or price line), a name inside an Arabic sentence passes", () => {
@@ -808,7 +808,7 @@ test("round 5: Arabic keeps a Spanish name unchanged, like Spanish; titles with 
   for (const name of ["Casa Centro Getsemaní", "Casa Ébano", "Finca Santa Clara", "Casa Luna", "Sopetrán Antioquia", "Santa Fe Antioquia"]) {
     for (const target of ["ar", "es"]) assert.equal(prompt.checkSameShape({ n: name }, { n: name }, target).ok, true, `${target} ${name}`);
   }
-  for (const title of ["Coffee Hacienda Experiences", "Casa Juliana Historic Center", "Casa Mariana Historic Center", "Santa Fe Farm Antioquia", "Sopetrán Country Estate", "Private Chef", "Welcome to ALMAR", "Casa Luna Azul Ébano"]) {
+  for (const title of ["Coffee Hacienda Experiences", "Casa Juliana Historic Center", "Casa Mariana Historic Center", "Santa Fe Farm Antioquia", "Sopetrán Country Estate", "Private Chef", "Welcome to ALMAR", "Casa Luna Azul Ébano Real Mar Sur"]) {
     for (const target of ["ar", "es"]) assert.equal(prompt.checkSameShape({ n: title }, { n: title }, target).ok, false, `${target} ${title}`);
   }
   // A name kept in Latin does not excuse a sentence: that still needs Arabic.
@@ -828,27 +828,22 @@ test("round 5, data: the published texts that are the English unchanged, and exa
     })
     .map(({ english, target }) => `${target}|${english}`)
     .sort();
-  // Why each is refused: "Private Island Cartagena" and "Villa Isla Barú" hold a plain English word (island, villa); "The Explorer",
-  // "The Resident", "The Sovereign" and "ALMAR Private Journeys" are not Spanish names; the rest are Spanish names of more than
-  // MAX_NAME_WORDS (3) words. A change to the name rule changes this list, on purpose.
-  assert.deepEqual(refused, [
-    "ar|Casa Jardino Calle San Diego",
-    "ar|Casa Juliana Calle Quero Centro Histórico",
-    "ar|Casa Mariana Calle Quero Centro Histórico",
-    "ar|Casa Playa Castillo Bocagrande",
-    "ar|Private Island Cartagena",
-    "ar|Villa Isla Barú",
-    "es|ALMAR Private Journeys",
-    "es|Casa Jardino Calle San Diego",
-    "es|Casa Jardino Calle San Diego",
-    "es|Casa Jardín San Diego",
-    "es|Casa Juliana Calle Quero Centro Histórico",
-    "es|Casa Mariana Calle Quero Centro Histórico",
-    "es|Casa Playa Castillo Bocagrande",
-    "es|Private Island Cartagena",
-    "es|The Explorer",
-    "es|The Resident",
-    "es|The Sovereign",
-    "es|Villa Isla Barú",
-  ]);
+  // Why each is refused: "Private Island Cartagena" holds plain English words (private, island); "The Explorer", "The Resident",
+  // "The Sovereign" and "ALMAR Private Journeys" are not Spanish names. Every real Spanish name of up to MAX_NAME_WORDS (6)
+  // words, "Villa Isla Barú" and "Casa Juliana Calle Quero Centro Histórico" included, passes. A change to the name rule
+  // changes this list, on purpose.
+  assert.deepEqual(refused, ["ar|Private Island Cartagena", "es|ALMAR Private Journeys", "es|Private Island Cartagena", "es|The Explorer", "es|The Resident", "es|The Sovereign"]);
+});
+
+// ---- 03.2-10b round 6: MAX_NAME_WORDS 6, villa is not an English-only word ----------------------------------------------------
+// Fails on 33db46d.
+
+test("round 6: long Spanish house names and \"Villa Isla Barú\" pass unchanged in ar and es; Grok's five titles stay refused", () => {
+  for (const name of ["Casa Juliana Calle Quero Centro Histórico", "Casa Mariana Calle Quero Centro Histórico", "Casa Jardino Calle San Diego", "Casa Playa Castillo Bocagrande", "Casa Jardín San Diego", "Villa Isla Barú"]) {
+    for (const target of ["ar", "es"]) assert.equal(prompt.checkSameShape({ n: name }, { n: name }, target).ok, true, `${target} ${name}`);
+  }
+  for (const title of ["Coffee Hacienda Experiences", "Casa Juliana Historic Center", "Casa Mariana Historic Center", "Santa Fe Farm Antioquia", "Sopetrán Country Estate", "Private Island Cartagena"]) {
+    for (const target of ["ar", "es"]) assert.equal(prompt.checkSameShape({ n: title }, { n: title }, target).ok, false, `${target} ${title}`);
+  }
+  assert.equal(prompt.MAX_NAME_WORDS, 6);
 });
