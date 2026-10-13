@@ -82,23 +82,38 @@ const CSS_VARIABLE: Record<BrandKey, string> = {
 };
 
 /**
- * A `<style>` block that overrides the design system's colours with the saved ones, or "" when nothing differs. Teal's
+ * The `:root{…}` rule that overrides the design system's colours with the saved ones, or "" when nothing differs. Teal's
  * hover and press follow a changed Teal (the design system's mixes are 8% and 16% charcoal). Only #rrggbb values from
- * parseSiteSettingsRow reach here, so nothing can break out of the style element.
+ * parseSiteSettingsRow reach here, so nothing can break out of a style element. The ops shell renders it at request time
+ * (app/dashboard/(ops)/layout.tsx); the public build wraps it with brandStyle().
+ *
+ * Faces: the two selects offer only the design system's faces (D-115, D-121: Questa, Lato), which the CSS already uses,
+ * so a saved face never needs a rule here; Arabic keeps its own faces (D-123).
  */
-export function brandStyle(settings: PublicSiteSettings): string {
+export function brandCss(settings: PublicSiteSettings): string {
   const lines: string[] = [];
   for (const key of BRAND_KEYS) {
     const value = settings.colors[key];
     if (value === null || value === BRAND_DEFAULTS[key]) continue;
-    if (!HEX.test(value)) throw new Error(`brandStyle: ${key} is not #rrggbb`);
+    if (!HEX.test(value)) throw new Error(`brandCss: ${key} is not #rrggbb`);
     lines.push(`${CSS_VARIABLE[key]}:${value}`);
     if (key === "teal") {
       lines.push(`--color-teal-hover:color-mix(in srgb,${value} 92%,#262626)`);
       lines.push(`--color-teal-press:color-mix(in srgb,${value} 84%,#262626)`);
     }
   }
-  return lines.length === 0 ? "" : `<style id="almar-brand">:root{${lines.join(";")}}</style>`;
+  return lines.length === 0 ? "" : `:root{${lines.join(";")}}`;
+}
+
+/** brandCss() as one `<style id="almar-brand">` element for static HTML, or "". */
+export function brandStyle(settings: PublicSiteSettings): string {
+  const css = brandCss(settings);
+  return css === "" ? "" : `<style id="almar-brand">${css}</style>`;
+}
+
+/** A saved colour, or the design system's value when the column is null. */
+export function brandColor(settings: PublicSiteSettings, key: BrandKey): string {
+  return settings.colors[key] ?? BRAND_DEFAULTS[key];
 }
 
 /** Repo files the public build always copies into out/brand/ (the wordmark and the maintenance page's two faces). */
@@ -110,6 +125,20 @@ export const BRAND_FILES: readonly { from: string; to: string }[] = [
 
 /** The same-origin file the build copies the saved logo to, or the design system's wordmark (also copied by the build). */
 export const WORDMARK_PATH = "/brand/wordmark.svg";
+
+/** The image host (lib/data/media.ts MEDIA_BASE_URL; repeated here because this module imports nothing). */
+export const MEDIA_ORIGIN = "https://media.almarprivatejourney.com";
+
+/**
+ * The saved logo straight from R2, for surfaces rendered at request time (the ops shell, the sign-in email, the closed
+ * page the public Worker answers): those cannot rely on a /brand/ copy, which only the next publish rebuild writes.
+ * Null when no logo is saved.
+ */
+export function logoMediaUrl(logoKey: string | null): string | null {
+  if (logoKey === null) return null;
+  if (!LOGO_KEY.test(logoKey)) throw new Error("logoMediaUrl: not a media key");
+  return `${MEDIA_ORIGIN}/${logoKey}`;
+}
 export function logoPath(logoKey: string | null): string {
   if (logoKey === null) return WORDMARK_PATH;
   const ext = logoKey.slice(logoKey.lastIndexOf(".") + 1);
@@ -130,4 +159,26 @@ export async function fetchSiteSettings(url: string, anonKey: string, fetcher: F
   const rows = await response.json();
   if (!Array.isArray(rows) || rows.length !== 1) throw new Error("api_site_settings: expected exactly one row");
   return parseSiteSettingsRow(rows[0]);
+}
+
+/** The values the sign-in email takes from the saved settings (lib/email/magic-link.ts EmailBrand), or null. */
+export function emailBrand(settings: PublicSiteSettings | null): {
+  teal: string;
+  gold: string;
+  ivory: string;
+  ink: string;
+  titleFace: string;
+  bodyFace: string;
+  logoUrl: string | null;
+} | null {
+  if (!settings) return null;
+  return {
+    teal: brandColor(settings, "teal"),
+    gold: brandColor(settings, "gold"),
+    ivory: brandColor(settings, "ivory"),
+    ink: brandColor(settings, "charcoal"),
+    titleFace: settings.titleFace,
+    bodyFace: settings.bodyFace,
+    logoUrl: logoMediaUrl(settings.logoKey),
+  };
 }

@@ -53,11 +53,13 @@ const FACE: Record<MaintenanceLocale, { display: string; body: string }> = {
   ar: { display: '"Noto Naskh Arabic", "Geeza Pro", Georgia, serif', body: '"Noto Sans Arabic", "Geeza Pro", Arial, sans-serif' },
 };
 
-const SAFE_PATH = /^\/brand\/[a-z]+\.(svg|webp|png|jpg)$/;
+// A same-origin /brand/ file (the build's copy), or the saved logo on the image host (the public Worker's closed page).
+const SAFE_PATH = /^(\/brand\/[a-z]+|https:\/\/media\.almarprivatejourney\.com\/[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_.-]*)*)\.(svg|webp|png|jpg)$/;
 const SAFE_STYLE = /^(<style id="almar-brand">:root\{[^<]*\}<\/style>)?$/;
 
 /**
- * The closed page for one locale. `logoSrc` is a same-origin /brand/ file (lib/site-settings.ts logoPath); `brandStyle`
+ * The closed page for one locale. `logoSrc` is a same-origin /brand/ file (lib/site-settings.ts logoPath) or the saved
+ * logo's media URL (logoMediaUrl); `brandStyle`
  * is lib/site-settings.ts brandStyle() output, so the saved colours apply here too.
  */
 export function renderMaintenancePage(locale: MaintenanceLocale, { logoSrc, brandStyle = "" }: { logoSrc: string; brandStyle?: string }): string {

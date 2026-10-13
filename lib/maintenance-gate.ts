@@ -6,42 +6,21 @@
 // read leaves the page open (the static site follows the last good build; a Supabase outage must not close sign-in on
 // its own). Pure apart from the injected fetch: middleware.ts binds it, node tests fake it.
 
-import { fetchSiteSettings, logoPath, brandStyle, type PublicSiteSettings } from "./site-settings";
+import { brandStyle, logoMediaUrl, WORDMARK_PATH, type fetchSiteSettings } from "./site-settings";
+import { readSiteSettings, __testing as readTesting, SITE_SETTINGS_CACHE_MS } from "./site-settings-read";
 import { renderMaintenancePage, type MaintenanceLocale } from "./maintenance-document";
 
 /** The HTML pages of the public Worker that maintenance closes (lib/server-routes.ts SERVER_PATHS_OUTSIDE_API). */
 export const MAINTENANCE_SERVER_PATHS: readonly string[] = ["/login", "/account", "/bookings"];
 
-export const MAINTENANCE_CACHE_MS = 30_000;
+export const MAINTENANCE_CACHE_MS = SITE_SETTINGS_CACHE_MS;
 
 export function closesOnMaintenance(path: string): boolean {
   const bare = path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
   return MAINTENANCE_SERVER_PATHS.includes(bare);
 }
 
-type Cached = { at: number; settings: PublicSiteSettings | null };
-let cached: Cached | null = null;
-
 type FetchLike = Parameters<typeof fetchSiteSettings>[2];
-
-/** The saved settings, or null when they cannot be read (then nothing closes). */
-export async function readGateSettings(
-  env: { url?: string; anonKey?: string },
-  now: number = Date.now(),
-  fetcher?: FetchLike,
-): Promise<PublicSiteSettings | null> {
-  if (cached && now - cached.at < MAINTENANCE_CACHE_MS) return cached.settings;
-  let settings: PublicSiteSettings | null = null;
-  if (env.url && env.anonKey) {
-    try {
-      settings = await fetchSiteSettings(env.url, env.anonKey, fetcher);
-    } catch {
-      settings = null;
-    }
-  }
-  cached = { at: now, settings };
-  return settings;
-}
 
 function pageLocale(cookieLocale: string | undefined): MaintenanceLocale {
   return cookieLocale === "ar" || cookieLocale === "es" ? cookieLocale : "en";
@@ -64,9 +43,11 @@ export async function maintenanceResponse({
   fetcher?: FetchLike;
 }): Promise<Response | null> {
   if (opsHost || !closesOnMaintenance(path)) return null;
-  const settings = await readGateSettings(env, now, fetcher);
+  const settings = await readSiteSettings(env, { now, fetcher });
   if (!settings?.maintenance) return null;
-  const html = renderMaintenancePage(pageLocale(cookieLocale), { logoSrc: logoPath(settings.logoKey), brandStyle: brandStyle(settings) });
+  // The saved logo straight from R2: a /brand/ copy exists only after the next publish rebuild.
+  const logoSrc = logoMediaUrl(settings.logoKey) ?? WORDMARK_PATH;
+  const html = renderMaintenancePage(pageLocale(cookieLocale), { logoSrc, brandStyle: brandStyle(settings) });
   return new Response(html, {
     status: 503,
     headers: {
@@ -81,6 +62,6 @@ export async function maintenanceResponse({
 /** For node tests only. */
 export const __testing = {
   reset(): void {
-    cached = null;
+    readTesting.reset();
   },
 };

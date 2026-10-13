@@ -83,7 +83,8 @@ test("the (ops) layout is the owner gate and pages carry no gate of their own", 
   assert.match(layout, /redirect\("\/sign-in"\)/);
   assert.match(layout, /if \(process\.env\.NODE_ENV === "production"\) notFound\(\);/);
   // Plan 03.2-03: a section's page renders only when lib/ops-routes.ts lists it; else job 02's "Not ready." state.
-  assert.match(layout, /<OpsShell mode="ops">\{isLiveOpsPath\(path\) \? children : null\}<\/OpsShell>/);
+  // Plan 02-06: the ops shell also gets the saved logo (and the saved colours as a style beside it).
+  assert.match(layout, /<OpsShell mode="ops" logoSrc=\{brand\.logoSrc\}>\s*\{isLiveOpsPath\(path\) \? children : null\}\s*<\/OpsShell>/);
   const shell = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
   assert.match(shell, /copy\.notReady/);
 });

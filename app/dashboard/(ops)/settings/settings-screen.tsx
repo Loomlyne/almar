@@ -3,6 +3,7 @@
 // Plan 02-06: Settings on the ops host (pictures signed 2026-10-13). Reads and saves through /api/ops/settings only
 // (components/ops/ops-client.ts); never imports a Supabase client. Corners are not a control and the FX rate is text.
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "../../../../components/ui/button";
 import { Field } from "../../../../components/ui/field";
 import { Checkbox } from "../../../../components/ui/checkbox";
@@ -89,6 +90,7 @@ export function SettingsScreen() {
   const [fx, setFx] = useState<SettingsView["fx"]>(null);
   const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
+  const router = useRouter();
   const [status, setStatus] = useState<"idle" | "saved" | "failed">("idle");
   const [logoRefused, setLogoRefused] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -203,6 +205,9 @@ export function SettingsScreen() {
       }
       dirtyRef.current = false;
       window.location.reload();
+    } else if (reply.affects_site) {
+      // D-110, D-113: the dashboard wears the saved colours and logo at once (the (ops) layout reads the row again).
+      router.refresh();
     }
   }
 

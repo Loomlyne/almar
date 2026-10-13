@@ -6,6 +6,8 @@ import { SHELL_HEADER } from "../../../lib/host";
 import { isOwnerProfile } from "../../../lib/auth/rules";
 import { OPS_PATH_HEADER, isLiveOpsPath } from "../../../lib/ops-routes";
 import { readSessionProfile } from "../../../lib/supabase/clients";
+import { brandCss, logoMediaUrl } from "../../../lib/site-settings";
+import { readSiteSettings, siteSettingsEnv } from "../../../lib/site-settings-read";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +21,21 @@ export const dynamic = "force-dynamic";
  * OPS_LIVE_SECTIONS (the path comes from the header the middleware sets); every other section keeps job 02's
  * "Not ready." state. The gate keeps unwired screens out of production (C-18: every shown control works); a screens
  * plan adds its section to the list in the commit that wires it.
+ *
+ * Plan 02-06 (D-110, D-113, D-116): the dashboard wears the saved brand. The settings row is read on every request (one
+ * owner; a save shows on her next page), its colours become CSS variables and a saved logo replaces the wordmark. A
+ * failed read keeps the design system.
  */
+async function OpsBrand(): Promise<{ style: ReactNode; logoSrc: string | null }> {
+  const settings = await readSiteSettings(siteSettingsEnv(), { maxAgeMs: 0 });
+  const css = settings ? brandCss(settings) : "";
+  return {
+    // Only #rrggbb values reach brandCss (parseSiteSettingsRow), so the text cannot leave the style element.
+    style: css ? <style id="almar-brand" dangerouslySetInnerHTML={{ __html: css }} /> : null,
+    logoSrc: settings ? logoMediaUrl(settings.logoKey) : null,
+  };
+}
+
 export default async function OpsLayout({ children }: { children: ReactNode }) {
   const requestHeaders = await headers();
   const opsHost = requestHeaders.get(SHELL_HEADER) === "ops";
@@ -29,5 +45,13 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
   }
   if (!isOwnerProfile(await readSessionProfile())) redirect("/sign-in");
   const path = requestHeaders.get(OPS_PATH_HEADER) ?? "";
-  return <OpsShell mode="ops">{isLiveOpsPath(path) ? children : null}</OpsShell>;
+  const brand = await OpsBrand();
+  return (
+    <>
+      {brand.style}
+      <OpsShell mode="ops" logoSrc={brand.logoSrc}>
+        {isLiveOpsPath(path) ? children : null}
+      </OpsShell>
+    </>
+  );
 }
