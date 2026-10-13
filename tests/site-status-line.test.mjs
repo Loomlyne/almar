@@ -10,7 +10,7 @@ import { loadTs } from "./helpers/load-ts.mjs";
 const render = await loadRenderer("components/ops/site-status-line.tsx", "SiteStatusLine");
 const { OPS_SITE_STATUS_COPY } = await loadTs("lib/copy/ops-site-status.ts");
 const model = await loadTs("components/ops/site-status-model.ts");
-const { createSiteStatusController, lineView, POLL_MS } = model;
+const { createSiteStatusController, lineView, POLL_MS, RETRY_MS } = model;
 
 // 10:05Z = 14:05 in Dubai, 10:02Z = 14:02; failed by hook at 10:30Z = 14:30.
 const SITES = {
@@ -79,7 +79,7 @@ test("lineView: unavailable is muted with no time and no Try again; updating wit
 
 // ---- behaviour, through the model ---------------------------------------------------------------------------------
 
-function harness({ load, retry, initial } = {}) {
+function harness({ load, retry, initial, isHidden } = {}) {
   const timers = new Map();
   let nextId = 1;
   const seen = [];
@@ -102,6 +102,7 @@ function harness({ load, retry, initial } = {}) {
     clearTimer: (id) => timers.delete(id),
     onChange: (state, busy) => seen.push({ state, busy }),
     initial,
+    isHidden,
   });
   const tick = async () => {
     const pending = [...timers.entries()];
@@ -148,10 +149,53 @@ test("failed does not poll; a failed read shows unavailable, never a guess", asy
   u.ctl.start();
   await u.flush();
   assert.deepEqual(u.last().state, { kind: "unavailable" });
+  assert.equal(u.timers.size, 1, "a failed read is retried");
   const odd = harness({ load: () => ({ ok: true, site: { state: "maybe" } }) });
   odd.ctl.start();
   await odd.flush();
   assert.deepEqual(odd.last().state, { kind: "unavailable" });
+});
+
+test("a failed read while updating keeps trying (15 s, 30 s, then 60 s) and recovers (review finding 3)", async () => {
+  const replies = [{ ok: true, site: SITES.updating }, { ok: false, status: 0, error: { code: "network" } }, { ok: false, status: 503, error: { code: "unavailable" } }, { ok: false, status: 503, error: { code: "unavailable" } }, { ok: false, status: 503, error: { code: "unavailable" } }, { ok: true, site: SITES.up_to_date }];
+  const h = harness({ load: (n) => replies[n - 1] });
+  assert.deepEqual([...RETRY_MS], [15_000, 30_000, 60_000]);
+  h.ctl.start();
+  await h.flush();
+  const delays = [];
+  for (let i = 0; i < 5; i++) {
+    delays.push([...h.timers.values()][0].ms);
+    await h.tick();
+  }
+  assert.deepEqual(delays, [15_000, 15_000, 30_000, 60_000, 60_000]);
+  assert.equal(h.last().state.site.state, "up_to_date");
+  assert.equal(h.timers.size, 0);
+});
+
+test("a hidden tab skips its timed read and keeps the timer; the focus read catches up", async () => {
+  let hidden = true;
+  const h = harness({ load: () => ({ ok: true, site: SITES.updating }), isHidden: () => hidden });
+  h.ctl.start();
+  await h.flush();
+  await h.tick();
+  assert.equal(h.calls.load, 1, "no read while hidden");
+  assert.equal(h.timers.size, 1);
+  hidden = false;
+  await h.tick();
+  assert.equal(h.calls.load, 2);
+});
+
+test("focus while a read is running starts no second read", async () => {
+  let release;
+  const h = harness({ load: () => new Promise((r) => (release = () => r({ ok: true, site: SITES.up_to_date }))) });
+  h.ctl.start();
+  h.ctl.focus();
+  h.ctl.focus();
+  assert.equal(h.calls.load, 1);
+  release();
+  await h.flush();
+  h.ctl.focus();
+  assert.equal(h.calls.load, 2);
 });
 
 test("window focus reads once more", async () => {

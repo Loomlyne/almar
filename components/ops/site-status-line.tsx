@@ -53,6 +53,7 @@ export function SiteStatusLine({ copy, initial }: { copy: OpsSiteStatusCopy; ini
         setBusy(nextBusy);
       },
       initial: first.current,
+      isHidden: () => document.hidden,
     });
     controller.current = ctl;
     const onFocus = () => ctl.focus();

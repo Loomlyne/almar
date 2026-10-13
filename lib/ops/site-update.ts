@@ -15,9 +15,36 @@ import { computeSiteStatus, type LiveVersion, type PublishState, type SiteStatus
 /** The live site's own record of what it was built from (written by scripts/build-live.mjs, served no-store). */
 export const LIVE_VERSION_URL = "https://almarprivatejourney.com/site-version.json";
 /** Only a Cloudflare deploy hook is ever called, whatever the secret holds. */
-const HOOK_PREFIX = "https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/";
-const HOOK_TIMEOUT_MS = 10_000;
-const LIVE_TIMEOUT_MS = 5_000;
+const HOOK_HOST = "api.cloudflare.com";
+const HOOK_PATH = /^\/client\/v4\/workers\/builds\/deploy_hooks\/[A-Za-z0-9_-]{1,128}$/;
+// The hook call and the live read run inside the owner's save reply: kept short so a slow Cloudflare API never makes a
+// save look hung (review finding 6). A timed-out hook is "error:network" and Try again fires it again.
+const HOOK_TIMEOUT_MS = 5_000;
+const LIVE_TIMEOUT_MS = 3_000;
+
+/**
+ * The hook URL, or null when it is not exactly https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/<id>:
+ * parsed, so dot-segments, encoded dots, a port, credentials, a query or a fragment never pass (review finding 9).
+ */
+export function hookTarget(raw: string): string | null {
+  if (/%2e|%2f|\.\./i.test(raw)) return null;
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  const ok =
+    url.protocol === "https:" &&
+    url.hostname === HOOK_HOST &&
+    url.port === "" &&
+    url.username === "" &&
+    url.password === "" &&
+    url.search === "" &&
+    url.hash === "" &&
+    HOOK_PATH.test(url.pathname);
+  return ok ? url.href : null;
+}
 
 type RpcReply = { data: unknown; error: { code?: string | null; message?: string | null } | null };
 /** The part of the service-role client this file uses. */
@@ -90,12 +117,14 @@ type HookCall = { result: string; buildUuid: string | null };
  * confirmed at the owner gate).
  */
 async function callHook(hookUrl: string | null | undefined, fetchImpl: typeof fetch): Promise<HookCall> {
-  const url = (hookUrl ?? "").trim();
-  if (!url) return { result: "error:no_hook", buildUuid: null };
-  if (!url.startsWith(HOOK_PREFIX)) return { result: "error:bad_hook", buildUuid: null };
+  const raw = (hookUrl ?? "").trim();
+  if (!raw) return { result: "error:no_hook", buildUuid: null };
+  const url = hookTarget(raw);
+  if (!url) return { result: "error:bad_hook", buildUuid: null };
   let res: Response;
   try {
-    res = await fetchImpl(url, { method: "POST", cache: "no-store", signal: AbortSignal.timeout(HOOK_TIMEOUT_MS) });
+    // redirect: "manual": a redirect is never followed to another address; it is a 3xx, recorded as an error.
+    res = await fetchImpl(url, { method: "POST", cache: "no-store", redirect: "manual", signal: AbortSignal.timeout(HOOK_TIMEOUT_MS) });
   } catch {
     return { result: "error:network", buildUuid: null };
   }

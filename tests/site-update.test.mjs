@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { loadTs } from "./helpers/load-ts.mjs";
 
-const { requestPublish, requestSiteUpdate, siteStatus, readLiveVersion, parseSiteUpdate, LIVE_VERSION_URL } = await loadTs("lib/ops/site-update.ts");
+const { hookTarget, requestPublish, requestSiteUpdate, siteStatus, readLiveVersion, parseSiteUpdate, LIVE_VERSION_URL } = await loadTs("lib/ops/site-update.ts");
 
 const HOOK = "https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/abc123";
 const NOW = new Date("2026-10-13T10:05:00.000Z");
@@ -41,7 +41,7 @@ function fakeAdmin(over = {}) {
 function fakeFetch({ hook = () => Response.json({ success: true, result: { build_uuid: "b-1" } }), live = () => Response.json({ seq: 4, built_at: "2026-10-13T09:00:00.000Z" }) } = {}) {
   const calls = [];
   const fn = async (url, init = {}) => {
-    calls.push({ url: String(url), method: init.method ?? "GET", cache: init.cache, headers: init.headers, body: init.body });
+    calls.push({ url: String(url), method: init.method ?? "GET", cache: init.cache, headers: init.headers, body: init.body, redirect: init.redirect });
     if (String(url) === LIVE_VERSION_URL) return live();
     if (String(url).startsWith("https://api.cloudflare.com/")) return hook();
     throw new Error(`unexpected fetch ${url}`);
@@ -202,4 +202,32 @@ test("requestPublish({ admin }) is the stable entry point for 02-06: one bump, o
   } finally {
     if (saved !== undefined) process.env.PUBLISH_DEPLOY_HOOK_URL = saved;
   }
+});
+
+test("hookTarget: only https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/<id>, nothing near it (review finding 9)", () => {
+  assert.equal(hookTarget(HOOK), HOOK);
+  for (const bad of [
+    "http://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/abc",
+    "https://api.cloudflare.com.evil.example/client/v4/workers/builds/deploy_hooks/abc",
+    "https://api.cloudflare.com:8443/client/v4/workers/builds/deploy_hooks/abc",
+    "https://user:pw@api.cloudflare.com/client/v4/workers/builds/deploy_hooks/abc",
+    "https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/../../accounts/x",
+    "https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/%2e%2e/x",
+    "https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/abc?x=1",
+    "https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/abc#x",
+    "https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/",
+    "https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/a/b",
+    "not a url",
+  ]) {
+    assert.equal(hookTarget(bad), null, bad);
+  }
+});
+
+test("the hook POST never follows a redirect; a 3xx is recorded as an error", async () => {
+  const admin = fakeAdmin();
+  const fetchImpl = fakeFetch({ hook: () => new Response(null, { status: 302, headers: { location: "https://elsewhere.example/" } }) });
+  const site = await requestSiteUpdate(admin, deps(fetchImpl));
+  assert.equal(fetchImpl.calls.find((c) => c.method === "POST").redirect, "manual");
+  assert.equal(admin.calls[1][1].p_result, "error:302");
+  assert.equal(site.state, "failed");
 });
