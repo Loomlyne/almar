@@ -2,7 +2,7 @@
 // signature. Static HTML drawn from tokens.json, lib/copy/dashboard.ts (rail), lib/copy/ops-kit.ts (Close, Save, Cancel,
 // Delete, Published, Unpublish) and the canvas board DashStays (Availability words, weekdays, stay panel tabs).
 // Run from the repo root:  node .planning/phases/03.2-real-catalog-and-team-inserted/pictures/03.2-15/build-pictures.mjs
-// Output: <state>-<width>-<lang>.png next to this file. Re-shoot only what the owner changes: edit WORDS below, then run
+// Output: content/<state>-<390|480>-<lang>.png (bare tab content; see FRAMED below). Re-shoot only what the owner changes: edit WORDS below, then run
 // with a filter, e.g.  ... build-pictures.mjs rates-overlap   (state)  or  ... build-pictures.mjs "" ar   (language).
 //
 // No money value is drawn anywhere: every price is the bracket "[PRICE]". Reasons, stay name and access values are
@@ -113,7 +113,7 @@ const WORDS = {
     noRanges: "Todavía no hay rangos de fechas. Cada noche usa el precio por noche.",
     overlap: "Otro rango de la misma duración ya cubre estas noches.",
     checkTitle: "Comprobar precios",
-    checkLine: "Elige noches para ver el precio de cada una y de dónde viene. Hasta 366 noches.",
+    checkLine: "Elija las noches para ver el precio de cada una y de dónde viene. Hasta 366 noches.",
     check: "Comprobar", colNight: "Noche", colFrom: "Precio de",
     srcRange: "Rango", srcBase: "Base", srcNone: "Sin precio",
     availLine: "Fechas bloqueadas y reservadas de esta estancia. Los bloqueos se definen en el Calendario.",
@@ -123,8 +123,8 @@ const WORDS = {
     scopeStay: "Esta estancia", scopeDestination: "Todo el destino", scopeAll: "Todo",
     reason: "[Motivo]", noReason: "Sin motivo",
     prevMonth: "Mes anterior", nextMonth: "Mes siguiente",
-    accessLine: "El huésped solo ve esto después de que confirmes la reserva.",
-    privateLine: "Solo tú lo ves aquí. Nunca aparece en el sitio público.",
+    accessLine: "El huésped solo ve esto después de que confirme la reserva.",
+    privateLine: "Solo usted lo ve aquí. Nunca aparece en el sitio público.",
     address: "Dirección", wifiName: "Nombre del Wi-Fi", wifiPassword: "Contraseña del Wi-Fi", doorCode: "Código de la puerta", notes: "Notas",
     notesHint: "Aparcamiento, llaves, todo lo que el huésped necesita al llegar. Hasta 2.000 caracteres.",
     show: "Mostrar", hide: "Ocultar",
@@ -145,7 +145,14 @@ for (const [lang, w] of Object.entries(WORDS)) {
 const PRICE = "[PRICE]";
 
 const STATES = ["rates", "rates-empty", "rates-overlap", "rates-check", "availability", "access"];
-const WIDTHS = [390, 834, 1440];
+// Owner, 2026-10-14: the side panel is being redesigned (03.2-06 draws the options). Until the controller sends the chosen
+// frame, only the tab CONTENT is drawn, bare, at the two body widths it will have (390 phone sheet, 480 docked panel),
+// into content/. P15_FRAME=1 draws the old in-panel frame (390, 834, 1440) and is not used for signing.
+const FRAMED = process.env.P15_FRAME === "1";
+const WIDTHS = FRAMED ? [390, 834, 1440] : [390, 480];
+const OUT = FRAMED ? here : join(here, "content");
+mkdirSync(OUT, { recursive: true });
+const isWide = (width) => (FRAMED ? width >= 834 : width >= 480);
 const LANGS = ["en", "ar", "es"];
 
 // ---- example dates (no money) ---------------------------------------------------------------------------------------
@@ -311,13 +318,14 @@ function accessTab(lang) {
 function panel(lang, state, width) {
   const w = WORDS[lang];
   const k = OPS_KIT_COPY[lang];
-  const wide = width >= 834;
+  const wide = isWide(width);
   const tabKey = state.startsWith("rates") ? "rates" : state;
   const tabs = [
     ["details", w.tabDetails], ["connections", w.tabConnections], ["rates", w.tabRates],
     ["availability", w.tabAvailability], ["access", w.tabAccess],
   ];
   const body = tabKey === "rates" ? ratesTab(lang, state, wide) : tabKey === "availability" ? availabilityTab(lang) : accessTab(lang);
+  if (!FRAMED) return `<div class="panel bare"><div class="tabbody">${body}</div></div>`;
   return `
     <aside class="panel ${wide ? "docked" : "sheet"}">
       <div class="phead"><h2>${esc(w.stayName)}</h2><span class="close">${esc(k.close)}</span></div>
@@ -346,11 +354,11 @@ function page({ lang, state, width }) {
   const w = WORDS[lang];
   const k = OPS_KIT_COPY[lang];
   const desktop = width >= 1280;
-  const wide = width >= 834;
+  const wide = isWide(width);
   const header = `<header><div class="brand"><img src="${LOGO}" alt="ALMAR">${desktop ? `<span class="dname">${esc(d.dashboardName)}</span>` : ""}</div>${desktop ? "" : `<span class="menu">${menuGlyph}</span>`}</header>`;
   const list = `<div class="stack"><div class="titlerow"><h1>${esc(w.stays)}</h1>${btn(w.newStay)}</div>
     <div class="list">${[1, 2, 3, 4].map(() => `<div class="lrow"><span>${esc(w.stayName)}</span><span class="chip">${esc(k.published)}</span></div>`).join("")}</div></div>`;
-  const shell = wide
+  const shell = FRAMED && wide
     ? `<div class="shell">${header}<div class="body">${desktop ? `<nav class="side">${rail(lang)}</nav>` : ""}<main>${list}</main></div></div><div class="scrim"></div>`
     : "";
   return `<!doctype html><html lang="${lang}" dir="${dir}"><head><meta charset="utf-8"><style>
@@ -361,7 +369,8 @@ function page({ lang, state, width }) {
     html,body{margin:0}
     body{background:${C.ivory};color:${C.ink};font-family:Lato,Arial,sans-serif;font-size:16px;line-height:1.5}
     [dir=rtl] body{font-family:"Geeza Pro","Noto Sans Arabic",Lato,sans-serif;line-height:1.7}
-    .frame{position:relative;width:${width}px;min-height:${wide ? 900 : 844}px}
+    .frame{position:relative;width:${width}px;min-height:${FRAMED ? (wide ? 900 : 844) : 0}px}
+    .panel.bare{width:${width}px;padding:16px;background:${C.surface}}
     .shell{min-height:900px;display:flex;flex-direction:column}
     header{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:4px 16px;border-bottom:1px solid ${C.line}}
     .brand{display:flex;align-items:center;gap:8px}
@@ -481,7 +490,7 @@ const browser = await chromium.launch();
 for (const job of jobs) {
   const html = join(work, `${job.name}.html`);
   writeFileSync(html, page(job));
-  const ctx = await browser.newContext({ viewport: { width: job.width, height: job.width >= 834 ? 900 : 844 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({ viewport: { width: job.width, height: FRAMED ? (job.width >= 834 ? 900 : 844) : 400 }, deviceScaleFactor: 1 });
   const tab = await ctx.newPage();
   await tab.goto(pathToFileURL(html).href);
   await tab.evaluate(() => document.fonts.ready);
@@ -505,13 +514,13 @@ for (const job of jobs) {
     [...document.querySelectorAll(".tab, h1, h2, h3, .flabel, .btn, .chip, .close, .wd")].filter((el) => !(el.textContent ?? "").trim()).length,
   );
   const priceDigits = /AED[ \u00a0]*\d|\d[ \u00a0]*AED|درهم[ \u00a0]*\d/.test(report.all);
-  if (bad.length || emptyLabels || report.texts.length < 15 || priceDigits || report.panelOverflow) {
+  if (bad.length || emptyLabels || report.texts.length < (FRAMED ? 15 : 8) || priceDigits || report.panelOverflow) {
     await browser.close();
     throw new Error(
       `${job.name}: bad=${JSON.stringify(bad)} empty=${emptyLabels} nodes=${report.texts.length} priceDigits=${priceDigits} panelOverflow=${report.panelOverflow}`,
     );
   }
-  await tab.screenshot({ path: join(here, `${job.name}.png`), fullPage: true });
+  await tab.screenshot({ path: join(OUT, `${job.name}.png`), fullPage: true });
   await ctx.close();
 }
 await browser.close();
