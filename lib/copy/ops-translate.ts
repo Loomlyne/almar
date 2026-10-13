@@ -19,7 +19,11 @@ export type OpsTranslateCopy = {
   partialArabicOnly: string;
   /** Spanish came back, Arabic failed (the mirror line). */
   partialSpanishOnly: string;
-  /** Both targets failed (bad output or a network error). */
+  /** Arabic came back, Spanish hit the daily limit (429 translate_limit). */
+  partialArabicLimit: string;
+  /** Spanish came back, Arabic hit the daily limit. */
+  partialSpanishLimit: string;
+  /** Both targets failed (bad output, a timeout or a network error). */
   failed: string;
   /** The free daily allocation is used up (429 translate_limit). */
   limit: string;
@@ -38,6 +42,8 @@ export const OPS_TRANSLATE_COPY: Record<OpsTranslateLocale, OpsTranslateCopy> = 
     done: "Arabic and Spanish filled as drafts. Check them before you publish.",
     partialArabicOnly: "Arabic filled as a draft. Spanish failed: type it or try again.",
     partialSpanishOnly: "Spanish filled as a draft. Arabic failed: type it or try again.",
+    partialArabicLimit: "Arabic filled as a draft. Spanish: translation limit reached for today (resets 04:00 Dubai). Type it or try tomorrow.",
+    partialSpanishLimit: "Spanish filled as a draft. Arabic: translation limit reached for today (resets 04:00 Dubai). Type it or try tomorrow.",
     failed: "Translation failed, type it or try again.",
     limit: "Translation limit reached for today (resets 04:00 Dubai). Type it or try tomorrow.",
     needEnglish: "Write the English text first.",
@@ -51,6 +57,8 @@ export const OPS_TRANSLATE_COPY: Record<OpsTranslateLocale, OpsTranslateCopy> = 
     done: "تمت تعبئة العربية والإسبانية كمسودتين. راجعهما قبل النشر.",
     partialArabicOnly: "تمت تعبئة العربية كمسودة. تعذّرت الإسبانية: اكتبها أو حاول مرة أخرى.",
     partialSpanishOnly: "تمت تعبئة الإسبانية كمسودة. تعذّرت العربية: اكتبها أو حاول مرة أخرى.",
+    partialArabicLimit: "تمت تعبئة العربية كمسودة. الإسبانية: بلغت الترجمة حدّها لهذا اليوم (يُعاد ضبطه الساعة 04:00 بتوقيت دبي). اكتبها أو حاول غدًا.",
+    partialSpanishLimit: "تمت تعبئة الإسبانية كمسودة. العربية: بلغت الترجمة حدّها لهذا اليوم (يُعاد ضبطه الساعة 04:00 بتوقيت دبي). اكتبها أو حاول غدًا.",
     failed: "تعذّرت الترجمة، اكتب النص أو حاول مرة أخرى.",
     limit: "بلغت الترجمة حدّها لهذا اليوم (يُعاد ضبطه الساعة 04:00 بتوقيت دبي). اكتب النص أو حاول غدًا.",
     needEnglish: "اكتب النص الإنجليزي أولًا.",
@@ -64,6 +72,8 @@ export const OPS_TRANSLATE_COPY: Record<OpsTranslateLocale, OpsTranslateCopy> = 
     done: "Árabe y español completados como borradores. Revíselos antes de publicar.",
     partialArabicOnly: "Árabe completado como borrador. El español falló: escríbalo o inténtelo de nuevo.",
     partialSpanishOnly: "Español completado como borrador. El árabe falló: escríbalo o inténtelo de nuevo.",
+    partialArabicLimit: "Árabe completado como borrador. Español: se alcanzó el límite de traducción de hoy (se reinicia a las 04:00, hora de Dubái). Escríbalo o inténtelo mañana.",
+    partialSpanishLimit: "Español completado como borrador. Árabe: se alcanzó el límite de traducción de hoy (se reinicia a las 04:00, hora de Dubái). Escríbalo o inténtelo mañana.",
     failed: "La traducción falló, escríbala o inténtelo de nuevo.",
     limit: "Se alcanzó el límite de traducción de hoy (se reinicia a las 04:00, hora de Dubái). Escríbala o inténtelo mañana.",
     needEnglish: "Escriba primero el texto en inglés.",

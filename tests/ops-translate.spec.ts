@@ -89,7 +89,7 @@ test.describe("pictures", () => {
 
 // ---- behaviour ----------------------------------------------------------------------------------------------------
 // The wired button against fixtures for POST /api/ops/translate: 200 per target, 502 translate_failed, 429
-// translate_limit (contract 5.11), at 390 and 1440, EN and AR. The scene logs every onDrafts call as
+// translate_limit (contract 5.11), and a request that never answers (45 s client abort), at 390 and 1440, EN and AR. The scene logs every onDrafts call as
 // "<target>:<field names>" in a hidden output.
 
 type Answer = 200 | 502 | 429;
@@ -178,17 +178,43 @@ test.describe("behaviour", () => {
         expect(await logOf(page)).toEqual([]);
       });
 
-      for (const plan of [{ ar: 429, es: 200 }, { ar: 200, es: 429 }, { ar: 429, es: 429 }] as Plan[]) {
-        test(`429 (ar ${plan.ar}, es ${plan.es}): the limit line (${width} ${locale})`, async ({ page }) => {
+      // The daily limit on one target while the other came back (03.2-10b): the line says what was filled and what is limited.
+      for (const [plan, line] of [
+        [{ ar: 429, es: 200 }, copy.partialSpanishLimit],
+        [{ ar: 200, es: 429 }, copy.partialArabicLimit],
+        [{ ar: 429, es: 429 }, copy.limit],
+        [{ ar: 429, es: 502 }, copy.limit],
+      ] as [Plan, string][]) {
+        test(`429 (ar ${plan.ar}, es ${plan.es}): ${line === copy.limit ? "the limit line" : "the partial-limit line"} (${width} ${locale})`, async ({ page }) => {
           await answerTranslate(page, plan);
           await openScene(page, "live", viewport, locale, "ops-translate-live");
           await button(page).click();
-          await expect(statusLine(page)).toHaveText(copy.limit);
+          await expect(statusLine(page)).toHaveText(line);
           // A target that did come back is still filled as a draft.
           const expected = (["ar", "es"] as const).filter((t) => plan[t] === 200).map((t) => `${t}:name,short_line,summary`);
           expect(await logOf(page)).toEqual(expected);
         });
       }
+
+      test(`a stalled request is given up after 45 s: the failed line, the button is back (${width} ${locale})`, async ({ page }) => {
+        // Both requests are taken and never answered.
+        const taken: string[] = [];
+        await page.route("**/api/ops/translate", async (route) => {
+          taken.push(route.request().postDataJSON().target);
+          await new Promise(() => undefined);
+        });
+        await openScene(page, "live", viewport, locale, "ops-translate-live");
+        await page.clock.install();
+        await button(page).click();
+        await expect(page.getByRole("button", { name: copy.busy, exact: true })).toBeDisabled();
+        await expect.poll(() => taken.length).toBe(2);
+        await page.clock.fastForward(44_000);
+        await expect(page.getByRole("button", { name: copy.busy, exact: true })).toBeDisabled();
+        await page.clock.fastForward(2_000);
+        await expect(statusLine(page)).toHaveText(copy.failed);
+        expect(await logOf(page)).toEqual([]);
+        await expect(page.getByRole("button", { name: copy.action, exact: true })).toBeEnabled();
+      });
 
       test(`English changed during the request: the answers are dropped, onDrafts never called (${width} ${locale})`, async ({ page }) => {
         let release = () => undefined as void;
