@@ -1,7 +1,7 @@
 "use client";
 
 // Plan 02-06: Settings on the ops host (pictures signed 2026-10-13). Reads and saves through /api/ops/settings only
-// (components/ops/ops-client.ts); never imports a Supabase client. Radius is not a control and the FX rate is text.
+// (components/ops/ops-client.ts); never imports a Supabase client. Corners are not a control and the FX rate is text.
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Button } from "../../../../components/ui/button";
 import { Field } from "../../../../components/ui/field";
@@ -226,19 +226,25 @@ export function SettingsScreen() {
           const bad = contrast.has(key);
           return (
             <div key={key} className="flex flex-col gap-1">
-              <div className="grid min-h-control grid-cols-[minmax(6rem,1fr)_auto_auto] items-center gap-4">
-                <label htmlFor={inputId} className="text-label text-ink">
+              <div className="flex min-h-control items-center gap-4">
+                <label htmlFor={inputId} className="min-w-24 flex-1 text-label text-ink">
                   {copy.colors[key]}
                 </label>
-                <input
-                  id={inputId}
-                  type="color"
-                  value={form.colors[key]}
-                  onChange={(event) => edit({ colors: { ...form.colors, [key]: event.target.value.toLowerCase() } })}
-                  aria-invalid={bad || undefined}
-                  aria-describedby={bad ? errorId : undefined}
-                  className="size-control cursor-pointer appearance-none rounded-none border border-ink bg-surface p-1 aria-invalid:border-error [&::-moz-color-swatch]:rounded-none [&::-moz-color-swatch]:border-line [&::-webkit-color-swatch]:rounded-none [&::-webkit-color-swatch]:border-line [&::-webkit-color-swatch-wrapper]:p-0"
-                />
+                {/* A square swatch: the native colour input sits invisibly over it (the OS picker opens on click). */}
+                <span
+                  className={`relative block size-control shrink-0 border bg-surface p-1 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-teal ${bad ? "border-error" : "border-ink"}`}
+                >
+                  <span className="block size-full border border-line" style={{ backgroundColor: form.colors[key] }} aria-hidden="true" />
+                  <input
+                    id={inputId}
+                    type="color"
+                    value={form.colors[key]}
+                    onChange={(event) => edit({ colors: { ...form.colors, [key]: event.target.value.toLowerCase() } })}
+                    aria-invalid={bad || undefined}
+                    aria-describedby={bad ? errorId : undefined}
+                    className="absolute inset-0 size-full cursor-pointer opacity-0"
+                  />
+                </span>
                 <span className="min-w-18 text-label tabular-nums text-ink" dir="ltr">
                   {form.colors[key]}
                 </span>

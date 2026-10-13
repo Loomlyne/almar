@@ -157,10 +157,12 @@ test("the (ops) layout renders a section's page only when isLiveOpsPath says so,
   assert.equal((layout.match(/\? children : null/g) ?? []).length, 1, "and behind the live-section gate on the ops host, nowhere else");
 });
 
-test("live sections are only the wired ones (03.2-09 adds /content/media); the rest show Not ready", async () => {
+test("live sections are only the wired ones (03.2-09 adds /content/media, 02-06 /settings); the rest show Not ready", async () => {
   const { OPS_LIVE_SECTIONS, isLiveOpsPath } = await import("../lib/ops-routes.ts");
   assert.ok(OPS_LIVE_SECTIONS.includes("/content/media"));
-  for (const path of ["/", "/home", "/bookings", "/catalog/stays", "/dashboard/settings"]) assert.equal(isLiveOpsPath(path), false, path);
+  assert.ok(OPS_LIVE_SECTIONS.includes("/settings"));
+  assert.equal(isLiveOpsPath("/dashboard/settings"), true);
+  for (const path of ["/", "/home", "/bookings", "/catalog/stays", "/profile"]) assert.equal(isLiveOpsPath(path), false, path);
 });
 
 // ---- Fable review of 7527f88: a trailing dot is the same host --------------------------------------------------
