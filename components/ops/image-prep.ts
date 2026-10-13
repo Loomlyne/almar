@@ -11,7 +11,7 @@ export const MAX_EDGE = 2560;
 export const JPEG_QUALITY = 0.85;
 /** WebP quality. */
 export const WEBP_QUALITY = 0.85;
-/** The largest file the server takes, in bytes: 10 MB, the same as lib/ops/validate-media.ts (job 03.2-09b). */
+/** The largest file the server takes, in bytes: 10 MB, as the server's MAX_UPLOAD_BYTES (job 03.2-09b). */
 export const MAX_BYTES = 10 * 1024 * 1024;
 
 export const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;

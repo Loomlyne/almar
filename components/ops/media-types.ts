@@ -13,7 +13,7 @@ export type MediaItem = MediaRef & {
   used_by: number;
 };
 
-/** The largest file the owner can send, in bytes: 10 MB, the same as lib/ops/validate-media.ts (job 03.2-09b). */
+/** The largest file the owner can send, in bytes: 10 MB, as the server's MAX_UPLOAD_BYTES (job 03.2-09b). */
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 export const UPLOAD_TYPES = "image/jpeg,image/png,image/webp";
