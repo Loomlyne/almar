@@ -362,7 +362,8 @@ test("review 1: Spanish identical to the English is refused (a sentence, or the 
 test("review 1: names, codes and numbers may stay as written (no false refusals)", () => {
   const names = { name: "Casa Ébano", route: "BOG", nights: "2" };
   assert.equal(t.checkSameShape(names, names, "es").ok, true);
-  // Arabic keeps codes and numbers, but a name is written in Arabic (round 4: no name exemption for ar).
+  // Arabic keeps names, codes and numbers too (round 5), and may also write the name in Arabic.
+  assert.equal(t.checkSameShape(names, names, "ar").ok, true);
   assert.equal(t.checkSameShape(names, { ...names, name: "كاسا إيبانو" }, "ar").ok, true);
   const withName = { name: "ALMAR Getsemaní", pickup: "BOG airport" };
   assert.equal(t.checkSameShape(withName, { name: "ALMAR Getsemaní", pickup: "Aeropuerto BOG" }, "es").ok, true);
@@ -382,8 +383,9 @@ test("review 1: an answer more than 4x the English length is refused, at the bou
 
 test("review 1: translateFields passes the target, so the wrong script or unchanged English is not accepted", async () => {
   const failed = { ok: false, code: "translate_failed" };
-  // Spanish for ar: every field is left (nothing usable). English for es: the name stays, the sentence and the list are left.
-  assert.deepEqual(await t.translateFields(fakeRun(gemmaReply(JSON.stringify(ES_OK))).run, OWN, "ar"), failed);
+  // Spanish for ar: the name may stay (round 5), the sentence and the list are left. English for es: the same.
+  assert.deepEqual(await t.translateFields(fakeRun(gemmaReply(JSON.stringify(ES_OK))).run, OWN, "ar"), { ok: true, fields: { name: OWN.name }, left: ["summary", "amenities"] });
+  assert.deepEqual(await t.translateFields(fakeRun(gemmaReply(JSON.stringify({ name: "", summary: ES_OK.summary, amenities: [] }))).run, OWN, "ar"), failed);
   assert.deepEqual(await t.translateFields(fakeRun(gemmaReply(JSON.stringify(OWN))).run, OWN, "es"), { ok: true, fields: { name: OWN.name }, left: ["summary", "amenities"] });
   assert.deepEqual(await t.translateFields(fakeRun(gemmaReply(JSON.stringify(ES_OK))).run, OWN, "es"), { ok: true, fields: ES_OK });
 });
@@ -534,9 +536,8 @@ test("round 2, echo: names, codes and numbers kept as written stay allowed, deci
   ];
   for (const [english, value] of kept) {
     assert.equal(prompt.checkSameShape({ a: english, b: "A quiet house." }, { a: value, b: "Una casa tranquila." }, "es").ok, true, english);
-    // Arabic: codes, numbers and kept names pass as they are; other names need Arabic letters.
-    const keptInArabic = /^(ALMAR|BOG|MDE BOG|24|ALMAR Getsemaní)$/.test(english);
-    assert.equal(prompt.checkSameShape({ a: english, b: "A quiet house." }, { a: value, b: "منزل هادئ." }, "ar").ok, keptInArabic, `ar ${english}`);
+    // Arabic has the same name rule as Spanish (round 5): names, codes, numbers and kept names pass as they are.
+    assert.equal(prompt.checkSameShape({ a: english, b: "A quiet house." }, { a: value, b: "منزل هادئ." }, "ar").ok, true, `ar ${english}`);
   }
   // The exemption follows the English: the same text as Title Case English is not exempt.
   assert.equal(prompt.checkSameShape({ a: "Private Chef", b: "x y z" }, { a: "Private Chef", b: "x y z" }, "es").ok, false);
@@ -728,9 +729,8 @@ test("round 4, echo: Grok's five Title Case titles are refused as echoes for es 
   assert.equal(prompt.checkSameShape({ n: "Casa Luna Azul Ébano" }, { n: "Casa Luna Azul Ébano" }, "es").ok, false);
 });
 
-test("round 4, Arabic: no name exemption; two or more Latin words and no Arabic letter is refused, a name inside an Arabic sentence passes", () => {
-  assert.equal(prompt.checkSameShape({ n: "Casa Ébano" }, { n: "Casa Ébano" }, "ar").ok, false);
-  assert.equal(prompt.checkSameShape({ n: "Finca Santa Clara" }, { n: "Finca Santa Clara" }, "ar").ok, false);
+test("round 4, Arabic: two or more Latin words and no Arabic letter is refused (unless a name or price line), a name inside an Arabic sentence passes", () => {
+  assert.equal(prompt.checkSameShape({ n: "Private Chef" }, { n: "Private Chef" }, "ar").ok, false);
   assert.equal(prompt.checkSameShape({ n: "Casa Ébano" }, { n: "كاسا إيبانو" }, "ar").ok, true);
   const sentence = prompt.checkSameShape({ s: "Stay at Casa Ébano near the old town." }, { s: "أقم في Casa Ébano قرب البلدة القديمة." }, "ar");
   assert.equal(sentence.ok, true, sentence.reason);
@@ -799,4 +799,56 @@ test("round 4, button: someLeft line in en, ar, es (usted); done-left when both 
 test("round 4, config: only almar-ops has enable_request_signal (the flag's docs name no minimum compatibility date)", () => {
   assert.match(readFileSync("wrangler.ops.toml", "utf8"), /^compatibility_flags = \[.*"enable_request_signal".*\]$/m);
   assert.equal(/enable_request_signal/.test(readFileSync("wrangler.toml", "utf8")), false);
+});
+
+// ---- 03.2-10b round 5: Arabic gets the Spanish name rule ------------------------------------------------------------------
+// Each test below fails on 0392623.
+
+test("round 5: Arabic keeps a Spanish name unchanged, like Spanish; titles with English words and long names are still refused", () => {
+  for (const name of ["Casa Centro Getsemaní", "Casa Ébano", "Finca Santa Clara", "Casa Luna", "Sopetrán Antioquia", "Santa Fe Antioquia"]) {
+    for (const target of ["ar", "es"]) assert.equal(prompt.checkSameShape({ n: name }, { n: name }, target).ok, true, `${target} ${name}`);
+  }
+  for (const title of ["Coffee Hacienda Experiences", "Casa Juliana Historic Center", "Casa Mariana Historic Center", "Santa Fe Farm Antioquia", "Sopetrán Country Estate", "Private Chef", "Welcome to ALMAR", "Casa Luna Azul Ébano"]) {
+    for (const target of ["ar", "es"]) assert.equal(prompt.checkSameShape({ n: title }, { n: title }, target).ok, false, `${target} ${title}`);
+  }
+  // A name kept in Latin does not excuse a sentence: that still needs Arabic.
+  assert.equal(prompt.checkSameShape({ s: "Stay at Casa Ébano near the old town." }, { s: "Stay at Casa Ébano near the old town." }, "ar").ok, false);
+});
+
+test("round 5, data: the published texts that are the English unchanged, and exactly which of them the check still refuses", () => {
+  const fold = (x) => JSON.stringify(x).normalize("NFKC").toLowerCase().replace(/[\p{P}\p{S}]+/gu, " ").replace(/\s+/g, " ").trim();
+  // One text at a time: a list is expanded into its items.
+  const texts = publishedPairs().flatMap((p) => (Array.isArray(p.english) ? p.english.map((english, i) => ({ ...p, english, value: p.value[i] })) : [p]));
+  const unchanged = texts.filter(({ english, value }) => fold(english) === fold(value));
+  assert.equal(unchanged.length, 91, "published texts that are the English unchanged, in ar and es");
+  const refused = unchanged
+    .filter(({ english, value, target }) => {
+      const r = prompt.checkFields({ f: english }, { f: value }, target);
+      return !r.ok || Object.keys(r.left).length > 0;
+    })
+    .map(({ english, target }) => `${target}|${english}`)
+    .sort();
+  // Why each is refused: "Private Island Cartagena" and "Villa Isla Barú" hold a plain English word (island, villa); "The Explorer",
+  // "The Resident", "The Sovereign" and "ALMAR Private Journeys" are not Spanish names; the rest are Spanish names of more than
+  // MAX_NAME_WORDS (3) words. A change to the name rule changes this list, on purpose.
+  assert.deepEqual(refused, [
+    "ar|Casa Jardino Calle San Diego",
+    "ar|Casa Juliana Calle Quero Centro Histórico",
+    "ar|Casa Mariana Calle Quero Centro Histórico",
+    "ar|Casa Playa Castillo Bocagrande",
+    "ar|Private Island Cartagena",
+    "ar|Villa Isla Barú",
+    "es|ALMAR Private Journeys",
+    "es|Casa Jardino Calle San Diego",
+    "es|Casa Jardino Calle San Diego",
+    "es|Casa Jardín San Diego",
+    "es|Casa Juliana Calle Quero Centro Histórico",
+    "es|Casa Mariana Calle Quero Centro Histórico",
+    "es|Casa Playa Castillo Bocagrande",
+    "es|Private Island Cartagena",
+    "es|The Explorer",
+    "es|The Resident",
+    "es|The Sovereign",
+    "es|Villa Isla Barú",
+  ]);
 });

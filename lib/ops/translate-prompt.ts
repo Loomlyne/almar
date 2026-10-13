@@ -141,21 +141,21 @@ export function isPriceLine(text: string): boolean {
 }
 
 /**
- * True when the English source is something a translation keeps as written, decided from the English and never from what
- * the model returned: a price line; nothing left but kept names and numbers; or only three-capital codes (BOG, MDE). For
- * Spanish only, also a name: at most MAX_NAME_WORDS capitalised words (particles de, del, la... allowed), none of them a
- * plain English word, and one that marks it Spanish (a letter outside ASCII, or a word such as Casa, Finca, Santa): "Casa
- * Ébano". Arabic has no name exemption: a name in an Arabic text is written in Arabic or sits inside an Arabic sentence.
- * Title Case or ALL CAPS English ("Private Chef", "WELCOME TO ALMAR") is none of these. A name that matches none of this (an
- * accent-less name with no such word) is refused as an echo like any English text: the owner types it.
+ * True when the English source is something a translation keeps as written, in Spanish and in Arabic, decided from the
+ * English and never from what the model returned: a price line; nothing left but kept names and numbers; only
+ * three-capital codes (BOG, MDE); or a name: at most MAX_NAME_WORDS capitalised words (particles de, del, la... allowed),
+ * none of them a plain English word, and one that marks it Spanish (a letter outside ASCII, or a word such as Casa, Finca,
+ * Santa): "Casa Ébano". The published Arabic keeps Spanish place names in Latin ("Casa Centro Getsemaní"), so Arabic gets
+ * the same name rule as Spanish (03.2-10b, round 5). Title Case or ALL CAPS English ("Private Chef", "WELCOME TO ALMAR",
+ * "Casa Mariana Historic Center") is none of these. A name that matches none of this (an accent-less name with no such
+ * word, or one of more than three words) is refused as an echo like any English text: the owner types it.
  */
-function keptAsWritten(english: string, target: TranslateTarget): boolean {
+function keptAsWritten(english: string): boolean {
   if (isPriceLine(english)) return true;
   const tokens = words(english);
   if (tokens.length === 0) return true;
   const code = (t: string) => /^\p{Lu}{3}$/u.test(t);
   if (tokens.every(code)) return true;
-  if (target === "ar") return false;
   const capitalised = (t: string) => /^\p{Lu}/u.test(t);
   const shaped = tokens.length <= MAX_NAME_WORDS && tokens.every((t) => code(t) || capitalised(t) || NAME_PARTICLES.has(t));
   const marked = tokens.some((t) => /[^\u0000-\u007F]/.test(t) || SPANISH_NAME_WORDS.has(t.toLowerCase()));
@@ -194,7 +194,7 @@ function arabicShare(value: string, english: string): { arabic: number; share: n
 /** Why one translated text is not a translation of its English, or null. */
 function textReason(at: string, english: string, value: string, target: TranslateTarget): string | null {
   if (value.length > english.length * MAX_LENGTH_RATIO + LENGTH_SLACK) return `${at} is more than ${MAX_LENGTH_RATIO} times the English length`;
-  if (keptAsWritten(english, target)) return null;
+  if (keptAsWritten(english)) return null;
   if (target === "ar") {
     const { arabic, share } = arabicShare(value, english);
     if (arabic === 0) return `${at} has no Arabic script`;
