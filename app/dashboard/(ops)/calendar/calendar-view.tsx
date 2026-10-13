@@ -1,40 +1,30 @@
 "use client";
 
-import { useId, useMemo, useState, type ReactNode } from "react";
+import { useId, useMemo, useState } from "react";
 import { CalendarDate, getDayOfWeek, parseDate } from "@internationalized/date";
-import { DateRangeField } from "../../../../components/ops/date-range-field";
 import { EditPanel } from "../../../../components/ops/edit-panel";
-import type { Block, BlockScope, IsoDay, Locale3 } from "../../../../components/ops/api-types";
+import type { Block, IsoDay, Locale3 } from "../../../../components/ops/api-types";
 import { AlertCircleIcon, ChevronIcon } from "../../../../components/icons/icons";
 import { Button } from "../../../../components/ui/button";
 import { formatDate } from "../../../../components/ui/calendar";
 import { ConfirmDialog } from "../../../../components/ui/confirm-dialog";
-import { Field } from "../../../../components/ui/field";
 import { Select } from "../../../../components/ui/select";
-import { ToggleCardGroup } from "../../../../components/ui/toggle-card";
 import { cn } from "../../../../lib/cn";
 import { OPS_CALENDAR_COPY, monthTitle } from "../../../../lib/copy/ops-calendar";
 import { OPS_KIT_COPY } from "../../../../lib/copy/ops-kit";
+import { BlockForm, type CalendarPlace, type CalendarStay } from "./block-form-fields";
+import { blockCoversDay, type BlockFormValues, type BlockPayload } from "./block-form";
 
 // The Calendar as the owner sees it, drawn from props only: no fetch, no clock, no cookie. The screen
 // (calendar-screen.tsx) owns the data and the handlers; the harness scene (tests/journey/scenes/ops-calendar.tsx)
 // feeds it bracket data for the pictures. Days are Dubai days, `YYYY-MM-DD` strings: a block covers a day when
 // starts_on <= day <= ends_on, both inclusive, compared as text.
 
-export type CalendarPlace = { id: string; name: string };
-export type CalendarStay = CalendarPlace & { destinationId: string };
+export type { CalendarPlace, CalendarStay };
+export type { BlockFormValues };
 
 /** The filter above the grid: "all", `destination:<id>` or `stay:<id>`. */
 export const FILTER_ALL = "all";
-
-export type BlockFormValues = {
-  scope: BlockScope;
-  destinationId: string | null;
-  stayId: string | null;
-  first: IsoDay | null;
-  last: IsoDay | null;
-  reason: string;
-};
 
 export type BlockPanelState = {
   initial: BlockFormValues;
@@ -57,13 +47,15 @@ export type CalendarViewProps = {
   stays: CalendarStay[];
   filter: string;
   onFilterChange: (value: string) => void;
+  /** A failed load or delete, said in words, or null. */
+  error: string | null;
   /** The overlap sentence after a Block, or null. */
   notice: string | null;
   onDismissNotice: () => void;
   /** The header button (no day) and a click on a day. */
   onOpenBlock: (day: IsoDay | null) => void;
   panel: BlockPanelState | null;
-  onSubmitBlock: (values: BlockFormValues) => void;
+  onSubmitBlock: (payload: BlockPayload) => void;
   onClosePanel: () => void;
   /** The block waiting for the answer to "Delete this block?". */
   deleting: Block | null;
@@ -74,10 +66,6 @@ export type CalendarViewProps = {
 
 const pad = (value: number) => String(value).padStart(2, "0");
 const isoOf = (year: number, month: number, day: number): IsoDay => `${year}-${pad(month)}-${pad(day)}`;
-
-function coversDay(block: Block, day: IsoDay): boolean {
-  return block.starts_on <= day && day <= block.ends_on;
-}
 
 /** DD/MM/YYYY, left to right whatever the page direction. */
 function Dmy({ day }: { day: IsoDay }) {
@@ -149,6 +137,13 @@ export function CalendarView(props: CalendarViewProps) {
         />
       </div>
 
+      {props.error ? (
+        <p role="alert" className="m-0 flex items-center gap-2 text-label text-error">
+          <AlertCircleIcon size={20} className="shrink-0" />
+          <span>{props.error}</span>
+        </p>
+      ) : null}
+
       {props.notice ? (
         <div role="status" className="flex items-start gap-3 border border-warning bg-surface p-4">
           <AlertCircleIcon size={20} className="mt-0.5 shrink-0 text-warning" />
@@ -188,7 +183,7 @@ export function CalendarView(props: CalendarViewProps) {
         <div role="group" aria-label={copy.monthGrid} className="grid grid-cols-7 gap-1 md:gap-2">
           {cells.map((day, index) => {
             if (!day) return <span key={`pad-${index}`} aria-hidden="true" />;
-            const here = blocks.filter((block) => coversDay(block, day));
+            const here = blocks.filter((block) => blockCoversDay(block, day));
             const blocked = here.length > 0;
             const past = day < today;
             const number = Number(day.slice(8));
@@ -198,6 +193,7 @@ export function CalendarView(props: CalendarViewProps) {
                 key={day}
                 type="button"
                 disabled={past}
+                aria-current={day === today ? "date" : undefined}
                 aria-label={blocked ? `${formatDate(parseDate(day))}, ${copy.blockedDay}` : formatDate(parseDate(day))}
                 onClick={() => props.onOpenBlock(day)}
                 className={cn(
@@ -279,42 +275,13 @@ export function CalendarView(props: CalendarViewProps) {
   );
 }
 
-function Labelled({ id, label, children }: { id: string; label: string; children: ReactNode }) {
-  return (
-    <div className="grid max-w-96 gap-2">
-      <span id={id} className="text-label text-ink">
-        {label}
-      </span>
-      {children}
-    </div>
-  );
-}
-
-/** The Block dates form: the signed edit panel (side panel from 768, full-screen sheet below) with the form state inside. */
+/**
+ * The interim mount of the form: the kit's current edit panel. The owner is choosing the redesigned panel (03.2-06,
+ * options A, B, C); when it exists, this is the one place that changes. The fields and logic are BlockForm.
+ */
 function BlockPanel({ panel, ...props }: CalendarViewProps & { panel: BlockPanelState }) {
-  const { locale, today, destinations, stays } = props;
-  const copy = OPS_CALENDAR_COPY[locale];
-  const dir = locale === "ar" ? "rtl" : "ltr";
-  const ids = useId();
-  const [values, setValues] = useState<BlockFormValues>(panel.initial);
-  const [missing, setMissing] = useState<string | null>(null);
-  const dirty = JSON.stringify(values) !== JSON.stringify(panel.initial);
-
-  function change(next: Partial<BlockFormValues>) {
-    setMissing(null);
-    setValues((old) => ({ ...old, ...next }));
-  }
-
-  function submit() {
-    if (values.scope === "destination" && !values.destinationId) return setMissing(copy.needDestination);
-    if (values.scope === "stay" && !values.stayId) return setMissing(copy.needStay);
-    if (!values.first || !values.last) return setMissing(copy.needDates);
-    setMissing(null);
-    props.onSubmitBlock(values);
-  }
-
-  const message = missing ?? panel.error;
-
+  const copy = OPS_CALENDAR_COPY[props.locale];
+  const [dirty, setDirty] = useState(false);
   return (
     <EditPanel
       open
@@ -326,82 +293,18 @@ function BlockPanel({ panel, ...props }: CalendarViewProps & { panel: BlockPanel
       tab="form"
       onTabChange={() => undefined}
       dirty={dirty}
-      footer={
-        <div className="flex flex-col gap-2">
-          {message ? (
-            <p role="alert" className="m-0 flex items-center gap-2 text-label text-error">
-              <AlertCircleIcon size={20} className="shrink-0" />
-              <span>{message}</span>
-            </p>
-          ) : null}
-          <Button busy={panel.busy} onClick={submit}>
-            {copy.block}
-          </Button>
-        </div>
-      }
+      footer={null}
     >
-      <p className="m-0 text-body text-pretty text-ink">{copy.blockedNote}</p>
-
-      <div className="grid gap-2">
-        <span id={`${ids}-scope`} className="text-label text-ink">
-          {copy.whatToBlock}
-        </span>
-        <ToggleCardGroup
-          labelId={`${ids}-scope`}
-          value={values.scope}
-          onChange={(scope) => change({ scope: scope as BlockScope })}
-          options={[
-            { value: "all", title: copy.everything, detail: copy.everythingDetail },
-            { value: "destination", title: copy.oneDestination, detail: copy.oneDestinationDetail },
-            { value: "stay", title: copy.oneStay },
-          ]}
-        />
-      </div>
-
-      {values.scope === "destination" ? (
-        <Labelled id={`${ids}-destination`} label={copy.destinations}>
-          <Select
-            value={values.destinationId}
-            options={destinations.map((one) => ({ value: one.id, label: one.name }))}
-            onChange={(destinationId) => change({ destinationId })}
-            label={`${copy.destinations}: {name}`}
-            placeholder={copy.chooseDestination}
-            dir={dir}
-            className="w-full"
-          />
-        </Labelled>
-      ) : null}
-      {values.scope === "stay" ? (
-        <Labelled id={`${ids}-stay`} label={copy.stays}>
-          <Select
-            value={values.stayId}
-            options={stays.map((one) => ({ value: one.id, label: one.name }))}
-            onChange={(stayId) => change({ stayId })}
-            label={`${copy.stays}: {name}`}
-            placeholder={copy.chooseStay}
-            dir={dir}
-            className="w-full"
-          />
-        </Labelled>
-      ) : null}
-
-      <DateRangeField
-        id={`${ids}-dates`}
-        label={copy.dates}
-        hint={copy.sameDayHint}
-        value={{ first: values.first, last: values.last }}
-        onChange={({ first, last }) => change({ first, last })}
-        min={today}
-      />
-
-      <Field
-        id={`${ids}-reason`}
-        label={copy.reasonOptional}
-        name="reason"
-        maxLength={300}
-        value={values.reason}
-        onChange={(event) => change({ reason: event.target.value })}
-        className="max-w-none"
+      <BlockForm
+        locale={props.locale}
+        today={props.today}
+        destinations={props.destinations}
+        stays={props.stays}
+        initial={panel.initial}
+        busy={panel.busy}
+        error={panel.error}
+        onSubmit={props.onSubmitBlock}
+        onDirtyChange={setDirty}
       />
     </EditPanel>
   );

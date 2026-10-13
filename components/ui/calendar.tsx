@@ -50,6 +50,7 @@ export function CalendarPanel({
   onPick,
   onHover,
   describedBy,
+  now: nowOverride,
 }: {
   start: CalendarDate | null;
   end: CalendarDate | null;
@@ -57,8 +58,10 @@ export function CalendarPanel({
   onPick: (date: CalendarDate) => void;
   onHover: (date: CalendarDate | null) => void;
   describedBy?: string;
+  /** The day that counts as today (earlier days cannot be picked). Defaults to today on this device; the dashboard passes the Dubai day. */
+  now?: CalendarDate;
 }) {
-  const now = today(getLocalTimeZone());
+  const now = nowOverride ?? today(getLocalTimeZone());
   const titleId = useId();
   const gridRef = useRef<HTMLDivElement>(null);
   const pendingFocus = useRef<string | null>(null);

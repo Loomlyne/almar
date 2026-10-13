@@ -3,14 +3,9 @@
 import { useLayoutEffect, useState, type ReactNode } from "react";
 // The ops shell the owner sees (job 02). The scene frames every state in the preview shell so the rail and the density match.
 import { OpsShell } from "../../../app/dashboard/(ops)/ops-shell";
-import {
-  CalendarView,
-  FILTER_ALL,
-  type BlockFormValues,
-  type BlockPanelState,
-  type CalendarPlace,
-  type CalendarStay,
-} from "../../../app/dashboard/(ops)/calendar/calendar-view";
+import { CalendarView, FILTER_ALL, type BlockPanelState } from "../../../app/dashboard/(ops)/calendar/calendar-view";
+import type { CalendarPlace, CalendarStay } from "../../../app/dashboard/(ops)/calendar/block-form-fields";
+import { shiftMonth, type BlockFormValues } from "../../../app/dashboard/(ops)/calendar/block-form";
 import type { Block, Locale3 } from "../../../components/ops/api-types";
 import { overlapLine } from "../../../lib/copy/ops-calendar";
 import type { SceneContext, Scenes } from "../scene-types";
@@ -131,10 +126,7 @@ function CalendarScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }
         month={cursor.month}
         onMonthChange={(delta) => {
           note(`month:${delta}`);
-          setCursor((old) => {
-            const at = old.year * 12 + (old.month - 1) + delta;
-            return { year: Math.floor(at / 12), month: (at % 12) + 1 };
-          });
+          setCursor((old) => shiftMonth(old.year, old.month, delta));
         }}
         blocks={blocksFor(filter, everything, stays)}
         destinations={destinations}
@@ -144,6 +136,7 @@ function CalendarScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }
           note(`filter:${next}`);
           setFilter(next);
         }}
+        error={null}
         notice={notice}
         onDismissNotice={() => {
           note("notice:close");
@@ -158,8 +151,8 @@ function CalendarScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }
           });
         }}
         panel={panel}
-        onSubmitBlock={(values) => {
-          note(`block:${values.scope}:${values.destinationId ?? values.stayId ?? "-"}:${values.first}:${values.last}:${values.reason}`);
+        onSubmitBlock={(payload) => {
+          note(`block:${payload.scope}:${payload.destination_id ?? payload.stay_id ?? "-"}:${payload.starts_on}:${payload.ends_on}:${payload.reason ?? ""}`);
           setPanel(null);
         }}
         onClosePanel={() => {

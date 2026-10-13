@@ -211,7 +211,8 @@ test("the Media page is a server component with noindex and no gate of its own; 
   assert.equal(/NODE_ENV|notFound\(\)|redirect\(/.test(page), false);
   assert.match(page, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
   assert.match(page, /<MediaLibrary \/>/);
-  assert.deepEqual([...OPS_LIVE_SECTIONS], ["/content/media"]);
+  // Every wave-4 screen adds its own line to the list (03.2-13 adds /calendar), so this pins only what Media owns.
+  assert.ok(OPS_LIVE_SECTIONS.includes("/content/media"));
   assert.equal(isLiveOpsPath("/content/media"), true);
   assert.equal(isLiveOpsPath("/dashboard/content/media"), true);
   assert.equal(isLiveOpsPath("/content/team"), false);

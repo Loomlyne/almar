@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { OPS_CALENDAR_COPY, overlapLine } from "../lib/copy/ops-calendar";
+import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
 import { VIEWPORTS, sceneStates, settle, type Viewport } from "./journey/matrix";
 
 // The Calendar and its Block dates form on their harness scene (tests/journey/scenes/ops-calendar.tsx). The API is
@@ -193,4 +194,356 @@ test.describe("pictures", () => {
       }
     }
   }
+});
+
+// ---- behaviour on the real screen ---------------------------------------------------------------------------------
+// /dashboard/calendar on `next dev` (no ops host, so the preview shell), every /api/ops/* answered by page.route from a
+// small in-memory server that keeps what it was sent. The browser's time zone is Pago Pago (UTC-11) and the clock is
+// 2026-10-14 10:00 UTC: it is the 13th there and the 14th in Dubai, so a screen that reads the device day fails.
+
+import type { Route } from "@playwright/test";
+
+const D1 = "11111111-1111-4111-8111-111111111111";
+const D2 = "22222222-2222-4222-8222-222222222222";
+const S1 = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1";
+const S2 = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2";
+const S3 = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3";
+const NOW = new Date("2026-10-14T10:00:00Z");
+
+type Fixture = {
+  id: string;
+  scope: "all" | "destination" | "stay";
+  destination_id: string | null;
+  stay_id: string | null;
+  starts_on: string;
+  ends_on: string;
+  reason: string | null;
+  created_at: string;
+};
+
+const fixture = (id: string, scope: Fixture["scope"], target: string | null, from: string, to: string, reason: string | null = null): Fixture => ({
+  id,
+  scope,
+  destination_id: scope === "destination" ? target : null,
+  stay_id: scope === "stay" ? target : null,
+  starts_on: from,
+  ends_on: to,
+  reason,
+  created_at: "2026-10-01T08:00:00Z",
+});
+
+const DESTINATIONS = [
+  { id: D1, name_en: "[Destination 1]" },
+  { id: D2, name_en: "[Destination 2]" },
+];
+const STAYS = [
+  { id: S1, title_en: "[Stay 1]", destination_id: D1 },
+  { id: S2, title_en: "[Stay 2]", destination_id: D1 },
+  { id: S3, title_en: "[Stay 3]", destination_id: D2 },
+];
+
+/** An in-memory /api/ops/blocks, destinations and stays. `gets` and `posts` are everything the screen sent. */
+async function mockApi(page: Page, options: { overlap?: number; addFails?: number } = {}) {
+  const state = {
+    blocks: [fixture("b1", "all", null, "2026-10-19", "2026-10-21", "[Reason]"), fixture("b2", "stay", S1, "2026-10-23", "2026-10-23")],
+    gets: [] as string[],
+    posts: [] as Record<string, unknown>[],
+    other: [] as string[],
+    overlap: options.overlap ?? 0,
+    addFails: options.addFails ?? 0,
+    next: 3,
+  };
+  const json = (route: Route, body: unknown, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+  await page.route("**/api/ops/**", async (route) => {
+    const url = new URL(route.request().url());
+    const method = route.request().method();
+    if (url.pathname === "/api/ops/destinations") return json(route, { ok: true, items: DESTINATIONS });
+    if (url.pathname === "/api/ops/stays") return json(route, { ok: true, items: STAYS });
+    if (url.pathname !== "/api/ops/blocks") {
+      state.other.push(`${method} ${url.pathname}`);
+      return json(route, { ok: false, error: { code: "not_found", field: null, locale: null, detail: null } }, 404);
+    }
+    if (method === "GET") {
+      state.gets.push(`${url.search}`);
+      const from = url.searchParams.get("from") ?? "";
+      const to = url.searchParams.get("to") ?? "";
+      const stay = url.searchParams.get("stay_id");
+      const destination = url.searchParams.get("destination_id");
+      const homeOf = (id: string) => STAYS.find((one) => one.id === id)?.destination_id;
+      const blocks = state.blocks.filter((block) => {
+        if (block.ends_on < from || block.starts_on > to) return false;
+        if (stay) return block.scope === "all" || block.stay_id === stay || (block.scope === "destination" && block.destination_id === homeOf(stay));
+        if (destination) return block.scope === "all" || block.destination_id === destination;
+        return true;
+      });
+      return json(route, { ok: true, blocks });
+    }
+    const body = route.request().postDataJSON() as { action: string; block?: Record<string, string | null>; id?: string };
+    state.posts.push(body);
+    if (body.action === "add") {
+      if (state.addFails) return json(route, { ok: false, error: { code: "invalid", field: null, locale: null, detail: null } }, state.addFails);
+      const block = body.block!;
+      const id = `b${state.next++}`;
+      state.blocks.push(fixture(id, block.scope as Fixture["scope"], block.destination_id ?? block.stay_id ?? null, block.starts_on!, block.ends_on!, block.reason));
+      state.blocks.sort((a, b) => a.starts_on.localeCompare(b.starts_on));
+      return json(route, { ok: true, id, affects_site: true, overlapping_bookings: state.overlap });
+    }
+    state.blocks = state.blocks.filter((block) => block.id !== body.id);
+    return json(route, { ok: true, id: body.id, affects_site: true });
+  });
+  return state;
+}
+
+async function openCalendar(page: Page, viewport: Viewport, locale: Locale, search = "") {
+  await page.setViewportSize(VIEWPORTS[viewport]);
+  await page.context().addCookies([{ name: "almar-locale", value: locale, domain: "127.0.0.1", path: "/" }]);
+  await page.clock.setFixedTime(NOW);
+  await page.goto(`/dashboard/calendar${search}`);
+  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+  await expect(page.getByRole("heading", { level: 1, name: OPS_CALENDAR_COPY[locale].title, includeHidden: true })).toBeVisible({ timeout: 45_000 });
+}
+
+const COMBOS: { viewport: Viewport; locale: Locale }[] = [
+  { viewport: "phone", locale: "en" },
+  { viewport: "phone", locale: "ar" },
+  { viewport: "desktop", locale: "en" },
+  { viewport: "desktop", locale: "ar" },
+];
+
+const dayButton = (page: Page, iso: string, locale: Locale) => {
+  const [y, m, d] = iso.split("-");
+  void locale;
+  return page.getByRole("button", { name: new RegExp(`^${d}/${m}/${y}`) });
+};
+
+/** Pick the first and then the last day in the Dates field of the open form. */
+async function pickDates(page: Page, first: string, last: string) {
+  const dialog = page.getByRole("dialog");
+  await dialog.locator('button[id$="-dates"]').click();
+  // The picker opens on the month of today (Dubai); walk to the month of a day that is further on.
+  for (const day of [first, last]) {
+    const cell = page.locator(`[data-date="${dateKey(day)}"]`);
+    for (let step = 0; step < 4 && (await cell.count()) === 0; step += 1) await page.locator('.calendar button[aria-label="Next month"]').click();
+    await cell.click();
+  }
+}
+
+/** CalendarPanel's own key: month and day are not padded. */
+const dateKey = (iso: string) => {
+  const [y, m, d] = iso.split("-");
+  return `${y}-${Number(m)}-${Number(d)}`;
+};
+
+test.describe("behaviour", () => {
+  test.describe.configure({ mode: "parallel" });
+  test.setTimeout(120_000);
+  test.use({ timezoneId: "Pacific/Pago_Pago" });
+
+  for (const { viewport, locale } of COMBOS) {
+    const width = VIEWPORTS[viewport].width;
+    const copy = OPS_CALENDAR_COPY[locale];
+    const at = `${width} ${locale}`;
+    const blockedDays = (page: Page) => page.getByRole("button", { name: new RegExp(`, ${copy.blockedDay}$`) });
+    const deletes = (page: Page) => page.getByRole("button", { name: new RegExp(`^${copy.deleteNamed.split("{")[0].trim()}`) });
+    const dialog = (page: Page) => page.getByRole("dialog");
+    const blockButton = (page: Page) => dialog(page).getByRole("button", { name: copy.block, exact: true });
+
+    test(`the month loads from the API: window, blocked days, list, today is the Dubai day (${at})`, async ({ page }) => {
+      const api = await mockApi(page);
+      await openCalendar(page, viewport, locale);
+      await expect(blockedDays(page)).toHaveCount(4);
+      await expect(deletes(page)).toHaveCount(2);
+      await expect(page.getByText("[Reason]")).toBeVisible();
+      // The first request for blocks is the whole of October, both ends inclusive, with no filter.
+      expect(api.gets.some((query) => query === "?from=2026-10-01&to=2026-10-31")).toBe(true);
+      // It is the 13th in Pago Pago and the 14th in Dubai: the 14th is today, the 13th is past and cannot be clicked.
+      await expect(dayButton(page, "2026-10-14", locale)).toHaveAttribute("aria-current", "date");
+      await expect(dayButton(page, "2026-10-14", locale)).toBeEnabled();
+      await expect(dayButton(page, "2026-10-13", locale)).toBeDisabled();
+      // The dead booking form is gone.
+      await expect(page.getByText(/new booking|nueva reserva|حجز جديد/i)).toHaveCount(0);
+      expect(api.other).toEqual([]);
+    });
+
+    test(`block everything: the dates are picked, the body is exact, the month is fetched again (${at})`, async ({ page }) => {
+      const api = await mockApi(page);
+      await openCalendar(page, viewport, locale);
+      await page.getByRole("button", { name: copy.blockDates, exact: true }).click();
+      await expect(dialog(page)).toBeVisible();
+      await pickDates(page, "2026-10-27", "2026-10-28");
+      await dialog(page).getByLabel(copy.reasonOptional).fill("  [Owner stay]  ");
+      const reads = api.gets.length;
+      await blockButton(page).click();
+      await expect.poll(() => api.posts.length).toBe(1);
+      expect(api.posts[0]).toEqual({
+        action: "add",
+        block: { scope: "all", starts_on: "2026-10-27", ends_on: "2026-10-28", reason: "[Owner stay]" },
+      });
+      await expect(dialog(page)).toHaveCount(0);
+      await expect.poll(() => api.gets.length).toBeGreaterThan(reads);
+      await expect(blockedDays(page)).toHaveCount(6);
+      await expect(deletes(page)).toHaveCount(3);
+      await expect(page.getByRole("status").filter({ hasText: /\d/ })).toHaveCount(0);
+    });
+
+    test(`a day click blocks that one day (the same day twice) and a past day cannot be clicked (${at})`, async ({ page }) => {
+      const api = await mockApi(page);
+      await openCalendar(page, viewport, locale);
+      await dayButton(page, "2026-10-25", locale).click();
+      await expect(dialog(page).locator('button[id$="-dates"]')).toContainText("25/10/2026");
+      await blockButton(page).click();
+      await expect.poll(() => api.posts.length).toBe(1);
+      expect(api.posts[0]).toEqual({ action: "add", block: { scope: "all", starts_on: "2026-10-25", ends_on: "2026-10-25", reason: null } });
+      // In the picker, days before the Dubai today are not pickable either.
+      await page.getByRole("button", { name: copy.blockDates, exact: true }).click();
+      await dialog(page).locator('button[id$="-dates"]').click();
+      await expect(page.locator(`[data-date="${dateKey("2026-10-13")}"]`)).toBeDisabled();
+      await expect(page.locator(`[data-date="${dateKey("2026-10-14")}"]`)).toBeEnabled();
+    });
+
+    test(`one destination and one stay send their id and never the other (${at})`, async ({ page }) => {
+      const api = await mockApi(page);
+      await openCalendar(page, viewport, locale);
+      await page.getByRole("button", { name: copy.blockDates, exact: true }).click();
+      await dialog(page).getByRole("button", { name: copy.oneDestination }).click();
+      await dialog(page).getByRole("combobox", { name: new RegExp(copy.destinations) }).click();
+      await page.getByRole("option", { name: "[Destination 2]" }).click();
+      await pickDates(page, "2026-11-02", "2026-11-04");
+      await blockButton(page).click();
+      await expect.poll(() => api.posts.length).toBe(1);
+      expect(api.posts[0]).toEqual({ action: "add", block: { scope: "destination", destination_id: D2, starts_on: "2026-11-02", ends_on: "2026-11-04", reason: null } });
+
+      await page.getByRole("button", { name: copy.blockDates, exact: true }).click();
+      await dialog(page).getByRole("button", { name: copy.oneStay }).click();
+      await dialog(page).getByRole("combobox", { name: new RegExp(copy.stays) }).click();
+      await page.getByRole("option", { name: "[Stay 3]" }).click();
+      await pickDates(page, "2026-10-30", "2026-10-30");
+      await blockButton(page).click();
+      await expect.poll(() => api.posts.length).toBe(2);
+      expect(api.posts[1]).toEqual({ action: "add", block: { scope: "stay", stay_id: S3, starts_on: "2026-10-30", ends_on: "2026-10-30", reason: null } });
+    });
+
+    test(`an incomplete form says what is missing and sends nothing (${at})`, async ({ page }) => {
+      const api = await mockApi(page);
+      await openCalendar(page, viewport, locale);
+      await page.getByRole("button", { name: copy.blockDates, exact: true }).click();
+      await blockButton(page).click();
+      await expect(dialog(page).getByRole("alert")).toHaveText(copy.needDates);
+      await dialog(page).getByRole("button", { name: copy.oneStay }).click();
+      await blockButton(page).click();
+      await expect(dialog(page).getByRole("alert")).toHaveText(copy.needStay);
+      expect(api.posts).toEqual([]);
+    });
+
+    test(`bookings that overlap are said after Block, with their number; a server refusal keeps the form open (${at})`, async ({ page }) => {
+      const api = await mockApi(page, { overlap: 2 });
+      await openCalendar(page, viewport, locale);
+      await dayButton(page, "2026-10-26", locale).click();
+      await blockButton(page).click();
+      await expect(page.getByRole("status").filter({ hasText: overlapLine(locale, 2) })).toBeVisible();
+      await page.getByRole("status").getByRole("button").click();
+      await expect(page.getByRole("status").filter({ hasText: overlapLine(locale, 2) })).toHaveCount(0);
+
+      api.addFails = 400;
+      await dayButton(page, "2026-10-29", locale).click();
+      await blockButton(page).click();
+      await expect(dialog(page).getByRole("alert")).toHaveText(OPS_KIT_COPY[locale].errors.invalid);
+      await expect(dialog(page)).toBeVisible();
+    });
+
+    test(`Delete asks first; Cancel keeps the block, Delete posts the id and the list is fetched again (${at})`, async ({ page }) => {
+      const api = await mockApi(page);
+      await openCalendar(page, viewport, locale);
+      await deletes(page).first().click();
+      await expect(page.getByRole("dialog")).toContainText(copy.deleteTitle);
+      await page.getByRole("dialog").getByRole("button", { name: OPS_KIT_COPY[locale].cancel }).click();
+      expect(api.posts).toEqual([]);
+      await expect(deletes(page)).toHaveCount(2);
+
+      const reads = api.gets.length;
+      await deletes(page).first().click();
+      await page.getByRole("dialog").getByRole("button", { name: OPS_KIT_COPY[locale].delete, exact: true }).click();
+      await expect.poll(() => api.posts.length).toBe(1);
+      expect(api.posts[0]).toEqual({ action: "delete", id: "b1" });
+      await expect.poll(() => api.gets.length).toBeGreaterThan(reads);
+      await expect(deletes(page)).toHaveCount(1);
+      await expect(blockedDays(page)).toHaveCount(1);
+    });
+  }
+
+  test("the filter sends stay_id or destination_id, never both, and the month arrows ask for the next month's own window", async ({ page }) => {
+    const api = await mockApi(page);
+    await openCalendar(page, "desktop", "en");
+    const copy = OPS_CALENDAR_COPY.en;
+    const filter = page.getByRole("combobox", { name: /^Show:/ });
+    await filter.click();
+    await page.getByRole("option", { name: "[Stay 2]" }).click();
+    await expect.poll(() => api.gets.at(-1)).toBe(`?from=2026-10-01&to=2026-10-31&stay_id=${S2}`);
+    // Stay 2 sees the all-scope block (19 to 21) and none of Stay 1's.
+    await expect(page.getByRole("button", { name: /, Blocked$/ })).toHaveCount(3);
+    await filter.click();
+    await page.getByRole("option", { name: "[Destination 2]" }).click();
+    await expect.poll(() => api.gets.at(-1)).toBe(`?from=2026-10-01&to=2026-10-31&destination_id=${D2}`);
+    await filter.click();
+    await page.getByRole("option", { name: copy.allTargets }).click();
+    await expect.poll(() => api.gets.at(-1)).toBe("?from=2026-10-01&to=2026-10-31");
+    await page.getByRole("button", { name: copy.nextMonth }).click();
+    await expect.poll(() => api.gets.at(-1)).toBe("?from=2026-11-01&to=2026-11-30");
+    await page.getByRole("button", { name: copy.nextMonth }).click();
+    await expect.poll(() => api.gets.at(-1)).toBe("?from=2026-12-01&to=2026-12-31");
+    await expect(page.getByText(copy.noBlocks)).toBeVisible();
+  });
+
+  test("the link of a stay page opens the form with that stay; any other query is ignored and nothing of it is sent", async ({ page }) => {
+    const api = await mockApi(page);
+    const copy = OPS_CALENDAR_COPY.en;
+    await openCalendar(page, "phone", "en", `?block=stay&stay_id=${S2}&reason=HACK&starts_on=2026-10-30`);
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("dialog").getByRole("button", { name: copy.oneStay, pressed: true })).toBeVisible();
+    await expect(page.getByRole("dialog").getByRole("combobox", { name: /\[Stay 2\]/ })).toBeVisible();
+    await expect(page.getByRole("dialog").getByLabel(copy.reasonOptional)).toHaveValue("");
+    await pickDates(page, "2026-10-30", "2026-10-30");
+    await page.getByRole("dialog").getByRole("button", { name: copy.block, exact: true }).click();
+    await expect.poll(() => api.posts.length).toBe(1);
+    expect(api.posts[0]).toEqual({ action: "add", block: { scope: "stay", stay_id: S2, starts_on: "2026-10-30", ends_on: "2026-10-30", reason: null } });
+
+    // Not a uuid, an unknown id, an unknown kind: no form.
+    for (const search of ["?block=stay&stay_id=not-a-uuid", `?block=stay&stay_id=${"9".repeat(8)}-9999-4999-8999-${"9".repeat(12)}`, `?block=all&stay_id=${S1}`]) {
+      await page.goto(`/dashboard/calendar${search}`);
+      await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible({ timeout: 45_000 });
+      await page.waitForTimeout(500);
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+    }
+  });
+
+  test("the link of a destination page opens the form with that destination, in Arabic", async ({ page }) => {
+    await mockApi(page);
+    await openCalendar(page, "desktop", "ar", `?block=destination&destination_id=${D2}`);
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByRole("button", { name: OPS_CALENDAR_COPY.ar.oneDestination, pressed: true })).toBeVisible({ timeout: 45_000 });
+    await expect(dialog.getByRole("combobox", { name: /\[Destination 2\]/ })).toBeVisible();
+  });
+
+  test("the Dubai day turns over at 20:00 UTC: 19:59 is the 14th, 20:01 is the 15th (the 14th is then past)", async ({ page }) => {
+    await mockApi(page);
+    await page.setViewportSize(VIEWPORTS.desktop);
+    await page.clock.setFixedTime(new Date("2026-10-14T19:59:00Z"));
+    await page.goto("/dashboard/calendar");
+    await expect(dayButton(page, "2026-10-14", "en")).toHaveAttribute("aria-current", "date", { timeout: 45_000 });
+    await expect(dayButton(page, "2026-10-14", "en")).toBeEnabled();
+    await page.clock.setFixedTime(new Date("2026-10-14T20:01:00Z"));
+    await page.reload();
+    await expect(dayButton(page, "2026-10-15", "en")).toHaveAttribute("aria-current", "date", { timeout: 45_000 });
+    await expect(dayButton(page, "2026-10-14", "en")).toBeDisabled();
+  });
+
+  test("the form is no wider than the screen and nothing scrolls sideways, in both languages", async ({ page }) => {
+    await mockApi(page);
+    for (const locale of ["en", "ar"] as const) {
+      await openCalendar(page, "phone", locale);
+      await page.getByRole("button", { name: OPS_CALENDAR_COPY[locale].blockDates, exact: true }).click();
+      await expectNoSidewaysScroll(page);
+      await page.getByRole("dialog").getByRole("button", { name: OPS_KIT_COPY[locale].close }).click();
+    }
+  });
 });
