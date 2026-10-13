@@ -4,7 +4,7 @@
 //
 // CANVAS strings are taken verbatim from the design canvas boards DashDestinations and DashServices in all three
 // languages. Every other EN string is DRAFTED UI COPY for the owner's review at the picture gate. AR (Gulf-friendly
-// Modern Standard Arabic) and ES (neutral Latin American, informal "tú", the house rule of ops-kit.ts) are DRAFTS
+// Modern Standard Arabic) and ES (neutral Latin American, formal "usted": owner, 2026-10-14, all dashboard copy) are DRAFTS
 // written from the EN, flagged for the owner's review. Counts are Intl.PluralRules forms (`#` is the number), picked by
 // formatPlural (lib/journey-format.ts). Never a price, a rate or legal text. Imported directly; deliberately not
 // registered in lib/copy/index.ts.
@@ -57,6 +57,24 @@ export type OpsCatalogCopy = {
     deleteNeedsMove: string;
     /** Accessible name of the table. */
     caption: string;
+  };
+  /** The redesigned panel (owner, 2026-10-14): sections, automatic translation. DRAFTS. */
+  panel: {
+    sectionText: string;
+    sectionPrice: string;
+    sectionPhoto: string;
+    sectionSettings: string;
+    sectionConnections: string;
+    /** Under the English fields: the one language Maria writes in. */
+    englishOnly: string;
+    translationsUpdated: string;
+    editTranslations: string;
+    hideTranslations: string;
+    translationsNote: string;
+    /** Publish waits: the AI did not finish. */
+    translationFailed: string;
+    /** Status next to the save button on an item with unsaved changes. */
+    unsaved: string;
   };
   items: {
     /** CANVAS. */
@@ -160,6 +178,21 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       deleteNeedsMove: "Move its stays first",
       caption: "Destinations",
     },
+    panel: {
+      sectionText: "Text",
+      sectionPrice: "Price",
+      sectionPhoto: "Photo",
+      sectionSettings: "Settings",
+      sectionConnections: "Connections",
+      englishOnly: "Write in English. Arabic and Spanish are added when you save.",
+      translationsUpdated: "Arabic and Spanish updated",
+      editTranslations: "Edit translations",
+      hideTranslations: "Hide translations",
+      translationsNote: "Arabic and Spanish were filled in from the English. Change a word only if you need to.",
+      translationFailed:
+        "The Arabic and Spanish translation did not finish, so Publish is waiting. Save again to try once more, or open Edit translations and type them yourself.",
+      unsaved: "Unsaved changes",
+    },
     items: {
       title: "Experiences and services",
       newItem: "New experience",
@@ -198,7 +231,7 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       slugHint: "Lowercase letters, numbers and hyphens. It cannot change after publishing.",
       slugLocked: "The web address cannot change after publishing.",
       isUae: "UAE-side service",
-      isHomePickup: "Home pickup · starts added at checkout",
+      isHomePickup: "Home pickup · pre-selected at checkout",
       homePickupHint: "Only one item can be the home pickup.",
       homePickupRefused: "Another item is already the home pickup. Turn it off there first.",
       connectionsIntro:
@@ -247,6 +280,21 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       deleteNeedsUnpublish: "ألغِ نشرها أولًا",
       deleteNeedsMove: "انقل إقاماتها أولًا",
       caption: "الوجهات",
+    },
+    panel: {
+      sectionText: "النص",
+      sectionPrice: "السعر",
+      sectionPhoto: "الصورة",
+      sectionSettings: "الإعدادات",
+      sectionConnections: "الارتباطات",
+      englishOnly: "اكتب بالإنجليزية. تُضاف العربية والإسبانية عند الحفظ.",
+      translationsUpdated: "تم تحديث العربية والإسبانية",
+      editTranslations: "تعديل الترجمات",
+      hideTranslations: "إخفاء الترجمات",
+      translationsNote: "تمت كتابة العربية والإسبانية تلقائيًا من النص الإنجليزي. غيّر كلمة فقط عند الحاجة.",
+      translationFailed:
+        "لم تكتمل ترجمة العربية والإسبانية، لذلك ينتظر النشر. احفظ مرة أخرى للمحاولة، أو افتح «تعديل الترجمات» واكتبها بنفسك.",
+      unsaved: "تغييرات غير محفوظة",
     },
     items: {
       title: "التجارب والخدمات",
@@ -300,7 +348,7 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       slugHint: "أحرف صغيرة وأرقام وشرطات. لا يمكن تغييره بعد النشر.",
       slugLocked: "لا يمكن تغيير عنوان الويب بعد النشر.",
       isUae: "خدمة داخل الإمارات",
-      isHomePickup: "الاستلام من المنزل · تُضاف البداية عند الدفع",
+      isHomePickup: "الاستلام من المنزل · محدَّد مسبقًا عند الدفع",
       homePickupHint: "يمكن أن يكون بند واحد فقط هو الاستلام من المنزل.",
       homePickupRefused: "بند آخر هو الاستلام من المنزل بالفعل. أوقفه هناك أولًا.",
       connectionsIntro:
@@ -346,9 +394,24 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       experiencesSearch: "Buscar experiencias y servicios",
       deleteDestination: "Eliminar destino",
       deleteTitle: "¿Eliminar {name}? No se puede deshacer.",
-      deleteNeedsUnpublish: "Primero deja de publicarlo",
-      deleteNeedsMove: "Primero mueve sus estancias",
+      deleteNeedsUnpublish: "Primero deje de publicarlo",
+      deleteNeedsMove: "Primero mueva sus estancias",
       caption: "Destinos",
+    },
+    panel: {
+      sectionText: "Texto",
+      sectionPrice: "Precio",
+      sectionPhoto: "Foto",
+      sectionSettings: "Ajustes",
+      sectionConnections: "Conexiones",
+      englishOnly: "Escriba en inglés. El árabe y el español se añaden al guardar.",
+      translationsUpdated: "Árabe y español actualizados",
+      editTranslations: "Editar traducciones",
+      hideTranslations: "Ocultar traducciones",
+      translationsNote: "El árabe y el español se completaron a partir del inglés. Cambie una palabra solo si lo necesita.",
+      translationFailed:
+        "La traducción al árabe y al español no terminó, así que Publicar está en espera. Guarde de nuevo para reintentar, o abra «Editar traducciones» y escríbalas usted.",
+      unsaved: "Cambios sin guardar",
     },
     items: {
       title: "Experiencias y servicios",
@@ -383,16 +446,16 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       fieldType: "Tipo",
       fieldUnit: "Unidad",
       fieldPrice: "Precio en AED",
-      priceHint: "Déjalo vacío si no está definido",
+      priceHint: "Déjelo vacío si no está definido",
       fieldSlug: "Dirección web",
       slugHint: "Letras minúsculas, números y guiones. No se puede cambiar después de publicar.",
       slugLocked: "La dirección web no se puede cambiar después de publicar.",
       isUae: "Servicio en los EAU",
-      isHomePickup: "Recogida en casa · las salidas se añaden al pagar",
+      isHomePickup: "Recogida en casa · preseleccionada al pagar",
       homePickupHint: "Solo un elemento puede ser la recogida en casa.",
-      homePickupRefused: "Otro elemento ya es la recogida en casa. Desactívalo allí primero.",
+      homePickupRefused: "Otro elemento ya es la recogida en casa. Desactívelo allí primero.",
       connectionsIntro:
-        "Elige dónde pueden añadir los huéspedes este elemento: destinos completos, estancias concretas o ambos.",
+        "Elija dónde pueden añadir los huéspedes este elemento: destinos completos, estancias concretas o ambos.",
       searchDestinations: "Buscar destinos",
       searchStays: "Buscar estancias",
       destinationsHeading: "Destinos",

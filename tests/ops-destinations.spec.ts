@@ -26,7 +26,7 @@ function leaves(value: unknown, path: string[] = []): { path: string; value: unk
 
 /** The keys the three languages must share: a plural block is its own path, not its forms. */
 function keysOf(copy: OpsCatalogCopy): string[] {
-  const all = [...leaves(copy.destinations).map((l) => ({ ...l, path: `destinations.${l.path}` })), ...leaves(copy.items).map((l) => ({ ...l, path: `items.${l.path}` }))];
+  const all = [...leaves(copy.destinations).map((l) => ({ ...l, path: `destinations.${l.path}` })), ...leaves(copy.panel).map((l) => ({ ...l, path: `panel.${l.path}` })), ...leaves(copy.items).map((l) => ({ ...l, path: `items.${l.path}` }))];
   const out = new Set<string>();
   for (const leaf of all) out.add(leaf.plural ? leaf.path.slice(0, leaf.path.lastIndexOf(".")) : leaf.path);
   return [...out];
@@ -36,7 +36,7 @@ test.describe("copy", () => {
   test("every label of ops-catalog is a non-empty string in en, ar and es, with the same keys", () => {
     const reference = keysOf(OPS_CATALOG_COPY.en);
     for (const locale of ["en", "ar", "es"] as const) {
-      const all = [...leaves(OPS_CATALOG_COPY[locale].destinations), ...leaves(OPS_CATALOG_COPY[locale].items)];
+      const all = [...leaves(OPS_CATALOG_COPY[locale].destinations), ...leaves(OPS_CATALOG_COPY[locale].panel), ...leaves(OPS_CATALOG_COPY[locale].items)];
       for (const leaf of all) {
         expect(typeof leaf.value, `${locale}.${leaf.path}`).toBe("string");
         expect((leaf.value as string).trim().length, `${locale}.${leaf.path} is empty`).toBeGreaterThan(0);
