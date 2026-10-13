@@ -7,7 +7,8 @@
 //                                           `next dev` and every node test.
 //   ALMAR_DATA_SOURCE = "supabase"          the anon-readable api_* views of migration 20261005100000, read once per
 //                                           process at build time. scripts/assemble-cloudflare.mjs sets this for every
-//                                           assembled target and refuses to start without the two public settings.
+//                                           preview and production build (--target=ops reads fixtures) and refuses to start
+//                                           without the two public settings or with a URL that is not the live project's.
 //
 // Any other value throws: a typo never means fixtures. A failed read throws, so the build fails and the live site stays
 // as it was (C-03); there is never a silent fall back to fixtures. Build-time reads use the PUBLIC (anon) key only (C-04):
@@ -178,7 +179,7 @@ async function readView(client: ViewClient, name: SourceName): Promise<unknown[]
   return out;
 }
 
-type ImageAlt = { image_id: string; locale: string };
+type ImageAlt = { image_id: string; locale: string; alt?: string };
 
 /** The fixture files whose page blocks stay in fixtures in supabase mode (C-21); home's `tiers` come from the database. */
 const BLOCK_FIXTURES = ["home", "about", "posts", "destinations-page"] as const;
@@ -222,15 +223,61 @@ function mergeImageTranslations(database: ImageAlt[]): ImageAlt[] {
   return [...database, ...fromFixtures];
 }
 
+/** The views that must hold at least one published row: an empty one ships a site with no stays, journeys, destinations or catalogue. The team may be empty (C-17). */
+const MUST_HAVE_ROWS: readonly SourceName[] = ["stays", "catalog", "journey-tiers", "destinations"];
+
+/** The pictures every published picture needs an alt text for (03.2-02b: a missing one never becomes `alt=""` or an English alt on /ar and /es). */
+const ALT_LOCALES = ["en", "ar", "es"] as const;
+
+/** The entity rows whose pictures are published through the database (the page blocks that stay in fixtures are not checked here). */
+const PICTURE_SOURCES: readonly SourceName[] = ["stays", "destinations", "catalog", "team", "journey-tiers"];
+
+/**
+ * The publish sequence the database reports (api_site_version.requested_seq). The build reads it before the first view and
+ * after the last one: the 11 views are read one after another, so a publish in between would give a list that links to a
+ * detail page this build never generated (a 404). A different number fails the build; the live site stays as it was.
+ */
+async function readSequence(client: ViewClient): Promise<string> {
+  const { data, error } = await client.from("api_site_version").select("requested_seq").range(0, 0);
+  if (error) throw new Error(`api_site_version: ${error.message}`);
+  const seq = Array.isArray(data) && data.length === 1 ? (data[0] as { requested_seq?: unknown }).requested_seq : undefined;
+  if (typeof seq !== "number" && typeof seq !== "string") {
+    throw new Error("api_site_version: expected one row with a requested_seq (the publish sequence the build is checked against)");
+  }
+  return String(seq);
+}
+
+/** Throws, naming the pictures, when a published picture lacks a non-empty alt text in en, ar or es. */
+function assertAltTexts(loaded: Map<SourceName, unknown[]>, alts: ImageAlt[]): void {
+  const ids = new Set<string>();
+  for (const name of PICTURE_SOURCES) collectImageIds(loaded.get(name), ids);
+  const have = new Set(alts.filter((r) => typeof r.alt === "string" && r.alt.trim() !== "").map((r) => `${r.image_id}:${r.locale}`));
+  const missing: string[] = [];
+  for (const id of [...ids].sort()) for (const locale of ALT_LOCALES) if (!have.has(`${id}:${locale}`)) missing.push(`${id} (${locale})`);
+  if (missing.length > 0) {
+    const shown = missing.slice(0, 10).join(", ");
+    throw new Error(`api_image_translations: ${missing.length} alt text(s) missing for published pictures, ${shown}${missing.length > 10 ? ", …" : ""}`);
+  }
+}
+
 async function readAll(): Promise<void> {
   const { url, anonKey } = publicSettings();
   const client = await makeClient(url, anonKey);
+  const before = await readSequence(client);
   const loaded = new Map<SourceName, unknown[]>();
   for (const name of Object.keys(SOURCE_VIEWS) as SourceName[]) loaded.set(name, await readView(client, name));
-  if (loaded.get("stays")!.length === 0) {
-    throw new Error("api_stays: no published stays (an empty catalogue never ships; the live site stays as it was)");
+  const after = await readSequence(client);
+  if (after !== before) {
+    throw new Error(`api_site_version: requested_seq moved from ${before} to ${after} while the build read the database (a publish during a build never ships; start the build again)`);
   }
-  loaded.set("image-translations", mergeImageTranslations(loaded.get("image-translations") as ImageAlt[]));
+  for (const name of MUST_HAVE_ROWS) {
+    if (loaded.get(name)!.length === 0) {
+      throw new Error(`${SOURCE_VIEWS[name]}: no published rows (an empty ${name} never ships; the live site stays as it was)`);
+    }
+  }
+  const alts = mergeImageTranslations(loaded.get("image-translations") as ImageAlt[]);
+  assertAltTexts(loaded, alts);
+  loaded.set("image-translations", alts);
   rows = loaded;
 }
 

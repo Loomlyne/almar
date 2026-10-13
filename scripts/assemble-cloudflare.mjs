@@ -268,6 +268,35 @@ export function assertNoServiceKey(env) {
 }
 
 /**
+ * Plan 03.2-02b (review of 03.2-02, finding 1): the one Supabase project an assembled build may read. A shell that still
+ * exports the local stack's URL and its anon key would otherwise assemble preview or production from the local sample rows.
+ * Names only in the message, never the value that was given (the expected host is public).
+ */
+export const LIVE_SUPABASE_HOST = "jkdkaldgeiowkhlfmsft.supabase.co";
+
+/** Throws unless `value` (the content of variable `name`) is https://<LIVE_SUPABASE_HOST>, no port, no credentials, no path. */
+export function assertLiveSupabaseUrl(name, value) {
+  let url = null;
+  try {
+    url = new URL(String(value).trim());
+  } catch {
+    // reported below, with the same words as every other wrong value
+  }
+  const ok =
+    url !== null &&
+    url.protocol === "https:" &&
+    url.hostname === LIVE_SUPABASE_HOST &&
+    url.port === "" &&
+    url.username === "" &&
+    url.password === "" &&
+    url.pathname === "/" &&
+    url.search === "" &&
+    url.hash === "";
+  if (!ok) throw new Error(`${name} must be https://${LIVE_SUPABASE_HOST}: an assembled build reads the live project only`);
+  return value;
+}
+
+/**
  * Plan 03.2-02: where the public pages read the catalogue (lib/data/source.ts). Decided before anything is built or
  * removed, so a refused run leaves the previous output intact.
  *
@@ -275,7 +304,8 @@ export function assertNoServiceKey(env) {
  *   preview, production
  *                    the database, always: ALMAR_DATA_SOURCE=fixtures, a typo, a missing NEXT_PUBLIC_SUPABASE_URL or
  *                    NEXT_PUBLIC_SUPABASE_ANON_KEY, and ALMAR_FIXTURE_DIR are refused, so an assembled build can never
- *                    silently ship fixture content for the catalogue (T-3.2-09).
+ *                    silently ship fixture content for the catalogue (T-3.2-09). NEXT_PUBLIC_SUPABASE_URL must also be
+ *                    https://<LIVE_SUPABASE_HOST> (03.2-02b): never the local stack, never another project.
  *   ops              fixtures, always: out-ops/ ships no page HTML, so no catalogue page of this build is ever served, and
  *                    the dashboard Worker reads the database at request time with its own secrets. It needs no public
  *                    setting in the shell (the 03.2-04 ops build steps run without one); ALMAR_DATA_SOURCE=supabase, a
@@ -313,6 +343,8 @@ export function dataSourceFor(target, env = process.env) {
       throw new Error(`the database source needs ${missing.join(" and ")} in the build shell (public values; names only, never printed)`);
     }
     assertAnonKey("NEXT_PUBLIC_SUPABASE_ANON_KEY", String(env.NEXT_PUBLIC_SUPABASE_ANON_KEY).trim());
+    // Only an assembled target is pinned: --target=local keeps reading the local stack (the parity and rebuild tests).
+    if (assembled) assertLiveSupabaseUrl("NEXT_PUBLIC_SUPABASE_URL", env.NEXT_PUBLIC_SUPABASE_URL);
   }
   return source;
 }

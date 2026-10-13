@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { build } from "esbuild";
-import { assertNoPublicEnv, assertNoServiceKey, BUILD_HANDOVER_ENV, BUILD_PUBLIC_ENV, dataSourceFor, nextBuildEnv } from "../scripts/assemble-cloudflare.mjs";
+import { assertLiveSupabaseUrl, assertNoPublicEnv, assertNoServiceKey, BUILD_HANDOVER_ENV, BUILD_PUBLIC_ENV, dataSourceFor, LIVE_SUPABASE_HOST, nextBuildEnv } from "../scripts/assemble-cloudflare.mjs";
 import * as assembler from "../scripts/assemble-cloudflare.mjs";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
@@ -73,15 +73,22 @@ const VIEW_NAMES = [
 
 const rowsOf = (n, make = (i) => ({ id: `row-${i}` })) => Array.from({ length: n }, (_, i) => make(i));
 
-/** Every view with one row, unless `tables` says otherwise. */
-const defaultTables = (tables = {}) => Object.fromEntries(VIEW_NAMES.map((v) => [v, tables[v] ?? rowsOf(1)]));
+/** The publish sequence view (03.2-02b): read before the first and after the last of VIEW_NAMES. */
+const SEQ_VIEW = "api_site_version";
+
+/** Every view with one row, unless `tables` says otherwise; api_site_version answers sequence 7 (see fakeClient's `seq`). */
+const defaultTables = (tables = {}) => ({
+  ...Object.fromEntries(VIEW_NAMES.map((v) => [v, tables[v] ?? rowsOf(1)])),
+  [SEQ_VIEW]: tables[SEQ_VIEW] ?? [{ requested_seq: 7 }],
+});
 
 /**
  * A PostgREST-shaped fake: from(view).select(cols, { count }).order(col)....range(a, b) answers rows a..b inclusive,
  * at most `cap` of them (the server's max-rows setting), with the exact total when `count: "exact"` was asked for.
  */
-function fakeClient(tables, { cap = Infinity, noCount = false, errors = {}, lie = {} } = {}) {
+function fakeClient(tables, { cap = Infinity, noCount = false, errors = {}, lie = {}, seq = null } = {}) {
   const calls = [];
+  let seqReads = 0;
   const client = {
     from(view) {
       const q = { orders: [], options: null, columns: null };
@@ -98,7 +105,8 @@ function fakeClient(tables, { cap = Infinity, noCount = false, errors = {}, lie 
         range(from, to) {
           calls.push({ view, from, to, orders: [...q.orders], columns: q.columns, count: q.options?.count ?? null });
           if (errors[view]) return Promise.resolve({ data: null, error: { message: errors[view] }, count: null });
-          const all = tables[view];
+          // `seq`: the answers of api_site_version one read after another (the last one repeats), as a publish would change them.
+          const all = view === SEQ_VIEW && seq ? [{ requested_seq: seq[Math.min(seqReads++, seq.length - 1)] }] : tables[view];
           if (!all) {
             return Promise.resolve({ data: null, error: { message: `Could not find the table 'public.${view}' in the schema cache` }, count: null });
           }
@@ -228,8 +236,8 @@ test("supabase mode without the public settings: loadSource rejects naming the m
 test("supabase mode: every view is read, in the order the data layer expects, with an exact count", async () => {
   const { mod, fake, result } = await loadedWith({});
   assert.equal(result, "ok");
-  assert.deepEqual([...new Set(fake.calls.map((c) => c.view))].sort(), [...VIEW_NAMES].sort());
-  for (const c of fake.calls) {
+  assert.deepEqual([...new Set(fake.calls.map((c) => c.view))].sort(), [...VIEW_NAMES, SEQ_VIEW].sort());
+  for (const c of fake.calls.filter((c) => c.view !== SEQ_VIEW)) {
     assert.equal(c.columns, "*", c.view);
     assert.equal(c.count, "exact", c.view);
     assert.deepEqual([c.from, c.to], [0, 999], c.view);
@@ -272,9 +280,119 @@ test("supabase mode: api_stays with no rows rejects (an empty catalogue never sh
   assert.match(result.message, /api_stays/);
 });
 
-test("supabase mode: other views may be empty (team imports empty, C-17)", async () => {
-  const { result } = await loadedWith({ api_team: [], api_team_translations: [], api_catalog: [], api_catalog_translations: [] });
+test("supabase mode: the team may be empty (team imports empty, C-17), and so may the translation views", async () => {
+  const { result } = await loadedWith({ api_team: [], api_team_translations: [], api_catalog_translations: [], api_destination_translations: [] });
   assert.equal(result, "ok");
+});
+
+// 03.2-02b finding 3: an empty catalogue, journey list or destination list never ships silently ------------------------
+
+for (const view of ["api_catalog", "api_journey_tiers", "api_destinations"]) {
+  test(`supabase mode: ${view} with no rows rejects, naming the view (an empty ${view} never ships)`, async () => {
+    const { result } = await loadedWith({ [view]: [] });
+    assert.ok(result instanceof Error);
+    assert.match(result.message, new RegExp(`^${view}: no published rows`));
+  });
+}
+
+// 03.2-02b finding 2: the publish sequence is read before the first and after the last view ---------------------------
+
+test("supabase mode: api_site_version.requested_seq is read before the first view and after the last", async () => {
+  const { fake, result } = await loadedWith({});
+  assert.equal(result, "ok");
+  const views = fake.calls.map((c) => c.view);
+  assert.equal(views[0], SEQ_VIEW);
+  assert.equal(views.at(-1), SEQ_VIEW);
+  assert.equal(views.filter((v) => v === SEQ_VIEW).length, 2);
+  assert.equal(fake.calls[0].columns, "requested_seq");
+});
+
+test("supabase mode: a publish during the read (requested_seq moved) fails the load, naming both numbers", async () => {
+  const { result } = await loadedWith({}, { seq: [7, 8] });
+  assert.ok(result instanceof Error);
+  assert.match(result.message, /api_site_version: requested_seq moved from 7 to 8/);
+});
+
+test("supabase mode: an unchanged requested_seq loads; a bigint-as-string answer compares equal to itself", async () => {
+  assert.equal((await loadedWith({}, { seq: [7, 7] })).result, "ok");
+  assert.equal((await loadedWith({}, { seq: ["9007199254740993", "9007199254740993"] })).result, "ok");
+  assert.match((await loadedWith({}, { seq: ["9007199254740993", "9007199254740994"] })).result.message, /moved from/);
+});
+
+test("supabase mode: a missing, empty or erroring api_site_version fails the load (the migration was not applied)", async () => {
+  for (const options of [{ errors: { [SEQ_VIEW]: "permission denied" } }]) {
+    const { result } = await loadedWith({}, options);
+    assert.match(result.message, /^api_site_version: permission denied/);
+  }
+  assert.match((await loadedWith({ [SEQ_VIEW]: [] })).result.message, /api_site_version: expected one row/);
+  assert.match((await loadedWith({ [SEQ_VIEW]: [{ requested_seq: null }] })).result.message, /api_site_version: expected one row/);
+});
+
+// 03.2-02b finding 4: every published picture has an alt in en, ar and es ---------------------------------------------
+
+const pictureOf = (id) => ({ id, media_key: `stays/${id}.webp`, width: 1, height: 1, position: 1 });
+const altsOf = (id, locales = ["en", "ar", "es"]) => locales.map((locale) => ({ image_id: id, locale, alt: `${id} ${locale}`, status: "published" }));
+
+test("supabase mode: a published picture with all three alts loads", async () => {
+  const { result } = await loadedWith({ api_stays: [{ id: "s1", images: [pictureOf("p1")] }], api_image_translations: altsOf("p1") });
+  assert.equal(result, "ok");
+});
+
+for (const missing of ["en", "ar", "es"]) {
+  test(`supabase mode: a published picture with no ${missing} alt fails the load, naming the picture and the language`, async () => {
+    const present = ["en", "ar", "es"].filter((l) => l !== missing);
+    const { result } = await loadedWith({ api_stays: [{ id: "s1", images: [pictureOf("p1")] }], api_image_translations: altsOf("p1", present) });
+    assert.ok(result instanceof Error);
+    assert.match(result.message, new RegExp(`api_image_translations: 1 alt text\\(s\\) missing for published pictures, p1 \\(${missing}\\)`));
+  });
+}
+
+test("supabase mode: a blank alt counts as missing, for pictures of every database-read entity", async () => {
+  const blank = altsOf("p1").map((r) => (r.locale === "ar" ? { ...r, alt: "  " } : r));
+  const entities = { api_stays: "stays", api_destinations: "cover", api_catalog: "image", api_team: "photo", api_journey_tiers: "image" };
+  for (const [view, key] of Object.entries(entities)) {
+    const { result } = await loadedWith({ [view]: [{ id: "x", [key]: pictureOf("p1") }], api_image_translations: blank });
+    assert.match(result.message, /p1 \(ar\)/, view);
+  }
+});
+
+test("supabase mode: pictures of the fixture-kept page blocks are not checked here (their alts come from the fixtures)", async () => {
+  const database = altsOf("p1");
+  const { result } = await loadedWith({ api_stays: [{ id: "s1", images: [pictureOf("p1")] }], api_image_translations: database });
+  assert.equal(result, "ok");
+});
+
+// 03.2-02b finding 1: assembled builds read the live project only -------------------------------------------------------
+
+test("assertLiveSupabaseUrl accepts the live project's https origin and nothing else (names only in the message)", () => {
+  assert.equal(LIVE_SUPABASE_HOST, "jkdkaldgeiowkhlfmsft.supabase.co");
+  assert.equal(assertLiveSupabaseUrl("X", LIVE_URL), LIVE_URL);
+  assert.equal(assertLiveSupabaseUrl("X", `${LIVE_URL}/`), `${LIVE_URL}/`);
+  assert.equal(assertLiveSupabaseUrl("X", ` ${LIVE_URL} `), ` ${LIVE_URL} `);
+  const bad = [
+    "http://127.0.0.1:54321",
+    "http://localhost:54321",
+    "https://127.0.0.1",
+    "http://jkdkaldgeiowkhlfmsft.supabase.co",
+    "https://abcdefghijklmnopqrst.supabase.co",
+    "https://jkdkaldgeiowkhlfmsft.supabase.co.evil.example",
+    "https://evil.example/jkdkaldgeiowkhlfmsft.supabase.co",
+    "https://jkdkaldgeiowkhlfmsft.supabase.co@evil.example",
+    "https://user:pw@jkdkaldgeiowkhlfmsft.supabase.co",
+    "https://jkdkaldgeiowkhlfmsft.supabase.co:8443",
+    `${LIVE_URL}/rest/v1`,
+    `${LIVE_URL}?x=1`,
+    "jkdkaldgeiowkhlfmsft.supabase.co",
+    "not a url",
+    "",
+  ];
+  for (const value of bad) {
+    assert.throws(
+      () => assertLiveSupabaseUrl("NEXT_PUBLIC_SUPABASE_URL", value),
+      (error) => /^NEXT_PUBLIC_SUPABASE_URL must be https:\/\/jkdkaldgeiowkhlfmsft\.supabase\.co/.test(error.message) && (value === "" || value === LIVE_SUPABASE_HOST || !error.message.includes(value)),
+      JSON.stringify(value),
+    );
+  }
 });
 
 test("supabase mode: a view with 2,500 rows is read in three .range pages", async () => {
@@ -326,7 +444,7 @@ test("loadSource called 20 times makes one set of requests; concurrent callers s
     await Promise.all(Array.from({ length: 20 }, () => mod.loadSource()));
     await mod.loadSource();
   });
-  assert.equal(fake.calls.length, VIEW_NAMES.length);
+  assert.equal(fake.calls.length, VIEW_NAMES.length + 2, "every view once, and the publish sequence before and after");
 });
 
 test("a failed load stays failed: every later caller gets the error, no second set of requests", async () => {
@@ -477,7 +595,8 @@ test("source.ts: anon client only, no cookies, no session, no service key, no ot
 // the assembler's rule (Task 2): dataSourceFor(target, env)
 // ---------------------------------------------------------------------------------------------------------------
 
-const PUBLIC = { NEXT_PUBLIC_SUPABASE_URL: "https://example-project.invalid", NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-a-test" };
+const LIVE_URL = "https://jkdkaldgeiowkhlfmsft.supabase.co";
+const PUBLIC = { NEXT_PUBLIC_SUPABASE_URL: LIVE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key-for-a-test" };
 
 test("dataSourceFor('local'): fixtures unless supabase is asked for, and then both public settings are needed", () => {
   assert.equal(dataSourceFor("local", {}), "fixtures");
@@ -501,6 +620,23 @@ for (const target of ["preview", "production"]) {
     assert.throws(() => dataSourceFor(target, { ...PUBLIC, ALMAR_FIXTURE_DIR: "/somewhere/else" }), /ALMAR_FIXTURE_DIR/);
   });
 }
+
+for (const target of ["preview", "production"]) {
+  test(`dataSourceFor('${target}'): the local stack's URL, another project and a non-https URL are refused, before anything is built`, () => {
+    for (const url of ["http://127.0.0.1:54321", "http://localhost:54321", "https://example-project.invalid", "https://abcdefghijklmnopqrst.supabase.co", "http://jkdkaldgeiowkhlfmsft.supabase.co"]) {
+      assert.throws(
+        () => dataSourceFor(target, { ...PUBLIC, NEXT_PUBLIC_SUPABASE_URL: url }),
+        (error) => /NEXT_PUBLIC_SUPABASE_URL must be https:\/\/jkdkaldgeiowkhlfmsft\.supabase\.co/.test(error.message) && !error.message.includes(url),
+        url,
+      );
+    }
+    assert.equal(dataSourceFor(target, { ...PUBLIC, NEXT_PUBLIC_SUPABASE_URL: ` ${LIVE_URL} ` }), "supabase");
+  });
+}
+
+test("dataSourceFor('local') still accepts the local stack's URL (the parity and rebuild tests build against it)", () => {
+  assert.equal(dataSourceFor("local", { ALMAR_DATA_SOURCE: "supabase", NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321", NEXT_PUBLIC_SUPABASE_ANON_KEY: "k" }), "supabase");
+});
 
 test("dataSourceFor('ops'): fixtures always, no public setting needed (out-ops ships no catalogue page); refuses supabase, a typo and a fixture folder", () => {
   assert.equal(dataSourceFor("ops", {}), "fixtures");
@@ -665,4 +801,16 @@ test("no lib/data module has a top-level await: the Playwright build specs load 
   const offenders = files.filter((name) => /^(?:if \([^\n]*\) )?(?:const [^\n]*= )?await\b/m.test(readFileSync(`lib/data/${name}`, "utf8")));
   assert.deepEqual(offenders, []);
   assert.match(readFileSync("lib/data/source.ts", "utf8"), /^if \(process\.env\.ALMAR_DATA_SOURCE === "supabase"\) loadSource\(\)\.catch\(\(\) => \{\}\);$/m);
+});
+
+// 03.2-02b finding 6: the README says which targets need the two public names ---------------------------------------------
+
+test("README: --target=ops needs neither public name (the code reads fixtures for it); preview and production need both and the live URL", () => {
+  const readme = readFileSync("README.md", "utf8").replace(/\s+/g, " ");
+  assert.doesNotMatch(readme, /`production` and `ops`/);
+  assert.match(readme, /--target=ops` reads fixtures and needs neither name/);
+  assert.match(readme, /`--target=preview` and `production`/);
+  assert.match(readme, /https:\/\/jkdkaldgeiowkhlfmsft\.supabase\.co/);
+  // and the code agrees: ops needs nothing
+  assert.equal(dataSourceFor("ops", {}), "fixtures");
 });
