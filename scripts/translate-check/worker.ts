@@ -137,7 +137,7 @@ export default {
     const started = Date.now();
     try {
       const out = model === MODELS.m2m100 ? await runM2m(env, target, fields) : await runChat(env, model, target, fields);
-      const shape = checkSameShape(fields, out.parsed);
+      const shape = checkSameShape(fields, out.parsed, target);
       return Response.json({ model, target, ...out, shape, ms: Date.now() - started });
     } catch (error) {
       // The error as the binding throws it: the check records its shape for classifyAiError (Task 2).
