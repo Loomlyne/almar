@@ -2,7 +2,7 @@
 // (app/api/ops/translate/route.ts) binds `run` to Workers AI through lib/ops/translate-route.ts; node tests pass a fake.
 //
 // POST { target: "ar"|"es", fields: { <name>: string | string[] } } -> { ok, target, fields } (same keys, same list
-// lengths, nothing empty) | 429 translate_limit | 502 translate_failed | 502 translate_too_long (cut off at the token budget). Nothing is saved and no field text is logged.
+// lengths, nothing empty) | 429 translate_limit (daily) | 503 translate_busy (rate or capacity) | 502 translate_failed | 502 translate_too_long (cut off at the token budget). Nothing is saved and no field text is logged.
 //
 // Model: the owner's pick after the Wave 0 check (2026-10-11, 03.2-10-NOTES.md): Gemma 4 26B. What really came back in
 // that check (.planning/phases/03.2-real-catalog-and-team-inserted/translate-check/*-gemma-4-26b-*.json, 6 of 6 HTTP
@@ -42,7 +42,7 @@ export type AiRun = (input: unknown) => Promise<unknown>;
 export type TranslateBody = { target: TranslateTarget; fields: Record<string, string | string[] | null> };
 export type TranslateOutcome =
   | { ok: true; fields: TranslateFields }
-  | { ok: false; code: "translate_limit" | "translate_failed" | "translate_too_long" };
+  | { ok: false; code: "translate_limit" | "translate_busy" | "translate_failed" | "translate_too_long" };
 
 const FIELD_NAME = /^[a-z][a-z0-9_]{0,63}$/;
 
@@ -169,24 +169,25 @@ export function parseAnswer(raw: unknown): unknown {
 }
 
 /**
- * What the Workers AI binding threw: the daily limit or anything else. Cloudflare's error table
+ * What the Workers AI binding threw: the daily limit, a busy answer, or anything else. Cloudflare's error table
  * (developers.cloudflare.com/workers-ai/platform/errors/, read 2026-10-13): "Account limited", code 3036, HTTP 429, "You
- * have used up your daily free allocation of 10,000 neurons"; and "Out of capacity", code 3040, ALSO HTTP 429, "try
- * again". Only the first is the daily limit (the allocation stops until 00:00 UTC). The review of 03.2-10 named 4006, which
- * the current table does not list; it is matched too, in case a binding still reports it. So: code 3036 or 4006 (as `code`, or as a number
- * in the message), or a message about the daily allocation (daily / neuron, neurons) -> limit. A 429 whose code or message
- * says capacity (3040), and a bare "limit" (a per-minute rate limit, a context or token limit), are "failed": the owner
- * is told to try again, not to wait until tomorrow. A bare 429 with no code or message is taken as the limit.
- * [unverified against a live limit response: nothing here may spend the live allocation to force one.]
+ * have used up your daily free allocation of 10,000 neurons" (the allocation stops until 00:00 UTC); and "Out of
+ * capacity", code 3040, ALSO HTTP 429, "try again". Only the first is the daily limit. The review of 03.2-10 named 4006,
+ * which the current table does not list; it is matched too, in case a binding still reports it.
+ *  - "limit": code 3036 or 4006 (as `code`, `status`, or a four-digit number in the message), or a message about the daily
+ *    allocation (daily / neuron, neurons). Nothing else: the owner is told to stop until tomorrow.
+ *  - "busy": any other 429 (a per-minute rate limit), code 3040, or a message about capacity, rate limit or too many
+ *    requests: the owner is told to try again in a minute.
+ *  - "failed": everything else, including a bare context or token "limit".
+ * [unverified against a live limit or rate response: nothing here may spend the live allocation to force one.]
  */
-export function classifyAiError(error: unknown): "limit" | "failed" {
+export function classifyAiError(error: unknown): "limit" | "busy" | "failed" {
   const e = (isRecord(error) || error instanceof Error ? error : {}) as { status?: unknown; code?: unknown; message?: unknown };
   const message = typeof e.message === "string" ? e.message : typeof error === "string" ? error : "";
   const codes = [e.code, e.status, ...(message.match(/\b\d{4}\b/g) ?? [])].map((c) => String(c));
-  if (codes.includes("3036") || codes.includes("4006")) return "limit";
-  if (codes.includes("3040") || /capacity/i.test(message)) return "failed";
-  if (e.status === 429 || e.code === 429) return "limit";
-  return /daily|neurons?/i.test(message) ? "limit" : "failed";
+  if (codes.includes("3036") || codes.includes("4006") || /daily|neurons?/i.test(message)) return "limit";
+  if (e.status === 429 || e.code === 429 || codes.includes("3040") || /capacity|rate[\s-]?limit|too many requests/i.test(message)) return "busy";
+  return "failed";
 }
 
 /** Why the model stopped, when the reply says: "length" means the answer was cut off at the token budget. */
@@ -194,15 +195,53 @@ function finishReason(raw: unknown): unknown {
   return (raw as { choices?: { finish_reason?: unknown }[] } | null)?.choices?.[0]?.finish_reason;
 }
 
+/**
+ * The longest the server waits for one model call. The browser gives up at 45 s (TRANSLATE_TIMEOUT_MS in the button); the
+ * server stops waiting a little sooner, so its answer is a clean 502 and not a reply nobody reads.
+ */
+export const TRANSLATE_DEADLINE_MS = 40_000;
+
+/**
+ * `work`, or a rejection when `ms` pass or `signal` aborts first. The Workers AI binding takes no abort signal (its
+ * documented options are gateway, rejectIfBusy and the like), so this only stops WAITING: the model call itself keeps
+ * running and its neurons are still spent. The timer and the listener are always cleared.
+ */
+export function raceDeadline<T>(work: Promise<T>, ms: number, signal?: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onAbort = () => done(() => reject(new Error("aborted")));
+    const done = (settle: () => void) => {
+      if (timer !== undefined) clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
+      settle();
+    };
+    if (signal?.aborted) return reject(new Error("aborted"));
+    timer = setTimeout(() => done(() => reject(new Error("deadline"))), ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
+    work.then(
+      (value) => done(() => resolve(value)),
+      (error) => done(() => reject(error)),
+    );
+  });
+}
+
 /** One target: skip empties, one model call, parse, same-shape check. Never throws. */
-export async function translateFields(run: AiRun, fields: Record<string, string | string[] | null>, target: TranslateTarget): Promise<TranslateOutcome> {
+export async function translateFields(
+  run: AiRun,
+  fields: Record<string, string | string[] | null>,
+  target: TranslateTarget,
+  options: { signal?: AbortSignal; deadlineMs?: number } = {},
+): Promise<TranslateOutcome> {
   const sent = withoutEmpty(fields);
   if (Object.keys(sent).length === 0) return { ok: true, fields: {} };
+  // The browser already gave up: nothing to wait for, and no neurons to spend.
+  if (options.signal?.aborted) return { ok: false, code: "translate_failed" };
   let raw: unknown;
   try {
-    raw = await run(translateRequest(sent, target));
+    raw = await raceDeadline(Promise.resolve().then(() => run(translateRequest(sent, target))), options.deadlineMs ?? TRANSLATE_DEADLINE_MS, options.signal);
   } catch (error) {
-    return { ok: false, code: classifyAiError(error) === "limit" ? "translate_limit" : "translate_failed" };
+    const kind = classifyAiError(error);
+    return { ok: false, code: kind === "limit" ? "translate_limit" : kind === "busy" ? "translate_busy" : "translate_failed" };
   }
   // A reply cut off at the token budget is its own failure, never read as a (possibly shortened) answer.
   if (finishReason(raw) === "length") return { ok: false, code: "translate_too_long" };
@@ -210,11 +249,16 @@ export async function translateFields(run: AiRun, fields: Record<string, string 
   return shape.ok ? { ok: true, fields: shape.fields } : { ok: false, code: "translate_failed" };
 }
 
-/** The route handler over a `run`: 200 with the drafts, 429 translate_limit, 502 translate_failed or translate_too_long. Logs nothing. */
+/**
+ * The route handler over a `run`: 200 with the drafts, 429 translate_limit (the daily allocation), 503 translate_busy (a
+ * rate or capacity answer: try again in a minute), 502 translate_failed or translate_too_long. Logs nothing. The request's
+ * own signal (the browser gave up) and TRANSLATE_DEADLINE_MS end the wait for the model.
+ */
 export function translateHandler(getRun: () => AiRun) {
-  return async ({ body }: { body: TranslateBody }): Promise<OpsResult> => {
-    const outcome = await translateFields(getRun(), body.fields, body.target);
+  return async ({ body, request }: { body: TranslateBody; request?: Request }): Promise<OpsResult> => {
+    const outcome = await translateFields(getRun(), body.fields, body.target, { signal: request?.signal });
     if (outcome.ok) return { body: { ok: true, target: body.target, fields: outcome.fields } };
-    return { status: outcome.code === "translate_limit" ? 429 : 502, body: errorBody(outcome.code) };
+    const status = outcome.code === "translate_limit" ? 429 : outcome.code === "translate_busy" ? 503 : 502;
+    return { status, body: errorBody(outcome.code) };
   };
 }

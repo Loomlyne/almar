@@ -92,7 +92,7 @@ test.describe("pictures", () => {
 // translate_limit (contract 5.11), and a request that never answers (45 s client abort), at 390 and 1440, EN and AR. The scene logs every onDrafts call as
 // "<target>:<field names>" in a hidden output.
 
-type Answer = 200 | 502 | 429;
+type Answer = 200 | 502 | 429 | 503;
 type Plan = { ar: Answer; es: Answer };
 
 const SOURCE_KEYS = ["name", "short_line", "summary"];
@@ -110,7 +110,7 @@ async function answerTranslate(page: Page, plan: Plan, hold?: Promise<void>) {
     const json =
       status === 200
         ? { ok: true, target: body.target, fields: Object.fromEntries(Object.keys(body.fields).map((k) => [k, `[${body.target} ${k}]`])) }
-        : { ok: false, error: { code: status === 429 ? "translate_limit" : "translate_failed", field: null, locale: null, detail: null } };
+        : { ok: false, error: { code: status === 429 ? "translate_limit" : status === 503 ? "translate_busy" : "translate_failed", field: null, locale: null, detail: null } };
     await route.fulfill({ status, contentType: "application/json", headers: { "cache-control": "no-store" }, body: JSON.stringify(json) });
   });
   return bodies;
@@ -193,6 +193,23 @@ test.describe("behaviour", () => {
           // A target that did come back is still filled as a draft.
           const expected = (["ar", "es"] as const).filter((t) => plan[t] === 200).map((t) => `${t}:name,short_line,summary`);
           expect(await logOf(page)).toEqual(expected);
+        });
+      }
+
+      // A rate or capacity answer (503 translate_busy): "try again in a minute", never the "resets 04:00" line (03.2-10b, round 3).
+      for (const [plan, line] of [
+        [{ ar: 503, es: 503 }, copy.retryLater],
+        [{ ar: 503, es: 502 }, copy.retryLater],
+        [{ ar: 200, es: 503 }, copy.partialArabicOnly],
+        [{ ar: 503, es: 200 }, copy.partialSpanishOnly],
+        [{ ar: 503, es: 429 }, copy.limit],
+      ] as [Plan, string][]) {
+        test(`503 busy (ar ${plan.ar}, es ${plan.es}) (${width} ${locale})`, async ({ page }) => {
+          await answerTranslate(page, plan);
+          await openScene(page, "live", viewport, locale, "ops-translate-live");
+          await button(page).click();
+          await expect(statusLine(page)).toHaveText(line);
+          if (line === copy.retryLater) await expect(page.getByText(copy.limit, { exact: true })).toHaveCount(0);
         });
       }
 

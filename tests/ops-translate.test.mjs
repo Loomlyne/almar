@@ -134,12 +134,15 @@ test("a well-formed answer of the wrong shape -> translate_failed", async () => 
 
 // ---- classifyAiError -----------------------------------------------------------------------------------------------
 
-test("classifyAiError: status or code 429, or a daily-allocation message -> limit; everything else -> failed", () => {
+test("classifyAiError: the daily allocation -> limit; a rate or capacity answer -> busy; everything else -> failed", () => {
+  // A 429 alone is not the daily limit (03.2-10b, round 3): a per-minute rate limit is a 429 too.
   const status = Object.assign(new Error("Too Many Requests"), { status: 429 });
-  assert.equal(t.classifyAiError(status), "limit");
-  assert.equal(t.classifyAiError({ status: 429 }), "limit");
+  assert.equal(t.classifyAiError(status), "busy");
+  assert.equal(t.classifyAiError({ status: 429 }), "busy");
+  assert.equal(t.classifyAiError(Object.assign(new Error("Rate limit exceeded: 50 requests per minute"), { status: 429 })), "busy");
+  assert.equal(t.classifyAiError(Object.assign(new Error("3036: daily free allocation"), { status: 429 })), "limit");
   assert.equal(t.classifyAiError(new Error("AiError: you have used up your daily free allocation of 10,000 neurons")), "limit");
-  assert.equal(t.classifyAiError({ code: 429 }), "limit");
+  assert.equal(t.classifyAiError({ code: 429 }), "busy");
   assert.equal(t.classifyAiError(new Error("Neuron allocation exhausted")), "limit");
   assert.equal(t.classifyAiError("daily cap"), "limit");
   // Cloudflare's error table (workers-ai/platform/errors, 2026-10-13): 3036 is the daily limit, 3040 (out of capacity) is
@@ -148,11 +151,12 @@ test("classifyAiError: status or code 429, or a daily-allocation message -> limi
   assert.equal(t.classifyAiError(Object.assign(new Error("AiError"), { code: 3036 })), "limit");
   assert.equal(t.classifyAiError({ code: "4006", message: "x" }), "limit");
   assert.equal(t.classifyAiError(new Error("AiError: 4006")), "limit");
-  assert.equal(t.classifyAiError(Object.assign(new Error("3040: Capacity temporarily exceeded, please try again."), { status: 429 })), "failed");
-  assert.equal(t.classifyAiError({ status: 429, code: 3040 }), "failed");
-  assert.equal(t.classifyAiError(Object.assign(new Error("Out of capacity"), { status: 429 })), "failed");
-  // A bare "limit" is not the daily allocation: a per-minute rate limit, a context or token limit.
-  for (const bare of ["Rate LIMIT exceeded", "context length limit exceeded", "max token limit reached"]) {
+  assert.equal(t.classifyAiError(Object.assign(new Error("3040: Capacity temporarily exceeded, please try again."), { status: 429 })), "busy");
+  assert.equal(t.classifyAiError({ status: 429, code: 3040 }), "busy");
+  assert.equal(t.classifyAiError(Object.assign(new Error("Out of capacity"), { status: 429 })), "busy");
+  // A rate limit without a status is busy; a bare context or token "limit" is neither the daily allocation nor busy.
+  assert.equal(t.classifyAiError(new Error("Rate LIMIT exceeded")), "busy");
+  for (const bare of ["context length limit exceeded", "max token limit reached"]) {
     assert.equal(t.classifyAiError(new Error(bare)), "failed", bare);
   }
   for (const other of [new Error("InferenceUpstreamError: 500"), Object.assign(new Error("bad"), { status: 500 }), new Error("binding missing"), null, undefined, 42]) {
@@ -235,7 +239,7 @@ test("route: 200 with the drafts, 429 translate_limit, 502 translate_failed, 400
   const ok = await call({ target: "ar", fields: SOURCE }, fakeRun(gemmaReply(JSON.stringify(AR))).run);
   assert.deepEqual(ok, { status: 200, body: { ok: true, target: "ar", fields: AR }, cache: "no-store" });
 
-  const limit = await call({ target: "es", fields: SOURCE }, fakeRun(Object.assign(new Error("x"), { status: 429 })).run);
+  const limit = await call({ target: "es", fields: SOURCE }, fakeRun(Object.assign(new Error("3036: you have used up your daily free allocation"), { status: 429 })).run);
   assert.deepEqual(limit, { status: 429, body: { ok: false, error: { code: "translate_limit", field: null, locale: null, detail: null } }, cache: "no-store" });
 
   const failed = await call({ target: "es", fields: SOURCE }, fakeRun(gemmaReply("not json")).run);
@@ -544,4 +548,91 @@ test("round 2, script: English plus an Arabic comma, or one stray Arabic word, i
 
 test("round 2: the Wave 0 check worker passes the target to checkSameShape", () => {
   assert.match(readFileSync("scripts/translate-check/worker.ts", "utf8"), /checkSameShape\(fields, out\.parsed, target\)/);
+});
+
+// ---- 03.2-10b round 3 (Grok 4.7 re-check of PR #5) -------------------------------------------------------------------------
+// Each test fails on ff37cfc.
+
+test("round 3, busy: a rate or capacity 429 is translate_busy, not translate_limit; only the daily allocation is the limit", async () => {
+  const rate = Object.assign(new Error("Rate limit exceeded"), { status: 429 });
+  assert.deepEqual(await t.translateFields(fakeRun(rate).run, SOURCE, "es"), { ok: false, code: "translate_busy" });
+  const capacity = Object.assign(new Error("3040: Capacity temporarily exceeded, please try again."), { status: 429 });
+  assert.deepEqual(await t.translateFields(fakeRun(capacity).run, SOURCE, "es"), { ok: false, code: "translate_busy" });
+  assert.deepEqual(await t.translateFields(fakeRun(Object.assign(new Error("x"), { status: 429 })).run, SOURCE, "es"), { ok: false, code: "translate_busy" });
+  const daily = Object.assign(new Error("3036: You have used up your daily free allocation of 10,000 neurons."), { status: 429 });
+  assert.deepEqual(await t.translateFields(fakeRun(daily).run, SOURCE, "es"), { ok: false, code: "translate_limit" });
+  assert.deepEqual(await t.translateFields(fakeRun(Object.assign(new Error("4006"), { status: 429 })).run, SOURCE, "es"), { ok: false, code: "translate_limit" });
+  const res = await call({ target: "ar", fields: SOURCE }, fakeRun(rate).run);
+  assert.deepEqual(res, { status: 503, body: { ok: false, error: { code: "translate_busy", field: null, locale: null, detail: null } }, cache: "no-store" });
+  const lim = await call({ target: "ar", fields: SOURCE }, fakeRun(daily).run);
+  assert.equal(lim.status, 429);
+  assert.equal(lim.body.error.code, "translate_limit");
+});
+
+test("round 3, busy: the retry line exists in en, ar and es and never mentions tomorrow or 04:00", () => {
+  for (const locale of ["en", "ar", "es"]) {
+    const line = OPS_TRANSLATE_COPY[locale].retryLater;
+    assert.ok(line && line.trim().length > 0, locale);
+    assert.equal(/04:00|tomorrow|mañana|غدًا/.test(line), false, `${locale}: ${line}`);
+  }
+  assert.match(OPS_TRANSLATE_COPY.en.retryLater, /minute/);
+  assert.equal(/\bInténtalo\b/.test(OPS_TRANSLATE_COPY.es.retryLater), false, "usted");
+});
+
+test("round 3, deadline: a model call that never answers is given up at the deadline: translate_failed, not a hang", async () => {
+  let calls = 0;
+  const never = async () => {
+    calls += 1;
+    return new Promise(() => undefined);
+  };
+  const started = Date.now();
+  const result = await t.translateFields(never, SOURCE, "ar", { deadlineMs: 40 });
+  assert.deepEqual(result, { ok: false, code: "translate_failed" });
+  assert.equal(calls, 1);
+  assert.ok(Date.now() - started < 2000);
+  assert.ok(t.TRANSLATE_DEADLINE_MS < 45_000 && t.TRANSLATE_DEADLINE_MS > 30_000, "just under the client's 45 s");
+});
+
+test("round 3, deadline: the browser giving up (request.signal) ends the wait; a signal already aborted never calls the model", async () => {
+  const controller = new AbortController();
+  const pending = t.translateFields(async () => new Promise(() => undefined), SOURCE, "es", { signal: controller.signal, deadlineMs: 60_000 });
+  setTimeout(() => controller.abort(), 20);
+  assert.deepEqual(await pending, { ok: false, code: "translate_failed" });
+
+  const gone = new AbortController();
+  gone.abort();
+  let called = 0;
+  const run = async () => {
+    called += 1;
+    return gemmaReply(JSON.stringify(AR));
+  };
+  assert.deepEqual(await t.translateFields(run, SOURCE, "ar", { signal: gone.signal }), { ok: false, code: "translate_failed" });
+  assert.equal(called, 0);
+});
+
+test("round 3, deadline: through the route, the request's signal reaches the handler; a fast answer clears its timer and listener", async () => {
+  const controller = new AbortController();
+  const request = new Request(`${OPS}/api/ops/translate`, {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: OPS, host: "dashboard.almarprivatejourney.com" },
+    body: JSON.stringify({ target: "ar", fields: SOURCE }),
+    signal: controller.signal,
+  });
+  const pending = runOps({ method: "POST", request, decide: async () => OWNER, parse: t.parseTranslate, handler: t.translateHandler(() => async () => new Promise(() => undefined)), nodeEnv: "production" });
+  setTimeout(() => controller.abort(), 30);
+  const res = await pending;
+  assert.equal(res.status, 502);
+  assert.equal((await res.json()).error.code, "translate_failed");
+
+  // A fast answer: no abort listener is left on the signal, and the work is not cancelled.
+  let removed = 0;
+  const signal = { aborted: false, addEventListener() {}, removeEventListener: () => (removed += 1) };
+  const ok = await t.translateFields(async () => gemmaReply(JSON.stringify(AR)), SOURCE, "ar", { signal });
+  assert.equal(ok.ok, true);
+  assert.equal(removed, 1);
+});
+
+test("round 3: raceDeadline passes the work's own result and error through", async () => {
+  assert.equal(await t.raceDeadline(Promise.resolve(7), 1000), 7);
+  await assert.rejects(t.raceDeadline(Promise.reject(new Error("boom")), 1000), /boom/);
 });

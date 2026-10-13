@@ -8,7 +8,7 @@ import { opsSend, type OpsResponse } from "./ops-client";
 
 /**
  * What the button shows. `idle` and `confirm` are the resting and asking states; `busy` while the two requests run;
- * the rest are the result line after a run (contract 5.11: 200 per target, 429 translate_limit, 502 translate_failed).
+ * the rest are the result line after a run (contract 5.11: 200 per target, 429 translate_limit, 503 translate_busy, 502 translate_failed).
  */
 export type TranslateView =
   | "idle"
@@ -20,6 +20,7 @@ export type TranslateView =
   | "partial-ar-limit"
   | "partial-es-limit"
   | "limit"
+  | "retry"
   | "failed";
 
 type Locale = "en" | "ar" | "es";
@@ -64,10 +65,11 @@ export function TranslateButtonView({
     "partial-ar-limit": copy.partialArabicLimit,
     "partial-es-limit": copy.partialSpanishLimit,
     limit: copy.limit,
+    retry: copy.retryLater,
     failed: copy.failed,
   };
   const result = lines[view] ?? "";
-  const isError = view === "limit" || view === "failed" || view === "partial-ar-limit" || view === "partial-es-limit";
+  const isError = view === "limit" || view === "retry" || view === "failed" || view === "partial-ar-limit" || view === "partial-es-limit";
 
   return (
     <div className="flex min-w-0 flex-col items-start gap-2">
@@ -123,6 +125,7 @@ export function sendable(source: Source): Drafts {
 /** How long one request may take before it is given up as failed; a stalled AI call otherwise holds "Translating…" ~100 s. */
 export const TRANSLATE_TIMEOUT_MS = 45_000;
 
+const isBusy = (r: OpsResponse<TranslateReply> | null) => r !== null && !r.ok && r.error.code === "translate_busy";
 const isLimit = (r: OpsResponse<TranslateReply> | null) => r !== null && !r.ok && r.status === 429 && r.error.code === "translate_limit";
 
 /**
@@ -138,6 +141,8 @@ export function outcomeView(ar: OpsResponse<TranslateReply> | null, es: OpsRespo
   if (arOk && esOk) return "done";
   if (arOk) return "partial-ar";
   if (esOk) return "partial-es";
+  // Nothing came back: busy (try again in a minute) when either was a rate or capacity answer, else failed.
+  if (isBusy(ar) || isBusy(es)) return "retry";
   return "failed";
 }
 
