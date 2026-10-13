@@ -136,6 +136,13 @@ test("the log never prints a key or the Supabase URL", async () => {
   assert.equal(all.includes("SECRETISH"), false);
 });
 
+test("source: the sequence comes from 03.2-02b's readPublishSequence on the pinned host; no second reader", () => {
+  const src = readFileSync("scripts/build-live.mjs", "utf8");
+  assert.match(src, /import \{ assertLiveSupabaseUrl, readPublishSequence \} from "\.\/assemble-cloudflare\.mjs";/);
+  assert.match(src, /assertLiveSupabaseUrl\("NEXT_PUBLIC_SUPABASE_URL", env\.NEXT_PUBLIC_SUPABASE_URL\);\s*return readPublishSequence\(/);
+  assert.equal(/api_site_version\?select|rest\/v1/.test(src), false, "no request of its own to the view");
+});
+
 test("source: build-live never runs wrangler and never reads a service key", () => {
   const src = readFileSync("scripts/build-live.mjs", "utf8");
   assert.equal(/wrangler/.test(src.replace(/^\/\/.*$/gm, "")), false, "no wrangler call outside comments");

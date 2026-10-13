@@ -5,8 +5,8 @@
 // 1. Branch guard (C-02): builds only from branch `live`, so a Publish click changes content, never code.
 // 2. Settle (C-03): sleeps ALMAR_PUBLISH_SETTLE_SECONDS (default 120, 0..600). Clicks inside this window are in this build;
 //    a click during the build queues one more build (Free plan: one build at a time), so a burst gives at most two.
-// 3. Reads the publish sequence (api_site_version.requested_seq, anon key) BEFORE any content is read, so a click during
-//    the build is picked up by the next build and never lost.
+// 3. Reads the publish sequence (api_site_version.requested_seq, anon key; 03.2-02b's readPublishSequence on the pinned
+//    live host) BEFORE any content is read, so a click during the build is picked up by the next build and never lost.
 // 4. node scripts/assemble-cloudflare.mjs --target=production (database only, refuses fixtures and empty data).
 // 5. Writes out/site-version.json { seq, built_at, commit }: what the dashboard compares with the request (served no-store).
 //
@@ -18,6 +18,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertLiveSupabaseUrl, readPublishSequence } from "./assemble-cloudflare.mjs";
 
 export const LIVE_BRANCH = "live";
 export const DEFAULT_SETTLE_SECONDS = 120;
@@ -92,32 +93,6 @@ function git(args) {
   }
 }
 
-/**
- * TEMPORARY until 03.2-02b lands (controller, 2026-10-13, answer A): then this is replaced by readPublishSequence from
- * scripts/assemble-cloudflare.mjs, so the sequence has one reader. Same request as 02b's: the PostgREST view with the
- * anon key, outside Next, no cache; messages name the view and the status, never the URL or the key.
- */
-async function readSeqFromView(env) {
-  const url = String(env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
-  const key = String(env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
-  if (!url || !key) throw new Error("NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are build variables");
-  let res;
-  try {
-    res = await fetch(`${new URL(url).origin}/rest/v1/api_site_version?select=requested_seq`, {
-      headers: { apikey: key, authorization: `Bearer ${key}`, accept: "application/json" },
-      cache: "no-store",
-      signal: AbortSignal.timeout(30_000),
-    });
-  } catch {
-    throw new Error("api_site_version: network error or timeout");
-  }
-  if (!res.ok) throw new Error(`api_site_version: HTTP ${res.status}`);
-  const rows = await res.json().catch(() => null);
-  const seq = Array.isArray(rows) && rows.length === 1 ? rows[0]?.requested_seq : undefined;
-  if (typeof seq !== "number" && typeof seq !== "string") throw new Error("api_site_version: expected one row");
-  return seq;
-}
-
 async function main() {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const env = process.env;
@@ -126,7 +101,12 @@ async function main() {
     branch: () => env.WORKERS_CI_BRANCH || git(["rev-parse", "--abbrev-ref", "HEAD"]),
     commit: () => env.WORKERS_CI_COMMIT_SHA || git(["rev-parse", "HEAD"]),
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-    readSeq: () => readSeqFromView(env),
+    // 03.2-02b's reader (the PostgREST view, anon key, outside Next, no cache), on the pinned live host only. The
+    // assembler reads it again before and after its build and fails if it moved.
+    readSeq: async () => {
+      assertLiveSupabaseUrl("NEXT_PUBLIC_SUPABASE_URL", env.NEXT_PUBLIC_SUPABASE_URL);
+      return readPublishSequence({ url: env.NEXT_PUBLIC_SUPABASE_URL, anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY });
+    },
     runAssemble: () =>
       spawnSync(process.execPath, [path.join(root, "scripts", "assemble-cloudflare.mjs"), "--target=production"], {
         cwd: root,
