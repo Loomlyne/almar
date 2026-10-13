@@ -5,6 +5,8 @@ import polyBlack from "../../brand/Logo Typography/Poly_Black.svg";
 import { Button } from "./button";
 import { Divider } from "./divider";
 import { useToast } from "./toast";
+import { postPreferences } from "../site/account-sync";
+import { isDocumentLocale } from "../../lib/set-document-locale";
 
 const LINK =
   "inline-flex min-h-control max-w-full items-center break-words font-body text-body text-ivory underline decoration-1 underline-offset-4";
@@ -122,6 +124,16 @@ function Newsletter({
 }
 
 /**
+ * A footer language link, like the header picker (02-05b), offers the pick to her account before the browser follows the
+ * link (fire-and-forget; the server saves it only when she is signed in). The current language is no change, so it
+ * sends nothing. The link itself stays a plain link: with JavaScript off it still works, it just saves nothing.
+ */
+function offerLanguage(item: FooterLanguageLink) {
+  if (item.current || !isDocumentLocale(item.lang)) return;
+  postPreferences({ locale: item.lang });
+}
+
+/**
  * The public footer. Every string arrives through `copy`; the contact details default to the
  * owner's. There is no newsletter form unless `newsletter` is true AND an `onSubscribe` handler is
  * given: a form that does nothing is a fake control. The "List with us" slot renders nothing until
@@ -209,6 +221,7 @@ export function SiteFooter({
                     hrefLang={item.lang}
                     lang={item.lang}
                     aria-current={item.current ? "true" : undefined}
+                    onClick={() => offerLanguage(item)}
                   >
                     {item.label}
                   </a>
@@ -286,6 +299,7 @@ export function SiteFooter({
                   hrefLang={item.lang}
                   lang={item.lang}
                   aria-current={item.current ? "true" : undefined}
+                  onClick={() => offerLanguage(item)}
                 >
                   {item.label}
                 </a>
