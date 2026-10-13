@@ -62,9 +62,14 @@ Language keeps its 02-05 behaviour (reverting it flipped the signed AR screensho
   closes them; proven on the built Worker against the local stack. The three 404s now take the colours and close too.
 - Brand reach measured over every page in `out/`: all design-Teal elements take a saved Teal (0 Framer pages remain).
 
+## Round 4 (PR #14 review)
+
+- The gate reads the flag on every request and keeps the last good read through a failed one.
+- A settings save is all or nothing (profile first, put back if the settings write fails).
+- `/account` ignores preference results overtaken by a later click.
+
 ## Not done
 
-- The settings write and the profile write are two updates, not one transaction.
 - `lib/supabase/database.types.ts` refresh: a separate job after landing.
 
 ## Tests

@@ -68,6 +68,24 @@ On `9aa36e5` (merge commit; chain 2026-10-13 23:46 to 2026-10-14 00:11) and agai
   `lib/site-settings.ts` (`tests/data-contract.test.mjs`). Fixed in `eedee97` (the media URL helpers moved to
   `lib/site-settings-read.ts`, which imports `mediaUrl`). That run's 20-minute lock waits (5 stack tests) did not recur.
 
+## Round 4: PR #14 review (Grok 4.7), `513e1df`
+
+1. MED, gate cache: `/login`, `/account`, `/bookings` read the flag on every request (`maxAgeMs: 0`). A failed read
+   returns the last good settings (a closed site stays closed); open only when there never was a good read. Node
+   tests: saved on closes on the next request; an error after a closed read stays closed; an error with no prior read is
+   open. Built Worker: `maintenance-runtime.spec.ts` adds saved off/on taking effect on the next request (4/4).
+   Bite: returning null on a failed read fails 2 tests; restoring the 30 s gate cache fails 1.
+2. MED, not atomic: `postSettings` writes her profile first; a failed profile write writes nothing else; a failed
+   settings write puts her profile back. Success only when both committed. Tests inject each failure.
+3. LOW, `/account`: `saveTracker` (generation counter, `lib/account-preferences.ts`): an overtaken result changes
+   nothing on screen; a failure shows the last saved value (a committed save still reaches the browser choice). Tests.
+4. Types refresh: follow-up job (agreed).
+
+Checks on `513e1df` (2026-10-14 00:45 to 00:47 +04, one stack, stopped after): tsc exit 0; related node tests 231
+pass, 0 fail (2 stack skips, then run with the stack: `preferences-local` 2/2, `ops-api-local` 11/11); built public
+Worker `maintenance-runtime.spec.ts` 4/4; dev server `--workers=2` `account-select`, `header-i18n`, `ops-settings`
+28/28.
+
 ## Item 2 proof: which of /login, /account, /bookings the Worker serves
 
 The premise "the Worker runs only for /api/*" is from job 10. Plan 02-23 task 3 added the sign-in paths to
@@ -211,7 +229,6 @@ deploy; `/login`, `/account`, `/bookings` close within 30 s regardless.
   buttons; Gold is lines only, never a fill. Done in round 3 (`lib/email/magic-link.ts`, guest and ops: one renderer).
   The email has no gold line, so Gold no longer appears in it. Pictures: `pictures/02-06/email-{default,saved-teal}-{en,ar,es}.png`
   (600 px, `shoot-email.mjs`, rendered by the real renderer; saved Teal `#2b4f56`).
-- The settings write and the profile write are two updates, not one transaction.
 - `lib/supabase/database.types.ts` is stale (this and earlier migrations): a separate refresh after landing (agreed).
 
 ## Deviations from the plan
