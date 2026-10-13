@@ -16,7 +16,7 @@ const LOGO_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 type Owner = { profile: { id: string; locale: "en" | "ar" | "es"; currency: "AED" | "USD" | "EUR" }; admin: SupabaseClient };
 
-export type SettingsLogo = { id: string; key: string; url: string; width: number | null; height: number | null };
+export type SettingsLogo = { id: string; key: string; url: string; width: number | null; height: number | null; bytes: number | null; content_type: string | null };
 
 export type SettingsView = {
   colors: BrandColors;
@@ -53,7 +53,7 @@ async function readRow(admin: SupabaseClient): Promise<{ row: Row } | { dbError:
   return { row: (data ?? {}) as Row };
 }
 
-async function readLogo(admin: SupabaseClient, id: string): Promise<{ logo: (SettingsLogo & { bytes: number | null; content_type: string | null }) | null } | { dbError: { code?: string; message?: string } }> {
+async function readLogo(admin: SupabaseClient, id: string): Promise<{ logo: SettingsLogo | null } | { dbError: { code?: string; message?: string } }> {
   const { data, error } = await admin.from("media").select("id, key, width, height, bytes, content_type").eq("id", id).maybeSingle();
   if (error) return { dbError: error };
   if (!data) return { logo: null };
@@ -79,7 +79,7 @@ export async function getSettings({ owner, loadRates }: { owner: Owner; loadRate
   if (typeof row.logo_media_id === "string") {
     const found = await readLogo(owner.admin, row.logo_media_id);
     if ("dbError" in found) return found;
-    if (found.logo) logo = { id: found.logo.id, key: found.logo.key, url: found.logo.url, width: found.logo.width, height: found.logo.height };
+    logo = found.logo;
   }
   const rates = await loadRates().catch(() => null);
   const settings: SettingsView = {
