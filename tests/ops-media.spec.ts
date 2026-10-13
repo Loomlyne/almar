@@ -1,5 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
+import { crc32, deflateSync } from "node:zlib";
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { DASHBOARD_COPY } from "../lib/copy/dashboard";
 import { OPS_MEDIA_COPY } from "../lib/copy/ops-media";
@@ -150,6 +151,30 @@ async function mockApi(page: Page, opts: { delete?: { status: number; json: unkn
 /** A tiny real PNG: the browser decodes and re-encodes it before sending. */
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
 
+/**
+ * A real 3000x2000 PNG of about 18 MB (one flat colour, stored without compression): over the 10 MB limit as picked,
+ * about a kilobyte once the browser scales it to 2560 px and re-encodes it (job 03.2-09b, review finding 2).
+ */
+function bigPng(width = 3000, height = 2000): Buffer {
+  const chunk = (type: string, data: Buffer) => {
+    const head = Buffer.alloc(8);
+    head.writeUInt32BE(data.length, 0);
+    head.write(type, 4, "ascii");
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(crc32(Buffer.concat([head.subarray(4), data])), 0);
+    return Buffer.concat([head, data, crc]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr.set([8, 2, 0, 0, 0], 8); // 8-bit RGB, no interlace
+  const row = Buffer.alloc(1 + width * 3, 0x9a); // a sand colour
+  row[0] = 0; // filter: none
+  const raw = Buffer.concat(Array.from({ length: height }, () => row));
+  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  return Buffer.concat([signature, chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw, { level: 0 })), chunk("IEND", Buffer.alloc(0))]);
+}
+
 async function openRealPage(page: Page, viewport: Viewport, locale: Locale3, baseURL: string | undefined) {
   await page.setViewportSize(VIEWPORTS[viewport]);
   await page.context().addCookies([{ name: "almar-locale", value: locale, url: baseURL ?? "http://127.0.0.1:3010" }]);
@@ -242,24 +267,31 @@ test.describe("behaviour", () => {
         await expect(page.getByText("0123456789abcdef0123456789abcdef.webp")).toBeVisible();
       });
 
-      test(`upload: a 16 MB file shows the size message and sends nothing; a HEIC shows the type message (${at})`, async ({ page }) => {
+      test(`upload: an 18 MB photo is not refused when picked, it is re-encoded under 10 MB and sent; a HEIC shows the type message (${at})`, async ({ page }) => {
         const api = await mockApi(page);
         await openScene(page, "field-empty", viewport, locale);
         await page.locator("#media-hero").click();
         const picker = dialog(page);
         const chooser = page.waitForEvent("filechooser");
         await picker.getByRole("button", { name: copy.uploadPhoto, exact: true }).click();
-        await (await chooser).setFiles({ name: "big.jpg", mimeType: "image/jpeg", buffer: Buffer.alloc(16 * 1024 * 1024) });
-        await expect(picker.getByRole("alert")).toContainText(copy.tooLarge);
+        const big = bigPng();
+        expect(big.length).toBeGreaterThan(15 * 1024 * 1024);
+        await (await chooser).setFiles({ name: "phone.png", mimeType: "image/png", buffer: big });
+        await expect(picker.getByRole("alert")).toHaveCount(0);
         await picker.getByLabel(copy.altEnRequired).fill("Anything");
-        await expect(picker.getByRole("button", { name: copy.upload, exact: true })).toBeDisabled();
-        expect(api.puts).toHaveLength(0);
+        await picker.getByRole("button", { name: copy.upload, exact: true }).click();
+        await expect(picker.getByText(copy.uploaded)).toBeVisible({ timeout: 30_000 });
+        expect(api.puts).toHaveLength(1);
+        expect(api.puts[0]!.bytes).toBeGreaterThan(0);
+        expect(api.puts[0]!.bytes).toBeLessThanOrEqual(10 * 1024 * 1024);
+        expect(api.puts[0]!.headers["x-almar-width"]).toBe("2560");
+        expect(api.puts[0]!.headers["x-almar-height"]).toBe("1707");
         await picker.getByRole("button", { name: copy.choosePhoto, exact: true }).click();
         const second = page.waitForEvent("filechooser");
         await picker.getByRole("button", { name: copy.uploadPhoto, exact: true }).click();
         await (await second).setFiles({ name: "IMG_0001.HEIC", mimeType: "image/heic", buffer: Buffer.from("heic") });
         await expect(picker.getByRole("alert")).toContainText(copy.wrongType);
-        expect(api.puts).toHaveLength(0);
+        expect(api.puts, "the HEIC sends nothing").toHaveLength(1);
       });
 
       test(`gallery: Add photos takes several, in order (${at})`, async ({ page }) => {
