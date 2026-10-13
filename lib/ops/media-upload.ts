@@ -8,9 +8,10 @@
 // body is piped through a length stream of exactly Content-Length bytes into `put` with the hex sha256, so R2 refuses
 // bytes that do not match (this code never reads the file whole). Only after a stored object does
 // `ops_save_media` record the row. Never Supabase Storage. Nothing here logs: alt text, keys and headers never reach
-// a log. Note (job 03.2-09b): on Cloudflare, OpenNext's edge converter has already read the whole request body into
-// memory before this runs (@opennextjs/aws overrides/converters/edge.js reads it as one ArrayBuffer), so the 10 MB
-// limit (validate-media.ts) is also the memory bound of one upload.
+// a log. Note (job 03.2-09b): on Cloudflare, OpenNext has already read the whole request body into memory before this
+// runs (@opennextjs/aws overrides/converters/edge.js, in its routing layer and again for the server function, for every
+// non-GET request whatever the middleware matcher says), so the 10 MB limit (validate-media.ts) is also the memory
+// bound of one upload.
 
 import type { MediaItem } from "../../components/ops/media-types";
 import { mediaRef } from "./shape";
