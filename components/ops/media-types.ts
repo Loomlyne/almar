@@ -13,8 +13,8 @@ export type MediaItem = MediaRef & {
   used_by: number;
 };
 
-/** The largest file the owner can send, in bytes (contract 5.10: 15 MB). */
-export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+/** The largest file the owner can send, in bytes: 10 MB, as the server's MAX_UPLOAD_BYTES (job 03.2-09b). */
+export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 export const UPLOAD_TYPES = "image/jpeg,image/png,image/webp";
 
