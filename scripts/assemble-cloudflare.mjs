@@ -493,7 +493,10 @@ async function main(argv = process.argv.slice(2)) {
     publicDir: path.join(root, "public"),
     pages: target !== "ops",
   });
-  const siteReport = site ? applySiteSettings({ outDir, pages: report.pages, settings: site.settings, logo: site.logo }) : null;
+  // Plan 02-06: the three branded 404s take the saved colours and close with the site too (lib/not-found-document.ts
+  // reads the colour variables, falling back to the design system's values).
+  const notFoundPages = report.notFound.map((dest) => ({ dest, locale: dest === "404.html" ? "en" : dest.slice(0, 2) }));
+  const siteReport = site ? applySiteSettings({ outDir, pages: [...report.pages, ...notFoundPages], settings: site.settings, logo: site.logo }) : null;
   // _headers, robots.txt and sitemap.xml are written per target, never copied from public/.
   const htmlFiles = listFiles(outDir)
     .filter((f) => f.rel.endsWith(".html"))

@@ -119,3 +119,11 @@ test("closed page from the public Worker: a saved logo comes from the image host
   const plain = await (await g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: "en", env, now: 1, fetcher: plainOn })).text();
   assert.ok(plain.includes('<img src="/brand/wordmark.svg"'));
 });
+
+test("the three 404s take the saved colours and close with the site (the rebuild lists them; the document reads the variables)", () => {
+  const doc = read("lib/not-found-document.ts");
+  assert.match(doc, /a \{ color: var\(--color-teal, #1f3b40\);/);
+  assert.match(doc, /background: var\(--color-ivory, #fffaf0\); color: var\(--color-ink, #262626\);/);
+  const assembler = read("scripts/assemble-cloudflare.mjs");
+  assert.match(assembler, /applySiteSettings\(\{ outDir, pages: \[\.\.\.report\.pages, \.\.\.notFoundPages\]/);
+});
