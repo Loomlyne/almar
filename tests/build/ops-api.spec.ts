@@ -29,9 +29,10 @@ test.skip(!OPS_RUN, "runs only with an ops test config (PW_WRANGLER_CONFIG=.tmp/
 const OPS_HOST = "dashboard.almarprivatejourney.com";
 const OPS_ORIGIN = `https://${OPS_HOST}`;
 const OWNER_EMAIL = "maria@almarprivatejourney.com";
-const ROUTES = ["blocks", "catalog", "destinations", "journeys", "publish", "stay-access", "stay-rates", "stays", "team", "translate"];
-// publish and translate (03.2-10) export POST only.
-const GET_ROUTES = ROUTES.filter((r) => r !== "publish" && r !== "translate");
+const ROUTES = ["blocks", "catalog", "destinations", "journeys", "media", "publish", "site-status", "site-update", "stay-access", "stay-rates", "stays", "team", "translate"];
+// publish, translate (03.2-10) and site-update (03.2-05) export POST only; site-status (03.2-05) exports GET only.
+const GET_ROUTES = ROUTES.filter((r) => r !== "publish" && r !== "translate" && r !== "site-update");
+const POST_ROUTES = ROUTES.filter((r) => r !== "site-status");
 
 test.use({ extraHTTPHeaders: { host: OPS_HOST } });
 
@@ -50,7 +51,7 @@ async function expectRefusal(res: Awaited<ReturnType<APIRequestContext["get"]>>,
 }
 
 test.describe("owner API on the built ops Worker: no owner session", () => {
-  test("A1. the route list holds the ten /api/ops paths and nothing else under /api/ops", () => {
+  test("A1. the route list holds the thirteen /api/ops paths and nothing else under /api/ops", () => {
     const paths: string[] = JSON.parse(readFileSync(".open-next/almar-ops-routes.json", "utf8"));
     expect(paths.filter((p) => p.startsWith("/api/ops/")).sort()).toEqual(ROUTES.map((r) => `/api/ops/${r}`));
   });
@@ -61,7 +62,7 @@ test.describe("owner API on the built ops Worker: no owner session", () => {
   });
 
   test("A3. every POST without a session is 403 not_owner, whatever its origin, type or size (owner first)", async ({ request }) => {
-    for (const route of ROUTES) {
+    for (const route of POST_ROUTES) {
       await expectRefusal(await request.post(`/api/ops/${route}`, { headers: json, data: { action: "save", item: {} }, maxRedirects: 0 }), 403, "not_owner", route);
     }
     const variants: Array<{ headers: Record<string, string>; data: string }> = [

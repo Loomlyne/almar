@@ -6,8 +6,8 @@
 // the hook is still queued, or "error:<reason>") is recorded with site_record_hook(). The content is saved before any of
 // this, so nothing here ever undoes or blocks a save.
 //
-// PUBLISH_DEPLOY_HOOK_URL is a Worker secret on almar-ops only (OpenNext exposes Worker secrets on process.env, like
-// SUPABASE_SERVICE_ROLE_KEY). It is read in this file only, and never logged or returned: the URL is the credential.
+// PUBLISH_DEPLOY_HOOK_URL is a Worker secret on almar-ops only (OpenNext exposes Worker secrets on process.env, like the
+// service-role key in lib/supabase/clients.ts). It is read in this file only, and never logged or returned: the URL is the credential.
 
 import { OpsInvalid, type OpsOutcome } from "./route-core";
 import { computeSiteStatus, type LiveVersion, type PublishState, type SiteStatus } from "./site-status";
