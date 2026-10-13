@@ -78,29 +78,38 @@ test("/account shows the currency the site uses: the browser choice, else her ro
   for (const bad of [null, undefined, "", "usd", "GBP", "USD "]) assert.equal(p.shownAccountCurrency(bad, "AED"), "AED");
 });
 
-test("saveTracker (PR #14 review): only the latest /account click changes the screen; a failure shows the last saved value", () => {
+test("saveTracker (PR #14 review): only the latest /account click changes the screen; a failure shows the newest saved value", () => {
   const t = p.saveTracker("AED");
   const a = t.begin(); // she picks USD
   const b = t.begin(); // then EUR before the first answer
-  assert.equal(t.settle(a, true, "USD"), null, "the first answer is overtaken: ignored on screen");
-  assert.equal(t.settle(b, false, "EUR"), "USD", "the latest failed: show what the database holds (USD committed)");
+  assert.deepEqual(t.settle(a, true, "USD"), { show: null, store: true }, "overtaken on screen; still the newest success so far");
+  assert.deepEqual(t.settle(b, false, "EUR"), { show: "USD", store: false }, "the latest failed: show the newest saved value (USD)");
 
   const u = p.saveTracker("AED");
   const c = u.begin();
   const d = u.begin();
-  assert.equal(u.settle(d, true, "EUR"), "EUR");
-  assert.equal(u.settle(c, false, "USD"), null, "a late failure of an older click changes nothing");
-  assert.equal(u.settle(u.begin(), false, "USD"), "EUR");
+  assert.deepEqual(u.settle(d, true, "EUR"), { show: "EUR", store: true });
+  assert.deepEqual(u.settle(c, false, "USD"), { show: null, store: false }, "a late failure of an older click changes nothing");
+  assert.deepEqual(u.settle(u.begin(), false, "USD"), { show: "EUR", store: false });
 
   const w = p.saveTracker("AED");
   w.adopt("USD");
-  assert.equal(w.settle(w.begin(), false, "EUR"), "USD", "the currency the page opened with is the fallback");
+  assert.deepEqual(w.settle(w.begin(), false, "EUR"), { show: "USD", store: false }, "the currency the page opened with is the fallback");
+});
+
+test("saveTracker (PR #14 review round 2): USD clicked, EUR clicked, EUR succeeds, then the USD success arrives: nothing changes", () => {
+  const t = p.saveTracker("AED");
+  const usd = t.begin();
+  const eur = t.begin();
+  assert.deepEqual(t.settle(eur, true, "EUR"), { show: "EUR", store: true }, "EUR is shown and stored in the browser");
+  assert.deepEqual(t.settle(usd, true, "USD"), { show: null, store: false }, "the older success neither shows nor stores USD");
+  assert.deepEqual(t.settle(t.begin(), false, "AED"), { show: "EUR", store: false }, "the saved value is still EUR, not USD");
 });
 
 test("/account wires the tracker: an overtaken result returns before touching the screen", async () => {
   const { readFileSync } = await import("node:fs");
   const screen = readFileSync("app/account/account-screen.tsx", "utf8");
   assert.match(screen, /const ticket = prefSaves\.current\.begin\(\);/);
-  assert.match(screen, /const shown = prefSaves\.current\.settle\(ticket, ok, nextCurrency\);\s*if \(shown === null\) return;\s*setPrefState\(result\);\s*setCurrency\(shown\);/);
+  assert.match(screen, /const \{ show: shown, store \} = prefSaves\.current\.settle\(ticket, result\.status === "saved", nextCurrency\);\s*if \(store\) storeCurrencyChoice\(nextCurrency\);\s*if \(shown === null\) return;\s*setPrefState\(result\);\s*setCurrency\(shown\);/);
   assert.match(screen, /prefSaves\.current\.adopt\(shown\);/);
 });

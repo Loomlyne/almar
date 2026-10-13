@@ -54,3 +54,82 @@ create policy "media: anon reads the site logo" on public.media
   for select to anon using (
     exists (select 1 from public.site_settings s where s.id = 1 and s.logo_media_id = media.id)
   );
+
+-- One Settings save is one transaction (PR #14 review): the settings row and the owner's own language and currency
+-- commit together or not at all. Only the service role calls it (the owner API, after its owner check). It validates
+-- every input the way lib/settings/validate.ts and lib/settings/handlers.ts do (the contrast gate stays in the app,
+-- before the call); any refusal raises, so nothing is written.
+create or replace function public.save_site_settings(
+  p_owner_id uuid,
+  p_teal text,
+  p_charcoal text,
+  p_gold text,
+  p_ivory text,
+  p_white text,
+  p_title_face text,
+  p_body_face text,
+  p_vat_percent numeric,
+  p_deposit_percent numeric,
+  p_maintenance boolean,
+  p_logo_media_id uuid,
+  p_locale text,
+  p_currency text
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_colour text;
+begin
+  foreach v_colour in array array[p_teal, p_charcoal, p_gold, p_ivory, p_white] loop
+    if v_colour is not null and v_colour !~ '^#[0-9a-f]{6}$' then
+      raise exception 'save_site_settings: a colour is not #rrggbb' using errcode = '22023';
+    end if;
+  end loop;
+  if p_title_face is distinct from 'Questa' or p_body_face is distinct from 'Lato' then
+    raise exception 'save_site_settings: a face is not the design system''s' using errcode = '22023';
+  end if;
+  if p_vat_percent is not null and (p_vat_percent < 0 or p_vat_percent > 100 or p_vat_percent <> round(p_vat_percent, 2)) then
+    raise exception 'save_site_settings: VAT is not a percent with two places' using errcode = '22023';
+  end if;
+  if p_deposit_percent is not null and (p_deposit_percent < 0 or p_deposit_percent > 100 or p_deposit_percent <> round(p_deposit_percent, 2)) then
+    raise exception 'save_site_settings: the deposit is not a percent with two places' using errcode = '22023';
+  end if;
+  if p_maintenance is null then
+    raise exception 'save_site_settings: maintenance is required' using errcode = '22023';
+  end if;
+  if p_locale is null or p_locale not in ('en', 'ar', 'es') or p_currency is null or p_currency not in ('AED', 'USD', 'EUR') then
+    raise exception 'save_site_settings: language or currency is not allowed' using errcode = '22023';
+  end if;
+  if p_logo_media_id is not null and not exists (
+    select 1 from public.media m
+     where m.id = p_logo_media_id
+       and m.content_type in ('image/png', 'image/jpeg', 'image/webp')
+       and m.bytes is not null and m.bytes <= 1048576
+  ) then
+    raise exception 'save_site_settings: the logo is not a PNG, JPEG or WebP up to 1 MB' using errcode = '22023';
+  end if;
+  if not exists (select 1 from public.profiles p where p.id = p_owner_id and p.role = 'owner') then
+    raise exception 'save_site_settings: not the owner' using errcode = '42501';
+  end if;
+
+  update public.site_settings
+     set teal = p_teal, charcoal = p_charcoal, gold = p_gold, ivory = p_ivory, white = p_white,
+         title_face = p_title_face, body_face = p_body_face,
+         vat_percent = p_vat_percent, deposit_percent = p_deposit_percent,
+         maintenance = p_maintenance, logo_media_id = p_logo_media_id
+   where id = 1;
+  if not found then
+    raise exception 'save_site_settings: the settings row is missing' using errcode = 'P0002';
+  end if;
+
+  update public.profiles set locale = p_locale, currency = p_currency where id = p_owner_id;
+end;
+$$;
+
+revoke execute on function public.save_site_settings(uuid, text, text, text, text, text, text, text, numeric, numeric, boolean, uuid, text, text)
+  from public, anon, authenticated;
+grant execute on function public.save_site_settings(uuid, text, text, text, text, text, text, text, numeric, numeric, boolean, uuid, text, text)
+  to service_role;

@@ -43,6 +43,11 @@ function fakeAdmin({ row = { vat_percent: 5, deposit_percent: 30, maintenance: f
       };
       return chain;
     },
+    async rpc(fn, args) {
+      if (failOn === `rpc:${fn}`) return { data: null, error: { code: "22023", message: "boom" } };
+      writes.push({ rpc: fn, args });
+      return { data: null, error: null };
+    },
   };
   return { admin, writes };
 }
@@ -67,19 +72,23 @@ test("parseSettingsSave: the whole form, exact values; percents two places, empt
   assert.throws(() => v.parseSettingsSave({ ...SAVE, vat_percent: "5.125" }), (e) => e.field === "vat_percent");
 });
 
-test("postSettings: writes the singleton and her language/currency; tokens stored as null; no rebuild when only VAT changes", async () => {
+test("postSettings: one call saves the singleton and her language/currency together; tokens sent as null; no rebuild when only VAT changes", async () => {
   const { admin, writes } = fakeAdmin();
   let rebuilds = 0;
   const out = await h.postSettings({ owner: owner(admin), body: { ...SAVE, vat_percent: "7.50", locale: "ar", currency: "USD" }, requestRebuild: async () => { rebuilds += 1; } });
   assert.deepEqual(out.body, { ok: true, affects_site: false });
   assert.equal(rebuilds, 0);
-  const settings = writes.find((w) => w.table === "site_settings");
-  assert.deepEqual(settings.filters, [["id", 1]]);
-  assert.equal(settings.values.teal, null);
-  assert.equal(settings.values.vat_percent, "7.50");
-  assert.equal("radius" in settings.values, false);
-  const profile = writes.find((w) => w.table === "profiles");
-  assert.deepEqual(profile, { table: "profiles", values: { locale: "ar", currency: "USD" }, filters: [["id", "owner-id"]] });
+  assert.deepEqual(writes, [{
+    rpc: "save_site_settings",
+    args: {
+      p_owner_id: "owner-id",
+      p_teal: null, p_charcoal: null, p_gold: null, p_ivory: null, p_white: null,
+      p_title_face: "Questa", p_body_face: "Lato",
+      p_vat_percent: "7.50", p_deposit_percent: "30.00",
+      p_maintenance: false, p_logo_media_id: null,
+      p_locale: "ar", p_currency: "USD",
+    },
+  }], "one transaction, no direct table writes");
 });
 
 test("postSettings: maintenance, a colour or the logo affects the site and asks for one rebuild", async () => {
@@ -122,7 +131,7 @@ test("postSettings: a logo that is missing, too big or not PNG/JPEG/WebP is refu
 });
 
 test("postSettings / getSettings: a database error is handed back for the wrapper to map (503), never echoed", async () => {
-  const { admin } = fakeAdmin({ failOn: "write:site_settings" });
+  const { admin } = fakeAdmin({ failOn: "rpc:save_site_settings" });
   const out = await h.postSettings({ owner: owner(admin), body: SAVE, requestRebuild: async () => {} });
   assert.ok("dbError" in out);
   const read = await h.getSettings({ owner: owner(fakeAdmin({ failOn: "read:site_settings" }).admin), loadRates: async () => null });
@@ -146,21 +155,12 @@ test("getSettings: the row's VAT and deposit, design-system colours for nulls, l
   assert.equal(none.body.settings.vat_percent, null);
 });
 
-test("postSettings is all or nothing: a failed profile write leaves the settings row unwritten and replies with the error", async () => {
-  const { admin, writes } = fakeAdmin({ failOn: "write:profiles" });
+test("postSettings: a failed save (one transaction) replies with the error, writes nothing else and asks for no rebuild", async () => {
+  const { admin, writes } = fakeAdmin({ failOn: "rpc:save_site_settings" });
   let rebuilds = 0;
   const out = await h.postSettings({ owner: owner(admin), body: { ...SAVE, maintenance: true, locale: "ar" }, requestRebuild: async () => { rebuilds += 1; } });
   assert.ok(out.dbError, "the reply is the error, not ok");
   assert.equal(out.body, undefined);
-  assert.equal(writes.some((w) => w.table === "site_settings"), false, "the settings row is unchanged");
+  assert.deepEqual(writes, [], "no table write beside the function, no put-back");
   assert.equal(rebuilds, 0);
-});
-
-test("postSettings is all or nothing: a failed settings write puts her profile back and replies with the error", async () => {
-  const { admin, writes } = fakeAdmin({ failOn: "write:site_settings" });
-  const out = await h.postSettings({ owner: owner(admin), body: { ...SAVE, locale: "ar", currency: "USD" }, requestRebuild: async () => undefined });
-  assert.ok(out.dbError);
-  const profileWrites = writes.filter((w) => w.table === "profiles").map((w) => w.values);
-  assert.deepEqual(profileWrites, [{ locale: "ar", currency: "USD" }, { locale: "en", currency: "AED" }], "written, then restored");
-  assert.equal(writes.some((w) => w.table === "site_settings"), false);
 });

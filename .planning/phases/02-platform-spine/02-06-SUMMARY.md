@@ -25,7 +25,8 @@ gold, usted "Use dos decimales.").
   After a save the line says "Settings saved."; leaving with unsaved changes asks (Stay / Leave).
 - **Owner API** `GET/POST /api/ops/settings` through `runOps` (owner session, Origin, body size, strict parse). The whole
   form is required; unknown keys are refused. The server re-checks contrast and the logo row (exists, type, size).
-  Writes `site_settings` (a colour equal to its token is stored as null) and her `profiles` row (locale, currency).
+  Saves `site_settings` (a colour equal to its token is stored as null) and her `profiles` row (locale, currency) in
+  one transaction through `public.save_site_settings` (round 5).
   No service-role key reaches the client; the screen never imports a Supabase client.
 - **Maintenance and brand reach the public site at the next publish rebuild** (owner answer 1 and 2; D-137 reworded).
   The build reads `api_site_settings` with the anon key (`scripts/assemble-cloudflare.mjs` `readBuildSiteSettings`):
@@ -65,8 +66,13 @@ Language keeps its 02-05 behaviour (reverting it flipped the signed AR screensho
 ## Round 4 (PR #14 review)
 
 - The gate reads the flag on every request and keeps the last good read through a failed one.
-- A settings save is all or nothing (profile first, put back if the settings write fails).
 - `/account` ignores preference results overtaken by a later click.
+
+## Round 5 (PR #14 review round 2)
+
+- A settings save is one transaction: `public.save_site_settings` (service role only, validates like the app) writes
+  the settings row and her language and currency together; the put-back is gone.
+- `/account`: only the newest successful save sets the saved currency and the browser choice.
 
 ## Not done
 
@@ -75,6 +81,6 @@ Language keeps its 02-05 behaviour (reverting it flipped the signed AR screensho
 ## Tests
 
 Node: `settings`, `settings-api`, `settings-form`, `site-settings`, `settings-brand`, `account-preferences`, updated `host-gate`,
-`ops-media`, `phase-03-settings`. pgTAP: `site_settings_access`. Playwright: `ops-settings.spec.ts` (3 languages x 3
+`ops-media`, `phase-03-settings`. pgTAP: `site_settings_access`, `save_site_settings`. Stack: `settings-save-local`. Playwright: `ops-settings.spec.ts` (3 languages x 3
 widths, Save flow, logo, leave dialog), `maintenance.spec.ts` (closed page 3 x 3); built Worker:
 `tests/build/maintenance-runtime.spec.ts`, `tests/build/ops-brand.spec.ts`. Results are in `02-06-HANDOVER.md`.

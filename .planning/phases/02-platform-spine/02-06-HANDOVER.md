@@ -86,6 +86,33 @@ pass, 0 fail (2 stack skips, then run with the stack: `preferences-local` 2/2, `
 Worker `maintenance-runtime.spec.ts` 4/4; dev server `--workers=2` `account-select`, `header-i18n`, `ops-settings`
 28/28.
 
+## Round 5: PR #14 review round 2 (Grok 4.7)
+
+1. MED, restore race: replaced. `postSettings` now makes ONE call, `public.save_site_settings(...)`, added to the
+   not-yet-applied migration `20261013120000_site_settings_brand.sql`. It updates the settings row and the owner's
+   `profiles.locale`/`currency` in one transaction (both or neither). `security definer`, `set search_path = ''`,
+   execute revoked from public/anon/authenticated and granted to service_role only. It re-checks what the app checks:
+   colours null or `#rrggbb` lower case, faces Questa/Lato, VAT and deposit null or 0-100 with at most two places,
+   maintenance not null, locale en/ar/es, currency AED/USD/EUR, logo null or a media row PNG/JPEG/WebP up to 1 MB, and
+   the profile is role owner (else 42501). Bad input raises 22023 before any write. The contrast gate stays in the
+   app (before the call). The profile-first write and its put-back are deleted.
+   - pgTAP `supabase/tests/save_site_settings.test.sql` (15): anon and authenticated cannot execute (privilege and a
+     real call, 42501); security definer and empty search_path; five bad inputs (upper-case colour, three-place
+     percent, language fr, logo over 1 MB, a guest id) each refused, then the row and her profile equal the snapshot;
+     a valid save changes both.
+   - Node: `settings-api` checks the one call and its arguments, and that an RPC failure replies with the error, writes
+     nothing else and asks for no rebuild. `settings-save-local` (stack) runs the real handler: a refused call changes
+     neither; the owner's call changes both.
+2. LOW, late older success: `saveTracker.settle()` now returns `{ show, store }`. Only a success newer than every
+   earlier success sets the saved value and `store: true`; `/account` writes the browser choice only then. Test: USD
+   clicked, EUR clicked, EUR succeeds, then the USD success arrives: nothing shown, nothing stored, saved stays EUR.
+
+Checks (2026-10-14 01:02 to 01:04 +04, one stack, stopped after): tsc exit 0; related node tests 162 pass, 0 fail;
+pgTAP `save_site_settings` + `site_settings_access` 42/42 (first run failed 1: my test's text match on the stored
+`search_path=""`; the function was right, the assertion now compares the array exactly); stack `settings-save-local`
+1/1, `preferences-local` 2/2; built public Worker `maintenance-runtime.spec.ts` 4/4; dev server `--workers=2`
+`account-select`, `ops-settings` 17/17.
+
 ## Item 2 proof: which of /login, /account, /bookings the Worker serves
 
 The premise "the Worker runs only for /api/*" is from job 10. Plan 02-23 task 3 added the sign-in paths to
@@ -205,6 +232,11 @@ Saved Teal #7a1f3b over the design Teal #1f3b40, 69 pages in out/.
   deposit 0-100. The live row (colours null, Questa/Lato, 5.00/30.00 per the controller) passes all of them. If a
   live colour is upper case or a face differs, the `alter table` fails and nothing is applied.
 - `api_site_settings` is security_invoker; anon gets select on the view and column select on the public columns only.
+- Adds `public.save_site_settings(uuid, text x7, numeric, numeric, boolean, uuid, text, text)`: service_role only.
+  Read back after applying: `select has_function_privilege('anon', 'public.save_site_settings(uuid, text, text, text,
+  text, text, text, text, numeric, numeric, boolean, uuid, text, text)', 'execute');` must be `false` (same for
+  `authenticated`), `true` for `service_role`. The ops Worker's Settings save needs this function, so the migration
+  goes live before the branch is deployed.
 
 ## Environment and secrets
 

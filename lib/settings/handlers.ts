@@ -140,33 +140,25 @@ export async function postSettings({
   const colorColumns: Record<string, string | null> = {};
   for (const key of BRAND_KEYS) colorColumns[key] = body.colors[key] === BRAND_DEFAULTS[key] ? null : body.colors[key];
 
-  // All or nothing (PR #14 review): her profile first. If it fails nothing is written. If the settings row then fails,
-  // her profile is put back to what it was, and the reply is the error either way: success only when both committed.
-  const { error: profileError } = await owner.admin
-    .from("profiles")
-    .update({ locale: body.locale, currency: body.currency })
-    .eq("id", owner.profile.id);
-  if (profileError) return { dbError: profileError };
-
-  const { error: settingsError } = await owner.admin
-    .from("site_settings")
-    .update({
-      ...colorColumns,
-      title_face: body.title_face,
-      body_face: body.body_face,
-      vat_percent: body.vat_percent,
-      deposit_percent: body.deposit_percent,
-      maintenance: body.maintenance,
-      logo_media_id: body.logo_media_id,
-    })
-    .eq("id", 1);
-  if (settingsError) {
-    await owner.admin
-      .from("profiles")
-      .update({ locale: owner.profile.locale, currency: owner.profile.currency })
-      .eq("id", owner.profile.id);
-    return { dbError: settingsError };
-  }
+  // One transaction (PR #14 review): the settings row and her language and currency commit together or not at all
+  // (public.save_site_settings, service role only, called after the owner check; it validates the inputs again).
+  const { error } = await owner.admin.rpc("save_site_settings", {
+    p_owner_id: owner.profile.id,
+    p_teal: colorColumns.teal,
+    p_charcoal: colorColumns.charcoal,
+    p_gold: colorColumns.gold,
+    p_ivory: colorColumns.ivory,
+    p_white: colorColumns.white,
+    p_title_face: body.title_face,
+    p_body_face: body.body_face,
+    p_vat_percent: body.vat_percent,
+    p_deposit_percent: body.deposit_percent,
+    p_maintenance: body.maintenance,
+    p_logo_media_id: body.logo_media_id,
+    p_locale: body.locale,
+    p_currency: body.currency,
+  });
+  if (error) return { dbError: error };
 
   const affects = affectsSite(before, body);
   if (affects) await requestRebuild(owner.admin);
