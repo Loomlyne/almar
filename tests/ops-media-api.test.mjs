@@ -12,6 +12,7 @@ const up = await loadTs("lib/ops/media-upload.ts");
 const vm = await loadTs("lib/ops/validate-media.ts");
 const lib = await import("../scripts/media-lib.mjs");
 const types = await loadTs("components/ops/media-types.ts");
+const prep = await loadTs("components/ops/image-prep.ts");
 
 const A = "11111111-1111-4111-8111-111111111111";
 const MB = 1024 * 1024;
@@ -27,6 +28,18 @@ function invalid(fn, field, locale) {
 
 function sha(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
+}
+
+const SIG = {
+  "image/webp": [0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50],
+  "image/jpeg": [0xff, 0xd8, 0xff],
+  "image/png": [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+};
+
+/** `bytes` with its first bytes set to the type's signature: the upload core checks them (job 03.2-09b). */
+function signed(bytes, type = "image/webp") {
+  bytes.set(SIG[type], 0);
+  return bytes;
 }
 
 function streamOf(bytes, chunk = 7) {
@@ -116,7 +129,7 @@ function headersFor(bytes, over = {}) {
   return new Headers(h);
 }
 
-async function upload({ bytes = new Uint8Array(4096).map((_, i) => i % 251), headers, body, bucket, save, lengthCalls = [] } = {}) {
+async function upload({ bytes = signed(new Uint8Array(4096).map((_, i) => i % 251)), headers, body, bucket, save, lengthCalls = [] } = {}) {
   const b = bucket ?? fakeBucket();
   const s = save ?? fakeSave();
   const result = await up.uploadCore({
@@ -151,10 +164,26 @@ test("keyFor: uploads/<first 32 hex>.<ext> from the content type; another type i
   assert.match(up.keyFor(hex, "image/png"), KEY);
 });
 
-test("MAX_UPLOAD_BYTES is 15 MB and equals the screens' constant; the cache header is the media scripts' one", () => {
-  assert.equal(up.MAX_UPLOAD_BYTES, 15 * MB);
+test("MAX_UPLOAD_BYTES is 10 MB and equals the screens' and the re-encode's constants; the cache header is the media scripts' one", () => {
+  assert.equal(up.MAX_UPLOAD_BYTES, 10 * MB);
   assert.equal(up.MAX_UPLOAD_BYTES, types.MAX_UPLOAD_BYTES);
+  assert.equal(up.MAX_UPLOAD_BYTES, prep.MAX_BYTES);
   assert.equal(up.CACHE_CONTROL, lib.CACHE_CONTROL);
+});
+
+// Review finding 1 (job 03.2-09b): middleware.ts runs on /api/ops/media (requireOwner needs its shell header), and Next
+// buffers a body for middleware up to DEFAULT_BODY_CLONE_SIZE_LIMIT unless experimental.middlewareClientMaxBodySize is
+// set; past it the route gets a cut-off body. The upload limit must never be above what the middleware passes whole.
+test("the upload limit is not above Next's middleware body buffer, which next.config.ts leaves at its default", () => {
+  const source = readFileSync("node_modules/next/dist/server/body-streams.js", "utf8");
+  const found = source.match(/const DEFAULT_BODY_CLONE_SIZE_LIMIT = (\d+) \* (\d+) \* (\d+)/);
+  assert.ok(found, "Next's body clone limit is where this test reads it");
+  const nextLimit = Number(found[1]) * Number(found[2]) * Number(found[3]);
+  assert.equal(nextLimit, 10 * MB);
+  assert.match(source, /if \(bytesRead > bodySizeLimit\)/, "a body of exactly the limit is passed whole");
+  assert.ok(up.MAX_UPLOAD_BYTES <= nextLimit);
+  assert.equal(/middlewareClientMaxBodySize/.test(readFileSync("next.config.ts", "utf8")), false);
+  assert.match(readFileSync("middleware.ts", "utf8"), /matcher: \[/);
 });
 
 // ---- uploadCore refusals -------------------------------------------------------------------------------------------------
@@ -166,12 +195,12 @@ test("upload: a content type outside webp/jpeg/png is 415 wrong_type; nothing is
     assert.equal(r.bucket.calls.head.length + r.bucket.calls.put.length, 0);
     assert.equal(r.save.calls.length, 0);
   }
-  const ok = await upload({ headers: headersFor(new Uint8Array(4096).map((_, i) => i % 251), { "content-type": "Image/WebP; charset=binary" }) });
+  const ok = await upload({ headers: headersFor(signed(new Uint8Array(4096).map((_, i) => i % 251)), { "content-type": "Image/WebP; charset=binary" }) });
   assert.equal(ok.result.body.ok, true, "type compared case-insensitively, parameters ignored");
 });
 
-test("upload: Content-Length missing, not a number or over 15 MB is 413 too_large; nothing is read or stored", async () => {
-  for (const len of [undefined, "abc", "-1", "1e6", String(15 * MB + 1), String(100 * MB)]) {
+test("upload: Content-Length missing, not a number or over 10 MB is 413 too_large; nothing is read or stored", async () => {
+  for (const len of [undefined, "abc", "-1", "1e6", String(10 * MB + 1), String(12 * MB), String(15 * MB), String(100 * MB)]) {
     let pulled = false;
     const body = new ReadableStream({ pull() { pulled = true; } }, { highWaterMark: 0 });
     const r = await upload({ headers: headersFor(new Uint8Array(10), { "content-length": len }), body });
@@ -183,11 +212,19 @@ test("upload: Content-Length missing, not a number or over 15 MB is 413 too_larg
   refusal(zero.result, 400, "invalid", "content_length");
 });
 
-test("upload: exactly 15 MB passes the size check", async () => {
-  const r = await upload({ headers: headersFor(new Uint8Array(10), { "content-length": String(15 * MB), "x-almar-sha256": "0".repeat(64) }), body: streamOf(new Uint8Array(0)) });
+test("upload: exactly 10 MB passes the size check; 10 MB + 1 byte is 413 too_large, never a cut-off upload", async () => {
+  const r = await upload({ headers: headersFor(new Uint8Array(10), { "content-length": String(10 * MB), "x-almar-sha256": "0".repeat(64) }), body: streamOf(signed(new Uint8Array(12))) });
   // The body is short, so the put fails on length: the size rule itself let it through.
   refusal(r.result, 400, "invalid", "content_length");
-  assert.deepEqual(r.lengthCalls, [15 * MB]);
+  assert.deepEqual(r.lengthCalls, [10 * MB]);
+  // One byte over: refused on the header, before a byte is read, so Next's 10 MB middleware buffer never cuts it.
+  let pulled = false;
+  const body = new ReadableStream({ pull() { pulled = true; } }, { highWaterMark: 0 });
+  const over = await upload({ headers: headersFor(new Uint8Array(10), { "content-length": String(10 * MB + 1) }), body });
+  refusal(over.result, 413, "too_large");
+  assert.equal(over.result.body.error.field, null);
+  assert.equal(pulled, false);
+  assert.deepEqual(over.lengthCalls, []);
 });
 
 test("upload: a bad sha256, width, height or alt text is 400 invalid with that field; nothing is stored", async () => {
@@ -214,7 +251,7 @@ test("upload: a bad sha256, width, height or alt text is 400 invalid with that f
     assert.equal(r.bucket.calls.head.length + r.bucket.calls.put.length + r.save.calls.length, 0, field);
   }
   // 300 characters (Arabic, counted as characters) is accepted.
-  const bytes = new Uint8Array(64).fill(3);
+  const bytes = signed(new Uint8Array(64).fill(3));
   const ok = await upload({ bytes, headers: headersFor(bytes, { "x-almar-alt-en": encodeURIComponent("ب".repeat(300)) }) });
   assert.equal(ok.result.body.ok, true);
 });
@@ -222,7 +259,7 @@ test("upload: a bad sha256, width, height or alt text is 400 invalid with that f
 // ---- uploadCore: store once --------------------------------------------------------------------------------------------
 
 test("upload: a new file is put once under its key with the type, the cache header and the sha256, then saved", async () => {
-  const bytes = new Uint8Array(5000).map((_, i) => (i * 7) % 256);
+  const bytes = signed(new Uint8Array(5000).map((_, i) => (i * 7) % 256));
   const hex = sha(bytes);
   const r = await upload({ bytes });
   const key = `uploads/${hex.slice(0, 32)}.webp`;
@@ -239,7 +276,7 @@ test("upload: a new file is put once under its key with the type, the cache head
 });
 
 test("upload: the put gets the length stream's readable, never the raw request body", async () => {
-  const bytes = new Uint8Array(300).fill(9);
+  const bytes = signed(new Uint8Array(300).fill(9));
   const body = streamOf(bytes);
   const r = await upload({ bytes, body });
   const value = r.bucket.calls.put[0].value;
@@ -249,7 +286,7 @@ test("upload: the put gets the length stream's readable, never the raw request b
 
 test("upload: jpeg and png get .jpg and .png keys and their own content type", async () => {
   for (const [type, ext] of [["image/jpeg", "jpg"], ["image/png", "png"]]) {
-    const bytes = new Uint8Array(200).fill(ext.length);
+    const bytes = signed(new Uint8Array(200).fill(ext.length), type);
     const r = await upload({ bytes, headers: headersFor(bytes, { "content-type": type }) });
     assert.equal(r.bucket.calls.put[0].key, `uploads/${sha(bytes).slice(0, 32)}.${ext}`);
     assert.equal(r.bucket.calls.put[0].options.httpMetadata.contentType, type);
@@ -281,8 +318,8 @@ test("upload: an object under the key with another size is refused (sha256), not
 });
 
 test("upload: a body shorter or longer than Content-Length fails the put (content_length); saveMedia never runs", async () => {
-  const bytes = new Uint8Array(1000).fill(1);
-  for (const sent of [bytes.slice(0, 999), new Uint8Array(1001).fill(1), new Uint8Array(0)]) {
+  const bytes = signed(new Uint8Array(1000).fill(1));
+  for (const sent of [bytes.slice(0, 999), signed(new Uint8Array(1001).fill(1)), bytes.slice(0, 5), new Uint8Array(0)]) {
     const r = await upload({ bytes, body: streamOf(sent) });
     refusal(r.result, 400, "invalid", "content_length");
     assert.equal(r.save.calls.length, 0);
@@ -294,7 +331,7 @@ test("upload: a body shorter or longer than Content-Length fails the put (conten
 });
 
 test("upload: a sha256 that does not match the bytes (R2 integrity) or a put that returns null is refused (sha256); R2 failing otherwise is 503", async () => {
-  const bytes = new Uint8Array(1000).fill(2);
+  const bytes = signed(new Uint8Array(1000).fill(2));
   const wrong = await upload({ bytes, headers: headersFor(bytes, { "x-almar-sha256": sha(new Uint8Array(1000).fill(3)) }) });
   refusal(wrong.result, 400, "invalid", "sha256");
   assert.equal(wrong.save.calls.length, 0);
@@ -317,6 +354,87 @@ test("upload: a database error is handed to the wrapper; no bucket is 503 unavai
   refusal(noBucket, 503, "unavailable");
 });
 
+// ---- uploadCore: first bytes and the unique-key race (job 03.2-09b) --------------------------------------------------
+
+test("hasSignature: JPEG FF D8 FF, PNG's eight bytes, WebP RIFF....WEBP; anything else or too short is false", () => {
+  for (const [type, sig] of Object.entries(SIG)) {
+    assert.equal(vm.hasSignature(signed(new Uint8Array(20), type), type), true, type);
+    assert.equal(vm.hasSignature(new Uint8Array(sig.length - 1).map((_, i) => sig[i]), type), false, `${type} cut short`);
+  }
+  assert.equal(vm.hasSignature(signed(new Uint8Array(20), "image/png"), "image/webp"), false);
+  assert.equal(vm.hasSignature(signed(new Uint8Array(20), "image/webp"), "image/jpeg"), false);
+  const riffWave = signed(new Uint8Array(20), "image/webp");
+  riffWave.set([0x57, 0x41, 0x56, 0x45], 8); // RIFF....WAVE: audio, not WebP
+  assert.equal(vm.hasSignature(riffWave, "image/webp"), false);
+  assert.equal(vm.SNIFF_BYTES, 12);
+});
+
+test("upload: a body that is not the declared image type is 415 wrong_type; nothing is put or saved (review finding 4)", async () => {
+  const html = new TextEncoder().encode("<!doctype html><script>alert(1)</script>".padEnd(400, " "));
+  const cases = [
+    [html, "image/png"],
+    [html, "image/jpeg"],
+    [html, "image/webp"],
+    [signed(new Uint8Array(400).fill(1), "image/png"), "image/webp"],
+    [signed(new Uint8Array(400).fill(1), "image/jpeg"), "image/png"],
+  ];
+  for (const [bytes, type] of cases) {
+    let cancelled = false;
+    const inner = streamOf(bytes);
+    const reader = inner.getReader();
+    const body = new ReadableStream({
+      async pull(c) {
+        const { done, value } = await reader.read();
+        if (done) c.close();
+        else c.enqueue(value);
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    const r = await upload({ bytes, body, headers: headersFor(bytes, { "content-type": type }) });
+    refusal(r.result, 415, "wrong_type");
+    assert.equal(r.bucket.calls.put.length + r.save.calls.length, 0, type);
+    assert.deepEqual(r.lengthCalls, [], "no length stream is made");
+    assert.equal(cancelled, true, "the rest of the body is not read");
+  }
+});
+
+test("upload: the signature is found across 1-byte chunks and every byte still reaches R2 in order", async () => {
+  const bytes = signed(new Uint8Array(3000).map((_, i) => (i * 13) % 256), "image/png");
+  const r = await upload({ bytes, body: streamOf(bytes, 1), headers: headersFor(bytes, { "content-type": "image/png" }) });
+  assert.equal(r.result.body.ok, true, JSON.stringify(r.result));
+  const key = `uploads/${sha(bytes).slice(0, 32)}.png`;
+  assert.ok(Buffer.from(r.bucket.objects.get(key)).equals(Buffer.from(bytes)));
+});
+
+test("upload: two uploads of one file at once: the second save's 23505 asks once more and returns the stored row (review finding 5)", async () => {
+  const B = "22222222-2222-4222-8222-222222222222";
+  const replies = [
+    { data: null, error: { code: "23505", message: 'duplicate key value violates unique constraint "media_upload_key_uidx"' } },
+    { data: { id: B, created: false }, error: null },
+  ];
+  const calls = [];
+  const save = { calls, fn: async (p) => { calls.push(p); return replies[calls.length - 1]; } };
+  const r = await upload({ save });
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[0], calls[1], "the same row is asked for");
+  assert.equal(r.result.status ?? 200, 200);
+  assert.equal(r.result.body.ok, true);
+  assert.equal(r.result.body.id, B);
+  assert.equal(r.result.body.created, false);
+  // Still 23505 the second time: the wrapper maps it as before; no third call.
+  const twice = [];
+  const stuck = { calls: twice, fn: async (p) => { twice.push(p); return replies[0]; } };
+  const again = await upload({ save: stuck });
+  assert.equal(twice.length, 2);
+  assert.equal(again.result.dbError.code, "23505");
+  // Any other database error is not retried.
+  const other = [];
+  await upload({ save: { calls: other, fn: async (p) => { other.push(p); return { data: null, error: { code: "P0001", message: "almar:invalid" } }; } } });
+  assert.equal(other.length, 1);
+});
+
 // ---- GET list ----------------------------------------------------------------------------------------------------------
 
 function row(key, over = {}) {
@@ -334,22 +452,25 @@ function row(key, over = {}) {
   };
 }
 
-function lister(rows, error = null) {
+function lister(page, error = null) {
   const calls = [];
-  return { calls, fn: async () => { calls.push(1); return { data: error ? null : rows, error }; } };
+  return { calls, fn: async (query) => { calls.push(query); return { data: error ? null : page, error }; } };
 }
 
-async function list(rows, query = "") {
-  const l = lister(rows);
-  const out = await up.listMedia({ listRows: l.fn, url: new URL(`https://dashboard.almarprivatejourney.com/api/ops/media${query}`) });
-  return out;
+async function list(page, query = "") {
+  const l = lister(page);
+  const out = await up.listMedia({ listPage: l.fn, url: new URL(`https://dashboard.almarprivatejourney.com/api/ops/media${query}`) });
+  return { out, calls: l.calls };
 }
 
-test("list: ops_list('media') rows become the contract items with url and alt_en; unknown columns are dropped", async () => {
-  const out = await list([
-    row("stays/b/hero.webp", { id: "22222222-2222-4222-8222-222222222222", alt: { en: "Hero", ar: "بطل", es: "Héroe" }, alt_status: { en: "published", ar: "draft", es: "published" }, used_by: 3, secret: "x" }),
-    row("uploads/aa.webp", { source: "upload", width: null, height: null, used_by: 0, alt_status: { en: "published", ar: "weird" } }),
-  ]);
+test("list: ops_list_media's items become the contract items with url and alt_en; unknown columns are dropped", async () => {
+  const { out } = await list({
+    items: [
+      row("stays/b/hero.webp", { id: "22222222-2222-4222-8222-222222222222", alt: { en: "Hero", ar: "بطل", es: "Héroe" }, alt_status: { en: "published", ar: "draft", es: "published" }, used_by: 3, secret: "x" }),
+      row("uploads/aa.webp", { source: "upload", width: null, height: null, used_by: 0, alt_status: { en: "published", ar: "weird" } }),
+    ],
+    next: "uploads/aa.webp",
+  });
   assert.deepEqual(out.body, {
     ok: true,
     items: [
@@ -364,57 +485,39 @@ test("list: ops_list('media') rows become the contract items with url and alt_en
         alt: { en: "Alt uploads/aa.webp", ar: null, es: null }, alt_status: { en: "published", ar: "missing", es: "missing" }, used_by: 0,
       },
     ],
-    next: null,
+    next: "uploads/aa.webp",
   });
 });
 
-test("list: q folds case and accents over the key and the English alt text", async () => {
-  const rows = [
-    row("destinations/bogota/hero.webp", { alt: { en: "Plaza in Bogotá", ar: null, es: null } }),
-    row("stays/x/pool.webp", { alt: { en: "Pool at dusk", ar: "مسبح", es: "Piscina" } }),
-  ];
-  assert.deepEqual((await list(rows, "?q=BOGOTA")).body.items.map((i) => i.key), ["destinations/bogota/hero.webp"]);
-  assert.deepEqual((await list(rows, "?q=bogotá")).body.items.map((i) => i.key), ["destinations/bogota/hero.webp"]);
-  assert.deepEqual((await list(rows, "?q=dusk")).body.items.map((i) => i.key), ["stays/x/pool.webp"]);
-  assert.deepEqual((await list(rows, "?q=piscina")).body.items, [], "only the English alt is searched");
-  assert.equal((await list(rows, "?q=")).body.items.length, 2);
+test("list: the database gets q, after and limit (default 60) and does the search and paging; the Worker filters nothing (review finding 3)", async () => {
+  const page = { items: [row("a/1.webp"), row("z/9.webp")], next: null };
+  const plain = await list(page);
+  assert.deepEqual(plain.calls, [{ q: null, limit: 60, after: null }]);
+  assert.deepEqual(plain.out.body.items.map((i) => i.key), ["a/1.webp", "z/9.webp"], "rows kept as the database ordered and chose them");
+  const asked = await list(page, "?q=%20Bogot%C3%A1%20&limit=5&after=a%2F1.webp");
+  assert.deepEqual(asked.calls, [{ q: "Bogotá", limit: 5, after: "a/1.webp" }]);
+  assert.equal(asked.out.body.items.length, 2, "no filtering in the Worker: 'Bogotá' matches neither key, both rows are kept");
+  const empty = await list(page, "?q=");
+  assert.deepEqual(empty.calls, [{ q: null, limit: 60, after: null }]);
 });
 
-test("list: limit (default 60, 1..60) and after=<key> page through in key order; next is the last key or null", async () => {
-  const rows = Array.from({ length: 130 }, (_, i) => row(`stays/s/${String(i).padStart(3, "0")}.webp`)).reverse();
-  const first = await list(rows);
-  assert.equal(first.body.items.length, 60);
-  assert.equal(first.body.items[0].key, "stays/s/000.webp");
-  assert.equal(first.body.next, "stays/s/059.webp");
-  const second = await list(rows, `?after=${encodeURIComponent(first.body.next)}`);
-  assert.equal(second.body.items[0].key, "stays/s/060.webp");
-  const third = await list(rows, `?after=${encodeURIComponent(second.body.next)}`);
-  assert.equal(third.body.items.length, 10);
-  assert.equal(third.body.next, null);
-  const small = await list(rows, "?limit=5");
-  assert.equal(small.body.items.length, 5);
-  assert.equal(small.body.next, "stays/s/004.webp");
-});
-
-test("list: an imported key shared by two image ids never splits across pages", async () => {
-  const B = "22222222-2222-4222-8222-222222222222";
-  const rows = [row("a/1.webp"), row("a/2.webp", { id: A }), row("a/2.webp", { id: B }), row("a/3.webp")];
-  const first = await list(rows, "?limit=2");
-  assert.deepEqual(first.body.items.map((i) => [i.key, i.id]), [["a/1.webp", A], ["a/2.webp", A], ["a/2.webp", B]]);
-  assert.equal(first.body.next, "a/2.webp");
-  const second = await list(rows, "?limit=2&after=a%2F2.webp");
-  assert.deepEqual(second.body.items.map((i) => i.key), ["a/3.webp"]);
-  assert.equal(second.body.next, null);
+test("list: a reply that is not a page is an empty list; next is a string only when there are items", async () => {
+  for (const data of [null, [], [row("a/1.webp")], { items: "x" }, { items: [], next: "a/1.webp" }]) {
+    const { out } = await list(data);
+    assert.deepEqual(out.body, { ok: true, items: [], next: null }, JSON.stringify(data));
+  }
+  const { out } = await list({ items: [row("a/1.webp")], next: 7 });
+  assert.equal(out.body.next, null);
 });
 
 test("list: a bad q, limit or after is 400 before the database is asked; a database error goes to the wrapper", async () => {
   for (const [query, field] of [["?limit=0", "limit"], ["?limit=61", "limit"], ["?limit=x", "limit"], ["?after=..%2Fx", "after"], ["?after=https%3A%2F%2Fx", "after"], [`?q=${"x".repeat(101)}`, "q"]]) {
-    const l = lister([]);
-    await assert.rejects(up.listMedia({ listRows: l.fn, url: new URL(`https://d.example/api/ops/media${query}`) }), (e) => e.name === "OpsInvalid" && e.field === field);
+    const l = lister({ items: [], next: null });
+    await assert.rejects(up.listMedia({ listPage: l.fn, url: new URL(`https://d.example/api/ops/media${query}`) }), (e) => e.name === "OpsInvalid" && e.field === field);
     assert.equal(l.calls.length, 0, query);
   }
   const err = { code: "57014", message: "timeout" };
-  const out = await up.listMedia({ listRows: lister([], err).fn, url: new URL("https://d.example/api/ops/media") });
+  const out = await up.listMedia({ listPage: lister(null, err).fn, url: new URL("https://d.example/api/ops/media") });
   assert.deepEqual(out, { dbError: err });
 });
 
@@ -500,7 +603,9 @@ test("source guard: the media route builds GET, PUT and POST with the wrappers a
   assert.match(src, /rpc\("ops_save_media"/);
   assert.match(src, /rpc\("ops_save_image_alts"/);
   assert.match(src, /rpc\("ops_delete_media"/);
-  assert.match(src, /rpc\("ops_list", \{ p_entity: "media" \}\)/);
+  // One page from the database, never the whole library (review finding 3).
+  assert.match(src, /rpc\("ops_list_media", \{ p_q: q, p_after: after, p_limit: limit \}\)/);
+  assert.equal(/rpc\("ops_list"/.test(src), false);
   assert.equal(/\.(arrayBuffer|blob|text|json|formData)\(/.test(src), false, "never reads the whole body");
   assert.equal(/console\.|storage/.test(src), false, "no logging, never Supabase Storage");
 });

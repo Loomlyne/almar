@@ -11,8 +11,8 @@ export const MAX_EDGE = 2560;
 export const JPEG_QUALITY = 0.85;
 /** WebP quality. */
 export const WEBP_QUALITY = 0.85;
-/** The largest file the server takes, in bytes (contract 5.10: 15 MB). */
-export const MAX_BYTES = 15 * 1024 * 1024;
+/** The largest file the server takes, in bytes: 10 MB, the same as lib/ops/validate-media.ts (job 03.2-09b). */
+export const MAX_BYTES = 10 * 1024 * 1024;
 
 export const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
@@ -28,7 +28,7 @@ export type PreparedImage = {
   bytes: number;
 };
 
-/** Why a file cannot be sent: another type (HEIC included), a file that does not decode, or a result over 15 MB. */
+/** Why a file cannot be sent: another type (HEIC included), a file that does not decode, or a result over 10 MB. */
 export type PrepFailure = "wrong_type" | "too_large";
 
 export class ImagePrepError extends Error {
@@ -97,7 +97,7 @@ async function outputType(): Promise<OutputType> {
 
 /**
  * Decode, scale, re-encode and hash `file`. Throws ImagePrepError("wrong_type") for a type outside JPEG, PNG and WebP
- * (an iPhone HEIC that was not converted) or a file that does not decode, and ("too_large") when the result is over 15 MB.
+ * (an iPhone HEIC that was not converted) or a file that does not decode, and ("too_large") when the result is over 10 MB.
  */
 export async function prepareImage(file: File): Promise<PreparedImage> {
   if (!isAcceptedType(file.type)) throw new ImagePrepError("wrong_type");
