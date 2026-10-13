@@ -26,7 +26,7 @@ const LATO_B = file("brand/Font/lato/Lato-Bold.ttf");
 // CANVAS = verbatim from the boards (EN, AR, ES). DRAFT = new for this job, listed in the hand-over for review.
 const WORDS = {
   en: {
-    soon: "Soon", media: "Media", navigation: "Navigation and footer",
+    soon: "Soon", media: "Media", navLabel: "Navigation and footer",
     pages: {
       title: "Page editing is coming soon",
       line: "For now the public pages are edited outside the dashboard. Editing every page here arrives in a later phase.",
@@ -49,7 +49,7 @@ const WORDS = {
     },
   },
   ar: {
-    soon: "قريبًا", media: "الوسائط", navigation: "التنقل والتذييل",
+    soon: "قريبًا", media: "الوسائط", navLabel: "التنقل والتذييل",
     pages: {
       title: "تحرير الصفحات قريبًا",
       line: "تُحرَّر الصفحات العامة حاليًا خارج لوحة التحكم. يصل تحرير كل صفحة هنا في مرحلة لاحقة.",
@@ -72,7 +72,7 @@ const WORDS = {
     },
   },
   es: {
-    soon: "Pronto", media: "Medios", navigation: "Navegación y pie",
+    soon: "Pronto", media: "Medios", navLabel: "Navegación y pie",
     pages: {
       title: "La edición de páginas llega pronto",
       line: "Por ahora las páginas públicas se editan fuera del panel. Editar cada página aquí llega en una fase posterior.",
@@ -96,6 +96,9 @@ const WORDS = {
   },
 };
 
+for (const [lang, w] of Object.entries(WORDS)) {
+  for (const k of ["soon", "media", "navLabel"]) if (typeof w[k] !== "string" || !w[k]) throw new Error(`WORDS.${lang}.${k} is not a non-empty string`);
+}
 const STATES = ["pages", "blog", "legal", "navigation"];
 const WIDTHS = [390, 834, 1440];
 const LANGS = ["en", "ar", "es"];
@@ -125,7 +128,7 @@ function rail(lang, current, { catalogOpen }) {
       ${link(r.team, "team", { nested: true })}
       ${link(r.legal, "legal", { nested: true, soon: true })}
       ${link(w.media, "media", { nested: true })}
-      ${link(w.navigation, "navigation", { nested: true, soon: true })}
+      ${link(w.navLabel, "navigation", { nested: true, soon: true })}
     </div>
     ${link(r.settings, "settings")}${link(r.profile, "profile")}`;
 }
@@ -134,7 +137,7 @@ function screen(lang, state, width) {
   const w = WORDS[lang];
   const r = DASHBOARD_COPY[lang].rail;
   const c = w[state];
-  const sectionTitle = state === "navigation" ? w.navigation : r[state];
+  const sectionTitle = state === "navigation" ? w.navLabel : r[state];
   const wide = width >= 834;
   const list = c.list.length
     ? `<div class="list" style="grid-template-columns:repeat(${wide ? 2 : 1},minmax(0,1fr))">${c.list.map((t) => `<div class="li">${check}<span>${t}</span></div>`).join("")}</div>`
@@ -230,6 +233,15 @@ for (const job of jobs) {
   const tab = await ctx.newPage();
   await tab.goto(pathToFileURL(html).href);
   await tab.evaluate(() => document.fonts.ready);
+  // Gate: every label that is drawn must be a real, non-empty string (a label object once printed "[object Object]").
+  const texts = await tab.evaluate(() =>
+    [...document.querySelectorAll("nav .item, nav .group-title, nav .chip, h1, h2, .line, .li, .chip")].map((el) => (el.textContent ?? "").trim()),
+  );
+  const badText = texts.filter((t) => !t || t.includes("[object") || t.includes("undefined") || t.includes("NaN"));
+  if (badText.length || texts.length < 10) {
+    await browser.close();
+    throw new Error(`${job.name}: bad or missing text (${texts.length} nodes): ${JSON.stringify(badText)}`);
+  }
   await tab.screenshot({ path: join(here, `${job.name}.png`), fullPage: !job.menu });
   await ctx.close();
 }
