@@ -34,7 +34,7 @@ test.describe("pictures", () => {
   test.describe.configure({ mode: "parallel" });
   test.setTimeout(120_000);
   if (PICTURES_TO && isAbsolute(PICTURES_TO)) mkdirSync(PICTURES_TO, { recursive: true });
-  for (const state of sceneStates("ops-coming-soon")) {
+  for (const state of sceneStates("ops-coming-soon").filter((one) => !one.startsWith("ops-host"))) {
     for (const viewport of ["phone", "tablet", "desktop"] as Viewport[]) {
       for (const locale of ["en", "ar", "es"] as Locale[]) {
         const width = VIEWPORTS[viewport].width;
@@ -133,5 +133,34 @@ test.describe("coming soon pages", () => {
     await page.goto("/__harness?c=ops-coming-soon&s=blog&l=es");
     await settle(page);
     await expect(page.locator("main h2")).toHaveText(OPS_CONTENT_COPY.es.comingSoon.blog.title);
+  });
+
+  // The ops host: the (ops) layout puts a live section's page in OpsShell mode="ops", anything else shows "Not ready.".
+  for (const locale of ["en", "ar"] as Locale[]) {
+    for (const kind of KINDS) {
+      test(`ops host: ${kind} (${locale}) opens as the Coming soon screen, not Not ready`, async ({ page, baseURL }) => {
+        await page.setViewportSize(VIEWPORTS.desktop);
+        await page.context().addCookies([{ name: "almar-locale", value: locale, url: baseURL ?? "http://127.0.0.1:3010" }]);
+        await page.goto(`/__harness?c=ops-coming-soon&s=ops-host-${kind}&l=${locale}`);
+        await settle(page);
+        const main = page.locator("main#content");
+        await expect(main.locator("h2")).toHaveText(OPS_CONTENT_COPY[locale].comingSoon[kind].title);
+        await expect(main.locator("h1")).toHaveText(labelOf(kind, locale));
+        await expect(main).not.toContainText(DASHBOARD_COPY[locale].notReady);
+        // It is the ops shell (Sign out in the rail), with hrefs without /dashboard.
+        await expect(page.locator("nav button", { hasText: DASHBOARD_COPY[locale].signOut })).toBeVisible();
+        await expect(page.locator(`nav a[href="/content/${kind}"]`)).toHaveCount(1);
+        await expect(main.locator("button, input, textarea, select, a")).toHaveCount(0);
+      });
+    }
+  }
+
+  test("ops host: a section that is not live (Team) still shows Not ready", async ({ page, baseURL }) => {
+    await page.setViewportSize(VIEWPORTS.desktop);
+    await page.context().addCookies([{ name: "almar-locale", value: "en", url: baseURL ?? "http://127.0.0.1:3010" }]);
+    await page.goto("/__harness?c=ops-coming-soon&s=ops-host-team&l=en");
+    await settle(page);
+    await expect(page.locator("main#content h1")).toHaveText(DASHBOARD_COPY.en.notReady);
+    await expect(page.locator("main#content h2")).toHaveCount(0);
   });
 });
