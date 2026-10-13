@@ -8,7 +8,11 @@ import type { Locale3 } from "../../components/ops/api-types";
 import { isOpsInvalid, OpsInvalid } from "./route-core";
 import { has, onlyKeys, record, requiredText, text, uuid } from "./validate";
 
-/** The largest file the owner can send: 10 MB, Next's middleware body buffer (DEFAULT_BODY_CLONE_SIZE_LIMIT); job 03.2-09b. */
+/**
+ * The largest file the owner can send: 10 MB (job 03.2-09b). Next buffers a body for middleware up to
+ * DEFAULT_BODY_CLONE_SIZE_LIMIT (10 MB) and middleware runs on this route; on Cloudflare the whole body is in memory
+ * anyway (OpenNext's edge converter). Over it, the Content-Length check answers 413 before any byte is read.
+ */
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 /** Alt text: at most 300 characters per language. */
 export const ALT_MAX = 300;

@@ -4,7 +4,7 @@
 -- Rows use the prefix zz9b/ and every call starts after zz9a.webp, so other rows in the table never count.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(27);
+select plan(29);
 
 insert into public.media (id, key, width, height, bytes, sha256, source) values
   ('00000000-0000-4000-8000-0000000009b1', 'zz9b/a01.webp', 1600, 1000, 100, repeat('a', 64), 'import'),
@@ -86,6 +86,8 @@ select is(
     'used_by', 0),
   'an item has the fields of an ops_list(''media'') row');
 select is(public.media_fold('Árbol ÇA Ñandú'), 'arbol ca nandu', 'media_fold: NFD, marks removed, lower case');
+select is(public.media_fold(U&'\0645\064E\0633\0652\0628\064E\062D'), U&'\0645\0633\0628\062D', 'media_fold: Arabic harakat removed (fatha, sukun)');
+select is(public.media_fold(U&'\0623'), U&'\0627', 'media_fold: hamza above is removed (NFD alef + hamza mark), as the old JS fold did');
 
 -- Refusals --------------------------------------------------------------------------------------------------------------
 select throws_ok($$select public.ops_list_media(null, null, 0)$$, 'P0001', 'almar:invalid', 'limit 0 is refused');

@@ -4,6 +4,8 @@
 -- 60 rows. Additive: two new functions; ops_list('media') is unchanged. Safe on live data (no table is touched).
 
 -- Case- and accent-folded text for search: NFD, combining marks removed, lower case (the Worker's old fold()).
+-- The marks are the Latin and Arabic combining ranges (written as \u escapes), not every Unicode mark: the library's
+-- keys and English alt text are Latin.
 create or replace function public.media_fold(p text)
 returns text
 language sql
@@ -12,7 +14,7 @@ set search_path = ''
 as $$
   select lower(regexp_replace(
     normalize(coalesce(p, ''), nfd),
-    '[̀-ͯؐ-ًؚ-ٰٟۖ-ۜ۟-۪ۤۧۨ-ۭ᪰-᫿᷀-᷿⃐-⃿︠-︯]',
+    '[\u0300-\u036f\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06dc\u06df-\u06e4\u06e7\u06e8\u06ea-\u06ed\u1ab0-\u1aff\u1dc0-\u1dff\u20d0-\u20ff\ufe20-\ufe2f]',
     '', 'g'))
 $$;
 

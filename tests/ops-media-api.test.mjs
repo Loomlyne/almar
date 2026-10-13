@@ -400,6 +400,50 @@ test("upload: a body that is not the declared image type is 415 wrong_type; noth
   }
 });
 
+test("upload: a body that errors within its first bytes is 400 content_length, not 503; nothing is put or saved", async () => {
+  const bytes = signed(new Uint8Array(400).fill(4));
+  let sent = false;
+  const body = new ReadableStream({
+    pull(c) {
+      if (!sent) {
+        sent = true;
+        c.enqueue(bytes.slice(0, 5));
+      } else c.error(new TypeError("connection reset"));
+    },
+  });
+  const r = await upload({ bytes, body });
+  refusal(r.result, 400, "invalid", "content_length");
+  assert.equal(r.bucket.calls.put.length + r.save.calls.length, 0);
+});
+
+test("upload: the type check reads ahead only the first chunks, not the whole body", async () => {
+  const bytes = signed(new Uint8Array(512 * 1024).map((_, i) => i % 199));
+  let pulls = 0;
+  let pullsAtPut = null;
+  const inner = streamOf(bytes, 4096);
+  const reader = inner.getReader();
+  const body = new ReadableStream(
+    {
+      async pull(c) {
+        pulls += 1;
+        const { done, value } = await reader.read();
+        if (done) c.close();
+        else c.enqueue(value);
+      },
+    },
+    { highWaterMark: 0 },
+  );
+  const bucket = fakeBucket();
+  const put = bucket.put.bind(bucket);
+  bucket.put = async (key, value, options) => {
+    pullsAtPut = pulls;
+    return put(key, value, options);
+  };
+  const r = await upload({ bytes, body, bucket });
+  assert.equal(r.result.body.ok, true, JSON.stringify(r.result));
+  assert.ok(pullsAtPut !== null && pullsAtPut <= 2, `chunks read before the put started: ${pullsAtPut} of ${bytes.length / 4096}`);
+});
+
 test("upload: the signature is found across 1-byte chunks and every byte still reaches R2 in order", async () => {
   const bytes = signed(new Uint8Array(3000).map((_, i) => (i * 13) % 256), "image/png");
   const r = await upload({ bytes, body: streamOf(bytes, 1), headers: headersFor(bytes, { "content-type": "image/png" }) });

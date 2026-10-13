@@ -6,9 +6,11 @@
 // Upload (C-10, research §3.2): headers first (nothing is read before they pass), then a content-addressed key
 // `uploads/<first 32 hex of the SHA-256>.<ext>`. `head` first: an object already there is never overwritten. Else the
 // body is piped through a length stream of exactly Content-Length bytes into `put` with the hex sha256, so R2 refuses
-// bytes that do not match (never arrayBuffer() on the file: memory and CPU on the Free plan). Only after a stored
-// object does `ops_save_media` record the row. Never Supabase Storage. Nothing here logs: alt text, keys and
-// headers never reach a log.
+// bytes that do not match (this code never reads the file whole). Only after a stored object does
+// `ops_save_media` record the row. Never Supabase Storage. Nothing here logs: alt text, keys and headers never reach
+// a log. Note (job 03.2-09b): on Cloudflare, OpenNext's edge converter has already read the whole request body into
+// memory before this runs (@opennextjs/aws overrides/converters/edge.js reads it as one ArrayBuffer), so the 10 MB
+// limit (validate-media.ts) is also the memory bound of one upload.
 
 import type { MediaItem } from "../../components/ops/media-types";
 import { mediaRef } from "./shape";
@@ -168,7 +170,13 @@ export async function uploadCore({
   } else {
     // The first bytes must be the declared type's signature (review finding 4): a body labelled image/png that is not
     // a PNG is 415 before anything is stored. A body that ends before Content-Length is the length error, as below.
-    const sniffed = await sniffBody(body, SNIFF_BYTES);
+    let sniffed: Awaited<ReturnType<typeof sniffBody>>;
+    try {
+      sniffed = await sniffBody(body, SNIFF_BYTES);
+    } catch {
+      // The body broke off within its first bytes: the same answer as a body cut short later on.
+      return refuse(400, "invalid", "content_length");
+    }
     if (!hasSignature(sniffed.head, contentType)) {
       sniffed.cancel();
       if (sniffed.head.byteLength < Math.min(SNIFF_BYTES, length)) return refuse(400, "invalid", "content_length");
