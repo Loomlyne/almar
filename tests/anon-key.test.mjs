@@ -48,7 +48,7 @@ test("assertAnonKey: a JWT whose role is not anon is refused (service_role, auth
 });
 
 test("dataSourceFor refuses a secret value in the anon-key variable for every database build", () => {
-  const url = { NEXT_PUBLIC_SUPABASE_URL: "https://example-project.invalid" };
+  const url = { NEXT_PUBLIC_SUPABASE_URL: "https://jkdkaldgeiowkhlfmsft.supabase.co" };
   for (const value of [FAKE_SECRET, FAKE_SERVICE_JWT]) {
     for (const target of ["preview", "production"]) {
       assert.throws(() => dataSourceFor(target, { ...url, [NAME]: value }), refusal(value, /anon key only/));
