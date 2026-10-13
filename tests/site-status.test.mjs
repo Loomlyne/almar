@@ -56,11 +56,19 @@ test("a failed hook does not matter once the live site has caught up", () => {
   assert.equal(computeSiteStatus(state({ last_hook_result: "error:503" }), { seq: 5, built_at: null }, NOW).state, "up_to_date");
 });
 
-test("live unreadable (null) and nothing ever requested: up to date with no time", () => {
-  const site = computeSiteStatus(state({ requested_seq: 0, requested_at: null, last_hook_at: null, last_hook_result: null }), null, NOW);
-  assert.equal(site.state, "up_to_date");
-  assert.equal(site.built_at, null);
-  assert.equal(siteStatusTime(site), null);
+test("live unreadable (null): unavailable with no time, fresh or old request, behind or not (PR #13 finding 2)", () => {
+  for (const over of [{}, { requested_at: ago(40) }, { requested_seq: 0, requested_at: null, last_hook_at: null, last_hook_result: null }]) {
+    const site = computeSiteStatus(state(over), null, NOW);
+    assert.equal(site.state, "unavailable", JSON.stringify(over));
+    assert.equal(site.built_at, null);
+    assert.equal(siteStatusTime(site), null);
+  }
+});
+
+test("live unreadable but the hook call itself failed: still failed (that build never started)", () => {
+  const site = computeSiteStatus(state({ last_hook_result: "error:503", last_hook_at: ago(1) }), null, NOW);
+  assert.equal(site.state, "failed");
+  assert.equal(siteStatusTime(site), ago(1));
 });
 
 test("live 404 (seq 0) with a request: updating, then failed", () => {

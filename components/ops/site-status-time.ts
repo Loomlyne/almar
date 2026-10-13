@@ -14,11 +14,13 @@ export function isHookError(result: string | null | undefined): boolean {
 /**
  * The time the line shows (signed pictures: "Up to date · 14:05", "Updating since 14:02", "Update failed · 14:30"):
  * up to date = when the live site was built; updating = when the update was requested; failed = when the hook call
- * failed, or the moment the update ran out of time (requested_at + the limit). Null when unknown (the line shows no time).
+ * failed, or the moment the update ran out of time (requested_at + the limit). Null when unknown or unavailable (the line
+ * shows no time).
  */
 export function siteStatusTime(site: SiteStatus): string | null {
   if (site.state === "up_to_date") return site.built_at;
   if (site.state === "updating") return site.requested_at;
+  if (site.state === "unavailable") return null;
   if (isHookError(site.last_hook_result) && site.last_hook_at) return site.last_hook_at;
   if (!site.requested_at) return null;
   const at = Date.parse(site.requested_at);

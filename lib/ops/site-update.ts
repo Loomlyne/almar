@@ -79,7 +79,7 @@ function asText(value: unknown): string | null {
 
 /**
  * GET the live /site-version.json without any cache. A 404 (no build from branch live yet) is seq 0. Anything else that
- * is not a readable `{ seq }` is null: the status then counts the live site as behind.
+ * is not a readable `{ seq }` is null: the status is then "unavailable", never a guess (computeSiteStatus).
  */
 export async function readLiveVersion(fetchImpl: typeof fetch = globalThis.fetch): Promise<LiveVersion> {
   let res: Response;

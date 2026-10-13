@@ -119,3 +119,19 @@ test("a failed Try again shows Status unavailable, never a guessed state", async
   await expect(line).toHaveAttribute("data-site-state", "unavailable");
   await expect(line).toHaveText("Status unavailable");
 });
+
+// PR #13 finding 2: the endpoint answers, but the live site-version.json could not be read. Same signed line as an
+// endpoint failure, no Try again (a click would start a needless production build).
+for (const viewport of ["phone", "desktop"] as Viewport[]) {
+  for (const locale of ["en", "ar"] as OpsSiteStatusLocale[]) {
+    test(`${viewport} ${locale}: a reply with state unavailable reads "${OPS_SITE_STATUS_COPY[locale].unavailable}", no Try again`, async ({ page }) => {
+      const site = { state: "unavailable", requested_seq: 6, live_seq: 0, requested_at: "2026-10-13T09:30:00.000Z", built_at: null, last_hook_at: "2026-10-13T09:30:00.000Z", last_hook_result: "ok" };
+      await page.route("**/api/ops/site-status", (route) => json(route, 200, { ok: true, site }));
+      await open(page, viewport, locale);
+      const line = page.locator('header [role="status"]');
+      await expect(line).toHaveAttribute("data-site-state", "unavailable");
+      await expect(line).toHaveText(OPS_SITE_STATUS_COPY[locale].unavailable);
+      await expect(line.getByRole("button")).toHaveCount(0);
+    });
+  }
+}

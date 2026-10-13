@@ -17,7 +17,7 @@ export type OpsSiteStatusCopy = {
   /** "Update failed · 14:30 · Try again" */
   failed: string;
   tryAgain: string;
-  /** The endpoint did not answer: never a made-up state. */
+  /** The endpoint did not answer, or the live site could not be read (state "unavailable"): never a made-up state. */
   unavailable: string;
   /** Under a published item's Save button; the screens plans place it. */
   publishedSaveHint: string;

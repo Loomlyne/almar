@@ -3,7 +3,8 @@
 //
 // Reads: once on start, every 15 s while "updating", once when the window gets focus (unless a read is already running),
 // and whenever a write reply carries `site` (ops-client.ts raises it as the almar:site event, for writes only). A failed
-// read shows "Status unavailable", never a guessed state, and is retried after 15, 30, then every 60 s. A hidden tab
+// read, or a reply saying the live site could not be read (state "unavailable"), shows "Status unavailable" with no Try
+// again, never a guessed state, and is read again after 15, 30, then every 60 s. A hidden tab
 // does not poll; the focus read catches up. Try again POSTs /api/ops/site-update once at a time. After stop() nothing is
 // scheduled or applied.
 
@@ -28,16 +29,22 @@ export type LineView = {
   showTryAgain: boolean;
 };
 
-const STATES = new Set(["up_to_date", "updating", "failed"]);
+const STATES = new Set(["up_to_date", "updating", "failed", "unavailable"]);
 
 export function isSiteStatus(value: unknown): value is SiteStatus {
   return typeof value === "object" && value !== null && STATES.has((value as { state?: unknown }).state as string);
 }
 
+/** The endpoint did not answer, or it answered that the live site could not be read: the same muted line, no Try again. */
+function isUnavailable(state: LineState): boolean {
+  return state.kind === "unavailable" || (state.kind === "site" && state.site.state === "unavailable");
+}
+
 /** What the line shows; null while the first read is running (nothing is shown rather than a guess). */
 export function lineView(state: LineState, copy: OpsSiteStatusCopy): LineView | null {
   if (state.kind === "loading") return null;
-  if (state.kind === "unavailable") return { tone: "muted", text: copy.unavailable, time: null, at: null, showTryAgain: false };
+  if (isUnavailable(state)) return { tone: "muted", text: copy.unavailable, time: null, at: null, showTryAgain: false };
+  if (state.kind !== "site") return null;
   const at = siteStatusTime(state.site);
   const time = formatSiteTime(at);
   switch (state.site.state) {
@@ -91,8 +98,8 @@ export function createSiteStatusController(deps: {
   }
 
   function delay(): number | null {
+    if (isUnavailable(state)) return RETRY_MS[Math.min(Math.max(failures - 1, 0), RETRY_MS.length - 1)];
     if (state.kind === "site") return state.site.state === "updating" ? POLL_MS : null;
-    if (state.kind === "unavailable") return RETRY_MS[Math.min(Math.max(failures - 1, 0), RETRY_MS.length - 1)];
     return null;
   }
 
@@ -110,7 +117,7 @@ export function createSiteStatusController(deps: {
   function apply(next: LineState, ticket: number) {
     if (!running || ticket < applied) return;
     applied = ticket;
-    failures = next.kind === "unavailable" ? failures + 1 : 0;
+    failures = isUnavailable(next) ? failures + 1 : 0;
     state = next;
     deps.onChange(state, busy);
     schedule();

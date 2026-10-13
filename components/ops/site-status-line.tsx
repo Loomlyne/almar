@@ -2,7 +2,8 @@
 
 // The public site's update status in the dashboard header (plan 03.2-05, pictures signed 2026-10-13): "Up to date ·
 // 14:05", "Updating since 14:02", "Update failed · 14:30 · Try again", or "Status unavailable" when the endpoint does not
-// answer. On a phone it takes its own row under the logo, so it never runs into the menu button. Reads and posts only
+// answer or the live site could not be read (data-site-state is "unavailable" in both cases; no Try again). On a phone
+// it takes its own row under the logo, so it never runs into the menu button. Reads and posts only
 // through ops-client.ts; the logic lives in site-status-model.ts.
 
 import { useEffect, useRef, useState } from "react";

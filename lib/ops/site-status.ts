@@ -4,7 +4,10 @@
 // The truth is the sequence: the database's site_publish.requested_seq goes up on every write that reaches the site,
 // and the live site's /site-version.json carries the sequence it was built from (scripts/build-live.mjs). Live at or
 // past the request = up to date. Behind = updating, for at most UPDATING_LIMIT_MINUTES, unless the deploy hook call
-// itself failed; past that, or after a failed hook call, failed (the owner sees Try again).
+// itself failed; past that, or after a failed hook call, failed (the owner sees Try again). A live site-version.json that
+// could not be read (a network error, a timeout, a non-404 error, a bad body) is unavailable, with no Try again: an
+// up-to-date site never reads "Update failed" and a click never starts a needless build (PR #13, finding 2). A failed
+// hook call still reads failed then, because that build was never started whatever the live site says.
 
 import type { SiteStatus } from "../../components/ops/api-types";
 import { UPDATING_LIMIT_MINUTES, isHookError } from "../../components/ops/site-status-time";
@@ -22,7 +25,7 @@ export type PublishState = {
   last_build_uuid?: string | null;
 };
 
-/** What /site-version.json says; a 404 is `{ seq: 0, built_at: null }`; null = it could not be read. */
+/** What /site-version.json says; a 404 (no build from branch live yet) is `{ seq: 0, built_at: null }`; null = it could not be read. */
 export type LiveVersion = { seq: number; built_at: string | null } | null;
 
 function minutesSince(iso: string | null, now: Date): number {
@@ -42,6 +45,7 @@ export function computeSiteStatus(state: PublishState, live: LiveVersion, now: D
     last_hook_at: state.last_hook_at ?? null,
     last_hook_result: state.last_hook_result ?? null,
   };
+  if (live === null) return { state: isHookError(state.last_hook_result) ? "failed" : "unavailable", ...base };
   if (liveSeq >= requested) return { state: "up_to_date", ...base };
   if (isHookError(state.last_hook_result)) return { state: "failed", ...base };
   if (minutesSince(state.requested_at, now) < UPDATING_LIMIT_MINUTES) return { state: "updating", ...base };

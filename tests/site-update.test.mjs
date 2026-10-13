@@ -231,3 +231,39 @@ test("the hook POST never follows a redirect; a 3xx is recorded as an error", as
   assert.equal(admin.calls[1][1].p_result, "error:302");
   assert.equal(site.state, "failed");
 });
+
+// PR #13 finding 2: only a 404 means "no build yet" (seq 0); any other failed read is unavailable, never "failed" with a
+// Try again that would start a needless production build.
+test("siteStatus with the live read at 404, network error and 500, at a fresh and an old requested_at", async () => {
+  const fresh = "2026-10-13T10:02:00.000Z"; // 3 min before NOW
+  const old = "2026-10-13T09:30:00.000Z"; // 35 min before NOW
+  const cases = [
+    ["404", () => new Response("", { status: 404 }), { fresh: "updating", old: "failed" }],
+    [
+      "network error",
+      () => {
+        throw new TypeError("fetch failed");
+      },
+      { fresh: "unavailable", old: "unavailable" },
+    ],
+    ["500", () => new Response("", { status: 500 }), { fresh: "unavailable", old: "unavailable" }],
+  ];
+  for (const [name, live, expected] of cases) {
+    for (const [age, requestedAt] of [["fresh", fresh], ["old", old]]) {
+      const admin = fakeAdmin();
+      Object.assign(admin.row, { requested_seq: 5, requested_at: requestedAt, last_hook_at: requestedAt, last_hook_result: "ok" });
+      const site = await siteStatus(admin, deps(fakeFetch({ live })));
+      assert.equal(site.state, expected[age], `${name}, ${age}`);
+      if (site.state === "unavailable") assert.equal(site.requested_seq, 5);
+    }
+  }
+});
+
+test("a save while the live site cannot be read: the hook still fires, the reply is unavailable (no Try again)", async () => {
+  const admin = fakeAdmin();
+  const fetchImpl = fakeFetch({ live: () => new Response("", { status: 502 }) });
+  const site = await requestSiteUpdate(admin, deps(fetchImpl));
+  assert.equal(admin.calls[1][1].p_result, "ok");
+  assert.equal(fetchImpl.calls.filter((c) => c.method === "POST").length, 1);
+  assert.equal(site.state, "unavailable");
+});

@@ -17,6 +17,8 @@ const SITES = {
   up_to_date: { state: "up_to_date", requested_seq: 5, live_seq: 5, requested_at: "2026-10-13T10:02:00.000Z", built_at: "2026-10-13T10:05:00.000Z", last_hook_at: "2026-10-13T10:02:00.000Z", last_hook_result: "ok" },
   updating: { state: "updating", requested_seq: 6, live_seq: 5, requested_at: "2026-10-13T10:02:00.000Z", built_at: "2026-10-13T09:00:00.000Z", last_hook_at: "2026-10-13T10:02:00.000Z", last_hook_result: "ok" },
   failed: { state: "failed", requested_seq: 6, live_seq: 5, requested_at: "2026-10-13T10:29:00.000Z", built_at: null, last_hook_at: "2026-10-13T10:30:00.000Z", last_hook_result: "error:503" },
+  // The endpoint answered, but the live site-version.json could not be read (PR #13 finding 2).
+  unavailable: { state: "unavailable", requested_seq: 6, live_seq: 0, requested_at: "2026-10-13T09:30:00.000Z", built_at: null, last_hook_at: "2026-10-13T09:30:00.000Z", last_hook_result: "ok" },
 };
 
 const text = (html) => html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
@@ -43,6 +45,14 @@ for (const locale of ["en", "ar", "es"]) {
     assert.equal(text(html), `${copy.failed}·14:30·${copy.tryAgain}`);
     assert.match(html, /<button type="button"[^>]*>[^<]*<\/button>/);
     assert.match(html, new RegExp(`>${copy.tryAgain}</button>`));
+  });
+
+  test(`${locale}: the live site could not be read: "${copy.unavailable}", no time, no Try again`, () => {
+    const html = render({ copy, initial: SITES.unavailable });
+    assert.equal(text(html), copy.unavailable);
+    assert.equal(html.includes(copy.tryAgain), false);
+    assert.equal(/<button/.test(html), false);
+    assert.match(html, /data-site-state="unavailable"/);
   });
 
   test(`${locale}: before the first read nothing is shown (no guessed state)`, () => {
@@ -75,6 +85,23 @@ test("lineView: unavailable is muted with no time and no Try again; updating wit
   assert.deepEqual(lineView({ kind: "unavailable" }, copy), { tone: "muted", text: "Status unavailable", time: null, at: null, showTryAgain: false });
   assert.equal(lineView({ kind: "loading" }, copy), null);
   assert.equal(lineView({ kind: "site", site: { ...SITES.updating, requested_at: null } }, copy).text, "Updating");
+  assert.deepEqual(lineView({ kind: "site", site: SITES.unavailable }, copy), { tone: "muted", text: "Status unavailable", time: null, at: null, showTryAgain: false });
+});
+
+test("a reply saying the live site could not be read is read again after 15, 30, then 60 s, and recovers", async () => {
+  const replies = [SITES.unavailable, SITES.unavailable, SITES.unavailable, SITES.unavailable, SITES.up_to_date].map((site) => ({ ok: true, site }));
+  const h = harness({ load: (n) => replies[n - 1] });
+  h.ctl.start();
+  await h.flush();
+  assert.equal(h.last().state.site.state, "unavailable");
+  const delays = [];
+  for (let i = 0; i < 4; i++) {
+    delays.push([...h.timers.values()][0].ms);
+    await h.tick();
+  }
+  assert.deepEqual(delays, [15_000, 30_000, 60_000, 60_000]);
+  assert.equal(h.last().state.site.state, "up_to_date");
+  assert.equal(h.timers.size, 0);
 });
 
 // ---- behaviour, through the model ---------------------------------------------------------------------------------
