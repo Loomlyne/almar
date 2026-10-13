@@ -75,15 +75,36 @@ async function read<T>(response: Response, announce: boolean): Promise<OpsRespon
 
 const JSON_HEADERS = { "content-type": "application/json" } as const;
 
-/** One round trip. A call that never gets a reply (offline, aborted, refused) is the `network` failure. */
-async function send<T>(path: string, init: RequestInit): Promise<OpsResponse<T>> {
-  let response: Response;
+/** Per-call options. `timeoutMs`: abort the call (reply included) after this long; it then comes back as the `timeout` failure. */
+export type OpsCallOptions = { timeoutMs?: number };
+
+/**
+ * One round trip. A call that never gets a reply (offline, aborted, refused) is the `network` failure; one that outlasts
+ * `timeoutMs` is `{ ok: false, status: 0, code: timeout }`, whether it stalled before or while the reply was read.
+ */
+async function send<T>(path: string, init: RequestInit, options: OpsCallOptions = {}): Promise<OpsResponse<T>> {
+  const { timeoutMs } = options;
+  const controller = timeoutMs === undefined ? null : new AbortController();
+  let timedOut = false;
+  const timer =
+    controller === null || timeoutMs === undefined
+      ? null
+      : setTimeout(() => {
+          timedOut = true;
+          controller.abort();
+        }, timeoutMs);
   try {
-    response = await fetch(path, { ...init, credentials: "same-origin", cache: "no-store" });
-  } catch {
-    return failure(0, "network");
+    let response: Response;
+    try {
+      response = await fetch(path, { ...init, credentials: "same-origin", cache: "no-store", ...(controller ? { signal: controller.signal } : {}) });
+    } catch {
+      return failure(0, timedOut ? "timeout" : "network");
+    }
+    const result = await read<T>(response, (init.method ?? "GET").toUpperCase() !== "GET");
+    return timedOut && !result.ok ? failure(0, "timeout") : result;
+  } finally {
+    if (timer !== null) clearTimeout(timer);
   }
-  return read<T>(response, (init.method ?? "GET").toUpperCase() !== "GET");
 }
 
 /** GET `path`, with `query` as the query string. A key whose value is undefined is left out. */
@@ -97,7 +118,7 @@ export function opsFetch<T>(path: OpsPath, query?: Record<string, string | undef
 }
 
 /** POST `body` as JSON. */
-export function opsSend<T>(path: OpsPath, body: unknown): Promise<OpsResponse<T>> {
+export function opsSend<T>(path: OpsPath, body: unknown, options?: OpsCallOptions): Promise<OpsResponse<T>> {
   let json: string;
   try {
     json = JSON.stringify(body);
@@ -105,7 +126,7 @@ export function opsSend<T>(path: OpsPath, body: unknown): Promise<OpsResponse<T>
     // A body that cannot be turned into JSON is a bug in the caller; it is reported, nothing is sent.
     return Promise.resolve(failure(0, "invalid"));
   }
-  return send<T>(path, { method: "POST", headers: { ...JSON_HEADERS }, body: json });
+  return send<T>(path, { method: "POST", headers: { ...JSON_HEADERS }, body: json }, options);
 }
 
 /**
