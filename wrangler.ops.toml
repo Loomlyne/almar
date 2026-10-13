@@ -4,14 +4,15 @@
 # service-role key, the Resend key, later the publish hook) are set by the owner from his terminal, never here.
 # Never deployed by a work session: the controller deploys it on the owner's word, by the runbook
 # .planning/phases/03.2-real-catalog-and-team-inserted/03.2-OPS-DEPLOY.md. Deploy only from an out-ops/ built with
-# `node scripts/assemble-cloudflare.mjs --target=ops`. Flags and date are wrangler.toml's (global_fetch_strictly_public
-# matters: plan 03.2-05 fetches https://almarprivatejourney.com/site-version.json from this Worker).
+# `node scripts/assemble-cloudflare.mjs --target=ops`. Date and flags are wrangler.toml's (global_fetch_strictly_public
+# matters: plan 03.2-05 fetches https://almarprivatejourney.com/site-version.json from this Worker) plus enable_request_signal,
+# which only this Worker has: Request.signal fires when the browser disconnects, so Translate stops waiting for the model.
 # html_handling stays at its default: out-ops/ ships no page HTML. run_worker_first = true: every request runs
 # worker/almar-ops.mjs, which forwards only the exact paths of .open-next/almar-ops-routes.json to Next.
 name = "almar-ops"
 account_id = "f1d9a1fa3abdda98c15161b00b40385c"
 compatibility_date = "2026-09-23"
-compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public", "enable_request_signal"]
 main = "worker/almar-ops.mjs"
 workers_dev = false
 preview_urls = false

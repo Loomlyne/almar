@@ -8,16 +8,20 @@ import { opsSend, type OpsResponse } from "./ops-client";
 
 /**
  * What the button shows. `idle` and `confirm` are the resting and asking states; `busy` while the two requests run;
- * the rest are the result line after a run (contract 5.11: 200 per target, 429 translate_limit, 502 translate_failed).
+ * the rest are the result line after a run (contract 5.11: 200 per target, 429 translate_limit, 503 translate_busy, 502 translate_failed).
  */
 export type TranslateView =
   | "idle"
   | "confirm"
   | "busy"
   | "done"
+  | "done-left"
   | "partial-ar"
   | "partial-es"
+  | "partial-ar-limit"
+  | "partial-es-limit"
   | "limit"
+  | "retry"
   | "failed";
 
 type Locale = "en" | "ar" | "es";
@@ -55,19 +59,19 @@ export function TranslateButtonView({
   const copy = OPS_TRANSLATE_COPY[locale];
   const hintId = useId();
   const busy = view === "busy";
-  const result =
-    view === "done"
-      ? copy.done
-      : view === "partial-ar"
-        ? copy.partialArabicOnly
-        : view === "partial-es"
-          ? copy.partialSpanishOnly
-          : view === "limit"
-            ? copy.limit
-            : view === "failed"
-              ? copy.failed
-              : "";
-  const isError = view === "limit" || view === "failed";
+  const lines: Partial<Record<TranslateView, string>> = {
+    done: copy.done,
+    "done-left": copy.someLeft,
+    "partial-ar": copy.partialArabicOnly,
+    "partial-es": copy.partialSpanishOnly,
+    "partial-ar-limit": copy.partialArabicLimit,
+    "partial-es-limit": copy.partialSpanishLimit,
+    limit: copy.limit,
+    retry: copy.retryLater,
+    failed: copy.failed,
+  };
+  const result = lines[view] ?? "";
+  const isError = view === "limit" || view === "retry" || view === "failed" || view === "partial-ar-limit" || view === "partial-es-limit";
 
   return (
     <div className="flex min-w-0 flex-col items-start gap-2">
@@ -105,7 +109,7 @@ export function TranslateButtonView({
 
 type Target = "ar" | "es";
 type Drafts = Record<string, string | string[]>;
-type TranslateReply = { target: Target; fields: Drafts };
+type TranslateReply = { target: Target; fields: Drafts; left?: string[] };
 
 /**
  * What is sent: strings with text, and lists whose every item has text (a list's length is the contract the answer
@@ -120,15 +124,29 @@ export function sendable(source: Source): Drafts {
   return out;
 }
 
-/** The result line from the two answers: both ok, one ok, the daily limit on either, or nothing. */
+/** How long one request may take before it is given up as failed; a stalled AI call otherwise holds "Translating…" ~100 s. */
+export const TRANSLATE_TIMEOUT_MS = 45_000;
+
+/** An answer that came back with some fields left empty (they were not a usable translation). */
+const hasLeft = (r: OpsResponse<TranslateReply> | null) => r?.ok === true && (r.left?.length ?? 0) > 0;
+const isBusy = (r: OpsResponse<TranslateReply> | null) => r !== null && !r.ok && r.error.code === "translate_busy";
+const isLimit = (r: OpsResponse<TranslateReply> | null) => r !== null && !r.ok && r.status === 429 && r.error.code === "translate_limit";
+
+/**
+ * The result line from the two answers: both ok, one ok, the daily limit on either, or nothing. When one target came
+ * back and the other hit the daily limit, the line says both (what was filled, what is limited).
+ */
 export function outcomeView(ar: OpsResponse<TranslateReply> | null, es: OpsResponse<TranslateReply> | null): TranslateView {
-  const limited = [ar, es].some((r) => r !== null && !r.ok && r.status === 429 && r.error.code === "translate_limit");
-  if (limited) return "limit";
   const arOk = ar?.ok === true;
   const esOk = es?.ok === true;
-  if (arOk && esOk) return "done";
+  if (arOk && isLimit(es)) return "partial-ar-limit";
+  if (esOk && isLimit(ar)) return "partial-es-limit";
+  if (isLimit(ar) || isLimit(es)) return "limit";
+  if (arOk && esOk) return hasLeft(ar) || hasLeft(es) ? "done-left" : "done";
   if (arOk) return "partial-ar";
   if (esOk) return "partial-es";
+  // Nothing came back: busy (try again in a minute) when either was a rate or capacity answer, else failed.
+  if (isBusy(ar) || isBusy(es)) return "retry";
   return "failed";
 }
 
@@ -177,7 +195,7 @@ export function TranslateButton(props: {
     try {
       const targets: Target[] = ["ar", "es"];
       const settled = await Promise.allSettled(
-        targets.map((target) => opsSend<TranslateReply>("/api/ops/translate", { target, fields })),
+        targets.map((target) => opsSend<TranslateReply>("/api/ops/translate", { target, fields }, { timeoutMs: TRANSLATE_TIMEOUT_MS })),
       );
       if (!mounted.current || JSON.stringify(sourceRef.current) !== JSON.stringify(clicked)) return;
       const [ar, es] = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
