@@ -104,7 +104,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 02-05: Language and currency follow a signed-in account (wave 7)
+- [x] 02-05: Language and currency follow a signed-in account (wave 7) — landed `5700eba` + fix-up `fa5033c` 2026-10-13, not deployed
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
