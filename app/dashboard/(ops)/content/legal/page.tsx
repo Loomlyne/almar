@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ContentScreen } from "../content-screen";
+import { ComingSoonScreen } from "../coming-soon";
 
 export const metadata: Metadata = {
   title: "Legal",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardLegalPage() {
-  return <ContentScreen kind="legal" />;
+  return <ComingSoonScreen kind="legal" />;
 }
