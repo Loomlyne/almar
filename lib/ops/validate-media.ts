@@ -8,8 +8,13 @@ import type { Locale3 } from "../../components/ops/api-types";
 import { isOpsInvalid, OpsInvalid } from "./route-core";
 import { has, onlyKeys, record, requiredText, text, uuid } from "./validate";
 
-/** The largest file the owner can send (contract §5.10: 15 MB). */
-export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+/**
+ * The largest file the owner can send: 10 MB (job 03.2-09b). Under `next dev` / `next start` Next buffers a body for
+ * the in-process middleware (which runs on this route) up to DEFAULT_BODY_CLONE_SIZE_LIMIT, 10 MB, and cuts the rest.
+ * On Cloudflare the middleware is external and OpenNext reads the whole body into memory before the route runs, so
+ * 10 MB is also the memory bound there. Over it, the Content-Length check answers 413 before the route reads a byte.
+ */
+export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 /** Alt text: at most 300 characters per language. */
 export const ALT_MAX = 300;
 /** Width and height: 1..10000 px. */
@@ -21,6 +26,21 @@ export type UploadType = keyof typeof UPLOAD_EXT;
 
 export function isUploadType(value: string): value is UploadType {
   return Object.prototype.hasOwnProperty.call(UPLOAD_EXT, value);
+}
+
+/** How many leading bytes the type check reads: enough for the longest signature below (WebP, 12). */
+export const SNIFF_BYTES = 12;
+
+/**
+ * True when the file's first bytes are the signature of `type` (job 03.2-09b, review finding 4): JPEG `FF D8 FF`, PNG
+ * `89 50 4E 47 0D 0A 1A 0A`, WebP `RIFF` + 4 size bytes + `WEBP`. A body labelled image/png that is not one is refused,
+ * so the media host never serves non-image bytes under an image type.
+ */
+export function hasSignature(bytes: Uint8Array, type: UploadType): boolean {
+  const at = (offset: number, sig: readonly number[]) => bytes.length >= offset + sig.length && sig.every((b, i) => bytes[offset + i] === b);
+  if (type === "image/jpeg") return at(0, [0xff, 0xd8, 0xff]);
+  if (type === "image/png") return at(0, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  return at(0, [0x52, 0x49, 0x46, 0x46]) && at(8, [0x57, 0x45, 0x42, 0x50]);
 }
 
 const SHA256 = /^[0-9a-f]{64}$/;
@@ -73,7 +93,7 @@ function altFromHeader(value: string | null): string {
 
 /**
  * The upload's headers, in the contract's order: Content-Type (415 wrong_type), Content-Length (413 too_large when
- * missing, not a plain number or over 15 MB; 0 is 400 field content_length), x-almar-sha256 (64 lowercase hex),
+ * missing, not a plain number or over 10 MB; 0 is 400 field content_length), x-almar-sha256 (64 lowercase hex),
  * x-almar-width / x-almar-height (1..10000), x-almar-alt-en (URI-encoded, required after trim, at most 300 characters).
  */
 export function parseUploadHeaders(headers: Headers): { ok: true; value: UploadHeaders } | ({ ok: false } & HeaderRefusal) {
