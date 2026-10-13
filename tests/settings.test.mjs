@@ -59,7 +59,7 @@ test("a failing pair blocks save and is charged to the colour she changed", () =
 });
 
 const SETTINGS = "app/dashboard/(ops)/settings/settings-screen.tsx";
-const MAINTENANCE = "app/maintenance/page.tsx";
+const MAINTENANCE = "lib/maintenance-document.ts";
 
 test("settings screen: maintenance checkbox, no radius control, no rate input, no admin client", () => {
   const src = code(SETTINGS);
