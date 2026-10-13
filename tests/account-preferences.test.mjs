@@ -71,3 +71,9 @@ test("the signed-in hint: value-free name, readable by the page, lax, Secure in 
   assert.deepEqual(p.signedInHintOptions(true), { path: "/", maxAge: 400 * 24 * 60 * 60, sameSite: "lax", secure: true, httpOnly: false });
   assert.deepEqual(p.signedInHintOptions(false, 0), { path: "/", maxAge: 0, sameSite: "lax", secure: false, httpOnly: false });
 });
+
+test("/account shows the currency the site uses: the browser choice, else her row (02-05 review, finding 4)", () => {
+  assert.equal(p.shownAccountCurrency("USD", "AED"), "USD");
+  assert.equal(p.shownAccountCurrency("EUR", "EUR"), "EUR");
+  for (const bad of [null, undefined, "", "usd", "GBP", "USD "]) assert.equal(p.shownAccountCurrency(bad, "AED"), "AED");
+});

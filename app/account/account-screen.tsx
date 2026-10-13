@@ -14,6 +14,7 @@ import { setDocumentLocale, type DocumentLocale } from "../../lib/set-document-l
 import type { SessionProfile } from "../../lib/supabase/clients";
 import { savePreferences, saveProfile, type SaveState } from "./actions";
 import { applyAccountSync, readCurrencyChoice, storeCurrencyChoice } from "../../components/site/account-sync";
+import { shownAccountCurrency } from "../../lib/account-preferences";
 
 type Currency = SessionProfile["currency"];
 
@@ -37,19 +38,20 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
   useEffect(() => setDocumentLocale(locale), [locale]);
 
   // Plan 02-05: right after sign-in the handoff cookie carries her saved currency into this browser (applyAccountSync
-  // stores it). After a new account's first sign-in ("push") it is the other way round: the browser's choice was just
-  // sent to her profile, so the screen shows it instead of the row's default. Otherwise her row fills the browser
-  // choice only when it has none, so a pick whose save has not landed yet is not overwritten.
+  // stores it); after a new account's first sign-in ("push") the browser's choice was just sent to her profile. Either
+  // way the screen shows the currency the public pages use, the browser choice (02-05 review, finding 4). Her row
+  // fills the browser choice only when it has none, so a pick whose save has not landed yet is not overwritten.
   useEffect(() => {
-    if (applyAccountSync() === "push") {
-      const chosen = readCurrencyChoice();
-      if (chosen) setCurrency(chosen);
-      return;
-    }
-    if (!readCurrencyChoice()) storeCurrencyChoice(profile.currency);
+    applyAccountSync();
+    const chosen = readCurrencyChoice();
+    if (chosen) setCurrency(shownAccountCurrency(chosen, profile.currency));
+    else storeCurrencyChoice(profile.currency);
   }, [profile.currency]);
 
+  // A save writes her row and the browser choice together; a failed save puts the screen back, so it never shows a
+  // currency the site is not using.
   function storePreferences(nextLocale: DocumentLocale, nextCurrency: Currency) {
+    const previous = { locale, currency };
     setLocale(nextLocale);
     setCurrency(nextCurrency);
     const form = new FormData();
@@ -58,7 +60,12 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
     startPrefs(async () => {
       const result = await savePreferences(form);
       setPrefState(result);
-      if (result.status === "saved") storeCurrencyChoice(nextCurrency);
+      if (result.status === "saved") {
+        storeCurrencyChoice(nextCurrency);
+      } else {
+        setLocale(previous.locale);
+        setCurrency(previous.currency);
+      }
     });
   }
 

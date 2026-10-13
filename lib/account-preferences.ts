@@ -41,6 +41,14 @@ export function parseAccountCurrency(value: unknown): AccountCurrency | null {
   return value === "AED" || value === "USD" || value === "EUR" ? value : null;
 }
 
+/**
+ * The currency /account shows (02-05 review, finding 4): the one the public pages use, which is the browser choice
+ * (localStorage, read through parseAccountCurrency). Her row's currency only fills an empty browser choice.
+ */
+export function shownAccountCurrency(browserChoice: unknown, profileCurrency: AccountCurrency): AccountCurrency {
+  return parseAccountCurrency(browserChoice) ?? profileCurrency;
+}
+
 export type SyncValue = AccountCurrency | "push";
 
 export function parseSyncValue(value: unknown): SyncValue | null {
