@@ -5,20 +5,22 @@
 // Plan 02-06 (D-110, D-113, D-116): the email wears the saved brand. The caller reads the settings row at send time and
 // passes it; colours go in as inline styles, the faces as the first name in each font stack (Arabic keeps its own faces,
 // D-123), and a saved logo as an <img> on the image host (an email cannot use a relative path). Without settings the
-// design system's values are used, so a failed read never stops an email. lib/site-settings.ts emailBrand() builds the
-// values from the settings row; this file stays import-free so node tests load it directly.
+// design system's values are used, so a failed read never stops an email. The button is the site's primary: Teal fill,
+// White text (owner, 2026-10-13: Gold is lines only, never a fill; the Teal/White pair is in the contrast gate).
+// lib/site-settings-read.ts emailBrand() builds the values from the settings row; this file stays import-free so node
+// tests load it directly.
 
-/** Plain values for the email (lib/site-settings.ts emailBrand). Colours are #rrggbb, faces the design system's. */
-export type EmailBrand = { teal: string; gold: string; ivory: string; ink: string; titleFace: string; bodyFace: string; logoUrl: string | null };
+/** Plain values for the email (lib/site-settings-read.ts emailBrand). Colours are #rrggbb, faces the design system's. */
+export type EmailBrand = { teal: string; white: string; ivory: string; ink: string; titleFace: string; bodyFace: string; logoUrl: string | null };
 
-const DESIGN: EmailBrand = { teal: "#1f3b40", gold: "#d4ba8a", ivory: "#fffaf0", ink: "#262626", titleFace: "Questa", bodyFace: "Lato", logoUrl: null };
+const DESIGN: EmailBrand = { teal: "#1f3b40", white: "#ffffff", ivory: "#fffaf0", ink: "#262626", titleFace: "Questa", bodyFace: "Lato", logoUrl: null };
 const HEX = /^#[0-9a-f]{6}$/;
 const FACE = /^(Questa|Lato)$/;
 const LOGO_URL = /^https:\/\/media\.almarprivatejourney\.com\/[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_.-]*)*\.(webp|png|jpg)$/;
 
 function checkedBrand(brand: EmailBrand | null): EmailBrand {
   if (!brand) return DESIGN;
-  for (const key of ["teal", "gold", "ivory", "ink"] as const) {
+  for (const key of ["teal", "white", "ivory", "ink"] as const) {
     if (!HEX.test(brand[key])) throw new Error(`email brand: ${key} is not #rrggbb`);
   }
   if (!FACE.test(brand.titleFace) || !FACE.test(brand.bodyFace)) throw new Error("email brand: a face is not the design system's");
@@ -59,7 +61,7 @@ export function renderMagicLinkEmail({
   /** confirm: the first link for a new account. sign-in: every later link. */
   kind: "sign-in" | "confirm";
   copy: MagicLinkEmailCopy;
-  /** The saved brand (lib/site-settings.ts emailBrand), or null for the design system. */
+  /** The saved brand (lib/site-settings-read.ts emailBrand), or null for the design system. */
   brand?: EmailBrand | null;
 }): MagicLinkEmail {
   if (!/^https?:\/\//.test(href)) throw new Error("magic link must be an absolute URL");
@@ -68,7 +70,7 @@ export function renderMagicLinkEmail({
   const safeHref = escapeHtml(href);
   const b = checkedBrand(brand);
   const TEAL = b.teal;
-  const GOLD = b.gold;
+  const WHITE = b.white;
   const IVORY = b.ivory;
   const INK = b.ink;
   const titleFont = locale === "ar" ? "'Noto Naskh Arabic',Georgia,serif" : `${b.titleFace},Georgia,serif`;
@@ -86,7 +88,7 @@ export function renderMagicLinkEmail({
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;text-align:${dir === "rtl" ? "right" : "left"}" dir="${dir}">
 <tr><td style="padding:0 0 24px;font-family:${titleFont};font-size:24px;color:${TEAL}">${masthead}</td></tr>
 <tr><td style="padding:0 0 24px;font-size:16px;line-height:1.5">${escapeHtml(copy.intro)}</td></tr>
-<tr><td style="padding:0 0 24px"><a href="${safeHref}" style="display:inline-block;padding:16px 24px;background:${GOLD};color:${TEAL};font-size:14px;text-decoration:none;border-radius:0">${escapeHtml(copy.button)}</a></td></tr>
+<tr><td style="padding:0 0 24px"><a href="${safeHref}" style="display:inline-block;padding:16px 24px;background:${TEAL};color:${WHITE};font-size:14px;text-decoration:none;border-radius:0">${escapeHtml(copy.button)}</a></td></tr>
 <tr><td style="padding:0;font-size:12px;line-height:1.5;color:${MUTED}">${escapeHtml(copy.ignore)}</td></tr>
 </table>
 </td></tr>

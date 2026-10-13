@@ -56,7 +56,7 @@ export function emailBrand(settings: PublicSiteSettings | null): EmailBrand | nu
   if (!settings) return null;
   return {
     teal: brandColor(settings, "teal"),
-    gold: brandColor(settings, "gold"),
+    white: brandColor(settings, "white"),
     ivory: brandColor(settings, "ivory"),
     ink: brandColor(settings, "charcoal"),
     titleFace: settings.titleFace,

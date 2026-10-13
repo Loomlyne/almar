@@ -46,3 +46,9 @@ No legal text, price or rate is invented. The FX numbers in the pictures are exa
 2. **Gold has no contrast check.** It is never text or a fill any more, so no required pair uses it. The pairs checked
    are: Teal and Charcoal as text on Ivory and White, Ivory text on Teal (button label) and on Charcoal (menu), and the
    fixed muted and error text on her Ivory and White.
+
+## Sign-in email (round 3, owner answer 2026-10-13)
+
+`email-default-{en,ar,es}.png` and `email-saved-teal-{en,ar,es}.png`: the real `lib/email/magic-link.ts` at 600 px, with
+the design system's brand and with a saved Teal `#2b4f56`. The button is Teal fill, White text; no Gold fill anywhere.
+The ops sign-in email uses the same renderer and copy. Run `node .planning/phases/02-platform-spine/pictures/02-06/shoot-email.mjs`.

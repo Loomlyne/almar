@@ -207,9 +207,10 @@ deploy; `/login`, `/account`, `/bookings` close within 30 s regardless.
   for 03.2-05).
 - The email in real mail clients: WebP logos do not show in Outlook desktop (the upload accepts PNG/JPEG/WebP); the
   saved faces only show where the client has them installed (Questa never is: Georgia shows).
-- Owner question: the email button is Teal text on a Gold background, and Gold is not contrast-checked (signed). A
-  dark saved Gold makes that button hard to read. Options: check Teal on Gold too, or make the email button the site's
-  teal primary.
+- Owner answer (2026-10-13, question form): the email button is Teal fill with White text, like the site's primary
+  buttons; Gold is lines only, never a fill. Done in round 3 (`lib/email/magic-link.ts`, guest and ops: one renderer).
+  The email has no gold line, so Gold no longer appears in it. Pictures: `pictures/02-06/email-{default,saved-teal}-{en,ar,es}.png`
+  (600 px, `shoot-email.mjs`, rendered by the real renderer; saved Teal `#2b4f56`).
 - The settings write and the profile write are two updates, not one transaction.
 - `lib/supabase/database.types.ts` is stale (this and earlier migrations): a separate refresh after landing (agreed).
 

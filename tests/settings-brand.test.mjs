@@ -15,6 +15,8 @@ const media = await loadTs("lib/data/media.ts");
 
 const ROW = { maintenance: false, teal: null, charcoal: null, gold: null, ivory: null, white: null, title_face: "Questa", body_face: "Lato", logo_key: null };
 const SAVED = { ...ROW, teal: "#7a1f3b", gold: "#c9a227", ivory: "#f6f1e7", charcoal: "#1a1a1a", logo_key: "uploads/logo-1.webp" };
+// The email takes White too (its button text); a saved White here proves it follows.
+const SAVED_EMAIL = { ...SAVED, white: "#fbfbf8" };
 const LOGO_URL = "https://media.almarprivatejourney.com/uploads/logo-1.webp";
 const COPY = { ...GUEST_COPY.en.mail, button: GUEST_COPY.en.accessWithMagicLink };
 const HREF = "https://almarprivatejourney.com/auth/confirm?token_hash=x";
@@ -59,7 +61,10 @@ test("readSiteSettings: maxAgeMs 0 reads every time; the default keeps a read 30
 
 test("email: the design system without settings; the saved colours, faces and logo with them", () => {
   const plain = renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY });
-  for (const hex of ["#1f3b40", "#d4ba8a", "#fffaf0", "#262626"]) assert.ok(plain.html.includes(hex), hex);
+  for (const hex of ["#1f3b40", "#ffffff", "#fffaf0", "#262626"]) assert.ok(plain.html.includes(hex), hex);
+  // The button is the site's primary: Teal fill, White text. Gold is lines only, never a fill (owner, 2026-10-13).
+  assert.match(plain.html, /<a href="[^"]+" style="display:inline-block;padding:16px 24px;background:#1f3b40;color:#ffffff;/);
+  assert.equal(plain.html.includes("#d4ba8a"), false, "no gold in the email");
   assert.match(plain.html, />ALMAR Private Journey<\/td>/);
   assert.equal(plain.html.includes("<img"), false);
   assert.deepEqual(renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY, brand: r.emailBrand(null) }), plain);
@@ -69,9 +74,13 @@ test("email: the design system without settings; the saved colours, faces and lo
     "a row with every colour null is the design system",
   );
 
-  const branded = renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY, brand: r.emailBrand(s.parseSiteSettingsRow(SAVED)) });
-  for (const hex of ["#7a1f3b", "#c9a227", "#f6f1e7", "#1a1a1a"]) assert.ok(branded.html.includes(hex), hex);
-  for (const hex of ["#1f3b40", "#d4ba8a", "#fffaf0", "#262626"]) assert.equal(branded.html.includes(hex), false, `${hex} replaced`);
+  const branded = renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY, brand: r.emailBrand(s.parseSiteSettingsRow(SAVED_EMAIL)) });
+  for (const hex of ["#7a1f3b", "#fbfbf8", "#f6f1e7", "#1a1a1a"]) assert.ok(branded.html.includes(hex), hex);
+  for (const hex of ["#1f3b40", "#ffffff", "#fffaf0", "#262626"]) assert.equal(branded.html.includes(hex), false, `${hex} replaced`);
+  assert.match(branded.html, /background:#7a1f3b;color:#fbfbf8;/, "the saved Teal fills the button, the saved White is its text");
+  assert.equal(branded.html.includes("#c9a227"), false, "a saved Gold never fills anything in the email");
+  const confirm = renderMagicLinkEmail({ href: HREF, locale: "en", kind: "confirm", copy: COPY, brand: r.emailBrand(s.parseSiteSettingsRow(SAVED_EMAIL)) });
+  assert.match(confirm.html, /background:#7a1f3b;color:#fbfbf8;/, "the first-link (confirm) email has the same button");
   assert.match(branded.html, new RegExp(`<img src="${LOGO_URL.replace(/[.]/g, "\\.")}" alt="ALMAR Private Journey" width="140"`));
   assert.match(branded.html, /font-family:Questa,Georgia,serif/);
   assert.match(branded.html, /font-family:Lato,Arial,sans-serif/);
@@ -84,8 +93,8 @@ test("email: the design system without settings; the saved colours, faces and lo
 });
 
 test("email: refuses a brand that did not come from the checked row", () => {
-  const good = r.emailBrand(s.parseSiteSettingsRow(SAVED));
-  for (const bad of [{ ...good, teal: "red" }, { ...good, titleFace: "Arial" }, { ...good, logoUrl: "http://media.almarprivatejourney.com/x.png" },
+  const good = r.emailBrand(s.parseSiteSettingsRow(SAVED_EMAIL));
+  for (const bad of [{ ...good, teal: "red" }, { ...good, white: "#FFF" }, { ...good, titleFace: "Arial" }, { ...good, logoUrl: "http://media.almarprivatejourney.com/x.png" },
     { ...good, logoUrl: 'https://media.almarprivatejourney.com/x.png" onerror="x' }]) {
     assert.throws(() => renderMagicLinkEmail({ href: HREF, locale: "en", kind: "sign-in", copy: COPY, brand: bad }));
   }
