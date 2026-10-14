@@ -18,6 +18,9 @@ restoring by copy, never `git checkout` a file)
    Same fix, reported by 03.2-06 on 2026-10-15: opening `EditPage` with `dirty=true` in dev pops "Discard changes?" at
    once, because React strict mode runs the Back-guard effect twice and the cleanup's `history.back()` lands as a
    popstate on the second setup. Make the guard idempotent under a double effect; prove it in dev (strict) and build.
+   Third case, found by 03.2-13 on 2026-10-15: after Save closes the page, the guard's cleanup `history.back()` races
+   a navigation that starts right away (Playwright `page.goto` aborted with `net::ERR_ABORTED`). Closing the page must not
+   undo or abort the next navigation; prove it with a test that navigates immediately after Save.
 3. **Test helper race.** `tests/helpers/local-supabase.mjs`: `requireStack` runs before the lock is taken, so two
    callers can race. Take the lock first. Test it without starting a stack.
 4. **Translate route signal** (03.2-10 follow-up): `worker/handle.mjs` passes no `signal` to the translate call, and
