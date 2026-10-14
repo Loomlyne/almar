@@ -9,10 +9,12 @@ import type { MissingItem } from "./publish-check";
 import { useDashboardLocale } from "./use-dashboard-locale";
 
 /**
- * The action row of an edit panel (research 4.5). An unpublished item has Save and Publish; a published one has
- * Save and update site (content is baked at build, so a save on a live item changes the site) and Unpublish. Publish
- * is disabled while anything is missing and the gaps are listed in words. A 409 publish_incomplete from the server is
- * shown through the same list. Delete exists only when `onDelete` is given, and waits for Unpublish.
+ * The actions of the editor page's top bar (kit panel B, research 4.5). An unpublished item has Save (outlined) and
+ * Publish (teal); a published one has Save and update site (content is baked at build, so a save on a live item changes
+ * the site) and, when the screen has one, Unpublish. Publish is disabled while anything is missing (the gaps are listed
+ * in words), after a 409 publish_incomplete (the server's list, same words), and while a translation did not finish
+ * (`translationAlertId` names the alert that says why). `part` splits the bar: the editor draws the buttons beside the
+ * title and the notes under the bar; `all` (the default) draws both, notes first.
  */
 export function PublishBar({
   isNew,
@@ -24,10 +26,13 @@ export function PublishBar({
   onSave,
   onPublish,
   onUnpublish,
-  onDelete,
-  deleteLabel,
   error,
   fieldLabel,
+  savePending = false,
+  saveBlocked = false,
+  translationAlertId,
+  idBase,
+  part = "all",
 }: {
   isNew: boolean;
   isPublished: boolean;
@@ -36,87 +41,104 @@ export function PublishBar({
   missing: MissingItem[];
   warnings: PublishWarningCode[];
   onSave: () => void;
-  onPublish: () => void;
-  onUnpublish: () => void;
-  onDelete?: () => void;
-  deleteLabel?: string;
+  /** Absent on a screen with no publish step: Save is then the one teal button. */
+  onPublish?: () => void;
+  onUnpublish?: () => void;
   error: OpsError | null;
   /** A screen's own words for a field name (its labels), when they differ from the kit's. */
   fieldLabel?: (field: string) => string | undefined;
+  /** Save has work with nothing edited (a translation to try again): it stays live. */
+  savePending?: boolean;
+  /** The screen's own required fields cannot be saved yet: Save waits. */
+  saveBlocked?: boolean;
+  /** The id of the alert saying the translation did not finish; while set, Publish waits and names it. */
+  translationAlertId?: string;
+  /** Shared by the two parts, so a button in one names a note in the other. */
+  idBase?: string;
+  part?: "all" | "actions" | "notes";
 }) {
   const copy = OPS_KIT_COPY[useDashboardLocale()];
-  const hintId = useId();
-  const gapsId = useId();
-  const alertId = useId();
+  const ownId = useId();
+  const base = idBase ?? ownId;
+  const gapsId = `${base}-gaps`;
+  const alertId = `${base}-alert`;
   const fromServer = missingFromError(error);
   const gaps = fromServer ?? (isPublished ? [] : missing);
-  const blocked = missing.length > 0 || fromServer !== null;
+  const blocked = missing.length > 0 || fromServer !== null || translationAlertId !== undefined;
   // A 409 publish_incomplete whose list is absent or empty still says why, in its own sentence.
   const showAlert = error !== null && (fromServer === null || fromServer.length === 0);
   // What a disabled Publish waits for, so a screen reader hears the reason with the button.
-  const publishReason = blocked ? (gaps.length > 0 ? gapsId : showAlert ? alertId : undefined) : undefined;
-  const showDelete = Boolean(onDelete) && !isNew;
+  const publishReason = blocked
+    ? gaps.length > 0
+      ? gapsId
+      : showAlert
+        ? alertId
+        : translationAlertId
+    : undefined;
+  const canSave = !busy && !saveBlocked && (isNew || dirty || savePending);
 
-  return (
-    <div className="flex min-w-0 flex-col gap-2">
-      {gaps.length > 0 ? (
-        <div id={gapsId} className="flex flex-col gap-1 border-s border-gold ps-2">
-          <p className="m-0 text-label text-ink">{copy.publishNeeds}</p>
-          <ul className="m-0 flex list-none flex-col p-0 text-label text-ink">
-            {gaps.map((item) => (
-              <li key={`${item.locale ?? "any"}-${item.field}`}>{missingLine(copy, item, fieldLabel)}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-      {warnings.map((code) => (
-        <p key={code} role="status" className="m-0 border-s border-gold ps-2 text-label text-ink">
-          {code === "no_base_rate" ? copy.warnNoBaseRate : copy.warnNoPrice}
-        </p>
-      ))}
-      {showAlert && error ? (
-        <p id={alertId} role="alert" className="m-0 text-label text-error">
-          {errorText(copy, error, fieldLabel)}
-        </p>
-      ) : null}
-      <div className="flex flex-wrap items-center gap-2">
-        {isPublished ? (
-          <>
-            <Button disabled={busy || !dirty} onClick={onSave}>
-              {copy.saveAndUpdateSite}
-            </Button>
+  const notes =
+    gaps.length > 0 || warnings.length > 0 || showAlert ? (
+      <div className="flex min-w-0 flex-col gap-2">
+        {gaps.length > 0 ? (
+          <div id={gapsId} className="flex flex-col gap-1 border-s border-gold ps-2">
+            <p className="m-0 text-label text-ink">{copy.publishNeeds}</p>
+            <ul className="m-0 flex list-none flex-col p-0 text-label text-ink">
+              {gaps.map((item) => (
+                <li key={`${item.locale ?? "any"}-${item.field}`}>{missingLine(copy, item, fieldLabel)}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {warnings.map((code) => (
+          <p key={code} role="status" className="m-0 border-s border-gold ps-2 text-label text-ink">
+            {code === "no_base_rate" ? copy.warnNoBaseRate : copy.warnNoPrice}
+          </p>
+        ))}
+        {showAlert && error ? (
+          <p id={alertId} role="alert" className="m-0 text-label text-error">
+            {errorText(copy, error, fieldLabel)}
+          </p>
+        ) : null}
+      </div>
+    ) : null;
+
+  const actions = (
+    <div className="flex flex-wrap items-center gap-2">
+      {isPublished ? (
+        <>
+          {onUnpublish ? (
             <Button variant="secondary" disabled={busy} onClick={onUnpublish}>
               {copy.unpublish}
             </Button>
-          </>
-        ) : (
-          <>
-            <Button variant="secondary" disabled={busy || (!isNew && !dirty)} onClick={onSave}>
-              {copy.save}
-            </Button>
-            <Button disabled={busy || blocked} aria-describedby={publishReason} onClick={onPublish}>
-              {copy.publish}
-            </Button>
-          </>
-        )}
-        {showDelete ? (
-          <>
-            <Button
-              variant="danger"
-              disabled={busy || isPublished}
-              aria-describedby={isPublished ? hintId : undefined}
-              onClick={onDelete}
-            >
-              {deleteLabel ?? copy.delete}
-            </Button>
-            {isPublished ? (
-              <span id={hintId} className="text-label text-muted">
-                {copy.unpublishFirst}
-              </span>
-            ) : null}
-          </>
-        ) : null}
-      </div>
+          ) : null}
+          <Button busy={busy} disabled={!canSave} onClick={onSave}>
+            {copy.saveAndUpdateSite}
+          </Button>
+        </>
+      ) : onPublish ? (
+        <>
+          <Button variant="secondary" busy={busy} disabled={!canSave} onClick={onSave}>
+            {copy.save}
+          </Button>
+          <Button disabled={busy || blocked} aria-describedby={publishReason} onClick={onPublish}>
+            {copy.publish}
+          </Button>
+        </>
+      ) : (
+        <Button busy={busy} disabled={!canSave} onClick={onSave}>
+          {copy.save}
+        </Button>
+      )}
+    </div>
+  );
+
+  if (part === "actions") return actions;
+  if (part === "notes") return notes;
+  return (
+    <div className="flex min-w-0 flex-col gap-2">
+      {notes}
+      {actions}
     </div>
   );
 }

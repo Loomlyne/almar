@@ -1,9 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { allowHostOverride, HOST_OVERRIDE_HEADER, isOpsHost, routeFor, SHELL_HEADER } from "./lib/host";
-import { isOwnerEmail } from "./lib/auth/rules";
+import { isOwnerEmail, LOCALE_COOKIE } from "./lib/auth/rules";
 import { OPS_PATH_HEADER } from "./lib/ops-routes";
 import { sessionCookieOptions } from "./lib/supabase/cookie-options";
+import { maintenanceResponse } from "./lib/maintenance-gate";
 
 // Plan 02-02: keep her Supabase session fresh. Requests without a Supabase auth cookie never
 // wait on Supabase, so the static Framer pages stay fast.
@@ -40,6 +41,16 @@ export async function middleware(request: NextRequest) {
   const nodeEnv = process.env.NODE_ENV;
   const override = allowHostOverride(nodeEnv) ? request.headers.get(HOST_OVERRIDE_HEADER) : null;
   const host = override || request.headers.get("host");
+
+  // Plan 02-06: with maintenance saved on, the public Worker's own pages (/login, /account, /bookings) show the closed
+  // page before anything else runs. The ops host is never closed.
+  const closed = await maintenanceResponse({
+    path: request.nextUrl.pathname,
+    opsHost: isOpsHost(host),
+    cookieLocale: request.cookies.get(LOCALE_COOKIE)?.value,
+    env: { url: process.env.NEXT_PUBLIC_SUPABASE_URL?.trim(), anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() },
+  });
+  if (closed) return closed;
 
   const pending: PendingCookie[] = [];
   const email = await sessionEmail(request, pending);

@@ -6,19 +6,24 @@
 // Upload (C-10, research §3.2): headers first (nothing is read before they pass), then a content-addressed key
 // `uploads/<first 32 hex of the SHA-256>.<ext>`. `head` first: an object already there is never overwritten. Else the
 // body is piped through a length stream of exactly Content-Length bytes into `put` with the hex sha256, so R2 refuses
-// bytes that do not match (never arrayBuffer() on the file: memory and CPU on the Free plan). Only after a stored
-// object does `ops_save_media` record the row. Never Supabase Storage. Nothing here logs: alt text, keys and
-// headers never reach a log.
+// bytes that do not match (this code never reads the file whole). Only after a stored object does
+// `ops_save_media` record the row. Never Supabase Storage. Nothing here logs: alt text, keys and headers never reach
+// a log. Note (job 03.2-09b): on Cloudflare, OpenNext has already read the whole request body into memory before this
+// runs (@opennextjs/aws overrides/converters/edge.js, in its routing layer and again for the server function, for every
+// non-GET request whatever the middleware matcher says), so the 10 MB limit (validate-media.ts) is also the memory
+// bound of one upload.
 
 import type { MediaItem } from "../../components/ops/media-types";
 import { mediaRef } from "./shape";
 import { errorBody, OpsInvalid, type DbError, type OpsOutcome, type OpsResult } from "./route-core";
 import {
+  hasSignature,
   isSha256,
   isUploadType,
   MAX_UPLOAD_BYTES,
   parseMediaQuery,
   parseUploadHeaders,
+  SNIFF_BYTES,
   UPLOAD_EXT,
   type MediaPost,
   type MediaQuery,
@@ -80,8 +85,57 @@ export function keyFor(sha256: string, contentType: string): string {
 const PIPE_STOPPED = Symbol("pipe stopped");
 
 /**
- * PUT /api/ops/media. Returns `{ ok, id, key, url, created }`, a refusal (415 / 413 / 400 with the field, 503 when the
- * bucket is missing), or `{ dbError }` for the wrapper to map.
+ * Reads the body's first `need` bytes (fewer when it ends first) and gives back a stream of the whole body: those bytes,
+ * then the rest as it arrives. Nothing past the first chunks is buffered.
+ */
+async function sniffBody(
+  body: ReadableStream<Uint8Array>,
+  need: number,
+): Promise<{ head: Uint8Array; whole: ReadableStream<Uint8Array>; cancel: () => void }> {
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let have = 0;
+  while (have < need) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value.byteLength === 0) continue;
+    chunks.push(value);
+    have += value.byteLength;
+  }
+  const head = new Uint8Array(Math.min(have, need));
+  let at = 0;
+  for (const chunk of chunks) {
+    if (at >= head.length) break;
+    const part = chunk.subarray(0, head.length - at);
+    head.set(part, at);
+    at += part.byteLength;
+  }
+  const cancel = () => {
+    reader.cancel().catch(() => undefined);
+  };
+  let queued = chunks;
+  const whole = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      if (queued.length > 0) {
+        for (const chunk of queued) controller.enqueue(chunk);
+        queued = [];
+        return;
+      }
+      const { done, value } = await reader.read();
+      if (done) controller.close();
+      else controller.enqueue(value);
+    },
+    cancel() {
+      cancel();
+    },
+  });
+  return { head, whole, cancel };
+}
+
+/**
+ * PUT /api/ops/media. Returns `{ ok, id, key, url, created }`, a refusal (415 for a type or a first-bytes signature
+ * that is not JPEG / PNG / WebP, 413, 400 with the field, 503 when the bucket is missing), or `{ dbError }` for the
+ * wrapper to map.
  */
 export async function uploadCore({
   headers,
@@ -115,12 +169,26 @@ export async function uploadCore({
     // Same key, other size: not the file the hash names. Refuse rather than record a row for it.
     if (typeof existing.size === "number" && existing.size !== length) return refuse(400, "invalid", "sha256");
   } else {
+    // The first bytes must be the declared type's signature (review finding 4): a body labelled image/png that is not
+    // a PNG is 415 before anything is stored. A body that ends before Content-Length is the length error, as below.
+    let sniffed: Awaited<ReturnType<typeof sniffBody>>;
+    try {
+      sniffed = await sniffBody(body, SNIFF_BYTES);
+    } catch {
+      // The body broke off within its first bytes: the same answer as a body cut short later on.
+      return refuse(400, "invalid", "content_length");
+    }
+    if (!hasSignature(sniffed.head, contentType)) {
+      sniffed.cancel();
+      if (sniffed.head.byteLength < Math.min(SNIFF_BYTES, length)) return refuse(400, "invalid", "content_length");
+      return refuse(415, "wrong_type");
+    }
     const lengthStream = makeLengthStream(length);
     const abort = new AbortController();
     // The pipe's own outcome: "ok", or "length" when the body was shorter or longer than Content-Length. Set only by
     // the pipe ending by itself, never by the stop below.
     const pipe: { outcome: "pending" | "ok" | "length" } = { outcome: "pending" };
-    const piping = body.pipeTo(lengthStream.writable, { signal: abort.signal }).then(
+    const piping = sniffed.whole.pipeTo(lengthStream.writable, { signal: abort.signal }).then(
       () => {
         if (pipe.outcome === "pending") pipe.outcome = "ok";
       },
@@ -159,16 +227,12 @@ export async function uploadCore({
     if (!stored) return digestRefused ? refuse(400, "invalid", "sha256") : refuse(503, "unavailable");
   }
 
-  const { data, error } = await saveMedia({
-    key,
-    width,
-    height,
-    bytes: length,
-    content_type: contentType,
-    sha256,
-    source: "upload",
-    alt_en: altEn,
-  });
+  const save: MediaSave = { key, width, height, bytes: length, content_type: contentType, sha256, source: "upload", alt_en: altEn };
+  let { data, error } = await saveMedia(save);
+  // Two uploads of one file at the same moment (review finding 5): both find no row, the second insert hits the unique
+  // upload key (23505). That row is the same file, so ask once more: ops_save_media now finds it and answers
+  // `created: false` with its id, and the screen shows the stored row instead of a 409.
+  if (error?.code === "23505") ({ data, error } = await saveMedia(save));
   if (error) return { dbError: error };
   const out = isRow(data) ? data : {};
   if (typeof out.id !== "string") return refuse(503, "unavailable");
@@ -184,7 +248,7 @@ function altStatus(value: unknown): MediaItem["alt_status"]["en"] {
   return value === "published" || value === "draft" ? value : "missing";
 }
 
-/** One `ops_list('media')` row -> the contract's list item (MediaRef plus the library fields); unknown keys dropped. */
+/** One `ops_list_media` item (the shape of an `ops_list('media')` row) -> the contract's list item (MediaRef plus the library fields); unknown keys dropped. */
 export function mediaItem(row: Row): MediaItem | null {
   const altIn = isRow(row.alt) ? row.alt : {};
   const statusIn = isRow(row.alt_status) ? row.alt_status : {};
@@ -206,44 +270,31 @@ export function mediaItem(row: Row): MediaItem | null {
   };
 }
 
-/** Case- and accent-folded text for search. */
-export function fold(value: string): string {
-  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
-}
-
-function byKey(a: MediaItem, b: MediaItem): number {
-  if (a.key !== b.key) return a.key < b.key ? -1 : 1;
-  return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
-}
-
 /**
- * One page of the library: key order (code-unit, so the cursor compares the same way), `q` over the key and the
- * English alt, `after` = the last key of the previous page. An imported key may carry two image ids: a page never
- * ends between two rows of one key, so `after` never skips one.
+ * One `ops_list_media` reply -> `{ items, next }`. The search, the key order and the paging (a page never ends between
+ * two rows of one imported key) are the database's (job 03.2-09b, review finding 3): the Worker maps at most one page.
  */
-export function mediaPage(data: unknown, query: MediaQuery): { items: MediaItem[]; next: string | null } {
-  const all = (Array.isArray(data) ? data : [])
+export function mediaPage(data: unknown): { items: MediaItem[]; next: string | null } {
+  const out = isRow(data) ? data : {};
+  const items = (Array.isArray(out.items) ? out.items : [])
     .filter(isRow)
     .map(mediaItem)
-    .filter((m): m is MediaItem => m !== null)
-    .sort(byKey);
-  const needle = query.q === null ? null : fold(query.q);
-  const after = query.after;
-  const matching = all.filter(
-    (m) => (after === null || m.key > after) && (needle === null || fold(m.key).includes(needle) || fold(m.alt.en ?? "").includes(needle)),
-  );
-  let end = Math.min(query.limit, matching.length);
-  while (end > 0 && end < matching.length && matching[end].key === matching[end - 1].key) end += 1;
-  const items = matching.slice(0, end);
-  return { items, next: end < matching.length ? items[items.length - 1].key : null };
+    .filter((m): m is MediaItem => m !== null);
+  return { items, next: typeof out.next === "string" && items.length > 0 ? out.next : null };
 }
 
-/** GET /api/ops/media[?q=&limit=&after=]: the query is checked before the database is asked. */
-export async function listMedia({ listRows, url }: { listRows: () => PromiseLike<RpcReply>; url: URL }): Promise<OpsOutcome> {
+/** GET /api/ops/media[?q=&limit=&after=]: the query is checked before the database is asked for that one page. */
+export async function listMedia({
+  listPage,
+  url,
+}: {
+  listPage: (query: MediaQuery) => PromiseLike<RpcReply>;
+  url: URL;
+}): Promise<OpsOutcome> {
   const query = parseMediaQuery(url.searchParams);
-  const { data, error } = await listRows();
+  const { data, error } = await listPage(query);
   if (error) return { dbError: error };
-  return { body: { ok: true, ...mediaPage(data, query) } };
+  return { body: { ok: true, ...mediaPage(data) } };
 }
 
 // ---- POST --------------------------------------------------------------------------------------------------------------

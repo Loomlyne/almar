@@ -3,7 +3,6 @@
 import { useLayoutEffect, useEffect, useState, type ReactNode } from "react";
 import { copy } from "../../lib/copy";
 import { setDocumentLocale, type DocumentLocale } from "../../lib/set-document-locale";
-import * as fixtures from "../../tests/journey/fixtures";
 import type { Scenes } from "../../tests/journey/scene-types";
 
 export function HarnessClient({ c, s, l }: { c: string; s: string; l: DocumentLocale }) {
@@ -18,18 +17,23 @@ export function HarnessClient({ c, s, l }: { c: string; s: string; l: DocumentLo
   useEffect(() => {
     let live = true;
     (async () => {
-      let scenes: Scenes | undefined;
-      try {
-        const mod = await import(`../../tests/journey/scenes/${c}`);
-        scenes = mod.scenes as Scenes;
-      } catch {
-        scenes = undefined;
+      // Plan 03.2-12: the fixtures and the scene files are test code. Next inlines NODE_ENV, so a production build drops
+      // this whole branch and its chunks (tests/harness-gate.test.mjs checks .next/ after a build); next dev keeps it.
+      let node: ReactNode = <p data-testid="harness-unknown">unknown scene</p>;
+      if (process.env.NODE_ENV !== "production") {
+        const fixtures = await import("../../tests/journey/fixtures");
+        let scenes: Scenes | undefined;
+        try {
+          const mod = await import(`../../tests/journey/scenes/${c}`);
+          scenes = mod.scenes as Scenes;
+        } catch {
+          scenes = undefined;
+        }
+        const scene = scenes?.[s];
+        if (scene) node = scene({ locale: l, copy: copy[l].journey, fixtures });
       }
-      const scene = scenes?.[s];
       if (!live) return;
-      setContent(
-        scene ? scene({ locale: l, copy: copy[l].journey, fixtures }) : <p data-testid="harness-unknown">unknown scene</p>,
-      );
+      setContent(node);
     })();
     return () => {
       live = false;
