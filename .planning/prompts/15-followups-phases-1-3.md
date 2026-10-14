@@ -15,6 +15,9 @@ restoring by copy, never `git checkout` a file)
 2. **Kit editor history trap** (PR #15, Grok round 3 minors): the unsaved-changes trap's flag on `history.state` —
    Forward after a reload, and the browser history cap. Read the round-3 comment for the exact cases; fix in
    `components/ops/edit-page.tsx` without changing anything a wave 4 job mounts (props and section API stay as they are).
+   Same fix, reported by 03.2-06 on 2026-10-15: opening `EditPage` with `dirty=true` in dev pops "Discard changes?" at
+   once, because React strict mode runs the Back-guard effect twice and the cleanup's `history.back()` lands as a
+   popstate on the second setup. Make the guard idempotent under a double effect; prove it in dev (strict) and build.
 3. **Test helper race.** `tests/helpers/local-supabase.mjs`: `requireStack` runs before the lock is taken, so two
    callers can race. Take the lock first. Test it without starting a stack.
 4. **Translate route signal** (03.2-10 follow-up): `worker/handle.mjs` passes no `signal` to the translate call, and
