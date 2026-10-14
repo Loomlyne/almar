@@ -132,7 +132,18 @@ async function expectState(page: Page, state: string, locale: Locale) {
     await expect(editor.getByRole("button", { pressed: true }).first()).toBeVisible();
     for (const title of [copy.whatToBlock, copy.dates, copy.reasonOptional]) {
       await expect(editor.getByRole("heading", { level: 2, name: title })).toBeVisible();
+      // The card title is said once on screen; the field's own label is visually hidden but still names it.
+      const shown = await editor.getByText(title, { exact: true }).evaluateAll((nodes) =>
+        nodes.filter((node) => {
+          const rect = (node as HTMLElement).getBoundingClientRect();
+          return rect.width > 1 && rect.height > 1;
+        }).length,
+      );
+      expect(shown, `"${title}" drawn once`).toBe(1);
     }
+    await expect(editor.getByLabel(copy.reasonOptional, { exact: true })).toBeVisible();
+    await expect(editor.locator('button[id$="-dates"]')).toBeVisible();
+    expect(await editor.locator('label[for$="-dates"]').textContent()).toBe(copy.dates);
     // A block has no publish step: Save is the one action, the shared primary button: teal fill, ivory (#fffaf0) text.
     await expect(editor.getByRole("button", { name: kit.publish, exact: true })).toHaveCount(0);
     const save = editor.getByRole("button", { name: kit.save, exact: true });

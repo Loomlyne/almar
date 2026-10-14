@@ -137,15 +137,18 @@ export function BlockDatesField({
 }) {
   const copy = OPS_CALENDAR_COPY[locale];
   const id = useId();
+  // The card's heading already says "Dates": the field's own label stays as the button's name, visually hidden.
   return (
-    <DateRangeField
-      id={`${id}-dates`}
-      label={copy.dates}
-      hint={copy.sameDayHint}
-      value={{ first: values.first, last: values.last }}
-      onChange={({ first, last }) => onChange({ first, last })}
-      min={today}
-    />
+    <div className="[&>div>label]:sr-only">
+      <DateRangeField
+        id={`${id}-dates`}
+        label={copy.dates}
+        hint={copy.sameDayHint}
+        value={{ first: values.first, last: values.last }}
+        onChange={({ first, last }) => onChange({ first, last })}
+        min={today}
+      />
+    </div>
   );
 }
 
@@ -153,16 +156,19 @@ export function BlockDatesField({
 export function BlockReasonField({ locale, values, onChange }: { locale: Locale3; values: BlockFormValues; onChange: Change }) {
   const copy = OPS_CALENDAR_COPY[locale];
   const id = useId();
+  // The card's heading already says "Reason (optional)": the field's label stays as the input's name, visually hidden.
   return (
-    <Field
-      id={`${id}-reason`}
-      label={copy.reasonOptional}
-      name="reason"
-      maxLength={REASON_MAX}
-      value={values.reason}
-      onChange={(event) => onChange({ reason: event.target.value })}
-      className="max-w-none"
-    />
+    <div className="[&_.field-label]:sr-only">
+      <Field
+        id={`${id}-reason`}
+        label={copy.reasonOptional}
+        name="reason"
+        maxLength={REASON_MAX}
+        value={values.reason}
+        onChange={(event) => onChange({ reason: event.target.value })}
+        className="max-w-none"
+      />
+    </div>
   );
 }
 
