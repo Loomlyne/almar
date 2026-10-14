@@ -239,6 +239,8 @@ export function stayAccess(r: Row): StayAccess {
     wifi_password: strOrNull(r.wifi_password),
     door_code: strOrNull(r.door_code),
     notes: strOrNull(r.notes),
+    notes_ar: strOrNull(r.notes_ar),
+    notes_es: strOrNull(r.notes_es),
     updated_at: str(r.updated_at),
   };
 }

@@ -15,6 +15,9 @@ import { VIEWPORTS, settle, type Viewport } from "./journey/matrix";
 type Locale = "en" | "ar" | "es";
 const LOCALES: Locale[] = ["en", "ar", "es"];
 const STAY_ID = "00000000-0000-4000-8000-000000000015";
+/** The stored Arabic and Spanish of the Notes (the AI's earlier fill), placeholders only. */
+const NOTES_AR = "[الملاحظات بالعربية]";
+const NOTES_ES = "[Notas en español]";
 const harnessUrl = (state: string, locale: string) => `/__harness?c=ops-stay-tabs&s=${state}&l=${locale}`;
 const alerts = (page: Page) => page.locator('[role="alert"]:not([id="__next-route-announcer__"])');
 
@@ -37,7 +40,7 @@ const day = (n: number) => {
   return `${y}-${m}-${String(n).padStart(2, "0")}`;
 };
 
-type Fixture = { base: boolean; ranges: boolean; overlap?: boolean };
+type Fixture = { base: boolean; ranges: boolean; overlap?: boolean; translate?: "ok" | "fail" };
 
 const ranges = (price: string) => [
   { id: "range-a", first_night: "2026-12-18", last_night: "2027-01-04", nights: 18, nightly_rate_aed: price },
@@ -101,9 +104,16 @@ async function mockApi(page: Page, locale: Locale, fixture: Fixture): Promise<Ca
     reply(route, 200, {
       ok: true,
       stay_id: STAY_ID,
-      access: { address: b.address, wifi_name: b.wifi, wifi_password: b.password, door_code: b.door, notes: b.notes, updated_at: "2026-10-01T00:00:00Z" },
+      access: { address: b.address, wifi_name: b.wifi, wifi_password: b.password, door_code: b.door, notes: b.notes, notes_ar: NOTES_AR, notes_es: NOTES_ES, updated_at: "2026-10-01T00:00:00Z" },
     }),
   );
+  // The translate route (contract 5.11): "[AR] <English>" / "[ES] <English>", or 502 translate_failed. No Workers AI.
+  await page.route("**/api/ops/translate", (route) => {
+    const body = route.request().postDataJSON() as { target: string; fields: Record<string, string> };
+    if (fixture.translate === "fail") return reply(route, 502, { ok: false, error: { code: "translate_failed", field: null, locale: null, detail: null } });
+    const tag = `[${body.target.toUpperCase()}]`;
+    return reply(route, 200, { ok: true, target: body.target, fields: Object.fromEntries(Object.entries(body.fields).map(([k, v]) => [k, `${tag} ${v}`])) });
+  });
   return calls;
 }
 
@@ -182,6 +192,7 @@ const SHOTS: Shot[] = [
   { state: "rates-check", fixture: { base: true, ranges: true }, viewports: ALL, locales: LOCALES },
   { state: "availability", fixture: { base: true, ranges: true }, viewports: ALL, locales: LOCALES },
   { state: "access", fixture: { base: true, ranges: true }, viewports: ALL, locales: LOCALES },
+  { state: "access-translations", fixture: { base: true, ranges: true }, viewports: ALL, locales: LOCALES },
   { state: "two-saves", fixture: { base: false, ranges: false }, viewports: ALL, locales: LOCALES },
   { state: "new-stay", fixture: { base: false, ranges: false }, viewports: ["phone", "desktop"], locales: ["en"] },
 ];
@@ -278,6 +289,14 @@ test.describe("pictures", () => {
             await expect(access.getByLabel(copy.access.wifiPassword, { exact: true })).toHaveAttribute("type", "password");
             await expect(access.getByLabel(copy.access.doorCode, { exact: true })).toHaveAttribute("type", "password");
             await expect(access.getByText(copy.access.guestLine, { exact: true })).toBeVisible();
+          }
+
+          if (shot.state === "access-translations") {
+            // Edit translations open under the English Notes: the Arabic and Spanish the AI filled, editable.
+            const access = card(page, copy.access.title);
+            await access.getByRole("button", { name: kit.editor.editTranslations, exact: true }).click();
+            await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.ar}`, { exact: true })).toHaveValue(NOTES_AR);
+            await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.es}`, { exact: true })).toHaveValue(NOTES_ES);
           }
 
           if (shot.state === "two-saves") {
@@ -420,9 +439,42 @@ test.describe("behaviour", () => {
         await access.getByRole("button", { name: copy.access.saveAccess, exact: true }).click();
         const b = BRACKET[locale];
         await expect.poll(() => posted(calls, "/api/ops/stay-access")).toEqual([
-          { action: "save", stay_id: STAY_ID, access: { address: b.address, wifi_name: b.wifi, wifi_password: b.password, door_code: " 12 ", notes: null } },
+          // The English Notes emptied: their Arabic and Spanish (of the old English) are emptied too, as on the kit page.
+          { action: "save", stay_id: STAY_ID, access: { address: b.address, wifi_name: b.wifi, wifi_password: b.password, door_code: " 12 ", notes: null, notes_ar: null, notes_es: null } },
         ]);
         expect(calls.gets.every((url) => !url.search.includes(b.password))).toBe(true);
+      });
+
+      test(`access: a changed English note is translated by the kit's route and saved with its Arabic and Spanish (${at})`, async ({ page }) => {
+        const copy = OPS_STAY_TABS_COPY[locale];
+        const kit = OPS_KIT_COPY[locale];
+        const calls = await openEditor(page, "access", viewport, locale, { base: true, ranges: true, translate: "ok" });
+        const access = card(page, copy.access.title);
+        await access.getByLabel(copy.access.notes, { exact: true }).fill("[New note]");
+        await access.getByRole("button", { name: copy.access.saveAccess, exact: true }).click();
+        await expect(access.getByText(kit.editor.translationsUpdated, { exact: true })).toBeVisible();
+        const body = posted(calls, "/api/ops/stay-access")[0] as { access: Record<string, unknown> };
+        expect(body.access.notes).toBe("[New note]");
+        expect(body.access.notes_ar).toBe("[AR] [New note]");
+        expect(body.access.notes_es).toBe("[ES] [New note]");
+        await access.getByRole("button", { name: kit.editor.editTranslations, exact: true }).click();
+        await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.ar}`, { exact: true })).toHaveValue("[AR] [New note]");
+      });
+
+      test(`access: when the AI fails, the English and the other fields save, Arabic and Spanish stay, and the card says why (${at})`, async ({ page }) => {
+        const copy = OPS_STAY_TABS_COPY[locale];
+        const kit = OPS_KIT_COPY[locale];
+        const calls = await openEditor(page, "access", viewport, locale, { base: true, ranges: true, translate: "fail" });
+        const access = card(page, copy.access.title);
+        await access.getByLabel(copy.access.notes, { exact: true }).fill("[New note]");
+        await access.getByRole("button", { name: copy.access.saveAccess, exact: true }).click();
+        await expect(alerts(page).filter({ hasText: kit.editor.translationFailed })).toBeVisible();
+        const body = posted(calls, "/api/ops/stay-access")[0] as { access: Record<string, unknown> };
+        expect(body.access.notes).toBe("[New note]");
+        expect("notes_ar" in body.access).toBe(false);
+        expect("notes_es" in body.access).toBe(false);
+        await access.getByRole("button", { name: kit.editor.editTranslations, exact: true }).click();
+        await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.ar}`, { exact: true })).toHaveValue(NOTES_AR);
       });
 
       test(`dirty: typing in a card makes the page ask "Discard changes?" before leaving (${at})`, async ({ page }) => {
