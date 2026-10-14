@@ -146,7 +146,8 @@ export function StayAccessSection({
         </p>
       ) : null}
       <div className="flex items-center gap-3">
-        <Button variant="secondary" onClick={() => void save()} disabled={busy || !dirty}>
+        {/* The card's only action: filled (card buttons are outlined unless they are the only one; never gold). */}
+        <Button variant="primary" onClick={() => void save()} disabled={busy || !dirty}>
           {copy.access.saveAccess}
         </Button>
         {done && !dirty ? (

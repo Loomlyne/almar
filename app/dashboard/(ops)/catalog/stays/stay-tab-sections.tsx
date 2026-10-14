@@ -1,7 +1,7 @@
 "use client";
 
 // Plan 03.2-15: the Rates, Availability and Access cards for 03.2-07's stay editor (kit EditPage, option B).
-// PROPOSED CONTRACT, waiting for the controller and 03.2-07 to confirm: the stay editor spreads these after its own
+// Contract accepted by the controller (2026-10-15); 03.2-07 lands first, then this job adds the spread line: the stay editor spreads these after its own
 // sections, `sections={[...own, ...stayTabSections(ctx)]}`, and ORs `onDirtyChange` into EditPage's `dirty`. Each card
 // saves on its own route; none is translated. A new stay (no id yet) gets none of them: they appear after the first Save.
 
@@ -31,7 +31,8 @@ export function stayTabSections({ stayId, locale, onDirtyChange, onBaseSaved }: 
     {
       key: "rates",
       title: copy.rates.title,
-      column: "main",
+      // Signed option B: price and settings sit in the side column (controller, 2026-10-15).
+      column: "side",
       content: (
         <StayRatesSection
           key={`rates-${stayId}`}
@@ -45,13 +46,13 @@ export function stayTabSections({ stayId, locale, onDirtyChange, onBaseSaved }: 
     {
       key: "availability",
       title: copy.availability.title,
-      column: "side",
+      column: "main",
       content: <StayAvailabilitySection key={`availability-${stayId}`} stayId={stayId} locale={locale} />,
     },
     {
       key: "access",
       title: copy.access.title,
-      column: "side",
+      column: "main",
       content: (
         <StayAccessSection
           key={`access-${stayId}`}
