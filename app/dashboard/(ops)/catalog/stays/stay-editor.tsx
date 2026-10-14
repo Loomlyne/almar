@@ -27,22 +27,6 @@ import {
   type StayList,
 } from "./stay-forms";
 
-/**
- * A card of the stay editor that saves on its own (its own endpoint and its own button inside the card), added after
- * the stay's own cards in its column. 03.2-15 appends Rates, Availability and Access here, one entry each, e.g.
- * `{ key: "rates", column: "side", title: (l) => OPS_STAY_TABS_COPY[l].rates, newStay: false, render: (ctx) => <StayRatesTab {...ctx} /> }`.
- * `newStay: false` cards wait for the first Save (they need the stay's id).
- */
-export type StaySectionContext = { stay: StayDetail; reload: () => Promise<void>; locale: Locale3 };
-export type StaySection = {
-  key: string;
-  column: "main" | "side";
-  title: (locale: Locale3) => string;
-  newStay: boolean;
-  render: (ctx: StaySectionContext) => ReactNode;
-};
-export const STAY_SECTIONS: StaySection[] = [];
-
 export type DestinationChoice = { id: string; name: string; published: boolean };
 /** An experience or a service the stay can connect. */
 export type CatalogChoice = { id: string; name: string; kind: "experience" | "service" };
@@ -101,9 +85,13 @@ const sameList = (a: Fields[string] | undefined, b: Fields[string] | undefined) 
 
 /**
  * Catalog -> Stays: one stay on the kit's editor page (kit panel B). Left column: Text (English only; Arabic and Spanish
- * come on Save), Photos, Experiences and services. Right column: Place, Capacity, Stay rules, then any STAY_SECTIONS.
- * No price field: the nightly rate lives in Rates (03.2-15), one place for money. Presentational: the screen holds the
- * form and the requests.
+ * come on Save), Photos, Experiences and services. Right column: Place, Capacity, Stay rules (the settings). No price
+ * field: the nightly rate lives in Rates (03.2-15), one place for money. Presentational: the screen holds the form and
+ * the requests.
+ *
+ * Extension point (03.2-15, after this lands): its Rates, Availability and Access cards go on the right, after Stay
+ * rules, only once the stay has an id: one spread in `sections` (`...stayTabSections({ stay, reload, onDirtyChange })`)
+ * and its dirty flags ORed into `dirty`. Nothing else here changes.
  */
 export function StayEditor({
   locale,
@@ -363,7 +351,8 @@ export function StayEditor({
     </div>
   );
 
-  const own: EditSection[] = [
+  // Every card of the page, in one place. Left: Text, Photos, Experiences and services. Right: the settings.
+  const sections: EditSection[] = [
     { key: "text", title: copy.sectionText, column: "main", translatable: true, content: textCard },
     { key: "photos", title: copy.sectionPhotos, column: "main", content: photosCard },
     { key: "connections", title: copy.columnConnected, column: "main", content: connectionsCard },
@@ -371,12 +360,13 @@ export function StayEditor({
     { key: "capacity", title: copy.sectionCapacity, column: "side", content: capacityCard },
     { key: "rules", title: copy.sectionRules, column: "side", content: rulesCard },
   ];
-  const added: EditSection[] = STAY_SECTIONS.filter((section) => stay !== null || section.newStay).map((section) => ({
-    key: section.key,
-    title: section.title(locale),
-    column: section.column,
-    content: stay ? section.render({ stay, reload, locale }) : null,
-  }));
+
+  // Unsaved work, by part: the page asks "Discard changes?" when any is true.
+  const textDirty = JSON.stringify([form.english, form.translations]) !== JSON.stringify([saved.english, saved.translations]);
+  const factsDirty = JSON.stringify(form.facts) !== JSON.stringify(saved.facts);
+  const photosDirty = JSON.stringify([form.hero, form.gallery]) !== JSON.stringify([saved.hero, saved.gallery]);
+  const connectionsDirty = JSON.stringify(form.connected) !== JSON.stringify(saved.connected);
+  const dirty = textDirty || factsDirty || photosDirty || connectionsDirty;
 
   const notes = [
     ...needs.map(([, problem]) => text(copy, PROBLEM[problem])),
@@ -403,7 +393,7 @@ export function StayEditor({
       title={String(english.title ?? "").trim() || (isNew ? dashboard.newStay : "")}
       isNew={isNew}
       isPublished={isPublished}
-      dirty={JSON.stringify(form) !== JSON.stringify(saved)}
+      dirty={dirty}
       busy={busy}
       canSave={notes.length === 0 && Object.keys(problems).length === 0}
       missing={missing}
@@ -434,7 +424,7 @@ export function StayEditor({
           </ul>
         ) : null
       }
-      sections={[...own.filter((section) => section.column === "main"), ...added.filter((s) => s.column === "main"), ...own.filter((section) => section.column === "side"), ...added.filter((s) => s.column === "side")]}
+      sections={sections}
     />
   );
 }
