@@ -139,7 +139,7 @@ export function BlockDatesField({
   const id = useId();
   // The card's heading already says "Dates": the field's own label stays as the button's name, visually hidden.
   return (
-    <div className="[&>div>label]:sr-only">
+    <div className="*:*:first:sr-only">
       <DateRangeField
         id={`${id}-dates`}
         label={copy.dates}
@@ -158,7 +158,7 @@ export function BlockReasonField({ locale, values, onChange }: { locale: Locale3
   const id = useId();
   // The card's heading already says "Reason (optional)": the field's label stays as the input's name, visually hidden.
   return (
-    <div className="[&_.field-label]:sr-only">
+    <div className="*:*:first:sr-only">
       <Field
         id={`${id}-reason`}
         label={copy.reasonOptional}
