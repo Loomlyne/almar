@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { NEWSLETTER_ENDPOINT, NEWSLETTER_HONEYPOT_FIELDS, subscribeToNewsletter } from "../lib/newsletter.ts";
+import { NEWSLETTER_ENDPOINT, NEWSLETTER_HONEYPOT_FIELDS, NEWSLETTER_TIMEOUT_MS, subscribeToNewsletter } from "../lib/newsletter.ts";
 
 // Plan 03.3-27 Task 1: the footer newsletter's submit function, with fetch stubbed (no request leaves the test).
 
@@ -35,7 +35,9 @@ test("one same-origin POST of a FormData with exactly Email (trimmed) and the 11
   assert.equal(calls.length, 1);
   const [{ url, init }] = calls;
   assert.equal(url, "/newsletter");
-  assert.deepEqual(Object.keys(init).sort(), ["body", "credentials", "method"]);
+  assert.deepEqual(Object.keys(init).sort(), ["body", "credentials", "method", "signal"]);
+  assert.ok(init.signal instanceof AbortSignal);
+  assert.equal(init.signal.aborted, false);
   assert.equal(init.method, "POST");
   assert.equal(init.credentials, "same-origin");
   assert.ok(init.body instanceof FormData);
@@ -96,4 +98,36 @@ test("lib/newsletter.ts imports nothing and touches no window at import", () => 
   assert.equal(/^import\b/m.test(source), false);
   assert.equal(/\bwindow\b|document\./.test(source), false);
   assert.equal(/https?:\/\//.test(source), false, "no absolute URL: the endpoint is same-origin");
+});
+
+test("review fix: a stalled request is aborted after the timeout (20 s by default) and rejects as a network failure", async () => {
+  assert.equal(NEWSLETTER_TIMEOUT_MS, 20_000);
+  // A fetch that never answers on its own, only to its signal, as a real stalled fetch does.
+  let seen;
+  const stalled = (url, init) => {
+    seen = init.signal;
+    return new Promise((_, reject) => init.signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError"))));
+  };
+  const started = Date.now();
+  await assert.rejects(subscribeToNewsletter("a@b.co", {}, stalled, 50), { message: "newsletter network" });
+  assert.equal(seen.aborted, true);
+  assert.ok(Date.now() - started < 2000);
+  // A body that stalls after a 200 is cut by the same signal.
+  const slowBody = (url, init) =>
+    Promise.resolve(
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            init.signal.addEventListener("abort", () => controller.error(new DOMException("aborted", "AbortError")));
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+  await assert.rejects(subscribeToNewsletter("a@b.co", {}, slowBody, 50), { message: "newsletter 200" });
+  // A quick answer clears the timer: the signal is never aborted afterwards.
+  let quick;
+  await subscribeToNewsletter("a@b.co", {}, (url, init) => ((quick = init.signal), Promise.resolve(Response.json({ ok: true }))), 50);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  assert.equal(quick.aborted, false);
 });

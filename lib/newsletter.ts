@@ -8,6 +8,9 @@
 
 export const NEWSLETTER_ENDPOINT = "/newsletter";
 
+/** A post that has not answered (headers and body) within this many milliseconds is aborted and counts as failed. */
+export const NEWSLETTER_TIMEOUT_MS = 20_000;
+
 /** The route's HONEYPOT_FIELDS, same names, same order (the live Framer form's 11 invisible spam traps, SITE-12). */
 export const NEWSLETTER_HONEYPOT_FIELDS = [
   "title",
@@ -27,31 +30,40 @@ export type NewsletterHoneypotField = (typeof NEWSLETTER_HONEYPOT_FIELDS)[number
 
 /**
  * POST `Email` (trimmed) and every honeypot (empty unless a bot filled it) as multipart FormData to /newsletter.
- * Resolves on 200 + JSON ok === true; throws `Error("newsletter <status>")` otherwise.
+ * Resolves on 200 + JSON ok === true; throws `Error("newsletter <status>")` otherwise, and `Error("newsletter
+ * network")` when the request fails or does not finish within `timeoutMs` (review fix: a stalled post must end in
+ * the failed line and release the button, as the contact form's does).
  */
 export async function subscribeToNewsletter(
   email: string,
   honeypots: Partial<Record<string, string>> = {},
   fetchImpl: typeof fetch = fetch,
+  timeoutMs: number = NEWSLETTER_TIMEOUT_MS,
 ): Promise<void> {
   const body = new FormData();
   body.append("Email", email.trim());
   for (const field of NEWSLETTER_HONEYPOT_FIELDS) body.append(field, honeypots[field] ?? "");
 
-  let response: Response;
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), timeoutMs);
   try {
-    response = await fetchImpl(NEWSLETTER_ENDPOINT, { method: "POST", body, credentials: "same-origin" });
-  } catch {
-    throw new Error("newsletter network");
-  }
-  let ok = false;
-  if (response.status === 200) {
+    let response: Response;
     try {
-      const data: unknown = await response.json();
-      ok = typeof data === "object" && data !== null && (data as { ok?: unknown }).ok === true;
+      response = await fetchImpl(NEWSLETTER_ENDPOINT, { method: "POST", body, credentials: "same-origin", signal: abort.signal });
     } catch {
-      ok = false;
+      throw new Error("newsletter network");
     }
+    let ok = false;
+    if (response.status === 200) {
+      try {
+        const data: unknown = await response.json();
+        ok = typeof data === "object" && data !== null && (data as { ok?: unknown }).ok === true;
+      } catch {
+        ok = false;
+      }
+    }
+    if (!ok) throw new Error(`newsletter ${response.status}`);
+  } finally {
+    clearTimeout(timer);
   }
-  if (!ok) throw new Error(`newsletter ${response.status}`);
 }
