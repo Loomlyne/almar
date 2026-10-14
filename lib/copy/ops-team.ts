@@ -1,0 +1,282 @@
+// Dashboard copy for Content -> Team and Catalog -> Packages (the three home journeys), plan 03.2-08, EN / AR / ES.
+// CANVAS = verbatim from the design canvas board DashTeamLegal (its Arabic and Spanish too, except that dashboard
+// Spanish is usted, owner 2026-10-14). Every other line is a draft for the owner's signature. No legal wording, no
+// price, no person's name. The screens are on the kit editor page: English only, Arabic and Spanish are added on Save.
+
+export type OpsTeamLocale = "en" | "ar" | "es";
+
+export type OpsTeamCopy = {
+  team: {
+    /** CANVAS. */
+    title: string;
+    /** CANVAS. */
+    newMember: string;
+    /** CANVAS. */
+    empty: string;
+    /** CANVAS. Under the heading. */
+    publicNote: string;
+    /** The list's name for screen readers. */
+    caption: string;
+    /** CANVAS. */
+    colName: string;
+    /** CANVAS. */
+    colRole: string;
+    /** CANVAS. */
+    colShown: string;
+    /** CANVAS (usted in Spanish). Under the list when it holds more than one member. */
+    orderNote: string;
+    /** CANVAS. */
+    fieldName: string;
+    /** CANVAS. */
+    fieldRole: string;
+    fieldBio: string;
+    /** CANVAS. */
+    fieldPhoto: string;
+    /** CANVAS. Card title and group name of the link rows. */
+    links: string;
+    /** CANVAS. */
+    linksNote: string;
+    linkPlatform: string;
+    linkAddress: string;
+    /** `{platform}`: the accessible name of a row's Remove button. */
+    removeLink: string;
+    /** CANVAS. */
+    remove: string;
+    /** CANVAS. */
+    addLink: string;
+    /** Beside Add a link once there are eight. */
+    linksFull: string;
+    linkNeedsHttps: string;
+    linkTooLong: string;
+    /** Card title of the email. */
+    emailSection: string;
+    /** CANVAS. */
+    fieldEmail: string;
+    emailNote: string;
+    emailInvalid: string;
+    /** CANVAS. */
+    deleteMember: string;
+    /** `{name}`. */
+    deleteTitle: string;
+    deleteText: string;
+  };
+  journeys: {
+    /** The rail's name of the section (CANVAS rail). */
+    title: string;
+    intro: string;
+    caption: string;
+    colName: string;
+    colPrice: string;
+    colShown: string;
+    empty: string;
+    fieldName: string;
+    fieldTagline: string;
+    fieldDuration: string;
+    fieldIdealForLabel: string;
+    fieldIdealFor: string;
+    fieldBody: string;
+    fieldPhoto: string;
+    fieldPrice: string;
+    priceHint: string;
+    /** `{currency}` `{amount}`: what the server read from the English price line. */
+    readingFrom: string;
+    /** `{currency}` `{low}` `{high}`. */
+    readingRange: string;
+    /** `{currency}` `{low}`: a range with no top. */
+    readingOpen: string;
+    readingNone: string;
+    /** Under the reading: it is the saved line's. */
+    readingSaved: string;
+    /** Shown on the editor instead of a Delete: there is none. */
+    noDelete: string;
+    /** The page title while the English name is empty. */
+    untitled: string;
+  };
+};
+
+export const LINK_PLATFORM_NAMES = ["Instagram", "LinkedIn", "Facebook", "X"] as const;
+
+export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
+  en: {
+    team: {
+      title: "Team",
+      newMember: "New member",
+      empty: "No team members yet",
+      publicNote: "Only members published here appear on the public site.",
+      caption: "Team members",
+      colName: "Name",
+      colRole: "Role",
+      colShown: "Shown",
+      orderNote: "Drag members in the list to change their order on the site.",
+      fieldName: "Name",
+      fieldRole: "Role",
+      fieldBio: "Bio",
+      fieldPhoto: "Photo",
+      links: "Social media",
+      linksNote: "Shown as icons on the member's card on the public Team section.",
+      linkPlatform: "Platform",
+      linkAddress: "Web address",
+      removeLink: "Remove the {platform} link",
+      remove: "Remove",
+      addLink: "Add a link",
+      linksFull: "Up to eight links.",
+      linkNeedsHttps: "Use an address that starts with https://",
+      linkTooLong: "Use an address of 300 characters or fewer.",
+      emailSection: "Email",
+      fieldEmail: "Email (optional)",
+      emailNote: "Not shown on the public site.",
+      emailInvalid: "Use an email address such as name@example.com.",
+      deleteMember: "Delete member",
+      deleteTitle: "Delete {name}?",
+      deleteText: "The member and their links are deleted. The photo stays in Media.",
+    },
+    journeys: {
+      title: "Packages",
+      intro: "These are the three journeys on the home page. Guests ask for them on WhatsApp.",
+      caption: "Home journeys",
+      colName: "Name",
+      colPrice: "Price line",
+      colShown: "Shown",
+      empty: "No journeys found.",
+      fieldName: "Name",
+      fieldTagline: "Tagline",
+      fieldDuration: "Duration line",
+      fieldIdealForLabel: "Ideal-for label",
+      fieldIdealFor: "Ideal for",
+      fieldBody: "Description",
+      fieldPhoto: "Photo",
+      fieldPrice: "Price line",
+      priceHint: "Shown on the home page exactly as you write it.",
+      readingFrom: "How the site reads it: from {currency} {amount}",
+      readingRange: "How the site reads it: {currency} {low} to {high}",
+      readingOpen: "How the site reads it: from {currency} {low}",
+      readingNone: "The site cannot read a price from this line; it shows the line as typed.",
+      readingSaved: "Read from the price line as last saved.",
+      noDelete: "The three journeys stay. Unpublish one to hide it from the home page.",
+      untitled: "Journey",
+    },
+  },
+  ar: {
+    team: {
+      title: "الفريق",
+      newMember: "عضو جديد",
+      empty: "لا أعضاء في الفريق بعد",
+      publicNote: "يظهر في الموقع العام فقط الأعضاء المنشورون هنا.",
+      caption: "أعضاء الفريق",
+      colName: "الاسم",
+      colRole: "المنصب",
+      colShown: "الظهور",
+      orderNote: "اسحب الأعضاء في القائمة لتغيير ترتيبهم في الموقع.",
+      fieldName: "الاسم",
+      fieldRole: "المنصب",
+      fieldBio: "نبذة",
+      fieldPhoto: "الصورة",
+      links: "وسائل التواصل الاجتماعي",
+      linksNote: "تظهر كأيقونات على بطاقة العضو في قسم الفريق العام.",
+      linkPlatform: "المنصة",
+      linkAddress: "عنوان الرابط",
+      removeLink: "إزالة رابط {platform}",
+      remove: "إزالة",
+      addLink: "إضافة رابط",
+      linksFull: "ثمانية روابط كحدّ أقصى.",
+      linkNeedsHttps: "استخدم عنوانًا يبدأ بـ https://",
+      linkTooLong: "استخدم عنوانًا من 300 حرف أو أقل.",
+      emailSection: "البريد الإلكتروني",
+      fieldEmail: "البريد الإلكتروني (اختياري)",
+      emailNote: "لا يظهر في الموقع العام.",
+      emailInvalid: "استخدم عنوان بريد مثل name@example.com.",
+      deleteMember: "حذف العضو",
+      deleteTitle: "حذف {name}؟",
+      deleteText: "يُحذف العضو وروابطه. تبقى الصورة في الوسائط.",
+    },
+    journeys: {
+      title: "الباقات",
+      intro: "هذه هي الرحلات الثلاث في الصفحة الرئيسية. يطلبها الضيوف عبر واتساب.",
+      caption: "رحلات الصفحة الرئيسية",
+      colName: "الاسم",
+      colPrice: "سطر السعر",
+      colShown: "الظهور",
+      empty: "لم يُعثر على رحلات.",
+      fieldName: "الاسم",
+      fieldTagline: "الشعار",
+      fieldDuration: "سطر المدة",
+      fieldIdealForLabel: "تسمية «مثالي لـ»",
+      fieldIdealFor: "مثالي لـ",
+      fieldBody: "الوصف",
+      fieldPhoto: "الصورة",
+      fieldPrice: "سطر السعر",
+      priceHint: "يظهر في الصفحة الرئيسية كما تكتبه تمامًا.",
+      readingFrom: "كيف يقرؤه الموقع: ابتداءً من {currency} {amount}",
+      readingRange: "كيف يقرؤه الموقع: {currency} {low} إلى {high}",
+      readingOpen: "كيف يقرؤه الموقع: ابتداءً من {currency} {low}",
+      readingNone: "لا يستطيع الموقع قراءة سعر من هذا السطر؛ يعرضه كما كُتب.",
+      readingSaved: "مقروء من سطر السعر كما حُفظ آخر مرة.",
+      noDelete: "تبقى الرحلات الثلاث. ألغِ نشر إحداها لإخفائها من الصفحة الرئيسية.",
+      untitled: "رحلة",
+    },
+  },
+  es: {
+    team: {
+      title: "Equipo",
+      newMember: "Nuevo miembro",
+      empty: "Aún no hay miembros",
+      publicNote: "Solo los miembros publicados aquí aparecen en el sitio público.",
+      caption: "Miembros del equipo",
+      colName: "Nombre",
+      colRole: "Cargo",
+      colShown: "Visible",
+      orderNote: "Arrastre los miembros de la lista para cambiar su orden en el sitio.",
+      fieldName: "Nombre",
+      fieldRole: "Cargo",
+      fieldBio: "Biografía",
+      fieldPhoto: "Foto",
+      links: "Redes sociales",
+      linksNote: "Se muestran como iconos en la tarjeta del miembro en la sección Equipo pública.",
+      linkPlatform: "Plataforma",
+      linkAddress: "Dirección web",
+      removeLink: "Quitar el enlace de {platform}",
+      remove: "Quitar",
+      addLink: "Añadir enlace",
+      linksFull: "Hasta ocho enlaces.",
+      linkNeedsHttps: "Use una dirección que empiece por https://",
+      linkTooLong: "Use una dirección de 300 caracteres o menos.",
+      emailSection: "Correo",
+      fieldEmail: "Correo (opcional)",
+      emailNote: "No se muestra en el sitio público.",
+      emailInvalid: "Use una dirección de correo como name@example.com.",
+      deleteMember: "Eliminar miembro",
+      deleteTitle: "¿Eliminar a {name}?",
+      deleteText: "Se eliminan el miembro y sus enlaces. La foto queda en Medios.",
+    },
+    journeys: {
+      title: "Paquetes",
+      intro: "Estos son los tres viajes de la página de inicio. Los huéspedes los piden por WhatsApp.",
+      caption: "Viajes de la página de inicio",
+      colName: "Nombre",
+      colPrice: "Línea de precio",
+      colShown: "Visible",
+      empty: "No se encontraron viajes.",
+      fieldName: "Nombre",
+      fieldTagline: "Lema",
+      fieldDuration: "Línea de duración",
+      fieldIdealForLabel: "Etiqueta «Ideal para»",
+      fieldIdealFor: "Ideal para",
+      fieldBody: "Descripción",
+      fieldPhoto: "Foto",
+      fieldPrice: "Línea de precio",
+      priceHint: "Se muestra en la página de inicio tal como usted la escribe.",
+      readingFrom: "Cómo la lee el sitio: desde {currency} {amount}",
+      readingRange: "Cómo la lee el sitio: {currency} {low} a {high}",
+      readingOpen: "Cómo la lee el sitio: desde {currency} {low}",
+      readingNone: "El sitio no puede leer un precio en esta línea; la muestra tal como se escribió.",
+      readingSaved: "Leído de la línea de precio guardada por última vez.",
+      noDelete: "Los tres viajes se mantienen. Deje de publicar uno para ocultarlo de la página de inicio.",
+      untitled: "Viaje",
+    },
+  },
+};
+
+/** Fills `{token}` placeholders. A token with no value is left as written. */
+export function fillTeamCopy(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (whole, key: string) => (key in values ? String(values[key]) : whole));
+}
