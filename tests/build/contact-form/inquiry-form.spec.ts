@@ -455,6 +455,53 @@ for (const locale of LOCALES) {
   }
 }
 
+// Review fix (PR #16 round 1): the form gives up after 20 s (TIMEOUT_MS in inquiry-form.tsx). Playwright's clock stands
+// in for the wait: the request hangs, 19.9 s pass and it is still sending, 0.1 s more and the abort ends it.
+for (const locale of LOCALES) {
+  const f = CONTACT_PAGE_COPY[locale].form;
+  test.describe(`Contact form timeout ${locale} 1440`, () => {
+    test.use({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+
+    test(`13 no answer in 20 s: the request is aborted, the failed line shows, values kept (${locale})`, async ({ page }) => {
+      const watched = await guard(page);
+      const api = await contactRoute(page);
+      let release!: () => void;
+      const gate = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      api.set(async (route) => {
+        await gate;
+        await route.abort().catch(() => undefined);
+      });
+      await page.clock.install();
+      await mount(page, locale);
+      await fillValid(page, locale);
+      await q.submit(page).click();
+      await expect.poll(() => api.posts.length).toBe(1);
+      await expect(q.submit(page)).toHaveText(f.sending);
+
+      await page.clock.fastForward(19_900);
+      await expect(q.submit(page)).toHaveText(f.sending);
+      await expect(q.alert(page)).toHaveCount(0);
+
+      await page.clock.fastForward(100);
+      const alert = q.alert(page);
+      await expect(alert).toHaveCount(1);
+      expect(await shownText(alert)).toBe(failedLine(locale));
+      await expect(q.name(page)).toHaveValue(VALID.name);
+      await expect(q.phone(page)).toHaveValue(VALID.phone);
+      await expect(q.email(page)).toHaveValue(VALID.email);
+      await expect(q.details(page)).toHaveValue(VALID.details);
+      await expect(q.type(page)).toContainText(f.journeyTypes[VALID.type]);
+      await expect(q.submit(page)).toHaveText(f.submit);
+      await expect(q.submit(page)).toBeEnabled();
+      expect(api.posts).toHaveLength(1);
+      release();
+      expect(realProblems(watched.problems)).toEqual([]);
+    });
+  });
+}
+
 test("11 the route is served: a real POST with a filled honeypot answers 400 JSON {\"ok\":false}, never 404 or 405", async ({ request, baseURL }) => {
   const origin = new URL(baseURL!).origin;
   const res = await request.post("/api/contact", {
