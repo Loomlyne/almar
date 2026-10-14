@@ -27,6 +27,8 @@ const PANEL_HEIGHT: Record<Viewport, number> = { phone: 2500, tablet: 2000, desk
 export type PictureState = {
   /** A panel state is shot on the tall page. */
   panel: boolean;
+  /** A subfolder of the picture folder (the kit editor states go to `editor/`, apart from the signed list pictures). */
+  folder?: string;
   /** The lines this state must show, so a picture never captures the wrong state. Each is checked to be fully in the picture. */
   check: (page: Page, locale: PictureLocale) => Promise<Locator[]>;
 };
@@ -53,7 +55,7 @@ export function definePictures(scene: string, states: Record<string, PictureStat
     test.skip(!PICTURES_TO, "the pictures are for the owner's signature; set OPS_CATALOG_PICTURES=1 (or a folder) to shoot them");
     test.describe.configure({ mode: "parallel" });
     test.setTimeout(120_000);
-    if (PICTURES_TO) mkdirSync(PICTURES, { recursive: true });
+    if (PICTURES_TO) for (const def of Object.values(states)) mkdirSync(join(PICTURES, def.folder ?? ""), { recursive: true });
 
     for (const [state, def] of Object.entries(states)) {
       if (ONLY_STATES && !ONLY_STATES.includes(state)) continue;
@@ -76,12 +78,12 @@ export function definePictures(scene: string, states: Record<string, PictureStat
             // No sideways scroll: the page is as wide as the screen.
             const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
             expect(wide, "the page scrolls sideways").toBeLessThanOrEqual(1);
-            // The panel focuses its first control on open; the ring is real but is not what the picture is for.
+            // The editor focuses its title on open; the ring is real but is not what the picture is for.
             await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
             // Network idle is capped (a bare wait times out on a cold dev server), then a short settle.
             await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
             await page.waitForTimeout(400);
-            await page.screenshot({ path: join(PICTURES, `${state}-${width}-${locale}.png`), fullPage: true });
+            await page.screenshot({ path: join(PICTURES, def.folder ?? "", `${state}-${width}-${locale}.png`), fullPage: true });
           });
         }
       }

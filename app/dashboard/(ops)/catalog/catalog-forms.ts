@@ -2,14 +2,8 @@
 // helpers and the client filters. No React, no fetch, no directive. The save payload builders (destinationPayload,
 // catalogItemPayload) join this file in Task 2, after the owner signs the pictures.
 
-import type {
-  CatalogKind,
-  CatalogUnit,
-  Locale3,
-  MediaRef,
-  TextStatus,
-  TranslationState,
-} from "../../../../components/ops/api-types";
+import type { CatalogKind, CatalogUnit, Locale3, MediaRef, TextStatus } from "../../../../components/ops/api-types";
+import type { LiveFields } from "../../../../components/ops/auto-translate";
 import { foldText } from "../../../../lib/data/stay-filter";
 
 export const FORM_LOCALES: readonly Locale3[] = ["en", "ar", "es"];
@@ -29,7 +23,7 @@ export type DestinationForm = {
   hero: MediaRef | null;
   inset: MediaRef | null;
   text: Record<Locale3, DestinationText>;
-  /** Draft until the owner ticks "I checked this translation" (C-08). English is always published text. */
+  /** Arabic and Spanish go live with the English on Publish (owner, 2026-10-14); English is always published text. */
   status: Record<Locale3, TextStatus>;
 };
 
@@ -76,32 +70,25 @@ export function emptyCatalogItemForm(): CatalogItemForm {
   };
 }
 
-/** The chip a language tab wears: no text = missing; text = draft until checked, then published. */
-export function localeState(text: Record<string, string>, status: TextStatus): TranslationState {
-  const any = Object.values(text).some((value) => value.trim() !== "");
-  if (!any) return "missing";
-  return status === "published" ? "published" : "draft";
-}
-
-export function translationStates(form: { text: Record<Locale3, Record<string, string>>; status: Record<Locale3, TextStatus> }): Record<Locale3, TranslationState> {
-  return {
-    en: localeState(form.text.en, "published"),
-    ar: localeState(form.text.ar, form.status.ar),
-    es: localeState(form.text.es, form.status.es),
-  };
-}
-
-/** Translate's answer for one target lands in that language's form as unchecked drafts. */
-export function applyDrafts<T extends Record<string, string>>(
-  form: { text: Record<Locale3, T>; status: Record<Locale3, TextStatus> },
-  target: "ar" | "es",
-  fields: Record<string, string | string[]>,
-): { text: Record<Locale3, T>; status: Record<Locale3, TextStatus> } {
-  const next: Record<string, string> = { ...form.text[target] };
-  for (const [key, value] of Object.entries(fields)) {
-    if (key in next && typeof value === "string") next[key] = value;
+/**
+ * The Arabic and Spanish fields on the site now, for the kit editor's `liveTranslations`: only a published item is on
+ * the site, and in it only a language published with text (an item can be live in one language and not the other).
+ * `saved` is the text as last saved, not as typed.
+ */
+export function liveFields(
+  published: boolean,
+  status: Record<Locale3, TextStatus>,
+  saved: Record<Locale3, Record<string, string>>,
+): LiveFields {
+  if (!published) return {};
+  const live: LiveFields = {};
+  for (const target of ["ar", "es"] as const) {
+    if (status[target] !== "published") continue;
+    live[target] = Object.entries(saved[target])
+      .filter(([, value]) => value.trim() !== "")
+      .map(([field]) => field);
   }
-  return { text: { ...form.text, [target]: next as T }, status: { ...form.status, [target]: "draft" } };
+  return live;
 }
 
 /**

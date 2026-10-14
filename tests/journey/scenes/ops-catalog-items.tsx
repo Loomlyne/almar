@@ -3,7 +3,7 @@
 import { useLayoutEffect, useState, type ReactNode } from "react";
 // The ops shell the owner sees, in preview mode, so the rail and the density match the real screen (as ops-kit.tsx).
 import { OpsShell } from "../../../app/dashboard/(ops)/ops-shell";
-import { CatalogItemsView, type CatalogPanel, type CatalogRow, type CatalogTab, type PickOption } from "../../../app/dashboard/(ops)/catalog/experiences/catalog-items-screen";
+import { CatalogItemsView, type CatalogPanel, type CatalogRow, type PickOption } from "../../../app/dashboard/(ops)/catalog/experiences/catalog-items-screen";
 import { emptyCatalogItemForm, type CatalogFilter, type CatalogItemForm } from "../../../app/dashboard/(ops)/catalog/catalog-forms";
 import type { Locale3, OpsError, PublishWarningCode } from "../../../components/ops/api-types";
 import type { SceneContext, Scenes } from "../scene-types";
@@ -12,9 +12,9 @@ import { SCENE_PHOTO, numbered, words } from "./_ops-catalog-words";
 /**
  * Every state of Catalog -> Experiences and services (plan 03.2-06), bracket data only, props-only: no request is made.
  * Prices are the placeholder "AED [PRICE]", never a number. The view is the one the wired screen uses; the handlers are
- * no-ops. Test-only.
+ * no-ops (Save resolves false: nothing is sent). The editor states are the kit editor page (option B). Test-only.
  */
-type Variant = "list-filtered" | "details" | "home-pickup-refused" | "connections" | "published-no-price";
+type Variant = "list-filtered" | "editor" | "home-pickup-refused" | "published-no-price";
 
 /** The kit reads the almar-locale cookie and the shell does too; the harness picks the language from ?l=, so set it first. */
 function Frame({ locale, children }: { locale: Locale3; children: ReactNode }) {
@@ -72,8 +72,8 @@ function formOf(variant: Variant, locale: Locale3): CatalogItemForm {
     is_uae: variant === "home-pickup-refused",
     is_home_pickup: variant === "home-pickup-refused",
     media: SCENE_PHOTO,
-    destination_ids: variant === "connections" ? ["d1", "d2"] : ["d1"],
-    stay_ids: variant === "connections" ? ["s2"] : [],
+    destination_ids: ["d1", "d2"],
+    stay_ids: variant === "editor" ? ["s2"] : [],
     text: { en: textOf("en"), ar: textOf("ar"), es: textOf("es") },
     status: { en: "published", ar: published ? "published" : "draft", es: published ? "published" : "draft" },
   };
@@ -93,20 +93,20 @@ function CatalogItemsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
     ? null
     : {
         form,
+        saved: { en: textOf("en"), ar: textOf("ar"), es: textOf("es") },
         onForm: setForm,
-        dirty: true,
+        dirty: variant !== "published-no-price",
         busy: false,
         destinations: destinationsOf(locale),
         stays: staysOf(locale),
         warnings,
         error: variant === "home-pickup-refused" ? REFUSED : null,
-        onSave: noop,
+        onSave: () => Promise.resolve(false),
         onPublish: noop,
         onUnpublish: noop,
         onDelete: noop,
         onClose: noop,
       };
-  const tab: CatalogTab = variant === "connections" ? "connections" : "details";
 
   return (
     <Frame locale={locale}>
@@ -119,7 +119,6 @@ function CatalogItemsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
         onMove={noop}
         onDropOrder={noop}
         panel={panel}
-        initialTab={tab}
         initialFilter={filter}
       />
     </Frame>
@@ -128,8 +127,8 @@ function CatalogItemsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
 
 export const scenes: Scenes = {
   "list-filtered": (ctx) => <CatalogItemsScene ctx={ctx} variant="list-filtered" />,
-  "panel-details": (ctx) => <CatalogItemsScene ctx={ctx} variant="details" />,
-  "panel-home-pickup-refused": (ctx) => <CatalogItemsScene ctx={ctx} variant="home-pickup-refused" />,
-  "panel-connections": (ctx) => <CatalogItemsScene ctx={ctx} variant="connections" />,
-  "panel-published-no-price": (ctx) => <CatalogItemsScene ctx={ctx} variant="published-no-price" />,
+  editor: (ctx) => <CatalogItemsScene ctx={ctx} variant="editor" />,
+  "editor-translations": (ctx) => <CatalogItemsScene ctx={ctx} variant="editor" />,
+  "editor-home-pickup-refused": (ctx) => <CatalogItemsScene ctx={ctx} variant="home-pickup-refused" />,
+  "editor-published-no-price": (ctx) => <CatalogItemsScene ctx={ctx} variant="published-no-price" />,
 };

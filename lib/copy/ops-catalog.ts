@@ -27,10 +27,8 @@ export type OpsCatalogCopy = {
     colStatus: string;
     /** CANVAS. */
     empty: string;
-    /** CANVAS: the panel's tabs. */
-    tabDetails: string;
+    /** CANVAS (the Stays card's title). */
     tabStays: string;
-    tabExperiences: string;
     /** CANVAS: field labels. */
     fieldName: string;
     fieldShortLine: string;
@@ -53,28 +51,9 @@ export type OpsCatalogCopy = {
     /** Delete: `{name}` in the confirm. */
     deleteDestination: string;
     deleteTitle: string;
-    deleteNeedsUnpublish: string;
     deleteNeedsMove: string;
     /** Accessible name of the table. */
     caption: string;
-  };
-  /** The redesigned panel (owner, 2026-10-14): sections, automatic translation. DRAFTS. */
-  panel: {
-    sectionText: string;
-    sectionPrice: string;
-    sectionPhoto: string;
-    sectionSettings: string;
-    sectionConnections: string;
-    /** Under the English fields: the one language Maria writes in. */
-    englishOnly: string;
-    translationsUpdated: string;
-    editTranslations: string;
-    hideTranslations: string;
-    translationsNote: string;
-    /** Publish waits: the AI did not finish. */
-    translationFailed: string;
-    /** Status next to the save button on an item with unsaved changes. */
-    unsaved: string;
   };
   items: {
     /** CANVAS. */
@@ -103,8 +82,6 @@ export type OpsCatalogCopy = {
     connectedJoin: string;
     /** CANVAS. */
     empty: string;
-    tabDetails: string;
-    tabConnections: string;
     fieldName: string;
     fieldDescription: string;
     fieldPhoto: string;
@@ -153,9 +130,7 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       colStays: "Stays",
       colStatus: "Status",
       empty: "No destinations yet",
-      tabDetails: "Details",
       tabStays: "Stays",
-      tabExperiences: "Experiences and services",
       fieldName: "Name",
       fieldShortLine: "Short line",
       fieldDescription: "Description",
@@ -174,24 +149,8 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       experiencesSearch: "Search experiences and services",
       deleteDestination: "Delete destination",
       deleteTitle: "Delete {name}? This cannot be undone.",
-      deleteNeedsUnpublish: "Unpublish it first",
       deleteNeedsMove: "Move its stays first",
       caption: "Destinations",
-    },
-    panel: {
-      sectionText: "Text",
-      sectionPrice: "Price",
-      sectionPhoto: "Photo",
-      sectionSettings: "Settings",
-      sectionConnections: "Connections",
-      englishOnly: "Write in English. Arabic and Spanish are added when you save.",
-      translationsUpdated: "Arabic and Spanish updated",
-      editTranslations: "Edit translations",
-      hideTranslations: "Hide translations",
-      translationsNote: "Arabic and Spanish were filled in from the English. Change a word only if you need to.",
-      translationFailed:
-        "The Arabic and Spanish translation did not finish, so Publish is waiting. Save again to try once more, or open Edit translations and type them yourself.",
-      unsaved: "Unsaved changes",
     },
     items: {
       title: "Experiences and services",
@@ -217,8 +176,6 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       stayCount: { one: "# stay", other: "# stays" },
       connectedJoin: ", ",
       empty: "No experiences yet",
-      tabDetails: "Details",
-      tabConnections: "Connections",
       fieldName: "Name",
       fieldDescription: "Description",
       fieldPhoto: "Photo",
@@ -256,9 +213,7 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       colStays: "الإقامات",
       colStatus: "الحالة",
       empty: "لا وجهات بعد",
-      tabDetails: "التفاصيل",
       tabStays: "الإقامات",
-      tabExperiences: "التجارب والخدمات",
       fieldName: "الاسم",
       fieldShortLine: "سطر قصير",
       fieldDescription: "الوصف",
@@ -277,24 +232,8 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       experiencesSearch: "ابحث في التجارب والخدمات",
       deleteDestination: "حذف الوجهة",
       deleteTitle: "حذف {name}؟ لا يمكن التراجع عن ذلك.",
-      deleteNeedsUnpublish: "ألغِ نشرها أولًا",
       deleteNeedsMove: "انقل إقاماتها أولًا",
       caption: "الوجهات",
-    },
-    panel: {
-      sectionText: "النص",
-      sectionPrice: "السعر",
-      sectionPhoto: "الصورة",
-      sectionSettings: "الإعدادات",
-      sectionConnections: "الارتباطات",
-      englishOnly: "اكتب بالإنجليزية. تُضاف العربية والإسبانية عند الحفظ.",
-      translationsUpdated: "تم تحديث العربية والإسبانية",
-      editTranslations: "تعديل الترجمات",
-      hideTranslations: "إخفاء الترجمات",
-      translationsNote: "تمت كتابة العربية والإسبانية تلقائيًا من النص الإنجليزي. غيّر كلمة فقط عند الحاجة.",
-      translationFailed:
-        "لم تكتمل ترجمة العربية والإسبانية، لذلك ينتظر النشر. احفظ مرة أخرى للمحاولة، أو افتح «تعديل الترجمات» واكتبها بنفسك.",
-      unsaved: "تغييرات غير محفوظة",
     },
     items: {
       title: "التجارب والخدمات",
@@ -334,8 +273,6 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       },
       connectedJoin: "، ",
       empty: "لا تجارب بعد",
-      tabDetails: "التفاصيل",
-      tabConnections: "الارتباطات",
       fieldName: "الاسم",
       fieldDescription: "الوصف",
       fieldPhoto: "الصورة",
@@ -373,9 +310,7 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       colStays: "Estancias",
       colStatus: "Estado",
       empty: "Aún no hay destinos",
-      tabDetails: "Detalles",
       tabStays: "Estancias",
-      tabExperiences: "Experiencias y servicios",
       fieldName: "Nombre",
       fieldShortLine: "Línea breve",
       fieldDescription: "Descripción",
@@ -394,24 +329,8 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       experiencesSearch: "Buscar experiencias y servicios",
       deleteDestination: "Eliminar destino",
       deleteTitle: "¿Eliminar {name}? No se puede deshacer.",
-      deleteNeedsUnpublish: "Primero deje de publicarlo",
       deleteNeedsMove: "Primero mueva sus estancias",
       caption: "Destinos",
-    },
-    panel: {
-      sectionText: "Texto",
-      sectionPrice: "Precio",
-      sectionPhoto: "Foto",
-      sectionSettings: "Ajustes",
-      sectionConnections: "Conexiones",
-      englishOnly: "Escriba en inglés. El árabe y el español se añaden al guardar.",
-      translationsUpdated: "Árabe y español actualizados",
-      editTranslations: "Editar traducciones",
-      hideTranslations: "Ocultar traducciones",
-      translationsNote: "El árabe y el español se completaron a partir del inglés. Cambie una palabra solo si lo necesita.",
-      translationFailed:
-        "La traducción al árabe y al español no terminó, así que Publicar está en espera. Guarde de nuevo para reintentar, o abra «Editar traducciones» y escríbalas usted.",
-      unsaved: "Cambios sin guardar",
     },
     items: {
       title: "Experiencias y servicios",
@@ -437,8 +356,6 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       stayCount: { one: "# estancia", other: "# estancias" },
       connectedJoin: ", ",
       empty: "Aún no hay experiencias",
-      tabDetails: "Detalles",
-      tabConnections: "Conexiones",
       fieldName: "Nombre",
       fieldDescription: "Descripción",
       fieldPhoto: "Foto",

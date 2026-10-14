@@ -3,7 +3,7 @@
 import { useLayoutEffect, useState, type ReactNode } from "react";
 // The ops shell the owner sees, in preview mode, so the rail and the density match the real screen (as ops-kit.tsx).
 import { OpsShell } from "../../../app/dashboard/(ops)/ops-shell";
-import { DestinationsView, type DestinationPanel, type DestinationRow, type DestinationTab, type ItemOption } from "../../../app/dashboard/(ops)/catalog/destinations/destinations-screen";
+import { DestinationsView, type DestinationPanel, type DestinationRow, type ItemOption } from "../../../app/dashboard/(ops)/catalog/destinations/destinations-screen";
 import { emptyDestinationForm, type DestinationForm } from "../../../app/dashboard/(ops)/catalog/catalog-forms";
 import type { Locale3 } from "../../../components/ops/api-types";
 import { OPS_CATALOG_COPY } from "../../../lib/copy/ops-catalog";
@@ -12,9 +12,10 @@ import { SCENE_PHOTO, numbered, words } from "./_ops-catalog-words";
 
 /**
  * Every state of Catalog -> Destinations (plan 03.2-06), bracket data only, props-only: no request is made. The view
- * is the one the wired screen uses; the handlers are no-ops. Test-only.
+ * is the one the wired screen uses; the handlers are no-ops (Save resolves false: nothing is sent). The editor states are
+ * the kit editor page (option B). Test-only.
  */
-type Variant = "list" | "list-empty" | "new" | "published-ar" | "stays" | "experiences" | "delete-blocked";
+type Variant = "list" | "list-empty" | "new" | "published" | "delete-blocked";
 
 /** The kit reads the almar-locale cookie and the shell does too; the harness picks the language from ?l=, so set it first. */
 function Frame({ locale, children }: { locale: Locale3; children: ReactNode }) {
@@ -43,13 +44,13 @@ function textOf(locale: Locale3) {
 function formOf(variant: Variant, locale: Locale3): DestinationForm {
   const blank = emptyDestinationForm();
   if (variant === "new") return { ...blank, text: { ...blank.text, en: { ...blank.text.en, name: words("en").name } } };
-  const published = variant === "published-ar" || variant === "stays" || variant === "experiences";
+  const published = variant === "published";
   return {
     id: "d1",
     slug: words(locale).webAddress,
     published,
     hero: SCENE_PHOTO,
-    inset: variant === "published-ar" ? SCENE_PHOTO : null,
+    inset: variant === "published" ? SCENE_PHOTO : null,
     text: { en: textOf("en"), ar: textOf("ar"), es: textOf("es") },
     status: { en: "published", ar: published ? "published" : "draft", es: published ? "published" : "draft" },
   };
@@ -71,8 +72,9 @@ function DestinationsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
   const panel: DestinationPanel | null = hasPanel
     ? {
         form,
+        saved: variant === "new" ? emptyDestinationForm().text : { en: textOf("en"), ar: textOf("ar"), es: textOf("es") },
         onForm: setForm,
-        dirty: variant !== "new" ? true : false,
+        dirty: variant === "new",
         busy: false,
         stays: variant === "new" ? [] : stays,
         items: itemsOf(locale),
@@ -80,7 +82,7 @@ function DestinationsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
         onConnectedChange: setConnected,
         warnings: [],
         error: null,
-        onSave: noop,
+        onSave: () => Promise.resolve(false),
         onPublish: noop,
         onUnpublish: noop,
         onDelete: noop,
@@ -88,7 +90,6 @@ function DestinationsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
       }
     : null;
 
-  const tab: DestinationTab = variant === "stays" ? "stays" : variant === "experiences" ? "experiences" : "details";
   return (
     <Frame locale={locale}>
       <DestinationsView
@@ -98,8 +99,6 @@ function DestinationsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
         onMove={noop}
         onDropOrder={noop}
         panel={panel}
-        initialTab={tab}
-        initialLocale={variant === "published-ar" ? "ar" : "en"}
       />
     </Frame>
   );
@@ -108,9 +107,7 @@ function DestinationsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
 export const scenes: Scenes = {
   list: (ctx) => <DestinationsScene ctx={ctx} variant="list" />,
   "list-empty": (ctx) => <DestinationsScene ctx={ctx} variant="list-empty" />,
-  "panel-details-new": (ctx) => <DestinationsScene ctx={ctx} variant="new" />,
-  "panel-details-published-ar": (ctx) => <DestinationsScene ctx={ctx} variant="published-ar" />,
-  "panel-stays": (ctx) => <DestinationsScene ctx={ctx} variant="stays" />,
-  "panel-experiences": (ctx) => <DestinationsScene ctx={ctx} variant="experiences" />,
-  "delete-blocked": (ctx) => <DestinationsScene ctx={ctx} variant="delete-blocked" />,
+  "editor-new": (ctx) => <DestinationsScene ctx={ctx} variant="new" />,
+  "editor-published": (ctx) => <DestinationsScene ctx={ctx} variant="published" />,
+  "editor-delete-blocked": (ctx) => <DestinationsScene ctx={ctx} variant="delete-blocked" />,
 };
