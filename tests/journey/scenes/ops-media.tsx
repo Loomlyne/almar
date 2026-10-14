@@ -5,7 +5,8 @@ import { useLayoutEffect, useState, type ReactNode } from "react";
 import { OpsShell } from "../../../app/dashboard/(ops)/ops-shell";
 import { MediaLibrary } from "../../../app/dashboard/(ops)/content/media/media-library";
 import { MediaScreen } from "../../../app/dashboard/(ops)/content/media/media-screen";
-import type { AltDraft } from "../../../components/ops/media-alt";
+import { buildSaveAlt, itemAfterSave, type AltText } from "../../../components/ops/media-alt";
+import type { Send, Target } from "../../../components/ops/auto-translate";
 import type { Locale3, MediaRef } from "../../../components/ops/api-types";
 import { MediaField, MediaListField } from "../../../components/ops/media-field";
 import { MediaPicker, type PickerLibrary } from "../../../components/ops/media-picker";
@@ -167,75 +168,83 @@ function GalleryScene({ ctx }: { ctx: SceneContext }) {
   );
 }
 
-/** Where 03.2-10's Translate button goes. It is not on main yet, so the scene marks the place. */
-const TRANSLATE_SLOT: Record<Locale3, string> = { en: "[Translate button]", ar: "[زر الترجمة]", es: "[Botón Traducir]" };
+/** The scene's own answer to the translate request: bracket words, never a model. */
+const okSend: Send = async (_path, body) => {
+  const { target, fields } = body as { target: Target; fields: Record<string, string> };
+  const out: Record<string, string> = {};
+  for (const name of Object.keys(fields)) out[name] = `${ALT_WORD[target]} 3]`;
+  return { ok: true, target, fields: out };
+};
+/** The AI did not finish (502 translate_failed): the failure state of the pictures. */
+const failSend: Send = async () => ({ ok: false, status: 502, error: { code: "translate_failed", field: null, locale: null, detail: null } });
 
-function LibraryScene({ ctx, panel }: { ctx: SceneContext; panel: boolean }) {
+/**
+ * The library, and the editor page of photo 3 (kit panel B) when `editor` is set. Save goes through the kit for real:
+ * `fail` makes the translation answer 502, so the spec can draw the failure state by typing and pressing Save.
+ */
+function LibraryScene({ ctx, editor, fail = false }: { ctx: SceneContext; editor: boolean; fail?: boolean }) {
   const [query, setQuery] = useState("");
-  const [openId, setOpenId] = useState<string | null>(panel ? "m3" : null);
-  const open = ITEMS.find((item) => item.id === "m3")!;
-  const [draft, setDraft] = useState<AltDraft>({
-    alt: { en: open.alt.en ?? "", ar: open.alt.ar ?? "", es: open.alt.es ?? "" },
-    checked: { ar: false, es: false },
-  });
-  const [dirty, setDirty] = useState(false);
+  const [items, setItems] = useState<MediaItem[]>(ITEMS);
+  const [openId, setOpenId] = useState<string | null>(editor ? "m3" : null);
+  const start = (id: string | null): AltText => {
+    const item = items.find((one) => one.id === id);
+    return { en: item?.alt.en ?? "", ar: item?.alt.ar ?? "", es: item?.alt.es ?? "" };
+  };
+  const [alt, setAlt] = useState<AltText>(() => start(openId));
+  const [saved, setSaved] = useState<AltText>(() => start(openId));
   const needle = foldText(query.trim());
-  const items = needle ? ITEMS.filter((item) => foldText(`${item.key} ${item.alt_en}`).includes(needle)) : ITEMS;
+  const shown = needle ? items.filter((item) => foldText(`${item.key} ${item.alt_en}`).includes(needle)) : items;
+
+  function store(next: AltText, publish: boolean): Promise<boolean> {
+    if (!openId) return Promise.resolve(false);
+    const item = items.find((one) => one.id === openId);
+    const body = buildSaveAlt(openId, next, publish, { ar: item?.alt_status.ar === "published", es: item?.alt_status.es === "published" });
+    setItems((known) => known.map((item) => (item.id === openId ? itemAfterSave(item, body) : item)));
+    const kept = { en: body.alt.en, ar: body.alt.ar ?? "", es: body.alt.es ?? "" };
+    setAlt(kept);
+    setSaved(kept);
+    return Promise.resolve(true);
+  }
+
   return (
     <Frame locale={ctx.locale}>
       <MediaScreen
         locale={ctx.locale}
-        items={items}
+        items={shown}
         query={query}
         onQueryChange={setQuery}
         hasMore
         onLoadMore={() => undefined}
         onPickFile={() => undefined}
         openId={openId}
-        onOpen={setOpenId}
-        onClosePanel={() => setOpenId(null)}
-        draft={draft}
-        dirty={dirty}
-        onAltChange={(code, text) => {
-          setDraft((previous) => ({ ...previous, alt: { ...previous.alt, [code]: text } }));
-          setDirty(true);
+        onOpen={(id) => {
+          setOpenId(id);
+          setAlt(start(id));
+          setSaved(start(id));
         }}
-        onCheckedChange={(code, checked) => {
-          setDraft((previous) => ({ ...previous, checked: { ...previous.checked, [code]: checked } }));
-          setDirty(true);
-        }}
-        onSave={() => setDirty(false)}
-        onDelete={() => setOpenId(null)}
-        translateSlot={
-          <span className="inline-flex min-h-control items-center border border-dashed border-line px-4 text-label text-muted">
-            {TRANSLATE_SLOT[ctx.locale]}
-          </span>
+        onClose={() => setOpenId(null)}
+        alt={alt}
+        savedAlt={saved}
+        onAltChange={(code, text) => setAlt((previous) => ({ ...previous, [code]: text }))}
+        onSave={(payload, intent) =>
+          store({ en: alt.en, ar: String(payload.translations.ar.alt ?? ""), es: String(payload.translations.es.alt ?? "") }, intent === "publish")
         }
+        onPublish={() => store(alt, true)}
+        onDelete={() => setOpenId(null)}
+        send={fail ? failSend : okSend}
       />
     </Frame>
   );
 }
 
 /**
- * The connected Media screen (MediaLibrary) as the page mounts it, for the behaviour tests: its requests are answered by
- * page.route fixtures. The Translate slot gets a test button that calls the panel's handler with a fixed reply, standing
- * in for 03.2-10's TranslateButton (not on main yet). Not one of the signed pictures.
+ * The connected Media screen (MediaLibrary) as the page mounts it, for the behaviour tests: its requests, the translate
+ * request included, are answered by page.route fixtures. Not one of the signed pictures.
  */
 function LiveScene({ ctx }: { ctx: SceneContext }) {
   return (
     <Frame locale={ctx.locale}>
-      <MediaLibrary
-        slotOf={(apply) => (
-          <>
-            <button type="button" data-testid="fake-translate-ar" onClick={() => apply("ar", { alt: "[AR draft]" })}>
-              ar
-            </button>
-            <button type="button" data-testid="fake-translate-es" onClick={() => apply("es", { alt: ["[ES draft]"] })}>
-              es
-            </button>
-          </>
-        )}
-      />
+      <MediaLibrary />
     </Frame>
   );
 }
@@ -248,7 +257,8 @@ export const scenes: Scenes = {
   "picker-upload": (ctx) => <PickerScene ctx={ctx} upload="ready" />,
   "picker-uploading": (ctx) => <PickerScene ctx={ctx} upload="uploading" />,
   "picker-error-size": (ctx) => <PickerScene ctx={ctx} upload="size" />,
-  library: (ctx) => <LibraryScene ctx={ctx} panel={false} />,
-  "library-panel": (ctx) => <LibraryScene ctx={ctx} panel />,
+  library: (ctx) => <LibraryScene ctx={ctx} editor={false} />,
+  "library-editor": (ctx) => <LibraryScene ctx={ctx} editor />,
+  "library-failed": (ctx) => <LibraryScene ctx={ctx} editor fail />,
   "library-live": (ctx) => <LiveScene ctx={ctx} />,
 };

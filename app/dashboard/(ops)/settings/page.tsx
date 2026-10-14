@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { loadRates } from "../../../../lib/fx/rates";
 import { SettingsScreen } from "./settings-screen";
 
 export const metadata: Metadata = {
@@ -7,8 +6,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function DashboardSettingsPage() {
-  const rates = await loadRates();
-
-  return <SettingsScreen rates={rates} />;
+// Plan 02-06: the screen reads and saves through /api/ops/settings (live FX included), so the page renders nothing itself.
+export default function DashboardSettingsPage() {
+  return <SettingsScreen />;
 }

@@ -1,6 +1,7 @@
 // Plan 03.2-10 Task 2: the Translate route's pure parts, with a fake `run` only. No test reaches Workers AI or any
 // binding (lib/ops/translate-route.ts, the one file that touches the AI binding, is read as text here, never loaded).
-// The button's behaviour against 200 / 502 / 429 fixtures is tests/ops-translate.spec.ts.
+// The kit's automatic translation over this route (planner, answers, the 45 s timeout) is tests/ops-kit.test.mjs and
+// tests/ops-kit.spec.ts; the Translate button is gone (kit panel B, owner 2026-10-14).
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -9,7 +10,6 @@ import { loadTs } from "./helpers/load-ts.mjs";
 const t = await loadTs("lib/ops/translate.ts");
 const prompt = await loadTs("lib/ops/translate-prompt.ts");
 const { runOps } = await loadTs("lib/ops/route-core.ts");
-const { OPS_TRANSLATE_COPY } = await loadTs("lib/copy/ops-translate.ts");
 
 const SOURCE = { name: "Casa Ébano", summary: "A quiet house above Cartagena.", amenities: ["Pool", "Chef"] };
 const AR = { name: "كاسا إيبانو", summary: "منزل هادئ فوق قرطاجنة.", amenities: ["مسبح", "طاهٍ"] };
@@ -300,33 +300,6 @@ test("the binding is reached in one file only, with the owner's model", () => {
   assert.equal(/getCloudflareContext|\.AI\b/.test(readFileSync("lib/ops/translate.ts", "utf8").replace(/^\/\/.*$/gm, "")), false, "translate.ts stays pure");
 });
 
-test("translate-button.tsx: no fetch(, imports opsSend from ./ops-client, Promise.allSettled, a polite status line", () => {
-  const src = readFileSync("components/ops/translate-button.tsx", "utf8");
-  assert.equal(src.includes("fetch("), false);
-  assert.match(src, /import \{ opsSend[^}]*\} from "\.\/ops-client";/);
-  assert.match(src, /Promise\.allSettled\(/);
-  assert.match(src, /opsSend<[^>]+>\("\/api\/ops\/translate", \{ target, fields \}, \{ timeoutMs: TRANSLATE_TIMEOUT_MS \}\)/);
-  assert.match(src, /export const TRANSLATE_TIMEOUT_MS = 45_000;/);
-  assert.match(src, /role="status" aria-live="polite"/);
-});
-
-// ---- copy ----------------------------------------------------------------------------------------------------------
-
-test("OPS_TRANSLATE_COPY: the same keys in en, ar, es; none empty", () => {
-  const keys = Object.keys(OPS_TRANSLATE_COPY.en).sort();
-  assert.ok(keys.length >= 11);
-  for (const locale of ["en", "ar", "es"]) {
-    assert.deepEqual(Object.keys(OPS_TRANSLATE_COPY[locale]).sort(), keys, locale);
-    for (const key of keys) assert.ok(OPS_TRANSLATE_COPY[locale][key].trim().length > 0, `${locale}.${key}`);
-  }
-});
-
-test("ES copy speaks usted (owner, 2026-10-11), never tú", () => {
-  const es = Object.values(OPS_TRANSLATE_COPY.es).join(" ");
-  for (const tu of [/\bRevísalos\b/, /\bescríbelo\b/i, /\bescríbela\b/i, /\binténtalo\b/i, /\bEscribe\b/]) assert.equal(tu.test(es), false, String(tu));
-  for (const usted of [/Revíselos/, /escríbalo/, /escríbala/i, /inténtelo/, /Escriba primero/]) assert.match(es, usted);
-});
-
 // ---- 03.2-10b: the output checks, the token budget, the data-only line, the client timeout --------------------------------
 // Each test below fails on the code of 760a40b (the finding it answers is named in the title).
 
@@ -584,16 +557,6 @@ test("round 3, busy: a rate or capacity 429 is translate_busy, not translate_lim
   assert.equal(lim.body.error.code, "translate_limit");
 });
 
-test("round 3, busy: the retry line exists in en, ar and es and never mentions tomorrow or 04:00", () => {
-  for (const locale of ["en", "ar", "es"]) {
-    const line = OPS_TRANSLATE_COPY[locale].retryLater;
-    assert.ok(line && line.trim().length > 0, locale);
-    assert.equal(/04:00|tomorrow|mañana|غدًا/.test(line), false, `${locale}: ${line}`);
-  }
-  assert.match(OPS_TRANSLATE_COPY.en.retryLater, /minute/);
-  assert.equal(/\bInténtalo\b/.test(OPS_TRANSLATE_COPY.es.retryLater), false, "usted");
-});
-
 test("round 3, deadline: a model call that never answers is given up at the deadline: translate_failed, not a hang", async () => {
   let calls = 0;
   const never = async () => {
@@ -787,13 +750,6 @@ test("round 4, per field: a field that fails is left, the others are kept; the a
   assert.deepEqual(res, { status: 200, body: { ok: true, target: "es", fields: { name: "Casa Ébano" }, left: ["tagline", "things"] }, cache: "no-store" });
   const whole = await call({ target: "es", fields: src }, fakeRun(gemmaReply(JSON.stringify(good))).run);
   assert.equal("left" in whole.body, false);
-});
-
-test("round 4, button: someLeft line in en, ar, es (usted); done-left when both targets came back with fields left", () => {
-  for (const locale of ["en", "ar", "es"]) assert.ok(OPS_TRANSLATE_COPY[locale].someLeft.trim().length > 0, locale);
-  assert.match(OPS_TRANSLATE_COPY.es.someLeft, /Escríbalos usted y revise/);
-  const src = readFileSync("components/ops/translate-button.tsx", "utf8");
-  assert.match(src, /hasLeft\(ar\) \|\| hasLeft\(es\) \? "done-left" : "done"/);
 });
 
 test("round 4, config: only almar-ops has enable_request_signal (the flag's docs name no minimum compatibility date)", () => {

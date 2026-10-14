@@ -11,6 +11,9 @@ import { isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { assertPublicClean, assertTargetFiles, outDirNameFor, parseTarget, writeTargetFiles } from "./crawl-files.mjs";
 import { assertMediaReady } from "./media-guard.mjs";
 import { assertWorkerSize } from "./worker-size.mjs";
+import { BRAND_FILES, DEFAULT_SITE_SETTINGS, brandStyle, fetchSiteSettings, logoPath, parseSiteSettingsRow } from "../lib/site-settings.ts";
+import { renderMaintenancePage } from "../lib/maintenance-document.ts";
+import { mediaUrl } from "../lib/data/media.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -159,6 +162,7 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile,
 
   const total = listFiles(outDir).filter((f) => f.rel.endsWith(".html")).length;
   return {
+    pages: plan.map((item) => ({ dest: item.dest, locale: item.locale })),
     framer: plan.filter((item) => item.kind === "framer").map((item) => item.dest),
     react: { en: react.en.map((i) => i.dest), ar: react.ar.map((i) => i.dest), es: react.es.map((i) => i.dest) },
     notFound,
@@ -449,6 +453,81 @@ function assertBuiltWorkerSize(config) {
   }
 }
 
+// ---- Plan 02-06: Settings at the publish rebuild ------------------------------------------------------------------
+
+/** The saved logo may be at most 1 MB (02-06 plan, T-02-13). */
+export const LOGO_MAX_BYTES = 1024 * 1024;
+
+const LOGO_MAGIC = {
+  png: (b) => b.length > 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47,
+  jpg: (b) => b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
+  webp: (b) => b.length > 12 && b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP",
+};
+
+/**
+ * What the public build takes from Settings. Fixtures mode (local builds, tests): <fixture folder>/site-settings.json
+ * when it exists, else the design system's defaults. Database mode: api_site_settings with the anon key, and the saved
+ * logo's bytes from the media host (checked: at most 1 MB, PNG/JPEG/WebP by its first bytes, matching its key). Any
+ * failure throws before a folder is wiped, so the live site stays as it was.
+ */
+export async function readBuildSiteSettings(source, env = process.env, fetcher = fetch) {
+  let settings;
+  if (source === "supabase") {
+    settings = await fetchSiteSettings(String(env.NEXT_PUBLIC_SUPABASE_URL).trim(), String(env.NEXT_PUBLIC_SUPABASE_ANON_KEY).trim(), fetcher);
+  } else {
+    const file = path.join(env.ALMAR_FIXTURE_DIR || path.join(root, "lib", "data", "fixtures"), "site-settings.json");
+    settings = fs.existsSync(file) ? parseSiteSettingsRow(JSON.parse(fs.readFileSync(file, "utf8"))) : DEFAULT_SITE_SETTINGS;
+  }
+  let logo = null;
+  if (settings.logoKey !== null) {
+    const ext = settings.logoKey.slice(settings.logoKey.lastIndexOf(".") + 1);
+    const response = await fetcher(mediaUrl(settings.logoKey));
+    if (!response.ok) throw new Error(`the saved logo could not be read from the media host (${response.status})`);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.length === 0 || bytes.length > LOGO_MAX_BYTES) throw new Error("the saved logo is empty or over 1 MB");
+    if (!LOGO_MAGIC[ext]?.(bytes)) throw new Error(`the saved logo is not a ${ext} file`);
+    logo = { ext, bytes };
+  }
+  return { settings, logo };
+}
+
+/** The wordmark files the Next build hashes into /_next/static/media/ (components/ui/nav.tsx and the ops shell). */
+const WORDMARK_SRC = /\/_next\/static\/media\/(?:Poly_White|Stacked_Charcoal)\.[A-Za-z0-9_-]+\.svg/g;
+
+/**
+ * After assembleOut, for a target with pages: copy the brand files and the saved logo into out/brand/; then, with
+ * maintenance on, every public page becomes the closed page in its own language; otherwise every page gets the saved
+ * colours (a <style> before </head>) and, when a logo is saved, the wordmark images point at it.
+ * Returns { maintenance, pages, styled }.
+ */
+export function applySiteSettings({ outDir, pages, settings, logo, repoRoot = root }) {
+  for (const { from, to } of BRAND_FILES) copyFile(path.join(repoRoot, from), path.join(outDir, to));
+  if (logo) {
+    fs.mkdirSync(path.join(outDir, "brand"), { recursive: true });
+    fs.writeFileSync(path.join(outDir, "brand", `logo.${logo.ext}`), logo.bytes);
+  }
+  const style = brandStyle(settings);
+  const logoSrc = logoPath(settings.logoKey);
+  let styled = 0;
+  for (const { dest, locale } of pages) {
+    const file = path.join(outDir, dest);
+    if (settings.maintenance) {
+      fs.writeFileSync(file, renderMaintenancePage(locale, { logoSrc, brandStyle: style }));
+      continue;
+    }
+    let html = fs.readFileSync(file, "utf8");
+    const before = html;
+    if (style && html.includes("</head>")) html = html.replace("</head>", `${style}</head>`);
+    if (settings.logoKey !== null) html = html.replace(WORDMARK_SRC, logoSrc);
+    if (html !== before) {
+      fs.writeFileSync(file, html);
+      styled += 1;
+    }
+  }
+  return { maintenance: settings.maintenance, pages: pages.length, styled };
+}
+
+
 /**
  * node scripts/assemble-cloudflare.mjs [--target=local|preview|production|ops]
  *
@@ -474,6 +553,8 @@ async function main(argv = process.argv.slice(2)) {
   assertPublicClean(root);
   // Before the build and before any folder is wiped: a refused run leaves the previous output intact.
   if (target !== "local") assertMediaReady();
+  // Plan 02-06: Settings (maintenance, colours, logo) are read before anything is built or wiped, like the catalogue.
+  const site = target === "ops" ? null : await readBuildSiteSettings(source);
   // Every build reads the database again: Next's fetch cache would serve the rows of an earlier build (clearFetchCache).
   clearFetchCache(root);
   // Job 10: OpenNext runs the project's `next build` (standalone) and bundles the server into .open-next/. The
@@ -500,6 +581,10 @@ async function main(argv = process.argv.slice(2)) {
     publicDir: path.join(root, "public"),
     pages: target !== "ops",
   });
+  // Plan 02-06: the three branded 404s take the saved colours and close with the site too (lib/not-found-document.ts
+  // reads the colour variables, falling back to the design system's values).
+  const notFoundPages = report.notFound.map((dest) => ({ dest, locale: dest === "404.html" ? "en" : dest.slice(0, 2) }));
+  const siteReport = site ? applySiteSettings({ outDir, pages: [...report.pages, ...notFoundPages], settings: site.settings, logo: site.logo }) : null;
   // _headers, robots.txt and sitemap.xml are written per target, never copied from public/.
   const htmlFiles = listFiles(outDir)
     .filter((f) => f.rel.endsWith(".html"))
@@ -523,7 +608,8 @@ async function main(argv = process.argv.slice(2)) {
   console.log(
     `assembled ${report.total} html files into ${folder}/ (target: ${target}): ${report.framer.length} Framer, ` +
       `React en ${r.en.length} / ar ${r.ar.length} / es ${r.es.length}, ${report.notFound.length} 404s; ` +
-      `server paths: ${serverPaths.join(", ") || "none"}; Worker ${Math.round(workerKiB)} KiB gzip`,
+      `server paths: ${serverPaths.join(", ") || "none"}; Worker ${Math.round(workerKiB)} KiB gzip; ` +
+      (siteReport.maintenance ? `MAINTENANCE: ${siteReport.pages} pages closed` : `settings applied to ${siteReport.styled} pages`),
   );
 }
 

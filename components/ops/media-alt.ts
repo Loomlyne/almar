@@ -1,59 +1,51 @@
-// The alt text of one photo as the Media panel edits it, and the pure steps around it (03.2-09). No React, no request:
-// node tests load this file directly, and media-library.tsx binds it to state.
+// The alt text of one photo as the Media editor edits it, and the pure steps around it (03.2-09, kit panel B). No React,
+// no request: node tests load this file directly, and media-library.tsx binds it to state.
+//
+// Translation is automatic (owner, 2026-10-14): Maria writes the English; the editor fills Arabic and Spanish on Save.
+// A photo is published when its English, Arabic and Spanish alt texts are all published. Save keeps every language that
+// is published published (the site updates; a photo can be live in Arabic and not yet in Spanish) and the others in
+// draft; Publish makes Arabic and Spanish published. There is no "I checked this translation" box any more.
 import type { Locale3 } from "./api-types";
 import type { MediaItem } from "./media-types";
+import type { MissingItem } from "./publish-check";
 
-/** What the open photo's panel is editing: one alt text per language and the two "I checked this translation" boxes. */
-export type AltDraft = {
-  alt: Record<Locale3, string>;
-  checked: { ar: boolean; es: boolean };
-};
+/** What the open photo's editor holds: one alt text per language. */
+export type AltText = Record<Locale3, string>;
 
 type Other = Exclude<Locale3, "en">;
 
-/** The panel's starting point for a photo: its saved alt text, and a box ticked only where that language is published. */
-export function altDraftOf(item: MediaItem): AltDraft {
-  return {
-    alt: { en: item.alt.en ?? "", ar: item.alt.ar ?? "", es: item.alt.es ?? "" },
-    checked: { ar: item.alt_status.ar === "published", es: item.alt_status.es === "published" },
-  };
+/** The field name of the alt text: the translate route's field and the missing list's field. */
+export const ALT_FIELD = "alt";
+
+/** The editor's starting point for a photo: its saved alt text. */
+export function altOf(item: MediaItem): AltText {
+  return { en: item.alt.en ?? "", ar: item.alt.ar ?? "", es: item.alt.es ?? "" };
 }
 
-export function sameAltDraft(a: AltDraft, b: AltDraft): boolean {
-  return (
-    a.alt.en === b.alt.en &&
-    a.alt.ar === b.alt.ar &&
-    a.alt.es === b.alt.es &&
-    a.checked.ar === b.checked.ar &&
-    a.checked.es === b.checked.es
-  );
+export function sameAlt(a: AltText, b: AltText): boolean {
+  return a.en === b.en && a.ar === b.ar && a.es === b.es;
 }
 
-/**
- * The panel's handler for the Translate button (03.2-10's `onDrafts(target, fields)`): the translated alt text fills
- * that language's box, the language becomes a Draft and "I checked this translation" is unticked, so the owner reads
- * it before it can be published. `fields.alt` is the one field the panel sends. Nothing is saved here.
- * A reply with no text for `alt` changes nothing.
- */
-export function applyAltDrafts(
-  draft: AltDraft,
-  target: Other,
-  fields: Record<string, string | string[]>,
-): AltDraft {
-  const raw = fields.alt;
-  const text = (Array.isArray(raw) ? raw[0] : raw)?.trim() ?? "";
-  if (text === "") return draft;
-  return {
-    alt: { ...draft.alt, [target]: text },
-    checked: { ...draft.checked, [target]: false },
-  };
+/** Published: English, Arabic and Spanish all published. A missing or draft Arabic or Spanish is a draft photo. */
+export function isAltPublished(item: MediaItem): boolean {
+  return item.alt_status.en === "published" && item.alt_status.ar === "published" && item.alt_status.es === "published";
 }
 
-/** The status a language is shown with: nothing typed is missing; English is published; AR and ES follow their box. */
-export function altStateOf(draft: AltDraft, code: Locale3): "published" | "draft" | "missing" {
-  if (draft.alt[code].trim() === "") return "missing";
-  if (code === "en") return "published";
-  return draft.checked[code] ? "published" : "draft";
+/** The Arabic and Spanish alt texts published on the site now: the editor never empties one by accident. */
+export function liveAlt(item: MediaItem): Partial<Record<Other, readonly string[]>> {
+  const out: Partial<Record<Other, readonly string[]>> = {};
+  for (const code of ["ar", "es"] as const) if (item.alt_status[code] === "published") out[code] = [ALT_FIELD];
+  return out;
+}
+
+/** A photo the site uses (on a page, or an imported one the site pages keep): a failed translation saves nothing. */
+export const altInUse = (item: MediaItem) => item.used_by > 0 || item.source === "import";
+
+/** What Publish waits for: an alt text in each language. */
+export function altMissing(alt: AltText): MissingItem[] {
+  const out: MissingItem[] = [];
+  for (const code of ["en", "ar", "es"] as const) if (alt[code].trim() === "") out.push({ locale: code, field: ALT_FIELD });
+  return out;
 }
 
 export type SaveAltBody = {
@@ -64,16 +56,18 @@ export type SaveAltBody = {
 };
 
 /**
- * The save_alt body (contract 5.10). A language with text is "published" only when its box is ticked, else "draft";
- * a language left empty is sent as null and carries no status.
+ * The save_alt body (contract 5.10). Arabic and Spanish with text are "published" when `publish` (Publish pressed) or
+ * when that language is published already (`live`: a Save never takes a live language off the site), else "draft"; a
+ * language left empty is sent as null and carries no status.
  */
-export function buildSaveAlt(id: string, draft: AltDraft): SaveAltBody {
-  const ar = draft.alt.ar.trim();
-  const es = draft.alt.es.trim();
+export function buildSaveAlt(id: string, alt: AltText, publish: boolean, live: Partial<Record<Other, boolean>> = {}): SaveAltBody {
+  const ar = alt.ar.trim();
+  const es = alt.es.trim();
+  const state = (code: Other) => (publish || live[code] ? "published" : "draft");
   const status: SaveAltBody["status"] = {};
-  if (ar !== "") status.ar = draft.checked.ar ? "published" : "draft";
-  if (es !== "") status.es = draft.checked.es ? "published" : "draft";
-  return { action: "save_alt", id, alt: { en: draft.alt.en.trim(), ar: ar === "" ? null : ar, es: es === "" ? null : es }, status };
+  if (ar !== "") status.ar = state("ar");
+  if (es !== "") status.es = state("es");
+  return { action: "save_alt", id, alt: { en: alt.en.trim(), ar: ar === "" ? null : ar, es: es === "" ? null : es }, status };
 }
 
 /** The photo as the list shows it after a save: new alt text and the status the save sent. */
