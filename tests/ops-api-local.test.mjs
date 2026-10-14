@@ -341,6 +341,16 @@ test("local stack: the owner API end to end on the imported catalogue", { timeou
     const partial = await AC.post({ action: "save", stay_id: GETSEMANI.id, access: { notes: "[note]" } });
     assert.equal(partial.status, 200);
     assert.equal((await AC.get(`stay_id=${GETSEMANI.id}`)).body.access.door_code, "[code]", "absent keys untouched");
+    // 03.2-15: the Notes' Arabic and Spanish are saved and read back; absent leaves them; blank empties them.
+    assert.equal((await AC.post({ action: "save", stay_id: GETSEMANI.id, access: { notes_ar: " [ar note] ", notes_es: "[es note]" } })).status, 200);
+    let notes = (await AC.get(`stay_id=${GETSEMANI.id}`)).body.access;
+    assert.deepEqual([notes.notes, notes.notes_ar, notes.notes_es], ["[note]", "[ar note]", "[es note]"]);
+    assert.equal((await AC.post({ action: "save", stay_id: GETSEMANI.id, access: { notes: "[note 2]" } })).status, 200);
+    notes = (await AC.get(`stay_id=${GETSEMANI.id}`)).body.access;
+    assert.deepEqual([notes.notes, notes.notes_ar, notes.notes_es], ["[note 2]", "[ar note]", "[es note]"], "absent translations untouched");
+    assert.equal((await AC.post({ action: "save", stay_id: GETSEMANI.id, access: { notes_ar: "", notes_es: "  " } })).status, 200);
+    notes = (await AC.get(`stay_id=${GETSEMANI.id}`)).body.access;
+    assert.deepEqual([notes.notes_ar, notes.notes_es], [null, null], "blank translations empty");
     assert.deepEqual((await AC.get(`stay_id=${COURTYARD.id}`)).body, { ok: true, stay_id: COURTYARD.id, access: null });
     assert.equal((await S.get(`id=${GETSEMANI.id}`)).body.item.has_access, true);
     assert.equal((await AC.get("stay_id=0b0b0b0b-0000-4000-8000-0000000000ee")).status, 404);
