@@ -272,7 +272,24 @@ const STAYS = [
 ];
 
 /** An in-memory /api/ops/blocks, destinations and stays. `gets` and `posts` are everything the screen sent. */
-async function mockApi(page: Page, options: { overlap?: number; addFails?: number } = {}) {
+type MockOptions = {
+  overlap?: number;
+  /** HTTP status of a refused add (an `invalid` reply, on `addField`). */
+  addFails?: number;
+  addField?: string | null;
+  /** The add request never gets a reply (offline). */
+  addOffline?: boolean;
+  /** HTTP status of a refused delete (an `unavailable` reply). */
+  deleteFails?: number;
+  /** One pick list that fails to load. */
+  listFails?: "destinations" | "stays";
+  /** A month window (`from`) whose GET fails. */
+  monthFails?: string;
+};
+
+const UNAVAILABLE = { code: "unavailable", field: null, locale: null, detail: null };
+
+async function mockApi(page: Page, options: MockOptions = {}) {
   const state = {
     blocks: [fixture("b1", "all", null, "2026-10-19", "2026-10-21", "[Reason]"), fixture("b2", "stay", S1, "2026-10-23", "2026-10-23")],
     gets: [] as string[],
@@ -280,14 +297,22 @@ async function mockApi(page: Page, options: { overlap?: number; addFails?: numbe
     other: [] as string[],
     overlap: options.overlap ?? 0,
     addFails: options.addFails ?? 0,
+    addField: options.addField ?? null,
+    addOffline: options.addOffline ?? false,
+    deleteFails: options.deleteFails ?? 0,
+    monthFails: options.monthFails ?? null,
     next: 3,
   };
   const json = (route: Route, body: unknown, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
   await page.route("**/api/ops/**", async (route) => {
     const url = new URL(route.request().url());
     const method = route.request().method();
-    if (url.pathname === "/api/ops/destinations") return json(route, { ok: true, items: DESTINATIONS });
-    if (url.pathname === "/api/ops/stays") return json(route, { ok: true, items: STAYS });
+    if (url.pathname === "/api/ops/destinations") {
+      return options.listFails === "destinations" ? json(route, { ok: false, error: UNAVAILABLE }, 503) : json(route, { ok: true, items: DESTINATIONS });
+    }
+    if (url.pathname === "/api/ops/stays") {
+      return options.listFails === "stays" ? json(route, { ok: false, error: UNAVAILABLE }, 503) : json(route, { ok: true, items: STAYS });
+    }
     if (url.pathname !== "/api/ops/blocks") {
       state.other.push(`${method} ${url.pathname}`);
       return json(route, { ok: false, error: { code: "not_found", field: null, locale: null, detail: null } }, 404);
@@ -298,6 +323,7 @@ async function mockApi(page: Page, options: { overlap?: number; addFails?: numbe
       const to = url.searchParams.get("to") ?? "";
       const stay = url.searchParams.get("stay_id");
       const destination = url.searchParams.get("destination_id");
+      if (state.monthFails === from) return json(route, { ok: false, error: UNAVAILABLE }, 503);
       const homeOf = (id: string) => STAYS.find((one) => one.id === id)?.destination_id;
       const blocks = state.blocks.filter((block) => {
         if (block.ends_on < from || block.starts_on > to) return false;
@@ -310,13 +336,15 @@ async function mockApi(page: Page, options: { overlap?: number; addFails?: numbe
     const body = route.request().postDataJSON() as { action: string; block?: Record<string, string | null>; id?: string };
     state.posts.push(body);
     if (body.action === "add") {
-      if (state.addFails) return json(route, { ok: false, error: { code: "invalid", field: null, locale: null, detail: null } }, state.addFails);
+      if (state.addOffline) return route.abort("internetdisconnected");
+      if (state.addFails) return json(route, { ok: false, error: { code: "invalid", field: state.addField, locale: null, detail: null } }, state.addFails);
       const block = body.block!;
       const id = `b${state.next++}`;
       state.blocks.push(fixture(id, block.scope as Fixture["scope"], block.destination_id ?? block.stay_id ?? null, block.starts_on!, block.ends_on!, block.reason));
       state.blocks.sort((a, b) => a.starts_on.localeCompare(b.starts_on));
       return json(route, { ok: true, id, affects_site: true, overlapping_bookings: state.overlap });
     }
+    if (state.deleteFails) return json(route, { ok: false, error: UNAVAILABLE }, state.deleteFails);
     state.blocks = state.blocks.filter((block) => block.id !== body.id);
     return json(route, { ok: true, id: body.id, affects_site: true });
   });
@@ -489,7 +517,9 @@ test.describe("behaviour", () => {
       await page.getByRole("status").getByRole("button").click();
       await expect(page.getByRole("status").filter({ hasText: overlapLine(locale, 2) })).toHaveCount(0);
 
+      // A refused field of the block itself reads as the form's generic sentence, never a column name (PR #17 item 7).
       api.addFails = 400;
+      api.addField = "block.ends_on";
       await dayButton(page, "2026-10-29", locale).click();
       await saveButton(page).click();
       await expect(editor(page).getByRole("alert")).toHaveText(kit.errors.invalid);
@@ -621,5 +651,97 @@ test.describe("behaviour", () => {
     await opener.click();
     await expect(editor.getByRole("textbox", { name: copy.reasonOptional, exact: true })).toHaveValue("");
     expect(api.posts).toEqual([]);
+  });
+
+  // ---- failures (PR #17) ------------------------------------------------------------------------------------------
+  const kit = OPS_KIT_COPY.en;
+  const copy = OPS_CALENDAR_COPY.en;
+  const deletesOf = (page: Page) => page.getByRole("button", { name: new RegExp(`^${copy.deleteNamed.split("{")[0].trim()}`) });
+
+  test("a refused Delete says so and stays said: nothing is fetched again, and the next month load does not hide it", async ({ page }) => {
+    const api = await mockApi(page, { deleteFails: 503 });
+    await openCalendar(page, "desktop", "en");
+    await expect(deletesOf(page)).toHaveCount(2);
+    const reads = api.gets.length;
+    await deletesOf(page).first().click();
+    await page.getByRole("dialog").getByRole("button", { name: kit.delete, exact: true }).click();
+    await expect.poll(() => api.posts.length).toBe(1);
+    await expect(page.getByRole("alert")).toHaveText(kit.errors.unavailable);
+    await page.waitForTimeout(500);
+    expect(api.gets.length, "no refetch after a refused delete").toBe(reads);
+    await expect(deletesOf(page)).toHaveCount(2);
+    // Another read succeeds; the refusal is still said.
+    await page.getByRole("button", { name: copy.nextMonth }).click();
+    await expect.poll(() => api.gets.at(-1)).toBe("?from=2026-11-01&to=2026-11-30");
+    await expect(page.getByText(copy.noBlocks)).toBeVisible();
+    await expect(page.getByRole("alert")).toHaveText(kit.errors.unavailable);
+  });
+
+  for (const list of ["destinations", "stays"] as const) {
+    test(`a failed ${list} load is said and stays said after the month loads`, async ({ page }) => {
+      const api = await mockApi(page, { listFails: list });
+      await openCalendar(page, "desktop", "en");
+      await expect(page.getByRole("alert")).toHaveText(kit.errors.unavailable);
+      await page.getByRole("button", { name: copy.nextMonth }).click();
+      await expect.poll(() => api.gets.at(-1)).toBe("?from=2026-11-01&to=2026-11-30");
+      await expect(page.getByText(copy.noBlocks)).toBeVisible();
+      await expect(page.getByRole("alert")).toHaveText(kit.errors.unavailable);
+    });
+  }
+
+  test("a failed month load draws none of the last month's blocks under the new title, and the next good load clears it", async ({ page }) => {
+    const api = await mockApi(page, { monthFails: "2026-11-01" });
+    await openCalendar(page, "desktop", "en");
+    await expect(deletesOf(page)).toHaveCount(2);
+    await page.getByRole("button", { name: copy.nextMonth }).click();
+    await expect(page.getByRole("alert")).toHaveText(kit.errors.unavailable);
+    await expect(page.getByText(/November 2026/)).toBeVisible();
+    await expect(deletesOf(page)).toHaveCount(0);
+    await expect(page.getByText(copy.noBlocks)).toBeVisible();
+    await page.getByRole("button", { name: copy.previousMonth }).click();
+    await expect.poll(() => api.gets.at(-1)).toBe("?from=2026-10-01&to=2026-10-31");
+    await expect(deletesOf(page)).toHaveCount(2);
+    await expect(page.getByRole("alert")).toHaveCount(0);
+  });
+
+  test("an add with no connection keeps the form and says so; a change clears the sentence; Save again works", async ({ page }) => {
+    const api = await mockApi(page, { addOffline: true });
+    await openCalendar(page, "desktop", "en");
+    await dayButton(page, "2026-10-26", "en").click();
+    const editor = page.locator("[data-edit-page]");
+    await editor.getByRole("button", { name: kit.save, exact: true }).click();
+    await expect(editor.getByRole("alert")).toHaveText(kit.errors.network);
+    await expect(editor).toBeVisible();
+    // The refusal is about what was sent: editing the form clears it (PR #17 item 6).
+    await editor.getByRole("textbox", { name: copy.reasonOptional, exact: true }).fill("[Owner stay]");
+    await expect(editor.getByRole("alert")).toHaveCount(0);
+    api.addOffline = false;
+    await editor.getByRole("button", { name: kit.save, exact: true }).click();
+    await expect(editor).toHaveCount(0);
+    expect(api.posts.at(-1)).toEqual({ action: "add", block: { scope: "all", starts_on: "2026-10-26", ends_on: "2026-10-26", reason: "[Owner stay]" } });
+  });
+
+  test("the Dubai day is read again when the owner comes back to the tab after 20:00 UTC", async ({ page }) => {
+    await mockApi(page);
+    await page.setViewportSize(VIEWPORTS.desktop);
+    await page.clock.setFixedTime(new Date("2026-10-14T19:59:00Z"));
+    await page.goto("/dashboard/calendar");
+    await expect(dayButton(page, "2026-10-14", "en")).toHaveAttribute("aria-current", "date", { timeout: 45_000 });
+    await page.clock.setFixedTime(new Date("2026-10-14T20:01:00Z"));
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await expect(dayButton(page, "2026-10-15", "en")).toHaveAttribute("aria-current", "date");
+    await expect(dayButton(page, "2026-10-14", "en")).toBeDisabled();
+  });
+
+  test("the date picker opens on the month of the chosen first day", async ({ page }) => {
+    await mockApi(page);
+    await openCalendar(page, "desktop", "en");
+    await page.getByRole("button", { name: copy.blockDates, exact: true }).click();
+    await pickDates(page, "2026-11-02", "2026-11-04");
+    // Picked: the picker has closed. Open it again: November, not today's October.
+    await expect(page.locator(".calendar")).toHaveCount(0);
+    await page.locator("[data-edit-page]").locator('button[id$="-dates"]').click();
+    await expect(page.locator(`[data-date="${dateKey("2026-11-02")}"]`)).toBeVisible();
+    await expect(page.locator(`[data-date="${dateKey("2026-10-20")}"]`)).toHaveCount(0);
   });
 });
