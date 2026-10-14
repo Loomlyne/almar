@@ -96,6 +96,7 @@ export const scenes: Scenes = {
   availability: editor,
   access: editor,
   "access-translations": editor,
+  "access-ai-failed": editor,
   "two-saves": editor,
   "new-stay": (ctx) => <StayEditor ctx={ctx} isNew />,
 };

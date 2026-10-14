@@ -193,6 +193,7 @@ const SHOTS: Shot[] = [
   { state: "availability", fixture: { base: true, ranges: true }, viewports: ALL, locales: LOCALES },
   { state: "access", fixture: { base: true, ranges: true }, viewports: ALL, locales: LOCALES },
   { state: "access-translations", fixture: { base: true, ranges: true }, viewports: ALL, locales: LOCALES },
+  { state: "access-ai-failed", fixture: { base: true, ranges: true, translate: "fail" }, viewports: ALL, locales: LOCALES },
   { state: "two-saves", fixture: { base: false, ranges: false }, viewports: ALL, locales: LOCALES },
   { state: "new-stay", fixture: { base: false, ranges: false }, viewports: ["phone", "desktop"], locales: ["en"] },
 ];
@@ -297,6 +298,15 @@ test.describe("pictures", () => {
             await access.getByRole("button", { name: kit.editor.editTranslations, exact: true }).click();
             await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.ar}`, { exact: true })).toHaveValue(NOTES_AR);
             await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.es}`, { exact: true })).toHaveValue(NOTES_ES);
+          }
+
+          if (shot.state === "access-ai-failed") {
+            // The English Notes changed and saved; the AI did not answer, so the card's own line says what happened.
+            const access = card(page, copy.access.title);
+            await access.getByLabel(copy.access.notes, { exact: true }).fill("[New notes]");
+            await access.getByRole("button", { name: copy.access.saveAccess, exact: true }).click();
+            await expect(alerts(page).filter({ hasText: copy.access.translationFailed })).toBeVisible();
+            await expect(access.getByRole("button", { name: copy.access.saveAccess, exact: true })).toBeEnabled();
           }
 
           if (shot.state === "two-saves") {
@@ -468,13 +478,30 @@ test.describe("behaviour", () => {
         const access = card(page, copy.access.title);
         await access.getByLabel(copy.access.notes, { exact: true }).fill("[New note]");
         await access.getByRole("button", { name: copy.access.saveAccess, exact: true }).click();
-        await expect(alerts(page).filter({ hasText: kit.editor.translationFailed })).toBeVisible();
+        // The card's own line (no Publish on this card), never the kit's.
+        await expect(alerts(page).filter({ hasText: copy.access.translationFailed })).toBeVisible();
+        await expect(alerts(page).filter({ hasText: kit.editor.translationFailed })).toHaveCount(0);
         const body = posted(calls, "/api/ops/stay-access")[0] as { access: Record<string, unknown> };
         expect(body.access.notes).toBe("[New note]");
         expect("notes_ar" in body.access).toBe(false);
         expect("notes_es" in body.access).toBe(false);
         await access.getByRole("button", { name: kit.editor.editTranslations, exact: true }).click();
         await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.ar}`, { exact: true })).toHaveValue(NOTES_AR);
+        // Save stays pressable with nothing else changed, and the next Save asks the AI again (now answering).
+        await page.route("**/api/ops/translate", (route) => {
+          const sent = route.request().postDataJSON() as { target: string; fields: Record<string, string> };
+          const tag = `[${sent.target.toUpperCase()}]`;
+          return reply(route, 200, { ok: true, target: sent.target, fields: Object.fromEntries(Object.entries(sent.fields).map(([k, v]) => [k, `${tag} ${v}`])) });
+        });
+        const saveAccess = access.getByRole("button", { name: copy.access.saveAccess, exact: true });
+        await expect(saveAccess).toBeEnabled();
+        await saveAccess.click();
+        await expect(access.getByText(kit.editor.translationsUpdated, { exact: true })).toBeVisible();
+        await expect(alerts(page).filter({ hasText: copy.access.translationFailed })).toHaveCount(0);
+        const second = posted(calls, "/api/ops/stay-access")[1] as { access: Record<string, unknown> };
+        expect(second.access.notes_ar).toBe("[AR] [New note]");
+        expect(second.access.notes_es).toBe("[ES] [New note]");
+        await expect(saveAccess).toBeDisabled();
       });
 
       test(`dirty: typing in a card makes the page ask "Discard changes?" before leaving (${at})`, async ({ page }) => {

@@ -60,6 +60,9 @@ export function StayAccessSection({
   const [typed, setTyped] = useState<AccessInput>(BLANK);
   const [savedNotes, setSavedNotes] = useState<Notes>(NO_NOTES);
   const [notes, setNotes] = useState<Notes>(NO_NOTES);
+  // The English the stored Arabic and Spanish were made from. It moves only when the AI filled both, so after a failed
+  // translation the card stays saveable and the next Save asks again.
+  const [translatedFrom, setTranslatedFrom] = useState("");
   // Arabic or Spanish typed by the owner since the last save: the AI leaves those alone.
   const [touched, setTouched] = useState<ReadonlySet<string>>(() => new Set());
   const [showTranslations, setShowTranslations] = useState(false);
@@ -82,6 +85,7 @@ export function StayAccessSection({
     setTyped(values.access);
     setSavedNotes(values.notes);
     setNotes(values.notes);
+    setTranslatedFrom(values.access.notes);
   }, [stayId]);
 
   useEffect(() => {
@@ -89,6 +93,7 @@ export function StayAccessSection({
   }, [load]);
 
   const dirty = saved !== null && (!same(saved, typed) || TARGETS.some((target) => notes[target] !== savedNotes[target]));
+  const retry = saved !== null && translatedFrom !== typed.notes;
   // Told only when it changes; the latest callback is kept in a ref so an inline one cannot loop.
   const tell = useRef(onDirtyChange);
   tell.current = onDirtyChange;
@@ -115,13 +120,13 @@ export function StayAccessSection({
     setTranslationFailed(false);
     setDone(null);
 
-    const plan = planTranslation({ notes: typed.notes }, { notes: saved.notes }, { ar: { notes: notes.ar }, es: { notes: notes.es } }, touched);
+    const plan = planTranslation({ notes: typed.notes }, { notes: translatedFrom }, { ar: { notes: notes.ar }, es: { notes: notes.es } }, touched);
     let replies: Partial<Record<Target, unknown>> = {};
     if (TARGETS.some((target) => "notes" in plan.send[target])) {
       setPhase("translating");
       replies = await requestTranslations(plan, send);
     }
-    const result = notesForSave({ english: typed.notes, savedEnglish: saved.notes, notes, savedNotes, touched, replies });
+    const result = notesForSave({ english: typed.notes, savedEnglish: translatedFrom, notes, savedNotes, touched, replies });
 
     setPhase("saving");
     // The reply carries no row (contract 5.5), so the card keeps what it sent: blanks as empty, the rest as typed.
@@ -138,6 +143,7 @@ export function StayAccessSection({
     setSavedNotes(result.after);
     setNotes(result.after);
     setTouched(new Set());
+    if (!result.failed) setTranslatedFrom(keptAccess.notes);
     setTranslationFailed(result.failed);
     setDone(result.asked.length > 0 && !result.failed ? "translated" : "saved");
   }
@@ -224,19 +230,19 @@ export function StayAccessSection({
       ) : null}
       {translationFailed ? (
         <p role="alert" className="m-0 text-label text-error">
-          {kit.editor.translationFailed}
+          {copy.access.translationFailed}
         </p>
       ) : null}
       <div className="flex flex-wrap items-center gap-3">
         {/* The card's only action: filled (card buttons are outlined unless they are the only one; never gold). */}
-        <Button variant="primary" onClick={() => void save()} disabled={working || !dirty}>
+        <Button variant="primary" onClick={() => void save()} disabled={working || (!dirty && !retry)}>
           {copy.access.saveAccess}
         </Button>
         {phase === "translating" ? (
           <span role="status" className="text-label text-muted">
             {kit.editor.translating}
           </span>
-        ) : done && !dirty ? (
+        ) : done && !dirty && !translationFailed ? (
           <span role="status" className="text-label text-muted">
             {done === "translated" ? kit.editor.translationsUpdated : copy.access.saved}
           </span>

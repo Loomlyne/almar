@@ -68,6 +68,8 @@ export type OpsStayTabsCopy = {
     saveAccess: string;
     tooLong: string;
     saved: string;
+    /** DRAFT (controller 2026-10-15): replaces the kit's line, which speaks of Publish; for the owner's signature. */
+    translationFailed: string;
   };
   loading: string;
   loadFailed: string;
@@ -134,6 +136,8 @@ export const OPS_STAY_TABS_COPY: Record<Locale3, OpsStayTabsCopy> = {
       saveAccess: "Save access",
       tooLong: "Up to 2,000 characters.",
       saved: "Saved",
+      translationFailed:
+        "Saved, except the Arabic and Spanish notes: the translation did not finish, so they still show the earlier text. Press Save access to try again, or open Edit translations and type them yourself.",
     },
     loading: "Loading…",
     loadFailed: "This could not be loaded.",
@@ -199,6 +203,8 @@ export const OPS_STAY_TABS_COPY: Record<Locale3, OpsStayTabsCopy> = {
       saveAccess: "حفظ معلومات الوصول",
       tooLong: "حتى 2,000 حرف.",
       saved: "تم الحفظ",
+      translationFailed:
+        "تم الحفظ، باستثناء الملاحظات بالعربية والإسبانية: لم تكتمل الترجمة، لذلك ما زالت تعرض النص السابق. اضغط «حفظ معلومات الوصول» للمحاولة مرة أخرى، أو افتح «تعديل الترجمات» واكتبها بنفسك.",
     },
     loading: "جارٍ التحميل…",
     loadFailed: "تعذّر التحميل.",
@@ -263,6 +269,8 @@ export const OPS_STAY_TABS_COPY: Record<Locale3, OpsStayTabsCopy> = {
       saveAccess: "Guardar acceso",
       tooLong: "Hasta 2.000 caracteres.",
       saved: "Guardado",
+      translationFailed:
+        "Guardado, salvo las notas en árabe y español: la traducción no terminó, así que siguen mostrando el texto anterior. Pulse «Guardar acceso» para reintentar, o abra «Editar traducciones» y escríbalas usted.",
     },
     loading: "Cargando…",
     loadFailed: "No se pudo cargar.",
