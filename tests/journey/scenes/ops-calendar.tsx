@@ -151,9 +151,10 @@ function CalendarScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }
           });
         }}
         panel={panel}
-        onSubmitBlock={(payload) => {
+        onSubmitBlock={async (payload) => {
           note(`block:${payload.scope}:${payload.destination_id ?? payload.stay_id ?? "-"}:${payload.starts_on}:${payload.ends_on}:${payload.reason ?? ""}`);
           setPanel(null);
+          return true;
         }}
         onClosePanel={() => {
           note("panel:close");

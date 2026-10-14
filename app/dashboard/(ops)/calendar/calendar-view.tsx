@@ -1,8 +1,8 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, type ReactNode } from "react";
 import { CalendarDate, getDayOfWeek, parseDate } from "@internationalized/date";
-import { EditPanel } from "../../../../components/ops/edit-panel";
+import { EditPage } from "../../../../components/ops/edit-page";
 import type { Block, IsoDay, Locale3 } from "../../../../components/ops/api-types";
 import { AlertCircleIcon, ChevronIcon } from "../../../../components/icons/icons";
 import { Button } from "../../../../components/ui/button";
@@ -12,7 +12,14 @@ import { Select } from "../../../../components/ui/select";
 import { cn } from "../../../../lib/cn";
 import { OPS_CALENDAR_COPY, monthTitle } from "../../../../lib/copy/ops-calendar";
 import { OPS_KIT_COPY } from "../../../../lib/copy/ops-kit";
-import { BlockForm, type CalendarPlace, type CalendarStay } from "./block-form-fields";
+import {
+  BlockDatesField,
+  BlockReasonField,
+  BlockTargetFields,
+  useBlockForm,
+  type CalendarPlace,
+  type CalendarStay,
+} from "./block-form-fields";
 import { blockCoversDay, type BlockFormValues, type BlockPayload } from "./block-form";
 
 // The Calendar as the owner sees it, drawn from props only: no fetch, no clock, no cookie. The screen
@@ -55,7 +62,8 @@ export type CalendarViewProps = {
   /** The header button (no day) and a click on a day. */
   onOpenBlock: (day: IsoDay | null) => void;
   panel: BlockPanelState | null;
-  onSubmitBlock: (payload: BlockPayload) => void;
+  /** Resolves true when the block was added (the screen then closes the form). */
+  onSubmitBlock: (payload: BlockPayload) => Promise<boolean>;
   onClosePanel: () => void;
   /** The block waiting for the answer to "Delete this block?". */
   deleting: Block | null;
@@ -119,7 +127,7 @@ export function CalendarView(props: CalendarViewProps) {
 
   const headingId = useId();
 
-  return (
+  const list = (
     <div className="flex min-w-0 flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.title}</h1>
@@ -257,9 +265,12 @@ export function CalendarView(props: CalendarViewProps) {
           </ul>
         )}
       </section>
+    </div>
+  );
 
-      {props.panel ? <BlockPanel key="block-panel" {...props} panel={props.panel} /> : null}
-
+  return (
+    <>
+      <BlockEditor {...props} list={list} />
       <ConfirmDialog
         open={props.deleting !== null}
         onOpenChange={(open) => {
@@ -271,41 +282,83 @@ export function CalendarView(props: CalendarViewProps) {
         cancelLabel={kit.cancel}
         onConfirm={props.onConfirmDelete}
       />
-    </div>
+    </>
   );
 }
 
+const CLOSED: BlockFormValues = { scope: "all", destinationId: null, stayId: null, first: null, last: null, reason: "" };
+
 /**
- * The interim mount of the form: the kit's current edit panel. The owner is choosing the redesigned panel (03.2-06,
- * options A, B, C); when it exists, this is the one place that changes. The fields and logic are BlockForm.
+ * Block dates on the kit editor page (option B, owner 2026-10-14): the page replaces the Calendar, the back link returns
+ * to it, Save is the one teal button (a block has no publish step). Cards: what to block and the dates on the wide
+ * column, the reason on the narrow one; one column on a phone. The reason is the owner's own note and is not on the
+ * site, so nothing here is translated. The fields and their check are in block-form-fields.tsx.
  */
-function BlockPanel({ panel, ...props }: CalendarViewProps & { panel: BlockPanelState }) {
+function BlockEditor({ list, ...props }: CalendarViewProps & { list: ReactNode }) {
   const copy = OPS_CALENDAR_COPY[props.locale];
-  const [dirty, setDirty] = useState(false);
+  const panel = props.panel;
+  const form = useBlockForm(props.locale, panel?.initial ?? CLOSED);
+  const message = form.missing ?? panel?.error ?? null;
   return (
-    <EditPanel
-      open
-      onOpenChange={(open) => {
-        if (!open) props.onClosePanel();
-      }}
+    <EditPage
+      openKey={panel ? "block" : null}
+      list={list}
+      backLabel={copy.title}
+      onClose={props.onClosePanel}
       title={copy.blockDates}
-      tabs={[{ key: "form", label: copy.blockDates }]}
-      tab="form"
-      onTabChange={() => undefined}
-      dirty={dirty}
-      footer={null}
-    >
-      <BlockForm
-        locale={props.locale}
-        today={props.today}
-        destinations={props.destinations}
-        stays={props.stays}
-        initial={panel.initial}
-        busy={panel.busy}
-        error={panel.error}
-        onSubmit={props.onSubmitBlock}
-        onDirtyChange={setDirty}
-      />
-    </EditPanel>
+      isNew
+      isPublished={false}
+      dirty={form.dirty}
+      busy={panel?.busy ?? false}
+      missing={[]}
+      error={null}
+      english={{}}
+      savedEnglish={{}}
+      translations={{ ar: {}, es: {} }}
+      translationFields={[]}
+      onTranslationChange={() => undefined}
+      onSave={async () => {
+        const payload = form.check();
+        return payload ? props.onSubmitBlock(payload) : false;
+      }}
+      notice={
+        message ? (
+          <p role="alert" className="m-0 flex items-center gap-2 text-label text-error">
+            <AlertCircleIcon size={20} className="shrink-0" />
+            <span>{message}</span>
+          </p>
+        ) : null
+      }
+      sections={
+        panel
+          ? [
+              {
+                key: "what",
+                title: copy.whatToBlock,
+                content: (
+                  <BlockTargetFields
+                    locale={props.locale}
+                    destinations={props.destinations}
+                    stays={props.stays}
+                    values={form.values}
+                    onChange={form.change}
+                  />
+                ),
+              },
+              {
+                key: "dates",
+                title: copy.dates,
+                content: <BlockDatesField locale={props.locale} today={props.today} values={form.values} onChange={form.change} />,
+              },
+              {
+                key: "reason",
+                title: copy.reasonOptional,
+                column: "side",
+                content: <BlockReasonField locale={props.locale} values={form.values} onChange={form.change} />,
+              },
+            ]
+          : []
+      }
+    />
   );
 }

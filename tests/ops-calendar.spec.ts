@@ -91,8 +91,13 @@ async function expectNoSidewaysScroll(page: Page) {
 async function expectState(page: Page, state: string, locale: Locale) {
   const copy = OPS_CALENDAR_COPY[locale];
   const blockedDays = page.getByRole("button", { name: new RegExp(`, ${copy.blockedDay}$`) });
-  // includeHidden: an open panel hides the page behind it from the accessibility tree, but it is still drawn.
-  await expect(page.getByRole("heading", { level: 1, name: copy.title, includeHidden: true })).toBeVisible();
+  // The editor page replaces the Calendar: its own title then, with a back link that names the Calendar.
+  if (state.startsWith("form-")) {
+    await expect(page.getByRole("heading", { level: 1, name: copy.blockDates })).toBeVisible();
+    await expect(page.getByRole("button", { name: copy.title, exact: true })).toBeVisible();
+  } else {
+    await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible();
+  }
   await expect(page.locator('input[type="radio"], [role="radio"]')).toHaveCount(0);
   // The dead booking form is gone: nothing on the page says New booking, Guest or Status.
   await expect(page.getByText(/new booking|nueva reserva|حجز جديد/i)).toHaveCount(0);
@@ -117,44 +122,56 @@ async function expectState(page: Page, state: string, locale: Locale) {
     await expect(page.getByRole("status").filter({ hasText: overlapLine(locale, 2) })).toBeVisible();
   }
   if (state.startsWith("form-")) {
-    await expect(page.getByRole("dialog").getByText(copy.blockedNote)).toBeVisible();
-    const cards = page.getByRole("dialog").getByRole("button", { pressed: true });
-    await expect(cards.first()).toBeVisible();
-    await expect(page.getByRole("dialog").getByText(copy.whatToBlock)).toBeVisible();
-    await expect(page.getByRole("dialog").getByRole("button", { name: copy.block, exact: true })).toBeVisible();
-    await expect(page.getByRole("dialog").getByText(copy.reasonOptional)).toBeVisible();
-  }
-  if (state.startsWith("form-")) {
-    // Below 768 the form is a full-screen sheet; from 768 it docks to the inline end (the right in English and Spanish,
-    // the left in Arabic) and does not scroll sideways.
-    const box = await page.getByRole("dialog").evaluate((element) => {
-      const rect = element.getBoundingClientRect();
-      return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, wide: element.scrollWidth - element.clientWidth };
+    const kit = OPS_KIT_COPY[locale];
+    const editor = page.locator("[data-edit-page]");
+    // A full page, not a dialog: no panel, no language tabs, no Translate button, no Draft badge.
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.getByRole("tab")).toHaveCount(0);
+    await expect(editor.getByText(/translate|ترجم|traduc/i)).toHaveCount(0);
+    await expect(editor.getByText(copy.blockedNote)).toBeVisible();
+    await expect(editor.getByRole("button", { pressed: true }).first()).toBeVisible();
+    for (const title of [copy.whatToBlock, copy.dates, copy.reasonOptional]) {
+      await expect(editor.getByRole("heading", { level: 2, name: title })).toBeVisible();
+    }
+    // A block has no publish step: Save is the one action, teal fill and white text.
+    await expect(editor.getByRole("button", { name: kit.publish, exact: true })).toHaveCount(0);
+    const save = editor.getByRole("button", { name: kit.save, exact: true });
+    await expect(save).toBeVisible();
+    const look = await save.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { fill: style.backgroundColor, text: style.color, radius: style.borderTopLeftRadius };
     });
-    const viewport = page.viewportSize()!;
-    expect(box.wide, "form scrolls sideways").toBeLessThanOrEqual(0);
-    if (viewport.width < 768) {
-      expect([box.left, box.right, box.top, box.bottom]).toEqual([0, viewport.width, 0, viewport.height]);
-    } else if (locale === "ar") {
-      expect(box.left).toBe(0);
-      expect(box.right).toBeLessThan(viewport.width);
+    expect(look.text, "Save text").toBe("rgb(255, 255, 255)");
+    expect(look.fill, "Save fill").not.toBe("rgba(0, 0, 0, 0)");
+    expect(look.radius, "square corners").toBe("0px");
+    // Two columns from 1024 (the reason beside the rest, on the inline end), one below; nothing scrolls sideways.
+    const box = async (title: string) =>
+      editor.locator("section").filter({ has: page.getByRole("heading", { level: 2, name: title }) }).evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return { left: rect.left, right: rect.right, top: rect.top };
+      });
+    const what = await box(copy.whatToBlock);
+    const reason = await box(copy.reasonOptional);
+    if (page.viewportSize()!.width >= 1024) {
+      expect(reason.top, "reason card sits beside").toBe(what.top);
+      if (locale === "ar") expect(reason.right).toBeLessThanOrEqual(what.left);
+      else expect(reason.left).toBeGreaterThanOrEqual(what.right);
     } else {
-      expect(box.right).toBe(viewport.width);
-      expect(box.left).toBeGreaterThan(0);
+      expect(reason.top, "one column").toBeGreaterThan(what.top);
     }
   }
   if (state === "form-stay-prefilled") {
-    await expect(page.getByRole("dialog").getByRole("button", { name: copy.oneStay, pressed: true })).toBeVisible();
-    await expect(page.getByRole("dialog").getByText(copy.stays, { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: copy.oneStay, pressed: true })).toBeVisible();
+    await expect(page.getByText(copy.stays, { exact: true })).toBeVisible();
   }
   if (state === "form-one-day") {
-    await expect(page.getByRole("dialog").getByText("30/10/2026", { exact: true })).toBeVisible();
+    await expect(page.getByText("30/10/2026", { exact: true })).toBeVisible();
   }
 }
 
 // ---- pictures -----------------------------------------------------------------------------------------------------
 // Full-page PNGs for the owner's signature, written outside tests/ (page.screenshot, not toHaveScreenshot), so no
-// baseline is committed under tests/. 4 states x 3 widths x 3 languages (3 more are held). They run only when asked, so a full
+// baseline is committed under tests/. 7 states x 3 widths x 3 languages. They run only when asked, so a full
 // Playwright run never rewrites a signed picture: OPS_CALENDAR_PICTURES=1 writes into the planning folder,
 // OPS_CALENDAR_PICTURES=<absolute folder> writes there.
 
@@ -163,8 +180,8 @@ const PICTURES_TO = process.env.OPS_CALENDAR_PICTURES;
 const PICTURES = PICTURES_TO && isAbsolute(PICTURES_TO) ? PICTURES_TO : PLANNING_PICTURES;
 const WIDTHS: Viewport[] = ["phone", "tablet", "desktop"];
 const PICTURE_LOCALES: Locale[] = ["en", "ar", "es"];
-/** States drawn inside the shared edit panel, which is being redesigned: not shot until the chosen option arrives. */
-const HELD = new Set(["form-everything", "form-stay-prefilled", "form-one-day"]);
+/** The signed grid states: OPS_CALENDAR_ONLY=form shoots only the three form states on the kit editor page. */
+const ONLY_FORM = process.env.OPS_CALENDAR_ONLY === "form";
 
 test.describe("pictures", () => {
   test.skip(!PICTURES_TO, "set OPS_CALENDAR_PICTURES=1 (or a folder) to shoot the pictures");
@@ -173,8 +190,7 @@ test.describe("pictures", () => {
   if (PICTURES_TO) mkdirSync(PICTURES, { recursive: true });
 
   for (const state of sceneStates("ops-calendar")) {
-    // The form pictures wait for the owner's choice of the new edit panel (controller, 2026-10-14).
-    if (HELD.has(state) && !process.env.OPS_CALENDAR_HELD) continue;
+    if (ONLY_FORM && !state.startsWith("form-")) continue;
     for (const viewport of WIDTHS) {
       for (const locale of PICTURE_LOCALES) {
         const width = VIEWPORTS[viewport].width;
@@ -184,7 +200,7 @@ test.describe("pictures", () => {
           await assertDrawnText(page);
           await expectNoSidewaysScroll(page);
           expect(await page.evaluate(() => document.documentElement.dir)).toBe(locale === "ar" ? "rtl" : "ltr");
-          // The panel focuses its first control on open; the ring is real but is not what the picture is for.
+          // The page focuses its title on open; the ring is real but is not what the picture is for.
           await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
           // Network idle is capped (a bare wait times out on a cold dev server), then a short settle.
           await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);

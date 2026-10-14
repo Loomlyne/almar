@@ -109,16 +109,17 @@ export function CalendarScreen() {
     });
   }, [listsReady, today, stays, destinations]);
 
-  async function add(payload: BlockPayload) {
+  async function add(payload: BlockPayload): Promise<boolean> {
     setPanel((old) => (old ? { ...old, busy: true, error: null } : old));
     const reply = await opsSend<BlockAddResult>("/api/ops/blocks", { action: "add", block: payload });
     if (!reply.ok) {
       setPanel((old) => (old ? { ...old, busy: false, error: errorText(kit, reply.error) } : old));
-      return;
+      return false;
     }
     setPanel(null);
     setNotice(reply.overlapping_bookings > 0 ? overlapLine(locale, reply.overlapping_bookings) : null);
     setReload((n) => n + 1);
+    return true;
   }
 
   async function confirmDelete() {
