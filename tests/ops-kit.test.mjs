@@ -430,6 +430,15 @@ test("opsPut: the body unchanged, exactly the caller's headers, PUT, same-origin
   assert.deepEqual({ ...seen.calls[1].init.headers }, { "content-type": "image/png" }, "no JSON content type is added");
 });
 
+test("a GET reply that carries `site` (the site-status read) raises no almar:site event (03.2-05 review)", async (t) => {
+  t.after(done);
+  const site = { state: "updating", requested_seq: 2, live_seq: 1, requested_at: null, built_at: null, last_hook_at: null, last_hook_result: null };
+  const seen = browser(() => reply(200, { ok: true, site }));
+  const res = await opsFetch("/api/ops/site-status");
+  assert.equal(res.ok, true);
+  assert.equal(seen.events.length, 0);
+});
+
 test("opsPut's site event: a success body with `site` reaches almar:site like opsSend", async (t) => {
   t.after(done);
   const seen = browser(() => reply(200, { ok: true, id: "m", site: { state: "up_to_date" } }));
