@@ -132,7 +132,7 @@ export function DateRangeField({
             sideOffset={4}
             className="z-80 flex w-max max-w-full flex-col gap-2 rounded-none border border-line bg-surface p-2 text-ink shadow-float"
           >
-            <CalendarPanel start={first} end={last} hover={hover} onPick={pick} onHover={setHover} describedBy={liveId} now={toDate(dubaiToday()) ?? undefined} />
+            <CalendarPanel start={first} end={last} hover={hover} onPick={pick} onHover={setHover} describedBy={liveId} now={toDate(dubaiToday()) ?? undefined} openOnStart />
             <p id={liveId} aria-live="polite" className="m-0 px-2 pb-2 text-label text-muted">
               {status}
             </p>
