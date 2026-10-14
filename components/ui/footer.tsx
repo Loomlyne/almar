@@ -183,9 +183,22 @@ function Newsletter({
       ) : null}
       {honeypotFields.length > 0 ? (
         // The spam traps (SITE-12): real inputs a bot fills, out of sight, out of the accessibility tree and the Tab order.
+        // The same attributes as the contact form's traps (components/pages/contact/inquiry-form.tsx): browsers ignore
+        // an "off" autocomplete, so "one-time-code" plus the password managers' own opt-outs keep autofill out of them.
         <div aria-hidden="true" className="sr-only">
           {honeypotFields.map((name) => (
-            <input key={name} type="text" name={name} tabIndex={-1} autoComplete="off" defaultValue="" />
+            <input
+              key={name}
+              type="text"
+              name={name}
+              tabIndex={-1}
+              autoComplete="one-time-code"
+              defaultValue=""
+              data-1p-ignore=""
+              data-lpignore="true"
+              data-bwignore="true"
+              data-form-type="other"
+            />
           ))}
         </div>
       ) : null}

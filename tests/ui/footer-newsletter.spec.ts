@@ -115,6 +115,13 @@ for (const locale of LOCALES) {
         for (const name of NEWSLETTER_HONEYPOT_FIELDS) {
           await expect(footer(page).locator(`input[name="${name}"]`)).toHaveCount(1);
           await expect(footer(page).locator(`input[name="${name}"]`)).toHaveAttribute("tabindex", "-1");
+          // Review fix: the contact form's anti-autofill attributes (autofill must never fill a trap).
+          const trap = footer(page).locator(`input[name="${name}"]`);
+          await expect(trap).toHaveAttribute("autocomplete", "one-time-code");
+          await expect(trap).toHaveAttribute("data-1p-ignore", "");
+          await expect(trap).toHaveAttribute("data-lpignore", "true");
+          await expect(trap).toHaveAttribute("data-bwignore", "true");
+          await expect(trap).toHaveAttribute("data-form-type", "other");
         }
         await expect(footer(page).locator('[aria-hidden="true"] input')).toHaveCount(11);
         await expect(footer(page).getByRole("textbox")).toHaveCount(1);

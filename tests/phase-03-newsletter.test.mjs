@@ -93,3 +93,13 @@ test("plan 27 hardening is in the source: origin, content type, size, rate limit
   for (const line of logs) assert.equal(/mail|formData|data\b|error\)/i.test(line.replace("newsletter: add failed", "")), false, line);
   assert.equal(routeSource.includes("re_"), false);
 });
+
+test("review fix (3.3-27): the footer's traps carry the contact form's anti-autofill attributes, not autoComplete=off", () => {
+  const inquiry = readFileSync("components/pages/contact/inquiry-form.tsx", "utf8");
+  const attrs = ['autoComplete="one-time-code"', 'data-1p-ignore=""', 'data-lpignore="true"', 'data-bwignore="true"', 'data-form-type="other"'];
+  for (const attr of attrs) {
+    assert.ok(inquiry.includes(attr), `the contact form's traps: ${attr}`);
+    assert.ok(footerSource.includes(attr), `the footer's traps: ${attr}`);
+  }
+  assert.equal(footerSource.includes('autoComplete="off"'), false);
+});
