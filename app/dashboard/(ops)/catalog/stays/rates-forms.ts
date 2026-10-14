@@ -8,10 +8,10 @@
 // A stay with no base rate is not bookable (C-12). This module never computes a total.
 
 import type { Block, IsoDay } from "../../../../../components/ops/api-types";
+import { addDays, daysBetween, isIsoDate } from "../../../../../lib/money/dates";
 
 /** The API's money shape: up to 10 whole digits, at most 2 decimals (numeric(12, 2) in the database). */
 const MONEY = /^(0|[1-9]\d{0,9})(\.\d{1,2})?$/;
-const DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /** At most 730 nights in one range (the database's limit); at most 366 nights in one price check (contract §5.3). */
 export const MAX_RANGE_NIGHTS = 730;
@@ -40,32 +40,16 @@ export function moneyString(raw: string, { allowEmpty = false }: { allowEmpty?: 
   return { ok: true, value };
 }
 
-function dayNumber(day: IsoDay): number | null {
-  const m = DAY.exec(day);
-  if (!m) return null;
-  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
-  const date = new Date(Date.UTC(y, mo - 1, d));
-  if (date.getUTCFullYear() !== y || date.getUTCMonth() !== mo - 1 || date.getUTCDate() !== d) return null;
-  return date.getTime() / 86_400_000;
-}
-
-function dayFromNumber(n: number): IsoDay {
-  return new Date(n * 86_400_000).toISOString().slice(0, 10);
-}
-
 /** Nights from the first to the last night, both counted: one night on the same day. 0 if the order is wrong. */
 export function nightsInRange(first: IsoDay, last: IsoDay): number {
-  const a = dayNumber(first);
-  const b = dayNumber(last);
-  if (a === null || b === null || b < a) return 0;
-  return b - a + 1;
+  if (!isIsoDate(first) || !isIsoDate(last)) return 0;
+  const days = daysBetween(first, last);
+  return days < 0 ? 0 : days + 1;
 }
 
 /** The day after the last night: the `to` of a price check (nights are [from, to)). */
 export function lastToExclusive(last: IsoDay): IsoDay {
-  const n = dayNumber(last);
-  if (n === null) throw new RangeError(`not a calendar day: ${last}`);
-  return dayFromNumber(n + 1);
+  return addDays(last, 1);
 }
 
 export type RangeField = "first_night" | "last_night" | "nightly_rate_aed";
@@ -79,8 +63,8 @@ export function rangePayload(input: {
   last: IsoDay | null;
   rate: string;
 }): { ok: true; value: RangePayload } | { ok: false; field: RangeField; reason: RangeRefusal } {
-  if (!input.first || dayNumber(input.first) === null) return { ok: false, field: "first_night", reason: "required" };
-  if (!input.last || dayNumber(input.last) === null) return { ok: false, field: "last_night", reason: "required" };
+  if (!input.first || !isIsoDate(input.first)) return { ok: false, field: "first_night", reason: "required" };
+  if (!input.last || !isIsoDate(input.last)) return { ok: false, field: "last_night", reason: "required" };
   const nights = nightsInRange(input.first, input.last);
   if (nights === 0) return { ok: false, field: "last_night", reason: "order" };
   if (nights > MAX_RANGE_NIGHTS) return { ok: false, field: "last_night", reason: "too_long" };
@@ -95,7 +79,7 @@ export function checkSpan(
   first: IsoDay | null,
   last: IsoDay | null,
 ): { ok: true; from: IsoDay; to: IsoDay } | { ok: false; reason: "required" | "order" | "too_long" } {
-  if (!first || !last || dayNumber(first) === null || dayNumber(last) === null) return { ok: false, reason: "required" };
+  if (!first || !last || !isIsoDate(first) || !isIsoDate(last)) return { ok: false, reason: "required" };
   const nights = nightsInRange(first, last);
   if (nights === 0) return { ok: false, reason: "order" };
   if (nights > MAX_CHECK_NIGHTS) return { ok: false, reason: "too_long" };
@@ -104,23 +88,20 @@ export function checkSpan(
 
 /** The first and last day of a month (1-12), both inclusive, as the blocks request wants them. */
 export function monthWindow(year: number, month: number): { from: IsoDay; to: IsoDay } {
-  const first = Date.UTC(year, month - 1, 1) / 86_400_000;
-  const next = Date.UTC(year, month, 1) / 86_400_000;
-  return { from: dayFromNumber(first), to: dayFromNumber(next - 1) };
+  const from = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-01`;
+  const next = month === 12 ? `${String(year + 1).padStart(4, "0")}-01-01` : `${String(year).padStart(4, "0")}-${String(month + 1).padStart(2, "0")}-01`;
+  return { from, to: addDays(next, -1) };
 }
 
 /** Every day of the month a block covers (block ends are inclusive), with the blocks that cover it, in block order. */
 export function blockedDays(blocks: readonly Block[], year: number, month: number): Map<IsoDay, Block[]> {
   const { from, to } = monthWindow(year, month);
-  const lo = dayNumber(from)!;
-  const hi = dayNumber(to)!;
   const out = new Map<IsoDay, Block[]>();
   for (const block of blocks) {
-    const start = dayNumber(block.starts_on);
-    const end = dayNumber(block.ends_on);
-    if (start === null || end === null) continue;
-    for (let n = Math.max(start, lo); n <= Math.min(end, hi); n++) {
-      const day = dayFromNumber(n);
+    if (!isIsoDate(block.starts_on) || !isIsoDate(block.ends_on)) continue;
+    // ISO days sort as text, so the overlap with the month is a pair of string comparisons.
+    const last = block.ends_on < to ? block.ends_on : to;
+    for (let day = block.starts_on > from ? block.starts_on : from; day <= last; day = addDays(day, 1)) {
       const list = out.get(day);
       if (list) list.push(block);
       else out.set(day, [block]);
