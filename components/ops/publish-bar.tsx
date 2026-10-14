@@ -29,6 +29,7 @@ export function PublishBar({
   error,
   fieldLabel,
   savePending = false,
+  saveBlocked = false,
   translationAlertId,
   idBase,
   part = "all",
@@ -48,6 +49,8 @@ export function PublishBar({
   fieldLabel?: (field: string) => string | undefined;
   /** Save has work with nothing edited (a translation to try again): it stays live. */
   savePending?: boolean;
+  /** The screen's own required fields cannot be saved yet: Save waits. */
+  saveBlocked?: boolean;
   /** The id of the alert saying the translation did not finish; while set, Publish waits and names it. */
   translationAlertId?: string;
   /** Shared by the two parts, so a button in one names a note in the other. */
@@ -72,7 +75,7 @@ export function PublishBar({
         ? alertId
         : translationAlertId
     : undefined;
-  const canSave = !busy && (isNew || dirty || savePending);
+  const canSave = !busy && !saveBlocked && (isNew || dirty || savePending);
 
   const notes =
     gaps.length > 0 || warnings.length > 0 || showAlert ? (

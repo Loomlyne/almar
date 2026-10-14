@@ -171,6 +171,7 @@ export function MediaScreen({
         isPublished={open ? isAltPublished(open) : false}
         dirty={alt.en !== savedAlt.en || alt.ar !== savedAlt.ar || alt.es !== savedAlt.es}
         busy={busy}
+        canSave={alt.en.trim() !== ""}
         missing={altMissing(alt)}
         error={null}
         english={{ [ALT_FIELD]: alt.en }}

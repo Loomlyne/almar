@@ -84,15 +84,21 @@ export type TranslationOutcome = {
 const isLimit = (r: OpsResponse<TranslateReply> | null) => r !== null && !r.ok && r.status === 429 && r.error.code === "translate_limit";
 const isBusy = (r: OpsResponse<TranslateReply> | null) => r !== null && !r.ok && r.error.code === "translate_busy";
 
+/** A returned value that fits the screen's limit (its maxLength, e.g. 300 for an alt text), per string or list item. */
+const fits = (value: string | string[], max: number | undefined) =>
+  max === undefined || (Array.isArray(value) ? value.every((item) => item.length <= max) : value.length <= max);
+
 /**
  * Applies the two answers (null: that target was not asked, or its request threw). A field that came back fills its
- * translation; a field asked and not returned (a failed target, or named in `left`) is emptied, so an Arabic or Spanish
- * text of the old English never stays. The reason: the daily limit before busy before any other failure.
+ * translation; a field asked and not returned (a failed target, named in `left`, or longer than `maxLength` allows) is
+ * emptied, so an Arabic or Spanish text of the old English never stays and the server never refuses the save for a
+ * length the owner did not type. The reason: the daily limit before busy before any other failure.
  */
 export function applyReplies(
   plan: TranslationPlan,
   translations: Record<Target, Fields>,
   replies: Record<Target, OpsResponse<TranslateReply> | null>,
+  maxLength: Record<string, number | undefined> = {},
 ): TranslationOutcome {
   const next: Record<Target, Fields> = { ar: { ...translations.ar }, es: { ...translations.es } };
   let complete = true;
@@ -104,7 +110,7 @@ export function applyReplies(
     const got = reply?.ok === true ? reply.fields : {};
     for (const name of asked) {
       const value = got[name];
-      if (sendable(value)) next[target][name] = value;
+      if (sendable(value) && fits(value, maxLength[name])) next[target][name] = value;
       else {
         next[target][name] = null;
         complete = false;

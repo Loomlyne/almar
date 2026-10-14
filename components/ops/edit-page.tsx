@@ -103,6 +103,7 @@ export function EditPage({
   deleteNote,
   notice,
   sections,
+  canSave = true,
   send = opsSend,
 }: {
   /** The open item's id, or null for the list. A new key starts the page afresh. */
@@ -139,6 +140,8 @@ export function EditPage({
   /** A line of the screen's own under the bar, such as a refusal. */
   notice?: ReactNode;
   sections: EditSection[];
+  /** False while the screen's own required fields cannot be saved (e.g. the English alt text is empty). */
+  canSave?: boolean;
   /** Test seam: the translate request (opsSend by default). */
   send?: Send;
 }) {
@@ -189,10 +192,18 @@ export function EditPage({
       window.scrollTo(0, scrollY.current);
       // After a "Discard changes?" question the dialog hands focus back on its own (a timer after unmount): return to
       // the row once that has run.
+      // A row that is gone (a deleted item) hands focus to the list's heading instead of dropping it.
       const row = opener.current;
       requestAnimationFrame(() =>
         window.setTimeout(() => {
-          if (row?.isConnected) row.focus();
+          if (row?.isConnected && row.offsetParent !== null) row.focus();
+          else {
+            const title = document.querySelector<HTMLElement>("h1");
+            if (title) {
+              if (!title.hasAttribute("tabindex")) title.tabIndex = -1;
+              title.focus();
+            }
+          }
         }, 0),
       );
     }
@@ -261,7 +272,8 @@ export function EditPage({
           return "not-saved";
         }
       }
-      const outcome = applyReplies(plan, translations, replies);
+      const limits = Object.fromEntries(translationFields.map((field) => [field.name, field.maxLength]));
+      const outcome = applyReplies(plan, translations, replies, limits);
       asked = outcome.asked;
       reason = outcome.reason ?? "failed";
       payload = { translations: outcome.translations, complete: outcome.complete };
@@ -299,10 +311,10 @@ export function EditPage({
   const statusLine =
     phase === "translating"
       ? copy.editor.translating
-      : result?.kind === "updated"
-        ? copy.editor.translationsUpdated
-        : dirty
-          ? copy.editor.unsaved
+      : dirty
+        ? copy.editor.unsaved
+        : result?.kind === "updated"
+          ? copy.editor.translationsUpdated
           : "";
 
   const main = sections.filter((section) => (section.column ?? "main") === "main");
@@ -379,7 +391,7 @@ export function EditPage({
                 <span className="inline-flex flex-wrap items-center gap-3">
                   {isNew ? null : <StatusChip published={isPublished} locale={locale} />}
                   <span role="status" className={statusLine ? "inline-flex items-center gap-2 text-label text-ink" : "sr-only"}>
-                    {result?.kind === "updated" && phase === "idle" ? <CheckIcon size={16} className="text-teal" aria-hidden="true" /> : null}
+                    {result?.kind === "updated" && phase === "idle" && !dirty ? <CheckIcon size={16} className="text-teal" aria-hidden="true" /> : null}
                     {statusLine}
                   </span>
                 </span>
@@ -391,6 +403,7 @@ export function EditPage({
                 isPublished={isPublished}
                 dirty={dirty}
                 busy={working}
+                saveBlocked={!canSave}
                 missing={gaps}
                 warnings={warnings}
                 error={error}
@@ -424,7 +437,8 @@ export function EditPage({
             />
             {notice}
           </div>
-          <div className={cn("grid min-w-0 items-start gap-6", side.length > 0 && "lg:grid-cols-3")}>
+          {/* Every field rests while a Save runs: what she types then would be lost under the reply. */}
+          <fieldset disabled={working} className={cn("m-0 grid min-w-0 items-start gap-6 border-0 p-0", side.length > 0 && "lg:grid-cols-3")}>
             <div className={cn("flex min-w-0 flex-col gap-6", side.length > 0 && "lg:col-span-2")}>
               {main.map(card)}
               {side.length === 0 ? deleteLink : null}
@@ -435,7 +449,7 @@ export function EditPage({
                 {deleteLink}
               </div>
             ) : null}
-          </div>
+          </fieldset>
         </div>
       ) : null}
       <ConfirmDialog

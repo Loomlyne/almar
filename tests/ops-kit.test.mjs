@@ -1006,7 +1006,7 @@ test("EditPage open: the list stays in the page, hidden; a back link, the title,
 
 test("EditPage: cards in two columns from lg (main spans two of three), the side card after the main one, one column below", () => {
   const html = page(pageProps);
-  assert.match(html, /class="grid min-w-0 items-start gap-6 lg:grid-cols-3"/);
+  assert.match(html, /<fieldset class="m-0 grid min-w-0 items-start gap-6 border-0 p-0 lg:grid-cols-3">/);
   assert.match(html, /lg:col-span-2/);
   assert.ok(html.indexOf("TEXT-BODY") < html.indexOf("SIDE-BODY"));
   const single = page({ ...pageProps, sections: [pageProps.sections[0]] });
@@ -1045,4 +1045,22 @@ test("EditPage closed: only the list", () => {
   const html = page({ ...pageProps, openKey: null });
   assert.match(html, /^<div>LIST-MARKER<\/div>/);
   assert.equal(html.includes("<h1"), false);
+});
+
+test("apply: a translation longer than the field's maxLength is not kept (the server would refuse the save)", () => {
+  const plan = auto.planTranslation({ alt: "Pool" }, { alt: "" }, both({ alt: null }), none);
+  const long = "x".repeat(301);
+  const out = auto.applyReplies(plan, both({ alt: null }), { ar: okReply("ar", { alt: "مسبح" }), es: okReply("es", { alt: long }) }, { alt: 300 });
+  assert.deepEqual(out.translations, { ar: { alt: "مسبح" }, es: { alt: null } });
+  assert.equal(out.complete, false);
+  assert.equal(out.reason, "failed");
+  const fine = auto.applyReplies(plan, both({ alt: null }), { ar: okReply("ar", { alt: "مسبح" }), es: okReply("es", { alt: "x".repeat(300) }) }, { alt: 300 });
+  assert.equal(fine.complete, true);
+});
+
+test("EditPage: every field rests in a disabled fieldset while a Save runs; canSave false holds Save", () => {
+  assert.match(read("edit-page.tsx"), /<fieldset disabled=\{working\}/);
+  const blocked = page({ ...pageProps, dirty: true, canSave: false });
+  assert.equal(isDisabled(buttonTag(blocked, "Save")), true);
+  assert.equal(isDisabled(buttonTag(page({ ...pageProps, dirty: true }), "Save")), false);
 });
