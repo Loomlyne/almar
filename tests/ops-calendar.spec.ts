@@ -133,7 +133,7 @@ async function expectState(page: Page, state: string, locale: Locale) {
     for (const title of [copy.whatToBlock, copy.dates, copy.reasonOptional]) {
       await expect(editor.getByRole("heading", { level: 2, name: title })).toBeVisible();
     }
-    // A block has no publish step: Save is the one action, teal fill and white text.
+    // A block has no publish step: Save is the one action, the shared primary button: teal fill, ivory (#fffaf0) text.
     await expect(editor.getByRole("button", { name: kit.publish, exact: true })).toHaveCount(0);
     const save = editor.getByRole("button", { name: kit.save, exact: true });
     await expect(save).toBeVisible();
@@ -141,8 +141,8 @@ async function expectState(page: Page, state: string, locale: Locale) {
       const style = getComputedStyle(element);
       return { fill: style.backgroundColor, text: style.color, radius: style.borderTopLeftRadius };
     });
-    expect(look.text, "Save text").toBe("rgb(255, 255, 255)");
-    expect(look.fill, "Save fill").not.toBe("rgba(0, 0, 0, 0)");
+    expect(look.fill, "Save fill").toBe("rgb(31, 59, 64)");
+    expect(look.text, "Save text").toBe("rgb(255, 250, 240)");
     expect(look.radius, "square corners").toBe("0px");
     // Two columns from 1024 (the reason beside the rest, on the inline end), one below; nothing scrolls sideways.
     const box = async (title: string) =>
@@ -160,12 +160,14 @@ async function expectState(page: Page, state: string, locale: Locale) {
       expect(reason.top, "one column").toBeGreaterThan(what.top);
     }
   }
+  // Inside the editor page only: the dashboard rail beside it has its own "Stays" link.
   if (state === "form-stay-prefilled") {
-    await expect(page.getByRole("button", { name: copy.oneStay, pressed: true })).toBeVisible();
-    await expect(page.getByText(copy.stays, { exact: true })).toBeVisible();
+    const editor = page.locator("[data-edit-page]");
+    await expect(editor.getByRole("button", { name: copy.oneStay, pressed: true })).toBeVisible();
+    await expect(editor.getByText(copy.stays, { exact: true })).toBeVisible();
   }
   if (state === "form-one-day") {
-    await expect(page.getByText("30/10/2026", { exact: true })).toBeVisible();
+    await expect(page.locator("[data-edit-page]").getByText("30/10/2026", { exact: true })).toBeVisible();
   }
 }
 
