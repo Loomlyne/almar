@@ -1,10 +1,10 @@
 "use client";
 
-import { Fragment, useState, type FormEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type FormEvent } from "react";
 import polyBlack from "../../brand/Logo Typography/Poly_Black.svg";
 import { Button } from "./button";
 import { Divider } from "./divider";
-import { useToast } from "./toast";
+import { ToastProvider, useToast } from "./toast";
 import { postPreferences } from "../site/account-sync";
 import { isDocumentLocale } from "../../lib/set-document-locale";
 
@@ -44,8 +44,32 @@ export type FooterCopy = {
   /** The label before the studio's name (light footer), for example "Made by". */
   madeBy?: string;
   /** Needed only when `newsletter` is true. */
-  newsletter?: { title: string; email: string; subscribe: string; invalid: string; success: string };
+  newsletter?: FooterNewsletterCopy;
 };
+
+/** The newsletter column's strings (lib/copy/site-footer.ts SiteFooterNewsletterCopy is one). */
+export type FooterNewsletterCopy = {
+  title: string;
+  /** The line under the title. */
+  description?: string;
+  /** The email box's label. */
+  email: string;
+  /** The submit button. */
+  subscribe: string;
+  /** The submit button while the handler runs. */
+  sending: string;
+  /** The line for an address that is not one; the handler is not called. */
+  invalid: string;
+  /** The toast once the handler resolved. */
+  success: string;
+  /** The line when the handler rejected. */
+  failed: string;
+  /** The toast's close button. */
+  dismiss: string;
+};
+
+/** The newsletter handler: the trimmed address and the honeypot values read from the form by name. */
+export type FooterSubscribe = (email: string, honeypots: Record<string, string>) => void | Promise<void>;
 
 /** The studio credit of the light footer: the label, then a link named by the studio. */
 export type FooterMadeBy = { label: string; name: string; href: string };
@@ -59,67 +83,143 @@ const OWNER_CONTACT: FooterContact = {
   instagram: "https://www.instagram.com/almarprivatejourney/",
 };
 
+// Beyond the browser's own type="email" check: a dot in the domain, as the handler's rule (lib/contact-inquiry.ts
+// isInquiryEmail) wants, so an address the server would refuse is the invalid line here, not the failed one.
+const LOOKS_LIKE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function Newsletter({
   copy,
   onSubscribe,
+  honeypotFields,
+  light,
 }: {
-  copy: NonNullable<FooterCopy["newsletter"]>;
-  onSubscribe: (email: string) => void | Promise<void>;
+  copy: FooterNewsletterCopy;
+  onSubscribe: FooterSubscribe;
+  honeypotFields: readonly string[];
+  light: boolean;
 }) {
   const { push } = useToast();
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const sending = useRef(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const input = event.currentTarget.elements.namedItem("email");
+    if (sending.current) return;
+    const form = event.currentTarget;
+    const input = form.elements.namedItem("email");
     const email = input instanceof HTMLInputElement ? input.value.trim() : "";
-    if (!(input instanceof HTMLInputElement) || !email || !input.checkValidity()) {
+    if (!(input instanceof HTMLInputElement) || !email || !input.checkValidity() || !LOOKS_LIKE_EMAIL.test(email)) {
       setError(copy.invalid);
       if (input instanceof HTMLInputElement) input.focus();
       return;
     }
     setError("");
-    await onSubscribe(email);
-    push(copy.success);
+    const honeypots: Record<string, string> = {};
+    for (const name of honeypotFields) {
+      const field = form.elements.namedItem(name);
+      honeypots[name] = field instanceof HTMLInputElement ? field.value : "";
+    }
+    sending.current = true;
+    setBusy(true);
+    let added = false;
+    try {
+      await onSubscribe(email, honeypots);
+      added = true;
+    } catch {
+      // Fixed copy only: whatever the handler threw never reaches the page.
+      setError(copy.failed);
+    } finally {
+      sending.current = false;
+      setBusy(false);
+    }
+    if (added) {
+      form.reset();
+      push(copy.success, "success");
+    }
+    // The busy button was disabled, which drops focus to the page: give it back to the button.
+    if (!document.activeElement || document.activeElement === document.body) {
+      window.setTimeout(() => form.querySelector<HTMLButtonElement>('button[type="submit"]')?.focus(), 0);
+    }
   }
 
+  const head = light ? LIGHT_HEAD : HEAD;
+  const text = light ? "text-ink" : "text-ivory";
   return (
     <form
-      className="grid max-w-md content-start gap-2"
+      className="grid max-w-md min-w-0 content-start gap-2"
       aria-labelledby="footer-newsletter-title"
       noValidate
       onSubmit={onSubmit}
+      data-footer-newsletter=""
     >
-      <p className={HEAD} id="footer-newsletter-title">
+      <p className={head} id="footer-newsletter-title">
         {copy.title}
       </p>
-      <div className="grid w-full min-w-0 gap-2">
-        <label className="block whitespace-nowrap font-body text-label text-ivory" htmlFor="footer-newsletter-email">
-          {copy.email}
-        </label>
-        <div className="flex flex-wrap items-center gap-3">
-          <input
-            id="footer-newsletter-email"
-            type="email"
-            name="email"
-            autoComplete="email"
-            inputMode="email"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? "footer-newsletter-error" : undefined}
-            defaultValue=""
-            className="block h-control min-w-0 flex-auto appearance-none rounded-none border border-ivory bg-surface px-4 font-body text-body text-ink placeholder:text-muted focus-visible:outline-ivory"
-          />
-          <Button variant="primary" type="submit" className="border-ivory">
-            {copy.subscribe}
-          </Button>
+      {copy.description ? <p className={`m-0 font-body text-label ${text}`}>{copy.description}</p> : null}
+      <label className={`block font-body text-label ${text}`} htmlFor="footer-newsletter-email">
+        {copy.email}
+      </label>
+      <input
+        id="footer-newsletter-email"
+        type="email"
+        name="email"
+        autoComplete="email"
+        inputMode="email"
+        maxLength={254}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? "footer-newsletter-error" : undefined}
+        defaultValue=""
+        className={
+          light
+            ? "block h-control w-full min-w-0 appearance-none rounded-none border border-ink bg-surface px-4 font-body text-body text-ink aria-invalid:border-error"
+            : "block h-control w-full min-w-0 appearance-none rounded-none border border-ivory bg-surface px-4 font-body text-body text-ink placeholder:text-muted focus-visible:outline-ivory"
+        }
+      />
+      {error ? (
+        <p id="footer-newsletter-error" role="alert" className={light ? "m-0 text-label field-error text-error" : "m-0 font-body text-label text-ivory"}>
+          {error}
+        </p>
+      ) : null}
+      {honeypotFields.length > 0 ? (
+        // The spam traps (SITE-12): real inputs a bot fills, out of sight, out of the accessibility tree and the Tab order.
+        <div aria-hidden="true" className="sr-only">
+          {honeypotFields.map((name) => (
+            <input key={name} type="text" name={name} tabIndex={-1} autoComplete="off" defaultValue="" />
+          ))}
         </div>
-        {error ? (
-          <p id="footer-newsletter-error" className="m-0 font-body text-label text-ivory">
-            {error}
-          </p>
-        ) : null}
+      ) : null}
+      <div className="pt-2">
+        {light ? (
+          <Button variant="outline" type="submit" busy={busy}>
+            {busy ? copy.sending : copy.subscribe}
+          </Button>
+        ) : (
+          <Button variant="primary" type="submit" className="border-ivory" busy={busy}>
+            {busy ? copy.sending : copy.subscribe}
+          </Button>
+        )}
       </div>
     </form>
+  );
+}
+
+/**
+ * The newsletter column, rendered only once the footer has mounted in the browser: the served HTML and a page with
+ * JavaScript off carry no form, no email box and no trap (a form that cannot send is not shown). It brings its own
+ * ToastProvider, so no page needs one and the success toast's close button speaks the page's language.
+ */
+function NewsletterColumn(props: { copy: FooterNewsletterCopy; onSubscribe: FooterSubscribe; honeypotFields: readonly string[]; light: boolean; className?: string }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
+  if (!ready) return null;
+  const { className, ...rest } = props;
+  return (
+    <div className={`min-w-0 ${className ?? ""}`}>
+      <ToastProvider dismissLabel={props.copy.dismiss}>
+        <Newsletter {...rest} />
+      </ToastProvider>
+    </div>
   );
 }
 
@@ -136,8 +236,10 @@ function offerLanguage(item: FooterLanguageLink) {
 /**
  * The public footer. Every string arrives through `copy`; the contact details default to the
  * owner's. There is no newsletter form unless `newsletter` is true AND an `onSubscribe` handler is
- * given: a form that does nothing is a fake control. The "List with us" slot renders nothing until
- * it has an href. The language row is plain links that work with JavaScript off.
+ * given: a form that does nothing is a fake control. The form mounts only in the browser (none with
+ * JavaScript off), sends the honeypots named in `honeypotFields`, and tells the visitor what the
+ * handler did: the success toast when it resolves, the failed line when it rejects. The "List with us"
+ * slot renders nothing until it has an href. The language row is plain links that work with JavaScript off.
  */
 export function SiteFooter({
   copy,
@@ -146,6 +248,7 @@ export function SiteFooter({
   languageLinks,
   newsletter = false,
   onSubscribe,
+  honeypotFields = [],
   listWithUs,
   tone = "teal",
   madeBy,
@@ -155,13 +258,15 @@ export function SiteFooter({
   contact?: FooterContact;
   languageLinks?: FooterLanguageLink[];
   newsletter?: boolean;
-  onSubscribe?: (email: string) => void | Promise<void>;
+  onSubscribe?: FooterSubscribe;
+  /** The honeypot input names the handler checks (lib/newsletter.ts NEWSLETTER_HONEYPOT_FIELDS); none by default. */
+  honeypotFields?: readonly string[];
   /** Held until the page exists: with no href nothing is rendered. */
   listWithUs?: { label: string; href?: string };
   /**
    * "teal" (the default) is the footer as it always was. "light" is the public site's footer (job 11): ivory ground, the
-   * divider, the wordmark, pages and contact, then the language links, the copyright and the studio credit. It has no
-   * newsletter and no "List with us" slot.
+   * divider, the wordmark, pages and contact (and, plan 27, the newsletter as the end column), then the language links,
+   * the copyright and the studio credit. It has no "List with us" slot.
    */
   tone?: "teal" | "light";
   /** The studio credit, light tone only. */
@@ -177,7 +282,9 @@ export function SiteFooter({
       <footer role="contentinfo" className="@container w-full min-w-0 bg-ivory px-8 pb-12 text-ink">
         <Divider className="mb-12" />
         <img className="mx-auto block h-12 w-auto" src={src} alt={copy.brand ?? "ALMAR"} width={200} height={48} />
-        <div className="mt-8 grid min-w-0 grid-cols-1 items-start gap-8 @2xl:grid-cols-2">
+        <div
+          className={`mt-8 grid min-w-0 grid-cols-1 items-start gap-8 ${showNewsletter ? "@2xl:grid-cols-3 @6xl:grid-cols-4" : "@2xl:grid-cols-2"}`}
+        >
           <nav className="grid content-start justify-items-start" aria-label={copy.pages}>
             <p className={LIGHT_HEAD}>{copy.pages}</p>
             {links.map((link) => (
@@ -204,6 +311,16 @@ export function SiteFooter({
               <span className="sr-only"> {copy.newTab}</span>
             </a>
           </address>
+          {showNewsletter ? (
+            // The end column (design 12.1 row 8): Pages, Contact, Newsletter from @2xl; an empty third column from @6xl.
+            <NewsletterColumn
+              copy={copy.newsletter!}
+              onSubscribe={onSubscribe!}
+              honeypotFields={honeypotFields}
+              light
+              className="@6xl:col-start-4"
+            />
+          ) : null}
         </div>
         <div className="mt-8 grid items-center gap-4 border-t border-teal-tint pt-6 @2xl:grid-cols-3">
           {languageLinks && languageLinks.length > 0 ? (
@@ -281,7 +398,9 @@ export function SiteFooter({
             <span className="sr-only"> {copy.newTab}</span>
           </a>
         </address>
-        {showNewsletter ? <Newsletter copy={copy.newsletter!} onSubscribe={onSubscribe!} /> : null}
+        {showNewsletter ? (
+          <NewsletterColumn copy={copy.newsletter!} onSubscribe={onSubscribe!} honeypotFields={honeypotFields} light={false} />
+        ) : null}
       </div>
       <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-ivory pt-6">
         {languageLinks && languageLinks.length > 0 ? (
