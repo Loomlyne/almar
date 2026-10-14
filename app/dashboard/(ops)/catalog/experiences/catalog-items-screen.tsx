@@ -28,6 +28,7 @@ import {
   type CatalogItemForm,
   type CatalogItemText,
 } from "../catalog-forms";
+import { LockedAddress } from "../locked-address";
 
 /** One row of the list. `priceText` is already formatted ("AED 1,250.00") or null for "not set". */
 export type CatalogRow = {
@@ -355,19 +356,22 @@ function CatalogItemEditor({ panel, list }: { panel: CatalogPanel | null; list: 
                 </p>
               ) : null}
             </div>
-            <Field
-              id={`${idBase}-slug`}
-              label={copy.fieldSlug}
-              className="max-w-none"
-              dir="ltr"
-              autoComplete="off"
-              spellCheck={false}
-              value={form.slug}
-              readOnly={form.published}
-              hint={form.published ? copy.slugLocked : copy.slugHint}
-              error={slugError}
-              onChange={(event) => onForm({ ...form, slug: event.target.value })}
-            />
+            {form.published ? (
+              <LockedAddress label={copy.fieldSlug} value={form.slug} note={copy.slugLocked} />
+            ) : (
+              <Field
+                id={`${idBase}-slug`}
+                label={copy.fieldSlug}
+                className="max-w-none"
+                dir="ltr"
+                autoComplete="off"
+                spellCheck={false}
+                value={form.slug}
+                hint={copy.slugHint}
+                error={slugError}
+                onChange={(event) => onForm({ ...form, slug: event.target.value })}
+              />
+            )}
           </>
         ),
       },

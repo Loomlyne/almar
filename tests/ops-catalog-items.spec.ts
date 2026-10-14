@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { OPS_CATALOG_COPY } from "../lib/copy/ops-catalog";
 import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
 import { definePictures, type PictureLocale } from "./helpers/ops-catalog-pictures";
-import { numbered } from "./journey/scenes/_ops-catalog-words";
+import { numbered, words } from "./journey/scenes/_ops-catalog-words";
 
 // Catalog -> Experiences and services (plan 03.2-06) on its harness scene tests/journey/scenes/ops-catalog-items.tsx.
 // Task 1: the pictures. The behaviour block (every /api/ops/* answered by page.route) joins this file in Task 2.
@@ -80,7 +80,11 @@ definePictures("ops-catalog-items", {
     folder: "editor",
     check: async (page, l) => {
       const kit = OPS_KIT_COPY[l];
+      // The locked web address is text, not a box that looks editable; no read-only control anywhere.
+      await expect(page.getByRole("textbox", { name: OPS_CATALOG_COPY[l].items.fieldSlug })).toHaveCount(0);
+      await expect(page.locator("input[readonly], textarea[readonly]")).toHaveCount(0);
       return [
+        page.getByText(words(l).webAddress, { exact: true }),
         page.getByText(kit.warnNoPrice, { exact: true }),
         page.getByRole("button", { name: kit.unpublish, exact: true }),
         page.getByText(OPS_CATALOG_COPY[l].items.slugLocked, { exact: true }),

@@ -17,6 +17,7 @@ import { foldText } from "../../../../../lib/data/stay-filter";
 import { OPS_CATALOG_COPY, fillCatalogCopy } from "../../../../../lib/copy/ops-catalog";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
 import { DESTINATION_TEXT_FIELDS, liveFields, type DestinationForm, type DestinationText } from "../catalog-forms";
+import { LockedAddress } from "../locked-address";
 
 export type DestinationRow = { id: string; name: string; stayCount: number; published: boolean };
 export type DestinationStay = { id: string; name: string; published: boolean };
@@ -203,19 +204,22 @@ function DestinationEditor({ panel, list }: { panel: DestinationPanel | null; li
         title: kit.editor.sections.settings,
         column: "side" as const,
         content: (
-          <Field
-            id={`${idBase}-slug`}
-            label={copy.fieldSlug}
-            className="max-w-none"
-            dir="ltr"
-            autoComplete="off"
-            spellCheck={false}
-            value={form.slug}
-            readOnly={form.published}
-            hint={form.published ? copy.slugLocked : copy.slugHint}
-            error={slugError}
-            onChange={(event) => onForm({ ...form, slug: event.target.value })}
-          />
+          form.published ? (
+            <LockedAddress label={copy.fieldSlug} value={form.slug} note={copy.slugLocked} />
+          ) : (
+            <Field
+              id={`${idBase}-slug`}
+              label={copy.fieldSlug}
+              className="max-w-none"
+              dir="ltr"
+              autoComplete="off"
+              spellCheck={false}
+              value={form.slug}
+              hint={copy.slugHint}
+              error={slugError}
+              onChange={(event) => onForm({ ...form, slug: event.target.value })}
+            />
+          )
         ),
       },
       {
