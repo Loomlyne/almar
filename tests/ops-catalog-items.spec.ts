@@ -1,11 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
 import { OPS_CATALOG_COPY } from "../lib/copy/ops-catalog";
-import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
+import { OPS_KIT_COPY, fillCopy } from "../lib/copy/ops-kit";
+import type { Locale3 } from "../components/ops/api-types";
+import { mockCatalogApi, openDashboard, openRow, postsTo, refusal } from "./helpers/ops-catalog-api";
+import type { Viewport } from "./journey/matrix";
 import { definePictures, type PictureLocale } from "./helpers/ops-catalog-pictures";
 import { numbered, words } from "./journey/scenes/_ops-catalog-words";
 
 // Catalog -> Experiences and services (plan 03.2-06) on its harness scene tests/journey/scenes/ops-catalog-items.tsx.
-// Task 1: the pictures. The behaviour block (every /api/ops/* answered by page.route) joins this file in Task 2.
+// Task 1: the pictures. Task 2: the behaviour block at the end, on the real page with every /api/ops/* answered by
+// page.route fixtures shaped like the contract (tests/helpers/ops-catalog-api.ts); the request bodies are asserted.
 // The copy-shape test lives in tests/ops-destinations.spec.ts (one copy file serves both screens).
 
 /** The five cards of the item editor (signed option B): Text, Photo, Connections, Price, Settings. */
@@ -101,4 +105,121 @@ test.describe("scene", () => {
     const keys = [...src.slice(src.indexOf("export const scenes")).matchAll(/^ {2}"?([a-z-]+)"?:/gm)].map((m) => m[1]);
     expect(keys).toEqual(["list-filtered", "editor", "editor-translations", "editor-home-pickup-refused", "editor-published-no-price"]);
   });
+});
+
+const COMBOS: { viewport: Viewport; locale: Locale3 }[] = [
+  { viewport: "desktop", locale: "en" },
+  { viewport: "phone", locale: "ar" },
+];
+const PAGE_PATH = "/dashboard/catalog/experiences";
+
+test.describe("behaviour", () => {
+  test.describe.configure({ mode: "parallel" });
+  test.setTimeout(120_000);
+
+  for (const { viewport, locale } of COMBOS) {
+    const copy = OPS_CATALOG_COPY[locale].items;
+    const kit = OPS_KIT_COPY[locale];
+    const at = `${viewport} ${locale}`;
+    const open = async (page: Page, baseURL: string | undefined) => openDashboard(page, PAGE_PATH, viewport, locale, baseURL, copy.title);
+
+    test(`New item: Save sends the facts, the price as a two-decimal string and AI drafts in Arabic and Spanish (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      await open(page, baseURL);
+      await page.getByRole("button", { name: copy.newItem, exact: true }).first().click();
+      await page.getByLabel(copy.fieldName).fill("Sunset sail");
+      await page.getByLabel(copy.fieldSlug).fill("sunset-sail");
+      await page.getByLabel(copy.fieldPrice).fill("12.5");
+      await page.getByRole("button", { name: copy.kindService, exact: true }).click();
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      const [save] = await postsTo(api, "catalog");
+      expect(save).toEqual({
+        action: "save",
+        item: {
+          slug: "sunset-sail",
+          kind: "service",
+          unit: "person",
+          price_aed: "12.50",
+          is_uae: false,
+          is_home_pickup: false,
+          media_id: null,
+          destination_ids: [],
+          stay_ids: [],
+          translations: {
+            en: { name: "Sunset sail", summary: null, duration_label: null, status: "published" },
+            ar: { name: "[AR] Sunset sail", summary: null, duration_label: null, status: "draft" },
+            es: { name: "[ES] Sunset sail", summary: null, duration_label: null, status: "draft" },
+          },
+        },
+      });
+      // The editor now shows the saved item (read back by its new id).
+      await expect(page.getByRole("heading", { level: 1, name: "Sunset sail" })).toBeVisible();
+    });
+
+    test(`A price that is not money is refused in words before any request (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      await open(page, baseURL);
+      await openRow(page, "Airport transfer").click();
+      await page.getByLabel(copy.fieldPrice).fill("abc");
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      await expect(page.getByText(fillCopy(kit.invalidField, { field: copy.fieldPrice.toLocaleLowerCase(locale) }), { exact: true })).toBeVisible();
+      expect(api.of("catalog")).toHaveLength(0);
+    });
+
+    test(`Home pickup refused by the server: the line under that toggle, the form kept (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page, (path, body) => (path === "catalog" && body.action === "save" ? refusal(409, "invalid", "is_home_pickup") : null));
+      await open(page, baseURL);
+      await openRow(page, "Airport transfer").click();
+      await page.getByText(copy.isHomePickup, { exact: true }).click();
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      const [save] = await postsTo(api, "catalog");
+      expect((save!.item as { is_home_pickup: boolean }).is_home_pickup).toBe(true);
+      await expect(page.getByText(copy.homePickupRefused, { exact: true })).toBeVisible();
+      await expect(page.getByRole("checkbox", { name: copy.isHomePickup })).toBeChecked();
+    });
+
+    test(`Publish refused as incomplete: the server's missing list in words (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page, (path) =>
+        path === "publish" ? refusal(409, "publish_incomplete", null, { missing: [{ locale: "es", field: "summary" }] }) : null,
+      );
+      await open(page, baseURL);
+      await openRow(page, "Airport transfer").click();
+      await page.getByRole("button", { name: kit.publish, exact: true }).click();
+      const [publish] = await postsTo(api, "publish");
+      expect(publish).toEqual({ entity: "catalog_item", id: "c2", published: true });
+      await expect(page.getByText(kit.publishNeeds, { exact: true })).toBeVisible();
+      await expect(page.getByText("publish_incomplete")).toHaveCount(0);
+    });
+
+    test(`Unpublish and Delete on a published item: Delete waits, Unpublish calls publish false (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      await open(page, baseURL);
+      await openRow(page, "Coffee farm").click();
+      await expect(page.getByText(kit.unpublishFirst, { exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: kit.delete, exact: true })).toBeDisabled();
+      await page.getByRole("button", { name: kit.unpublish, exact: true }).click();
+      const [publish] = await postsTo(api, "publish");
+      expect(publish).toEqual({ entity: "catalog_item", id: "c1", published: false });
+      await page.getByRole("button", { name: kit.delete, exact: true }).click();
+      await page.getByRole("alertdialog").getByRole("button", { name: kit.delete, exact: true }).click();
+      const [del] = await postsTo(api, "catalog");
+      expect(del).toEqual({ action: "delete", id: "c1" });
+    });
+
+    test(`Stay filter: each item's stays are read once, then the list shows that stay's items (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      await open(page, baseURL);
+      const details = () => api.gets.filter((u) => u.pathname.endsWith("/catalog") && u.searchParams.has("id")).length;
+      expect(details()).toBe(0);
+      await page.getByRole("combobox", { name: copy.allStays }).click();
+      await page.getByRole("option", { name: "Finca Tres" }).click();
+      await expect.poll(details).toBe(3);
+      await expect(openRow(page, "Airport transfer")).toBeVisible();
+      await expect(openRow(page, "Coffee farm")).toHaveCount(0);
+      await page.getByRole("combobox", { name: "Finca Tres" }).click();
+      await page.getByRole("option", { name: "Casa Uno" }).click();
+      await expect(openRow(page, "Coffee farm")).toBeVisible();
+      expect(details(), "read once").toBe(3);
+    });
+  }
 });
