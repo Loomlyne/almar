@@ -3,7 +3,7 @@
 import { useLayoutEffect, useState, type ReactNode } from "react";
 // The ops shell the owner sees, in preview mode, so the rail and the density match the real screen (as ops-kit.tsx).
 import { OpsShell } from "../../../app/dashboard/(ops)/ops-shell";
-import { CatalogItemsView, type CatalogPanel, type CatalogRow, type PickOption } from "../../../app/dashboard/(ops)/catalog/experiences/catalog-items-screen";
+import { CatalogItemsView, type CatalogPanel, type CatalogRow, type PickOption } from "../../../app/dashboard/(ops)/catalog/experiences/catalog-items-view";
 import { emptyCatalogItemForm, type CatalogFilter, type CatalogItemForm } from "../../../app/dashboard/(ops)/catalog/catalog-forms";
 import type { Locale3, OpsError, PublishWarningCode } from "../../../components/ops/api-types";
 import type { SceneContext, Scenes } from "../scene-types";

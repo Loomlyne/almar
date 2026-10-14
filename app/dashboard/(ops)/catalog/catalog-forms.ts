@@ -1,9 +1,21 @@
-// The pure side of Catalog -> Destinations and Experiences and services (plan 03.2-06): form state, small view
-// helpers and the client filters. No React, no fetch, no directive. The save payload builders (destinationPayload,
-// catalogItemPayload) join this file in Task 2, after the owner signs the pictures.
+// The pure side of Catalog -> Destinations and Experiences and services (plan 03.2-06): detail -> form state, form ->
+// save payload, money normalisation, small view helpers and the client filters. No React, no fetch, no directive.
+//
+// Translation is automatic (owner, 2026-10-14): Maria writes the English; the kit editor fills Arabic and Spanish on
+// Save. The site shows a language only when its record is "published": Publish sends Arabic and Spanish as published, a
+// Save keeps a language that is published published and the others in draft (as Media, components/ops/media-alt.ts).
 
-import type { CatalogKind, CatalogUnit, Locale3, MediaRef, TextStatus } from "../../../../components/ops/api-types";
-import type { LiveFields } from "../../../../components/ops/auto-translate";
+import type {
+  CatalogDetail,
+  CatalogKind,
+  CatalogSummary,
+  CatalogUnit,
+  DestinationDetail,
+  Locale3,
+  MediaRef,
+  TextStatus,
+} from "../../../../components/ops/api-types";
+import type { Fields, LiveFields, Target } from "../../../../components/ops/auto-translate";
 import { foldText } from "../../../../lib/data/stay-filter";
 
 export const FORM_LOCALES: readonly Locale3[] = ["en", "ar", "es"];
@@ -123,4 +135,179 @@ export function filterCatalogRows<T extends CatalogFilterable>(rows: readonly T[
     .filter((row) => needle === "" || foldText(row.name).includes(needle))
     .slice()
     .sort((a, b) => a.position - b.position);
+}
+
+// ---- detail -> form ---------------------------------------------------------------------------------------------
+
+type TextRecord = Record<string, string | string[] | null | undefined> | null;
+
+/** One language's record as the form holds it: every field a string, "" for not set. */
+function textFrom<K extends string>(fields: readonly K[], record: TextRecord): Record<K, string> {
+  const out = {} as Record<K, string>;
+  for (const field of fields) {
+    const value = record?.[field];
+    out[field] = typeof value === "string" ? value : Array.isArray(value) ? value.join(" ") : "";
+  }
+  return out;
+}
+
+/** A language with no record is a draft-to-be: English is always published text. */
+function statusFrom(translations: Record<Locale3, { status: TextStatus } | null>): Record<Locale3, TextStatus> {
+  return { en: "published", ar: translations.ar?.status ?? "draft", es: translations.es?.status ?? "draft" };
+}
+
+export function destinationFormOf(detail: DestinationDetail): DestinationForm {
+  const t = detail.translations;
+  return {
+    id: detail.id,
+    slug: detail.slug,
+    published: detail.is_published,
+    hero: detail.hero,
+    inset: detail.inset,
+    text: {
+      en: textFrom(DESTINATION_TEXT_FIELDS, t.en),
+      ar: textFrom(DESTINATION_TEXT_FIELDS, t.ar),
+      es: textFrom(DESTINATION_TEXT_FIELDS, t.es),
+    },
+    status: statusFrom(t),
+  };
+}
+
+export function catalogItemFormOf(detail: CatalogDetail): CatalogItemForm {
+  const t = detail.translations;
+  return {
+    id: detail.id,
+    slug: detail.slug,
+    published: detail.is_published,
+    kind: detail.kind,
+    unit: detail.unit,
+    price: detail.price_aed ?? "",
+    is_uae: detail.is_uae,
+    is_home_pickup: detail.is_home_pickup,
+    media: detail.image,
+    destination_ids: [...detail.destination_ids],
+    stay_ids: [...detail.stay_ids],
+    text: {
+      en: textFrom(CATALOG_TEXT_FIELDS, t.en),
+      ar: textFrom(CATALOG_TEXT_FIELDS, t.ar),
+      es: textFrom(CATALOG_TEXT_FIELDS, t.es),
+    },
+    status: statusFrom(t),
+  };
+}
+
+/** The Arabic and Spanish the kit handed back on Save, put into the form (every value a string). */
+export function withTranslations<T extends Record<string, string>, F extends { text: Record<Locale3, T> }>(form: F, translations: Record<Target, Fields>): F {
+  const fields = Object.keys(form.text.en);
+  const pick = (target: Target): T => ({ ...form.text[target], ...textFrom(fields, translations[target] as TextRecord) });
+  return { ...form, text: { ...form.text, ar: pick("ar"), es: pick("es") } };
+}
+
+/** Two forms hold the same content (the editor's "unsaved changes"). */
+export const sameForm = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+// ---- money ------------------------------------------------------------------------------------------------------
+
+/**
+ * What the owner typed in "Price in AED" as the contract's money (a decimal string with two decimals, never a float):
+ * "" is not set (null); "1250" -> "1250.00"; "12.5" -> "12.50"; anything else ("abc", "-1", "1.234", "1,250") is refused
+ * before any request.
+ */
+export function normalisePrice(raw: string): { ok: true; value: string | null } | { ok: false } {
+  const typed = raw.trim();
+  if (typed === "") return { ok: true, value: null };
+  const m = /^(\d+)(?:\.(\d{1,2}))?$/.exec(typed);
+  if (!m) return { ok: false };
+  const whole = m[1].replace(/^0+(?=\d)/, "");
+  return { ok: true, value: `${whole}.${(m[2] ?? "").padEnd(2, "0")}` };
+}
+
+// ---- form -> save payload -----------------------------------------------------------------------------------------
+
+type SentRecord = Record<string, string | null>;
+
+/**
+ * One language's record for a save. English: always sent, published, optional fields empty -> null. Arabic and
+ * Spanish: null when every field is empty (no record); left out when the name is empty but another field is not (the
+ * server needs a name in a record; the language stays as it is); otherwise sent with `status`.
+ */
+function recordFor(text: Record<string, string>, status: TextStatus, english: boolean): SentRecord | null | undefined {
+  const entries = Object.entries(text).map(([key, value]) => [key, value.trim()] as const);
+  if (!english && entries.every(([, value]) => value === "")) return null;
+  if (!english && (text.name ?? "").trim() === "") return undefined;
+  const out: SentRecord = {};
+  for (const [key, value] of entries) out[key] = key === "name" ? value : value === "" ? null : value;
+  out.status = status;
+  return out;
+}
+
+/** A language with text goes out published on Publish, or when it is published already (a Save never takes it off). */
+const statusFor = (form: { status: Record<Locale3, TextStatus> }, target: Target, publish: boolean): TextStatus =>
+  publish || form.status[target] === "published" ? "published" : "draft";
+
+function translationsFor(form: { text: Record<Locale3, Record<string, string>>; status: Record<Locale3, TextStatus> }, publish: boolean) {
+  const out: Record<string, SentRecord | null> = {};
+  out.en = recordFor(form.text.en, "published", true) as SentRecord;
+  for (const target of ["ar", "es"] as const) {
+    const record = recordFor(form.text[target], statusFor(form, target, publish), false);
+    if (record !== undefined) out[target] = record;
+  }
+  return out;
+}
+
+/** The `save` item of /api/ops/destinations. The web address is not sent once published (it cannot change). */
+export function destinationPayload(form: DestinationForm, { publish }: { publish: boolean }): Record<string, unknown> {
+  const item: Record<string, unknown> = {};
+  if (form.id !== null) item.id = form.id;
+  if (!form.published) item.slug = form.slug.trim();
+  item.hero_media_id = form.hero?.id ?? null;
+  item.inset_media_id = form.inset?.id ?? null;
+  item.translations = translationsFor(form, publish);
+  return item;
+}
+
+/** The `save` item of /api/ops/catalog, or the refusal of a price that is not money (field price_aed). */
+export function catalogItemPayload(form: CatalogItemForm, { publish }: { publish: boolean }): { ok: true; item: Record<string, unknown> } | { ok: false; field: "price_aed" } {
+  const price = normalisePrice(form.price);
+  if (!price.ok) return { ok: false, field: "price_aed" };
+  const item: Record<string, unknown> = {};
+  if (form.id !== null) item.id = form.id;
+  if (!form.published) item.slug = form.slug.trim();
+  item.kind = form.kind;
+  item.unit = form.unit;
+  item.price_aed = price.value;
+  item.is_uae = form.is_uae;
+  item.is_home_pickup = form.is_home_pickup;
+  item.media_id = form.media?.id ?? null;
+  item.destination_ids = [...form.destination_ids];
+  item.stay_ids = [...form.stay_ids];
+  item.translations = translationsFor(form, publish);
+  return { ok: true, item };
+}
+
+// ---- list rows ----------------------------------------------------------------------------------------------------
+
+/** The "Connected to" list of one destination's experiences and services: the items connected to it, with the new set. */
+export function connectionChanges(items: readonly Pick<CatalogSummary, "id" | "destination_ids">[], destinationId: string, connected: readonly string[]): { id: string; destination_ids: string[] }[] {
+  const want = new Set(connected);
+  const out: { id: string; destination_ids: string[] }[] = [];
+  for (const item of items) {
+    const has = item.destination_ids.includes(destinationId);
+    if (has === want.has(item.id)) continue;
+    out.push({ id: item.id, destination_ids: has ? item.destination_ids.filter((id) => id !== destinationId) : [...item.destination_ids, destinationId] });
+  }
+  return out;
+}
+
+/** The full id list after moving one row up or down (by position), for `reorder`. Out of range: unchanged. */
+export function movedIds(rows: readonly { id: string; position: number }[], id: string, by: -1 | 1): string[] {
+  const ids = rows
+    .slice()
+    .sort((a, b) => a.position - b.position)
+    .map((row) => row.id);
+  const at = ids.indexOf(id);
+  const to = at + by;
+  if (at < 0 || to < 0 || to >= ids.length) return ids;
+  [ids[at], ids[to]] = [ids[to], ids[at]];
+  return ids;
 }

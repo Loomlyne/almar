@@ -50,3 +50,169 @@ test("groupAmount groups the digits of a decimal string and leaves anything else
   assert.equal(groupAmount("1250.5"), "1,250.50");
   assert.equal(groupAmount("[PRICE]"), "[PRICE]");
 });
+
+// ---- Task 2: detail -> form -> save payload ----------------------------------------------------------------------
+
+const {
+  normalisePrice,
+  catalogItemPayload,
+  destinationPayload,
+  catalogItemFormOf,
+  destinationFormOf,
+  withTranslations,
+  connectionChanges,
+  movedIds,
+  emptyDestinationForm,
+} = await loadTs("app/dashboard/(ops)/catalog/catalog-forms.ts");
+
+test("normalisePrice: empty is not set, a decimal gets two places, anything else is refused", () => {
+  assert.deepEqual(normalisePrice(""), { ok: true, value: null });
+  assert.deepEqual(normalisePrice("  "), { ok: true, value: null });
+  assert.deepEqual(normalisePrice("1250"), { ok: true, value: "1250.00" });
+  assert.deepEqual(normalisePrice("12.5"), { ok: true, value: "12.50" });
+  assert.deepEqual(normalisePrice("007.25"), { ok: true, value: "7.25" });
+  assert.deepEqual(normalisePrice("0"), { ok: true, value: "0.00" });
+  for (const bad of ["abc", "-1", "1.234", "1,250", "1e3", "12."]) assert.deepEqual(normalisePrice(bad), { ok: false }, bad);
+});
+
+const itemDetail = {
+  id: "c1",
+  slug: "coffee-farm",
+  kind: "experience",
+  unit: "person",
+  price_aed: "1250.00",
+  is_uae: false,
+  is_home_pickup: true,
+  media_id: "m1",
+  image: { id: "m1", key: "k", url: "https://media.example/k", width: 1, height: 1, alt_en: "Farm" },
+  destination_ids: ["d1"],
+  stay_ids: ["s1"],
+  is_published: false,
+  position: 1,
+  translations: {
+    en: { name: "Coffee farm", summary: "A morning", duration_label: null, status: "published" },
+    ar: { name: "مزرعة البن", summary: null, duration_label: null, status: "draft" },
+    es: null,
+  },
+  translation_state: { en: "published", ar: "draft", es: "missing" },
+  updated_at: "2026-10-15T00:00:00Z",
+};
+
+test("catalogItemFormOf: nulls become empty strings, a missing language is an empty draft", () => {
+  const form = catalogItemFormOf(itemDetail);
+  assert.equal(form.price, "1250.00");
+  assert.equal(form.media.id, "m1");
+  assert.deepEqual(form.text.en, { name: "Coffee farm", summary: "A morning", duration_label: "" });
+  assert.deepEqual(form.text.es, { name: "", summary: "", duration_label: "" });
+  assert.deepEqual(form.status, { en: "published", ar: "draft", es: "draft" });
+});
+
+test("catalogItemPayload on Save: the facts as booleans and money strings, Arabic stays draft, empty Spanish is null", () => {
+  const form = { ...catalogItemFormOf(itemDetail), price: "1300.5" };
+  const out = catalogItemPayload(form, { publish: false });
+  assert.equal(out.ok, true);
+  assert.deepEqual(out.item, {
+    id: "c1",
+    slug: "coffee-farm",
+    kind: "experience",
+    unit: "person",
+    price_aed: "1300.50",
+    is_uae: false,
+    is_home_pickup: true,
+    media_id: "m1",
+    destination_ids: ["d1"],
+    stay_ids: ["s1"],
+    translations: {
+      en: { name: "Coffee farm", summary: "A morning", duration_label: null, status: "published" },
+      ar: { name: "مزرعة البن", summary: null, duration_label: null, status: "draft" },
+      es: null,
+    },
+  });
+});
+
+test("catalogItemPayload on Publish: Arabic and Spanish with text go out published", () => {
+  const form = withTranslations(catalogItemFormOf(itemDetail), { ar: { name: "[AR] Coffee farm", summary: "[AR] A morning" }, es: { name: "[ES] Coffee farm", summary: "[ES] A morning" } });
+  const out = catalogItemPayload(form, { publish: true });
+  assert.equal(out.item.translations.ar.status, "published");
+  assert.equal(out.item.translations.es.status, "published");
+  assert.equal(out.item.translations.es.name, "[ES] Coffee farm");
+});
+
+test("catalogItemPayload: a published language stays published on Save; a published item sends no web address", () => {
+  const form = { ...catalogItemFormOf({ ...itemDetail, is_published: true }), status: { en: "published", ar: "published", es: "draft" } };
+  form.text.es = { name: "[ES] x", summary: "", duration_label: "" };
+  const out = catalogItemPayload(form, { publish: false });
+  assert.equal("slug" in out.item, false);
+  assert.equal(out.item.translations.ar.status, "published");
+  assert.equal(out.item.translations.es.status, "draft");
+});
+
+test("catalogItemPayload: a price that is not money is refused before any request; empty price is null", () => {
+  const form = catalogItemFormOf(itemDetail);
+  assert.deepEqual(catalogItemPayload({ ...form, price: "abc" }, { publish: false }), { ok: false, field: "price_aed" });
+  assert.equal(catalogItemPayload({ ...form, price: "" }, { publish: false }).item.price_aed, null);
+});
+
+test("a language with text but no name is left out (the server needs a name), not sent half", () => {
+  const form = catalogItemFormOf(itemDetail);
+  form.text.ar = { name: "", summary: "صباح", duration_label: "" };
+  const out = catalogItemPayload(form, { publish: false });
+  assert.equal("ar" in out.item.translations, false);
+});
+
+test("destinationPayload: a new destination sends its slug, photos and English; empty optional English is null", () => {
+  const blank = emptyDestinationForm();
+  const form = { ...blank, slug: " cartagena ", text: { ...blank.text, en: { ...blank.text.en, name: "Cartagena", region: "Caribbean" } } };
+  assert.deepEqual(destinationPayload(form, { publish: false }), {
+    slug: "cartagena",
+    hero_media_id: null,
+    inset_media_id: null,
+    translations: {
+      en: { name: "Cartagena", short_line: null, region: "Caribbean", summary: null, nights_label: null, status: "published" },
+      ar: null,
+      es: null,
+    },
+  });
+});
+
+test("destinationFormOf then destinationPayload keeps the photos and drops the web address once published", () => {
+  const detail = {
+    id: "d1",
+    slug: "cartagena",
+    is_published: true,
+    position: 1,
+    hero_media_id: "h1",
+    inset_media_id: null,
+    hero: { id: "h1", key: "h", url: "https://media.example/h", width: 1, height: 1, alt_en: "x" },
+    inset: null,
+    translations: { en: { name: "Cartagena", short_line: null, region: null, summary: null, nights_label: null, status: "published" }, ar: null, es: null },
+    translation_state: { en: "published", ar: "missing", es: "missing" },
+    updated_at: "2026-10-15T00:00:00Z",
+  };
+  const out = destinationPayload(destinationFormOf(detail), { publish: false });
+  assert.equal(out.id, "d1");
+  assert.equal("slug" in out, false);
+  assert.equal(out.hero_media_id, "h1");
+});
+
+test("connectionChanges: connecting adds the destination to that item, Remove takes it off, the rest are untouched", () => {
+  const items = [
+    { id: "c1", destination_ids: ["d1", "d2"] },
+    { id: "c2", destination_ids: ["d2"] },
+    { id: "c3", destination_ids: [] },
+  ];
+  assert.deepEqual(connectionChanges(items, "d1", ["c1", "c3"]), [{ id: "c3", destination_ids: ["d1"] }]);
+  assert.deepEqual(connectionChanges(items, "d1", []), [{ id: "c1", destination_ids: ["d2"] }]);
+  assert.deepEqual(connectionChanges(items, "d1", ["c1"]), []);
+});
+
+test("movedIds: one row up or down in position order; the ends do not move", () => {
+  const rows = [
+    { id: "b", position: 2 },
+    { id: "a", position: 1 },
+    { id: "c", position: 3 },
+  ];
+  assert.deepEqual(movedIds(rows, "b", -1), ["b", "a", "c"]);
+  assert.deepEqual(movedIds(rows, "b", 1), ["a", "c", "b"]);
+  assert.deepEqual(movedIds(rows, "a", -1), ["a", "b", "c"]);
+});
