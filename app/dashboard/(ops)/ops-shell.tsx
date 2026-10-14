@@ -96,6 +96,8 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
   const signOutForm = useRef<HTMLFormElement>(null);
   const menuId = useId();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const restoreFocusRef = useRef(false);
   const [locale, setLocale] = useState<DocumentLocale>("en");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -124,6 +126,20 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
       if (previous) root.setAttribute("data-density", previous);
       else root.removeAttribute("data-density");
     };
+  }, []);
+
+  // The drawer starts below the header, and the header is one row or two (on a phone the publish status line wraps onto its
+  // own row, plan 03.2-05): follow its real height in --ops-header-h instead of a fixed offset.
+  useEffect(() => {
+    const header = headerRef.current;
+    const shell = shellRef.current;
+    if (!header || !shell) return;
+    const measure = () => shell.style.setProperty("--ops-header-h", `${header.getBoundingClientRect().height}px`);
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -250,6 +266,7 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
 
   return (
     <div
+      ref={shellRef}
       className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-ivory text-ink"
       data-density="dense"
       style={{ paddingInline: "max(env(safe-area-inset-left), env(safe-area-inset-right))" }}
@@ -260,7 +277,7 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
       >
         {copy.skip}
       </a>
-      <header className="sticky top-0 z-50 flex min-h-control flex-wrap items-center justify-between gap-2 border-b border-line bg-ivory px-4 py-1">
+      <header ref={headerRef} className="sticky top-0 z-50 flex min-h-control flex-wrap items-center justify-between gap-2 border-b border-line bg-ivory px-4 py-1">
         <Link className="flex min-h-control min-w-0 items-center gap-2 text-teal no-underline" href={mode === "ops" ? "/" : "/dashboard/home"}>
           <img className="block aspect-2/1 h-auto w-35 max-w-full object-contain object-left" alt="ALMAR" src={charcoalLogo.src} />
           <span className="hidden whitespace-nowrap font-display text-label uppercase tracking-kicker xl:inline ar:normal-case ar:tracking-normal">
@@ -286,8 +303,9 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
           id={menuId}
           className={cn(
             "flex-col gap-0 border-e border-line bg-surface p-2 xl:flex xl:w-sidebar xl:shrink-0",
-            menuOpen ? "fixed inset-0 z-45 flex overflow-auto overscroll-contain border-e-0 bg-ivory pt-20" : "hidden",
+            menuOpen ? "fixed inset-0 z-45 flex overflow-auto overscroll-contain border-e-0 bg-ivory" : "hidden",
           )}
+          style={menuOpen ? { paddingTop: "calc(var(--ops-header-h, 5rem) + 0.5rem)" } : undefined}
           aria-label={copy.dashboardName}
           inert={compact && !menuOpen ? true : undefined}
         >

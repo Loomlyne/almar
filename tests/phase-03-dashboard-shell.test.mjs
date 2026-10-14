@@ -141,8 +141,13 @@ test("shell: no dead Sidebar, the drawer clears the header, and the ops shell re
   assert.equal(text.includes("open={false}"), false);
   assert.equal(text.includes("<Sidebar"), false);
   assert.equal(/ui\/sidebar/.test(text), false);
-  // The header is about 78px (70px logo plus padding); the drawer starts 80px down (it was 64px, under the header).
-  assert.match(text, /overscroll-contain border-e-0 bg-ivory pt-20/);
+  // The drawer starts below the header, whatever its height (one row, or two on a phone with the publish status line):
+  // the shell measures the header into --ops-header-h and the drawer's top padding follows it. No fixed pt-16 / pt-20.
+  assert.doesNotMatch(text, /overscroll-contain border-e-0 bg-ivory pt-\d+/);
+  assert.match(text, /headerRef\.current/);
+  assert.match(text, /setProperty\("--ops-header-h", `\$\{header\.getBoundingClientRect\(\)\.height\}px`\)/);
+  assert.match(text, /new ResizeObserver\(measure\)/);
+  assert.match(text, /paddingTop: "calc\(var\(--ops-header-h, 5rem\) \+ 0\.5rem\)"/);
   assert.match(text, /mode === "ops" && !children \?/);
   assert.match(text, /copy\.notReady/);
 });

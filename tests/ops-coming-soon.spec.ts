@@ -22,6 +22,21 @@ async function openReal(page: Page, baseURL: string | undefined, kind: string, v
   await page.waitForFunction((l) => document.documentElement.dir === (l === "ar" ? "rtl" : "ltr"), locale);
 }
 
+// Plan 03.2-05: in mode "ops" the header mounts the publish status line, which reads /api/ops/site-status on mount; an unanswered
+// call comes back 401 from the dev server and the client sends the page to /sign-in. Every ops-mode test answers it.
+async function answerSiteStatus(page: Page) {
+  await page.route("**/api/ops/site-status", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        site: { state: "up_to_date", requested_seq: 5, live_seq: 5, requested_at: "2026-10-13T10:02:00.000Z", built_at: "2026-10-13T10:05:00.000Z", last_hook_at: "2026-10-13T10:02:00.000Z", last_hook_result: "ok" },
+      }),
+    }),
+  );
+}
+
 const labelOf = (kind: string, locale: Locale) =>
   kind === "navigation" ? OPS_CONTENT_COPY[locale].rail.navigation : DASHBOARD_COPY[locale].rail[kind as "pages" | "blog" | "legal"];
 
@@ -139,6 +154,7 @@ test.describe("coming soon pages", () => {
   for (const locale of ["en", "ar"] as Locale[]) {
     for (const kind of KINDS) {
       test(`ops host: ${kind} (${locale}) opens as the Coming soon screen, not Not ready`, async ({ page, baseURL }) => {
+        await answerSiteStatus(page);
         await page.setViewportSize(VIEWPORTS.desktop);
         await page.context().addCookies([{ name: "almar-locale", value: locale, url: baseURL ?? "http://127.0.0.1:3010" }]);
         await page.goto(`/__harness?c=ops-coming-soon&s=ops-host-${kind}&l=${locale}`);
@@ -156,6 +172,7 @@ test.describe("coming soon pages", () => {
   }
 
   test("ops host: a section that is not live (Team) still shows Not ready", async ({ page, baseURL }) => {
+    await answerSiteStatus(page);
     await page.setViewportSize(VIEWPORTS.desktop);
     await page.context().addCookies([{ name: "almar-locale", value: "en", url: baseURL ?? "http://127.0.0.1:3010" }]);
     await page.goto("/__harness?c=ops-coming-soon&s=ops-host-team&l=en");
@@ -163,4 +180,30 @@ test.describe("coming soon pages", () => {
     await expect(page.locator("main#content h1")).toHaveText(DASHBOARD_COPY.en.notReady);
     await expect(page.locator("main#content h2")).toHaveCount(0);
   });
+
+  // Plan 03.2-05 puts the publish status line on its own row under the logo at 390 (mode "ops" only), so the header is two
+  // rows tall there. The drawer must start below the REAL header (Grok's finding on PR #12; it was a fixed pt-20).
+  for (const locale of ["en", "ar"] as Locale[]) {
+    test(`ops host at 390: the Menu drawer starts below the two-row header, status line visible (${locale})`, async ({ page, baseURL }) => {
+      await answerSiteStatus(page);
+      await page.setViewportSize(VIEWPORTS.phone);
+      await page.context().addCookies([{ name: "almar-locale", value: locale, url: baseURL ?? "http://127.0.0.1:3010" }]);
+      await page.goto(`/__harness?c=ops-coming-soon&s=ops-host-pages&l=${locale}`);
+      await settle(page);
+      await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+      const status = page.locator("header [data-site-state]");
+      await expect(status).toBeVisible();
+      const logo = await page.locator("header img").boundingBox();
+      const line = await status.boundingBox();
+      // The status line is on its own row: under the logo, not beside it.
+      expect(line!.y).toBeGreaterThanOrEqual(logo!.y + logo!.height - 1);
+      await page.getByRole("button", { name: DASHBOARD_COPY[locale].menu }).click();
+      await expect(page.locator("nav")).toBeVisible();
+      const header = await page.locator("header").boundingBox();
+      expect(header!.height, "the header is two rows here").toBeGreaterThan(110);
+      const first = await page.locator("nav").getByRole("link").first().boundingBox();
+      expect(first!.y, "the first rail link starts below the header").toBeGreaterThanOrEqual(header!.y + header!.height);
+      await expect(page.locator("nav").getByRole("link").first()).toBeInViewport();
+    });
+  }
 });

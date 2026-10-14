@@ -36,7 +36,7 @@ export function ComingSoonScreen({ kind }: { kind: ComingSoonKind }) {
         <h2 id={`coming-soon-${kind}`} className="m-0 text-balance font-display text-title font-normal text-teal md:text-heading">
           {block.title}
         </h2>
-        <p className="m-0 max-w-[65ch] text-pretty text-body text-ink">{block.line}</p>
+        <p className="m-0 max-w-prose text-pretty text-body text-ink">{block.line}</p>
         {block.list.length > 0 ? (
           <ul className="m-0 grid w-full list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
             {block.list.map((item) => (
