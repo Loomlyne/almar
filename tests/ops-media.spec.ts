@@ -593,6 +593,42 @@ test.describe("behaviour", () => {
         await expect.poll(before).toBe(PHOTO);
       });
 
+      test(`library page: Discard on a rail link leaves no extra Back step: Back returns to the list, the next Back leaves (${at})`, async ({ page, baseURL }) => {
+        await mockApi(page);
+        const kit = OPS_KIT_COPY[locale];
+        await page.goto(PHOTO);
+        await openRealPage(page, viewport, locale, baseURL);
+        const path = () => new URL(page.url()).pathname;
+        await page.getByRole("button", { name: /pool-dusk/ }).click();
+        await page.locator("#media-alt-en").fill("Pool, changed");
+        if (width < 1280) await page.getByRole("button", { name: DASHBOARD_COPY[locale].menu }).click();
+        await page.locator('a[href="/dashboard/content/legal"]').click();
+        await page.getByRole("dialog", { name: kit.discardTitle }).getByRole("button", { name: kit.discard, exact: true }).click();
+        await expect.poll(path).toBe("/dashboard/content/legal");
+        await page.evaluate(() => window.history.back());
+        await expect.poll(path).toBe("/dashboard/content/media");
+        await expect(page.getByRole("heading", { level: 1, name: copy.media })).toBeVisible({ timeout: 20_000 });
+        await page.evaluate(() => window.history.back());
+        await expect.poll(path).toBe(PHOTO);
+      });
+
+      test(`library page: a reload with unsaved changes leaves no extra Back step (${at})`, async ({ page, baseURL }) => {
+        await mockApi(page);
+        await page.goto(PHOTO);
+        await openRealPage(page, viewport, locale, baseURL);
+        const path = () => new URL(page.url()).pathname;
+        await page.getByRole("button", { name: /pool-dusk/ }).click();
+        await page.locator("#media-alt-en").fill("Pool, changed");
+        // The browser's own "Leave site?" question: leave.
+        page.on("dialog", (one) => void one.accept());
+        await page.reload();
+        await expect(page.getByRole("heading", { level: 1, name: copy.media })).toBeVisible({ timeout: 20_000 });
+        await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
+        expect(path()).toBe("/dashboard/content/media");
+        await page.evaluate(() => window.history.back());
+        await expect.poll(path).toBe(PHOTO);
+      });
+
       test(`library page: Delete on an unused photo removes it and says the file stays in storage (${at})`, async ({ page, baseURL }) => {
         const api = await mockApi(page);
         await openRealPage(page, viewport, locale, baseURL);

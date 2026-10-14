@@ -85,6 +85,34 @@ function leavingLink(event: MouseEvent): HTMLAnchorElement | null {
   return anchor;
 }
 
+/**
+ * Where the Back guard's extra history entry is, kept for this tab: a reload while it is up lands on it, and the next
+ * clean load takes it away again (otherwise Back would stay on the same page once).
+ */
+const TRAP_KEY = "almar:edit-trap";
+
+function markTrap(on: boolean) {
+  try {
+    if (on) window.sessionStorage.setItem(TRAP_KEY, JSON.stringify({ href: window.location.href, length: window.history.length }));
+    else window.sessionStorage.removeItem(TRAP_KEY);
+  } catch {
+    // No session storage (a locked-down browser): a reload may leave one extra Back step, nothing worse.
+  }
+}
+
+/** True once per load when this entry is a Back guard left by a reload while the form had unsaved changes. */
+function onLeftTrap(): boolean {
+  try {
+    const raw = window.sessionStorage.getItem(TRAP_KEY);
+    if (raw === null) return false;
+    window.sessionStorage.removeItem(TRAP_KEY);
+    const mark = JSON.parse(raw) as { href?: unknown; length?: unknown };
+    return mark.href === window.location.href && mark.length === window.history.length;
+  } catch {
+    return false;
+  }
+}
+
 /** A dialog or a popup is open over the page: its own Escape wins. */
 const overlayOpen = () => document.querySelector('[role="dialog"], [role="alertdialog"], [data-radix-popper-content-wrapper]') !== null;
 
@@ -208,6 +236,13 @@ export function EditPage({
   const letGo = useRef(false);
   // Puts the Back guard on again after Keep editing (set while the guard is up).
   const guardAgain = useRef<(() => void) | null>(null);
+  // Takes the Back guard's entry away, then runs `then` (set while the guard is up).
+  const dropGuard = useRef<((then: () => void) => void) | null>(null);
+
+  // A clean load on the Back guard's entry (the page was reloaded with unsaved changes): step off it once.
+  useEffect(() => {
+    if (onLeftTrap()) window.history.back();
+  }, []);
 
   useEffect(() => {
     mounted.current = true;
@@ -290,7 +325,8 @@ export function EditPage({
 
   // Unsaved changes: a link elsewhere (the rail) and the browser's Back ask "Discard changes?" too. Back is caught with
   // one extra history entry for this same address: Back lands on it (nothing moves) and the question is asked; Keep
-  // editing puts the entry back, Discard goes on back. The entry is taken away again once the changes are saved.
+  // editing puts the entry back, Discard goes on back. The entry is taken away again once the changes are saved, before a
+  // confirmed link is followed, and on the next load after a reload with unsaved changes.
   useEffect(() => {
     if (!open || !dirty) return;
     const onClick = (event: MouseEvent) => {
@@ -304,20 +340,45 @@ export function EditPage({
     };
     const here = window.location.href;
     let guarded = true;
+    let afterPop: (() => void) | null = null;
     window.history.pushState(window.history.state, "", here);
+    markTrap(true);
     const onPop = () => {
       if (letGo.current) {
         letGo.current = false;
+        const next = afterPop;
+        afterPop = null;
+        if (next) {
+          // The guard entry is gone: follow the link with the guard stood down.
+          letGo.current = true;
+          next();
+          window.setTimeout(() => {
+            letGo.current = false;
+          }, 0);
+        }
         return;
       }
       if (!guarded) return;
       guarded = false;
+      markTrap(false);
       setAsking("back");
     };
     guardAgain.current = () => {
       if (guarded) return;
       guarded = true;
       window.history.pushState(window.history.state, "", window.location.href);
+      markTrap(true);
+    };
+    dropGuard.current = (then) => {
+      if (!guarded) {
+        then();
+        return;
+      }
+      guarded = false;
+      markTrap(false);
+      afterPop = then;
+      letGo.current = true;
+      window.history.back();
     };
     document.addEventListener("click", onClick, true);
     window.addEventListener("popstate", onPop);
@@ -325,8 +386,12 @@ export function EditPage({
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("popstate", onPop);
       guardAgain.current = null;
+      dropGuard.current = null;
       // Saved or closed here: drop the extra entry. Gone elsewhere (a link was followed): leave history as it is.
-      if (guarded && !letGo.current && window.location.href === here) window.history.back();
+      if (guarded && !letGo.current && window.location.href === here) {
+        markTrap(false);
+        window.history.back();
+      }
     };
   }, [open, dirty]);
 
@@ -562,11 +627,17 @@ export function EditPage({
           setAsking(null);
           if (why === "close") onClose();
           else if (why === "link") {
-            letGo.current = true;
-            leavingTo.current?.click();
-            window.setTimeout(() => {
-              letGo.current = false;
-            }, 0);
+            // Back off the guard entry first, so it does not stay under the new page; then follow the link.
+            const anchor = leavingTo.current;
+            const follow = () => anchor?.click();
+            if (dropGuard.current) dropGuard.current(follow);
+            else {
+              letGo.current = true;
+              follow();
+              window.setTimeout(() => {
+                letGo.current = false;
+              }, 0);
+            }
           } else if (why === "back") {
             letGo.current = true;
             window.history.back();
