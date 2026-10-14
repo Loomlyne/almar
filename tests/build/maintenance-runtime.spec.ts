@@ -6,7 +6,12 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 // /login, /account and /bookings are no files in out/: wrangler.toml's run_worker_first sends them to the Worker, whose
 // middleware reads the saved flag. This spec saves maintenance on in the local database and proves all three answer
 // with the closed page, while a static page is still served from out/ and the API still answers.
-// Setup and command: tests/build/make-public-stack-config.mjs. Bodies are never printed.
+// Setup and command: tests/build/make-public-stack-config.mjs; a plain build-config run (another PW_WRANGLER_CONFIG)
+// skips this file. Bodies are never printed.
+
+const CONFIG = process.env.PW_WRANGLER_CONFIG ?? "";
+const STACK_RUN = /(^|\/)\.tmp\/public-stack\/wrangler\.test\.toml$/.test(CONFIG);
+test.skip(!STACK_RUN, "needs the local-stack public config: run tests/build/make-public-stack-config.mjs (see the header)");
 
 const VARS = ".tmp/public-stack/.dev.vars";
 const NAV = { "sec-fetch-mode": "navigate", "sec-fetch-dest": "document", accept: "text/html" };
