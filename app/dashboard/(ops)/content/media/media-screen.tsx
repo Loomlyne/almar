@@ -1,50 +1,32 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState } from "react";
 import { Button } from "../../../../../components/ui/button";
-import { Checkbox } from "../../../../../components/ui/checkbox";
-import { Chip } from "../../../../../components/ui/chip";
 import { ConfirmDialog } from "../../../../../components/ui/confirm-dialog";
 import { Field } from "../../../../../components/ui/field";
 import { PlusIcon } from "../../../../../components/icons/icons";
-import { EditPanel } from "../../../../../components/ops/edit-panel";
-import type { Locale3 } from "../../../../../components/ops/api-types";
-import { altStateOf, type AltDraft } from "../../../../../components/ops/media-alt";
+import type { Send, Target } from "../../../../../components/ops/auto-translate";
+import { EditPage, type SaveIntent, type SavePayload } from "../../../../../components/ops/edit-page";
+import { ALT_FIELD, altMissing, isAltPublished, type AltText } from "../../../../../components/ops/media-alt";
 import { FileName, fileNameOf } from "../../../../../components/ops/media-picker";
-import { UPLOAD_TYPES, type MediaAltStatus, type MediaItem } from "../../../../../components/ops/media-types";
+import { UPLOAD_TYPES, type MediaItem } from "../../../../../components/ops/media-types";
+import { StatusChip } from "../../../../../components/ops/status-chip";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
 import { formatPlural } from "../../../../../lib/journey-format";
 import { OPS_MEDIA_COPY, type OpsMediaLocale } from "../../../../../lib/copy/ops-media";
 
-const LOCALES: readonly Locale3[] = ["en", "ar", "es"];
-
-export type { AltDraft };
+export type { AltText };
 
 /** A line under the heading: `info` is a plain status, `error` is read out as an alert. */
 export type ScreenNotice = { kind: "info" | "error"; text: string };
 
-function StatusChips({ item, locale }: { item: MediaItem; locale: OpsMediaLocale }) {
-  const kit = OPS_KIT_COPY[locale];
-  const word = (status: MediaAltStatus) => (status === "published" ? kit.published : status === "draft" ? kit.draft : kit.missing);
-  return (
-    <span role="group" aria-label={OPS_MEDIA_COPY[locale].altRow} className="flex flex-wrap gap-1">
-      {LOCALES.map((code) => {
-        const status = item.alt_status[code];
-        return (
-          <Chip key={code} interactive={false} size="dense" on={status === "published"} muted={status === "missing"}>
-            {code.toUpperCase()}
-            <span className="sr-only"> {word(status)}</span>
-          </Chip>
-        );
-      })}
-    </span>
-  );
-}
+/** The longest alt text the server takes (validate-media.ts ALT_MAX). */
+const ALT_MAX = 300;
 
 /**
- * Content -> Media (design canvas DashMediaNav): a grid of the library with search and Upload, and a side panel for
- * one photo with alt text in three languages, where it is used, Save and Delete image. Presentational: the page wires
- * the data and the requests (03.2-09 Task 3).
+ * Content -> Media (design canvas DashMediaNav): a grid of the library with search and Upload, and the kit's editor page
+ * for one photo (kit panel B): the English alt text (Arabic and Spanish are added on Save), the photo and where it is
+ * used, Save, Publish and Delete image. Presentational: media-library.tsx wires the data and the requests.
  */
 export function MediaScreen({
   locale,
@@ -56,16 +38,17 @@ export function MediaScreen({
   onPickFile,
   openId,
   onOpen,
-  onClosePanel,
-  draft,
-  dirty,
+  onClose,
+  alt,
+  savedAlt,
   onAltChange,
-  onCheckedChange,
   onSave,
+  onPublish,
   onDelete,
-  translateSlot,
+  busy = false,
   notice,
   panelError,
+  send,
 }: {
   locale: OpsMediaLocale;
   items: MediaItem[];
@@ -76,29 +59,30 @@ export function MediaScreen({
   onPickFile: (file: File) => void;
   openId: string | null;
   onOpen: (id: string) => void;
-  onClosePanel: () => void;
-  draft: AltDraft;
-  dirty: boolean;
-  onAltChange: (locale: Locale3, text: string) => void;
-  onCheckedChange: (locale: "ar" | "es", checked: boolean) => void;
-  onSave: () => void;
+  onClose: () => void;
+  alt: AltText;
+  savedAlt: AltText;
+  onAltChange: (locale: "en" | Target, text: string) => void;
+  onSave: (payload: SavePayload, intent: SaveIntent) => Promise<boolean>;
+  onPublish: () => Promise<unknown>;
   onDelete: () => void;
-  /** Where 03.2-10's Translate button goes (props fixed by its draft). */
-  translateSlot?: ReactNode;
+  busy?: boolean;
   /** A line above the list, such as "The file stays in storage" after a delete. */
   notice?: ScreenNotice | null;
-  /** A refusal shown in the open panel, such as "This photo is used, so it cannot be deleted." */
+  /** A refusal shown on the open photo's page, such as "This photo is used, so it cannot be deleted." */
   panelError?: string | null;
+  /** Test seam for the translate request (the scenes answer it themselves). */
+  send?: Send;
 }) {
   const copy = OPS_MEDIA_COPY[locale];
   const kit = OPS_KIT_COPY[locale];
   const fileInput = useRef<HTMLInputElement>(null);
   const [confirming, setConfirming] = useState(false);
   const open = items.find((item) => item.id === openId) ?? null;
+  // An imported photo is kept by the site pages (ops_delete_media refuses it), so it reads as used.
+  const kept = open ? open.used_by > 0 || open.source === "import" : false;
 
-  const stateOf = (code: Locale3): MediaAltStatus => altStateOf(draft, code);
-
-  return (
+  const list = (
     <div className="flex min-w-0 flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.media}</h1>
@@ -160,7 +144,7 @@ export function MediaScreen({
                 </span>
               </button>
               <div className="px-3 pb-2 pt-1">
-                <StatusChips item={item} locale={locale} />
+                <StatusChip published={isAltPublished(item)} locale={locale} />
               </div>
             </li>
           ))}
@@ -173,98 +157,91 @@ export function MediaScreen({
           </Button>
         </div>
       ) : null}
-
-      {open ? (
-        <EditPanel
-          open
-          onOpenChange={(next) => {
-            if (!next) onClosePanel();
-          }}
-          title={fileNameOf(open.key)}
-          tabs={[{ key: "alt", label: copy.altText }]}
-          tab="alt"
-          onTabChange={() => undefined}
-          dirty={dirty}
-          footer={
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap gap-2">
-                <Button disabled={!dirty} onClick={onSave}>
-                  {copy.save}
-                </Button>
-                <Button
-                  variant="danger"
-                  disabled={open.used_by > 0 || open.source === "import"}
-                  aria-describedby="media-delete-note"
-                  onClick={() => setConfirming(true)}
-                >
-                  {copy.deleteImage}
-                </Button>
-              </div>
-              {panelError ? (
-                <p role="alert" className="m-0 text-label text-error">
-                  {panelError}
-                </p>
-              ) : null}
-              <p id="media-delete-note" className="m-0 text-label text-muted">
-                {/* An imported photo is kept by the site pages (ops_delete_media refuses it), so it reads as used. */}
-                {open.used_by > 0 || open.source === "import" ? copy.usedBlocksDelete : copy.staysInStorage}
-              </p>
-            </div>
-          }
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={open.url} alt={open.alt_en} className="block h-36 w-full bg-ivory object-cover" />
-          <p className="m-0 text-label text-ink">
-            {formatPlural(copy.usedIn, open.used_by, locale)}
-          </p>
-          <div className="flex min-w-0 flex-col gap-4">
-            {LOCALES.map((code) => (
-              <div key={code} className="flex min-w-0 flex-col gap-2">
-                {/* 03.2-10: render <TranslateButton source={{ alt: draft.alt.en }} hasExisting onDrafts={applyAltDrafts} locale disabled> here (media-library.tsx passes it in). */}
-                {code === "ar" && translateSlot ? (
-                  <div className="flex items-center gap-2">{translateSlot}</div>
-                ) : null}
-                <Field
-                  id={`media-alt-${code}`}
-                  label={`${copy.altText} · ${code.toUpperCase()}`}
-                  className="max-w-none"
-                  maxLength={300}
-                  autoComplete="off"
-                  lang={code}
-                  dir={code === "ar" ? "rtl" : "ltr"}
-                  value={draft.alt[code]}
-                  onChange={(event) => onAltChange(code, event.target.value)}
-                />
-                {code === "en" ? null : (
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <Checkbox
-                      label={copy.checkedTranslation}
-                      checked={draft.checked[code]}
-                      disabled={stateOf(code) === "missing"}
-                      onChange={(event) => onCheckedChange(code, event.target.checked)}
-                    />
-                    <Chip interactive={false} size="dense" on={stateOf(code) === "published"} muted={stateOf(code) === "missing"}>
-                      {stateOf(code) === "published" ? kit.published : stateOf(code) === "draft" ? kit.draft : kit.missing}
-                    </Chip>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          <ConfirmDialog
-            open={confirming}
-            onOpenChange={setConfirming}
-            title={copy.deleteImage}
-            description={copy.staysInStorage}
-            confirmLabel={copy.deleteImage}
-            cancelLabel={copy.close}
-            onConfirm={() => {
-              setConfirming(false);
-              onDelete();
-            }}
-          />
-        </EditPanel>
-      ) : null}
     </div>
+  );
+
+  return (
+    <>
+      <EditPage
+        openKey={open ? open.id : null}
+        list={list}
+        backLabel={copy.media}
+        onClose={onClose}
+        title={open ? fileNameOf(open.key) : ""}
+        isPublished={open ? isAltPublished(open) : false}
+        dirty={alt.en !== savedAlt.en || alt.ar !== savedAlt.ar || alt.es !== savedAlt.es}
+        busy={busy}
+        missing={altMissing(alt)}
+        error={null}
+        english={{ [ALT_FIELD]: alt.en }}
+        savedEnglish={{ [ALT_FIELD]: savedAlt.en }}
+        translations={{ ar: { [ALT_FIELD]: alt.ar }, es: { [ALT_FIELD]: alt.es } }}
+        translationFields={[{ name: ALT_FIELD, label: copy.altText, maxLength: ALT_MAX }]}
+        onTranslationChange={(target, _name, value) => onAltChange(target, Array.isArray(value) ? value.join(" ") : value)}
+        onSave={onSave}
+        onPublish={onPublish}
+        onDelete={() => setConfirming(true)}
+        deleteLabel={copy.deleteImage}
+        deleteDisabled={kept}
+        deleteNote={kept ? copy.usedBlocksDelete : copy.staysInStorage}
+        notice={
+          panelError ? (
+            <p role="alert" className="m-0 text-label text-error">
+              {panelError}
+            </p>
+          ) : null
+        }
+        send={send}
+        sections={
+          open
+            ? [
+                {
+                  key: "alt",
+                  title: copy.altText,
+                  translatable: true,
+                  content: (
+                    <Field
+                      id="media-alt-en"
+                      label={copy.altText}
+                      className="max-w-none"
+                      required
+                      maxLength={ALT_MAX}
+                      autoComplete="off"
+                      lang="en"
+                      dir="ltr"
+                      value={alt.en}
+                      onChange={(event) => onAltChange("en", event.target.value)}
+                    />
+                  ),
+                },
+                {
+                  key: "photo",
+                  title: kit.editor.sections.photo,
+                  column: "side",
+                  content: (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={open.url} alt={open.alt_en} className="block aspect-4/3 w-full bg-ivory object-cover" />
+                      <p className="m-0 text-label text-ink">{formatPlural(copy.usedIn, open.used_by, locale)}</p>
+                    </>
+                  ),
+                },
+              ]
+            : []
+        }
+      />
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        title={copy.deleteImage}
+        description={copy.staysInStorage}
+        confirmLabel={copy.deleteImage}
+        cancelLabel={kit.cancel}
+        onConfirm={() => {
+          setConfirming(false);
+          onDelete();
+        }}
+      />
+    </>
   );
 }

@@ -1,17 +1,12 @@
 "use client";
 
-import { useCallback, useState, type ReactNode } from "react";
+import { useState } from "react";
 import { MediaPicker } from "../../../../../components/ops/media-picker";
 import { opsSend } from "../../../../../components/ops/ops-client";
 import { errorText } from "../../../../../components/ops/error-text";
-import {
-  altDraftOf,
-  applyAltDrafts,
-  buildSaveAlt,
-  itemAfterSave,
-  sameAltDraft,
-  type AltDraft,
-} from "../../../../../components/ops/media-alt";
+import type { Send } from "../../../../../components/ops/auto-translate";
+import type { SaveIntent, SavePayload } from "../../../../../components/ops/edit-page";
+import { ALT_FIELD, altOf, buildSaveAlt, isAltPublished, itemAfterSave, type AltText } from "../../../../../components/ops/media-alt";
 import { useDashboardLocale } from "../../../../../components/ops/use-dashboard-locale";
 import { useMediaLibrary } from "../../../../../components/ops/use-media-library";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
@@ -20,24 +15,24 @@ import { MediaScreen, type ScreenNotice } from "./media-screen";
 
 const PATH = "/api/ops/media";
 
-const EMPTY: AltDraft = { alt: { en: "", ar: "", es: "" }, checked: { ar: false, es: false } };
+const EMPTY: AltText = { en: "", ar: "", es: "" };
 
-/** What the Translate button calls with a reply: see applyAltDrafts in components/ops/media-alt.ts. */
-export type ApplyAltDrafts = (target: "ar" | "es", fields: Record<string, string | string[]>) => void;
+const textOf = (value: unknown) => (typeof value === "string" ? value : Array.isArray(value) ? value.join(" ") : "");
 
 /**
- * Content -> Media, connected: the list, search, Upload, the alt text panel (Save), and Delete image, all through the kit
- * client. `slotOf` is the test seam for the Translate slot; the page passes nothing.
+ * Content -> Media, connected: the list, search, Upload, the photo's editor page (Save, Publish, automatic Arabic and
+ * Spanish through the kit) and Delete image, all through the kit client. `send` is the test seam for the translate
+ * request; the page passes nothing.
  */
-export function MediaLibrary({ slotOf }: { slotOf?: (apply: ApplyAltDrafts) => ReactNode }) {
+export function MediaLibrary({ send }: { send?: Send } = {}) {
   const locale = useDashboardLocale();
   const copy = OPS_MEDIA_COPY[locale];
   const kit = OPS_KIT_COPY[locale];
   const { library, setItems, removeItem } = useMediaLibrary({ enabled: true, locale });
 
   const [openId, setOpenId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<AltDraft>(EMPTY);
-  const [baseline, setBaseline] = useState<AltDraft>(EMPTY);
+  const [alt, setAlt] = useState<AltText>(EMPTY);
+  const [saved, setSaved] = useState<AltText>(EMPTY);
   const [notice, setNotice] = useState<ScreenNotice | null>(null);
   const [panelError, setPanelError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -47,32 +42,38 @@ export function MediaLibrary({ slotOf }: { slotOf?: (apply: ApplyAltDrafts) => R
   function onOpen(id: string) {
     const item = library.items.find((other) => other.id === id);
     if (!item) return;
-    const start = altDraftOf(item);
+    const start = altOf(item);
     setOpenId(id);
-    setDraft(start);
-    setBaseline(start);
+    setAlt(start);
+    setSaved(start);
     setPanelError(null);
     setNotice(null);
   }
 
-  /** The panel's handler for the Translate button: fills the box, marks it Draft, unticks "I checked". */
-  const applyDrafts: ApplyAltDrafts = useCallback((target, fields) => {
-    setDraft((previous) => applyAltDrafts(previous, target, fields));
-  }, []);
-
-  async function onSave() {
-    if (!open || busy) return;
+  /** One save_alt. `publish`: Arabic and Spanish go live with the English (no review step, owner 2026-10-14). */
+  async function persist(next: AltText, publish: boolean): Promise<boolean> {
+    if (!open) return false;
     setBusy(true);
     setPanelError(null);
-    const body = buildSaveAlt(open.id, draft);
+    const body = buildSaveAlt(open.id, next, publish);
     const reply = await opsSend<{ id: string; affects_site: boolean }>(PATH, body);
     setBusy(false);
     if (!reply.ok) {
       setPanelError(errorText(kit, reply.error));
-      return;
+      return false;
     }
     setItems((known) => known.map((item) => (item.id === open.id ? itemAfterSave(item, body) : item)));
-    setBaseline(draft);
+    const stored = { en: body.alt.en, ar: body.alt.ar ?? "", es: body.alt.es ?? "" };
+    setAlt(stored);
+    setSaved(stored);
+    return true;
+  }
+
+  /** The kit's Save: the English as typed and the Arabic and Spanish the kit filled. A published photo stays published. */
+  function onSave(payload: SavePayload, intent: SaveIntent): Promise<boolean> {
+    const next = { en: alt.en, ar: textOf(payload.translations.ar[ALT_FIELD]), es: textOf(payload.translations.es[ALT_FIELD]) };
+    const publish = intent === "publish" || (open !== null && isAltPublished(open) && payload.complete);
+    return persist(next, publish);
   }
 
   async function onDelete() {
@@ -96,9 +97,6 @@ export function MediaLibrary({ slotOf }: { slotOf?: (apply: ApplyAltDrafts) => R
     setPanelError(errorText(kit, reply.error));
   }
 
-  // 03.2-10: render <TranslateButton source={{ alt: draft.alt.en }} hasExisting={draft.alt.ar !== "" || draft.alt.es !== ""} onDrafts={applyDrafts} locale={locale} disabled={draft.alt.en.trim() === ""} /> here and nothing else; until then the slot stays empty (no fake control on the live page).
-  const translateSlot = slotOf ? slotOf(applyDrafts) : null;
-
   return (
     <>
       <MediaScreen
@@ -114,14 +112,18 @@ export function MediaLibrary({ slotOf }: { slotOf?: (apply: ApplyAltDrafts) => R
         onPickFile={library.onPickFile}
         openId={open ? open.id : null}
         onOpen={onOpen}
-        onClosePanel={() => setOpenId(null)}
-        draft={draft}
-        dirty={!sameAltDraft(draft, baseline)}
-        onAltChange={(code, text) => setDraft((previous) => ({ ...previous, alt: { ...previous.alt, [code]: text } }))}
-        onCheckedChange={(code, checked) => setDraft((previous) => ({ ...previous, checked: { ...previous.checked, [code]: checked } }))}
-        onSave={() => void onSave()}
+        onClose={() => setOpenId(null)}
+        alt={alt}
+        savedAlt={saved}
+        onAltChange={(code, text) => {
+          setPanelError(null);
+          setAlt((previous) => ({ ...previous, [code]: text }));
+        }}
+        onSave={onSave}
+        onPublish={() => persist(alt, true)}
         onDelete={() => void onDelete()}
-        translateSlot={translateSlot}
+        busy={busy}
+        send={send}
         notice={library.listError ? { kind: "error", text: library.listError } : notice}
         panelError={panelError}
       />

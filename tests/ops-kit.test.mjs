@@ -160,18 +160,36 @@ test("OPS_KIT_COPY has the same keys in en, ar and es, none empty, with the same
   }
 });
 
-test("the Spanish copy speaks tú (house rule), not usted", () => {
-  const formal = /\b(?:usted|deje|dejar[ée]|elija|revise|inténtelo|intentelo|inicie|abra|cierre|actualice|quítelo|publique|arrastre|seleccione|escriba|elimine|guarde|pulse|haga|vuelva|espere)\b/i;
-  for (const [key, value] of leaves(OPS_KIT_COPY.es)) assert.equal(formal.test(value), false, `es.${key}: "${value}" is formal`);
+test("the Spanish copy speaks usted (owner, 2026-10-14: all dashboard copy), never tú", () => {
+  const informal = /\b(?:tú|tu|te|deja|elige|revisa|inténtalo|intentalo|inicia|abre|cierra|actualiza|quítalo|publica|arrastra|selecciona|escribe|elimina|guarda|pulsa|haz|vuelve)\b/i;
+  for (const [key, value] of leaves(OPS_KIT_COPY.es)) assert.equal(informal.test(value), false, `es.${key}: "${value}" is informal`);
   const es = OPS_KIT_COPY.es;
-  assert.equal(es.unpublishFirst, "Primero deja de publicarlo");
-  assert.equal(es.dragHandle, "Arrastra para reordenar");
-  assert.equal(es.invalidField, "Revisa {field} e inténtalo de nuevo.");
-  assert.equal(es.errors.not_owner, "Esta sesión no es la del propietario. Inicia sesión de nuevo.");
-  assert.equal(es.errors.network, "Sin conexión. Revisa tu internet e inténtalo de nuevo.");
-  assert.equal(es.datePickLast, "Elige el último día. Elige el mismo día otra vez para un solo día.");
-  assert.equal(es.datePickAfter, "Elige un día a partir del {date}.");
-  assert.equal(readFileSync("lib/copy/ops-kit.ts", "utf8").includes('formal "usted"'), false, "the file header still says usted");
+  assert.equal(es.unpublishFirst, "Primero deje de publicarlo");
+  assert.equal(es.dragHandle, "Arrastre para reordenar");
+  assert.equal(es.invalidField, "Revise {field} e inténtelo de nuevo.");
+  assert.equal(es.errors.not_owner, "Esta sesión no es la del propietario. Inicie sesión de nuevo.");
+  assert.equal(es.errors.network, "Sin conexión. Revise su conexión a internet e inténtelo de nuevo.");
+  assert.equal(es.datePickLast, "Elija el último día. Elija el mismo día otra vez para un solo día.");
+  assert.equal(es.datePickAfter, "Elija un día a partir del {date}.");
+  const header = readFileSync("lib/copy/ops-kit.ts", "utf8");
+  assert.match(header, /formal "usted"/, "the file header says usted");
+  assert.equal(header.includes('informal "tú"'), false);
+});
+
+test("the editor lines 03.2-06 drafted (its `panel` group) are taken verbatim in en, ar and es", () => {
+  assert.equal(OPS_KIT_COPY.en.editor.translationsUpdated, "Arabic and Spanish updated");
+  assert.equal(OPS_KIT_COPY.en.editor.editTranslations, "Edit translations");
+  assert.equal(OPS_KIT_COPY.ar.editor.editTranslations, "تعديل الترجمات");
+  assert.equal(OPS_KIT_COPY.es.editor.translationsUpdated, "Árabe y español actualizados");
+  assert.equal(
+    OPS_KIT_COPY.en.editor.translationFailed,
+    "The Arabic and Spanish translation did not finish, so Publish is waiting. Save again to try once more, or open Edit translations and type them yourself.",
+  );
+  assert.deepEqual(OPS_KIT_COPY.en.editor.sections, { text: "Text", price: "Price", photo: "Photo", settings: "Settings", connections: "Connections" });
+  // No language tabs, Draft notes or "I checked" box any more (owner, 2026-10-14).
+  for (const gone of ["languageTabs", "sections", "draftNote", "checkedTranslation", "missing"]) assert.equal(gone in OPS_KIT_COPY.en, false, gone);
+  // The limit line keeps the reset time of the translate route; no price, no rate.
+  for (const locale of LOCALES) assert.match(OPS_KIT_COPY[locale].editor.translationLimit, /04:00/);
 });
 
 test("fillCopy fills named tokens and leaves an unknown one as written", () => {
@@ -495,9 +513,9 @@ test("the kit exports the names of the plan's interface block", () => {
     "use-dashboard-locale.ts": ["useDashboardLocale"],
     "publish-check.ts": ["missingForPublish"],
     "error-text.ts": ["errorText"],
-    "locale-tabs.tsx": ["LocaleTabs"],
-    "edit-panel.tsx": ["EditPanel"],
+    "edit-page.tsx": ["EditPage"],
     "publish-bar.tsx": ["PublishBar"],
+    "auto-translate.ts": ["planTranslation", "applyReplies", "requestTranslations", "pendingFields", "sendable"],
     "list-table.tsx": ["ListTable"],
     "connect-picker.tsx": ["ConnectPicker"],
     "status-chip.tsx": ["StatusChip"],
@@ -510,6 +528,7 @@ test("the kit exports the names of the plan's interface block", () => {
     "ops-client.ts": ["OpsResponse", "OpsError"],
     "publish-check.ts": ["PublishEntity", "MissingItem"],
     "list-table.tsx": ["Column"],
+    "edit-page.tsx": ["EditSection", "TranslatableField", "SavePayload", "SaveIntent"],
     "api-types.ts": ["Locale3", "TranslationState", "TextStatus", "MediaRef", "Translations", "OpsError", "PublishResult", "SiteStatus"],
   };
   for (const [file, names] of Object.entries(types)) {
@@ -629,7 +648,7 @@ test("PublishBar, new and incomplete: Save and a disabled Publish, with the miss
   assert.match(html, /<li>Arabic name<\/li><li>Spanish name<\/li><li>A photo<\/li>/);
   assert.equal(html.includes("Save and update site"), false);
   assert.equal(html.includes("Unpublish"), false);
-  assert.equal(html.includes(">Delete<"), false, "a new item has nothing to delete");
+  assert.equal(html.includes(">Delete<"), false, "Delete is the editor page's link, not a bar button");
 });
 
 test("PublishBar, complete and unpublished: Publish is live and nothing is listed", () => {
@@ -638,27 +657,57 @@ test("PublishBar, complete and unpublished: Publish is live and nothing is liste
   assert.equal(html.includes("Publish needs:"), false);
 });
 
-test("PublishBar, published: Save and update site and Unpublish; Delete waits for Unpublish; a warning in words", () => {
-  const html = bar({ ...barProps, isPublished: true, warnings: ["no_base_rate", "no_price"], onDelete() {} });
+test("PublishBar, published: Save and update site and Unpublish; a warning in words", () => {
+  const html = bar({ ...barProps, isPublished: true, warnings: ["no_base_rate", "no_price"] });
   assert.equal(isDisabled(buttonTag(html, "Save and update site")), false);
   assert.equal(isDisabled(buttonTag(html, "Unpublish")), false);
-  assert.equal(isDisabled(buttonTag(html, "Delete")), true);
-  assert.match(html, />Unpublish first</);
   assert.match(html, /Published without a nightly rate: guests cannot book it yet\./);
   assert.match(html, /Published without a price: it is not offered as an add-on\./);
   assert.equal(/>Publish</.test(html), false, "no Publish on a published item");
   assert.equal(/>Save</.test(html), false, "Save is Save and update site");
 });
 
-test("PublishBar, unpublished with onDelete: Delete is live; without onDelete nothing is drawn (journeys)", () => {
-  assert.equal(isDisabled(buttonTag(bar({ ...barProps, onDelete() {} }), "Delete")), false);
-  assert.equal(bar({ ...barProps, deleteLabel: "x" }).includes(">x<"), false);
-  assert.match(bar({ ...barProps, onDelete() {}, deleteLabel: "Delete destination" }), />Delete destination</);
+test("PublishBar: Save is outlined and Publish is the teal one; no Unpublish without onUnpublish; no Publish without onPublish", () => {
+  const html = bar(barProps);
+  assert.match(buttonTag(html, "Save"), /border-teal[^"]*bg-transparent|bg-transparent[^"]*border-teal/);
+  assert.match(buttonTag(html, "Publish"), /bg-teal/);
+  assert.match(buttonTag(html, "Publish"), /text-ivory/);
+  assert.equal(/bg-gold/.test(html), false, "gold is never a fill");
+  const live = bar({ ...barProps, isPublished: true, onUnpublish: undefined });
+  assert.equal(live.includes("Unpublish"), false);
+  const plain = bar({ ...barProps, onPublish: undefined });
+  assert.equal(/>Publish</.test(plain), false);
+  assert.match(buttonTag(plain, "Save"), /bg-teal/, "Save is the one teal button");
+});
+
+test("PublishBar: Save waits for a change, except on a new item or with a translation to try again", () => {
+  assert.equal(isDisabled(buttonTag(bar({ ...barProps, dirty: false }), "Save")), true);
+  assert.equal(isDisabled(buttonTag(bar({ ...barProps, dirty: false, savePending: true }), "Save")), false);
+  assert.equal(isDisabled(buttonTag(bar({ ...barProps, dirty: false, isNew: true }), "Save")), false);
+});
+
+test("PublishBar: a translation that did not finish holds Publish and names its alert", () => {
+  const html = bar({ ...barProps, translationAlertId: "t-alert" });
+  const tag = buttonTag(html, "Publish");
+  assert.equal(isDisabled(tag), true);
+  assert.match(tag, /aria-describedby="t-alert"/);
+});
+
+test("PublishBar parts: actions draw only buttons, notes draw only the lists and alerts", () => {
+  const props = { ...barProps, missing: [{ locale: "ar", field: "name" }], idBase: "k" };
+  const actions = bar({ ...props, part: "actions" });
+  const notes = bar({ ...props, part: "notes" });
+  assert.match(actions, /<button/);
+  assert.equal(actions.includes("Publish needs:"), false);
+  assert.match(notes, /id="k-gaps"/);
+  assert.equal(notes.includes("<button"), false);
+  assert.match(buttonTag(actions, "Publish"), /aria-describedby="k-gaps"/, "the button in one part names the list in the other");
 });
 
 test("PublishBar, busy: every button is disabled", () => {
-  const html = bar({ ...barProps, busy: true, onDelete() {} });
-  for (const label of ["Save", "Publish", "Delete"]) assert.equal(isDisabled(buttonTag(html, label)), true, label);
+  const html = bar({ ...barProps, busy: true });
+  for (const label of ["Publish"]) assert.equal(isDisabled(buttonTag(html, label)), true, label);
+  assert.match(html, /<button[^>]*disabled=""[^>]*aria-busy="true"/, "Save shows it is working");
 });
 
 test("PublishBar: a 409 publish_incomplete shows the server's list in the same words and blocks Publish", () => {
@@ -806,4 +855,194 @@ test("StatusChip says Published or Draft in the language it is given", async () 
   assert.match(chip({ published: false, locale: "en" }), />Draft</);
   assert.match(chip({ published: true, locale: "ar" }), />منشور</);
   assert.match(chip({ published: false, locale: "es" }), />Borrador</);
+});
+
+// ---- automatic translation (kit panel B, owner 2026-10-14) ------------------------------------------------------------
+
+const auto = await loadTs(`${KIT}/auto-translate.ts`);
+const none = new Set();
+const both = (ar, es = ar) => ({ ar, es });
+
+test("plan: a changed English field is sent to both targets; an unchanged one with translations is not", () => {
+  const plan = auto.planTranslation(
+    { name: "Casa Azul", summary: "Old summary" },
+    { name: "Casa Roja", summary: "Old summary" },
+    both({ name: "قديم", summary: "ملخص" }, { name: "Vieja", summary: "Resumen" }),
+    none,
+  );
+  assert.deepEqual(plan.send, { ar: { name: "Casa Azul" }, es: { name: "Casa Azul" } });
+  assert.deepEqual(plan.clear, { ar: [], es: [] });
+  assert.equal(auto.plansAnything(plan), true);
+});
+
+test("plan: an empty translation is filled even when the English did not change (new item, earlier failure)", () => {
+  const plan = auto.planTranslation({ alt: "Pool at dusk" }, { alt: "Pool at dusk" }, both({ alt: null }, { alt: "Piscina" }), none);
+  assert.deepEqual(plan.send, { ar: { alt: "Pool at dusk" }, es: {} });
+  const pending = auto.pendingFields(plan);
+  assert.equal(pending.ar.has("alt"), true);
+  assert.equal(pending.es.has("alt"), false);
+});
+
+test("plan: a translation Maria typed herself is left alone; an English emptied empties its translations", () => {
+  const touched = new Set([auto.touchKey("ar", "name")]);
+  const plan = auto.planTranslation({ name: "New", note: "" }, { name: "Old", note: "Was" }, both({ name: "يدوي", note: "كان" }, { name: "Viejo", note: "Era" }), touched);
+  assert.deepEqual(plan.send, { ar: {}, es: { name: "New" } });
+  assert.deepEqual(plan.clear, { ar: ["note"], es: ["note"] });
+});
+
+test("plan: nothing changed and every translation present asks nothing", () => {
+  const plan = auto.planTranslation({ alt: "A" }, { alt: "A" }, both({ alt: "ب" }, { alt: "B" }), none);
+  assert.equal(auto.plansAnything(plan), false);
+});
+
+test("plan: a list is sent only whole (every item has text), like the route", () => {
+  assert.equal(auto.sendable(["a", "b"]), true);
+  assert.equal(auto.sendable(["a", " "]), false);
+  assert.equal(auto.sendable([]), false);
+  assert.equal(auto.sendable("  "), false);
+  const plan = auto.planTranslation({ amenities: ["Pool", ""] }, { amenities: [] }, both({ amenities: null }), none);
+  assert.deepEqual(plan.send, { ar: {}, es: {} });
+});
+
+const okReply = (target, fields, left) => ({ ok: true, target, fields, ...(left ? { left } : {}) });
+const errReply = (status, code) => ({ ok: false, status, error: { code, field: null, locale: null, detail: null } });
+
+test("apply: both answers fill their fields and the save is complete", () => {
+  const plan = auto.planTranslation({ alt: "Pool" }, { alt: "" }, both({ alt: null }), none);
+  const out = auto.applyReplies(plan, both({ alt: null }), { ar: okReply("ar", { alt: "مسبح" }), es: okReply("es", { alt: "Piscina" }) });
+  assert.deepEqual(out.translations, { ar: { alt: "مسبح" }, es: { alt: "Piscina" } });
+  assert.equal(out.complete, true);
+  assert.equal(out.asked, true);
+  assert.equal(out.reason, null);
+});
+
+test("apply: a failed target empties the fields it was asked for (old text of old English never stays)", () => {
+  const plan = auto.planTranslation({ alt: "New" }, { alt: "Old" }, both({ alt: "قديم" }, { alt: "Viejo" }), none);
+  const out = auto.applyReplies(plan, both({ alt: "قديم" }, { alt: "Viejo" }), { ar: okReply("ar", { alt: "جديد" }), es: errReply(502, "translate_failed") });
+  assert.deepEqual(out.translations, { ar: { alt: "جديد" }, es: { alt: null } });
+  assert.equal(out.complete, false);
+  assert.equal(out.reason, "failed");
+});
+
+test("apply: the reason is the daily limit before busy before failed; a field left by the AI is a failure", () => {
+  const plan = auto.planTranslation({ a: "x", b: "y" }, {}, both({}), none);
+  const limit = auto.applyReplies(plan, both({}), { ar: errReply(503, "translate_busy"), es: errReply(429, "translate_limit") });
+  assert.equal(limit.reason, "limit");
+  const busy = auto.applyReplies(plan, both({}), { ar: errReply(503, "translate_busy"), es: okReply("es", { a: "x2", b: "y2" }) });
+  assert.equal(busy.reason, "busy");
+  const left = auto.applyReplies(plan, both({}), { ar: okReply("ar", { a: "س" }, ["b"]), es: okReply("es", { a: "x2", b: "y2" }) });
+  assert.deepEqual(left.translations.ar, { a: "س", b: null });
+  assert.equal(left.complete, false);
+  assert.equal(left.reason, "failed");
+  const lost = auto.applyReplies(plan, both({}), { ar: null, es: okReply("es", { a: "x2", b: "y2" }) });
+  assert.equal(lost.reason, "failed", "a request that threw or timed out");
+});
+
+test("request: one POST per target that has fields, through send, with the 45 s timeout; a throw is a null answer", async () => {
+  const calls = [];
+  const send = async (path, body, options) => {
+    calls.push({ path, body, options });
+    if (body.target === "es") throw new Error("boom");
+    return okReply("ar", { alt: "مسبح" });
+  };
+  const plan = auto.planTranslation({ alt: "Pool" }, { alt: "Pool" }, both({ alt: null }, { alt: null }), none);
+  const replies = await auto.requestTranslations(plan, send);
+  assert.deepEqual(calls.map((c) => [c.path, c.body.target, c.options.timeoutMs]), [
+    ["/api/ops/translate", "ar", 45_000],
+    ["/api/ops/translate", "es", 45_000],
+  ]);
+  assert.deepEqual(calls[0].body.fields, { alt: "Pool" });
+  assert.equal(replies.ar.ok, true);
+  assert.equal(replies.es, null);
+  const onlyAr = auto.planTranslation({ alt: "Pool" }, { alt: "Pool" }, both({ alt: null }, { alt: "Piscina" }), none);
+  calls.length = 0;
+  await auto.requestTranslations(onlyAr, send);
+  assert.deepEqual(calls.map((c) => c.body.target), ["ar"]);
+});
+
+test("auto-translate.ts sends only through the given send (ops-client in the page): no fetch, no React", () => {
+  const source = read("auto-translate.ts");
+  assert.equal(/\bfetch\s*\(|from ["']react["']/.test(source), false);
+  assert.match(read("edit-page.tsx"), /send = opsSend/);
+});
+
+// ---- the editor page (server render: English, no browser) ----------------------------------------------------------
+
+const page = await loadRenderer(`${KIT}/edit-page.tsx`, "EditPage");
+const pageProps = {
+  openKey: "r1",
+  list: "LIST-MARKER",
+  backLabel: "Destinations",
+  onClose() {},
+  title: "[Name]",
+  isPublished: false,
+  dirty: false,
+  missing: [],
+  error: null,
+  english: { name: "[Name]" },
+  savedEnglish: { name: "[Name]" },
+  translations: { ar: { name: "[AR]" }, es: { name: "[ES]" } },
+  translationFields: [{ name: "name", label: "Name" }],
+  onTranslationChange() {},
+  onSave: async () => true,
+  onPublish() {},
+  onDelete() {},
+  sections: [
+    { key: "text", title: "Text", translatable: true, content: "TEXT-BODY" },
+    { key: "settings", title: "Settings", column: "side", content: "SIDE-BODY" },
+  ],
+};
+
+test("EditPage open: the list stays in the page, hidden; a back link, the title, the status, Save and Publish", () => {
+  const html = page(pageProps);
+  assert.match(html, /<div hidden="">LIST-MARKER<\/div>/);
+  assert.match(html, /<button type="button"[^>]*>(?:<svg[\s\S]*?<\/svg>)?Destinations<\/button>/);
+  assert.match(html, /<h1[^>]*tabindex="-1"[^>]*>\[Name\]<\/h1>/);
+  assert.match(html, />Draft</);
+  assert.match(html, />Save</);
+  assert.match(html, />Publish</);
+  assert.equal(/role="tablist"|role="tab"/.test(html), false, "no tabs");
+});
+
+test("EditPage: cards in two columns from lg (main spans two of three), the side card after the main one, one column below", () => {
+  const html = page(pageProps);
+  assert.match(html, /class="grid min-w-0 items-start gap-6 lg:grid-cols-3"/);
+  assert.match(html, /lg:col-span-2/);
+  assert.ok(html.indexOf("TEXT-BODY") < html.indexOf("SIDE-BODY"));
+  const single = page({ ...pageProps, sections: [pageProps.sections[0]] });
+  assert.equal(single.includes("lg:grid-cols-3"), false);
+});
+
+test("EditPage: the English card says Write in English and carries the Edit translations link, closed", () => {
+  const html = page(pageProps);
+  assert.match(html, /Write in English\. Arabic and Spanish are added when you save\./);
+  assert.match(html, /aria-expanded="false"[^>]*>[\s\S]*?Edit translations<\/button>/);
+  assert.equal(html.includes("[AR]"), false, "the boxes open only on the link");
+});
+
+test("EditPage: Delete is a link-style button after the side cards; off on a published item with Unpublish first", () => {
+  const html = page(pageProps);
+  assert.match(html, /text-error underline[^"]*"[^>]*>Delete<\/button>|>Delete<\/button>/);
+  assert.ok(html.indexOf("SIDE-BODY") < html.indexOf(">Delete<"));
+  const live = page({ ...pageProps, isPublished: true });
+  assert.match(live, /<button type="button" disabled=""[^>]*>Delete<\/button>/);
+  assert.match(live, />Unpublish first</);
+  assert.match(live, />Save and update site</);
+  assert.equal(page({ ...pageProps, isNew: true }).includes(">Delete<"), false, "a new item has nothing to delete");
+});
+
+test("EditPage: an Arabic or Spanish gap the next Save fills does not hold Publish; any other gap does", () => {
+  const pendingAr = page({ ...pageProps, translations: { ar: { name: null }, es: { name: "[ES]" } }, missing: [{ locale: "ar", field: "name" }] });
+  assert.equal(pendingAr.includes("Publish needs:"), false);
+  assert.equal(isDisabled(buttonTag(pendingAr, "Publish")), false);
+  assert.equal(isDisabled(buttonTag(pendingAr, "Save")), false, "Save has a translation to fetch");
+  const photo = page({ ...pageProps, missing: [{ locale: null, field: "hero_media_id" }] });
+  assert.match(photo, /Publish needs:/);
+  assert.equal(isDisabled(buttonTag(photo, "Publish")), true);
+});
+
+test("EditPage closed: only the list", () => {
+  const html = page({ ...pageProps, openKey: null });
+  assert.match(html, /^<div>LIST-MARKER<\/div>/);
+  assert.equal(html.includes("<h1"), false);
 });
