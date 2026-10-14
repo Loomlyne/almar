@@ -32,6 +32,9 @@ export function Select({
   dir,
   id,
   className,
+  invalid,
+  describedBy,
+  required,
 }: {
   value: string | null;
   options: readonly SelectOption[];
@@ -45,6 +48,12 @@ export function Select({
   dir?: "ltr" | "rtl";
   id?: string;
   className?: string;
+  /** Marks the trigger aria-invalid (and its border the error colour) while true. */
+  invalid?: boolean;
+  /** The id of the element holding the trigger's message (aria-describedby). */
+  describedBy?: string;
+  /** Sets aria-required on the trigger. */
+  required?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const selected = value === null ? undefined : (options.find((option) => option.value === value) ?? options[0]);
@@ -62,11 +71,15 @@ export function Select({
       <RadixSelect.Trigger
         id={id}
         aria-label={name}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
+        aria-required={required || undefined}
         className={cn(
           "inline-flex h-control min-w-24 cursor-pointer items-center justify-between gap-3 rounded-none border px-4 font-body text-caption uppercase tracking-kicker transition-colors duration-fast ease-standard",
           tone === "on-image"
             ? "border-ivory/70 bg-transparent text-ivory hover:border-ivory"
             : "border-muted bg-surface text-ink hover:border-ink",
+          "aria-invalid:border-error",
           className,
         )}
       >

@@ -13,6 +13,7 @@ import { Reveal } from "../ui/reveal";
 import { SectionHead } from "../ui/section";
 import { ContactDetailsBlock } from "./contact/contact-details";
 import { CONTACT_PATH, contactLinks } from "./contact/contact-links";
+import { InquiryForm, InquiryStart } from "./contact/inquiry-form";
 
 export { contactMetadata } from "./contact/contact-meta";
 
@@ -26,10 +27,10 @@ const PAGE_LINKS = [
 
 /**
  * /contact, /ar/contact and /es/contact (design 12.2): the Framer page on job 11's parts. Title block, divider, two equal
- * columns from 1024 px (the details at the start, Travel With Confidence at the end), divider, the team (nothing today).
- * Part A has no form, so the end column holds Travel With Confidence and no column is empty (S3-3). Plan 26 moves that
- * block below the columns, centred, with the outlined `Start Your Inquiry`, and puts the framed form box (with
- * `Message on WhatsApp`) in the end column (S3-25).
+ * columns from 1024 px (the details at the start, the framed inquiry form box with `Message on WhatsApp` at the end),
+ * Travel With Confidence centred below with the outlined `Start Your Inquiry`, divider, the team (nothing today).
+ * The form box and `Start Your Inquiry` appear only after hydration (plan 26): without JavaScript the columns hold the
+ * details alone and Travel With Confidence follows them, so no control is shown that cannot work.
  */
 export async function ContactPage({ locale }: { locale: Locale }) {
   const copy = CONTACT_PAGE_COPY[locale];
@@ -72,15 +73,28 @@ export async function ContactPage({ locale }: { locale: Locale }) {
             <section aria-labelledby="contact-details-heading">
               <ContactDetailsBlock details={details} links={links} copy={copy} />
             </section>
-            <section aria-labelledby="contact-confidence-heading" className="grid content-start gap-6">
-              <SectionHead
-                tone="plain"
-                heading={copy.confidence.heading}
-                headingId="contact-confidence-heading"
-                intro={copy.confidence.body}
-              />
-            </section>
+            <InquiryForm
+              locale={locale}
+              copy={copy.form}
+              whatsappCta={copy.whatsappCta}
+              newTabLabel={copy.newTab}
+              whatsappHref={links.whatsappMessage}
+              mailto={links.mailto}
+              email={details.email}
+            />
           </div>
+        </PageShell>
+        <PageShell className="py-16 md:py-section">
+          <section aria-labelledby="contact-confidence-heading" className="grid justify-items-center gap-6">
+            <SectionHead
+              tone="plain"
+              align="center"
+              heading={copy.confidence.heading}
+              headingId="contact-confidence-heading"
+              intro={copy.confidence.body}
+            />
+            <InquiryStart label={copy.startInquiry} />
+          </section>
         </PageShell>
         <PageShell>
           <Divider />
