@@ -8,7 +8,7 @@ import { OPS_KIT_COPY } from "../../lib/copy/ops-kit";
 import { OPS_MEDIA_COPY, type OpsMediaLocale } from "../../lib/copy/ops-media";
 import { errorText } from "./error-text";
 import { ImagePrepError, isAcceptedType, prepareImage } from "./image-prep";
-import { MAX_UPLOAD_BYTES, type MediaItem, type UploadDraft } from "./media-types";
+import type { MediaItem, UploadDraft } from "./media-types";
 import { opsFetch, opsPut } from "./ops-client";
 import type { PickerLibrary } from "./media-picker";
 
@@ -126,13 +126,10 @@ export function useMediaLibrary({
       dropPreview();
       file.current = picked;
       const base = { fileName: picked.name, bytes: picked.size, altEn: alt.current };
-      // A wrong type or a file over 15 MB is refused here: nothing is sent.
+      // A wrong type is refused here: nothing is sent. Size is not: a 20 MB phone photo re-encoded at 2560 px is about
+      // 2 MB, so only the re-encoded file is measured (prepareImage, at Upload; job 03.2-09b).
       if (!isAcceptedType(picked.type)) {
         setUpload({ ...base, previewUrl: null, phase: "rejected", error: copy.wrongType });
-        return;
-      }
-      if (picked.size > MAX_UPLOAD_BYTES) {
-        setUpload({ ...base, previewUrl: null, phase: "rejected", error: copy.tooLarge });
         return;
       }
       preview.current = URL.createObjectURL(picked);

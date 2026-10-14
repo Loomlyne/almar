@@ -317,7 +317,8 @@ export type PublishResult = {
 
 // 6 Site status (03.2-05 fills it; the client reads it from `site` in a write reply and from the almar:site event)
 export type SiteStatus = {
-  state: "up_to_date" | "updating" | "failed";
+  // "unavailable": the live site-version.json could not be read (not a 404), so no state is guessed (PR #13 finding 2).
+  state: "up_to_date" | "updating" | "failed" | "unavailable";
   requested_seq: number;
   live_seq: number;
   requested_at: string | null;

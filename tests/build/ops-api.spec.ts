@@ -6,7 +6,7 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 
 // Plan 03.2-04: the owner API (/api/ops/*) on the BUILT ops Worker (almar-ops) through local `wrangler dev` (workerd).
 //
-// Part A, every ops run: the twelve routes (03.2-09 media, 02-06 settings) exist on the ops host and fail closed without the owner (403 not_owner JSON,
+// Part A, every ops run: the fourteen routes (03.2-09 media, 02-06 settings, 03.2-05 site-status and site-update) exist on the ops host and fail closed without the owner (403 not_owner JSON,
 // no-store, noindex), the Origin and body rules hold before anything else for a non-owner too, and no other host reaches
 // them. Run with the plain test copy (no Supabase settings), as ops-runtime.spec.ts:
 //   node scripts/assemble-cloudflare.mjs --target=ops && node tests/build/make-ops-test-config.mjs
@@ -29,9 +29,11 @@ test.skip(!OPS_RUN, "runs only with an ops test config (PW_WRANGLER_CONFIG=.tmp/
 const OPS_HOST = "dashboard.almarprivatejourney.com";
 const OPS_ORIGIN = `https://${OPS_HOST}`;
 const OWNER_EMAIL = "maria@almarprivatejourney.com";
-const ROUTES = ["blocks", "catalog", "destinations", "journeys", "media", "publish", "settings", "stay-access", "stay-rates", "stays", "team", "translate"];
-// publish and translate (03.2-10) export POST only.
-const GET_ROUTES = ROUTES.filter((r) => r !== "publish" && r !== "translate");
+const ROUTES = ["blocks", "catalog", "destinations", "journeys", "media", "publish", "settings", "site-status", "site-update", "stay-access", "stay-rates", "stays", "team", "translate"];
+// publish, translate (03.2-10) and site-update (03.2-05) export POST only; site-status (03.2-05) exports GET only;
+// settings (02-06) exports both.
+const GET_ROUTES = ROUTES.filter((r) => r !== "publish" && r !== "translate" && r !== "site-update");
+const POST_ROUTES = ROUTES.filter((r) => r !== "site-status");
 
 test.use({ extraHTTPHeaders: { host: OPS_HOST } });
 
@@ -50,7 +52,7 @@ async function expectRefusal(res: Awaited<ReturnType<APIRequestContext["get"]>>,
 }
 
 test.describe("owner API on the built ops Worker: no owner session", () => {
-  test("A1. the route list holds the twelve /api/ops paths and nothing else under /api/ops", () => {
+  test("A1. the route list holds the fourteen /api/ops paths and nothing else under /api/ops", () => {
     const paths: string[] = JSON.parse(readFileSync(".open-next/almar-ops-routes.json", "utf8"));
     expect(paths.filter((p) => p.startsWith("/api/ops/")).sort()).toEqual(ROUTES.map((r) => `/api/ops/${r}`));
   });
@@ -61,7 +63,7 @@ test.describe("owner API on the built ops Worker: no owner session", () => {
   });
 
   test("A3. every POST without a session is 403 not_owner, whatever its origin, type or size (owner first)", async ({ request }) => {
-    for (const route of ROUTES) {
+    for (const route of POST_ROUTES) {
       await expectRefusal(await request.post(`/api/ops/${route}`, { headers: json, data: { action: "save", item: {} }, maxRedirects: 0 }), 403, "not_owner", route);
     }
     const variants: Array<{ headers: Record<string, string>; data: string }> = [
