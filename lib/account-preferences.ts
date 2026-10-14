@@ -41,6 +41,14 @@ export function parseAccountCurrency(value: unknown): AccountCurrency | null {
   return value === "AED" || value === "USD" || value === "EUR" ? value : null;
 }
 
+/**
+ * The currency /account shows (02-05 review, finding 4): the one the public pages use, which is the browser choice
+ * (localStorage, read through parseAccountCurrency). Her row's currency only fills an empty browser choice.
+ */
+export function shownAccountCurrency(browserChoice: unknown, profileCurrency: AccountCurrency): AccountCurrency {
+  return parseAccountCurrency(browserChoice) ?? profileCurrency;
+}
+
 export type SyncValue = AccountCurrency | "push";
 
 export function parseSyncValue(value: unknown): SyncValue | null {
@@ -111,4 +119,43 @@ export function localizedReturnPath(back: string, locale: Locale): string {
   } catch {
     return back;
   }
+}
+
+/**
+ * /account preference saves (PR #14 review): only the newest successful save may set the saved value and the browser
+ * choice. `begin()` numbers a save. `settle()` returns `store: true` only for a success newer than every earlier success
+ * (write the browser choice then); an older success arriving after a newer one changes nothing. `show` is the value to
+ * put on screen, or null to leave the screen alone: the latest click shows the new value when it saved, the newest
+ * saved value when it did not. An overtaken result shows nothing while the latest click is pending or saved, but once
+ * the latest click has failed, a success that is the newest success is shown (the screen had fallen back to an older
+ * value; the database and the browser now hold this one). `adopt()` sets the saved value without a save (the currency
+ * the page opened with).
+ */
+export function saveTracker<T>(initial: T) {
+  let generation = 0;
+  let newestSaved = 0;
+  let latestFailed = false;
+  let saved = initial;
+  return {
+    begin(): number {
+      generation += 1;
+      latestFailed = false;
+      return generation;
+    },
+    adopt(value: T): void {
+      saved = value;
+    },
+    settle(ticket: number, ok: boolean, value: T): { show: T | null; store: boolean } {
+      const store = ok && ticket > newestSaved;
+      if (store) {
+        newestSaved = ticket;
+        saved = value;
+      }
+      if (ticket === generation) {
+        latestFailed = !ok;
+        return { show: saved, store };
+      }
+      return { show: store && latestFailed ? saved : null, store };
+    },
+  };
 }

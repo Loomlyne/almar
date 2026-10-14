@@ -35,6 +35,8 @@ export const OPS_PATH_HEADER = "x-almar-ops-path";
  */
 export const OPS_LIVE_SECTIONS: readonly string[] = [
   "/content/media",
+  // 02-06: the settings page.
+  "/settings",
   // 03.2-12: the four Coming soon pages (no control on them), so the owner sees them instead of "Not ready.".
   "/content/pages",
   "/content/blog",

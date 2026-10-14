@@ -61,11 +61,11 @@ export function renderStaticNotFound(locale: Locale = "en", homeHref: string = N
 <meta name="viewport" content="width=device-width">
 <title>${copy.title}</title>
 <style>
-  body { margin: 0; background: #fffaf0; color: #262626; font-family: ${FONT_STACK[locale]}; }
+  body { margin: 0; background: var(--color-ivory, #fffaf0); color: var(--color-ink, #262626); font-family: ${FONT_STACK[locale]}; }
   main { max-width: 40rem; margin-inline: auto; padding: 4rem 1rem; }
   svg { width: 8rem; height: auto; }
   h1 { font-weight: 400; font-size: 2rem; line-height: 1.1; }
-  a { color: #1f3b40; text-decoration: none; }
+  a { color: var(--color-teal, #1f3b40); text-decoration: none; }
 </style>
 </head>
 <body>

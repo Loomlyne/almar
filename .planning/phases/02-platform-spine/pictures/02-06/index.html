@@ -1,0 +1,300 @@
+<!doctype html>
+<!--
+  Plan 02-06 pictures for the owner's signature. Static mock, no app code.
+  Open with ?view=settings|settings-error|settings-saved|maintenance&l=en|ar|es
+  Colours, sizes and corners come from tokens.json. Text marked DRAFT in strings below is new copy for the owner to
+  correct; everything else is the 02-UI-SPEC string table or the shipped dashboard copy.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02-06 pictures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic&family=Noto+Sans+Arabic:wght@400;700&display=block" rel="stylesheet">
+<style>
+@font-face { font-family: "Questa"; src: url("../../../../../brand/Font/questa-webfont/2-Questa_Regular.woff") format("woff"); font-weight: 400; }
+@font-face { font-family: "Lato"; src: url("../../../../../brand/Font/lato/Lato-Regular.ttf") format("truetype"); font-weight: 400; }
+@font-face { font-family: "Lato"; src: url("../../../../../brand/Font/lato/Lato-Bold.ttf") format("truetype"); font-weight: 700; }
+:root {
+  --ivory: #fffaf0; --surface: #ffffff; --teal: #1f3b40; --teal-tint: #d1dfe0; --gold: #d4ba8a; --ink: #262626;
+  --muted: #63615f; --line: rgb(38 38 38 / 0.16); --error: #8f2d2d; --success: #1e6b45;
+  --display: "Questa", Georgia, serif; --body: "Lato", Arial, sans-serif;
+  --control: 44px;
+}
+html[lang="ar"] { --display: "Noto Naskh Arabic", "Questa", Georgia, serif; --body: "Noto Sans Arabic", "Lato", Arial, sans-serif; }
+* { box-sizing: border-box; border-radius: 0 !important; }
+body { margin: 0; background: var(--ivory); color: var(--ink); font: 14px/1.43 var(--body); }
+html[lang="ar"] body { line-height: 1.63; }
+.num { font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+h1, h2 { font-weight: 400; margin: 0; }
+
+/* ---- ops shell (app/dashboard/(ops)/ops-shell.tsx) ---- */
+.ops-head { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  min-height: var(--control); border-bottom: 1px solid var(--line); background: var(--ivory); padding: 4px 16px; }
+.ops-brand { display: flex; align-items: center; gap: 8px; color: var(--teal); }
+.ops-brand img { width: 140px; aspect-ratio: 2/1; object-fit: contain; object-position: left; }
+html[dir="rtl"] .ops-brand img { object-position: right; }
+.ops-brand span { display: none; font: 14px var(--display); text-transform: uppercase; letter-spacing: .12em; white-space: nowrap; }
+html[lang="ar"] .ops-brand span { text-transform: none; letter-spacing: normal; }
+.menu-btn { width: var(--control); height: var(--control); display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); background: var(--surface); color: var(--teal); }
+.ops-body { display: flex; align-items: stretch; min-height: calc(100vh - 45px); }
+.rail { display: none; flex-direction: column; width: 240px; flex-shrink: 0; border-inline-end: 1px solid var(--line); background: var(--surface); padding: 8px; }
+.rail a, .rail p { display: flex; align-items: center; min-height: var(--control); padding: 0 8px; margin: 0; color: var(--ink); text-decoration: none; }
+.rail .nested { margin-inline-start: 16px; border-inline-start: 1px solid var(--line); display: flex; flex-direction: column; }
+.rail .nested a { padding-inline-start: 16px; }
+.rail .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+html[lang="ar"] .rail .kicker { text-transform: none; letter-spacing: normal; }
+.rail .current { background: var(--teal-tint); color: var(--teal); }
+.rail .end { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 16px; display: flex; flex-direction: column; gap: 16px; }
+@media (min-width: 1280px) { .rail { display: flex; } .menu-btn { display: none; } .ops-brand span { display: inline; } }
+main { flex: 1; min-width: 0; padding: 16px; }
+
+/* ---- settings form ---- */
+.settings { display: flex; flex-direction: column; gap: 24px; max-width: 640px; }
+.settings h1 { font: 32px/1.2 var(--display); color: var(--teal); }
+html[lang="ar"] .settings h1 { line-height: 1.4; }
+.group { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 16px; }
+.group h2 { font: 20px/1.3 var(--display); color: var(--teal); }
+.label { color: var(--ink); }
+.hint { font-size: 12px; color: var(--muted); }
+.color-row { display: grid; grid-template-columns: minmax(96px, 1fr) var(--control) auto; align-items: center; gap: 16px; min-height: var(--control); }
+.color-row .pick { position: relative; width: var(--control); height: var(--control); border: 1px solid var(--ink); padding: 3px; background: var(--surface); }
+.color-row .pick i { display: block; width: 100%; height: 100%; border: 1px solid var(--line); }
+.color-row .hex { color: var(--ink); min-width: 72px; }
+.err { display: flex; align-items: center; gap: 4px; color: var(--error); font-size: 14px; }
+.err svg { flex-shrink: 0; }
+.field { display: grid; gap: 8px; max-width: 384px; }
+.input, .select { display: flex; align-items: center; justify-content: space-between; min-height: var(--control); width: 100%;
+  border: 1px solid var(--ink); background: var(--surface); padding: 8px 16px; color: var(--ink); font: 14px var(--body); }
+.input.placeholder { color: var(--muted); }
+.input[aria-invalid="true"] { border-color: var(--error); }
+.select svg { color: var(--teal); flex-shrink: 0; }
+.two { display: grid; gap: 16px; }
+@media (min-width: 768px) { .two { grid-template-columns: 1fr 1fr; max-width: 640px; } }
+.fx { margin: 0; color: var(--ink); font-size: 16px; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.check { display: inline-flex; align-items: center; gap: 8px; min-height: var(--control); color: var(--ink); }
+.check i { width: 20px; height: 20px; border: 1px solid var(--ink); background: var(--surface); display: grid; place-items: center; }
+.check.on i { background: var(--teal); border-color: var(--teal); color: var(--ivory); }
+.logo-row { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.logo-well { width: 128px; height: 128px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; padding: 12px; }
+.logo-well img { max-width: 100%; max-height: 100%; }
+.logo-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: var(--control); padding: 0 24px; border: 1px solid; font: 14px var(--body); }
+.btn-primary { background: var(--teal); border-color: var(--teal); color: var(--ivory); text-transform: uppercase; letter-spacing: .12em; }
+html[lang="ar"] .btn-primary { text-transform: none; letter-spacing: normal; }
+.btn-primary[disabled] { background: var(--ivory); border-color: var(--line); color: var(--muted); }
+.btn-outline { background: transparent; color: var(--teal); border-color: var(--gold); }
+.btn-text { border-color: transparent; color: var(--teal); padding: 0; text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 4px; }
+.save-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 16px; }
+.saved { display: inline-flex; align-items: center; gap: 4px; color: var(--success); }
+
+/* ---- maintenance page (public host) ---- */
+.pub-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; }
+@media (min-width: 768px) { .pub-head { padding: 24px 32px; } }
+@media (min-width: 1280px) { .pub-head { padding: 24px 64px; } }
+.pub-head .mark { width: 112px; }
+@media (min-width: 768px) { .pub-head .mark { width: 140px; } }
+.pub-tools { display: flex; gap: 8px; }
+.pub-tools .select { width: auto; min-width: 0; gap: 8px; border-color: var(--line); background: transparent; padding: 8px 12px; }
+.closed { min-height: calc(100vh - 180px); display: grid; place-items: center; padding: 32px 16px 64px; }
+.closed-inner { max-width: 640px; width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 24px; }
+.closed h1 { font: 32px/1.2 var(--display); color: var(--teal); text-wrap: balance; }
+html[lang="ar"] .closed h1 { line-height: 1.4; }
+.closed .rule { width: 64px; height: 1px; background: var(--gold); }
+.contact { display: flex; flex-direction: column; gap: 8px; align-items: center; font-size: 16px; }
+.contact a { display: inline-flex; align-items: center; min-height: var(--control); color: var(--teal); text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 4px; }
+@media (min-width: 768px) { .contact { flex-direction: row; gap: 32px; } }
+.draft-tag { position: fixed; inset-block-end: 8px; inset-inline-end: 8px; font: 12px var(--body); color: var(--muted); background: var(--surface); border: 1px dashed var(--muted); padding: 2px 6px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const params = new URLSearchParams(location.search);
+const view = params.get("view") || "settings";
+const l = ["en", "ar", "es"].includes(params.get("l")) ? params.get("l") : "en";
+document.documentElement.lang = l;
+document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+
+// S = 02-UI-SPEC string table or shipped lib/copy; D = DRAFT for the owner.
+const T = {
+  en: {
+    dashboard: "Dashboard", menu: "Menu",
+    rail: { home: "Home", bookings: "Bookings", customers: "Customers", calendar: "Calendar", catalog: "Catalog", content: "Content",
+      pages: "Pages", blog: "Blog", team: "Team", legal: "Legal", media: "Media", settings: "Settings", profile: "Profile" },
+    signOut: "Sign out", logoutAll: "Sign out everywhere",
+    settings: "Settings",
+    brandColors: "Brand colors", // D
+    colors: ["Teal", "Charcoal", "Gold", "Ivory", "White"], // D (names from the 02-UI-SPEC row order)
+    goldHint: "Gold is used for lines only.", // D
+    type: "Type", titleFace: "Title face", bodyFace: "Body face", // D
+    arabicFaces: "Arabic keeps Noto Naskh Arabic and Noto Sans Arabic.", // D
+    money: "VAT and deposit", vat: "VAT percent", deposit: "Deposit percent", // D
+    fx: "FX rate", fxHint: "Updated daily. Not editable.", // D (label "FX rate" is shipped)
+    maintenance: "Maintenance", maintenanceOn: "Maintenance is on", // S
+    maintenanceHint: "When saved, the public site shows the closed page. This dashboard stays open.", // D
+    logo: "Logo", upload: "Upload", logoHint: "PNG, JPEG or WebP, square, up to 1 MB", removeLogo: "Remove logo", // Upload S (media), hint D, Remove S
+    langCurrency: "Your language and currency", language: "Language", currency: "Currency", // D
+    save: "Save", saved: "Settings saved.", contrast: "The contrast is too low.", twoDecimals: "Use two decimal places.", // S
+    closed: "ALMAR Private Journey is closed for a short time.", // S
+    langName: "English",
+  },
+  ar: {
+    dashboard: "لوحة التحكم", menu: "القائمة",
+    rail: { home: "الرئيسية", bookings: "الحجوزات", customers: "العملاء", calendar: "التقويم", catalog: "الكتالوج", content: "المحتوى",
+      pages: "الصفحات", blog: "المدونة", team: "الفريق", legal: "القانوني", media: "الوسائط", settings: "الإعدادات", profile: "الملف الشخصي" },
+    signOut: "تسجيل الخروج", logoutAll: "تسجيل الخروج من كل مكان",
+    settings: "الإعدادات",
+    brandColors: "ألوان العلامة",
+    colors: ["أخضر مزرق", "فحمي", "ذهبي", "عاجي", "أبيض"],
+    goldHint: "يُستخدم الذهبي للخطوط فقط.",
+    type: "الخطوط", titleFace: "خط العناوين", bodyFace: "خط النص",
+    arabicFaces: "تبقى العربية بخطَّي Noto Naskh Arabic وNoto Sans Arabic.",
+    money: "الضريبة والعربون", vat: "نسبة ضريبة القيمة المضافة", deposit: "نسبة العربون",
+    fx: "سعر الصرف", fxHint: "يُحدَّث يومياً. غير قابل للتعديل.",
+    maintenance: "الصيانة", maintenanceOn: "وضع الصيانة مفعّل",
+    maintenanceHint: "بعد الحفظ، يعرض الموقع العام صفحة الإغلاق. وتبقى لوحة التحكم هذه مفتوحة.",
+    logo: "الشعار", upload: "رفع", logoHint: "PNG أو JPEG أو WebP، مربع، حتى 1 ميغابايت", removeLogo: "إزالة الشعار",
+    langCurrency: "لغتك وعملتك", language: "اللغة", currency: "العملة",
+    save: "حفظ", saved: "تم حفظ الإعدادات.", contrast: "التباين منخفض جداً.", twoDecimals: "استخدم منزلتين عشريتين.",
+    closed: "ALMAR Private Journey مغلقة لوقت قصير.",
+    langName: "العربية",
+  },
+  es: {
+    dashboard: "Panel", menu: "Menú",
+    rail: { home: "Inicio", bookings: "Reservas", customers: "Clientes", calendar: "Calendario", catalog: "Catálogo", content: "Contenido",
+      pages: "Páginas", blog: "Blog", team: "Equipo", legal: "Legal", media: "Medios", settings: "Ajustes", profile: "Perfil" },
+    signOut: "Cerrar sesión", logoutAll: "Cerrar sesión en todas partes",
+    settings: "Ajustes",
+    brandColors: "Colores de marca",
+    colors: ["Verde azulado", "Carbón", "Dorado", "Marfil", "Blanco"],
+    goldHint: "El dorado se usa solo en líneas.",
+    type: "Tipografía", titleFace: "Fuente de títulos", bodyFace: "Fuente de texto",
+    arabicFaces: "El árabe conserva Noto Naskh Arabic y Noto Sans Arabic.",
+    money: "IVA y depósito", vat: "Porcentaje de IVA", deposit: "Porcentaje de depósito",
+    fx: "Tipo de cambio", fxHint: "Se actualiza a diario. No se puede editar.",
+    maintenance: "Mantenimiento", maintenanceOn: "El mantenimiento está activado",
+    maintenanceHint: "Al guardar, el sitio público muestra la página de cierre. Este panel sigue abierto.",
+    logo: "Logotipo", upload: "Subir", logoHint: "PNG, JPEG o WebP, cuadrado, hasta 1 MB", removeLogo: "Quitar el logotipo",
+    langCurrency: "Su idioma y moneda", language: "Idioma", currency: "Moneda",
+    save: "Guardar", saved: "Ajustes guardados.", contrast: "El contraste es demasiado bajo.", twoDecimals: "Use dos decimales.",
+    closed: "ALMAR Private Journey está cerrado por un momento.",
+    langName: "Español",
+  },
+}[l];
+
+const WORDMARK = "../../../../../brand/Logo%20Typography/Stacked_Charcoal.svg";
+const MONOGRAM = "../../../../../brand/Logo%20Monogram/Curves_black.svg";
+const chevron = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+const tick = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+const alert = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 17.5v.5"/></svg>';
+
+function shell(content) {
+  const r = T.rail;
+  return `
+  <header class="ops-head">
+    <a class="ops-brand"><img alt="ALMAR" src="${WORDMARK}"><span>${T.dashboard}</span></a>
+    <button class="menu-btn" aria-label="${T.menu}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </header>
+  <div class="ops-body">
+    <nav class="rail">
+      <a>${r.home}</a><a>${r.bookings}</a><a>${r.customers}</a><a>${r.calendar}</a>
+      <a style="justify-content:space-between">${r.catalog}${chevron}</a>
+      <p class="kicker">${r.content}</p>
+      <div class="nested"><a>${r.pages}</a><a>${r.blog}</a><a>${r.team}</a><a>${r.legal}</a><a>${r.media}</a></div>
+      <a class="current" aria-current="page">${r.settings}</a><a>${r.profile}</a>
+      <div class="end"><a>${T.signOut}</a><a>${T.logoutAll}</a></div>
+    </nav>
+    <main id="content">${content}</main>
+  </div>`;
+}
+
+function settings(state) {
+  const error = state === "error";
+  const saved = state === "saved";
+  const hexes = ["#1f3b40", "#262626", "#d4ba8a", "#fffaf0", "#ffffff"];
+  if (error) hexes[0] = "#9fb8bb"; // a pale teal she tried: teal text on ivory falls to 2.01:1
+  const rows = T.colors.map((name, i) => `
+      <div class="color-row">
+        <label class="label" for="c${i}">${name}</label>
+        <span class="pick" id="c${i}" role="img" aria-label="${name}"><i style="background:${hexes[i]}"></i></span>
+        <span class="hex num">${hexes[i]}</span>
+      </div>
+      ${error && i === 0 ? `<p class="err" id="c0-msg">${alert}${T.contrast}</p>` : ""}
+      ${i === 2 ? `<p class="hint" style="margin:0">${T.goldHint}</p>` : ""}`).join("");
+  const vatValue = error ? "5.125" : "5.00";
+  const logo = saved
+    ? `<div class="logo-row"><div class="logo-well"><img alt="" src="${MONOGRAM}"></div>
+         <div class="logo-actions"><span class="btn btn-outline">${T.upload}</span><span class="hint">${T.logoHint}</span>
+         <span class="btn btn-text">${T.removeLogo}</span></div></div>`
+    : `<div class="logo-row"><div class="logo-well"><img alt="" src="${WORDMARK}"></div>
+         <div class="logo-actions"><span class="btn btn-outline">${T.upload}</span><span class="hint">${T.logoHint}</span></div></div>`;
+  return `
+  <div class="settings">
+    <h1>${T.settings}</h1>
+    <section class="group"><h2>${T.brandColors}</h2>${rows}</section>
+    <section class="group"><h2>${T.type}</h2>
+      <div class="two">
+        <div class="field"><span class="label">${T.titleFace}</span><span class="select" style="font-family:Questa">Questa${chevron}</span></div>
+        <div class="field"><span class="label">${T.bodyFace}</span><span class="select" style="font-family:Lato">Lato${chevron}</span></div>
+      </div>
+      <p class="hint" style="margin:0">${T.arabicFaces}</p>
+    </section>
+    <section class="group"><h2>${T.money}</h2>
+      <div class="two">
+        <div class="field"><span class="label">${T.vat}</span><span class="input num" ${error ? 'aria-invalid="true"' : ""} style="justify-content:flex-start">${vatValue}</span>
+          ${error ? `<p class="err" style="margin:0">${alert}${T.twoDecimals}</p>` : ""}</div>
+        <div class="field"><span class="label">${T.deposit}</span><span class="input num" style="justify-content:flex-start">30.00</span></div>
+      </div>
+      <div class="field" style="max-width:none"><span class="label">${T.fx}</span>
+        <p class="fx"><span class="num">USD/AED 3.6725</span><span class="num">USD/EUR 0.8614</span></p>
+        <span class="hint">${T.fxHint}</span></div>
+    </section>
+    <section class="group"><h2>${T.maintenance}</h2>
+      <label class="check ${saved ? "on" : ""}"><i>${saved ? tick : ""}</i>${T.maintenanceOn}</label>
+      <p class="hint" style="margin:0">${T.maintenanceHint}</p>
+    </section>
+    <section class="group"><h2>${T.logo}</h2>${logo}</section>
+    <section class="group"><h2>${T.langCurrency}</h2>
+      <div class="two">
+        <div class="field"><span class="label">${T.language}</span><span class="select">${T.langName}${chevron}</span></div>
+        <div class="field"><span class="label">${T.currency}</span><span class="select num">AED${chevron}</span></div>
+      </div>
+    </section>
+    <div class="save-row">
+      <button class="btn btn-primary" disabled>${T.save}</button>
+      ${saved ? `<p class="saved" role="status" style="margin:0">${tick}${T.saved}</p>` : ""}
+    </div>
+  </div>`;
+}
+
+function maintenance() {
+  return `
+  <header class="pub-head">
+    <img class="mark" alt="ALMAR Private Journey" src="${WORDMARK}">
+    <div class="pub-tools">
+      <span class="select">${T.langName}${chevron}</span>
+      <span class="select num">AED${chevron}</span>
+    </div>
+  </header>
+  <main id="content" class="closed">
+    <div class="closed-inner">
+      <h1>${T.closed}</h1>
+      <span class="rule" aria-hidden="true"></span>
+      <div class="contact">
+        <a class="num" href="tel:+971563883302">+971 56 388 3302</a>
+        <a href="mailto:inquiries@almarprivatejourney.com">inquiries@almarprivatejourney.com</a>
+      </div>
+    </div>
+  </main>`;
+}
+
+const app = document.getElementById("app");
+if (view === "maintenance") app.innerHTML = maintenance();
+else app.innerHTML = shell(settings(view === "settings-error" ? "error" : view === "settings-saved" ? "saved" : "clean"));
+app.insertAdjacentHTML("beforeend", `<span class="draft-tag">DRAFT 02-06 · ${view} · ${l}</span>`);
+</script>
+</body>
+</html>

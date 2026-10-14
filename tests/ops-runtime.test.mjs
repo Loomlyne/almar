@@ -134,7 +134,7 @@ test("OPS_LIVE_SECTIONS pins all five wired content sections (03.2-09 media, 03.
     assert.equal(isLiveOpsPath(`/dashboard${section}`), true, `/dashboard${section} (rewrite target)`);
     assert.equal(isLiveOpsPath(`${section}/`), true, `${section}/ (trailing slash)`);
   }
-  for (const path of ["/content", "/content/team", "/content/pages-old", "/catalog/packages", "/settings"]) assert.equal(isLiveOpsPath(path), false, path);
+  for (const path of ["/content", "/content/team", "/content/pages-old", "/catalog/packages"]) assert.equal(isLiveOpsPath(path), false, path);
   assert.equal(new Set(OPS_LIVE_SECTIONS).size, OPS_LIVE_SECTIONS.length, "no section is listed twice");
 });
 

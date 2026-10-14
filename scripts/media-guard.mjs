@@ -29,6 +29,12 @@ import { FORBIDDEN_HOSTS, REPO_ROOT, defaultPaths, isMain, publicDocuments, read
 const SAME_ORIGIN_BRAND_ASSET_RE = /^\/_next\/static\/media\/(?!\.+$)[A-Za-z0-9._-]+$/;
 
 /**
+ * Plan 02-06: the files the assembler writes to out/brand/ from Settings (the wordmark copy and the saved logo, which
+ * replaces the nav wordmark and shows on the maintenance page). Exactly these names, same origin.
+ */
+const SITE_BRAND_FILE_RE = /^\/brand\/(?:wordmark\.svg|logo\.(?:webp|png|jpg))$/;
+
+/**
  * The light footer's wordmark is not a file: components/ui/footer.tsx writes the brand SVG markup into its <img src>
  * as `data:image/svg+xml;charset=utf-8,<encodeURIComponent(markup)>`. Inline markup is no network request, so it
  * cannot reach a forbidden host, and the guard lets it through, but only for an <img src> (never an og:image, never a
@@ -201,6 +207,7 @@ export function scanOut(outDir, base, { documents = publicDocuments(), manifestK
     for (const ref of imageReferences(html)) {
       images++;
       if (ref.kind !== "og:image" && SAME_ORIGIN_BRAND_ASSET_RE.test(ref.url)) continue;
+      if (ref.kind !== "og:image" && SITE_BRAND_FILE_RE.test(ref.url)) continue;
       if (ref.kind === "img src" && ref.url.startsWith("data:image/svg+xml")) {
         const why = inlineSvgProblem(ref.url);
         if (why) violations.push({ document: doc, problem: `img src ${JSON.stringify(ref.url.slice(0, 120))} is an inline SVG that ${why}` });

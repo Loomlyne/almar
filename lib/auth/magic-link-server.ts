@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { cookies, headers } from "next/headers";
 import { authSigningKey, createSupabaseAdmin } from "../supabase/clients";
 import { renderMagicLinkEmail } from "../email/magic-link";
+import { emailBrand, readSiteSettings, siteSettingsEnv } from "../site-settings-read";
 import { GUEST_COPY } from "../copy/guest";
 import { sendMagicLink, type SendLinkResult } from "./send-link";
 import {
@@ -124,6 +125,8 @@ export async function sendLinkFromRequest({
           locale,
           kind,
           copy: { ...copy.mail, button: copy.accessWithMagicLink },
+          // Plan 02-06: the saved colours, faces and logo, read at send time (null on a failed read: the design system).
+          brand: emailBrand(await readSiteSettings(siteSettingsEnv())),
         });
         const { error } = await resend.emails.send({
           from: FROM,
