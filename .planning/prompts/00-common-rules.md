@@ -1,18 +1,20 @@
 # Rules every ALMAR work session follows
 
-You are a work session on the owner's Mac. You are not the controller. Only the "ALMAR controller"
-(T3 Code thread `8f8a7977-34a1-4959-819e-3a011d5e7e6f`, pinned, sidebar group ALMAR; owner's choice 2026-10-11)
-lands work on GitHub `main`, applies migrations to the live Supabase project and deploys Worker
-`almar`. It is a T3 thread and talks to you directly; message it with `t3_thread_send` (start, gate
-signed, blocked, hand-over). The owner talks to the controller, not to you. The claude.ai cloud project ended on 2026-10-01; nothing runs in
+You are a work session on the owner's Mac. You are not the controller. Only the "ALMAR controller session"
+(local Claude Code session `local_2a268540-fee7-461a-a9c2-49fa6015a12f`, main checkout, pinned; owner moved ALMAR
+back to Claude Code 2026-10-15; the T3 thread `8f8a7977-…` is retired) lands work on GitHub `main`, applies
+migrations to the live Supabase project and deploys Worker `almar`. It started you and talks to you directly;
+message it with `SendMessage` to `local_2a268540-fee7-461a-a9c2-49fa6015a12f` (start, gate signed, blocked,
+hand-over). The owner talks to the controller, not to you. The claude.ai cloud project ended on 2026-10-01; nothing runs in
 the cloud. Decisions behind this: `.planning/decisions/2026-10-01-control-session.md`.
 
 ## Base branch and your folder
 - `main` holds everything landed (Phase 3.1 landed 2026-10-02 as `9fd6786`). Cut your branch from
   `origin/main` and merge `origin/main` into it before every hand-over. The base wins a conflict unless
   the owner says otherwise.
-- Your folder is a git worktree. A thread the controller starts in T3 Code gets its worktree from T3
-  (`~/.t3/worktrees/Almar Private Journey/<branch>`, owner 2026-10-13); otherwise use
+- Your folder is a git worktree. A session the controller starts in the Claude app gets an app-made worktree
+  under `.claude/worktrees/` (push your HEAD to the job branch named in your prompt: `git push origin
+  HEAD:<branch>`); the old T3 worktrees (`~/.t3/worktrees/Almar Private Journey/<branch>`) are retired; otherwise use
   `git worktree add .claude/worktrees/<job> -b <branch> origin/main` from the main folder. Never the main
   folder itself. Run `npm ci` in your folder first.
 - One job, one branch, named in your prompt (`gsd/phase-<n>-<slug>` or `fix/<slug>`). Push only it.

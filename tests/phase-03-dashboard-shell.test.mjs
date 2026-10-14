@@ -76,7 +76,7 @@ test("ops rail lists the eight labels and the interior mark", () => {
   assert.equal(text.includes(">Sign out<"), false);
   assert.equal(text.includes("maria@"), false);
   assert.equal(/<tr[\s>]/.test(text), false);
-  assert.match(text, /from ["'].*sidebar["']/);
+  // Plan 03.2-12 removed the dead <Sidebar open={false}> and its import (pinned below).
 });
 
 test("ops rail keeps every route and the Catalog group is a disclosure", () => {
@@ -85,7 +85,7 @@ test("ops rail keeps every route and the Catalog group is a disclosure", () => {
     "/dashboard/home", "/dashboard/bookings", "/dashboard/customers", "/dashboard/calendar",
     "/dashboard/catalog/destinations", "/dashboard/catalog/stays", "/dashboard/catalog/experiences", "/dashboard/catalog/packages",
     "/dashboard/content/pages", "/dashboard/content/blog", "/dashboard/content/team", "/dashboard/content/legal",
-    "/dashboard/content/media",
+    "/dashboard/content/media", "/dashboard/content/navigation",
     "/dashboard/settings", "/dashboard/profile",
   ]) {
     assert.equal(text.includes(`"${href}"`), true, href);
@@ -112,4 +112,42 @@ test("sidebar is a Radix dialog with title and Close, docked with end-0 and no J
   assert.equal(/module\.css|styles\./.test(text), false);
   assert.equal(text.includes("innerHTML"), false);
   assert.equal(text.includes("KitDialog"), false);
+});
+
+test("Content rail: Pages, Blog, Team, Legal, Media, Navigation and footer in canvas order; four Soon chips; none on Packages, Team or Media", () => {
+  const text = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
+  const content = text.slice(text.indexOf('key: "content"'), text.indexOf('key: "settings"'));
+  const rows = [...content.matchAll(/\{ key: "([a-z]+)", label: "[^"]+", href: "([^"]+)"(, soon: true)? \}/g)].map((m) => ({ key: m[1], href: m[2], soon: Boolean(m[3]) }));
+  assert.deepEqual(rows.map((r) => r.key), ["pages", "blog", "team", "legal", "media", "navigation"]);
+  assert.deepEqual(rows.filter((r) => r.soon).map((r) => r.key), ["pages", "blog", "legal", "navigation"]);
+  assert.equal(text.slice(text.indexOf('key: "catalog"'), text.indexOf('key: "content"')).includes("soon: true"), false, "Packages carries no chip");
+  // The chip and the accessible name ", soon" come from lib/copy/ops-content.ts, not from the shared dashboard copy.
+  assert.match(text, /OPS_CONTENT_COPY\[locale\]/);
+  assert.match(text, /content\.soonNamed\.replace\("\{label\}", railLabel\(item\.key\)\)/);
+  assert.match(text, /<SoonChip>\{content\.soon\}<\/SoonChip>/);
+  assert.match(text, /key === "navigation" \? content\.rail\.navigation/);
+});
+
+test("ops host rail hrefs drop /dashboard for the two new entries", () => {
+  const text = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
+  assert.match(text, /mode === "ops" \? href\.replace\(\/\^\\\/dashboard\/, ""\) \|\| "\/" : href/);
+  for (const href of ["/dashboard/content/media", "/dashboard/content/navigation"]) {
+    assert.equal(href.replace(/^\/dashboard/, "") || "/", href.slice("/dashboard".length));
+  }
+});
+
+test("shell: no dead Sidebar, the drawer clears the header, and the ops shell renders a live page instead of Not ready", () => {
+  const text = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
+  assert.equal(text.includes("open={false}"), false);
+  assert.equal(text.includes("<Sidebar"), false);
+  assert.equal(/ui\/sidebar/.test(text), false);
+  // The drawer starts below the header, whatever its height (one row, or two on a phone with the publish status line):
+  // the shell measures the header into --ops-header-h and the drawer's top padding follows it. No fixed pt-16 / pt-20.
+  assert.doesNotMatch(text, /overscroll-contain border-e-0 bg-ivory pt-\d+/);
+  assert.match(text, /headerRef\.current/);
+  assert.match(text, /setProperty\("--ops-header-h", `\$\{header\.getBoundingClientRect\(\)\.height\}px`\)/);
+  assert.match(text, /new ResizeObserver\(measure\)/);
+  assert.match(text, /paddingTop: "calc\(var\(--ops-header-h, 5rem\) \+ 0\.5rem\)"/);
+  assert.match(text, /mode === "ops" && !children \?/);
+  assert.match(text, /copy\.notReady/);
 });
