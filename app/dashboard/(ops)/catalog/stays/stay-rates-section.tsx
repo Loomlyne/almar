@@ -29,7 +29,7 @@ export function showDay(day: IsoDay): string {
   return formatDate(parseDate(day));
 }
 
-/** An amount exactly as the server returned it ("1250.00"), kept left-to-right inside Arabic text. */
+/** An amount exactly as the server returned it (a 2-decimal AED string), kept left-to-right inside Arabic text. */
 function Aed({ value }: { value: string }) {
   return (
     <bdi dir="ltr" className="tabular-nums">
@@ -270,7 +270,7 @@ export function StayRatesSection({
 
       {/* Date ranges: each with its own nightly rate; the shortest covering a night wins (C-11). */}
       <div className="flex flex-col gap-3">
-        <h3 className="m-0 font-body text-body font-bold text-ink">{copy.rates.rangesTitle}</h3>
+        <h3 className="m-0 font-display text-body font-normal text-ink">{copy.rates.rangesTitle}</h3>
         <p className="m-0 text-label text-ink">{copy.rates.rule}</p>
         <ListTable
           caption={copy.rates.rangesTitle}
@@ -346,7 +346,7 @@ export function StayRatesSection({
 
       {/* Check prices: each night's price and where it comes from, as the server reads it. Never a total. */}
       <div className="flex flex-col gap-3">
-        <h3 className="m-0 font-body text-body font-bold text-ink">{copy.rates.checkTitle}</h3>
+        <h3 className="m-0 font-display text-body font-normal text-ink">{copy.rates.checkTitle}</h3>
         <DateRangeField
           id={`${id}-check`}
           label={copy.rates.dates}
@@ -366,9 +366,9 @@ export function StayRatesSection({
           <table className="w-full border-collapse text-start text-label" data-check-table>
             <thead>
               <tr className="border-b border-line">
-                <th className="py-2 text-start font-bold">{copy.rates.night}</th>
-                <th className="py-2 text-start font-bold">{copy.rates.perNight}</th>
-                <th className="py-2 text-start font-bold">{copy.rates.priceFrom}</th>
+                <th className="py-2 text-start text-caption font-normal uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">{copy.rates.night}</th>
+                <th className="py-2 text-start text-caption font-normal uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">{copy.rates.perNight}</th>
+                <th className="py-2 text-start text-caption font-normal uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">{copy.rates.priceFrom}</th>
               </tr>
             </thead>
             <tbody>

@@ -48,8 +48,17 @@ const ranges = (price: string) => [
 const reply = (route: Route, status: number, json: unknown) =>
   route.fulfill({ status, contentType: "application/json", headers: { "cache-control": "no-store" }, body: JSON.stringify(json) });
 
-async function mockApi(page: Page, locale: Locale, fixture: Fixture) {
+type Calls = { gets: URL[]; posts: { path: string; body: unknown }[] };
+
+async function mockApi(page: Page, locale: Locale, fixture: Fixture): Promise<Calls> {
   const b = BRACKET[locale];
+  const calls: Calls = { gets: [], posts: [] };
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (!url.pathname.startsWith("/api/ops/") || url.pathname === "/api/ops/translate") return;
+    if (request.method() === "GET") calls.gets.push(url);
+    else calls.posts.push({ path: url.pathname, body: request.postDataJSON() });
+  });
   await page.route(/\/api\/ops\/stay-rates(\?.*)?$/, async (route) => {
     const request = route.request();
     if (request.method() === "POST") {
@@ -95,6 +104,7 @@ async function mockApi(page: Page, locale: Locale, fixture: Fixture) {
       access: { address: b.address, wifi_name: b.wifi, wifi_password: b.password, door_code: b.door, notes: b.notes, updated_at: "2026-10-01T00:00:00Z" },
     }),
   );
+  return calls;
 }
 
 /** Every text node is a non-empty string with no "[object", "undefined" or "NaN"; no `{token}` is left unfilled. */
@@ -290,6 +300,139 @@ test.describe("pictures", () => {
           await page.screenshot({ path: join(FOLDER, `${shot.state}-${width}-${locale}.png`), fullPage: true });
         });
       }
+    }
+  }
+});
+
+// ---- behaviour -------------------------------------------------------------------------------------------------------
+// The cards against contract-shaped fixtures, request bodies asserted. Amounts typed here are test input for a request
+// body, never drawn in a picture.
+
+async function openEditor(page: Page, state: string, viewport: Viewport, locale: Locale, fixture: Fixture) {
+  const calls = await mockApi(page, locale, fixture);
+  await page.setViewportSize(VIEWPORTS[viewport]);
+  await page.goto(harnessUrl(state, locale));
+  await settle(page);
+  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+  await page.waitForFunction((l) => document.documentElement.lang === l, locale);
+  await expect(card(page, OPS_STAY_TABS_COPY[locale].rates.title).getByLabel(OPS_STAY_TABS_COPY[locale].rates.baseLabel)).toBeVisible();
+  return calls;
+}
+
+const posted = (calls: Calls, path: string) => calls.posts.filter((call) => call.path === path).map((call) => call.body);
+
+test.describe("behaviour", () => {
+  test.describe.configure({ mode: "parallel" });
+  for (const viewport of ["phone", "desktop"] as const) {
+    for (const locale of ["en", "ar"] as const) {
+      const at = `${VIEWPORTS[viewport].width} ${locale}`;
+
+      test(`rates: Save price sends set_base with the typed amount as a 2-decimal string; a comma is refused before any request (${at})`, async ({ page }) => {
+        const copy = OPS_STAY_TABS_COPY[locale];
+        const calls = await openEditor(page, "rates-empty", viewport, locale, { base: false, ranges: false });
+        const rates = card(page, copy.rates.title);
+        await rates.getByLabel(copy.rates.baseLabel).fill("12,5");
+        await rates.getByRole("button", { name: copy.rates.savePrice, exact: true }).click();
+        await expect(rates.getByText(copy.rates.moneyError, { exact: true })).toBeVisible();
+        expect(posted(calls, "/api/ops/stay-rates")).toEqual([]);
+        await rates.getByLabel(copy.rates.baseLabel).fill("12.5");
+        await rates.getByRole("button", { name: copy.rates.savePrice, exact: true }).click();
+        await expect.poll(() => posted(calls, "/api/ops/stay-rates")).toEqual([{ action: "set_base", stay_id: STAY_ID, base_nightly_rate_aed: "12.50" }]);
+      });
+
+      test(`rates: emptying the price sends null (the stay stops being bookable) (${at})`, async ({ page }) => {
+        const copy = OPS_STAY_TABS_COPY[locale];
+        const calls = await openEditor(page, "rates", viewport, locale, { base: true, ranges: true });
+        const rates = card(page, copy.rates.title);
+        await rates.getByLabel(copy.rates.baseLabel).fill("");
+        await rates.getByRole("button", { name: copy.rates.savePrice, exact: true }).click();
+        await expect.poll(() => posted(calls, "/api/ops/stay-rates")).toEqual([{ action: "set_base", stay_id: STAY_ID, base_nightly_rate_aed: null }]);
+      });
+
+      test(`rates: a range opened and saved sends save_range with its id; Delete asks first, then sends delete_range (${at})`, async ({ page }) => {
+        const copy = OPS_STAY_TABS_COPY[locale];
+        const kit = OPS_KIT_COPY[locale];
+        const calls = await openEditor(page, "rates", viewport, locale, { base: true, ranges: true });
+        const rates = card(page, copy.rates.title);
+        await rates.locator("button:visible", { hasText: "05/01/2027" }).first().click();
+        const form = rates.locator("[data-range-form]");
+        await form.getByLabel(copy.rates.perNight, { exact: true }).fill("7");
+        await form.getByRole("button", { name: copy.rates.saveRange, exact: true }).click();
+        await expect.poll(() => posted(calls, "/api/ops/stay-rates")).toEqual([
+          { action: "save_range", stay_id: STAY_ID, range: { id: "range-b", first_night: "2027-01-05", last_night: "2027-01-11", nightly_rate_aed: "7.00" } },
+        ]);
+        await rates.locator("button:visible", { hasText: "18/12/2026" }).first().click();
+        await form.getByRole("button", { name: kit.delete, exact: true }).click();
+        const dialog = page.getByRole("alertdialog").or(page.getByRole("dialog"));
+        await expect(dialog.getByText(copy.rates.deleteRangeTitle, { exact: true })).toBeVisible();
+        await dialog.getByRole("button", { name: kit.delete, exact: true }).click();
+        await expect.poll(() => posted(calls, "/api/ops/stay-rates").at(-1)).toEqual({ action: "delete_range", id: "range-a" });
+      });
+
+      test(`rates: a 409 rate_overlap marks the clashing row and keeps what was typed (${at})`, async ({ page }) => {
+        const copy = OPS_STAY_TABS_COPY[locale];
+        await openEditor(page, "rates", viewport, locale, { base: true, ranges: true, overlap: true });
+        const rates = card(page, copy.rates.title);
+        await rates.locator("button:visible", { hasText: "18/12/2026" }).first().click();
+        const form = rates.locator("[data-range-form]");
+        await form.getByLabel(copy.rates.perNight, { exact: true }).fill("9.5");
+        await form.getByRole("button", { name: copy.rates.saveRange, exact: true }).click();
+        await expect(alerts(page).filter({ hasText: copy.rates.overlap })).toBeVisible();
+        await expect(rates.locator(":is(tr, li):visible").filter({ has: page.locator("[data-overlap]") })).toContainText("05/01/2027");
+        await expect(form.getByLabel(copy.rates.perNight, { exact: true })).toHaveValue("9.5");
+      });
+
+      test(`availability: this month's blocks are asked for this stay; next month asks again; the link opens the Calendar's block form (${at})`, async ({ page }) => {
+        const copy = OPS_STAY_TABS_COPY[locale];
+        const calls = await openEditor(page, "availability", viewport, locale, { base: true, ranges: true });
+        const { y, m } = thisMonth();
+        const blocks = () => calls.gets.filter((url) => url.pathname === "/api/ops/blocks");
+        await expect.poll(() => blocks().length).toBeGreaterThan(0);
+        const first = blocks()[0]!;
+        expect(first.searchParams.get("stay_id")).toBe(STAY_ID);
+        expect(first.searchParams.get("from")).toBe(`${y}-${m}-01`);
+        const availability = card(page, copy.availability.title);
+        await expect(availability.locator("td[data-blocked]")).toHaveCount(4 + 1 + 3);
+        await availability.getByRole("button", { name: copy.availability.nextMonth, exact: true }).click();
+        await expect.poll(() => blocks().length).toBe(2);
+        expect(blocks()[1]!.searchParams.get("from")).not.toBe(`${y}-${m}-01`);
+        // The harness is not under /dashboard, so the link is the ops host's /calendar.
+        await expect(availability.getByRole("link", { name: copy.availability.blockDates, exact: true })).toHaveAttribute(
+          "href",
+          `/calendar?block=stay&stay_id=${STAY_ID}`,
+        );
+      });
+
+      test(`access: password and door code are hidden with the eye; Save sends exactly the five fields with blanks as null; over 2,000 characters is refused before any request (${at})`, async ({ page }) => {
+        const copy = OPS_STAY_TABS_COPY[locale];
+        const calls = await openEditor(page, "access", viewport, locale, { base: true, ranges: true });
+        const access = card(page, copy.access.title);
+        const password = access.getByLabel(copy.access.wifiPassword, { exact: true });
+        await expect(password).toHaveAttribute("type", "password");
+        await access.getByRole("button", { name: "Show password" }).first().click();
+        await expect(password).toHaveAttribute("type", "text");
+        await access.getByLabel(copy.access.notes, { exact: true }).fill("x".repeat(2001));
+        await access.getByRole("button", { name: copy.access.saveAccess, exact: true }).click();
+        await expect(access.getByText(copy.access.tooLong, { exact: true })).toBeVisible();
+        expect(posted(calls, "/api/ops/stay-access")).toEqual([]);
+        await access.getByLabel(copy.access.notes, { exact: true }).fill("   ");
+        await access.getByLabel(copy.access.doorCode, { exact: true }).fill(" 12 ");
+        await access.getByRole("button", { name: copy.access.saveAccess, exact: true }).click();
+        const b = BRACKET[locale];
+        await expect.poll(() => posted(calls, "/api/ops/stay-access")).toEqual([
+          { action: "save", stay_id: STAY_ID, access: { address: b.address, wifi_name: b.wifi, wifi_password: b.password, door_code: " 12 ", notes: null } },
+        ]);
+        expect(calls.gets.every((url) => !url.search.includes(b.password))).toBe(true);
+      });
+
+      test(`dirty: typing in a card makes the page ask "Discard changes?" before leaving (${at})`, async ({ page }) => {
+        const copy = OPS_STAY_TABS_COPY[locale];
+        const kit = OPS_KIT_COPY[locale];
+        await openEditor(page, "access", viewport, locale, { base: true, ranges: true });
+        await card(page, copy.access.title).getByLabel(copy.access.address, { exact: true }).fill("[Other address]");
+        await page.keyboard.press("Escape");
+        await expect(page.getByText(kit.discardTitle, { exact: true })).toBeVisible();
+      });
     }
   }
 });

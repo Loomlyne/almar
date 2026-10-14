@@ -79,7 +79,7 @@ export function StayAvailabilitySection({ stayId, locale }: { stayId: string; lo
             ‹
           </span>
         </Button>
-        <h3 className="m-0 font-body text-body font-bold text-ink" aria-live="polite">
+        <h3 className="m-0 font-display text-body font-normal text-ink" aria-live="polite">
           {monthTitle(locale, from)}
         </h3>
         <Button variant="ghost" aria-label={copy.availability.nextMonth} onClick={() => setMonth((at) => step(at, 1))}>
@@ -143,7 +143,7 @@ export function StayAvailabilitySection({ stayId, locale }: { stayId: string; lo
         <p className="m-0 text-label text-muted">{copy.loading}</p>
       ) : (
         <div className="flex flex-col gap-2">
-          <h3 className="m-0 font-body text-body font-bold text-ink">{copy.availability.reasonsTitle}</h3>
+          <h3 className="m-0 font-display text-body font-normal text-ink">{copy.availability.reasonsTitle}</h3>
           {shown.length === 0 ? (
             <p className="m-0 text-label text-muted">{copy.availability.noBlocks}</p>
           ) : (

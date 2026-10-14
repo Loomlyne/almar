@@ -174,7 +174,8 @@ export const OPS_STAY_TABS_COPY: Record<Locale3, OpsStayTabsCopy> = {
     },
     availability: {
       title: "التوافر",
-      intro: "التواريخ المحجوبة والمحجوزة لهذه الإقامة. تُضبط الحجوزات المحجوبة من التقويم.",
+      // CANVAS, corrected by the owner 2026-10-15 02:56 (the canvas said "blocked bookings").
+      intro: "التواريخ المحجوبة والمحجوزة لهذه الإقامة. تُضبط التواريخ المحجوبة من التقويم.",
       blocked: "محجوب",
       blockDates: "حجب تواريخ لهذه الإقامة",
       weekdays: ["إث", "ث", "أر", "خ", "ج", "س", "أح"],
