@@ -83,7 +83,8 @@ test("the (ops) layout is the owner gate and pages carry no gate of their own", 
   assert.match(layout, /redirect\("\/sign-in"\)/);
   assert.match(layout, /if \(process\.env\.NODE_ENV === "production"\) notFound\(\);/);
   // Plan 03.2-03: a section's page renders only when lib/ops-routes.ts lists it; else job 02's "Not ready." state.
-  assert.match(layout, /<OpsShell mode="ops">\{isLiveOpsPath\(path\) \? children : null\}<\/OpsShell>/);
+  // Plan 02-06: the ops shell also gets the saved logo (and the saved colours as a style beside it).
+  assert.match(layout, /<OpsShell mode="ops" logoSrc=\{brand\.logoSrc\}>\s*\{isLiveOpsPath\(path\) \? children : null\}\s*<\/OpsShell>/);
   const shell = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
   assert.match(shell, /copy\.notReady/);
 });
@@ -157,10 +158,11 @@ test("the (ops) layout renders a section's page only when isLiveOpsPath says so,
   assert.equal((layout.match(/\? children : null/g) ?? []).length, 1, "and behind the live-section gate on the ops host, nowhere else");
 });
 
-test("live sections are only the wired ones (03.2-09 adds /content/media); the rest show Not ready", async () => {
+test("live sections are only the wired ones (03.2-09 media; 02-06 settings; 03.2-12 pages, blog, legal, navigation); the rest show Not ready", async () => {
   const { OPS_LIVE_SECTIONS, isLiveOpsPath } = await import("../lib/ops-routes.ts");
-  assert.ok(OPS_LIVE_SECTIONS.includes("/content/media"));
-  for (const path of ["/", "/home", "/bookings", "/catalog/stays", "/dashboard/settings"]) assert.equal(isLiveOpsPath(path), false, path);
+  for (const section of ["/content/media", "/settings", "/content/pages", "/content/blog", "/content/legal", "/content/navigation"]) assert.ok(OPS_LIVE_SECTIONS.includes(section), section);
+  assert.equal(isLiveOpsPath("/dashboard/settings"), true);
+  for (const path of ["/", "/home", "/content/team", "/bookings", "/catalog/stays", "/profile"]) assert.equal(isLiveOpsPath(path), false, path);
 });
 
 // ---- Fable review of 7527f88: a trailing dot is the same host --------------------------------------------------

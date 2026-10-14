@@ -43,8 +43,12 @@ function readError(value: unknown): OpsError | null {
   };
 }
 
-/** Reads a reply into the envelope, and applies the two things every call shares: the sign-in redirect and the site event. */
-async function read<T>(response: Response): Promise<OpsResponse<T>> {
+/**
+ * Reads a reply into the envelope, and applies the two things every call shares: the sign-in redirect and the site event.
+ * The site event is raised for writes only (`announce`): a GET of /api/ops/site-status also carries `site`, and a slow one
+ * raised as an event would overwrite a newer status (03.2-05 review).
+ */
+async function read<T>(response: Response, announce: boolean): Promise<OpsResponse<T>> {
   let body: unknown;
   try {
     body = await response.json();
@@ -55,7 +59,7 @@ async function read<T>(response: Response): Promise<OpsResponse<T>> {
 
   if (body.ok === true && response.ok) {
     // A write that reaches the public site carries the rebuild status; the site status line listens for it.
-    if (body.site && typeof window !== "undefined") {
+    if (announce && body.site && typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("almar:site", { detail: body.site }));
     }
     return body as { ok: true } & T;
@@ -96,7 +100,7 @@ async function send<T>(path: string, init: RequestInit, options: OpsCallOptions 
     } catch {
       return failure(0, timedOut ? "timeout" : "network");
     }
-    const result = await read<T>(response);
+    const result = await read<T>(response, (init.method ?? "GET").toUpperCase() !== "GET");
     return timedOut && !result.ok ? failure(0, "timeout") : result;
   } finally {
     if (timer !== null) clearTimeout(timer);

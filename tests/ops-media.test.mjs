@@ -76,48 +76,70 @@ const item = (over = {}) => ({
   ...over,
 });
 
-test("altDraftOf ticks 'I checked' only for a published language", () => {
-  const draft = alt.altDraftOf(item({ alt: { en: "x", ar: "ع", es: "y" }, alt_status: { en: "published", ar: "published", es: "draft" } }));
-  assert.deepEqual(draft, { alt: { en: "x", ar: "ع", es: "y" }, checked: { ar: true, es: false } });
-  assert.deepEqual(alt.altDraftOf(item()).alt, { en: "Pool at dusk", ar: "", es: "Piscina" });
+test("altOf starts the editor from the saved alt text; a photo is published only when all three are", () => {
+  assert.deepEqual(alt.altOf(item()), { en: "Pool at dusk", ar: "", es: "Piscina" });
+  assert.equal(alt.isAltPublished(item()), false);
+  assert.equal(alt.isAltPublished(item({ alt_status: { en: "published", ar: "published", es: "draft" } })), false);
+  assert.equal(alt.isAltPublished(item({ alt_status: { en: "published", ar: "published", es: "published" } })), true);
+  assert.equal(alt.sameAlt({ en: "a", ar: "b", es: "c" }, { en: "a", ar: "b", es: "c" }), true);
+  assert.equal(alt.sameAlt({ en: "a", ar: "b", es: "c" }, { en: "a", ar: "b", es: "" }), false);
 });
 
-test("applyAltDrafts fills the box, marks it Draft and unticks 'I checked this translation'", () => {
-  const start = { alt: { en: "Pool at dusk", ar: "قديم", es: "" }, checked: { ar: true, es: true } };
-  const ar = alt.applyAltDrafts(start, "ar", { alt: "مسبح عند الغروب" });
-  assert.equal(ar.alt.ar, "مسبح عند الغروب");
-  assert.equal(ar.checked.ar, false);
-  assert.equal(ar.checked.es, true, "the other language is untouched");
-  assert.equal(alt.altStateOf(ar, "ar"), "draft");
-  const es = alt.applyAltDrafts(ar, "es", { alt: ["Piscina al atardecer"] });
-  assert.equal(es.alt.es, "Piscina al atardecer");
-  assert.equal(es.checked.es, false);
-  assert.equal(es.alt.en, "Pool at dusk");
-  // The input is not changed, and an empty reply changes nothing.
-  assert.equal(start.checked.ar, true);
-  assert.equal(alt.applyAltDrafts(start, "ar", { alt: "  " }), start);
-  assert.equal(alt.applyAltDrafts(start, "ar", {}), start);
+test("altMissing names each empty language with the field `alt` (the translate field and the kit's words)", () => {
+  assert.deepEqual(alt.altMissing({ en: "x", ar: " ", es: "" }), [
+    { locale: "ar", field: "alt" },
+    { locale: "es", field: "alt" },
+  ]);
+  assert.deepEqual(alt.altMissing({ en: "x", ar: "ب", es: "y" }), []);
+  assert.equal(alt.ALT_FIELD, "alt");
 });
 
-test("save_alt: ar/es are published only when ticked, draft otherwise, and an empty language is null with no status", () => {
+test("save_alt: Save keeps ar/es draft, Publish (or a save on a published photo) sends published; an empty language is null", () => {
   const id = "11111111-1111-4111-8111-111111111111";
-  const draft = { alt: { en: " Pool at dusk ", ar: "مسبح", es: "" }, checked: { ar: true, es: true } };
-  assert.deepEqual(alt.buildSaveAlt(id, draft), {
+  const text = { en: " Pool at dusk ", ar: "مسبح", es: "" };
+  assert.deepEqual(alt.buildSaveAlt(id, text, true), {
     action: "save_alt",
     id,
     alt: { en: "Pool at dusk", ar: "مسبح", es: null },
     status: { ar: "published" },
   });
-  const unticked = alt.applyAltDrafts(alt.applyAltDrafts(draft, "ar", { alt: "مسبح" }), "es", { alt: "Piscina" });
-  assert.deepEqual(alt.buildSaveAlt(id, unticked).status, { ar: "draft", es: "draft" });
+  assert.deepEqual(alt.buildSaveAlt(id, { en: "A", ar: "ب", es: "B" }, false).status, { ar: "draft", es: "draft" });
+  assert.deepEqual(alt.buildSaveAlt(id, { en: "A", ar: "ب", es: "B" }, true).status, { ar: "published", es: "published" });
+});
+
+test("save_alt: a language already published stays published on Save; the others stay drafts (PR #15 blocker)", () => {
+  const body = alt.buildSaveAlt("x", { en: "A", ar: "ب", es: "B" }, false, { ar: true });
+  assert.deepEqual(body.status, { ar: "published", es: "draft" });
+  // A live language left empty is still null (the kit asks first, or saves nothing on a failed translation).
+  assert.deepEqual(alt.buildSaveAlt("x", { en: "A", ar: "", es: "B" }, false, { ar: true }), {
+    action: "save_alt",
+    id: "x",
+    alt: { en: "A", ar: null, es: "B" },
+    status: { es: "draft" },
+  });
+  assert.deepEqual(alt.itemAfterSave(item({ alt_status: { en: "published", ar: "published", es: "missing" } }), body).alt_status, {
+    en: "published",
+    ar: "published",
+    es: "draft",
+  });
+});
+
+test("liveAlt names the published Arabic and Spanish alt; altInUse is a used or an imported photo", () => {
+  assert.deepEqual(alt.liveAlt(item()), {});
+  assert.deepEqual(alt.liveAlt(item({ alt_status: { en: "published", ar: "published", es: "draft" } })), { ar: ["alt"] });
+  assert.deepEqual(alt.liveAlt(item({ alt_status: { en: "published", ar: "published", es: "published" } })), { ar: ["alt"], es: ["alt"] });
+  assert.equal(alt.altInUse(item()), false);
+  assert.equal(alt.altInUse(item({ used_by: 2 })), true);
+  assert.equal(alt.altInUse(item({ source: "import" })), true);
 });
 
 test("itemAfterSave shows what was sent", () => {
-  const body = alt.buildSaveAlt("x", { alt: { en: "A", ar: "ب", es: "" }, checked: { ar: false, es: false } });
+  const body = alt.buildSaveAlt("x", { en: "A", ar: "ب", es: "" }, false);
   const after = alt.itemAfterSave(item(), body);
   assert.equal(after.alt_en, "A");
   assert.deepEqual(after.alt_status, { en: "published", ar: "draft", es: "missing" });
   assert.deepEqual(after.alt, { en: "A", ar: "ب", es: null });
+  assert.equal(alt.isAltPublished(alt.itemAfterSave(item(), alt.buildSaveAlt("x", { en: "A", ar: "ب", es: "B" }, true))), true);
 });
 
 // ---- copy ---------------------------------------------------------------------------------------------------------
@@ -218,9 +240,19 @@ test("the Media page is a server component with noindex and no gate of its own; 
   assert.equal(isLiveOpsPath("/content/team"), false);
 });
 
-test("the Translate slot is empty on the live page and says what 03.2-10 renders there", () => {
+test("the Media screen is on the kit's editor page: no drawer, no language tabs, no I-checked box, no Translate button", () => {
+  const screen = read("app/dashboard/(ops)/content/media/media-screen.tsx");
   const library = read("app/dashboard/(ops)/content/media/media-library.tsx");
-  assert.match(library, /\/\/ 03\.2-10: render <TranslateButton/);
-  assert.match(library, /onDrafts=\{applyDrafts\}/);
-  assert.equal(/from ["'][^"']*translate-button["']/.test(library), false, "the button is not on main: no import");
+  assert.match(screen, /<EditPage/);
+  assert.match(screen, /translatable: true/);
+  assert.match(screen, /column: "side"/);
+  for (const gone of [/EditPanel/, /LocaleTabs/, /TranslateButton/, /checkedTranslation/, /translateSlot/]) {
+    assert.equal(gone.test(screen) || gone.test(library), false, String(gone));
+  }
+  // Publish sends ar/es published with the English (no review step, owner 2026-10-14).
+  assert.match(library, /onPublish=\{\(\) => persist\(alt, true\)\}/);
+  // A Save keeps each live language live, and the page knows which are live and whether the photo is used.
+  assert.match(library, /buildSaveAlt\(open\.id, next, publish, live\)/);
+  assert.match(screen, /liveTranslations=\{open \? liveAlt\(open\) : \{\}\}/);
+  assert.match(screen, /holdOnFailure=\{kept\}/);
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { pageLinks } from "../../components/site/page-links";
 import { SiteNav } from "../../components/ui/nav";
 import { Button } from "../../components/ui/button";
@@ -14,6 +14,7 @@ import { setDocumentLocale, type DocumentLocale } from "../../lib/set-document-l
 import type { SessionProfile } from "../../lib/supabase/clients";
 import { savePreferences, saveProfile, type SaveState } from "./actions";
 import { applyAccountSync, readCurrencyChoice, storeCurrencyChoice } from "../../components/site/account-sync";
+import { saveTracker, shownAccountCurrency } from "../../lib/account-preferences";
 
 type Currency = SessionProfile["currency"];
 
@@ -29,6 +30,8 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
   const [prefState, setPrefState] = useState<SaveState>({ status: "idle" });
   const [savingProfile, startProfile] = useTransition();
   const [, startPrefs] = useTransition();
+  // Only the latest preference click may change the screen (PR #14 review).
+  const prefSaves = useRef(saveTracker<Currency>(profile.currency));
   const copy = GUEST_COPY[locale];
   const hub = copy.hub;
   const localeCopy = JOURNEY_COPY[locale].locale;
@@ -37,19 +40,24 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
   useEffect(() => setDocumentLocale(locale), [locale]);
 
   // Plan 02-05: right after sign-in the handoff cookie carries her saved currency into this browser (applyAccountSync
-  // stores it). After a new account's first sign-in ("push") it is the other way round: the browser's choice was just
-  // sent to her profile, so the screen shows it instead of the row's default. Otherwise her row fills the browser
-  // choice only when it has none, so a pick whose save has not landed yet is not overwritten.
+  // stores it); after a new account's first sign-in ("push") the browser's choice was just sent to her profile. Either
+  // way the screen shows the currency the public pages use, the browser choice (02-05 review, finding 4). Her row
+  // fills the browser choice only when it has none, so a pick whose save has not landed yet is not overwritten.
   useEffect(() => {
-    if (applyAccountSync() === "push") {
-      const chosen = readCurrencyChoice();
-      if (chosen) setCurrency(chosen);
-      return;
-    }
-    if (!readCurrencyChoice()) storeCurrencyChoice(profile.currency);
+    applyAccountSync();
+    const chosen = readCurrencyChoice();
+    const shown = chosen ? shownAccountCurrency(chosen, profile.currency) : profile.currency;
+    prefSaves.current.adopt(shown);
+    if (chosen) setCurrency(shown);
+    else storeCurrencyChoice(profile.currency);
   }, [profile.currency]);
 
+  // A save writes her row and the browser choice together; a failed save puts back the last saved currency, so the
+  // screen never shows a currency the site is not using (language keeps its 02-05 behaviour). Only the newest
+  // successful save writes the browser choice; an overtaken result reaches the screen only when it is that save and the
+  // latest click has already failed (saveTracker).
   function storePreferences(nextLocale: DocumentLocale, nextCurrency: Currency) {
+    const ticket = prefSaves.current.begin();
     setLocale(nextLocale);
     setCurrency(nextCurrency);
     const form = new FormData();
@@ -57,8 +65,11 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
     form.set("currency", nextCurrency);
     startPrefs(async () => {
       const result = await savePreferences(form);
+      const { show: shown, store } = prefSaves.current.settle(ticket, result.status === "saved", nextCurrency);
+      if (store) storeCurrencyChoice(nextCurrency);
+      if (shown === null) return;
       setPrefState(result);
-      if (result.status === "saved") storeCurrencyChoice(nextCurrency);
+      setCurrency(shown);
     });
   }
 

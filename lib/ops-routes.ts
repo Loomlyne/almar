@@ -28,12 +28,23 @@ export const OPS_API_HEALTH = "/api/health";
 export const OPS_PATH_HEADER = "x-almar-ops-path";
 
 /**
- * The ops sections whose page renders for the owner (03.2-API-CONTRACT §7). Empty until a screens plan wires one:
+ * The ops sections whose page renders for the owner (03.2-API-CONTRACT §7). A section is listed only once a plan wires it:
  * "every shown control works" (C-18), so an unwired screen stays on job 02's "Not ready." state. Each plan adds its
  * section, such as "/catalog/stays", in the commit that wires it; a section lists everything under it too. The owner's
  * Home is "/" in the browser and "/home" once rewritten: wiring it lists both.
  */
-export const OPS_LIVE_SECTIONS: readonly string[] = ["/content/media", "/calendar"];
+export const OPS_LIVE_SECTIONS: readonly string[] = [
+  "/content/media",
+  // 02-06: the settings page.
+  "/settings",
+  // 03.2-12: the four Coming soon pages (no control on them), so the owner sees them instead of "Not ready.".
+  "/content/pages",
+  "/content/blog",
+  "/content/legal",
+  "/content/navigation",
+  // 03.2-13: the calendar (block dates).
+  "/calendar",
+];
 
 /**
  * True when `path` is, or sits under, a live section. The path is the browser's (`/catalog/stays`) or the rewrite

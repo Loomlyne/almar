@@ -42,6 +42,69 @@ async function read(res) {
   return { status: res.status, body: await res.json(), headers: Object.fromEntries(res.headers) };
 }
 
+// ---- 03.2-05: afterWrite (the public-site update after a write that reaches the site) -------------------------------
+
+const SITE = { state: "updating", requested_seq: 5, live_seq: 4, requested_at: "2026-10-13T10:02:00.000Z", built_at: null, last_hook_at: null, last_hook_result: "ok" };
+
+function writeRun({ body, status, method = "POST", afterWrite }) {
+  return runOps({
+    method,
+    request: method === "GET" ? new Request(`${OPS}/api/ops/destinations`) : post({ action: "save" }),
+    decide: async () => OWNER,
+    parse: (b) => b,
+    handler: async () => ({ status, body }),
+    nodeEnv: "production",
+    afterWrite,
+  });
+}
+
+test("afterWrite: a 2xx write with affects_site true gets `site`; afterWrite receives the owner", async () => {
+  const seen = [];
+  const res = await read(await writeRun({ body: { ok: true, id: "x", affects_site: true }, afterWrite: async (owner) => (seen.push(owner), SITE) }));
+  assert.equal(res.status, 200);
+  assert.deepEqual(res.body, { ok: true, id: "x", affects_site: true, site: SITE });
+  assert.equal(seen.length, 1);
+  assert.equal(seen[0], OWNER.owner);
+});
+
+test("afterWrite: not called for affects_site false, a refusal, a dbError, a GET, or a non-2xx status", async () => {
+  let calls = 0;
+  const afterWrite = async () => {
+    calls += 1;
+    return SITE;
+  };
+  const plain = await read(await writeRun({ body: { ok: true, id: "x", affects_site: false }, afterWrite }));
+  assert.equal("site" in plain.body, false);
+  await writeRun({ body: { ok: false, affects_site: true }, status: 409, afterWrite });
+  await writeRun({ body: { ok: true, affects_site: true }, status: 404, afterWrite });
+  await writeRun({ body: { ok: true, affects_site: true }, method: "GET", afterWrite });
+  await runOps({ method: "POST", request: post({}), decide: async () => OWNER, handler: async () => ({ dbError: { code: "23505" } }), nodeEnv: "production", afterWrite });
+  assert.equal(calls, 0);
+});
+
+test("afterWrite fails: the saved result still answers 200, with site.state failed and nothing internal", async () => {
+  const res = await read(
+    await writeRun({
+      body: { ok: true, id: "x", affects_site: true },
+      afterWrite: async () => {
+        throw Object.assign(new Error("database said: secret detail"), { name: "SiteStateError" });
+      },
+    }),
+  );
+  assert.equal(res.status, 200);
+  assert.equal(res.body.id, "x");
+  assert.equal(res.body.site.state, "failed");
+  assert.equal(JSON.stringify(res.body).includes("secret detail"), false);
+});
+
+test("lib/ops/route.ts binds afterWrite to requestSiteUpdate for POST and PUT, not GET", () => {
+  const route = readFileSync("lib/ops/route.ts", "utf8");
+  assert.match(route, /const afterWrite = \(owner: OwnerContext\) => requestSiteUpdate\(/);
+  const get = route.slice(route.indexOf("export function opsGet"), route.indexOf("export function opsPost"));
+  assert.equal(get.includes("afterWrite"), false);
+  assert.match(route.slice(route.indexOf("export function opsPost")), /afterWrite,[\s\S]*afterWrite,/);
+});
+
 // ---- order: owner first ---------------------------------------------------------------------------------------------
 
 test("not the owner: 403 not_owner; the body is never read, parse and handler never run", async () => {
@@ -438,9 +501,9 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-const EXPECTED_ROUTES = ["blocks", "catalog", "destinations", "journeys", "publish", "stay-access", "stay-rates", "stays", "team", "translate"];
+const EXPECTED_ROUTES = ["blocks", "catalog", "destinations", "journeys", "publish", "site-status", "site-update", "stay-access", "stay-rates", "stays", "team", "translate"];
 
-test("source guard: every file under app/api/ops is a route.ts built with the wrapper; ten routes; no dynamic segment", () => {
+test("source guard: every file under app/api/ops is a route.ts built with the wrapper; twelve routes; no dynamic segment", () => {
   const files = walk(join("app", "api", "ops")).sort();
   const names = files.map((f) => f.split("/").slice(3, -1).join("/"));
   for (const name of EXPECTED_ROUTES) assert.ok(names.includes(name), `app/api/ops/${name}/route.ts`);
