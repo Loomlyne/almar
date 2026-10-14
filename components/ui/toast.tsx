@@ -23,7 +23,8 @@ export function useToast() {
   return value;
 }
 
-export function ToastProvider({ children }: { children: ReactNode }) {
+/** `dismissLabel` names each toast's close button (default "Dismiss": the dashboard's callers pass none). */
+export function ToastProvider({ children, dismissLabel = "Dismiss" }: { children: ReactNode; dismissLabel?: string }) {
   const [items, setItems] = useState<ToastItem[]>([]);
   const [live, setLive] = useState("");
   const nextId = useRef(1);
@@ -48,14 +49,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           {live}
         </div>
         {items.map((item) => (
-          <ToastCard key={item.id} item={item} onDismiss={() => dismiss(item.id)} />
+          <ToastCard key={item.id} item={item} dismissLabel={dismissLabel} onDismiss={() => dismiss(item.id)} />
         ))}
       </div>
     </ToastContext.Provider>
   );
 }
 
-function ToastCard({ item, onDismiss }: { item: ToastItem; onDismiss: () => void }) {
+function ToastCard({ item, dismissLabel, onDismiss }: { item: ToastItem; dismissLabel: string; onDismiss: () => void }) {
   const [paused, setPaused] = useState(false);
   const remaining = useRef(4000);
   const started = useRef(0);
@@ -82,7 +83,7 @@ function ToastCard({ item, onDismiss }: { item: ToastItem; onDismiss: () => void
     >
       <ToastMark tone={item.tone} />
       <p className="m-0">{item.text}</p>
-      <button type="button" className="inline-flex size-control shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent text-teal" aria-label="Dismiss" onClick={onDismiss}>
+      <button type="button" className="inline-flex size-control shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent text-teal" aria-label={dismissLabel} onClick={onDismiss}>
         <CloseIcon size={16} />
       </button>
     </div>

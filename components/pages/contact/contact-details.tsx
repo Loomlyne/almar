@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { ArrowIcon, HeadsetIcon, MailIcon, PinIcon } from "../../icons/icons";
-import { LinkButton } from "../../ui/button";
 import { Link } from "../../ui/link";
 import { Reveal } from "../../ui/reveal";
 import { SectionHead } from "../../ui/section";
@@ -8,11 +7,12 @@ import type { ContactPageCopy } from "../../../lib/copy/contact-page";
 import type { ContactDetails } from "../../../lib/data/types";
 import type { ContactLinks } from "./contact-links";
 
-// The start column of the Contact page (design 12.2, row 2): the business name, Framer's three groups with an icon
-// each (Location, Phone with its two numbers, Email once) and `Message on WhatsApp` under them. Server component, no
-// state. Every address arrives built and validated by contactLinks; every string arrives as a prop. The motion is
-// job 11's Reveal: the heading block is a Reveal heading (A5) through SectionHead, each group a Reveal row (A7), the
-// button a Reveal button (A6). Nothing here hides itself: the start state lives behind `pre-reveal`.
+// The start column of the Contact page (design 12.2, row 2): the business name and Framer's three groups with an icon
+// each (Location, Phone with its two numbers, Email once). `Message on WhatsApp` moved into the form box (plan 26,
+// S3-25); the WhatsApp row here still opens WhatsApp without JavaScript. Server component, no state. Every address
+// arrives built and validated by contactLinks; every string arrives as a prop. The motion is job 11's Reveal: the
+// heading block is a Reveal heading (A5) through SectionHead, each group a Reveal row (A7). Nothing here hides itself:
+// the start state lives behind `pre-reveal`.
 
 /** The arrow after a detail link, turned to point up and outward: up-right in LTR, up-left in RTL. Decorative. */
 function Outward() {
@@ -90,12 +90,6 @@ export function ContactDetailsBlock({
           </dd>
         </Group>
       </dl>
-      <Reveal kind="button">
-        <LinkButton variant="outline" href={links.whatsappMessage} {...NEW_TAB}>
-          {copy.whatsappCta}
-          <NewTab label={copy.newTab} />
-        </LinkButton>
-      </Reveal>
     </div>
   );
 }

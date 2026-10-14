@@ -533,7 +533,8 @@ for (const locale of LOCALES) {
       test(`10 frame: current nav link, language select, footer language row, logo (${where})`, async ({ page }) => {
         const nav = HOME_COPY[locale].nav;
         await visit(page, locale, viewport);
-        if (width < NAV_INLINE_FROM) await page.getByRole("button", { name: nav.menu }).click();
+        // exact: the Arabic footer newsletter button "انضموا إلى القائمة" (plan 27) contains the Menu word "القائمة".
+        if (width < NAV_INLINE_FROM) await page.getByRole("button", { name: nav.menu, exact: true }).click();
         const current = page.locator('header a[aria-current="page"]');
         await expect(current).toHaveCount(1);
         await expect(current).toHaveText(nav.about);

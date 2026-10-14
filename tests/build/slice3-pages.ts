@@ -144,7 +144,8 @@ export async function scrollThrough(page: Page) {
 }
 
 export async function openMenu(page: Page, locale: Locale, width: number) {
-  if (width < NAV_INLINE_FROM) await page.getByRole("button", { name: HOME_COPY[locale].nav.menu }).click();
+  // exact: the Arabic footer newsletter button "انضموا إلى القائمة" (plan 27) contains the Menu word "القائمة".
+  if (width < NAV_INLINE_FROM) await page.getByRole("button", { name: HOME_COPY[locale].nav.menu, exact: true }).click();
 }
 
 /** Both new-tab targets answer a stub, so a click never leaves the machine. */

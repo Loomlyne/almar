@@ -83,6 +83,8 @@ async function hiddenOrMoved(page: Page): Promise<string[]> {
   );
 }
 
+/** Plan 26: the form box and Start Your Inquiry exist only after hydration. */
+const hydrated = (page: Page) => page.locator("#inquiry form").waitFor();
 const htmlAttr = (page: Page, name: string) => page.evaluate((n) => document.documentElement.getAttribute(n), name);
 const motionReady = (page: Page) => page.waitForFunction(() => document.documentElement.hasAttribute("data-motion-ready"));
 const DIVIDER = 'main div[aria-hidden="true"]:has(> span.border-gold)';
@@ -121,7 +123,10 @@ for (const locale of LOCALES) {
           await expect(p.locator("main h1")).toBeVisible();
           await expect(p.locator("main h1")).toHaveText(copy.title.heading);
           const hrefs = await p.locator("main a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-          expect(hrefs).toEqual([links.location, links.tel, links.whatsapp, links.mailto, links.whatsappMessage]);
+          // Plan 26: `Message on WhatsApp` lives in the JavaScript-only form box now; the WhatsApp row still works.
+          expect(hrefs).toEqual([links.location, links.tel, links.whatsapp, links.mailto]);
+          await expect(p.getByRole("link", { name: copy.whatsappCta })).toHaveCount(0);
+          await expect(p.locator("#inquiry, main form")).toHaveCount(0);
           expect(await p.locator("main [data-reveal]").count()).toBeGreaterThan(0);
           expect(await hiddenOrMoved(p), "hidden or moved with JavaScript off").toEqual([]);
           expect(d.email).toBe("inquiries@almarprivatejourney.com");
@@ -165,24 +170,37 @@ for (const locale of LOCALES) {
         expect(d1.y).toBeLessThanOrEqual(columns.y);
         expect(d2.y).toBeGreaterThanOrEqual(columns.y + columns.height - 1);
 
+        // Plan 26 (S3-13): the form box's visually hidden h2 sits between the two section headings.
+        await hydrated(page);
         const h2s = page.locator("main h2");
-        expect(await h2s.allTextContents()).toEqual([d.business_name, copy.confidence.heading]);
-        for (let i = 0; i < 2; i++) expect(await style(h2s.nth(i), "font-size")).toBe(vars.display);
+        expect(await h2s.allTextContents()).toEqual([d.business_name, copy.form.heading, copy.confidence.heading]);
+        for (const i of [0, 2]) expect(await style(h2s.nth(i), "font-size")).toBe(vars.display);
         await expect(page.getByText(copy.team.title)).toHaveCount(0);
         expect(errors).toEqual([]);
       });
 
-      test(`3 columns: two equal from 1024 px, details at the start, Travel With Confidence at the end (${where})`, async ({ page, errors }) => {
+      test(`3 columns: two equal from 1024 px, details at the start, the form box at the end, Travel With Confidence below (${where})`, async ({ page, errors }) => {
         const { d, copy } = await details(locale);
         await visit(page, locale, viewport);
+        await hydrated(page);
         const grid = page.locator("[data-contact-columns]");
         const tracks = (await style(grid, "grid-template-columns")).split(" ").map(num);
         const first = grid.locator("> *").nth(0);
         const second = grid.locator("> *").nth(1);
         await expect(grid.locator("> *")).toHaveCount(2);
         await expect(first.locator("h2")).toHaveText(d.business_name);
-        await expect(second.locator("h2")).toHaveText(copy.confidence.heading);
-        await expect(second.getByText(copy.confidence.body)).toHaveCount(1);
+        await expect(second).toHaveAttribute("id", "inquiry");
+        await expect(second.locator("h2")).toHaveText(copy.form.heading);
+        await expect(second.getByRole("link", { name: new RegExp(`^${escapeRe(copy.whatsappCta)}`) })).toHaveCount(1);
+        await expect(first.getByRole("link", { name: new RegExp(`^${escapeRe(copy.whatsappCta)}`) })).toHaveCount(0);
+
+        // Travel With Confidence: its own section after the columns, centred, holding the link to the box.
+        const confidence = page.locator('section[aria-labelledby="contact-confidence-heading"]');
+        await expect(confidence.locator("h2")).toHaveText(copy.confidence.heading);
+        await expect(confidence.getByText(copy.confidence.body)).toHaveCount(1);
+        await expect(grid.locator('section[aria-labelledby="contact-confidence-heading"]')).toHaveCount(0);
+        await expect(confidence.locator('a[href="#inquiry"]')).toHaveText(copy.startInquiry);
+        expect(await style(confidence.locator("h2"), "text-align")).toBe("center");
 
         const g = await box(grid);
         const a = await box(first);
@@ -204,6 +222,8 @@ for (const locale of LOCALES) {
           expect(tracks).toHaveLength(1);
           expect(b.y).toBeGreaterThanOrEqual(a.y + a.height - 1);
         }
+        const c = await box(confidence);
+        expect(c.y).toBeGreaterThanOrEqual(Math.max(a.y + a.height, b.y + b.height) - 1);
         expect(errors).toEqual([]);
       });
 
@@ -270,6 +290,7 @@ for (const locale of LOCALES) {
       test(`5 Message on WhatsApp: the outlined button, the prefilled sentence in this language (${where})`, async ({ page, context, errors }) => {
         const { d, links, copy } = await details(locale);
         await visit(page, locale, viewport);
+        await hydrated(page);
         const button = page.locator('main a[href^="https://wa.me/971563883302?text="]');
         await expect(button).toHaveCount(1);
         await expect(button).toHaveAttribute("href", links.whatsappMessage);
@@ -285,11 +306,12 @@ for (const locale of LOCALES) {
         expect(rel).toContain("noopener");
         expect(rel).toContain("noreferrer");
 
+        // Plan 26 (S3-25): inside the form box, in the actions row with the submit button; not in the details column.
         const firstColumn = page.locator("[data-contact-columns] > *").first();
-        await expect(firstColumn.locator('a[href^="https://wa.me/971563883302?text="]')).toHaveCount(1);
-        const list = await box(page.locator("main dl"));
-        const bt = await box(button);
-        expect(bt.y).toBeGreaterThan(list.y + list.height - 1);
+        await expect(firstColumn.locator('a[href^="https://wa.me/971563883302?text="]')).toHaveCount(0);
+        await expect(page.locator('#inquiry a[href^="https://wa.me/971563883302?text="]')).toHaveCount(1);
+        const actions = page.locator('#inquiry button[type="submit"]').locator("xpath=../..");
+        await expect(actions.locator('a[href^="https://wa.me/971563883302?text="]')).toHaveCount(1);
 
         const gold = await token(page, "gold");
         expect(await style(button, "border-top-width")).toBe("1px");
@@ -307,7 +329,8 @@ for (const locale of LOCALES) {
       test(`6 frame: current nav link, language select, footer language row, logo, floating WhatsApp (${where})`, async ({ page, errors }) => {
         const nav = HOME_COPY[locale].nav;
         const openMenu = async () => {
-          if (VIEWPORTS[viewport].width < NAV_INLINE_FROM) await page.getByRole("button", { name: nav.menu }).click();
+          // exact: the Arabic footer newsletter button "انضموا إلى القائمة" (plan 27) contains the Menu word "القائمة".
+          if (VIEWPORTS[viewport].width < NAV_INLINE_FROM) await page.getByRole("button", { name: nav.menu, exact: true }).click();
         };
         await visit(page, locale, viewport);
         await openMenu();
@@ -350,26 +373,36 @@ for (const locale of LOCALES) {
         await page.waitForURL((u) => bare(u.pathname) === bare(localePath(locale, "/")));
       });
 
-      test(`7 held until plan 26: no form, no Start Your Inquiry (${where})`, async ({ page, errors }) => {
+      test(`7 form after hydration: #inquiry and Start Your Inquiry (${where})`, async ({ page, errors }) => {
         const nav = HOME_COPY[locale].nav;
+        const { copy } = await details(locale);
         await visit(page, locale, viewport);
-        for (const selector of [
-          "form",
-          "input",
-          "textarea",
-          "select",
-          'button[type="submit"]',
-          "[id=inquiry]",
-          'a[href="#inquiry"]',
-          "main form",
-          "main input",
-          'footer input[type="email"]',
-        ]) {
-          await expect(page.locator(selector), selector).toHaveCount(0);
+        await hydrated(page);
+        await expect(page.locator("[id=inquiry]")).toHaveCount(1);
+        await expect(page.locator("#inquiry form")).toHaveCount(1);
+        await expect(page.locator("#inquiry textarea")).toHaveCount(1);
+        await expect(page.locator('#inquiry button[type="submit"]')).toHaveCount(1);
+        await expect(page.locator('#inquiry button[type="submit"]')).toHaveText(copy.form.submit);
+        for (const id of ["inquiry-name", "inquiry-phone", "inquiry-email", "inquiry-details"]) {
+          await expect(page.locator(`#inquiry #${id}`), id).toHaveCount(1);
         }
+        await expect(page.locator("#inquiry #inquiry-type[role=combobox]")).toHaveCount(1);
+        const start = page.locator('a[href="#inquiry"]');
+        await expect(start).toHaveCount(1);
+        await expect(start).toHaveText(copy.startInquiry);
+        // No form control anywhere else on the page but the footer's newsletter (design 11.2: the newsletter is live in
+        // the footer, plan 27, S3-7): its one email box, named in this language, appears after hydration.
+        await expect(page.locator('footer input[type="email"]')).toHaveCount(1);
+        await expect(page.locator("footer").getByRole("textbox", { name: SITE_FOOTER_COPY[locale].newsletter.email, exact: true })).toHaveCount(1);
+        const outside = await page.evaluate(
+          () =>
+            [...document.querySelectorAll('form, input, textarea, select, button[type="submit"]')].filter(
+              (el) => !el.closest("#inquiry") && !el.closest("footer"),
+            ).length,
+        );
+        expect(outside).toBe(0);
         await expect(page.locator("main a[href^='mailto:']")).toHaveCount(1);
         await expect(page.getByText(/partnerships/i)).toHaveCount(0);
-        await expect(page.getByText(/start your inquiry/i)).toHaveCount(0);
         await expect(page.getByRole("link", { name: nav.login })).toHaveCount(0);
         await expect(page.getByRole("link", { name: /cart/i })).toHaveCount(0);
         await expect(page.getByRole("combobox", { name: /^(Currency|العملة|Moneda)/ })).toHaveCount(0);
@@ -405,8 +438,9 @@ for (const locale of LOCALES) {
         // (a) reduced motion (this describe's context): everything at once, nothing animates.
         await visit(page, locale, viewport);
         await motionReady(page);
+        await hydrated(page);
         const marked = page.locator("main [data-reveal]");
-        expect(await marked.count()).toBe(7);
+        expect(await marked.count()).toBe(10);
         const animating = () =>
           page.evaluate(() => [...document.querySelectorAll<HTMLElement>("main [data-reveal]")].filter((el) => el.getAnimations().length > 0).length);
         expect(await hiddenOrMoved(page)).toEqual([]);
@@ -415,9 +449,13 @@ for (const locale of LOCALES) {
         await page.waitForTimeout(150);
         expect(await hiddenOrMoved(page)).toEqual([]);
         expect(await animating()).toBe(0);
-        // (c) The marks: the title block, both section heading blocks, the button and the three detail groups (job 11's kinds).
+        // (c) The marks: the title block, both section heading blocks, the three detail groups, the form box, its two
+        // buttons and Start Your Inquiry (job 11's kinds; plan 26: the box's visually hidden h2 is not marked on its own).
         const kinds = await marked.evaluateAll((els) => els.map((el) => el.getAttribute("data-reveal")).sort());
-        expect(kinds).toEqual(["button", "heading", "heading", "headline", "row", "row", "row"]);
+        expect(kinds).toEqual(["button", "button", "button", "heading", "heading", "headline", "row", "row", "row", "row"]);
+        await expect(page.locator("#inquiry[data-reveal='row']")).toHaveCount(1);
+        await expect(page.locator("#inquiry [data-reveal='button']")).toHaveCount(2);
+        await expect(page.locator("[data-reveal='button']:has(> a[href='#inquiry'])")).toHaveCount(1);
         expect(errors).toEqual([]);
 
         // (b) no preference: the same page in a context that allows motion.

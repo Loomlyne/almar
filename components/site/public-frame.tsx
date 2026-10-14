@@ -7,6 +7,7 @@ import { applyAccountSync } from "./account-sync";
 import { SiteNav, type NavLabels } from "../ui/nav";
 import { WhatsApp } from "../ui/whatsapp";
 import type { SelectedCurrency } from "../../lib/fx/rates";
+import { NEWSLETTER_HONEYPOT_FIELDS, subscribeToNewsletter } from "../../lib/newsletter";
 import {
   localeHrefs as localeHrefsOf,
   localePath,
@@ -23,8 +24,10 @@ import {
 
 // and supply their own <main id="content"> (the skip link in the root document points at it).
 
-// Every held control is off here, so a page cannot show one by accident: no Login, no cart, no newsletter
-// form, no "List with us" column. Currency is off unless a page passes the state its own amounts use.
+// Every held control is off here, so a page cannot show one by accident: no Login, no cart, no "List with us"
+// column. Currency is off unless a page passes the state its own amounts use.
+// The newsletter is ON (plan 03.3-27, design 11.2 and 12.1 row 8): the end column of job 11's light footer, posting
+// to /newsletter through lib/newsletter.ts, with the strings of footerCopy.newsletter (SITE_FOOTER_COPY[locale]).
 
 export type PublicFrameLink = { label: string; href: string };
 
@@ -39,6 +42,16 @@ export const SITE_CONTACT = {
 
 /** The studio credit in the footer: a name and an address, not copy. The "Made by" label is footerCopy.madeBy. */
 const MADE_BY = { name: "Koussay", href: "https://koussay.com" } as const;
+
+/**
+ * The footer newsletter's three props, the same for every page that wears the frame (and for any later caller of the
+ * same handler, design 11.2). The request itself lives only in lib/newsletter.ts.
+ */
+export const PUBLIC_NEWSLETTER = {
+  newsletter: true,
+  onSubscribe: subscribeToNewsletter,
+  honeypotFields: NEWSLETTER_HONEYPOT_FIELDS,
+} as const;
 
 /** Language names are never translated: each language is named in itself. */
 const LANGUAGE_NAMES: Record<Locale, string> = { en: "English", ar: "العربية", es: "Español" };
@@ -135,7 +148,7 @@ export function PublicFrame({
               }))
             : []
         }
-        newsletter={false}
+        {...PUBLIC_NEWSLETTER}
         tone="light"
         madeBy={{ label: footerCopy.madeBy ?? "", name: MADE_BY.name, href: MADE_BY.href }}
       />
