@@ -31,6 +31,10 @@ restoring by copy, never `git checkout` a file)
    review threads and `02-05-SUMMARY.md` for the case.
 6. **`database.types.ts` refresh** from the migrations on main. This needs a local Supabase stack: ask the controller
    "slot? stack" and wait for "go" (its landing check holds the one stack now). Do it last with item 4.
+7. **Publish rules on Save** (PR #18 review, 2026-10-15): `ops_save_catalog_item` and `ops_save_destination` do not
+   re-check the publish rules (photo, at least one destination) when the row is already published; only `ops_publish`
+   does. 03.2-06 blocks it in the dashboard; the server must refuse it too. Needs a migration: ask the controller for a
+   number first, pgTAP for each refusal, no change for draft rows.
 
 Not in this job: the primary button's text colour (ivory vs white), the nosniff header on the media host and the
 `wrangler tail` CPU reading (deploy-time items for the controller).
