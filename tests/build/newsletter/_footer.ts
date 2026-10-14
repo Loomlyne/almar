@@ -15,7 +15,7 @@ export const OUTSIDE_FOOTER = ":not(footer *)";
  * the accessibility tree, footer included, so the footer must be hidden from assistive tech (aria-hidden or inert on it
  * or an ancestor) while its form, Email box and submit still exist. The Email box is then found by role with
  * includeHidden, and the "one footer textbox" count is made by element: text-entry fields in the footer with no
- * aria-hidden ancestor inside the footer. That leaves out the 11 honeypot inputs, whose container in
+ * aria-hidden ancestor inside their form. That leaves out the 11 honeypot inputs, whose container in
  * components/ui/footer.tsx is `<div aria-hidden="true" className="sr-only">`, as the role count does with no modal.
  * Without the flag nothing changes: every count is by role, as before.
  */
@@ -30,9 +30,11 @@ export async function expectFooterNewsletter(page: Page, locale: Locale, where: 
       (el) =>
         [...el.querySelectorAll('textarea, input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"])')].filter(
           (field) => {
+            // Behind the modal the footer itself carries aria-hidden: only an aria-hidden element strictly inside the
+            // field's form (the honeypot block) excludes it.
+            const form = field.closest("form");
             const trap = field.parentElement?.closest('[aria-hidden="true"]');
-            // An aria-hidden on the footer itself or above it is the modal's; only one strictly inside is the traps'.
-            return !trap || trap === el || !el.contains(trap);
+            return !(form && trap && trap !== form && form.contains(trap));
           },
         ).length,
     );
