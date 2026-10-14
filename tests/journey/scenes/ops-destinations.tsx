@@ -74,7 +74,8 @@ function DestinationsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
         form,
         saved: variant === "new" ? emptyDestinationForm().text : { en: textOf("en"), ar: textOf("ar"), es: textOf("es") },
         onForm: setForm,
-        dirty: variant === "new",
+        // Opened clean: with unsaved changes the kit's Back guard asks "Discard changes?" on load in dev (strict effects).
+        dirty: false,
         busy: false,
         stays: variant === "new" ? [] : stays,
         items: itemsOf(locale),

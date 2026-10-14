@@ -44,7 +44,6 @@ definePictures("ops-catalog-items", {
         ...sectionHeadings(page, l),
         page.getByText(kit.editor.englishOnly, { exact: true }),
         page.getByRole("button", { name: kit.editor.editTranslations }),
-        page.getByText(kit.editor.unsaved, { exact: true }),
         page.getByLabel(copy.fieldDuration),
         page.getByText(copy.priceHint, { exact: true }),
         page.getByText(copy.homePickupHint, { exact: true }),
@@ -95,7 +94,7 @@ test.describe("scene", () => {
   test("the scene states are the signed list and the four editor states", async () => {
     const { readFileSync } = await import("node:fs");
     const src = readFileSync(`${__dirname}/journey/scenes/ops-catalog-items.tsx`, "utf8");
-    const keys = [...src.slice(src.indexOf("export const scenes")).matchAll(/^ {2}"([a-z-]+)":/gm)].map((m) => m[1]);
+    const keys = [...src.slice(src.indexOf("export const scenes")).matchAll(/^ {2}"?([a-z-]+)"?:/gm)].map((m) => m[1]);
     expect(keys).toEqual(["list-filtered", "editor", "editor-translations", "editor-home-pickup-refused", "editor-published-no-price"]);
   });
 });

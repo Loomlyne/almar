@@ -22,7 +22,7 @@ const ONLY_STATES = process.env.OPS_CATALOG_PICTURE_STATES?.split(",").map((s) =
 const LOCALES = ONLY_LOCALES ? ALL_LOCALES.filter((l) => ONLY_LOCALES.includes(l)) : ALL_LOCALES;
 
 /** A panel is taller than the screen: the picture is taken on a taller page so the whole form is in it. */
-const PANEL_HEIGHT: Record<Viewport, number> = { phone: 2500, tablet: 2000, desktop: 1800 };
+const PANEL_HEIGHT: Record<Viewport, number> = { phone: 3600, tablet: 3200, desktop: 2400 };
 
 export type PictureState = {
   /** A panel state is shot on the tall page. */
@@ -75,6 +75,8 @@ export function definePictures(scene: string, states: Record<string, PictureStat
             expect(text, "no label printed as an object").not.toContain("[object");
             expect(text, "no label printed as undefined").not.toMatch(/\bundefined\b|\bNaN\b/);
             await expect(page.locator('input[type="radio"], [role="radio"]')).toHaveCount(0);
+            // No question open over the page (a stray "Discard changes?" would cover the state).
+            await expect(page.locator('[role="dialog"], [role="alertdialog"]')).toHaveCount(0);
             // No sideways scroll: the page is as wide as the screen.
             const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
             expect(wide, "the page scrolls sideways").toBeLessThanOrEqual(1);

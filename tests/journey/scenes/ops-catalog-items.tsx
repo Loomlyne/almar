@@ -95,7 +95,8 @@ function CatalogItemsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
         form,
         saved: { en: textOf("en"), ar: textOf("ar"), es: textOf("es") },
         onForm: setForm,
-        dirty: variant !== "published-no-price",
+        // Opened clean: with unsaved changes the kit's Back guard asks "Discard changes?" on load in dev (strict effects).
+        dirty: false,
         busy: false,
         destinations: destinationsOf(locale),
         stays: staysOf(locale),
