@@ -16,6 +16,7 @@ set ready, blocked, hand-over). The owner talks to the controller, not to you.
 | 03.2-07 stays | `gsd/phase-3.2-p07-stays` (`30bf193`) | List pictures drawn (list, empty, no match), not yet signed. Panel pictures held for the chosen panel. |
 | 03.2-13 calendar block dates | `gsd/phase-3.2-p13-calendar` (`3ff71e6`) | Grid signed; wired to `/api/ops/blocks`; the form fields are panel-free in `block-form-fields.tsx`. |
 | 03.2-15 stay rates, availability, access | `gsd/phase-3.2-p15-stay-tabs` (`0cbd198`) | Rate-rules module and tests; tab pictures drawn without the panel frame. The owner types every rate. |
+| 03.2-08 team and packages (home journeys) | `gsd/phase-3.2-p08-team-journeys` (new, cut from `origin/main` `27d31d7` or later) | Not started. Its plan predates kit B: it says side panel and EN/AR/ES fields; the kit editor (full page, English only, AI fills Arabic and Spanish) wins. |
 
 ## Read first
 1. `/Users/koss/Developer/Almar Private Journey/CLAUDE.local.md` (gitignored: use the absolute path), sections "Product"
@@ -62,7 +63,13 @@ set ready, blocked, hand-over). The owner talks to the controller, not to you.
   03.2-07's stay editor through the controller; 03.2-07 lands first). The owner types every rate: no seeded, sample or
   default rate value anywhere, including fixtures shown in pictures (use an empty state or clearly fake test values the
   owner has seen). Money logic goes through the existing money engine; no new arithmetic.
-- Shared files: the four jobs share only one line each in `lib/ops-routes.ts`. If you need any other shared file, ask
+- **03.2-08:** two editors on the kit `EditPage`: Content → Team (name, role, bio, photo, optional email, social links,
+  shown; starts empty, no invented people, a member's email never on the public site) and Catalog → Packages (the
+  three home journeys: no add, no delete, no booking). The journey price line is the owner's own text, stored as typed,
+  never computed and never filled in pictures with an amount he has not written (use an empty state or a line marked as
+  a test). Delete the old shared `content-screen.tsx` only when nothing imports it. Pictures for both screens (lists
+  and editors) before code.
+- Shared files: the jobs share only one line each in `lib/ops-routes.ts`. If you need any other shared file, ask
   the controller first.
 
 ## Machine rules (binding)
