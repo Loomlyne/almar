@@ -24,7 +24,7 @@ async function openScene(page: Page, state: string, viewport: Viewport, locale: 
 
 // ---- pictures -----------------------------------------------------------------------------------------------------
 // Full-page PNGs for the owner's signature, written outside tests/ (page.screenshot, not toHaveScreenshot), so no
-// baseline is committed under tests/. 10 states x 3 widths x 2 languages. The owner signed them on 2026-10-05, so the
+// baseline is committed under tests/. 9 states x 3 widths x 2 languages. The owner signed the drawer versions on 2026-10-05 (kit panel B replaced the drawer), so the
 // block runs only when asked: OPS_KIT_PICTURES=1 writes into the planning folder, OPS_KIT_PICTURES=<folder> writes there.
 
 const SIGNED_PICTURES = join(__dirname, "..", ".planning", "phases", "03.2-real-catalog-and-team-inserted", "pictures", "03.2-11");
@@ -35,12 +35,6 @@ const PICTURE_LOCALES = ["en", "ar"] as const;
 
 /** Bring a scene to the state its picture shows, using only what a person does (a key press, a click, a tick). */
 async function prepare(page: Page, state: string) {
-  if (state === "discard") {
-    // Closing a panel with unsaved changes asks first.
-    await page.keyboard.press("Escape");
-    // The panel stays in the page (hidden from the accessibility tree while the question is open): two dialogs.
-    await expect(page.locator('[role="dialog"]')).toHaveCount(2, { timeout: 10_000 });
-  }
   if (state === "date-range") {
     await page.locator("#kit-range").click();
     await page.getByRole("grid").waitFor({ state: "visible", timeout: 10_000 });
@@ -64,7 +58,7 @@ test.describe("pictures", () => {
         test(`${state} ${width} ${locale}`, async ({ page }) => {
           await openScene(page, state, viewport, locale);
           await prepare(page, state);
-          // The panel focuses its first control on open; the ring is real but is not what the picture is for.
+          // The page focuses its title on open; the ring is real but is not what the picture is for.
           await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
           // Network idle is capped (a bare wait times out on a cold dev server), then a short settle.
           await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
@@ -88,9 +82,56 @@ const COMBOS: { viewport: Viewport; locale: Locale }[] = [
 
 /** Words of the scene (its own bracket data), by language: only what a test has to find. */
 const SCENE_WORDS = {
-  en: { stays: "Stays", note: "[Content of this tab]", fromDestination: "From the destination", searchStays: "Search stays to connect", stay: (n: number) => `[Stay ${n}]` },
-  ar: { stays: "الإقامات", note: "[محتوى هذا التبويب]", fromDestination: "من الوجهة", searchStays: "ابحث عن إقامات للربط", stay: (n: number) => `[الإقامة ${n}]` },
+  en: {
+    stays: "Stays",
+    name: "[Name]",
+    nameLabel: "Name",
+    shortLine: "Short line",
+    description: "description",
+    fromDestination: "From the destination",
+    searchStays: "Search stays to connect",
+    stay: (n: number) => `[Stay ${n}]`,
+    row: (n: number) => `[Name ${n}]`,
+  },
+  ar: {
+    stays: "الإقامات",
+    name: "[الاسم]",
+    nameLabel: "الاسم",
+    shortLine: "سطر قصير",
+    description: "الوصف",
+    fromDestination: "من الوجهة",
+    searchStays: "ابحث عن إقامات للربط",
+    stay: (n: number) => `[الإقامة ${n}]`,
+    row: (n: number) => `[الاسم ${n}]`,
+  },
 } as const;
+
+type TranslateCall = { target: string; fields: Record<string, unknown> };
+
+/**
+ * Answers POST /api/ops/translate (contract 5.11) and records each call. `ok` returns every field as "[AR] <English>"
+ * or "[ES] <English>"; `fail` is 502 translate_failed, `limit` 429 translate_limit, `busy` 503 translate_busy. Workers AI
+ * is never reached.
+ */
+async function mockTranslate(page: Page, mode: "ok" | "fail" | "limit" | "busy"): Promise<TranslateCall[]> {
+  const seen: TranslateCall[] = [];
+  await page.route("**/api/ops/translate", async (route) => {
+    const body = route.request().postDataJSON() as TranslateCall;
+    seen.push(body);
+    const json = (status: number, payload: unknown) =>
+      route.fulfill({ status, contentType: "application/json", headers: { "cache-control": "no-store" }, body: JSON.stringify(payload) });
+    if (mode === "ok") {
+      const tag = `[${body.target.toUpperCase()}]`;
+      const fields = Object.fromEntries(
+        Object.entries(body.fields).map(([name, value]) => [name, Array.isArray(value) ? value.map((item) => `${tag} ${item}`) : `${tag} ${value}`]),
+      );
+      return json(200, { ok: true, target: body.target, fields });
+    }
+    const [status, code] = mode === "limit" ? [429, "translate_limit"] : mode === "busy" ? [503, "translate_busy"] : [502, "translate_failed"];
+    return json(status, { ok: false, error: { code, field: null, locale: null, detail: null } });
+  });
+  return seen;
+}
 
 /** Everything the kit has called so far, in order: `save`, `move:r2:-1`, `range:2026-10-20:null` ... */
 async function calls(page: Page): Promise<string[]> {
@@ -110,8 +151,11 @@ async function expectNoSidewaysScroll(page: Page) {
   expect(overflow.scroll, "page scrollWidth").toBeLessThanOrEqual(overflow.client);
 }
 
-const languageTabs = (page: Page, locale: Locale) => page.getByRole("tablist", { name: OPS_KIT_COPY[locale].languageTabs }).getByRole("tab");
 const button = (page: Page, name: string) => page.getByRole("button", { name, exact: true });
+/** The page's alerts (Next's own route announcer is an empty role=alert too). */
+const alerts = (page: Page) => page.locator('[role="alert"]:not([id="__next-route-announcer__"])');
+/** The status chip on the editor page (the hidden list behind it has its own chips). */
+const chip = (page: Page, name: string) => page.locator("[data-edit-page]").getByText(name, { exact: true });
 
 test.describe("behaviour", () => {
   test.describe.configure({ mode: "parallel" });
@@ -126,233 +170,240 @@ test.describe("behaviour", () => {
     const at = `${width} ${locale}`;
 
     test.describe(at, () => {
-      // ---- the edit panel ---------------------------------------------------------------------------------------
+      // ---- the editor page (kit panel B) -------------------------------------------------------------------------
 
-      test(`language tabs: one Tab stop, arrows follow the reading direction, the panel carries lang and dir (${at})`, async ({ page }) => {
-        await openScene(page, "panel-draft-ar", viewport, locale);
-        const tabs = languageTabs(page, locale);
-        await expect(tabs).toHaveCount(3);
-        for (const [index, label] of ["EN", "AR", "ES"].entries()) await expect(tabs.nth(index)).toContainText(label);
-        const panel = page.locator('[role="tabpanel"][lang]');
-        await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
-        await expect(panel).toHaveAttribute("lang", "ar");
-        await expect(panel).toHaveAttribute("dir", "rtl");
-        // One Tab stop: the chosen tab only.
-        await expect(tabs.nth(1)).toHaveAttribute("tabindex", "0");
-        await expect(tabs.nth(0)).toHaveAttribute("tabindex", "-1");
-        await expect(tabs.nth(2)).toHaveAttribute("tabindex", "-1");
+      test(`the editor page replaces the list: back link, title, status, Save and Publish; two columns at 1440, one at 390, mirrored in Arabic (${at})`, async ({ page }) => {
+        await mockTranslate(page, "ok");
+        await openScene(page, "page-draft", viewport, locale);
+        await expect(page.locator("html")).toHaveAttribute("dir", rtl ? "rtl" : "ltr");
+        await expect(page.getByRole("table")).toHaveCount(0);
+        const title = page.getByRole("heading", { level: 1 });
+        await expect(title).toHaveText(words.name);
+        await expect(title).toBeFocused();
+        await expect(button(page, dashboard.rail.destinations)).toBeVisible();
+        await expect(chip(page, copy.draft)).toBeVisible();
+        await expect(button(page, copy.save)).toBeDisabled();
+        await expect(button(page, copy.publish)).toBeEnabled();
+        await expect(page.getByRole("tablist")).toHaveCount(0);
+        await expect(page.getByRole("dialog")).toHaveCount(0);
 
-        // Arrows: the tab to the reading-direction end is "next": Right in English, Left in Arabic.
-        const forward = rtl ? "ArrowLeft" : "ArrowRight";
-        const back = rtl ? "ArrowRight" : "ArrowLeft";
-        await tabs.nth(1).focus();
-        await page.keyboard.press(forward);
-        await expect(tabs.nth(2)).toHaveAttribute("aria-selected", "true");
-        await expect(tabs.nth(2)).toBeFocused();
-        await expect(panel).toHaveAttribute("lang", "es");
-        await expect(panel).toHaveAttribute("dir", "ltr");
-        await page.keyboard.press(forward);
-        await expect(tabs.nth(0)).toHaveAttribute("aria-selected", "true");
-        await expect(panel).toHaveAttribute("lang", "en");
-        await page.keyboard.press(back);
-        await expect(tabs.nth(2)).toHaveAttribute("aria-selected", "true");
-        await page.keyboard.press("Home");
-        await expect(tabs.nth(0)).toHaveAttribute("aria-selected", "true");
-        await page.keyboard.press("End");
-        await expect(tabs.nth(2)).toHaveAttribute("aria-selected", "true");
-
-        // Tab leaves the tab list; it does not walk the other tabs.
-        await page.keyboard.press("Tab");
-        await expect(page.locator('[role="tab"]:focus')).toHaveCount(0);
-        // A click chooses too.
-        await tabs.nth(1).click();
-        await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
+        const text = await page.getByRole("region", { name: copy.editor.sections.text }).boundingBox();
+        const side = await page.getByRole("region", { name: copy.editor.sections.settings }).boundingBox();
+        expect(text && side, "both cards are drawn").toBeTruthy();
+        if (!text || !side) return;
+        if (viewport === "desktop") {
+          expect(Math.abs(side.y - text.y), "side by side").toBeLessThan(2);
+          expect(side.width, "the side column is the narrow one").toBeLessThan(text.width);
+          if (rtl) expect(side.x + side.width, "Arabic: the side column is on the left").toBeLessThanOrEqual(text.x + 1);
+          else expect(side.x, "English: the side column is on the right").toBeGreaterThanOrEqual(text.x + text.width - 1);
+        } else {
+          expect(side.y, "one column: the side card comes under").toBeGreaterThanOrEqual(text.y + text.height - 1);
+          expect(Math.round(side.width)).toBe(Math.round(text.width));
+        }
         await expectNoRadio(page);
         await expectNoSidewaysScroll(page);
       });
 
-      test(`Draft and Missing chips, and "I checked this translation" only on Arabic and Spanish (${at})`, async ({ page }) => {
-        await openScene(page, "panel-draft-ar", viewport, locale);
-        const tabs = languageTabs(page, locale);
-        const checkbox = page.getByRole("checkbox", { name: copy.checkedTranslation });
-        await expect(tabs.nth(0)).toHaveText("EN");
-        await expect(tabs.nth(1)).toContainText(copy.draft);
-        await expect(tabs.nth(2)).toContainText(copy.missing);
-        await expect(page.getByText(copy.draftNote)).toBeVisible();
-        await expect(checkbox).toBeVisible();
-        await expect(checkbox).not.toBeChecked();
-
-        await checkbox.check();
-        await expectCalled(page, "checked:ar:true");
-        await expect(tabs.nth(1)).toContainText(copy.published);
-        await expect(page.getByText(copy.draftNote)).toHaveCount(0);
-        await checkbox.uncheck();
-        await expectCalled(page, "checked:ar:false");
-        await expect(tabs.nth(1)).toContainText(copy.draft);
-
-        // Spanish has no text yet: nothing to check, and the box says so by being off.
-        await tabs.nth(2).click();
-        await expect(checkbox).toBeDisabled();
-        // English is the source: no box.
-        await tabs.nth(0).click();
-        await expect(checkbox).toHaveCount(0);
-      });
-
-      test(`closing with unsaved changes asks "Discard changes?"; Keep editing stays, Discard closes (${at})`, async ({ page }) => {
-        await openScene(page, "panel-draft-ar", viewport, locale);
-        const question = page.getByRole("dialog", { name: copy.discardTitle });
-        await button(page, copy.close).click();
-        await expect(question).toBeVisible();
-        await expect(button(page, copy.discard)).toBeVisible();
-        await button(page, copy.keepEditing).click();
-        await expect(question).toHaveCount(0);
-        await expect(button(page, copy.close)).toBeVisible();
-        await expectNotCalled(page, "close");
-
-        // Escape asks the same question.
-        await page.keyboard.press("Escape");
-        await expect(question).toBeVisible();
-        await button(page, copy.discard).click();
-        await expectCalled(page, "close");
-        await expect(page.getByRole("dialog")).toHaveCount(0);
-      });
-
-      test(`closing a panel with nothing changed closes at once (${at})`, async ({ page }) => {
-        await openScene(page, "panel-new", viewport, locale);
-        await button(page, copy.close).click();
-        await expectCalled(page, "close");
-        await expect(page.getByRole("dialog")).toHaveCount(0);
-      });
-
-      test(`Publish stays off while anything is missing, and the gaps are listed in words (${at})`, async ({ page }) => {
-        await openScene(page, "panel-new", viewport, locale);
-        const publish = button(page, copy.publish);
-        await expect(publish).toBeDisabled();
-        await expect(button(page, copy.save)).toBeEnabled();
-        await expect(page.getByText(copy.publishNeeds)).toBeVisible();
-        // The disabled button names its reason: the list of what is missing.
-        const reasonId = await publish.getAttribute("aria-describedby");
-        expect(reasonId, "Publish is described by the missing list").toBeTruthy();
-        await expect(page.locator(`[id="${reasonId}"]`)).toContainText(copy.publishNeeds);
-        await expect(page.locator(`[id="${reasonId}"] li`)).toHaveCount(3);
-        await expect(page.getByText(copy.publishNeeds).locator("xpath=following-sibling::ul/li")).toHaveCount(3);
-        await publish.click({ force: true });
-        await expectNotCalled(page, "publish");
-        // A new item has no Delete, no Unpublish and no Save and update site.
-        await expect(button(page, copy.delete)).toHaveCount(0);
-        await expect(button(page, copy.unpublish)).toHaveCount(0);
-        await expect(button(page, copy.saveAndUpdateSite)).toHaveCount(0);
+      test(`Save asks the AI for the changed English only, fills Arabic and Spanish and says so (${at})`, async ({ page }) => {
+        const calls = await mockTranslate(page, "ok");
+        await openScene(page, "page-draft", viewport, locale);
+        await page.locator("#kit-short").fill("[New short line]");
+        await expect(page.getByRole("status").filter({ hasText: copy.editor.unsaved })).toBeVisible();
         await button(page, copy.save).click();
-        await expectCalled(page, "save");
-        await expectNoRadio(page);
-      });
-
-      test(`filling the missing text turns Publish on, and it reaches its handler (${at})`, async ({ page }) => {
-        await openScene(page, "panel-draft-ar", viewport, locale);
-        const publish = button(page, copy.publish);
-        await expect(publish).toBeDisabled();
-        await expect(page.getByText(copy.publishNeeds).locator("xpath=following-sibling::ul/li")).toHaveCount(3);
-        await languageTabs(page, locale).nth(2).click();
-        await page.locator("#kit-name").fill("x");
-        await page.locator("#kit-short").fill("x");
-        await expect(publish).toBeDisabled();
-        await page.locator("#kit-description").fill("x");
-        await expect(page.getByText(copy.publishNeeds)).toHaveCount(0);
-        await expect(publish).toBeEnabled();
-        await publish.click();
-        await expectCalled(page, "publish");
-      });
-
-      test(`an unpublished saved item: Save, Publish and a live Delete reach their handlers (${at})`, async ({ page }) => {
-        await openScene(page, "panel-draft-ar", viewport, locale);
-        await button(page, copy.save).click();
-        await expectCalled(page, "save");
-        // Saved: nothing is dirty any more, so Save rests.
+        await expect(page.getByRole("status").filter({ hasText: copy.editor.translationsUpdated })).toBeVisible();
+        expect(calls.map((call) => call.target).sort()).toEqual(["ar", "es"]);
+        for (const call of calls) expect(call.fields).toEqual({ short_line: "[New short line]" });
+        await expectCalled(page, "save:save:complete");
         await expect(button(page, copy.save)).toBeDisabled();
-        const remove = button(page, copy.delete);
-        await expect(remove).toBeEnabled();
-        await remove.click();
-        await expectCalled(page, "delete");
+        await expect(button(page, copy.publish)).toBeEnabled();
+
+        await button(page, copy.editor.editTranslations).click();
+        await expect(page.getByLabel(`${words.shortLine} · AR`)).toHaveValue("[AR] [New short line]");
+        await expect(page.getByLabel(`${words.shortLine} · ES`)).toHaveValue("[ES] [New short line]");
+        await expect(page.getByLabel(`${words.nameLabel} · AR`)).toHaveValue(words.name);
       });
 
-      test(`a published item: Save and update site and Unpublish; Delete waits for Unpublish (${at})`, async ({ page }) => {
-        await openScene(page, "panel-published", viewport, locale);
-        await expect(button(page, copy.saveAndUpdateSite)).toBeEnabled();
+      test(`a translation that fails holds Publish and says why; Save tries again (${at})`, async ({ page }) => {
+        const calls = await mockTranslate(page, "fail");
+        await openScene(page, "page-draft", viewport, locale);
+        await page.locator("#kit-name").fill("[Renamed]");
+        await button(page, copy.save).click();
+        const alert = alerts(page).filter({ hasText: copy.editor.translationFailed });
+        await expect(alert).toBeVisible();
+        await expectCalled(page, "save:save:incomplete");
+        const publish = button(page, copy.publish);
+        await expect(publish).toBeDisabled();
+        const reason = await publish.getAttribute("aria-describedby");
+        expect(reason).toBeTruthy();
+        await expect(page.locator(`[id="${reason}"]`)).toHaveText(copy.editor.translationFailed);
+        // The old Arabic and Spanish names were of the old English: they are empty now, waiting for a translation.
+        await button(page, copy.editor.editTranslations).click();
+        await expect(page.getByLabel(`${words.nameLabel} · AR`)).toHaveValue("");
+        await expect(page.getByLabel(`${words.nameLabel} · ES`)).toHaveValue("");
+        // Nothing edited, but Save is live: it tries the translation once more.
+        await expect(button(page, copy.save)).toBeEnabled();
+        await page.unroute("**/api/ops/translate");
+        const again = await mockTranslate(page, "ok");
+        await button(page, copy.save).click();
+        await expect(page.getByRole("status").filter({ hasText: copy.editor.translationsUpdated })).toBeVisible();
+        await expect(alert).toHaveCount(0);
+        await expect(publish).toBeEnabled();
+        for (const call of again) expect(call.fields).toEqual({ name: "[Renamed]" });
+        expect(calls.length + again.length).toBe(4);
+        await expect(page.getByLabel(`${words.nameLabel} · AR`)).toHaveValue("[AR] [Renamed]");
+      });
+
+      test(`the daily limit and a busy service are said in their own words (${at})`, async ({ page }) => {
+        await mockTranslate(page, "limit");
+        await openScene(page, "page-draft", viewport, locale);
+        await page.locator("#kit-name").fill("[Renamed]");
+        await button(page, copy.save).click();
+        await expect(alerts(page)).toHaveText(copy.editor.translationLimit);
+        await page.unroute("**/api/ops/translate");
+        await mockTranslate(page, "busy");
+        await button(page, copy.save).click();
+        await expect(alerts(page)).toHaveText(copy.editor.translationBusy);
+      });
+
+      test(`Publish with unsaved English saves, translates and publishes in one go; a failure saves without publishing (${at})`, async ({ page }) => {
+        await mockTranslate(page, "ok");
+        await openScene(page, "page-draft", viewport, locale);
+        await page.locator("#kit-name").fill("[Renamed]");
+        await button(page, copy.publish).click();
+        await expectCalled(page, "save:publish:complete");
+        await expect(chip(page, copy.published)).toBeVisible();
+        await expect(button(page, copy.saveAndUpdateSite)).toBeDisabled();
+
+        await page.unroute("**/api/ops/translate");
+        await mockTranslate(page, "fail");
+        await page.reload();
+        await settle(page);
+        await page.locator("#kit-name").fill("[Renamed again]");
+        await button(page, copy.publish).click();
+        await expectCalled(page, "save:save:incomplete");
+        await expectNotCalled(page, "save:publish:incomplete");
+        await expect(chip(page, copy.draft)).toBeVisible();
+        await expect(button(page, copy.publish)).toBeDisabled();
+      });
+
+      test(`a published item: a failed translation saves nothing and the site keeps what it has (${at})`, async ({ page }) => {
+        await mockTranslate(page, "fail");
+        await openScene(page, "page-published", viewport, locale);
+        await expect(button(page, copy.saveAndUpdateSite)).toBeDisabled();
         await expect(button(page, copy.unpublish)).toBeEnabled();
         await expect(button(page, copy.publish)).toHaveCount(0);
-        await expect(button(page, copy.save)).toHaveCount(0);
         await expect(button(page, copy.delete)).toBeDisabled();
         await expect(page.getByText(copy.unpublishFirst)).toBeVisible();
-        await expect(page.getByText(copy.publishNeeds)).toHaveCount(0);
-
+        await page.locator("#kit-name").fill("[Renamed]");
         await button(page, copy.saveAndUpdateSite).click();
-        await expectCalled(page, "save");
-        await expect(button(page, copy.saveAndUpdateSite)).toBeDisabled();
+        await expect(alerts(page)).toHaveText(copy.editor.translationFailedLive);
+        expect((await calls(page)).filter((entry) => entry.startsWith("save:"))).toEqual([]);
         await button(page, copy.unpublish).click();
         await expectCalled(page, "unpublish");
       });
 
+      test(`Edit translations opens Arabic and Spanish for a fix; a word typed there is kept, not translated over (${at})`, async ({ page }) => {
+        const calls = await mockTranslate(page, "ok");
+        await openScene(page, "page-draft", viewport, locale);
+        const link = button(page, copy.editor.editTranslations);
+        await expect(link).toHaveAttribute("aria-expanded", "false");
+        await expect(page.getByLabel(`${words.nameLabel} · AR`)).toHaveCount(0);
+        await link.click();
+        await expect(button(page, copy.editor.hideTranslations)).toHaveAttribute("aria-expanded", "true");
+        await expect(page.getByText(copy.editor.translationsNote)).toBeVisible();
+        const ar = page.getByLabel(`${words.nameLabel} · AR`);
+        await expect(ar).toHaveValue(words.name);
+        await expect(page.locator('fieldset [lang="ar"][dir="rtl"]').filter({ has: ar })).toHaveCount(1);
+        await expect(page.locator('fieldset [lang="es"][dir="ltr"]').filter({ has: page.getByLabel(`${words.nameLabel} · ES`) })).toHaveCount(1);
+
+        await ar.fill("[Typed in Arabic]");
+        await expectCalled(page, "translation:ar:name");
+        await page.locator("#kit-name").fill("[Renamed]");
+        await button(page, copy.save).click();
+        await expectCalled(page, "save:save:complete");
+        expect(calls.map((call) => call.target)).toEqual(["es"]);
+        expect(calls[0]!.fields).toEqual({ name: "[Renamed]" });
+        await expect(ar).toHaveValue("[Typed in Arabic]");
+        await expect(page.getByLabel(`${words.nameLabel} · ES`)).toHaveValue("[ES] [Renamed]");
+        await button(page, copy.editor.hideTranslations).click();
+        await expect(ar).toHaveCount(0);
+      });
+
+      test(`leaving with unsaved changes asks "Discard changes?"; Keep editing stays, Discard goes back and focus returns to the row (${at})`, async ({ page }) => {
+        await mockTranslate(page, "ok");
+        await openScene(page, "page-draft", viewport, locale);
+        // Nothing changed: the back link goes at once.
+        await button(page, dashboard.rail.destinations).click();
+        await expectCalled(page, "close");
+        await expect(page.getByRole("heading", { level: 1 })).toHaveText(dashboard.rail.destinations);
+
+        // Open a row with the keyboard path a person uses (a click), change a word, then try to leave.
+        const row = page.locator("button:visible", { hasText: words.row(2) });
+        await row.click();
+        await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+        await page.locator("#kit-short").fill("[Changed]");
+        const question = page.getByRole("dialog", { name: copy.discardTitle });
+        await button(page, dashboard.rail.destinations).click();
+        await expect(question).toBeVisible();
+        await button(page, copy.keepEditing).click();
+        await expect(question).toHaveCount(0);
+        await expect(page.locator("#kit-short")).toHaveValue("[Changed]");
+
+        await page.keyboard.press("Escape");
+        await expect(question).toBeVisible();
+        await button(page, copy.discard).click();
+        await expect(question).toHaveCount(0);
+        await expect(page.getByRole("heading", { level: 1 })).toHaveText(dashboard.rail.destinations);
+        await expect(page.locator("button:visible", { hasText: words.row(2) })).toBeFocused();
+      });
+
+      test(`a new item: Publish waits only for the photo; the Arabic and Spanish gaps are Save's to fill; no Delete (${at})`, async ({ page }) => {
+        await mockTranslate(page, "ok");
+        await openScene(page, "page-new", viewport, locale);
+        const publish = button(page, copy.publish);
+        await expect(publish).toBeDisabled();
+        await expect(button(page, copy.save)).toBeEnabled();
+        const reasonId = await publish.getAttribute("aria-describedby");
+        await expect(page.locator(`[id="${reasonId}"] li`)).toHaveCount(1);
+        await expect(page.locator(`[id="${reasonId}"] li`)).toHaveText(copy.fields.photo);
+        await expect(button(page, copy.delete)).toHaveCount(0);
+        await expect(button(page, copy.unpublish)).toHaveCount(0);
+        await publish.click({ force: true });
+        await expectNotCalled(page, "publish");
+      });
+
       test(`a published item without a rate or a price says so in words (${at})`, async ({ page }) => {
-        await openScene(page, "panel-warning", viewport, locale);
+        await openScene(page, "page-warning", viewport, locale);
         await expect(page.getByText(copy.warnNoBaseRate)).toBeVisible();
         await expect(page.getByText(copy.warnNoPrice)).toBeVisible();
         await expect(button(page, copy.saveAndUpdateSite)).toBeVisible();
       });
 
       test(`a 409 publish_incomplete is shown through the same list and clears when the owner edits (${at})`, async ({ page }) => {
-        await openScene(page, "panel-error", viewport, locale);
+        await openScene(page, "page-error", viewport, locale);
         const list = page.getByText(copy.publishNeeds).locator("xpath=following-sibling::ul/li");
         await expect(list).toHaveCount(3);
         await expect(button(page, copy.publish)).toBeDisabled();
-        await expect(page.getByRole("alert")).toHaveCount(0);
+        await expect(alerts(page)).toHaveCount(0);
         await expect(button(page, copy.publish)).toHaveAttribute("aria-describedby", /.+/);
-        // The server's own words for the Arabic and Spanish gaps and the photo, in the language of the dashboard.
         const gap = (language: "ar" | "es", field: string) => copy.missingLine.replace("{language}", copy.languages[language]).replace("{field}", field);
         const upper = (value: string) => value.charAt(0).toLocaleUpperCase() + value.slice(1);
-        await expect(list.nth(0)).toHaveText(upper(gap("ar", copy.fields.description)));
+        await expect(list.nth(0)).toHaveText(upper(gap("ar", words.description)));
         await expect(list.nth(1)).toHaveText(upper(gap("es", copy.fields.short_line)));
         await expect(list.nth(2)).toHaveText(upper(copy.fields.photo));
-
         await page.locator("#kit-name").fill("x");
         await expect(page.getByText(copy.publishNeeds)).toHaveCount(0);
         await expect(button(page, copy.publish)).toBeEnabled();
       });
 
-      test(`the section tabs change the panel body (${at})`, async ({ page }) => {
-        await openScene(page, "panel-published", viewport, locale);
-        const sections = page.getByRole("tablist", { name: copy.sections }).getByRole("tab");
-        await expect(sections).toHaveCount(3);
-        await expect(sections.nth(0)).toHaveAttribute("aria-selected", "true");
-        await expect(languageTabs(page, locale)).toHaveCount(3);
-        await sections.nth(1).click();
-        await expect(sections.nth(1)).toHaveAttribute("aria-selected", "true");
-        await expect(sections.nth(1)).toHaveText(words.stays);
-        await expect(page.getByText(words.note)).toBeVisible();
-        await expect(languageTabs(page, locale)).toHaveCount(0);
-        await sections.nth(0).click();
-        await expect(languageTabs(page, locale)).toHaveCount(3);
-      });
-
-      test(`a panel is a full-screen sheet at 390 and docks to the inline end from 768, mirrored in Arabic (${at})`, async ({ page }) => {
-        await openScene(page, "panel-published", viewport, locale);
-        await expect(page.locator("html")).toHaveAttribute("dir", rtl ? "rtl" : "ltr");
-        const panel = page.getByRole("dialog");
-        await expect(panel).toBeVisible();
-        const view = VIEWPORTS[viewport];
-        const box = await panel.boundingBox();
-        expect(box, "panel box").not.toBeNull();
-        if (!box) return;
-        if (viewport === "phone") {
-          expect(Math.round(box.x)).toBe(0);
-          expect(Math.round(box.y)).toBe(0);
-          expect(Math.round(box.width)).toBe(view.width);
-          expect(Math.round(box.height)).toBe(view.height);
-        } else {
-          expect(box.width, "docked, not full width").toBeLessThan(view.width / 2);
-          if (rtl) expect(Math.round(box.x), "Arabic docks at the left").toBe(0);
-          else expect(Math.round(box.x + box.width), "English docks at the right").toBe(view.width);
-        }
-        await expectNoSidewaysScroll(page);
+      test(`the browser asks before the tab is left with unsaved changes (${at})`, async ({ page }) => {
+        await openScene(page, "page-draft", viewport, locale);
+        await page.locator("#kit-name").fill("[Changed]");
+        const asked = page.waitForEvent("dialog", { timeout: 10_000 });
+        void page.close({ runBeforeUnload: true });
+        const dialog = await asked;
+        expect(dialog.type()).toBe("beforeunload");
+        await dialog.dismiss();
       });
 
       // ---- the list ---------------------------------------------------------------------------------------------

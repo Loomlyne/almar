@@ -5,19 +5,21 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ChevronIcon, CloseIcon } from "../../../components/icons/icons";
 import { cn } from "../../../lib/cn";
-import { Sidebar } from "../../../components/ui/sidebar";
 import { ConfirmDialog } from "../../../components/ui/confirm-dialog";
 import { signOutEverywhere } from "../actions";
 import { DASHBOARD_COPY, type DashboardCopy } from "../../../lib/copy/dashboard";
+import { OPS_CONTENT_COPY } from "../../../lib/copy/ops-content";
 import { OPS_MEDIA_COPY } from "../../../lib/copy/ops-media";
 import { OPS_SITE_STATUS_COPY } from "../../../lib/copy/ops-site-status";
 import { SiteStatusLine } from "../../../components/ops/site-status-line";
 import { isDocumentLocale, setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
+import { SoonChip } from "./content/coming-soon";
 import charcoalLogo from "../../../brand/Logo Typography/Stacked_Charcoal.svg";
 
-// "media" takes its label from the Media screen's own copy (plan 03.2-09), so the shared dashboard copy is not edited.
-type RailKey = keyof DashboardCopy["rail"] | "media";
-type RailLink = { key: RailKey; label: string; href: string };
+// "media" takes its label from the Media screen's own copy (plan 03.2-09) and "navigation" from lib/copy/ops-content.ts
+// (plan 03.2-12), so the shared dashboard copy is not edited. `soon` adds the Soon chip: the section is a Coming soon page.
+type RailKey = keyof DashboardCopy["rail"] | "media" | "navigation";
+type RailLink = { key: RailKey; label: string; href: string; soon?: true };
 type RailGroup = { key: RailKey; label: string; children: RailLink[] };
 type RailItem = RailLink | RailGroup;
 
@@ -40,11 +42,12 @@ const RAIL: RailItem[] = [
     key: "content",
     label: "Content",
     children: [
-      { key: "pages", label: "Pages", href: "/dashboard/content/pages" },
-      { key: "blog", label: "Blog", href: "/dashboard/content/blog" },
+      { key: "pages", label: "Pages", href: "/dashboard/content/pages", soon: true },
+      { key: "blog", label: "Blog", href: "/dashboard/content/blog", soon: true },
       { key: "team", label: "Team", href: "/dashboard/content/team" },
-      { key: "legal", label: "Legal", href: "/dashboard/content/legal" },
+      { key: "legal", label: "Legal", href: "/dashboard/content/legal", soon: true },
       { key: "media", label: "Media", href: "/dashboard/content/media" },
+      { key: "navigation", label: "Navigation and footer", href: "/dashboard/content/navigation", soon: true },
     ],
   },
   { key: "settings", label: "Settings", href: "/dashboard/settings" },
@@ -52,7 +55,7 @@ const RAIL: RailItem[] = [
 ];
 
 const RAIL_ITEM =
-  "flex min-h-control w-full items-center px-2 text-start font-body text-label no-underline transition-colors duration-fast ease-standard";
+  "flex min-h-control w-full items-center justify-between gap-2 px-2 text-start font-body text-label no-underline transition-colors duration-fast ease-standard";
 const MENU_BUTTON =
   "inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border border-line bg-surface p-0 text-teal xl:hidden";
 
@@ -93,13 +96,17 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
   const signOutForm = useRef<HTMLFormElement>(null);
   const menuId = useId();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const restoreFocusRef = useRef(false);
   const [locale, setLocale] = useState<DocumentLocale>("en");
   const [menuOpen, setMenuOpen] = useState(false);
   const [compact, setCompact] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const copy = DASHBOARD_COPY[locale];
-  const railLabel = (key: RailKey) => (key === "media" ? OPS_MEDIA_COPY[locale].media : copy.rail[key]);
+  const content = OPS_CONTENT_COPY[locale];
+  const railLabel = (key: RailKey) =>
+    key === "media" ? OPS_MEDIA_COPY[locale].media : key === "navigation" ? content.rail.navigation : copy.rail[key];
 
   useEffect(() => {
     const next = readLocale();
@@ -119,6 +126,20 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
       if (previous) root.setAttribute("data-density", previous);
       else root.removeAttribute("data-density");
     };
+  }, []);
+
+  // The drawer starts below the header, and the header is one row or two (on a phone the publish status line wraps onto its
+  // own row, plan 03.2-05): follow its real height in --ops-header-h instead of a fixed offset.
+  useEffect(() => {
+    const header = headerRef.current;
+    const shell = shellRef.current;
+    if (!header || !shell) return;
+    const measure = () => shell.style.setProperty("--ops-header-h", `${header.getBoundingClientRect().height}px`);
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -189,9 +210,17 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
         href={href}
         className={cn(RAIL_ITEM, nested && "ps-4", current ? "bg-teal-tint text-teal" : "text-ink hover:bg-ivory")}
         aria-current={current ? "page" : undefined}
+        aria-label={item.soon ? content.soonNamed.replace("{label}", railLabel(item.key)) : undefined}
         onClick={() => setMenuOpen(false)}
       >
-        {railLabel(item.key)}
+        {item.soon ? (
+          <>
+            <span>{railLabel(item.key)}</span>
+            <SoonChip>{content.soon}</SoonChip>
+          </>
+        ) : (
+          railLabel(item.key)
+        )}
       </Link>
     );
   }
@@ -237,6 +266,7 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
 
   return (
     <div
+      ref={shellRef}
       className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-ivory text-ink"
       data-density="dense"
       style={{ paddingInline: "max(env(safe-area-inset-left), env(safe-area-inset-right))" }}
@@ -247,7 +277,7 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
       >
         {copy.skip}
       </a>
-      <header className="sticky top-0 z-50 flex min-h-control flex-wrap items-center justify-between gap-2 border-b border-line bg-ivory px-4 py-1">
+      <header ref={headerRef} className="sticky top-0 z-50 flex min-h-control flex-wrap items-center justify-between gap-2 border-b border-line bg-ivory px-4 py-1">
         <Link className="flex min-h-control min-w-0 items-center gap-2 text-teal no-underline" href={mode === "ops" ? "/" : "/dashboard/home"}>
           <img className="block aspect-2/1 h-auto w-35 max-w-full object-contain object-left" alt="ALMAR" src={logoSrc ?? charcoalLogo.src} />
           <span className="hidden whitespace-nowrap font-display text-label uppercase tracking-kicker xl:inline ar:normal-case ar:tracking-normal">
@@ -273,8 +303,9 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
           id={menuId}
           className={cn(
             "flex-col gap-0 border-e border-line bg-surface p-2 xl:flex xl:w-sidebar xl:shrink-0",
-            menuOpen ? "fixed inset-0 z-45 flex overflow-auto overscroll-contain border-e-0 bg-ivory pt-16" : "hidden",
+            menuOpen ? "fixed inset-0 z-45 flex overflow-auto overscroll-contain border-e-0 bg-ivory" : "hidden",
           )}
+          style={menuOpen ? { paddingTop: "calc(var(--ops-header-h, 5rem) + 0.5rem)" } : undefined}
           aria-label={copy.dashboardName}
           inert={compact && !menuOpen ? true : undefined}
         >
@@ -291,14 +322,13 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
           ) : null}
         </nav>
         <main id="content" className="min-w-0 flex-1 scroll-mt-16 p-4" inert={menuOpen ? true : undefined}>
-          {mode === "ops" ? (
+          {mode === "ops" && !children ? (
             <h1 className="m-0 font-display text-heading font-normal text-teal">{copy.notReady}</h1>
           ) : (
             children
           )}
         </main>
       </div>
-      <Sidebar open={false} onOpenChange={() => undefined} title={copy.rail.home} closeLabel={copy.close} />
       {mode === "ops" ? (
         <>
           <form ref={signOutForm} action="/auth/sign-out" method="post" hidden />

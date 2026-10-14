@@ -127,6 +127,17 @@ test("OPS_LIVE_SECTIONS holds wired sections only (03.2-09: /content/media); unw
   assert.equal(OPS_PATH_HEADER, "x-almar-ops-path");
 });
 
+test("OPS_LIVE_SECTIONS pins all five wired content sections (03.2-09 media, 03.2-12 pages, blog, legal, navigation); Team and the rest stay off", () => {
+  for (const section of ["/content/media", "/content/pages", "/content/blog", "/content/legal", "/content/navigation"]) {
+    assert.ok(OPS_LIVE_SECTIONS.includes(section), `${section} is listed`);
+    assert.equal(isLiveOpsPath(section), true, `${section} (browser path)`);
+    assert.equal(isLiveOpsPath(`/dashboard${section}`), true, `/dashboard${section} (rewrite target)`);
+    assert.equal(isLiveOpsPath(`${section}/`), true, `${section}/ (trailing slash)`);
+  }
+  for (const path of ["/content", "/content/team", "/content/pages-old", "/catalog/packages"]) assert.equal(isLiveOpsPath(path), false, path);
+  assert.equal(new Set(OPS_LIVE_SECTIONS).size, OPS_LIVE_SECTIONS.length, "no section is listed twice");
+});
+
 test("isLiveOpsPath: a listed section and what is under it; never a near miss or its parent", () => {
   const live = ["/catalog/stays"];
   assert.equal(isLiveOpsPath("/catalog/stays", live), true);

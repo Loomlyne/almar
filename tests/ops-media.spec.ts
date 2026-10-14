@@ -3,6 +3,7 @@ import { isAbsolute, join } from "node:path";
 import { crc32, deflateSync } from "node:zlib";
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { DASHBOARD_COPY } from "../lib/copy/dashboard";
+import { OPS_KIT_COPY, fillCopy } from "../lib/copy/ops-kit";
 import { OPS_MEDIA_COPY } from "../lib/copy/ops-media";
 import { VIEWPORTS, sceneStates, settle, type Viewport } from "./journey/matrix";
 
@@ -14,6 +15,8 @@ import { VIEWPORTS, sceneStates, settle, type Viewport } from "./journey/matrix"
 type Locale = "en" | "ar";
 
 const harnessUrl = (state: string, locale: string) => `/__harness?c=ops-media&s=${state}&l=${locale}`;
+/** The page's alerts (Next's own route announcer is an empty role=alert too). */
+const alerts = (page: Page) => page.locator('[role="alert"]:not([id="__next-route-announcer__"])');
 
 async function openScene(page: Page, state: string, viewport: Viewport, locale: Locale) {
   await page.setViewportSize(VIEWPORTS[viewport]);
@@ -41,19 +44,13 @@ test.describe("pictures", () => {
   test.setTimeout(120_000);
   if (PICTURES_TO) mkdirSync(PICTURES, { recursive: true });
 
-  // library-live is the connected screen for the behaviour block below, not one of the signed pictures.
-  for (const state of sceneStates("ops-media").filter((one) => one !== "library-live")) {
+  // library-live is the connected screen for the behaviour block below; the editor states are kit panel B's pictures.
+  for (const state of sceneStates("ops-media").filter((one) => !["library-live", "library-editor", "library-failed"].includes(one))) {
     for (const viewport of WIDTHS) {
       for (const locale of PICTURE_LOCALES) {
         const width = VIEWPORTS[viewport].width;
         test(`${state} ${width} ${locale}`, async ({ page }) => {
           await openScene(page, state, viewport, locale);
-          // A docked panel or a phone sheet scrolls inside the viewport, and a picture cannot scroll: show the whole
-          // panel on a taller screen so all three alt boxes and the buttons are in the picture.
-          if (state === "library-panel") {
-            await page.setViewportSize({ width: VIEWPORTS[viewport].width, height: viewport === "phone" ? 1400 : 1100 });
-            await page.waitForTimeout(300);
-          }
           // A panel focuses its first control on open; the ring is real but is not what the picture is for.
           await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
           await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
@@ -65,6 +62,83 @@ test.describe("pictures", () => {
             .catch(() => undefined);
           await page.waitForTimeout(400);
           await page.screenshot({ path: join(PICTURES, `${state}-${width}-${locale}.png`), fullPage: true });
+        });
+      }
+    }
+  }
+});
+
+// ---- kit panel B pictures ----------------------------------------------------------------------------------------
+// The Media editor on the kit's new page (option B, signed 2026-10-14) for the controller: the editor in EN, AR and ES at
+// 390, 834 and 1440, Edit translations open at 390 and 1440, and the failure state (the AI did not finish) at 390 and
+// 1440. Written outside tests/ only when asked: KIT_B_PICTURES=1 writes into the planning folder, =<folder> writes there.
+// Before each shot every drawn text node must be a real string (memory: picture-mock-text-gate).
+
+const KIT_B_TO = process.env.KIT_B_PICTURES;
+const KIT_B_FOLDER = KIT_B_TO && isAbsolute(KIT_B_TO) ? KIT_B_TO : join(__dirname, "..", ".planning", "phases", "03.2-real-catalog-and-team-inserted", "pictures", "kit-panel-b");
+const KIT_B_SHOTS: { state: "library-editor" | "library-failed"; frame: "main" | "translations" | "failed"; viewports: Viewport[] }[] = [
+  { state: "library-editor", frame: "main", viewports: ["phone", "tablet", "desktop"] },
+  { state: "library-editor", frame: "translations", viewports: ["phone", "desktop"] },
+  { state: "library-failed", frame: "failed", viewports: ["phone", "desktop"] },
+];
+
+/** Every text node is a non-empty string with no "[object", "undefined" or "NaN"; no `{token}` is left unfilled. */
+async function expectRealText(page: Page) {
+  const bad = await page.evaluate(() => {
+    const out: string[] = [];
+    // Drawn text only: Next's inline <script> data and <style> are not on screen.
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: (node) => (node.parentElement?.closest("script, style, noscript") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+    });
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const text = node.textContent ?? "";
+      if (/\[object|\bundefined\b|\bNaN\b|\{[a-z]+\}/.test(text)) out.push(text.trim().slice(0, 80));
+    }
+    for (const element of Array.from(document.querySelectorAll("[aria-label], [title], input[placeholder], img[alt]"))) {
+      for (const name of ["aria-label", "title", "placeholder", "alt"]) {
+        const value = element.getAttribute(name);
+        if (value !== null && (value.trim() === "" || /\[object|\bundefined\b|\bNaN\b/.test(value))) out.push(`${name}="${value}"`);
+      }
+    }
+    return out;
+  });
+  expect(bad, "every label is a real string").toEqual([]);
+}
+
+test.describe("kit panel B pictures", () => {
+  test.skip(!KIT_B_TO, "set KIT_B_PICTURES=1 (or a folder) to shoot the kit panel B pictures");
+  test.describe.configure({ mode: "parallel" });
+  test.setTimeout(120_000);
+  if (KIT_B_TO) mkdirSync(KIT_B_FOLDER, { recursive: true });
+
+  for (const shot of KIT_B_SHOTS) {
+    for (const viewport of shot.viewports) {
+      for (const locale of ["en", "ar", "es"] as const) {
+        const width = VIEWPORTS[viewport].width;
+        test(`media-${shot.frame} ${width} ${locale}`, async ({ page }) => {
+          await page.setViewportSize(VIEWPORTS[viewport]);
+          await page.goto(harnessUrl(shot.state, locale));
+          await settle(page);
+          await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+          await page.waitForFunction((l) => document.documentElement.lang === l, locale);
+          const kit = OPS_KIT_COPY[locale];
+          if (shot.frame === "translations") {
+            await page.getByRole("button", { name: kit.editor.editTranslations, exact: true }).click();
+          }
+          if (shot.frame === "failed") {
+            // The owner's own path: change the English, press Save; the scene's AI answers 502.
+            await page.locator("#media-alt-en").fill("[New alt text]");
+            await page.getByRole("button", { name: kit.save, exact: true }).click();
+            await expect(alerts(page)).toHaveText(kit.editor.translationFailed);
+          }
+          await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+          await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
+          await page
+            .waitForFunction(() => Array.from(document.images).every((image) => image.complete), undefined, { timeout: 15_000 })
+            .catch(() => undefined);
+          await page.waitForTimeout(400);
+          await expectRealText(page);
+          await page.screenshot({ path: join(KIT_B_FOLDER, `media-${shot.frame}-${width}-${locale}.png`), fullPage: true });
         });
       }
     }
@@ -100,7 +174,12 @@ const row = (n: number, key: string, altEn: string, extra: Record<string, unknow
 const ITEMS = [
   row(1, "test/pool-dusk.webp", "Pool at dusk"),
   // Only an uploaded photo can be deleted (ops_delete_media refuses imports).
-  row(2, "test/old-town.webp", "Old town street", { source: "upload" }),
+  // Live in Arabic, no Spanish yet, not used: the mixed-status photo (PR #15).
+  row(2, "test/old-town.webp", "Old town street", {
+    source: "upload",
+    alt: { en: "Old town street", ar: "[AR live]", es: null },
+    alt_status: { en: "published", ar: "published", es: "missing" },
+  }),
   row(3, "test/coffee-farm.webp", "Coffee farm", { source: "upload" }),
   row(4, "test/beach-walk.webp", "Beach walk"),
   row(5, "test/market-day.webp", "Market day"),
@@ -112,15 +191,24 @@ type Api = {
   gets: URL[];
   puts: { headers: Record<string, string>; bytes: number }[];
   posts: Record<string, unknown>[];
+  translations: { target: string; fields: Record<string, string> }[];
 };
 
 const failure = (status: number, code: string) => ({ status, json: { ok: false, error: { code, field: null, locale: null, detail: null } } });
 
 /** Answers /api/ops/media from fixtures (a page of 3, search over key and English alt) and records every call. */
-async function mockApi(page: Page, opts: { delete?: { status: number; json: unknown } } = {}): Promise<Api> {
-  const api: Api = { gets: [], puts: [], posts: [] };
+async function mockApi(page: Page, opts: { delete?: { status: number; json: unknown }; translate?: "ok" | "fail" } = {}): Promise<Api> {
+  const api: Api = { gets: [], puts: [], posts: [], translations: [] };
   const reply = (route: Route, status: number, json: unknown) =>
     route.fulfill({ status, contentType: "application/json", headers: { "cache-control": "no-store" }, body: JSON.stringify(json) });
+  // The translate route (contract 5.11): "[AR] <English>" / "[ES] <English>", or 502 translate_failed. No Workers AI.
+  await page.route("**/api/ops/translate", async (route) => {
+    const body = route.request().postDataJSON() as { target: string; fields: Record<string, string> };
+    api.translations.push(body);
+    if (opts.translate === "fail") return reply(route, 502, failure(502, "translate_failed").json);
+    const tag = `[${body.target.toUpperCase()}]`;
+    return reply(route, 200, { ok: true, target: body.target, fields: Object.fromEntries(Object.entries(body.fields).map(([k, v]) => [k, `${tag} ${v}`])) });
+  });
   await page.route(/\/api\/ops\/media(\?.*)?$/, async (route) => {
     const request = route.request();
     if (request.method() === "GET") {
@@ -308,26 +396,237 @@ test.describe("behaviour", () => {
         await expect(page.getByRole("list").first().getByRole("listitem")).toHaveCount(before + 2);
       });
 
-      test(`library page: Save sends ar/es status published only when ticked, draft otherwise (${at})`, async ({ page, baseURL }) => {
+      test(`library page: Save fills the missing Spanish from the English and keeps it a draft; Publish makes both live (${at})`, async ({ page, baseURL }) => {
         const api = await mockApi(page);
+        const kit = OPS_KIT_COPY[locale];
         await openRealPage(page, viewport, locale, baseURL);
         await expect(page.getByRole("list", { name: copy.media }).getByRole("listitem")).toHaveCount(PAGE);
-        await expect(page.getByRole("button", { name: copy.upload, exact: true })).toBeVisible();
         await page.getByRole("button", { name: /pool-dusk/ }).click();
-        const ar = page.getByLabel(`${copy.altText} · AR`);
-        await expect(ar).toHaveValue("[AR old]");
-        await expect(page.getByRole("button", { name: copy.save, exact: true })).toBeDisabled();
-        await page.getByLabel(`${copy.altText} · ES`).fill("Piscina al atardecer");
-        await page.getByRole("checkbox", { name: copy.checkedTranslation }).first().check();
-        await page.getByRole("button", { name: copy.save, exact: true }).click();
+        // The editor page replaces the grid: the file name is the title, the English alt text the one field.
+        await expect(page.getByRole("heading", { level: 1 })).toHaveText("pool-dusk.webp");
+        await expect(page.getByRole("list", { name: copy.media })).toHaveCount(0);
+        await expect(page.locator("#media-alt-en")).toHaveValue("Pool at dusk");
+        await expect(page.getByRole("checkbox")).toHaveCount(0);
+        await expect(page.getByRole("tablist")).toHaveCount(0);
+        // Spanish is missing, so Save has work although nothing was typed; Publish saves first, so it is live too.
+        await expect(page.getByRole("button", { name: kit.save, exact: true })).toBeEnabled();
+        await page.getByRole("button", { name: kit.save, exact: true }).click();
         await expect.poll(() => api.posts.length).toBe(1);
+        expect(api.translations).toEqual([{ target: "es", fields: { alt: "Pool at dusk" } }]);
         expect(api.posts[0]).toEqual({
           action: "save_alt",
           id: ITEMS[0]!.id,
-          alt: { en: "Pool at dusk", ar: "[AR old]", es: "Piscina al atardecer" },
+          alt: { en: "Pool at dusk", ar: "[AR old]", es: "[ES] Pool at dusk" },
+          status: { ar: "draft", es: "draft" },
+        });
+        await expect(page.getByRole("status").filter({ hasText: kit.editor.translationsUpdated })).toBeVisible();
+        await expect(page.getByRole("button", { name: kit.save, exact: true })).toBeDisabled();
+        await page.getByRole("button", { name: kit.publish, exact: true }).click();
+        await expect.poll(() => api.posts.length).toBe(2);
+        expect(api.posts[1]).toMatchObject({ alt: { en: "Pool at dusk", ar: "[AR old]", es: "[ES] Pool at dusk" }, status: { ar: "published", es: "published" } });
+        await expect(page.locator("[data-edit-page]").getByText(kit.published, { exact: true })).toBeVisible();
+        await expect(page.getByRole("button", { name: kit.saveAndUpdateSite, exact: true })).toBeDisabled();
+
+        // A changed English on the published photo is translated in both languages and stays live.
+        await page.locator("#media-alt-en").fill("Pool at night");
+        await page.getByRole("button", { name: kit.saveAndUpdateSite, exact: true }).click();
+        await expect.poll(() => api.posts.length).toBe(3);
+        expect(api.translations.slice(1).map((one) => one.target).sort()).toEqual(["ar", "es"]);
+        expect(api.posts[2]).toEqual({
+          action: "save_alt",
+          id: ITEMS[0]!.id,
+          alt: { en: "Pool at night", ar: "[AR] Pool at night", es: "[ES] Pool at night" },
+          status: { ar: "published", es: "published" },
+        });
+        // Back to the grid: the row that opened the page has focus again.
+        await page.getByRole("button", { name: copy.media, exact: true }).click();
+        await expect(page.getByRole("list", { name: copy.media })).toBeVisible();
+        await expect(page.getByRole("button", { name: /pool-dusk/ })).toBeFocused();
+      });
+
+      test(`library page: the AI failing on a photo in use saves nothing and says the site is unchanged; typed translations then save (${at})`, async ({ page, baseURL }) => {
+        const api = await mockApi(page, { translate: "fail" });
+        const kit = OPS_KIT_COPY[locale];
+        await openRealPage(page, viewport, locale, baseURL);
+        // pool-dusk is imported: the site pages keep it, so it is in use.
+        await page.getByRole("button", { name: /pool-dusk/ }).click();
+        await page.locator("#media-alt-en").fill("Pool by the sea");
+        await page.getByRole("button", { name: kit.save, exact: true }).click();
+        await expect(alerts(page)).toHaveText(kit.editor.translationFailedLive);
+        expect(api.translations.map((one) => one.target).sort()).toEqual(["ar", "es"]);
+        await page.waitForTimeout(300);
+        expect(api.posts, "nothing is saved: the stale Arabic is not deleted").toHaveLength(0);
+        await expect(page.getByRole("button", { name: kit.publish, exact: true })).toBeDisabled();
+        // Maria types them herself: Edit translations opens Arabic and Spanish.
+        await page.getByRole("button", { name: kit.editor.editTranslations, exact: true }).click();
+        await page.getByLabel(`${copy.altText} · AR`, { exact: true }).fill("[AR typed]");
+        await page.getByLabel(`${copy.altText} · ES`, { exact: true }).fill("[ES typed]");
+        await page.getByRole("button", { name: kit.save, exact: true }).click();
+        await expect.poll(() => api.posts.length).toBe(1);
+        expect(api.translations, "nothing left for the AI: no new request").toHaveLength(2);
+        expect(api.posts[0]).toMatchObject({ alt: { en: "Pool by the sea", ar: "[AR typed]", es: "[ES typed]" } });
+        await expect(alerts(page)).toHaveCount(0);
+        await expect(page.getByRole("button", { name: kit.publish, exact: true })).toBeEnabled();
+      });
+
+      test(`library page: a photo live in Arabic only keeps its Arabic published on Save; the Spanish the AI adds is a draft (${at})`, async ({ page, baseURL }) => {
+        const api = await mockApi(page);
+        const kit = OPS_KIT_COPY[locale];
+        await openRealPage(page, viewport, locale, baseURL);
+        await page.getByRole("button", { name: /old-town/ }).click();
+        await page.getByRole("button", { name: kit.save, exact: true }).click();
+        await expect.poll(() => api.posts.length).toBe(1);
+        expect(api.translations).toEqual([{ target: "es", fields: { alt: "Old town street" } }]);
+        expect(api.posts[0]).toEqual({
+          action: "save_alt",
+          id: ITEMS[1]!.id,
+          alt: { en: "Old town street", ar: "[AR live]", es: "[ES] Old town street" },
           status: { ar: "published", es: "draft" },
         });
-        await expect(page.getByRole("button", { name: copy.save, exact: true })).toBeDisabled();
+      });
+
+      test(`library page: on a photo live in Arabic only, the AI failing saves nothing (the live Arabic is kept) (${at})`, async ({ page, baseURL }) => {
+        const api = await mockApi(page, { translate: "fail" });
+        const kit = OPS_KIT_COPY[locale];
+        await openRealPage(page, viewport, locale, baseURL);
+        await page.getByRole("button", { name: /old-town/ }).click();
+        await page.locator("#media-alt-en").fill("Old town at noon");
+        await page.getByRole("button", { name: kit.save, exact: true }).click();
+        await expect(alerts(page)).toHaveText(kit.editor.translationFailedLive);
+        await page.waitForTimeout(300);
+        expect(api.posts, "the live Arabic is not deleted").toHaveLength(0);
+        // Only the Spanish missing (English unchanged): it fails, the live Arabic stays, the draft photo saves the gap.
+        await page.locator("#media-alt-en").fill("Old town street");
+        await page.getByRole("button", { name: kit.save, exact: true }).click();
+        await expect.poll(() => api.posts.length).toBe(1);
+        expect(api.posts[0]).toEqual({
+          action: "save_alt",
+          id: ITEMS[1]!.id,
+          alt: { en: "Old town street", ar: "[AR live]", es: null },
+          status: { ar: "published" },
+        });
+        await expect(alerts(page)).toHaveText(kit.editor.translationFailed);
+      });
+
+      test(`library page: emptying a published Arabic by hand asks first; Keep editing saves nothing, Save empty saves it (${at})`, async ({ page, baseURL }) => {
+        const api = await mockApi(page);
+        const kit = OPS_KIT_COPY[locale];
+        await openRealPage(page, viewport, locale, baseURL);
+        await page.getByRole("button", { name: /old-town/ }).click();
+        await page.getByRole("button", { name: kit.editor.editTranslations, exact: true }).click();
+        await page.getByLabel(`${copy.altText} · AR`, { exact: true }).fill("");
+        await page.getByRole("button", { name: kit.save, exact: true }).click();
+        const ask = page.getByRole("dialog", { name: kit.editor.emptyLiveTitle });
+        await expect(ask).toBeVisible();
+        await expect(ask).toContainText(kit.editor.emptyLiveText);
+        await expect(ask).toContainText(fillCopy(kit.missingLine, { language: kit.languages.ar, field: kit.fields.alt }), { ignoreCase: true });
+        await ask.getByRole("button", { name: kit.keepEditing, exact: true }).click();
+        await expect(ask).toHaveCount(0);
+        await page.waitForTimeout(300);
+        expect(api.posts).toHaveLength(0);
+        expect(api.translations).toHaveLength(0);
+        await page.getByRole("button", { name: kit.save, exact: true }).click();
+        await page.getByRole("dialog", { name: kit.editor.emptyLiveTitle }).getByRole("button", { name: kit.editor.saveEmpty, exact: true }).click();
+        await expect.poll(() => api.posts.length).toBe(1);
+        expect(api.posts[0]).toEqual({
+          action: "save_alt",
+          id: ITEMS[1]!.id,
+          alt: { en: "Old town street", ar: null, es: "[ES] Old town street" },
+          status: { es: "draft" },
+        });
+      });
+
+      test(`library page: with unsaved changes a rail link and the browser's Back ask "Discard changes?" first (${at})`, async ({ page, baseURL }) => {
+        await mockApi(page);
+        const kit = OPS_KIT_COPY[locale];
+        await openRealPage(page, viewport, locale, baseURL);
+        const start = page.url();
+        await page.getByRole("button", { name: /pool-dusk/ }).click();
+        await page.locator("#media-alt-en").fill("Pool, changed");
+        const ask = page.getByRole("dialog", { name: kit.discardTitle });
+        // Back: the question, and the page stays.
+        await page.evaluate(() => window.history.back());
+        await expect(ask).toBeVisible();
+        expect(page.url()).toBe(start);
+        await ask.getByRole("button", { name: kit.keepEditing, exact: true }).click();
+        await expect(ask).toHaveCount(0);
+        await expect(page.locator("#media-alt-en")).toHaveValue("Pool, changed");
+        // Back again asks again (the guard is back on).
+        await page.evaluate(() => window.history.back());
+        await expect(ask).toBeVisible();
+        await ask.getByRole("button", { name: kit.keepEditing, exact: true }).click();
+        // A rail link: the question, Keep editing stays, Discard follows the link.
+        if (width < 1280) await page.getByRole("button", { name: DASHBOARD_COPY[locale].menu }).click();
+        const legal = page.locator('a[href="/dashboard/content/legal"]');
+        await legal.click();
+        await expect(ask).toBeVisible();
+        expect(page.url()).toBe(start);
+        await ask.getByRole("button", { name: kit.keepEditing, exact: true }).click();
+        await expect(page.locator("#media-alt-en")).toHaveValue("Pool, changed");
+        if (width < 1280 && !(await legal.isVisible())) await page.getByRole("button", { name: DASHBOARD_COPY[locale].menu }).click();
+        await legal.click();
+        await ask.getByRole("button", { name: kit.discard, exact: true }).click();
+        await expect.poll(() => new URL(page.url()).pathname).toBe("/dashboard/content/legal");
+      });
+
+      test(`library page: Discard after Back leaves the page; a saved page has no question and no extra Back step (${at})`, async ({ page, baseURL }) => {
+        const api = await mockApi(page);
+        const kit = OPS_KIT_COPY[locale];
+        // A page before this one, for Back to go to.
+        await page.goto(PHOTO);
+        await openRealPage(page, viewport, locale, baseURL);
+        const before = () => new URL(page.url()).pathname;
+        await page.getByRole("button", { name: /coffee-farm/ }).click();
+        await page.locator("#media-alt-en").fill("Coffee farm, changed");
+        await page.getByRole("button", { name: kit.save, exact: true }).click();
+        await expect.poll(() => api.posts.length).toBe(1);
+        await expect(page.getByRole("button", { name: kit.save, exact: true })).toBeDisabled();
+        // Saved: Back leaves at once (the guard entry was taken away).
+        await page.evaluate(() => window.history.back());
+        await expect.poll(before).toBe(PHOTO);
+        await page.goForward();
+        await expect(page.getByRole("heading", { level: 1, name: copy.media })).toBeVisible({ timeout: 20_000 });
+        await page.getByRole("button", { name: /coffee-farm/ }).click();
+        await page.locator("#media-alt-en").fill("Coffee farm, again");
+        await page.evaluate(() => window.history.back());
+        await page.getByRole("dialog", { name: kit.discardTitle }).getByRole("button", { name: kit.discard, exact: true }).click();
+        await expect.poll(before).toBe(PHOTO);
+      });
+
+      test(`library page: Discard on a rail link leaves no extra Back step: Back returns to the list, the next Back leaves (${at})`, async ({ page, baseURL }) => {
+        await mockApi(page);
+        const kit = OPS_KIT_COPY[locale];
+        await page.goto(PHOTO);
+        await openRealPage(page, viewport, locale, baseURL);
+        const path = () => new URL(page.url()).pathname;
+        await page.getByRole("button", { name: /pool-dusk/ }).click();
+        await page.locator("#media-alt-en").fill("Pool, changed");
+        if (width < 1280) await page.getByRole("button", { name: DASHBOARD_COPY[locale].menu }).click();
+        await page.locator('a[href="/dashboard/content/legal"]').click();
+        await page.getByRole("dialog", { name: kit.discardTitle }).getByRole("button", { name: kit.discard, exact: true }).click();
+        await expect.poll(path).toBe("/dashboard/content/legal");
+        await page.evaluate(() => window.history.back());
+        await expect.poll(path).toBe("/dashboard/content/media");
+        await expect(page.getByRole("heading", { level: 1, name: copy.media })).toBeVisible({ timeout: 20_000 });
+        await page.evaluate(() => window.history.back());
+        await expect.poll(path).toBe(PHOTO);
+      });
+
+      test(`library page: a reload with unsaved changes leaves no extra Back step (${at})`, async ({ page, baseURL }) => {
+        await mockApi(page);
+        await page.goto(PHOTO);
+        await openRealPage(page, viewport, locale, baseURL);
+        const path = () => new URL(page.url()).pathname;
+        await page.getByRole("button", { name: /pool-dusk/ }).click();
+        await page.locator("#media-alt-en").fill("Pool, changed");
+        // The browser's own "Leave site?" question: leave.
+        page.on("dialog", (one) => void one.accept());
+        await page.reload();
+        await expect(page.getByRole("heading", { level: 1, name: copy.media })).toBeVisible({ timeout: 20_000 });
+        await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
+        expect(path()).toBe("/dashboard/content/media");
+        await page.evaluate(() => window.history.back());
+        await expect.poll(path).toBe(PHOTO);
       });
 
       test(`library page: Delete on an unused photo removes it and says the file stays in storage (${at})`, async ({ page, baseURL }) => {
@@ -337,7 +636,7 @@ test.describe("behaviour", () => {
         await page.getByRole("button", { name: /pool-dusk/ }).click();
         await expect(page.getByRole("button", { name: copy.deleteImage, exact: true })).toBeDisabled();
         await expect(page.getByText(copy.usedBlocksDelete).first()).toBeVisible();
-        // The panel covers the grid (a sheet at 390, a dock with an overlay at 1440): close it before the next photo.
+        // The editor page replaces the grid: Escape goes back to it (nothing was changed, so it does not ask).
         await page.keyboard.press("Escape");
         await expect(page.getByRole("button", { name: copy.deleteImage, exact: true })).toHaveCount(0);
         await page.getByRole("button", { name: /old-town/ }).click();
@@ -420,22 +719,6 @@ test.describe("behaviour", () => {
         await expect.poll(() => api.gets.length).toBeGreaterThan(again);
         await expect(page.locator("li", { hasText: "old-town.webp" })).toHaveCount(1);
         await expect(fresh).toHaveCount(0);
-      });
-
-      test(`Translate slot: applyAltDrafts fills AR and ES as Draft, unticked, and Save sends draft (${at})`, async ({ page }) => {
-        const api = await mockApi(page);
-        await openScene(page, "library-live", viewport, locale);
-        await page.getByRole("button", { name: /pool-dusk/ }).click();
-        await page.getByRole("checkbox", { name: copy.checkedTranslation }).first().check();
-        await page.getByTestId("fake-translate-ar").click();
-        await page.getByTestId("fake-translate-es").click();
-        await expect(page.getByLabel(`${copy.altText} · AR`)).toHaveValue("[AR draft]");
-        await expect(page.getByLabel(`${copy.altText} · ES`)).toHaveValue("[ES draft]");
-        await expect(page.getByRole("checkbox", { name: copy.checkedTranslation })).toHaveCount(2);
-        for (const box of await page.getByRole("checkbox", { name: copy.checkedTranslation }).all()) await expect(box).not.toBeChecked();
-        await page.getByRole("button", { name: copy.save, exact: true }).click();
-        await expect.poll(() => api.posts.length).toBe(1);
-        expect(api.posts[0]).toMatchObject({ alt: { en: "Pool at dusk", ar: "[AR draft]", es: "[ES draft]" }, status: { ar: "draft", es: "draft" } });
       });
     });
   }
