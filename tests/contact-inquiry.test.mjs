@@ -142,6 +142,21 @@ test("phone: digits as people write them, at least six, no control character", (
   }
 });
 
+test("phone (review fix, PR #16): Arabic-Indic and Persian digits count as digits, client and server alike", () => {
+  // validateInquiry is the one rule the form runs before it posts and the route runs before it sends.
+  for (const good of ["٠٥٦ ٣٨٨ ٣٣٠٢", "+٩٧١ ٥٦ ٣٨٨ ٣٣٠٢", "۰۵۶ ۳۸۸ ۳۳۰۲", "+971 ٥٦ 388 ۳۳۰۲"]) {
+    assert.equal(errorsOf({ phone: good }).phone, undefined, good);
+  }
+  // Still six digits at least, in any script.
+  assert.equal(errorsOf({ phone: "٠٥٦ ٣٨" }).phone, "invalid");
+  assert.equal(m.asciiDigits("٠١٢٣٤٥٦٧٨٩ ۰۱۲۳۴۵۶۷۸۹ 0123456789"), "0123456789 0123456789 0123456789");
+  // The email carries the ASCII form.
+  const r = m.validateInquiry({ ...VALID, phone: "٠٥٦ ٣٨٨ ٣٣٠٢" });
+  assert.equal(r.ok, true);
+  assert.equal(r.inquiry.phone, "056 388 3302");
+  assert.ok(m.composeInquiryEmail(r.inquiry).text.includes("\nPhone / WhatsApp: 056 388 3302\n"));
+});
+
 test("journey type: only the five English values", () => {
   for (const t of m.JOURNEY_TYPES) assert.equal(errorsOf({ journeyType: t }).journeyType, undefined, t);
   assert.equal(errorsOf({ journeyType: "experiences" }).journeyType, "invalid");

@@ -104,6 +104,16 @@ export function isInquiryEmail(value: string): boolean {
 const PHONE = /^[+0-9 ().-]+$/;
 const MIN_PHONE_DIGITS = 6;
 
+// Review fix (PR #16 round 1): an Arabic keyboard types Arabic-Indic digits (U+0660-0669), a Persian or Urdu one
+// Extended Arabic-Indic digits (U+06F0-06F9). Both become ASCII before the phone rule, in the form and in the route,
+// and the email carries the ASCII form (one number the owner can dial or paste into WhatsApp as is).
+const EASTERN_DIGIT = /[\u0660-\u0669\u06f0-\u06f9]/g;
+
+/** Arabic-Indic and Extended Arabic-Indic digits as ASCII 0-9; every other character unchanged. */
+export function asciiDigits(value: string): string {
+  return value.replace(EASTERN_DIGIT, (d) => String(d.charCodeAt(0) & 0x0f));
+}
+
 function isJourneyType(value: string): value is JourneyType {
   return (JOURNEY_TYPES as readonly string[]).includes(value);
 }
@@ -116,7 +126,7 @@ export function validateInquiry(input: InquiryInput): InquiryResult {
   if (!name) errors.name = "required";
   else if (name.length > INQUIRY_LIMITS.name) errors.name = "tooLong";
 
-  const rawPhone = (input.phone ?? "").trim();
+  const rawPhone = asciiDigits(input.phone ?? "").trim();
   const phone = cleanLine(rawPhone);
   if (rawPhone) {
     if (phone.length > INQUIRY_LIMITS.phone) errors.phone = "tooLong";
