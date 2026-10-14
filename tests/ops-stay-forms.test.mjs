@@ -8,6 +8,7 @@ import {
   linesOf,
   lockedLength,
   stayForm,
+  stayPayload,
   validateStayFacts,
 } from "../app/dashboard/(ops)/catalog/stays/stay-forms.ts";
 import { OPS_STAYS_COPY } from "../lib/copy/ops-stays.ts";
@@ -105,4 +106,79 @@ test("OPS_STAYS_COPY: the same keys in en, ar and es, every one a non-empty stri
       assert.doesNotMatch(value, /\[object|undefined|NaN/, `${locale}.${key}`);
     }
   }
+});
+
+// ---- the save request -------------------------------------------------------------------------------------------------
+
+const KINDS = { e1: "experience", e2: "experience", v1: "service" };
+const kindOf = (id) => KINDS[id];
+
+function filled() {
+  const form = emptyStayForm();
+  form.facts = { ...form.facts, destinationId: "d1", slug: " stay-one ", maxGuests: "6", minGuests: "", minNights: "", petsRule: "fee", petsFee: "10.5", infants: "yes" };
+  form.english = { ...form.english, title: " [Title] ", tagline: "  ", amenities: ["a", "", " b "] };
+  form.connected = ["e1", "v1", "e2"];
+  form.hero = { id: "m1" };
+  form.gallery = [{ id: "m2" }, { id: "m3" }];
+  return form;
+}
+
+test("stayPayload on create: every fact, English as a draft, connections split by kind in order", () => {
+  const body = stayPayload(filled(), emptyStayForm(), { id: null, publish: false, live: {}, kindOf });
+  assert.equal(body.action, "save");
+  const { item } = body;
+  assert.equal(item.id, undefined);
+  assert.equal(item.slug, "stay-one");
+  assert.deepEqual([item.max_guests, item.min_guests, item.min_nights, item.pets_rule, item.pets_fee_aed, item.infants_count], [6, null, 1, "fee", "10.5", true]);
+  assert.equal(item.hero_media_id, "m1");
+  assert.deepEqual(item.gallery_media_ids, ["m2", "m3"]);
+  assert.deepEqual(item.connections, { experience_ids: ["e1", "e2"], service_ids: ["v1"] });
+  assert.deepEqual(Object.keys(item.translations), ["en"]);
+  assert.equal(item.translations.en.title, "[Title]");
+  assert.equal(item.translations.en.tagline, null);
+  assert.deepEqual(item.translations.en.amenities, ["a", "b"]);
+  assert.equal(item.translations.en.status, "draft");
+});
+
+test("stayPayload: a fee is dropped when pets are not 'fee'", () => {
+  const form = filled();
+  form.facts.petsRule = "allowed";
+  const { item } = stayPayload(form, emptyStayForm(), { id: null, publish: false, live: {}, kindOf });
+  assert.equal(item.pets_fee_aed, null);
+});
+
+test("stayPayload on Save: only changed languages; live ones stay published, new AI text is a draft", () => {
+  const saved = filled();
+  saved.translations.ar = { ...saved.translations.ar, title: "[عنوان]" };
+  const form = structuredClone(saved);
+  form.translations.ar.title = "[عنوان جديد]";
+  form.translations.es = { ...form.translations.es, title: "[Título]" };
+  const { item } = stayPayload(form, saved, { id: "s1", publish: false, live: { en: true, ar: true }, kindOf });
+  assert.equal(item.id, "s1");
+  assert.deepEqual(Object.keys(item.translations).sort(), ["ar", "es"]);
+  assert.equal(item.translations.ar.status, "published");
+  assert.equal(item.translations.es.status, "draft");
+  // Unchanged join sets are left out (absent = untouched).
+  assert.equal(item.gallery_media_ids, undefined);
+  assert.equal(item.connections, undefined);
+});
+
+test("stayPayload on Publish: every language with a title goes published, even unchanged ones", () => {
+  const saved = filled();
+  saved.translations.ar = { ...saved.translations.ar, title: "[عنوان]" };
+  saved.translations.es = { ...saved.translations.es, title: "[Título]" };
+  const { item } = stayPayload(saved, saved, { id: "s1", publish: true, live: {}, kindOf });
+  assert.deepEqual(Object.keys(item.translations).sort(), ["ar", "en", "es"]);
+  for (const locale of ["en", "ar", "es"]) assert.equal(item.translations[locale].status, "published");
+});
+
+test("stayPayload: Arabic or Spanish with no title yet is not sent", () => {
+  const form = filled();
+  form.translations.ar = { ...form.translations.ar, amenities: ["x"] };
+  const { item } = stayPayload(form, emptyStayForm(), { id: null, publish: false, live: {}, kindOf });
+  assert.equal(item.translations.ar, undefined);
+});
+
+test("validateStayFacts: a pet fee of 0 or with a leading zero is refused, as the server does", () => {
+  for (const bad of ["0", "0.00", "007"]) assert.equal(validateStayFacts(facts({ petsRule: "fee", petsFee: bad })).petsFee, "fee", bad);
 });

@@ -395,7 +395,7 @@ export function StayEditor({
       isPublished={isPublished}
       dirty={dirty}
       busy={busy}
-      canSave={notes.length === 0 && Object.keys(problems).length === 0}
+      canSave={String(english.title ?? "").trim() !== "" && notes.length === 0 && Object.keys(problems).length === 0}
       missing={missing}
       warnings={warnings}
       error={error}
