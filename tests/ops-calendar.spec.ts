@@ -657,6 +657,8 @@ test.describe("behaviour", () => {
   const kit = OPS_KIT_COPY.en;
   const copy = OPS_CALENDAR_COPY.en;
   const deletesOf = (page: Page) => page.getByRole("button", { name: new RegExp(`^${copy.deleteNamed.split("{")[0].trim()}`) });
+  // The screen's own alerts: Next's route announcer is an empty role=alert too.
+  const pageAlert = (page: Page) => page.locator('[role="alert"]:not(#__next-route-announcer__)');
 
   test("a refused Delete says so and stays said: nothing is fetched again, and the next month load does not hide it", async ({ page }) => {
     const api = await mockApi(page, { deleteFails: 503 });
@@ -666,7 +668,7 @@ test.describe("behaviour", () => {
     await deletesOf(page).first().click();
     await page.getByRole("dialog").getByRole("button", { name: kit.delete, exact: true }).click();
     await expect.poll(() => api.posts.length).toBe(1);
-    await expect(page.getByRole("alert")).toHaveText(kit.errors.unavailable);
+    await expect(pageAlert(page)).toHaveText(kit.errors.unavailable);
     await page.waitForTimeout(500);
     expect(api.gets.length, "no refetch after a refused delete").toBe(reads);
     await expect(deletesOf(page)).toHaveCount(2);
@@ -674,18 +676,18 @@ test.describe("behaviour", () => {
     await page.getByRole("button", { name: copy.nextMonth }).click();
     await expect.poll(() => api.gets.at(-1)).toBe("?from=2026-11-01&to=2026-11-30");
     await expect(page.getByText(copy.noBlocks)).toBeVisible();
-    await expect(page.getByRole("alert")).toHaveText(kit.errors.unavailable);
+    await expect(pageAlert(page)).toHaveText(kit.errors.unavailable);
   });
 
   for (const list of ["destinations", "stays"] as const) {
     test(`a failed ${list} load is said and stays said after the month loads`, async ({ page }) => {
       const api = await mockApi(page, { listFails: list });
       await openCalendar(page, "desktop", "en");
-      await expect(page.getByRole("alert")).toHaveText(kit.errors.unavailable);
+      await expect(pageAlert(page)).toHaveText(kit.errors.unavailable);
       await page.getByRole("button", { name: copy.nextMonth }).click();
       await expect.poll(() => api.gets.at(-1)).toBe("?from=2026-11-01&to=2026-11-30");
       await expect(page.getByText(copy.noBlocks)).toBeVisible();
-      await expect(page.getByRole("alert")).toHaveText(kit.errors.unavailable);
+      await expect(pageAlert(page)).toHaveText(kit.errors.unavailable);
     });
   }
 
@@ -694,14 +696,14 @@ test.describe("behaviour", () => {
     await openCalendar(page, "desktop", "en");
     await expect(deletesOf(page)).toHaveCount(2);
     await page.getByRole("button", { name: copy.nextMonth }).click();
-    await expect(page.getByRole("alert")).toHaveText(kit.errors.unavailable);
+    await expect(pageAlert(page)).toHaveText(kit.errors.unavailable);
     await expect(page.getByText(/November 2026/)).toBeVisible();
     await expect(deletesOf(page)).toHaveCount(0);
     await expect(page.getByText(copy.noBlocks)).toBeVisible();
     await page.getByRole("button", { name: copy.previousMonth }).click();
     await expect.poll(() => api.gets.at(-1)).toBe("?from=2026-10-01&to=2026-10-31");
     await expect(deletesOf(page)).toHaveCount(2);
-    await expect(page.getByRole("alert")).toHaveCount(0);
+    await expect(pageAlert(page)).toHaveCount(0);
   });
 
   test("an add with no connection keeps the form and says so; a change clears the sentence; Save again works", async ({ page }) => {
