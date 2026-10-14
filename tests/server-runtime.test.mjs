@@ -421,6 +421,16 @@ test("neither Worker file binds a variable, store, queue, service or object", ()
   }
 });
 
+test("the one binding besides ASSETS is the forms' rate limiter FORM_LIMITER (plan 03.3-26), the same in both Worker files", () => {
+  for (const file of WORKER_FILES) {
+    const text = readFileSync(file, "utf8");
+    const tables = [...text.matchAll(/^\[\[?([a-z_]+)\]?\]$/gm)].map((m) => m[1]);
+    assert.deepEqual([...new Set(tables)].sort(), ["assets", "ratelimits", "routes"], file);
+    assert.equal(tables.filter((t) => t === "ratelimits").length, 1, file);
+    assert.match(text, /^\[\[ratelimits\]\]\nname = "FORM_LIMITER"\nnamespace_id = "1001"\nsimple = \{ limit = 5, period = 60 \}$/m, file);
+  }
+});
+
 test("neither Worker file names the ops Worker, its host or its folder (plan 03.2-03: AI and R2 live only in wrangler.ops.toml)", () => {
   for (const file of WORKER_FILES) {
     assert.equal(/almar-ops|dashboard\.almarprivatejourney|out-ops|almar-ops-routes/.test(readFileSync(file, "utf8")), false, file);
