@@ -196,6 +196,15 @@ test.describe("pictures", () => {
             await expect(card(page, copy.availability.title).locator("[data-month-grid] td[data-blocked]").first()).toBeVisible();
           }
 
+          if (shot.state === "rates" && viewport !== "phone") {
+            // Does the ranges table fit the side column? Reported, so the picture message can say where Rates sits.
+            const fit = await card(page, copy.rates.title)
+              .locator("div.overflow-x-auto")
+              .first()
+              .evaluate((box) => ({ scroll: box.scrollWidth, client: box.clientWidth, card: box.closest("section")?.clientWidth ?? 0 }));
+            console.log(`RATES-FIT ${width} ${locale} table=${fit.scroll} box=${fit.client} card=${fit.card}`);
+          }
+
           if (shot.state === "rates-empty") {
             await expect(page.getByText(copy.rates.noRate, { exact: true })).toBeVisible();
             await expect(page.getByText(copy.rates.noRanges, { exact: true })).toBeVisible();
@@ -219,8 +228,8 @@ test.describe("pictures", () => {
             const { y, name } = thisMonth();
             const rates = card(page, copy.rates.title);
             await rates.getByLabel(copy.rates.dates, { exact: true }).click();
-            await page.getByRole("button", { name: new RegExp(`\\b20 ${name} ${y}\\b`) }).click();
-            await page.getByRole("button", { name: new RegExp(`\\b24 ${name} ${y}\\b`) }).click();
+            await page.getByRole("gridcell", { name: new RegExp(`\\b20 ${name} ${y}\\b`) }).click();
+            await page.getByRole("gridcell", { name: new RegExp(`\\b24 ${name} ${y}\\b`) }).click();
             // The second pick closes the calendar (no Escape: Escape closes the editor page).
             await rates.getByRole("button", { name: copy.rates.check, exact: true }).click();
             await expect(rates.locator("[data-check-table] tbody tr")).toHaveCount(5);

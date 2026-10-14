@@ -31,8 +31,9 @@ export function stayTabSections({ stayId, locale, onDirtyChange, onBaseSaved }: 
     {
       key: "rates",
       title: copy.rates.title,
-      // Signed option B: price and settings sit in the side column (controller, 2026-10-15).
-      column: "side",
+      // Main column: signed option B puts price in the side column, but the ranges table does not fit it at 1440 in
+      // Spanish (335 px in a 323 px column, measured 2026-10-15), so Rates takes the wide column (controller's rule).
+      column: "main",
       content: (
         <StayRatesSection
           key={`rates-${stayId}`}
@@ -52,7 +53,7 @@ export function stayTabSections({ stayId, locale, onDirtyChange, onBaseSaved }: 
     {
       key: "access",
       title: copy.access.title,
-      column: "main",
+      column: "side",
       content: (
         <StayAccessSection
           key={`access-${stayId}`}
