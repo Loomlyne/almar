@@ -296,4 +296,22 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(trap.status()).toBe(400);
     expect(await trap.text()).toBe('{"ok":false}');
   });
+
+  test("10. review fix (PR #16): a form POST declaring more than its route's cap is 413 from the Worker, before Next", async ({ request }) => {
+    // No Origin: Next would answer 403 first, so a 413 here can only come from worker/handle.mjs. At the cap the same
+    // post reaches the route (403), so the guard turns away only what is too large.
+    for (const [path, cap] of [["/api/contact", 16384], ["/newsletter", 8192]] as const) {
+      const post = (bytes: number) =>
+        request.post(path, { data: "x".repeat(bytes), headers: { "content-type": "application/x-www-form-urlencoded" }, maxRedirects: 0 });
+      const big = await post(cap + 1);
+      expect(big.status(), path).toBe(413);
+      expect(await big.text()).toBe('{"ok":false}');
+      expect(big.headers()["content-type"]).toMatch(/^application\/json/);
+      expect(big.headers()["cache-control"]).toContain("no-store");
+      expect(big.headers()["x-robots-tag"]).toBe("noindex");
+      const atCap = await post(cap);
+      expect(atCap.status(), path).toBe(403);
+      expect(await atCap.text()).toBe('{"ok":false}');
+    }
+  });
 });

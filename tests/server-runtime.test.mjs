@@ -6,7 +6,7 @@ import test from "node:test";
 import { HELD_PATHS, OPS_API_PREFIX, SERVER_PATHS_OUTSIDE_API, isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { JOB02_SERVER_PATHS } from "../lib/auth/server-paths.ts";
 import { assembleOut, assertNoBundledEnv, assertNoPublicEnv, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
-import { handle } from "../worker/handle.mjs";
+import { FORM_BODY_CAPS, handle } from "../worker/handle.mjs";
 
 // Job 10 (plan 02-20): what may run on the server, and the Worker's request router. No build and no wrangler here;
 // the built Worker is proven by tests/build/server-runtime.spec.ts.
@@ -287,6 +287,45 @@ test("handle (plan 03.3-27): with /newsletter on the list, only the exact path g
   }
   assert.equal(calls.next.length, 3);
   assert.equal(calls.assets.length, 7);
+});
+
+test("handle (review fix, PR #16): a form POST whose Content-Length is above its route's cap is 413 before Next", async () => {
+  const { calls, run } = harness(["/api/health", "/api/contact", ...SERVER_PATHS_OUTSIDE_API]);
+  const post = (url, length, body = "x") => run(url, { method: "POST", headers: { "content-length": String(length) }, body });
+  for (const [path, cap] of [["/api/contact", 16384], ["/newsletter", 8192]]) {
+    const res = await post(path, cap + 1);
+    assert.equal(res.status, 413, path);
+    assert.deepEqual(await res.json(), { ok: false });
+    // The route's own 413 (Response.json with no-store), as handle() passes it on (plus noindex).
+    assert.equal(res.headers.get("content-type"), "application/json");
+    assert.equal(res.headers.get("cache-control"), "no-store");
+    assert.equal(res.headers.get("x-robots-tag"), "noindex");
+    assert.equal((await post(`${path}?x=1`, 10 ** 9)).status, 413, "the query string changes nothing");
+  }
+  assert.equal(calls.next.length, 0, "Next never ran");
+  assert.deepEqual(calls.assets, []);
+
+  // At the cap, a missing length or a non-numeric one: the route decides (its own cap applies while it reads).
+  await post("/api/contact", 16384);
+  await post("/newsletter", 8192);
+  await run("/api/contact", { method: "POST", body: "Name=a" });
+  await run("/newsletter", { method: "POST", body: new ReadableStream({ start: (c) => (c.enqueue(new Uint8Array(9000)), c.close()) }), duplex: "half" });
+  await post("/api/contact", "1e9");
+  await post("/newsletter", "-1");
+  // Only POST, and only these two paths.
+  await run("/newsletter", { method: "PUT", headers: { "content-length": "99999" }, body: "x" });
+  await post("/api/health", 10 ** 6);
+  assert.deepEqual(calls.next.map((c) => c.path), ["/api/contact", "/newsletter", "/api/contact", "/newsletter", "/api/contact", "/newsletter", "/newsletter", "/api/health"]);
+});
+
+test("handle (review fix, PR #16): the Worker's caps are the routes' caps", () => {
+  assert.deepEqual([...FORM_BODY_CAPS.keys()].sort(), ["/api/contact", "/newsletter"]);
+  const contact = readFileSync(new URL("../lib/contact-inquiry.ts", import.meta.url), "utf8");
+  assert.equal(FORM_BODY_CAPS.get("/api/contact"), Number(/body: (\d+) \} as const;/.exec(contact)?.[1]));
+  const newsletter = readFileSync(new URL("../app/newsletter/route.ts", import.meta.url), "utf8");
+  assert.equal(FORM_BODY_CAPS.get("/newsletter"), Number(/^const MAX_BODY_BYTES = (\d+);$/m.exec(newsletter)?.[1]));
+  assert.ok(/readBody\(request, INQUIRY_LIMITS\.body\)/.test(readFileSync(new URL("../app/api/contact/route.ts", import.meta.url), "utf8")));
+  assert.ok(/readBody\(request, MAX_BODY_BYTES\)/.test(newsletter));
 });
 
 test("handle: an error from Next propagates (Cloudflare answers 500; no page is invented)", async () => {
