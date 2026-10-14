@@ -99,7 +99,8 @@ test("a valid address: 200 exactly {\"ok\":true} (no contact id) and exactly one
   assert.equal(new Headers(call.init.headers).get("authorization"), `Bearer ${KEY}`);
   const sent = JSON.parse(call.init.body);
   assert.equal(sent.email, ADDRESS);
-  assert.equal(sent.unsubscribed, false);
+  // Review fix: no `unsubscribed` key at all, so an address that unsubscribed is never re-subscribed by a signup.
+  assert.equal("unsubscribed" in sent, false);
   for (const key of ["audience_id", "segments", "topics", "first_name", "last_name", "properties", "from", "to"]) {
     assert.equal(sent[key] === undefined || sent[key] === null, true, `no ${key}`);
   }

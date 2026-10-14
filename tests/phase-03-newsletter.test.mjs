@@ -103,3 +103,8 @@ test("review fix (3.3-27): the footer's traps carry the contact form's anti-auto
   }
   assert.equal(footerSource.includes('autoComplete="off"'), false);
 });
+
+test("review fix (3.3-27): contacts.create gets the address only, never an unsubscribed field", () => {
+  assert.match(routeSource, /contacts\.create\(\{ email: trimmedEmail \}\)/);
+  assert.equal(/unsubscribed\s*:/.test(routeSource), false);
+});

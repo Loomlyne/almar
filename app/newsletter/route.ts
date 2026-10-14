@@ -131,10 +131,9 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const { data, error } = await new Resend(apiKey).contacts.create({
-      email: trimmedEmail,
-      unsubscribed: false,
-    });
+    // Only the address (review fix): no `unsubscribed` field, so a signup can never flip an address that unsubscribed
+    // back to subscribed; Resend creates new contacts subscribed by default.
+    const { data, error } = await new Resend(apiKey).contacts.create({ email: trimmedEmail });
     if (error || typeof data?.id !== "string" || data.id.length === 0) {
       // The error's name only (a fixed Resend code), never the payload, the error object or the address.
       console.error("newsletter: add failed", typeof error?.name === "string" ? error.name : "no id");
