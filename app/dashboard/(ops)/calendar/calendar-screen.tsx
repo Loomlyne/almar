@@ -46,7 +46,10 @@ export function CalendarScreen() {
   const [stays, setStays] = useState<CalendarStay[]>([]);
   const [listsReady, setListsReady] = useState(false);
   const [reload, setReload] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  // Three errors, each kept until its own read or write succeeds: a later read of something else never hides it.
+  const [listsError, setListsError] = useState<string | null>(null);
+  const [monthError, setMonthError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [panel, setPanel] = useState<BlockPanelState | null>(null);
   const [deleting, setDeleting] = useState<Block | null>(null);
@@ -61,6 +64,22 @@ export function CalendarScreen() {
     entry.current = prefillFromQuery(window.location.search);
   }, []);
 
+  // A tab left open past Dubai midnight: read the day again when the owner comes back to it, so the grid and the
+  // picker agree on which days are past. The month shown stays where she left it.
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === "hidden") return;
+      const day = dubaiDay(new Date());
+      setToday((old) => (old === day ? old : day));
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
+
   // The pick lists: destinations and stays, by their English names (the dashboard is English).
   useEffect(() => {
     let live = true;
@@ -70,8 +89,9 @@ export function CalendarScreen() {
         opsFetch<ListReply<StaySummary>>("/api/ops/stays"),
       ]);
       if (!live) return;
-      if (!destinationReply.ok) return setError(errorText(kit, destinationReply.error));
-      if (!stayReply.ok) return setError(errorText(kit, stayReply.error));
+      if (!destinationReply.ok) return setListsError(errorText(kit, destinationReply.error));
+      if (!stayReply.ok) return setListsError(errorText(kit, stayReply.error));
+      setListsError(null);
       setDestinations(destinationReply.items.map((one) => ({ id: one.id, name: one.name_en })));
       setStays(stayReply.items.map((one) => ({ id: one.id, name: one.title_en, destinationId: one.destination_id })));
       setListsReady(true);
@@ -88,8 +108,12 @@ export function CalendarScreen() {
     (async () => {
       const reply = await opsFetch<BlocksView>("/api/ops/blocks", { ...monthWindow(cursor.year, cursor.month), ...filterQuery(filter) });
       if (ticket !== latest.current) return;
-      if (!reply.ok) return setError(errorText(kit, reply.error));
-      setError(null);
+      if (!reply.ok) {
+        // Never the last month's blocks under this month's title: the grid shows nothing blocked, and says why.
+        setBlocks([]);
+        return setMonthError(errorText(kit, reply.error));
+      }
+      setMonthError(null);
       setBlocks(reply.blocks);
     })();
   }, [cursor, filter, reload, kit]);
@@ -113,7 +137,11 @@ export function CalendarScreen() {
     setPanel((old) => (old ? { ...old, busy: true, error: null } : old));
     const reply = await opsSend<BlockAddResult>("/api/ops/blocks", { action: "add", block: payload });
     if (!reply.ok) {
-      setPanel((old) => (old ? { ...old, busy: false, error: errorText(kit, reply.error) } : old));
+      // A refused field of the block (`block`, `block.ends_on`) is one of the form's own: the generic sentence, not a
+      // column name.
+      const ownField = reply.error.code === "invalid" && /^block(\.|$)/.test(reply.error.field ?? "");
+      const sentence = ownField ? kit.errors.invalid : errorText(kit, reply.error);
+      setPanel((old) => (old ? { ...old, busy: false, error: sentence } : old));
       return false;
     }
     setPanel(null);
@@ -126,8 +154,10 @@ export function CalendarScreen() {
     const block = deleting;
     setDeleting(null);
     if (!block) return;
+    setDeleteError(null);
     const reply = await opsSend<{ id: string }>("/api/ops/blocks", { action: "delete", id: block.id });
-    if (!reply.ok) setError(errorText(kit, reply.error));
+    // A refused delete changed nothing: say so, and leave the month as it is.
+    if (!reply.ok) return setDeleteError(errorText(kit, reply.error));
     setReload((n) => n + 1);
   }
 
@@ -145,13 +175,14 @@ export function CalendarScreen() {
       stays={stays}
       filter={filter}
       onFilterChange={setFilter}
-      error={error}
+      errors={[deleteError, monthError, listsError].filter((one): one is string => one !== null)}
       notice={notice}
       onDismissNotice={() => setNotice(null)}
       onOpenBlock={(day) => setPanel({ initial: { ...EMPTY, first: day, last: day }, busy: false, error: null })}
       panel={panel}
       onSubmitBlock={add}
       onClosePanel={() => setPanel(null)}
+      onEditBlock={() => setPanel((old) => (old && old.error ? { ...old, error: null } : old))}
       deleting={deleting}
       onAskDelete={setDeleting}
       onConfirmDelete={confirmDelete}

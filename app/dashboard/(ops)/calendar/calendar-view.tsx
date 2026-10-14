@@ -54,8 +54,8 @@ export type CalendarViewProps = {
   stays: CalendarStay[];
   filter: string;
   onFilterChange: (value: string) => void;
-  /** A failed load or delete, said in words, or null. */
-  error: string | null;
+  /** Each failed read or delete, said in words (a failed pick-list load, month load or delete); empty when all is well. */
+  errors: string[];
   /** The overlap sentence after a Block, or null. */
   notice: string | null;
   onDismissNotice: () => void;
@@ -65,6 +65,8 @@ export type CalendarViewProps = {
   /** Resolves true when the block was added (the screen then closes the form). */
   onSubmitBlock: (payload: BlockPayload) => Promise<boolean>;
   onClosePanel: () => void;
+  /** A field of the form changed: the last server refusal no longer applies. */
+  onEditBlock: () => void;
   /** The block waiting for the answer to "Delete this block?". */
   deleting: Block | null;
   onAskDelete: (block: Block) => void;
@@ -145,12 +147,12 @@ export function CalendarView(props: CalendarViewProps) {
         />
       </div>
 
-      {props.error ? (
-        <p role="alert" className="m-0 flex items-center gap-2 text-label text-error">
+      {[...new Set(props.errors)].map((line) => (
+        <p key={line} role="alert" className="m-0 flex items-center gap-2 text-label text-error">
           <AlertCircleIcon size={20} className="shrink-0" />
-          <span>{props.error}</span>
+          <span>{line}</span>
         </p>
-      ) : null}
+      ))}
 
       {props.notice ? (
         <div role="status" className="flex items-start gap-3 border border-warning bg-surface p-4">
@@ -298,6 +300,11 @@ function BlockEditor({ list, ...props }: CalendarViewProps & { list: ReactNode }
   const copy = OPS_CALENDAR_COPY[props.locale];
   const panel = props.panel;
   const form = useBlockForm(props.locale, panel?.initial ?? CLOSED);
+  // Any change clears the server's last refusal as well as the form's own missing sentence.
+  const change: typeof form.change = (next) => {
+    form.change(next);
+    if (panel?.error) props.onEditBlock();
+  };
   const message = form.missing ?? panel?.error ?? null;
   return (
     <EditPage
@@ -341,20 +348,20 @@ function BlockEditor({ list, ...props }: CalendarViewProps & { list: ReactNode }
                     destinations={props.destinations}
                     stays={props.stays}
                     values={form.values}
-                    onChange={form.change}
+                    onChange={change}
                   />
                 ),
               },
               {
                 key: "dates",
                 title: copy.dates,
-                content: <BlockDatesField locale={props.locale} today={props.today} values={form.values} onChange={form.change} />,
+                content: <BlockDatesField locale={props.locale} today={props.today} values={form.values} onChange={change} />,
               },
               {
                 key: "reason",
                 title: copy.reasonOptional,
                 column: "side",
-                content: <BlockReasonField locale={props.locale} values={form.values} onChange={form.change} />,
+                content: <BlockReasonField locale={props.locale} values={form.values} onChange={change} />,
               },
             ]
           : []

@@ -136,7 +136,7 @@ function CalendarScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }
           note(`filter:${next}`);
           setFilter(next);
         }}
-        error={null}
+        errors={[]}
         notice={notice}
         onDismissNotice={() => {
           note("notice:close");
@@ -156,6 +156,7 @@ function CalendarScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }
           setPanel(null);
           return true;
         }}
+        onEditBlock={() => setPanel((old) => (old && old.error ? { ...old, error: null } : old))}
         onClosePanel={() => {
           note("panel:close");
           setPanel(null);
