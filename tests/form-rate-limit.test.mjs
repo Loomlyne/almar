@@ -61,6 +61,26 @@ test("limit() throws: allowed (fail open), exactly one line, no error text", asy
   assert.equal(logged.length, 1);
 });
 
+test("review fix (PR #16): getCloudflareContext() throws on a Worker: allowed, exactly one line, no error text", async () => {
+  // workerd reports navigator.userAgent "Cloudflare-Workers"; node reports its own. Both stand-ins throw here (no env).
+  const own = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+  Object.defineProperty(globalThis, "navigator", { value: { userAgent: "Cloudflare-Workers" }, configurable: true, writable: true });
+  try {
+    assert.equal(await real.allowFormPost(req(), "contact"), true);
+    assert.equal(unavailable().length, 1);
+    assert.equal(await fake.allowFormPost(req(), "newsletter"), true);
+    assert.equal(unavailable().length, 2, "one line per request");
+    assert.equal(logged.length, 2);
+    assert.equal(real.formLimiter(), null);
+  } finally {
+    if (own) Object.defineProperty(globalThis, "navigator", own);
+    else delete globalThis.navigator;
+  }
+  // Off the Worker again: the same throw is "no context" and silent.
+  assert.equal(await real.allowFormPost(req(), "contact"), true);
+  assert.equal(logged.length, 2);
+});
+
 test("a working limiter logs nothing, whether it says yes or no; an injected limiter is used as is", async () => {
   let allow = true;
   globalThis.__almarTestCloudflareEnv = { FORM_LIMITER: { limit: async () => ({ success: allow }) } };
