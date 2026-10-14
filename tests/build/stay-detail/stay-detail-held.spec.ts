@@ -56,7 +56,7 @@ type Setup = {
 };
 
 /** Every held control of design 4.3, absent by role and exact name, plus the money and minimum-stay rules. */
-async function assertHeld(page: Page, s: Setup, where: string) {
+async function assertHeld(page: Page, s: Setup, where: string, { modal = false } = {}) {
   const say = (what: string) => `${where}: ${what}`;
   const named = (role: "button" | "link", name: string) => page.getByRole(role, { name, exact: true });
 
@@ -98,8 +98,16 @@ async function assertHeld(page: Page, s: Setup, where: string) {
 
   // 4.3 row 4. design 11.2: the newsletter is live in the footer: one form, box and Join the List there, no text box
   // outside it; the held "Subscribe" stays absent. Row 5: no "List with us".
-  await expectFooterNewsletter(page, s.locale, where);
-  expect(await page.getByRole("textbox").count(), say("no text box outside the footer")).toBe(1);
+  // With the phone sheet open (a modal) the page behind it, footer included, leaves the accessibility tree: the footer
+  // is checked by element, and "no text box outside the footer" is counted by element too, so it cannot pass by being
+  // hidden; the sheet itself holds no text box.
+  await expectFooterNewsletter(page, s.locale, where, { behindModal: modal });
+  if (modal) {
+    await expect(page.locator(`input:not([type="hidden"])${OUTSIDE_FOOTER}, textarea${OUTSIDE_FOOTER}`), say("no text box outside the footer")).toHaveCount(0);
+    expect(await page.getByRole("textbox").count(), say("no text box in the sheet")).toBe(0);
+  } else {
+    expect(await page.getByRole("textbox").count(), say("no text box outside the footer")).toBe(1);
+  }
   await expect(named("button", s.home.subscribe), say("no Subscribe")).toHaveCount(0);
 
   // text rules, on what a visitor can read
@@ -175,13 +183,13 @@ for (const slug of FOCUS) {
           await page.getByRole("button", { name: `${stay!.destination_name}${locale === "ar" ? "، " : ", "}${stay!.title}` }).click();
           const sheet = page.getByRole("dialog", { name: s.journey.sheet.label });
           await expect(sheet).toBeVisible();
-          await assertHeld(page, s, "with the sheet open at When");
+          await assertHeld(page, s, "with the sheet open at When", { modal: true });
           await cell(page, night.from).click();
           await cell(page, night.to).click();
           await sheet.getByRole("button", { name: s.journey.sheet.next, exact: true }).click();
           await expect(sheet.getByRole("heading", { name: s.journey.sheet.who })).toBeVisible();
           await expect(sheet.getByText(fill(s.journey.sheet.progress, { n: 3 }))).toBeVisible();
-          await assertHeld(page, s, "with the sheet open at Who");
+          await assertHeld(page, s, "with the sheet open at Who", { modal: true });
           // The last step ends with the request link, not Done (plan 45): the sheet closes with Escape.
           await expect(sheet.getByRole("button", { name: s.journey.done })).toHaveCount(0);
           await page.keyboard.press("Escape");
