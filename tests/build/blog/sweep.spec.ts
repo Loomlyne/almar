@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { BLOG_COPY } from "../../../lib/copy/blog";
 import { HOME_COPY } from "../../../lib/copy/home";
+import { expectFooterNewsletter } from "../newsletter/_footer";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { MEDIA_BASE_URL } from "../../../lib/data/media";
 import { localeAlternates, localeDir } from "../../../lib/locale-path";
@@ -64,14 +65,15 @@ for (const vp of VIEWPORTS) {
       for (const code of ["USD", "AED", "EUR", "COP"]) {
         await expect(page.getByRole("combobox", { name: nameOfCurrency(locale, code) }), `currency ${code}`).toHaveCount(0);
       }
-      await expect(page.locator("input[type=email], textarea, form[action]")).toHaveCount(0);
-      await expect(page.getByRole("textbox")).toHaveCount(0);
-      await expect(page.locator("footer form")).toHaveCount(0);
+      // design 11.2: the newsletter is live in the footer: its one form, box and Join the List; none of these outside it.
+      await expectFooterNewsletter(page, locale, name);
+      await expect(page.locator("input[type=email]:not(footer *), textarea, form[action]")).toHaveCount(0);
+      expect(await page.getByRole("textbox").count(), "a textbox outside the footer").toBe(1);
       // No Plan this journey section and no hand-off link: the hero's working bar is the one planner on the page.
       await expect(page.getByRole("heading", { name: /Plan this journey|Planifica este viaje|خطط لهذه الرحلة/i })).toHaveCount(0);
       await expect(page.getByText(/See private stays in/i)).toHaveCount(0);
       // The Search: a post has exactly one submit, inside the hero bar's form at md and up; none shown below md (the bar is hidden there; the sheet's is a plain button) and none on the list.
-      const submits = page.locator("button[type=submit]:visible");
+      const submits = page.locator("button[type=submit]:not(footer *):visible");
       await expect(submits).toHaveCount(isPost && vp.width >= 768 ? 1 : 0);
       if (isPost) await expect(page.getByRole("region", { name: BLOG_COPY[locale].post.barLabel }).getByRole("button", { name: JOURNEY_COPY[locale].bar.search, exact: true })).toHaveCount(vp.width >= 768 ? 1 : 0);
     });

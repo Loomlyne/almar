@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { HOME_COPY } from "../../../lib/copy/home";
+import { OUTSIDE_FOOTER, expectFooterNewsletter } from "../newsletter/_footer";
 import { HOME_PAGE_COPY } from "../../../lib/copy/home-page";
 import { FRAMER_SOURCE_COPY } from "../../../lib/copy/framer-source";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
@@ -667,11 +668,12 @@ for (const vp of VIEWPORTS) {
 
         // Search: from md up exactly one submit button, inside the hero bar's search form and named Search.
         if (!isPhone(vp)) {
-          await expect(page.locator("button[type=submit]")).toHaveCount(1);
+          // design 11.2: the newsletter is live in the footer; Search is the one submit outside it.
+          await expect(page.locator("button[type=submit]:not(footer *)")).toHaveCount(1);
           await expect(region(page, locale).locator("button[type=submit]")).toHaveCount(1);
           await expect(searchButtons).toHaveCount(1);
           await expect(searchButtons).toHaveAttribute("type", "submit");
-          await expect(page.locator("form")).toHaveCount(1);
+          await expect(page.locator("form:not(footer *)")).toHaveCount(1);
           await expect(region(page, locale).getByRole("search")).toHaveCount(1);
         } else {
           // Below md the bar is not drawn: Search lives only on the sheet's last step, a plain button.
@@ -691,9 +693,10 @@ for (const vp of VIEWPORTS) {
           await expect(page.getByRole("button", { name, exact: true }), `button ${name}`).toHaveCount(0);
           await expect(page.getByRole("link", { name, exact: true }), `link ${name}`).toHaveCount(0);
         }
-        await expect(page.locator("footer form")).toHaveCount(0);
-        await expect(page.getByRole("textbox")).toHaveCount(0);
-        await expect(page.locator("input[type=email]")).toHaveCount(0);
+        // design 11.2: the newsletter is live in the footer: no form, textbox or email box outside it, exactly one in it.
+        await expectFooterNewsletter(page, locale, where);
+        await expect(page.locator(`input[type=email]${OUTSIDE_FOOTER}`)).toHaveCount(0);
+        expect(await page.getByRole("textbox").count(), "a textbox outside the footer").toBe(await page.locator("footer").getByRole("textbox").count());
         expect(media.missing).toEqual([]);
       });
 

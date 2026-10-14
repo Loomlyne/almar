@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { getCatalogForStay } from "../../../lib/data/experiences";
 import { getBlockedDates, getStay } from "../../../lib/data/stays";
 import { HOME_COPY } from "../../../lib/copy/home";
+import { OUTSIDE_FOOTER, expectFooterNewsletter } from "../newsletter/_footer";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { formatDate } from "../../../lib/format";
 import { fill } from "../../../lib/journey-format";
@@ -59,9 +60,9 @@ async function assertHeld(page: Page, s: Setup, where: string) {
   const say = (what: string) => `${where}: ${what}`;
   const named = (role: "button" | "link", name: string) => page.getByRole(role, { name, exact: true });
 
-  // 4.3 row 1: no submit
-  await expect(page.locator("form"), say("no <form>")).toHaveCount(0);
-  await expect(page.locator('button[type="submit"], input[type="submit"]'), say("no submit button")).toHaveCount(0);
+  // 4.3 row 1: no submit. design 11.2: the newsletter is live in the footer, so these count outside it.
+  await expect(page.locator(`form${OUTSIDE_FOOTER}`), say("no <form> outside the footer")).toHaveCount(0);
+  await expect(page.locator(`button[type="submit"]${OUTSIDE_FOOTER}, input[type="submit"]${OUTSIDE_FOOTER}`), say("no submit button outside the footer")).toHaveCount(0);
   await expect(named("button", s.journey.bar.search), say("no Search button")).toHaveCount(0);
 
   // 4.3 row 6: no Add, neither "Add" nor "Add {name}" (exact: "Add dates" and the steppers' "Add adult" are real controls)
@@ -95,9 +96,10 @@ async function assertHeld(page: Page, s: Setup, where: string) {
   await expect(combos.first(), say("and it is the language")).toHaveAttribute("aria-label", new RegExp(`^${s.journey.locale.language.split("{")[0]}`));
   await expect(page.getByRole("combobox", { name: new RegExp(s.journey.locale.currency.split("{")[0]) }), say("no currency select")).toHaveCount(0);
 
-  // 4.3 rows 4-5: no newsletter, no "List with us"
-  await expect(page.locator("footer form"), say("no footer form")).toHaveCount(0);
-  await expect(page.getByRole("textbox"), say("no text box on the page")).toHaveCount(0);
+  // 4.3 row 4. design 11.2: the newsletter is live in the footer: one form, box and Join the List there, no text box
+  // outside it; the held "Subscribe" stays absent. Row 5: no "List with us".
+  await expectFooterNewsletter(page, s.locale, where);
+  expect(await page.getByRole("textbox").count(), say("no text box outside the footer")).toBe(1);
   await expect(named("button", s.home.subscribe), say("no Subscribe")).toHaveCount(0);
 
   // text rules, on what a visitor can read

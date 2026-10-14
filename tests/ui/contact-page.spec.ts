@@ -329,7 +329,8 @@ for (const locale of LOCALES) {
       test(`6 frame: current nav link, language select, footer language row, logo, floating WhatsApp (${where})`, async ({ page, errors }) => {
         const nav = HOME_COPY[locale].nav;
         const openMenu = async () => {
-          if (VIEWPORTS[viewport].width < NAV_INLINE_FROM) await page.getByRole("button", { name: nav.menu }).click();
+          // exact: the Arabic footer newsletter button "انضموا إلى القائمة" (plan 27) contains the Menu word "القائمة".
+          if (VIEWPORTS[viewport].width < NAV_INLINE_FROM) await page.getByRole("button", { name: nav.menu, exact: true }).click();
         };
         await visit(page, locale, viewport);
         await openMenu();
@@ -389,14 +390,17 @@ for (const locale of LOCALES) {
         const start = page.locator('a[href="#inquiry"]');
         await expect(start).toHaveCount(1);
         await expect(start).toHaveText(copy.startInquiry);
-        // No form control anywhere else on the page (plan 27 later also allows the footer's newsletter, S3-7).
+        // No form control anywhere else on the page but the footer's newsletter (design 11.2: the newsletter is live in
+        // the footer, plan 27, S3-7): its one email box, named in this language, appears after hydration.
+        await expect(page.locator('footer input[type="email"]')).toHaveCount(1);
+        await expect(page.locator("footer").getByRole("textbox", { name: SITE_FOOTER_COPY[locale].newsletter.email, exact: true })).toHaveCount(1);
         const outside = await page.evaluate(
           () =>
-            [...document.querySelectorAll('form, input, textarea, select, button[type="submit"]')].filter((el) => !el.closest("#inquiry"))
-              .length,
+            [...document.querySelectorAll('form, input, textarea, select, button[type="submit"]')].filter(
+              (el) => !el.closest("#inquiry") && !el.closest("footer"),
+            ).length,
         );
         expect(outside).toBe(0);
-        await expect(page.locator('footer input[type="email"]')).toHaveCount(0);
         await expect(page.locator("main a[href^='mailto:']")).toHaveCount(1);
         await expect(page.getByText(/partnerships/i)).toHaveCount(0);
         await expect(page.getByRole("link", { name: nav.login })).toHaveCount(0);

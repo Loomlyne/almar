@@ -7,6 +7,7 @@ import { HOME_COPY } from "../../lib/copy/home";
 import { HOME_PAGE_COPY } from "../../lib/copy/home-page";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { expectFooterNewsletter } from "./newsletter/_footer";
 import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
 import { getDestinations } from "../../lib/data/destinations";
 import { LOCALES, SITE_ORIGIN, localeAlternates, localeDir, localePath, siteHref, type Locale } from "../../lib/locale-path";
@@ -144,7 +145,8 @@ function heldNames(locale: Locale, kind: Kind): string[] {
 }
 
 async function expectNoHeldControls(page: Page, locale: Locale, when: string, kind: Kind) {
-  const submits = page.locator("button[type=submit], input[type=submit]");
+  // design 11.2: the newsletter is live in the footer; these count outside it (S3-7).
+  const submits = page.locator("button[type=submit]:not(footer *), input[type=submit]:not(footer *)");
   if (kind === "home") {
     // Job 11: the hero bar is the one form on the home and its Search the one submit, in the locale's own word.
     await expect(submits, `exactly one submit (${when})`).toHaveCount(1);
@@ -153,7 +155,7 @@ async function expectNoHeldControls(page: Page, locale: Locale, when: string, ki
   } else {
     await expect(submits, `button[type=submit] (${when})`).toHaveCount(0);
   }
-  await expect(page.locator("input[type=email]"), `input[type=email] (${when})`).toHaveCount(0);
+  await expect(page.locator("input[type=email]:not(footer *)"), `input[type=email] outside the footer (${when})`).toHaveCount(0);
   for (const name of heldNames(locale, kind)) {
     await expect(page.getByRole("button", { name, exact: true }), `button "${name}" (${when})`).toHaveCount(0);
     await expect(page.getByRole("link", { name, exact: true }), `link "${name}" (${when})`).toHaveCount(0);
@@ -184,7 +186,10 @@ async function expectLightFooter(page: Page, locale: Locale) {
   await expect(footer.getByRole("link"), "11 links: no legal, no social but Instagram").toHaveCount(11);
   const hrefs = await footer.locator("a").evaluateAll((nodes) => nodes.map((n) => n.getAttribute("href") ?? ""));
   for (const href of hrefs) expect(href, "forbidden footer link").not.toMatch(/facebook|youtube|tiktok|legal|privacy|terms|newsletter/i);
-  await expect(footer.locator("input, form, textarea"), "no newsletter, no email field").toHaveCount(0);
+  // design 11.2: the newsletter is live in the footer: one form with the Email box and the 11 traps, no textarea.
+  await expectFooterNewsletter(page, locale, "light footer");
+  await expect(footer.locator("form input"), "the Email box and the 11 honeypots").toHaveCount(12);
+  await expect(footer.locator("input:not(form *), textarea"), "no other field in the footer").toHaveCount(0);
   // The phone is a left-to-right island in every language (in Arabic it used to read backwards).
   const phone = footer.locator('address a[href^="tel:"]');
   await expect(phone).toHaveAttribute("dir", "ltr");

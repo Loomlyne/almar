@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { CONTACT_PAGE_COPY } from "../../../lib/copy/contact-page";
 import { HOME_COPY } from "../../../lib/copy/home";
+import { expectFooterNewsletter } from "../newsletter/_footer";
 import { HOME_PAGE_COPY } from "../../../lib/copy/home-page";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { getTeam } from "../../../lib/data/team";
@@ -39,9 +40,12 @@ async function assertHeld(page: Page, locale: Locale, where: string) {
   const strays = await page.locator("select").evaluateAll((els) => els.filter((el) => !el.closest("header") && !el.closest("#inquiry")).length);
   expect(strays, `${where}: select outside the header and the form box`).toBe(0);
   // Plan 26: the form's controls exist only inside #inquiry (the box itself and Start Your Inquiry are checked in
-  // tests/build/contact-form/).
+  // tests/build/contact-form/). design 11.2 (plan 27): the newsletter is live in the footer, so the footer's own form,
+  // box, traps and submit are not counted here; expectFooterNewsletter checks them below.
+  await expectFooterNewsletter(page, locale, where);
   const outside = await page.evaluate(
-    (selectors) => selectors.flatMap((s) => [...document.querySelectorAll(s)].filter((el) => !el.closest("#inquiry")).map(() => s)),
+    (selectors) =>
+      selectors.flatMap((s) => [...document.querySelectorAll(s)].filter((el) => !el.closest("#inquiry") && !el.closest("footer")).map(() => s)),
     FORM_SELECTORS.filter((s) => s !== "#inquiry" && s !== 'a[href="#inquiry"]' && s !== "select"),
   );
   expect(outside, `${where}: a form control outside #inquiry`).toEqual([]);
@@ -51,8 +55,11 @@ async function assertHeld(page: Page, locale: Locale, where: string) {
     await expect(page.getByRole("link", { name, exact: true }), `${where}: ${name}`).toHaveCount(0);
     await expect(page.getByRole("button", { name, exact: true }), `${where}: ${name}`).toHaveCount(0);
   }
-  await expect(page.locator("footer").getByRole("textbox"), `${where}: a footer textbox (newsletter Email)`).toHaveCount(0);
-  expect(await page.getByRole("textbox").count(), `${where}: a textbox outside #inquiry`).toBe(await page.locator("#inquiry").getByRole("textbox").count());
+  // design 11.2: the newsletter is live in the footer: its Email box is the one textbox outside #inquiry.
+  await expect(page.locator("footer").getByRole("textbox"), `${where}: the footer textbox (newsletter Email)`).toHaveCount(1);
+  expect(await page.getByRole("textbox").count(), `${where}: a textbox outside #inquiry and the footer`).toBe(
+    (await page.locator("#inquiry").getByRole("textbox").count()) + 1,
+  );
   await expect(page.getByRole("link", { name: CART }), where).toHaveCount(0);
   await expect(page.getByRole("button", { name: CART }), where).toHaveCount(0);
   await expect(page.getByRole("link", { name: PACKAGES }), where).toHaveCount(0);
