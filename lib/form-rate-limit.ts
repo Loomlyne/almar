@@ -10,6 +10,10 @@
 // is one layer on top of the origin check, the size caps and the honeypots, and a missing binding must not turn every
 // inquiry away. A limiter call that throws is treated the same way, for the same reason. The third parameter of
 // allowFormPost is the seam the node tests use to pass a fake limiter.
+//
+// Review fix (3.3 part B): failing open must not be silent on a Worker. When a Cloudflare context exists but has no
+// FORM_LIMITER, or when limit() throws, allowFormPost logs ONE line per request, `console.error("form-limiter:
+// unavailable")`, with no address, key or error text. With no Cloudflare context at all (next dev, node) it logs nothing.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
@@ -24,13 +28,25 @@ declare global {
   }
 }
 
+type Lookup = { kind: "no-context" } | { kind: "missing" } | { kind: "bound"; limiter: FormLimiter };
+
+/** What the Worker holds: no Cloudflare context (next dev, node), a context without the binding, or the binding. */
+function lookupLimiter(): Lookup {
+  let limiter: FormLimiter | undefined;
+  try {
+    limiter = getCloudflareContext().env.FORM_LIMITER;
+  } catch {
+    return { kind: "no-context" };
+  }
+  return limiter ? { kind: "bound", limiter } : { kind: "missing" };
+}
+
+const UNAVAILABLE = "form-limiter: unavailable";
+
 /** The bound limiter, or null outside a Worker that binds it. getCloudflareContext() throws outside a Worker request. */
 export function formLimiter(): FormLimiter | null {
-  try {
-    return getCloudflareContext().env.FORM_LIMITER ?? null;
-  } catch {
-    return null;
-  }
+  const found = lookupLimiter();
+  return found.kind === "bound" ? found.limiter : null;
 }
 
 /** `<scope>:<CF-Connecting-IP>`, or `<scope>:unknown` without the header. */
@@ -39,17 +55,27 @@ export function formRateKey(request: Request, scope: FormScope): string {
   return `${scope}:${address || "unknown"}`;
 }
 
-/** True when this post may go on: no limiter, a limiter that says yes, or a limiter that failed. */
-export async function allowFormPost(
-  request: Request,
-  scope: FormScope,
-  limiter: FormLimiter | null = formLimiter(),
-): Promise<boolean> {
-  if (!limiter) return true;
+/**
+ * True when this post may go on: no limiter, a limiter that says yes, or a limiter that failed (logged once, see the
+ * header). `limiter` is the test seam: when given (a fake, or null for "none") the Worker is not asked.
+ */
+export async function allowFormPost(request: Request, scope: FormScope, limiter?: FormLimiter | null): Promise<boolean> {
+  let bound = limiter;
+  if (bound === undefined) {
+    const found = lookupLimiter();
+    if (found.kind === "no-context") return true;
+    if (found.kind === "missing") {
+      console.error(UNAVAILABLE);
+      return true;
+    }
+    bound = found.limiter;
+  }
+  if (!bound) return true;
   try {
-    const { success } = await limiter.limit({ key: formRateKey(request, scope) });
+    const { success } = await bound.limit({ key: formRateKey(request, scope) });
     return success !== false;
   } catch {
+    console.error(UNAVAILABLE);
     return true;
   }
 }
