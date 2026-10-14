@@ -15,3 +15,8 @@ Decided by the owner in the controller thread, 2026-10-14 ~02:10 (+04), while si
    basket and can be removed). Arabic and Spanish are drafted from that meaning.
 4. **Dashboard Spanish uses usted** (formal), e.g. "Primero mueva sus estancias."
 5. 03.2-06 list screens, filters, reorder and delete-blocked flow: signed.
+6. **Panel pick (owner, 2026-10-14 ~04:55 +04, question form): option B, full page.** The editor replaces the list,
+   with a back link; Save and Publish in a top bar beside the title; sections as cards in two columns (Text, Photo,
+   Connections left; Price, Settings right), one column on a phone. Source pictures:
+   `pictures/03.2-06/panel-options/B-*.png` on branch `gsd/phase-3.2-p06-catalog` (`ca93e52`). It becomes the shared
+   kit editor for every catalog, team, media and calendar-block form (job "kit panel B", lands before 03.2-06/-07/-13/-15).
