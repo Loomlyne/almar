@@ -201,7 +201,7 @@ test.describe("behaviour", () => {
       const [publish] = await postsTo(api, "publish");
       expect(publish).toEqual({ entity: "catalog_item", id: "c1", published: false });
       await page.getByRole("button", { name: kit.delete, exact: true }).click();
-      await page.getByRole("alertdialog").getByRole("button", { name: kit.delete, exact: true }).click();
+      await page.getByRole("dialog").getByRole("button", { name: kit.delete, exact: true }).click();
       const [del] = await postsTo(api, "catalog");
       expect(del).toEqual({ action: "delete", id: "c1" });
     });

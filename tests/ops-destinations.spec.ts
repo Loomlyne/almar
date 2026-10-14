@@ -227,7 +227,7 @@ test.describe("behaviour", () => {
       await open(page, baseURL);
       await openRow(page, "Medellin").click();
       await page.getByRole("button", { name: copy.deleteDestination, exact: true }).click();
-      await page.getByRole("alertdialog").getByRole("button", { name: kit.delete, exact: true }).click();
+      await page.getByRole("dialog").getByRole("button", { name: kit.delete, exact: true }).click();
       const [del] = await postsTo(api, "destinations");
       expect(del).toEqual({ action: "delete", id: "d2" });
       await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible();
