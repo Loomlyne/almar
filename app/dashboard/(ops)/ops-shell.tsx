@@ -86,7 +86,7 @@ function toHref(mode: OpsMode, href: string): string {
  */
 export type OpsMode = "preview" | "ops";
 
-export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMode }) {
+export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNode; mode: OpsMode; logoSrc?: string | null }) {
   const pathname = usePathname();
   const [signOutOpen, setSignOutOpen] = useState(false);
   const [logoutAllOpen, setLogoutAllOpen] = useState(false);
@@ -249,7 +249,7 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
       </a>
       <header className="sticky top-0 z-50 flex min-h-control flex-wrap items-center justify-between gap-2 border-b border-line bg-ivory px-4 py-1">
         <Link className="flex min-h-control min-w-0 items-center gap-2 text-teal no-underline" href={mode === "ops" ? "/" : "/dashboard/home"}>
-          <img className="block aspect-2/1 h-auto w-35 max-w-full object-contain object-left" alt="ALMAR" src={charcoalLogo.src} />
+          <img className="block aspect-2/1 h-auto w-35 max-w-full object-contain object-left" alt="ALMAR" src={logoSrc ?? charcoalLogo.src} />
           <span className="hidden whitespace-nowrap font-display text-label uppercase tracking-kicker xl:inline ar:normal-case ar:tracking-normal">
             {copy.dashboardName}
           </span>

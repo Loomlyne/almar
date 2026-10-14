@@ -23,12 +23,13 @@ test("settings and profile pages have no page gate (02-04), stay server componen
   assert.match(profilePage, /from ["']\.\/profile-screen["']/);
 });
 
-test("settings groups are Brand, Money, Email, Maintenance, in that order", () => {
+// 02-06 wired the screen: the 03-plan placeholder (Brand/Money/Email/Maintenance, a dead Save) is gone.
+test("settings groups follow the signed pictures (02-06): brand colours, type, money, maintenance, logo, language", () => {
   const text = readFileSync(SETTINGS_SCREEN, "utf8");
-  const order = ["Brand", "Money", "Email", "Maintenance"];
-  const indexes = order.map((label) => {
-    const index = text.indexOf(`>${label}<`);
-    assert.notEqual(index, -1, `missing group heading: ${label}`);
+  const order = ["copy.brandColors", "copy.type", "copy.money", "copy.maintenance", "copy.logo", "copy.langCurrency"];
+  const indexes = order.map((key) => {
+    const index = text.indexOf(`>{${key}}</GroupTitle>`);
+    assert.notEqual(index, -1, `missing group heading: ${key}`);
     return index;
   });
   for (let i = 1; i < indexes.length; i += 1) {
@@ -36,32 +37,30 @@ test("settings groups are Brand, Money, Email, Maintenance, in that order", () =
   }
 });
 
-test("FX rate is text sourced from lib/fx/rates, not an input, and is never the hardcoded peg", () => {
+test("FX rate is read-only text from the API, or the not-available line; never an input or a hard-coded rate", () => {
   const text = readFileSync(SETTINGS_SCREEN, "utf8");
-  assert.match(text, /FxRates/);
-  assert.match(text, /rates\.aed/);
-  assert.match(text, /rates\.eur/);
-  assert.equal(text.includes("3.6725"), false);
-  // The rate line renders as a <span>/<p>, never through the Field component
-  // (Field always renders an <input>), so it cannot be typed into.
-  assert.doesNotMatch(text, /<Field[^>]*label="FX rate"/);
+  assert.match(text, /copy\.fxNone/);
+  for (const rate of ["3.6725", "0.8614"]) assert.equal(text.includes(rate), false, rate);
+  assert.doesNotMatch(text, /<Field[^>]*label=\{copy\.fx\}/);
   assert.doesNotMatch(text, /<input[^>]*name="(fx-rate|rate)"/);
 });
 
-test("maintenance switch defaults off, is a switch (not a radio), and never fetches", () => {
+test("maintenance is one checkbox saved through the owner API, not a radio and not its own fetch", () => {
   const text = readFileSync(SETTINGS_SCREEN, "utf8");
-  assert.match(text, /<Switch label="Maintenance"/);
-  assert.equal(text.includes('useState(false)'), true);
-  assert.equal(text.includes("fetch("), false);
+  assert.match(text, /<Checkbox\s+label=\{copy\.maintenanceOn\}/);
   assert.equal(/type=["']radio["']/.test(text), false);
+  assert.equal(/\bfetch\(/.test(text), false);
+  assert.match(text, /opsSend<[^>]*>\("\/api\/ops\/settings"/);
 });
 
-test("settings has no radius control and does not say it saved", () => {
+test("settings has no radius control; Save is live only through canSave and says when it saved", () => {
   const text = readFileSync(SETTINGS_SCREEN, "utf8");
   assert.equal(/radius/i.test(text), false);
-  assert.match(text, /<Button onClick=\{\(\) => undefined\}>\{copy\.save\}<\/Button>/);
+  assert.equal(text.includes("onClick={() => undefined}"), false);
+  assert.match(text, /disabled=\{!enabled\}/);
+  assert.match(text, /canSave\(form, saved\)/);
+  assert.match(text, /copy\.saved/);
   assert.equal(text.includes("toast"), false);
-  assert.equal(text.includes("Saved"), false);
 });
 
 test("settings has no password field", () => {
