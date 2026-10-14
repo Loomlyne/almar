@@ -329,7 +329,10 @@ async function openCalendar(page: Page, viewport: Viewport, locale: Locale, sear
   await page.clock.setFixedTime(NOW);
   await page.goto(`/dashboard/calendar${search}`);
   await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
-  await expect(page.getByRole("heading", { level: 1, name: OPS_CALENDAR_COPY[locale].title, includeHidden: true })).toBeVisible({ timeout: 45_000 });
+  // The Calendar, or the Block dates page when a stay or destination link opens it straight away.
+  const copy = OPS_CALENDAR_COPY[locale];
+  const either = new RegExp(`^(${copy.title}|${copy.blockDates})$`);
+  await expect(page.getByRole("heading", { level: 1, name: either })).toBeVisible({ timeout: 45_000 });
 }
 
 const COMBOS: { viewport: Viewport; locale: Locale }[] = [
@@ -347,7 +350,10 @@ const dayButton = (page: Page, iso: string, locale: Locale) => {
 
 /** Pick the first and then the last day in the Dates field of the open form. */
 async function pickDates(page: Page, first: string, last: string) {
+  // A pick list that just closed hands focus back to its button; open the picker only once it has (a person's pace).
+  await expect(page.getByRole("listbox")).toHaveCount(0);
   await page.locator("[data-edit-page]").locator('button[id$="-dates"]').click();
+  await expect(page.locator(".calendar")).toBeVisible();
   // The picker opens on the month of today (Dubai); walk to the month of a day that is further on.
   for (const day of [first, last]) {
     const cell = page.locator(`[data-date="${dateKey(day)}"]`);
@@ -442,6 +448,7 @@ test.describe("behaviour", () => {
       await editor(page).getByRole("button", { name: copy.oneDestination }).click();
       await editor(page).getByRole("combobox", { name: new RegExp(copy.destinations) }).click();
       await page.getByRole("option", { name: "[Destination 2]" }).click();
+      await expect(editor(page).getByRole("combobox", { name: /\[Destination 2\]/ })).toBeFocused();
       await pickDates(page, "2026-11-02", "2026-11-04");
       await saveButton(page).click();
       await expect.poll(() => api.posts.length).toBe(1);
@@ -451,6 +458,7 @@ test.describe("behaviour", () => {
       await editor(page).getByRole("button", { name: copy.oneStay }).click();
       await editor(page).getByRole("combobox", { name: new RegExp(copy.stays) }).click();
       await page.getByRole("option", { name: "[Stay 3]" }).click();
+      await expect(editor(page).getByRole("combobox", { name: /\[Stay 3\]/ })).toBeFocused();
       await pickDates(page, "2026-10-30", "2026-10-30");
       await saveButton(page).click();
       await expect.poll(() => api.posts.length).toBe(2);
@@ -544,6 +552,10 @@ test.describe("behaviour", () => {
     await editor.getByRole("button", { name: OPS_KIT_COPY.en.save, exact: true }).click();
     await expect.poll(() => api.posts.length).toBe(1);
     expect(api.posts[0]).toEqual({ action: "add", block: { scope: "stay", stay_id: S2, starts_on: "2026-10-30", ends_on: "2026-10-30", reason: null } });
+    // Saved: the page closes (and drops its Back guard entry) before the next address is opened.
+    await expect(editor).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible();
+    await page.waitForLoadState("load");
 
     // Not a uuid, an unknown id, an unknown kind: no form.
     for (const search of ["?block=stay&stay_id=not-a-uuid", `?block=stay&stay_id=${"9".repeat(8)}-9999-4999-8999-${"9".repeat(12)}`, `?block=all&stay_id=${S1}`]) {
