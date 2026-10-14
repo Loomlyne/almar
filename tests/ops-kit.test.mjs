@@ -515,7 +515,7 @@ test("the kit exports the names of the plan's interface block", () => {
     "error-text.ts": ["errorText"],
     "edit-page.tsx": ["EditPage"],
     "publish-bar.tsx": ["PublishBar"],
-    "auto-translate.ts": ["planTranslation", "applyReplies", "requestTranslations", "pendingFields", "sendable"],
+    "auto-translate.ts": ["planTranslation", "applyReplies", "requestTranslations", "pendingFields", "sendable", "emptiedLive", "blankLive"],
     "list-table.tsx": ["ListTable"],
     "connect-picker.tsx": ["ConnectPicker"],
     "status-chip.tsx": ["StatusChip"],
@@ -888,6 +888,23 @@ test("plan: a translation Maria typed herself is left alone; an English emptied 
   const plan = auto.planTranslation({ name: "New", note: "" }, { name: "Old", note: "Was" }, both({ name: "يدوي", note: "كان" }, { name: "Viejo", note: "Era" }), touched);
   assert.deepEqual(plan.send, { ar: {}, es: { name: "New" } });
   assert.deepEqual(plan.clear, { ar: ["note"], es: ["note"] });
+});
+
+test("live: a published translation typed empty, or emptied with its English, is named; a blank the AI fills is not", () => {
+  const live = { ar: ["name", "note"], es: ["name"] };
+  // Arabic name typed empty by hand (touched: the AI is not asked); Spanish name blank but the AI fills it.
+  const touched = new Set([auto.touchKey("ar", "name")]);
+  const translations = both({ name: "", note: "كان" }, { name: "" });
+  const plan = auto.planTranslation({ name: "Same", note: "" }, { name: "Same", note: "Was" }, translations, touched);
+  assert.deepEqual(auto.emptiedLive(live, translations, plan), [
+    { locale: "ar", field: "name" },
+    { locale: "ar", field: "note" },
+  ]);
+  assert.deepEqual(auto.blankLive(live, translations), [
+    { locale: "ar", field: "name" },
+    { locale: "es", field: "name" },
+  ]);
+  assert.deepEqual(auto.emptiedLive({}, translations, plan), []);
 });
 
 test("plan: nothing changed and every translation present asks nothing", () => {

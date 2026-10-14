@@ -6,7 +6,7 @@ import { opsSend } from "../../../../../components/ops/ops-client";
 import { errorText } from "../../../../../components/ops/error-text";
 import type { Send } from "../../../../../components/ops/auto-translate";
 import type { SaveIntent, SavePayload } from "../../../../../components/ops/edit-page";
-import { ALT_FIELD, altOf, buildSaveAlt, isAltPublished, itemAfterSave, type AltText } from "../../../../../components/ops/media-alt";
+import { ALT_FIELD, altOf, buildSaveAlt, itemAfterSave, type AltText } from "../../../../../components/ops/media-alt";
 import { useDashboardLocale } from "../../../../../components/ops/use-dashboard-locale";
 import { useMediaLibrary } from "../../../../../components/ops/use-media-library";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
@@ -50,12 +50,16 @@ export function MediaLibrary({ send }: { send?: Send } = {}) {
     setNotice(null);
   }
 
-  /** One save_alt. `publish`: Arabic and Spanish go live with the English (no review step, owner 2026-10-14). */
+  /**
+   * One save_alt. `publish`: Arabic and Spanish go live with the English (no review step, owner 2026-10-14). Without it
+   * a language already published stays published, the others are drafts.
+   */
   async function persist(next: AltText, publish: boolean): Promise<boolean> {
     if (!open) return false;
     setBusy(true);
     setPanelError(null);
-    const body = buildSaveAlt(open.id, next, publish);
+    const live = { ar: open.alt_status.ar === "published", es: open.alt_status.es === "published" };
+    const body = buildSaveAlt(open.id, next, publish, live);
     const reply = await opsSend<{ id: string; affects_site: boolean }>(PATH, body);
     setBusy(false);
     if (!reply.ok) {
@@ -69,11 +73,10 @@ export function MediaLibrary({ send }: { send?: Send } = {}) {
     return true;
   }
 
-  /** The kit's Save: the English as typed and the Arabic and Spanish the kit filled. A published photo stays published. */
+  /** The kit's Save: the English as typed and the Arabic and Spanish the kit filled. Live languages stay live. */
   function onSave(payload: SavePayload, intent: SaveIntent): Promise<boolean> {
     const next = { en: alt.en, ar: textOf(payload.translations.ar[ALT_FIELD]), es: textOf(payload.translations.es[ALT_FIELD]) };
-    const publish = intent === "publish" || (open !== null && isAltPublished(open) && payload.complete);
-    return persist(next, publish);
+    return persist(next, intent === "publish");
   }
 
   async function onDelete() {

@@ -155,6 +155,12 @@ export type OpsKitCopy = {
     translationFailedLive: string;
     /** PANEL. Next to the status while there are unsaved changes. */
     unsaved: string;
+    /** Save would leave a published Arabic or Spanish text empty: the question before it does. */
+    emptyLiveTitle: string;
+    /** Above the list of the published texts that would go (each a `missingLine`). */
+    emptyLiveText: string;
+    /** The question's confirm button. */
+    saveEmpty: string;
   };
 };
 
@@ -272,6 +278,9 @@ export const OPS_KIT_COPY: Record<OpsKitLocale, OpsKitCopy> = {
       translationFailedLive:
         "The Arabic and Spanish translation did not finish, so nothing was saved and the site is unchanged. Save again to try once more, or open Edit translations and type them yourself.",
       unsaved: "Unsaved changes",
+      emptyLiveTitle: "Save with a published translation empty?",
+      emptyLiveText: "This text is on the site now. If you save it empty, the site loses it:",
+      saveEmpty: "Save empty",
     },
   },
   ar: {
@@ -382,6 +391,9 @@ export const OPS_KIT_COPY: Record<OpsKitLocale, OpsKitCopy> = {
       translationFailedLive:
         "لم تكتمل ترجمة العربية والإسبانية، لذلك لم يُحفظ شيء ولم يتغير الموقع. احفظ مرة أخرى للمحاولة، أو افتح «تعديل الترجمات» واكتبها بنفسك.",
       unsaved: "تغييرات غير محفوظة",
+      emptyLiveTitle: "حفظ ترجمة منشورة فارغة؟",
+      emptyLiveText: "هذا النص ظاهر على الموقع الآن. إذا حفظته فارغًا فسيُحذف من الموقع:",
+      saveEmpty: "احفظه فارغًا",
     },
   },
   es: {
@@ -493,6 +505,9 @@ export const OPS_KIT_COPY: Record<OpsKitLocale, OpsKitCopy> = {
       translationFailedLive:
         "La traducción al árabe y al español no terminó, así que no se guardó nada y el sitio no cambió. Guarde de nuevo para reintentar, o abra «Editar traducciones» y escríbalas usted.",
       unsaved: "Cambios sin guardar",
+      emptyLiveTitle: "¿Guardar con una traducción publicada vacía?",
+      emptyLiveText: "Este texto está ahora en el sitio. Si queda vacío al guardar, el sitio lo pierde:",
+      saveEmpty: "Guardar vacío",
     },
   },
 };

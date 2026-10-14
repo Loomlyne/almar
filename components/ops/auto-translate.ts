@@ -71,6 +71,30 @@ export function pendingFields(plan: TranslationPlan): Record<Target, Set<string>
   return { ar: new Set(Object.keys(plan.send.ar)), es: new Set(Object.keys(plan.send.es)) };
 }
 
+/** The Arabic and Spanish fields that are published on the site now, per target (the screen knows from its row). */
+export type LiveFields = Partial<Record<Target, readonly string[]>>;
+
+/** A published translation by language and field name, in the shape of the missing list. */
+export type LiveGap = { locale: Target; field: string };
+
+/** The published translations that are empty in `translations`. */
+export function blankLive(live: LiveFields, translations: Record<Target, Fields>): LiveGap[] {
+  const out: LiveGap[] = [];
+  for (const target of TARGETS) for (const field of live[target] ?? []) if (isBlank(translations[target][field])) out.push({ locale: target, field });
+  return out;
+}
+
+/**
+ * The published translations this Save would leave empty on purpose: typed empty by hand (the AI is not asked for
+ * them), or emptied with their English. A blank the plan sends for is not counted: the AI fills it, and if it fails
+ * nothing is saved.
+ */
+export function emptiedLive(live: LiveFields, translations: Record<Target, Fields>, plan: TranslationPlan): LiveGap[] {
+  return blankLive(live, translations)
+    .filter((gap) => !(gap.field in plan.send[gap.locale]))
+    .concat(TARGETS.flatMap((target) => plan.clear[target].filter((field) => (live[target] ?? []).includes(field)).map((field) => ({ locale: target, field }))));
+}
+
 export type TranslationOutcome = {
   /** Every translation after this Save: the fills applied, a failed field emptied (its old text is of old English). */
   translations: Record<Target, Fields>;

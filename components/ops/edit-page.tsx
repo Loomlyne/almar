@@ -7,9 +7,12 @@ import { Field } from "../ui/field";
 import { cn } from "../../lib/cn";
 import { OPS_KIT_COPY, type OpsKitCopy } from "../../lib/copy/ops-kit";
 import type { OpsError, PublishWarningCode } from "./api-types";
+import { missingLine } from "./error-text";
 import {
   TARGETS,
   applyReplies,
+  blankLive,
+  emptiedLive,
   pendingFields,
   planTranslation,
   plansAnything,
@@ -18,6 +21,8 @@ import {
   type FailReason,
   type Fields,
   type FieldValue,
+  type LiveFields,
+  type LiveGap,
   type Send,
   type Target,
 } from "./auto-translate";
@@ -48,6 +53,8 @@ export type SaveIntent = "save" | "publish";
 
 type Result = { kind: "updated" } | { kind: "failed"; reason: FailReason; live: boolean } | null;
 type Saved = "complete" | "incomplete" | "not-saved";
+/** What the "Discard changes?" question answers for: the back link or Escape, a link elsewhere, the browser's Back. */
+type Leaving = "close" | "link" | "back";
 
 function failText(copy: OpsKitCopy, reason: FailReason, live: boolean): string {
   if (live) return copy.editor.translationFailedLive;
@@ -57,6 +64,26 @@ function failText(copy: OpsKitCopy, reason: FailReason, live: boolean): string {
 }
 
 const asText = (value: FieldValue | undefined) => (Array.isArray(value) ? value.join("\n") : (value ?? ""));
+
+/** The same gap in two lists. */
+const sameGap = (a: LiveGap, b: LiveGap) => a.locale === b.locale && a.field === b.field;
+
+/**
+ * A plain left click on a link to another page of this site, which the browser or the router would follow: the one the
+ * guard asks about. A new tab, a download, another site (the browser's own question covers it) and a link to this same
+ * page are left alone.
+ */
+function leavingLink(event: MouseEvent): HTMLAnchorElement | null {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return null;
+  const anchor = event.target instanceof Element ? event.target.closest("a[href]") : null;
+  if (!(anchor instanceof HTMLAnchorElement) || anchor.hasAttribute("download")) return null;
+  if (anchor.target && anchor.target !== "_self") return null;
+  const to = new URL(anchor.href, window.location.href);
+  if (to.origin !== window.location.origin) return null;
+  // This same page (a jump, or the rail's link to the list itself): nothing is left.
+  if (to.pathname === window.location.pathname && to.search === window.location.search) return null;
+  return anchor;
+}
 
 /** A dialog or a popup is open over the page: its own Escape wins. */
 const overlayOpen = () => document.querySelector('[role="dialog"], [role="alertdialog"], [data-radix-popper-content-wrapper]') !== null;
@@ -73,7 +100,11 @@ const overlayOpen = () => document.querySelector('[role="dialog"], [role="alertd
  *
  * The list stays mounted (hidden) while the page is open, so its search and scroll survive, and focus returns to the
  * row that opened the page. Escape and the back link close it; with unsaved changes they ask "Discard changes?" first,
- * and the browser asks before the tab is left.
+ * and so do a link elsewhere in the dashboard (the rail) and the browser's Back; the browser asks before the tab is left.
+ *
+ * A published Arabic or Spanish text (`liveTranslations`) is never lost by accident: a Save that would leave one empty
+ * by hand asks first, and a failed translation that would empty one saves nothing. An item in use (`holdOnFailure`)
+ * saves nothing on a failed translation either.
  */
 export function EditPage({
   openKey,
@@ -104,6 +135,8 @@ export function EditPage({
   notice,
   sections,
   canSave = true,
+  liveTranslations = {},
+  holdOnFailure = false,
   send = opsSend,
 }: {
   /** The open item's id, or null for the list. A new key starts the page afresh. */
@@ -142,6 +175,10 @@ export function EditPage({
   sections: EditSection[];
   /** False while the screen's own required fields cannot be saved (e.g. the English alt text is empty). */
   canSave?: boolean;
+  /** The Arabic and Spanish fields published on the site now (an item can be live in one language and not the other). */
+  liveTranslations?: LiveFields;
+  /** The item is used on the site (a photo on a page): a failed translation saves nothing, as on a published item. */
+  holdOnFailure?: boolean;
   /** Test seam: the translate request (opsSend by default). */
   send?: Send;
 }) {
@@ -164,7 +201,13 @@ export function EditPage({
   const [phase, setPhase] = useState<"idle" | "translating" | "saving">("idle");
   const [result, setResult] = useState<Result>(null);
   const [showTranslations, setShowTranslations] = useState(false);
-  const [asking, setAsking] = useState(false);
+  const [asking, setAsking] = useState<Leaving | null>(null);
+  const [emptying, setEmptying] = useState<{ intent: SaveIntent; gaps: LiveGap[] } | null>(null);
+  // The link a "Discard changes?" waits on, and a pass for it once Discard is pressed.
+  const leavingTo = useRef<HTMLAnchorElement | null>(null);
+  const letGo = useRef(false);
+  // Puts the Back guard on again after Keep editing (set while the guard is up).
+  const guardAgain = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     mounted.current = true;
@@ -185,7 +228,8 @@ export function EditPage({
       setTouched(new Set());
       setResult(null);
       setShowTranslations(false);
-      setAsking(false);
+      setAsking(null);
+      setEmptying(null);
       window.scrollTo(0, 0);
       heading.current?.focus();
     } else if (wasOpen.current) {
@@ -220,7 +264,7 @@ export function EditPage({
 
   function requestClose() {
     if (working) return;
-    if (dirty) setAsking(true);
+    if (dirty) setAsking("close");
     else onClose();
   }
 
@@ -244,6 +288,48 @@ export function EditPage({
     return () => document.removeEventListener("focusin", onFocus);
   }, [open]);
 
+  // Unsaved changes: a link elsewhere (the rail) and the browser's Back ask "Discard changes?" too. Back is caught with
+  // one extra history entry for this same address: Back lands on it (nothing moves) and the question is asked; Keep
+  // editing puts the entry back, Discard goes on back. The entry is taken away again once the changes are saved.
+  useEffect(() => {
+    if (!open || !dirty) return;
+    const onClick = (event: MouseEvent) => {
+      if (letGo.current) return;
+      const anchor = leavingLink(event);
+      if (!anchor) return;
+      event.preventDefault();
+      event.stopPropagation();
+      leavingTo.current = anchor;
+      setAsking("link");
+    };
+    const here = window.location.href;
+    let guarded = true;
+    window.history.pushState(window.history.state, "", here);
+    const onPop = () => {
+      if (letGo.current) {
+        letGo.current = false;
+        return;
+      }
+      if (!guarded) return;
+      guarded = false;
+      setAsking("back");
+    };
+    guardAgain.current = () => {
+      if (guarded) return;
+      guarded = true;
+      window.history.pushState(window.history.state, "", window.location.href);
+    };
+    document.addEventListener("click", onClick, true);
+    window.addEventListener("popstate", onPop);
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      window.removeEventListener("popstate", onPop);
+      guardAgain.current = null;
+      // Saved or closed here: drop the extra entry. Gone elsewhere (a link was followed): leave history as it is.
+      if (guarded && !letGo.current && window.location.href === here) window.history.back();
+    };
+  }, [open, dirty]);
+
   useEffect(() => {
     if (!open || !dirty) return;
     const onLeave = (event: BeforeUnloadEvent) => {
@@ -254,8 +340,14 @@ export function EditPage({
     return () => window.removeEventListener("beforeunload", onLeave);
   }, [open, dirty]);
 
-  async function save(intent: SaveIntent): Promise<Saved> {
+  async function save(intent: SaveIntent, emptyConfirmed = false): Promise<Saved> {
     if (working) return "not-saved";
+    // A published Arabic or Spanish text left empty by hand: ask before the site loses it.
+    const meant = emptiedLive(liveTranslations, translations, plan);
+    if (meant.length > 0 && !emptyConfirmed) {
+      setEmptying({ intent, gaps: meant });
+      return "not-saved";
+    }
     let payload: SavePayload = { translations, complete: true };
     let asked = false;
     let reason: FailReason = "failed";
@@ -277,8 +369,10 @@ export function EditPage({
       asked = outcome.asked;
       reason = outcome.reason ?? "failed";
       payload = { translations: outcome.translations, complete: outcome.complete };
-      if (!outcome.complete && isPublished) {
-        // A live item is never saved with a hole in it: the site keeps what it has.
+      // A published text the AI failed to replace would go empty (not one she chose to empty).
+      const lost = blankLive(liveTranslations, outcome.translations).some((gap) => !meant.some((one) => sameGap(one, gap)));
+      if (!outcome.complete && (isPublished || holdOnFailure || lost)) {
+        // A live or used item is never saved with a hole in it: the site keeps what it has.
         setPhase("idle");
         setResult({ kind: "failed", reason, live: true });
         return "not-saved";
@@ -453,14 +547,49 @@ export function EditPage({
         </div>
       ) : null}
       <ConfirmDialog
-        open={asking}
-        onOpenChange={setAsking}
+        open={asking !== null}
+        onOpenChange={(stay) => {
+          if (stay) return;
+          // Keep editing after Back: the guard entry goes back on, so the next Back asks again.
+          if (asking === "back") guardAgain.current?.();
+          setAsking(null);
+        }}
         title={copy.discardTitle}
         confirmLabel={copy.discard}
         cancelLabel={copy.keepEditing}
         onConfirm={() => {
-          setAsking(false);
-          onClose();
+          const why = asking;
+          setAsking(null);
+          if (why === "close") onClose();
+          else if (why === "link") {
+            letGo.current = true;
+            leavingTo.current?.click();
+            window.setTimeout(() => {
+              letGo.current = false;
+            }, 0);
+          } else if (why === "back") {
+            letGo.current = true;
+            window.history.back();
+          }
+        }}
+      />
+      <ConfirmDialog
+        open={emptying !== null}
+        onOpenChange={(stay) => {
+          if (!stay) setEmptying(null);
+        }}
+        title={copy.editor.emptyLiveTitle}
+        description={
+          emptying
+            ? `${copy.editor.emptyLiveText} ${emptying.gaps.map((gap) => missingLine(copy, gap, fieldLabel)).join(", ")}.`
+            : undefined
+        }
+        confirmLabel={copy.editor.saveEmpty}
+        cancelLabel={copy.keepEditing}
+        onConfirm={() => {
+          const intent = emptying?.intent ?? "save";
+          setEmptying(null);
+          void save(intent, true);
         }}
       />
     </>

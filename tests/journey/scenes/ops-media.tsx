@@ -197,7 +197,8 @@ function LibraryScene({ ctx, editor, fail = false }: { ctx: SceneContext; editor
 
   function store(next: AltText, publish: boolean): Promise<boolean> {
     if (!openId) return Promise.resolve(false);
-    const body = buildSaveAlt(openId, next, publish);
+    const item = items.find((one) => one.id === openId);
+    const body = buildSaveAlt(openId, next, publish, { ar: item?.alt_status.ar === "published", es: item?.alt_status.es === "published" });
     setItems((known) => known.map((item) => (item.id === openId ? itemAfterSave(item, body) : item)));
     const kept = { en: body.alt.en, ar: body.alt.ar ?? "", es: body.alt.es ?? "" };
     setAlt(kept);

@@ -2,9 +2,9 @@
 // no request: node tests load this file directly, and media-library.tsx binds it to state.
 //
 // Translation is automatic (owner, 2026-10-14): Maria writes the English; the editor fills Arabic and Spanish on Save.
-// A photo is published when its English, Arabic and Spanish alt texts are all published. Save keeps a published photo
-// published (the site updates) and an unpublished one in draft; Publish makes Arabic and Spanish published. There is
-// no "I checked this translation" box any more.
+// A photo is published when its English, Arabic and Spanish alt texts are all published. Save keeps every language that
+// is published published (the site updates; a photo can be live in Arabic and not yet in Spanish) and the others in
+// draft; Publish makes Arabic and Spanish published. There is no "I checked this translation" box any more.
 import type { Locale3 } from "./api-types";
 import type { MediaItem } from "./media-types";
 import type { MissingItem } from "./publish-check";
@@ -31,6 +31,16 @@ export function isAltPublished(item: MediaItem): boolean {
   return item.alt_status.en === "published" && item.alt_status.ar === "published" && item.alt_status.es === "published";
 }
 
+/** The Arabic and Spanish alt texts published on the site now: the editor never empties one by accident. */
+export function liveAlt(item: MediaItem): Partial<Record<Other, readonly string[]>> {
+  const out: Partial<Record<Other, readonly string[]>> = {};
+  for (const code of ["ar", "es"] as const) if (item.alt_status[code] === "published") out[code] = [ALT_FIELD];
+  return out;
+}
+
+/** A photo the site uses (on a page, or an imported one the site pages keep): a failed translation saves nothing. */
+export const altInUse = (item: MediaItem) => item.used_by > 0 || item.source === "import";
+
 /** What Publish waits for: an alt text in each language. */
 export function altMissing(alt: AltText): MissingItem[] {
   const out: MissingItem[] = [];
@@ -46,16 +56,17 @@ export type SaveAltBody = {
 };
 
 /**
- * The save_alt body (contract 5.10). Arabic and Spanish with text are "published" when `publish` (Publish pressed, or a
- * save on a published photo), else "draft"; a language left empty is sent as null and carries no status.
+ * The save_alt body (contract 5.10). Arabic and Spanish with text are "published" when `publish` (Publish pressed) or
+ * when that language is published already (`live`: a Save never takes a live language off the site), else "draft"; a
+ * language left empty is sent as null and carries no status.
  */
-export function buildSaveAlt(id: string, alt: AltText, publish: boolean): SaveAltBody {
+export function buildSaveAlt(id: string, alt: AltText, publish: boolean, live: Partial<Record<Other, boolean>> = {}): SaveAltBody {
   const ar = alt.ar.trim();
   const es = alt.es.trim();
-  const state = publish ? "published" : "draft";
+  const state = (code: Other) => (publish || live[code] ? "published" : "draft");
   const status: SaveAltBody["status"] = {};
-  if (ar !== "") status.ar = state;
-  if (es !== "") status.es = state;
+  if (ar !== "") status.ar = state("ar");
+  if (es !== "") status.es = state("es");
   return { action: "save_alt", id, alt: { en: alt.en.trim(), ar: ar === "" ? null : ar, es: es === "" ? null : es }, status };
 }
 

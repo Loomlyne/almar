@@ -107,6 +107,32 @@ test("save_alt: Save keeps ar/es draft, Publish (or a save on a published photo)
   assert.deepEqual(alt.buildSaveAlt(id, { en: "A", ar: "ب", es: "B" }, true).status, { ar: "published", es: "published" });
 });
 
+test("save_alt: a language already published stays published on Save; the others stay drafts (PR #15 blocker)", () => {
+  const body = alt.buildSaveAlt("x", { en: "A", ar: "ب", es: "B" }, false, { ar: true });
+  assert.deepEqual(body.status, { ar: "published", es: "draft" });
+  // A live language left empty is still null (the kit asks first, or saves nothing on a failed translation).
+  assert.deepEqual(alt.buildSaveAlt("x", { en: "A", ar: "", es: "B" }, false, { ar: true }), {
+    action: "save_alt",
+    id: "x",
+    alt: { en: "A", ar: null, es: "B" },
+    status: { es: "draft" },
+  });
+  assert.deepEqual(alt.itemAfterSave(item({ alt_status: { en: "published", ar: "published", es: "missing" } }), body).alt_status, {
+    en: "published",
+    ar: "published",
+    es: "draft",
+  });
+});
+
+test("liveAlt names the published Arabic and Spanish alt; altInUse is a used or an imported photo", () => {
+  assert.deepEqual(alt.liveAlt(item()), {});
+  assert.deepEqual(alt.liveAlt(item({ alt_status: { en: "published", ar: "published", es: "draft" } })), { ar: ["alt"] });
+  assert.deepEqual(alt.liveAlt(item({ alt_status: { en: "published", ar: "published", es: "published" } })), { ar: ["alt"], es: ["alt"] });
+  assert.equal(alt.altInUse(item()), false);
+  assert.equal(alt.altInUse(item({ used_by: 2 })), true);
+  assert.equal(alt.altInUse(item({ source: "import" })), true);
+});
+
 test("itemAfterSave shows what was sent", () => {
   const body = alt.buildSaveAlt("x", { en: "A", ar: "ب", es: "" }, false);
   const after = alt.itemAfterSave(item(), body);
@@ -224,4 +250,8 @@ test("the Media screen is on the kit's editor page: no drawer, no language tabs,
   }
   // Publish sends ar/es published with the English (no review step, owner 2026-10-14).
   assert.match(library, /onPublish=\{\(\) => persist\(alt, true\)\}/);
+  // A Save keeps each live language live, and the page knows which are live and whether the photo is used.
+  assert.match(library, /buildSaveAlt\(open\.id, next, publish, live\)/);
+  assert.match(screen, /liveTranslations=\{open \? liveAlt\(open\) : \{\}\}/);
+  assert.match(screen, /holdOnFailure=\{kept\}/);
 });

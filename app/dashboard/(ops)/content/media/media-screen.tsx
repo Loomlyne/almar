@@ -7,7 +7,7 @@ import { Field } from "../../../../../components/ui/field";
 import { PlusIcon } from "../../../../../components/icons/icons";
 import type { Send, Target } from "../../../../../components/ops/auto-translate";
 import { EditPage, type SaveIntent, type SavePayload } from "../../../../../components/ops/edit-page";
-import { ALT_FIELD, altMissing, isAltPublished, type AltText } from "../../../../../components/ops/media-alt";
+import { ALT_FIELD, altInUse, altMissing, isAltPublished, liveAlt, type AltText } from "../../../../../components/ops/media-alt";
 import { FileName, fileNameOf } from "../../../../../components/ops/media-picker";
 import { UPLOAD_TYPES, type MediaItem } from "../../../../../components/ops/media-types";
 import { StatusChip } from "../../../../../components/ops/status-chip";
@@ -80,7 +80,7 @@ export function MediaScreen({
   const [confirming, setConfirming] = useState(false);
   const open = items.find((item) => item.id === openId) ?? null;
   // An imported photo is kept by the site pages (ops_delete_media refuses it), so it reads as used.
-  const kept = open ? open.used_by > 0 || open.source === "import" : false;
+  const kept = open ? altInUse(open) : false;
 
   const list = (
     <div className="flex min-w-0 flex-col gap-6">
@@ -172,6 +172,8 @@ export function MediaScreen({
         dirty={alt.en !== savedAlt.en || alt.ar !== savedAlt.ar || alt.es !== savedAlt.es}
         busy={busy}
         canSave={alt.en.trim() !== ""}
+        liveTranslations={open ? liveAlt(open) : {}}
+        holdOnFailure={kept}
         missing={altMissing(alt)}
         error={null}
         english={{ [ALT_FIELD]: alt.en }}
