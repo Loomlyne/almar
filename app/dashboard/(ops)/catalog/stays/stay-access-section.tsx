@@ -131,14 +131,16 @@ export function StayAccessSection({
     },
   });
 
+  // The password and door code keep the page's direction: the field reserves the eye's room at its inline end, and a
+  // forced dir="ltr" would put that room on the other side from the eye in Arabic.
   return (
     <div className="flex flex-col gap-4">
       <p className="m-0 text-label text-ink">{copy.access.guestLine}</p>
       <p className="m-0 text-label text-muted">{copy.access.privateLine}</p>
       <Field {...field("address")} label={copy.access.address} multiline />
       <Field {...field("wifi_name")} label={copy.access.wifiName} dir="auto" />
-      <Field {...field("wifi_password")} label={copy.access.wifiPassword} type="password" dir="ltr" autoComplete="new-password" />
-      <Field {...field("door_code")} label={copy.access.doorCode} type="password" dir="ltr" autoComplete="new-password" />
+      <Field {...field("wifi_password")} label={copy.access.wifiPassword} type="password" autoComplete="new-password" />
+      <Field {...field("door_code")} label={copy.access.doorCode} type="password" autoComplete="new-password" />
       <Field {...field("notes")} label={copy.access.notes} hint={copy.access.notesHint} multiline />
       {failed ? (
         <p role="alert" className="m-0 text-label text-error">

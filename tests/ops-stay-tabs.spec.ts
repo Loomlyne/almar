@@ -55,7 +55,7 @@ async function mockApi(page: Page, locale: Locale, fixture: Fixture) {
     if (request.method() === "POST") {
       const body = request.postDataJSON() as { action: string };
       if (body.action === "save_range" && fixture.overlap) {
-        return reply(route, 409, { ok: false, error: { code: "rate_overlap", field: "range", locale: null, detail: { conflict_id: "range-c" } } });
+        return reply(route, 409, { ok: false, error: { code: "rate_overlap", field: "range", locale: null, detail: { conflict_id: "range-b" } } });
       }
       return reply(route, 200, { ok: true, stay_id: STAY_ID, base_nightly_rate_aed: b.price, affects_site: false });
     }
@@ -140,6 +140,20 @@ async function expectVisibleProperties(page: Page) {
       const style = getComputedStyle(button);
       if (style.backgroundColor === goldRgb || style.borderTopColor === goldRgb || style.color === goldRgb) out.push(`gold button: ${button.textContent?.trim()}`);
     }
+    // The dashboard's sticky top bar sits at the top of the page at capture.
+    const bar = document.querySelector("header");
+    if (bar && Math.round(bar.getBoundingClientRect().top) !== 0) out.push(`top bar at ${bar.getBoundingClientRect().top}`);
+    // A password field's eye never covers its text box (in either direction): the eye stays out of the content box.
+    for (const input of Array.from(editor.querySelectorAll<HTMLInputElement>(".is-password input"))) {
+      const eye = input.parentElement?.querySelector("button");
+      if (!eye || input.offsetParent === null) continue;
+      const box = input.getBoundingClientRect();
+      const style = getComputedStyle(input);
+      const left = box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+      const right = box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight);
+      const e = eye.getBoundingClientRect();
+      if (e.left < right && e.right > left) out.push(`eye over text: ${input.id} (${document.documentElement.dir || "ltr"})`);
+    }
     if (document.documentElement.scrollWidth > window.innerWidth + 1) out.push(`page scrolls sideways: ${document.documentElement.scrollWidth} > ${window.innerWidth}`);
     return out;
   });
@@ -211,16 +225,28 @@ test.describe("pictures", () => {
           }
 
           if (shot.state === "rates-overlap") {
-            // The owner's path: open a range, press Save range; the server answers 409 rate_overlap on range-c. The rate
-            // field gets a well-formed amount only for the request and shows the bracket again before the picture.
+            // The owner's path: Add range, pick 05/01/2027 to 11/01/2027 (7 nights, the same length as the stored
+            // 05/01 to 11/01 range), Save range; the server answers 409 rate_overlap on that stored range (range-b).
+            // The rate field gets a well-formed amount only for the request and shows the bracket again before the picture.
             const rates = card(page, copy.rates.title);
-            // The list is a table from 768 and cards below; both are in the page, CSS shows one.
-            await rates.locator("button:visible", { hasText: "05/01/2027" }).first().click();
-            const rate = rates.getByLabel(copy.rates.perNight, { exact: true });
+            await rates.getByRole("button", { name: copy.rates.addRange, exact: true }).click();
+            const form = rates.locator("[data-range-form]");
+            await form.getByLabel(copy.rates.dates, { exact: true }).click();
+            const calendar = page.getByRole("dialog");
+            for (let n = 0; n < 24 && !(await calendar.getByText("January 2027", { exact: true }).isVisible()); n += 1) {
+              await calendar.getByRole("button", { name: "Next month" }).click();
+            }
+            await calendar.getByRole("gridcell", { name: /\b5 January 2027\b/ }).click();
+            await calendar.getByRole("gridcell", { name: /\b11 January 2027\b/ }).click();
+            const rate = form.getByLabel(copy.rates.perNight, { exact: true });
             await rate.fill("1");
-            await rates.getByRole("button", { name: copy.rates.saveRange, exact: true }).click();
+            await form.getByRole("button", { name: copy.rates.saveRange, exact: true }).click();
             await expect(alerts(page).filter({ hasText: copy.rates.overlap })).toBeVisible();
-            await expect(rates.locator("[data-overlap]:visible").first()).toBeVisible();
+            // The row sentence is on the row it clashes with, outside that row's open link.
+            const marked = rates.locator(":is(tr, li):visible").filter({ has: page.locator("[data-overlap]") });
+            await expect(marked).toHaveCount(1);
+            await expect(marked).toContainText("05/01/2027");
+            await expect(rates.locator("button [data-overlap]")).toHaveCount(0);
             await rate.fill(b.price);
           }
 
@@ -254,6 +280,9 @@ test.describe("pictures", () => {
           }
 
           await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+          // A click can leave the page scrolled; the full-page shot must start at the top with the bar at the top.
+          await page.evaluate(() => window.scrollTo(0, 0));
+          await page.waitForFunction(() => window.scrollY === 0);
           await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
           await page.waitForTimeout(400);
           await expectRealText(page);

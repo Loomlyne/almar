@@ -210,8 +210,19 @@ export function StayRatesSection({
       label: copy.rates.firstNight,
       phone: "title",
       render: (row) => (
-        <span className="flex flex-col gap-1">
-          <bdi dir="ltr">{showDay(row.first_night)}</bdi>
+        <bdi dir="ltr">{showDay(row.first_night)}</bdi>
+      ),
+    },
+    { key: "last", label: copy.rates.lastNight, phone: "meta", render: (row) => <bdi dir="ltr">{showDay(row.last_night)}</bdi> },
+    { key: "nights", label: copy.rates.nights, phone: "meta", render: (row) => <bdi dir="ltr">{row.nights}</bdi> },
+    {
+      key: "rate",
+      label: copy.rates.perNight,
+      phone: "meta",
+      // The clash sentence sits on the clashing row as plain text in the last cell, outside the row's open link.
+      render: (row) => (
+        <span className="flex flex-col items-start gap-1">
+          <Aed value={row.nightly_rate_aed} />
           {row.id === overlapId ? (
             <span className="text-label text-error" data-overlap>
               {copy.rates.overlap}
@@ -220,9 +231,6 @@ export function StayRatesSection({
         </span>
       ),
     },
-    { key: "last", label: copy.rates.lastNight, phone: "meta", render: (row) => <bdi dir="ltr">{showDay(row.last_night)}</bdi> },
-    { key: "nights", label: copy.rates.nights, phone: "meta", render: (row) => <bdi dir="ltr">{row.nights}</bdi> },
-    { key: "rate", label: copy.rates.perNight, phone: "meta", render: (row) => <Aed value={row.nightly_rate_aed} /> },
   ];
 
   return (
