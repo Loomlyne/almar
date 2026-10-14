@@ -154,8 +154,15 @@ export type Api = {
   of: (path: string) => Record<string, unknown>[];
 };
 
-/** Answers every /api/ops/* the two screens call. `answer` overrides one POST (by path and action) with a refusal. */
-export async function mockCatalogApi(page: Page, answer: (path: string, body: Record<string, unknown>) => Reply | null = () => null): Promise<Api> {
+/**
+ * Answers every /api/ops/* the two screens call. `answer` overrides one POST (by path and body) with a refusal;
+ * `answerGet` one GET (by path and query).
+ */
+export async function mockCatalogApi(
+  page: Page,
+  answer: (path: string, body: Record<string, unknown>) => Reply | null = () => null,
+  answerGet: (path: string, query: URLSearchParams) => Reply | null = () => null,
+): Promise<Api> {
   const store: Store = freshStore();
   const api: Api = { gets: [], posts: [], of: (path) => api.posts.filter((post) => post.path === path).map((post) => post.body) };
   const reply = (route: Route, status: number, json: unknown) =>
@@ -168,6 +175,25 @@ export async function mockCatalogApi(page: Page, answer: (path: string, body: Re
     if (request.method() === "GET") {
       api.gets.push(url);
       const id = url.searchParams.get("id");
+      const override = answerGet(path, url.searchParams);
+      if (override) return reply(route, override.status, override.json);
+      if (path === "stays" && id) {
+        // StayDetail: only what the screens read here (its experiences and services, from the items' stays).
+        const stay = STAYS.find((s) => s.id === id);
+        if (!stay) return reply(route, 404, refusal(404, "not_found").json);
+        const linked = store.items.filter((c) => c.stay_ids.includes(id));
+        return reply(route, 200, {
+          ok: true,
+          item: {
+            id,
+            slug: stay.slug,
+            destination_id: stay.destination_id,
+            is_published: stay.is_published,
+            experience_ids: linked.filter((c) => c.kind === "experience").map((c) => c.id),
+            service_ids: linked.filter((c) => c.kind === "service").map((c) => c.id),
+          },
+        });
+      }
       if (path === "stays") return reply(route, 200, { ok: true, items: STAYS });
       if (path === "destinations") {
         if (id) {

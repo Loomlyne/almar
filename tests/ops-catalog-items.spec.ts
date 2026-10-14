@@ -206,20 +206,36 @@ test.describe("behaviour", () => {
       expect(del).toEqual({ action: "delete", id: "c1" });
     });
 
-    test(`Stay filter: each item's stays are read once, then the list shows that stay's items (${at})`, async ({ page, baseURL }) => {
+    test(`Stay filter: one read of the picked stay, kept for the session; no read per item (${at})`, async ({ page, baseURL }) => {
       const api = await mockCatalogApi(page);
       await open(page, baseURL);
-      const details = () => api.gets.filter((u) => u.pathname.endsWith("/catalog") && u.searchParams.has("id")).length;
-      expect(details()).toBe(0);
+      const stayReads = () => api.gets.filter((u) => u.pathname.endsWith("/stays") && u.searchParams.has("id")).map((u) => u.searchParams.get("id"));
+      const itemReads = () => api.gets.filter((u) => u.pathname.endsWith("/catalog") && u.searchParams.has("id")).length;
       await page.getByRole("combobox", { name: copy.allStays }).click();
       await page.getByRole("option", { name: "Finca Tres" }).click();
-      await expect.poll(details).toBe(3);
-      await expect(openRow(page, "Airport transfer")).toBeVisible();
       await expect(openRow(page, "Coffee farm")).toHaveCount(0);
+      await expect(openRow(page, "Airport transfer")).toBeVisible();
+      expect(stayReads()).toEqual(["s3"]);
       await page.getByRole("combobox", { name: "Finca Tres" }).click();
       await page.getByRole("option", { name: "Casa Uno" }).click();
       await expect(openRow(page, "Coffee farm")).toBeVisible();
-      expect(details(), "read once").toBe(3);
+      await expect(openRow(page, "Airport transfer")).toHaveCount(0);
+      await page.getByRole("combobox", { name: "Casa Uno" }).click();
+      await page.getByRole("option", { name: "Finca Tres" }).click();
+      await expect(openRow(page, "Airport transfer")).toBeVisible();
+      expect(stayReads(), "each stay read once").toEqual(["s3", "s1"]);
+      expect(itemReads(), "no read per item").toBe(0);
+    });
+
+    test(`Stay filter: a stay that does not load says why and leaves the filter on all stays (${at})`, async ({ page, baseURL }) => {
+      await mockCatalogApi(page, undefined, (path, query) => (path === "stays" && query.has("id") ? refusal(503, "unavailable") : null));
+      await open(page, baseURL);
+      await page.getByRole("combobox", { name: copy.allStays }).click();
+      await page.getByRole("option", { name: "Finca Tres" }).click();
+      await expect(page.getByText(kit.errors.unavailable, { exact: true })).toBeVisible();
+      await expect(page.getByRole("combobox", { name: copy.allStays })).toBeVisible();
+      await expect(openRow(page, "Coffee farm")).toBeVisible();
+      await expect(openRow(page, "Airport transfer")).toBeVisible();
     });
   }
 });

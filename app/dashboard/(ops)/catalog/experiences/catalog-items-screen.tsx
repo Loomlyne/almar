@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   CatalogDetail,
   CatalogSummary,
@@ -10,6 +10,7 @@ import type {
   OpsError,
   PublishResult,
   PublishWarningCode,
+  StayDetail,
   StaySummary,
   WriteResult,
 } from "../../../../../components/ops/api-types";
@@ -36,16 +37,14 @@ const PATH = "/api/ops/catalog";
 
 type Open = { form: CatalogItemForm; saved: CatalogItemForm };
 
-/** How many item details are read at once when the stay filter first needs them. */
-const DETAIL_BATCH = 4;
-
 const priceRefused: OpsError = { code: "invalid", field: "price_aed", locale: null, detail: null };
 
 /**
  * Catalog -> Experiences and services, connected (plan 03.2-06 Task 2): the list, filters, search and order, the item's
  * editor page (Save, Publish, Unpublish, Delete, automatic Arabic and Spanish through the kit) and its connections, all
- * through the kit client. The list reply has no stay list per item: the first time the owner picks a stay in the stay
- * filter, each item's detail is read once (`?id=`) for its stays. `send` is the test seam for the translate request.
+ * through the kit client. The list reply has no stay list per item: when the owner picks a stay in the stay filter, that
+ * stay's detail is read once (`/api/ops/stays?id=`, its experience_ids and service_ids) and kept for the session.
+ * `send` is the test seam for the translate request.
  */
 export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
   const locale = useDashboardLocale();
@@ -55,14 +54,13 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
   const [rows, setRows] = useState<CatalogSummary[]>([]);
   const [destinations, setDestinations] = useState<DestinationSummary[]>([]);
   const [stays, setStays] = useState<StaySummary[]>([]);
-  const [stayIds, setStayIds] = useState<Record<string, string[]>>({});
+  // The items connected to each stay picked in the filter so far: stay id -> item ids.
+  const [stayItems, setStayItems] = useState<Record<string, string[]>>({});
   const [listError, setListError] = useState<OpsError | null>(null);
   const [open, setOpen] = useState<Open | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<OpsError | null>(null);
   const [warnings, setWarnings] = useState<PublishWarningCode[]>([]);
-  // The stay filter has read every item's stays once: later items learn theirs from their own detail.
-  const stayIdsRead = useRef(false);
 
   async function loadLists(): Promise<void> {
     const [c, d, s] = await Promise.all([
@@ -81,24 +79,20 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
     void loadLists();
   }, []);
 
-  /** Each item's stays, read once, a few details at a time, when the stay filter is first used. */
-  async function readStayIds() {
-    if (stayIdsRead.current) return;
-    stayIdsRead.current = true;
-    const found: Record<string, string[]> = {};
-    for (let at = 0; at < rows.length; at += DETAIL_BATCH) {
-      const replies = await Promise.all(rows.slice(at, at + DETAIL_BATCH).map((row) => opsFetch<DetailReply<CatalogDetail>>(PATH, { id: row.id })));
-      for (const reply of replies) {
-        if (!reply.ok) {
-          // The filter would be wrong with a hole in it: say so, and read again on the next pick.
-          stayIdsRead.current = false;
-          setListError(reply.error);
-          return;
-        }
-        found[reply.item.id] = reply.item.stay_ids;
-      }
+  /**
+   * The stay filter: one read of the picked stay (its experiences and services), kept for the session. False when it
+   * did not come back: the list says why and the filter stays on all stays.
+   */
+  async function onStayFilter(stayId: string): Promise<boolean> {
+    if (stayItems[stayId]) return true;
+    const reply = await opsFetch<DetailReply<StayDetail>>("/api/ops/stays", { id: stayId });
+    if (!reply.ok) {
+      setListError(reply.error);
+      return false;
     }
-    setStayIds((was) => ({ ...was, ...found }));
+    setListError(null);
+    setStayItems((was) => ({ ...was, [stayId]: [...reply.item.experience_ids, ...reply.item.service_ids] }));
+    return true;
   }
 
   /** Loads one item into the editor (its saved state is the server's); the refusal, if any, is returned. */
@@ -107,7 +101,13 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
     if (!reply.ok) return reply.error;
     const form = catalogItemFormOf(reply.item);
     setOpen({ form, saved: form });
-    setStayIds((was) => ({ ...was, [reply.item.id]: reply.item.stay_ids }));
+    // A stay read for the filter learns this item's connections as saved now.
+    const linked = new Set(reply.item.stay_ids);
+    setStayItems((was) =>
+      Object.fromEntries(
+        Object.entries(was).map(([stay, ids]) => [stay, linked.has(stay) ? [...new Set([...ids, id])] : ids.filter((other) => other !== id)]),
+      ),
+    );
     return null;
   }
 
@@ -203,7 +203,7 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
       unit: row.unit,
       priceText: row.price_aed === null ? null : fillCatalogCopy(copy.aedAmount, { amount: groupAmount(row.price_aed) }),
       destinationIds: row.destination_ids,
-      stayIds: stayIds[row.id] ?? [],
+      stayIds: Object.keys(stayItems).filter((stay) => stayItems[stay]!.includes(row.id)),
       stayCount: row.stay_count,
       published: row.is_published,
       position: row.position,
@@ -230,7 +230,7 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
       onOpen={(id) => void onOpen(id)}
       onMove={(id, by) => void reorder(movedIds(rows, id, by))}
       onDropOrder={(ids) => void reorder(ids)}
-      onStayFilter={() => void readStayIds()}
+      onStayFilter={onStayFilter}
       notice={
         listError ? (
           <p role="alert" className="m-0 text-label text-error">

@@ -94,8 +94,11 @@ export function CatalogItemsView({
   onDropOrder: (ids: string[]) => void;
   panel: CatalogPanel | null;
   initialFilter?: CatalogFilter;
-  /** The owner picked a stay in the stay filter (the list rows learn their stays only then). */
-  onStayFilter?: (stayId: string) => void;
+  /**
+   * The owner picked a stay in the stay filter: the rows learn that stay's items only then. The filter changes once it
+   * resolves true; false leaves it on all stays. Absent: the rows already carry their stays.
+   */
+  onStayFilter?: (stayId: string) => Promise<boolean>;
   /** A line of the screen's own under the title, such as a list that did not load. */
   notice?: ReactNode;
 }) {
@@ -103,6 +106,8 @@ export function CatalogItemsView({
   const copy = OPS_CATALOG_COPY[loc].items;
   const searchId = useId();
   const [filter, setFilter] = useState<CatalogFilter>(initialFilter);
+  // A stay is being read for the filter: the list is marked busy and the stay select takes no pick until it answers.
+  const [reading, setReading] = useState(false);
   const dir = loc === "ar" ? "rtl" : "ltr";
 
   const shown = filterCatalogRows(rows, filter);
@@ -135,7 +140,7 @@ export function CatalogItemsView({
   ];
 
   const list = (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6" aria-busy={reading || undefined}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.title}</h1>
         <Button onClick={onNew}>{copy.newItem}</Button>
@@ -163,10 +168,18 @@ export function CatalogItemsView({
               value={filter.stayId === "" ? ALL : filter.stayId}
               label="{name}"
               options={[{ value: ALL, label: copy.allStays }, ...stays.map((s) => ({ value: s.id, label: s.label }))]}
-              onChange={(next) => {
+              onChange={async (next) => {
+                // One read at a time: a pick while the last one is read is not taken.
+                if (reading) return;
                 const stayId = next === ALL ? "" : next;
-                setFilter({ ...filter, stayId });
-                if (stayId !== "") onStayFilter?.(stayId);
+                if (stayId === "" || !onStayFilter) {
+                  setFilter((was) => ({ ...was, stayId }));
+                  return;
+                }
+                setReading(true);
+                const ok = await onStayFilter(stayId);
+                setReading(false);
+                if (ok) setFilter((was) => ({ ...was, stayId }));
               }}
             />
             <Field
