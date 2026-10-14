@@ -35,8 +35,6 @@ export type OpsCalendarCopy = {
   stays: string;
   /** CANVAS (k21): label of the one date range field. The canvas draws From and To (k197, k198); see the picture notes. */
   dates: string;
-  from: string;
-  to: string;
   /** CANVAS (k199). The hint under the dates. */
   sameDayHint: string;
   /** CANVAS (k200). */
@@ -92,8 +90,6 @@ export const OPS_CALENDAR_COPY: Record<Locale3, OpsCalendarCopy> = {
     destinations: "Destinations",
     stays: "Stays",
     dates: "Dates",
-    from: "From",
-    to: "To",
     sameDayHint: "Choose the same date twice to block one day. Blocks always cover the full day.",
     reasonOptional: "Reason (optional)",
     all: "All",
@@ -134,8 +130,6 @@ export const OPS_CALENDAR_COPY: Record<Locale3, OpsCalendarCopy> = {
     destinations: "الوجهات",
     stays: "الإقامات",
     dates: "التواريخ",
-    from: "من",
-    to: "إلى",
     sameDayHint: "اختر التاريخ نفسه مرتين لحجب يوم واحد. الحجب يشمل اليوم كاملًا دائمًا.",
     reasonOptional: "السبب (اختياري)",
     all: "الكل",
@@ -179,8 +173,6 @@ export const OPS_CALENDAR_COPY: Record<Locale3, OpsCalendarCopy> = {
     destinations: "Destinos",
     stays: "Estancias",
     dates: "Fechas",
-    from: "Desde",
-    to: "Hasta",
     sameDayHint: "Elija la misma fecha dos veces para bloquear un día. El bloqueo cubre siempre el día completo.",
     reasonOptional: "Motivo (opcional)",
     all: "Todo",
