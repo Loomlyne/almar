@@ -18,6 +18,7 @@ import { acquireStackLock, localStack, requireStack, resetLocal, runSql } from "
 const { runOps } = await loadTs("lib/ops/route-core.ts");
 const parse = await loadTs("lib/ops/validate-catalog.ts");
 const h = await loadTs("lib/ops/catalog-handlers.ts");
+const mediaCore = await loadTs("lib/ops/media-upload.ts");
 
 const OPS = "https://dashboard.almarprivatejourney.com";
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
@@ -440,6 +441,98 @@ test("local stack: the owner API end to end on the imported catalogue", { timeou
     assert.equal((await J.get()).body.items.find((j) => j.id === EXPLORER.id).is_published, false);
     assert.equal((await publish("journey_tier", EXPLORER.id, true)).body.is_published, true);
     assert.equal((await J.get()).body.items.length, tiers.length);
+  });
+
+  // Job 03.2-09b, review finding 3: GET /api/ops/media asks ops_list_media for one page (searched and paged in SQL)
+  // instead of reading every row of ops_list('media') and filtering in the Worker. Same rows, same order, at most 60 a
+  // page, on the imported catalogue (1,000+ photos).
+  await t.test("media: ops_list_media pages through the whole imported library in ops_list('media') order, 60 at most a page", async () => {
+    const listPage = ({ q, after, limit }) => owner.admin.rpc("ops_list_media", { p_q: q, p_after: after, p_limit: limit });
+    const M = { get: (q) => get(({ url }) => mediaCore.listMedia({ listPage, url }), q) };
+    // The local import holds fewer photos than live (1,127+ at the review): add 1,000 plain rows so the paging runs at
+    // the live size. They are removed at the end of this step (and the stack is reset after the file).
+    const filler = runSql(
+      "insert into public.media (key, width, height, source) select 'zz/load-' || lpad(n::text, 4, '0') || '.webp', 800, 600, 'import' from generate_series(1, 1000) n",
+    );
+    assert.equal(filler.code, 0, filler.output.slice(-1000));
+    const { data: all, error } = await owner.admin.rpc("ops_list", { p_entity: "media" });
+    assert.equal(error, null);
+    assert.ok(all.length > 1100, `library: ${all.length} rows`);
+    const seen = [];
+    let after = null;
+    let pages = 0;
+    const started = Date.now();
+    do {
+      const page = await M.get(after ? `after=${encodeURIComponent(after)}` : "");
+      assert.equal(page.status, 200, JSON.stringify(page.body));
+      assert.ok(page.body.items.length <= 61, `page ${pages}: ${page.body.items.length} items`);
+      seen.push(...page.body.items.map((i) => `${i.key} ${i.id}`));
+      after = page.body.next;
+      pages += 1;
+    } while (after && pages < 100);
+    const elapsed = Date.now() - started;
+    const want = [...all].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0)).map((r) => `${r.key} ${r.id}`);
+    assert.deepEqual(seen, want, "every row once, in byte key order");
+    assert.ok(pages >= Math.ceil(all.length / 60), `${pages} pages`);
+    t.diagnostic(`ops_list_media: ${all.length} rows in ${pages} pages, ${elapsed} ms in total on the local stack`);
+
+    const one = all.find((r) => r.alt?.en);
+    const word = one.alt.en.split(/\s+/).find((w) => w.length >= 5) ?? one.alt.en;
+    const found = await M.get(`q=${encodeURIComponent(word.toUpperCase())}&limit=60`);
+    assert.equal(found.status, 200);
+    assert.ok(found.body.items.some((i) => i.id === one.id), `q=${word.toUpperCase()} finds ${one.key}`);
+    const needle = word.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+    for (const item of found.body.items) {
+      const fold = (v) => (v ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+      assert.ok(fold(item.key).includes(needle) || fold(item.alt.en).includes(needle), item.key);
+    }
+    assert.equal(runSql("delete from public.media where key like 'zz/load-%'").code, 0);
+  });
+
+  // Job 03.2-09b, review finding 5: two uploads of one new file at once. Both find no row, the second insert hits
+  // media_upload_key_uidx (23505) on the real database; the core asks once more and both get the same stored row.
+  await t.test("media: two concurrent saves of one upload both answer the same row; one row is stored", async () => {
+    const bytes = new Uint8Array(2048).map((_, i) => (i * 31) % 256);
+    bytes.set([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50], 0);
+    const { createHash } = await import("node:crypto");
+    const sha256 = createHash("sha256").update(bytes).digest("hex");
+    const key = `uploads/${sha256.slice(0, 32)}.webp`;
+    // Both saves reach the database together: each waits until the other has asked too.
+    let arrived = 0;
+    const codes = [];
+    let release;
+    const gate = new Promise((resolve) => (release = resolve));
+    const saveMedia = async (p) => {
+      arrived += 1;
+      if (arrived === 2) release();
+      await gate;
+      const reply = await owner.admin.rpc("ops_save_media", { p });
+      codes.push(reply.error?.code ?? "ok");
+      return reply;
+    };
+    const run = () =>
+      mediaCore.uploadCore({
+        headers: new Headers({
+          "content-type": "image/webp",
+          "content-length": String(bytes.length),
+          "x-almar-sha256": sha256,
+          "x-almar-width": "64",
+          "x-almar-height": "32",
+          "x-almar-alt-en": encodeURIComponent("Race test"),
+        }),
+        body: new Blob([bytes]).stream(),
+        media: { head: async () => null, put: async (_k, value) => { await new Response(value).arrayBuffer(); return { key }; } },
+        saveMedia,
+        makeLengthStream: () => new TransformStream(),
+      });
+    const results = await Promise.all([run(), run()]);
+    for (const r of results) assert.equal(r.body?.ok, true, JSON.stringify(r));
+    assert.equal(results[0].body.id, results[1].body.id, "the same row");
+    assert.deepEqual(results.map((r) => r.body.created).sort(), [false, true]);
+    const rows = runSql(`select count(*)::int as n from public.media where key = '${key}'`).rows;
+    assert.equal(rows[0]?.n, 1);
+    // The interleaving is the database's: report whether this run hit the unique key (the unit test forces it).
+    t.diagnostic(`ops_save_media replies in order: ${codes.join(", ")}`);
   });
 
   await t.test("the database holds what the API wrote and nothing leaked a key into a reply", async () => {

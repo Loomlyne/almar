@@ -10,6 +10,8 @@ import { signOutEverywhere } from "../actions";
 import { DASHBOARD_COPY, type DashboardCopy } from "../../../lib/copy/dashboard";
 import { OPS_CONTENT_COPY } from "../../../lib/copy/ops-content";
 import { OPS_MEDIA_COPY } from "../../../lib/copy/ops-media";
+import { OPS_SITE_STATUS_COPY } from "../../../lib/copy/ops-site-status";
+import { SiteStatusLine } from "../../../components/ops/site-status-line";
 import { isDocumentLocale, setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
 import { SoonChip } from "./content/coming-soon";
 import charcoalLogo from "../../../brand/Logo Typography/Stacked_Charcoal.svg";
@@ -258,13 +260,15 @@ export function OpsShell({ children, mode }: { children: ReactNode; mode: OpsMod
       >
         {copy.skip}
       </a>
-      <header className="sticky top-0 z-50 flex min-h-control items-center justify-between gap-2 border-b border-line bg-ivory px-4 py-1">
+      <header className="sticky top-0 z-50 flex min-h-control flex-wrap items-center justify-between gap-2 border-b border-line bg-ivory px-4 py-1">
         <Link className="flex min-h-control min-w-0 items-center gap-2 text-teal no-underline" href={mode === "ops" ? "/" : "/dashboard/home"}>
           <img className="block aspect-2/1 h-auto w-35 max-w-full object-contain object-left" alt="ALMAR" src={charcoalLogo.src} />
           <span className="hidden whitespace-nowrap font-display text-label uppercase tracking-kicker xl:inline ar:normal-case ar:tracking-normal">
             {copy.dashboardName}
           </span>
         </Link>
+        {/* Plan 03.2-05: the public site's update status, owner on the ops host only (never in the dev preview shell). */}
+        {mode === "ops" ? <SiteStatusLine copy={OPS_SITE_STATUS_COPY[locale]} /> : null}
         <button
           ref={menuButtonRef}
           type="button"

@@ -378,8 +378,14 @@ test("wrangler.ops.toml: Worker almar-ops in the ALMAR account, no workers.dev, 
   assert.equal(topKey(OPS, "main"), '"worker/almar-ops.mjs"');
   assert.equal(topKey(OPS, "workers_dev"), "false");
   assert.equal(topKey(OPS, "preview_urls"), "false");
-  for (const key of ["compatibility_date", "compatibility_flags", "account_id"]) assert.equal(topKey(OPS, key), topKey(live, key), key);
+  for (const key of ["compatibility_date", "account_id"]) assert.equal(topKey(OPS, key), topKey(live, key), key);
   assert.match(OPS, /global_fetch_strictly_public/);
+  // The live and preview Workers' flags, plus enable_request_signal (03.2-10b): request.signal fires on a client disconnect,
+  // so the translate route stops waiting for the model when the browser gives up. Only almar-ops has it.
+  assert.equal(topKey(live, "compatibility_flags"), '["nodejs_compat", "global_fetch_strictly_public"]');
+  assert.equal(topKey(OPS, "compatibility_flags"), '["nodejs_compat", "global_fetch_strictly_public", "enable_request_signal"]');
+  assert.equal(/enable_request_signal/.test(live), false, "the public Worker does not get it");
+  assert.equal(/enable_request_signal/.test(readFileSync("wrangler.preview.toml", "utf8")), false, "nor does the preview Worker");
 });
 
 test("wrangler.ops.toml: assets ./out-ops, binding ASSETS, every request runs the Worker first, branded 404", () => {

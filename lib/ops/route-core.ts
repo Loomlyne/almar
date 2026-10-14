@@ -226,6 +226,38 @@ async function finish(outcome: OpsOutcome): Promise<Response> {
 export type OpsMethod = "GET" | "POST" | "PUT";
 
 /**
+ * Plan 03.2-05: what a write reply carries when the public-site update could not be requested at all (the sequence
+ * could not be bumped or read). The write itself is saved; the owner sees "Update failed" and Try again.
+ */
+export const SITE_REQUEST_FAILED = {
+  state: "failed",
+  requested_seq: 0,
+  live_seq: 0,
+  requested_at: null,
+  built_at: null,
+  last_hook_at: null,
+  last_hook_result: "error:request",
+} as const;
+
+/**
+ * Plan 03.2-05 (contract §4, §6): after a successful write (2xx, not GET) whose body says `affects_site: true`, request
+ * the public-site update and attach its status as `site`. Never turns a saved write into an error.
+ */
+async function withSiteUpdate<O>(outcome: OpsOutcome, owner: O, afterWrite: ((owner: O) => Promise<unknown>) | undefined): Promise<OpsOutcome> {
+  if (!afterWrite || outcome instanceof Response || "dbError" in outcome) return outcome;
+  const status = outcome.status ?? 200;
+  if (status < 200 || status > 299 || outcome.body.ok !== true || outcome.body.affects_site !== true) return outcome;
+  let site: unknown;
+  try {
+    site = await afterWrite(owner);
+  } catch (error) {
+    console.error("[ops] site update request failed", errorName(error));
+    site = { ...SITE_REQUEST_FAILED };
+  }
+  return { ...outcome, body: { ...outcome.body, site } };
+}
+
+/**
  * Runs one owner request. `decide` is requireOwner() in production; tests pass a fake. `parse` runs on the JSON body
  * (POST only) and throws OpsInvalid on the first bad field. The handler gets the owner, the parsed body and the request.
  */
@@ -236,6 +268,8 @@ export async function runOps<O, B = unknown>(options: {
   parse?: (body: unknown) => B;
   handler: (ctx: { owner: O; body: B; request: Request }) => Promise<OpsOutcome>;
   nodeEnv: string | undefined;
+  /** 03.2-05: requestSiteUpdate in production (lib/ops/route.ts); runs only for writes with affects_site: true. */
+  afterWrite?: (owner: O) => Promise<unknown>;
 }): Promise<Response> {
   const { method, request, nodeEnv } = options;
 
@@ -267,7 +301,8 @@ export async function runOps<O, B = unknown>(options: {
 
   try {
     const body = (options.parse ? options.parse(raw) : raw) as B;
-    return await finish(await options.handler({ owner: decision.owner, body, request }));
+    const outcome = await options.handler({ owner: decision.owner, body, request });
+    return await finish(method === "GET" ? outcome : await withSiteUpdate(outcome, decision.owner, options.afterWrite));
   } catch (error) {
     if (isOpsInvalid(error)) return json(400, errorBody("invalid", error.field, error.locale));
     console.error(`[ops] ${method} failed`, errorName(error));

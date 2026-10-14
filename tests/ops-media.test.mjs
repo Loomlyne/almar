@@ -185,7 +185,12 @@ test("the picker sends search after 250 ms and Load more with after = the last k
   for (const header of ["x-almar-sha256", "x-almar-width", "x-almar-height", "x-almar-alt-en"]) assert.ok(hook.includes(`"${header}"`), header);
   assert.match(hook, /encodeURIComponent\(altEn\)/);
   assert.match(hook, /"content-type": prepared\.contentType/);
-  assert.match(hook, /picked\.size > MAX_UPLOAD_BYTES/);
+  // Review finding 2 (job 03.2-09b): the picked file's size is never checked; only the re-encoded one is.
+  assert.equal(/picked\.size\s*>/.test(hook), false, "no size check before the re-encode");
+  assert.equal(/MAX_UPLOAD_BYTES/.test(hook), false);
+  assert.match(hook, /error\.reason === "too_large"/);
+  assert.match(hook, /tooLarge \? copy\.tooLarge/);
+  assert.match(read("components/ops/image-prep.ts"), /if \(blob\.size > MAX_BYTES\) throw new ImagePrepError\("too_large"\)/);
 });
 
 test("MediaField and MediaListField keep the plan's public props: no `library` prop any more", () => {

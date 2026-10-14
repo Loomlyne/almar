@@ -8,6 +8,7 @@
 
 import { requireOwner, type OwnerContext } from "../auth/require-owner";
 import { runOps, type OpsOutcome } from "./route-core";
+import { requestSiteUpdate, type SiteAdmin } from "./site-update";
 
 export { OpsInvalid, mapDbError } from "./route-core";
 export type { DbError, OpsOutcome, OpsResult } from "./route-core";
@@ -16,6 +17,9 @@ export type { OwnerContext };
 export type OpsGetHandler = (ctx: { owner: OwnerContext; url: URL }) => Promise<OpsOutcome>;
 export type OpsPostHandler<B> = (ctx: { owner: OwnerContext; body: B; request: Request }) => Promise<OpsOutcome>;
 export type OpsPutHandler = (ctx: { owner: OwnerContext; request: Request }) => Promise<OpsOutcome>;
+
+/** 03.2-05 (contract §4): a write whose reply says affects_site: true requests the public-site update; `site` is attached. */
+const afterWrite = (owner: OwnerContext) => requestSiteUpdate(owner.admin as unknown as SiteAdmin);
 
 export function opsGet(handler: OpsGetHandler): (request: Request) => Promise<Response> {
   return (request) =>
@@ -36,12 +40,8 @@ export function opsPost<B>(parse: (body: unknown) => B, handler: OpsPostHandler<
       decide: requireOwner,
       nodeEnv: process.env.NODE_ENV,
       parse,
-      handler: async (ctx) => {
-        const outcome = await handler(ctx);
-        // 03.2-05 (contract §4): when the reply body says affects_site: true, request the public site update here
-        // (requestSiteUpdate(ctx.owner.admin)) and attach `site: SiteStatus` to the body.
-        return outcome;
-      },
+      handler,
+      afterWrite,
     });
 }
 
@@ -54,5 +54,6 @@ export function opsPut(handler: OpsPutHandler): (request: Request) => Promise<Re
       decide: requireOwner,
       nodeEnv: process.env.NODE_ENV,
       handler: ({ owner }) => handler({ owner, request }),
+      afterWrite,
     });
 }

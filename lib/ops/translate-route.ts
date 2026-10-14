@@ -2,7 +2,9 @@
 // app/api/ops/translate/route.ts, because tests/ops-route.test.mjs lets an ops route import only lib/ops/* modules.
 // The binding `AI` exists only on Worker almar-ops (wrangler.ops.toml [ai]). Anywhere else (next dev, the public
 // Worker, the preview Worker) getCloudflareContext() or env.AI is missing, `run` throws, and the answer is 502
-// translate_failed: it fails closed. No test reaches this file's `run`: node tests pass a fake to translateHandler.
+// translate_failed: it fails closed. The binding takes no abort signal (Cloudflare documents only options such as gateway
+// and rejectIfBusy), so the wait is bounded in translate.ts (TRANSLATE_DEADLINE_MS and the request's own signal): the
+// model call itself runs on, and its neurons are still spent, after the browser gives up (03.2-10b). No test reaches this file's `run`: node tests pass a fake to translateHandler.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { TRANSLATE_MODEL, translateHandler, type AiRun } from "./translate";
