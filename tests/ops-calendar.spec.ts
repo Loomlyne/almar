@@ -141,7 +141,7 @@ async function expectState(page: Page, state: string, locale: Locale) {
       );
       expect(shown, `"${title}" drawn once`).toBe(1);
     }
-    await expect(editor.getByLabel(copy.reasonOptional, { exact: true })).toBeVisible();
+    await expect(editor.getByRole("textbox", { name: copy.reasonOptional, exact: true })).toBeVisible();
     await expect(editor.locator('button[id$="-dates"]')).toBeVisible();
     expect(await editor.locator('label[for$="-dates"]').textContent()).toBe(copy.dates);
     // A block has no publish step: Save is the one action, the shared primary button: teal fill, ivory (#fffaf0) text.
