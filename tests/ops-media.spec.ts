@@ -86,7 +86,10 @@ const KIT_B_SHOTS: { state: "library-editor" | "library-failed"; frame: "main" |
 async function expectRealText(page: Page) {
   const bad = await page.evaluate(() => {
     const out: string[] = [];
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    // Drawn text only: Next's inline <script> data and <style> are not on screen.
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: (node) => (node.parentElement?.closest("script, style, noscript") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+    });
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
       const text = node.textContent ?? "";
       if (/\[object|\bundefined\b|\bNaN\b|\{[a-z]+\}/.test(text)) out.push(text.trim().slice(0, 80));
