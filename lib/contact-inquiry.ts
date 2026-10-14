@@ -7,6 +7,7 @@
 // address: no whitespace, comma, semicolon, angle bracket, quote, parenthesis, bracket, backslash or colon). Resend
 // receives JSON fields, never raw headers, and the payload carries no cc, bcc, headers or html key.
 
+import { isPlainEmail } from "./email-address";
 import { absoluteLocaleUrl, isLocale, type Locale } from "./locale-path";
 
 /**
@@ -90,13 +91,13 @@ export function cleanText(value: string): string {
   return value.normalize("NFC").replace(/\r\n?/g, "\n").replace(TEXT_UNSAFE, "").trim();
 }
 
-// Local part and domain: no whitespace or control character and none of @ < > ( ) [ ] \ , ; : " ; a dot in the domain.
-const EMAIL_PART = "[^\\s\\u0000-\\u001f\\u007f-\\u009f@<>()[\\]\\\\,;:\"]";
-const EMAIL = new RegExp(`^${EMAIL_PART}+@${EMAIL_PART}+\\.${EMAIL_PART}+$`);
-
-/** One plain address, at most INQUIRY_LIMITS.email characters. Surrounding whitespace is the caller's to trim. */
+/**
+ * One plain address, at most INQUIRY_LIMITS.email characters: lib/email-address.ts isPlainEmail, the rule the
+ * newsletter and the footer share (review fix: labels non-empty, no edge hyphen, no edge or doubled dot). Surrounding
+ * whitespace is the caller's to trim.
+ */
 export function isInquiryEmail(value: string): boolean {
-  return value.length <= INQUIRY_LIMITS.email && EMAIL.test(value);
+  return value.length <= INQUIRY_LIMITS.email && isPlainEmail(value);
 }
 
 // A phone number as people write it: digits, spaces, + ( ) - . and at least six digits.

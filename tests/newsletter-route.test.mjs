@@ -125,7 +125,7 @@ test("each of the 11 honeypots filled: 400 {\"ok\":false}, nothing added; a blan
 });
 
 test("a missing, empty or malformed address: 400 {\"ok\":false}, nothing added", async () => {
-  for (const Email of [undefined, "", "   ", "no-at-sign", "a@b", "two@@example.com", "a b@example.com", "<a@example.com>", `${"x".repeat(250)}@example.com`]) {
+  for (const Email of [undefined, "", "   ", "no-at-sign", "a@b", "two@@example.com", "a b@example.com", "<a@example.com>", `${"x".repeat(250)}@example.com`, "a@..b", "a@.b.c", "a@b.com.", "a@-b.com"]) {
     const { status, text } = await send(unbound, post({ fields: { Email } }));
     assert.equal(status, 400, String(Email));
     assert.equal(text, '{"ok":false}');

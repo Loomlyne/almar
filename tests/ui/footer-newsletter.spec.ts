@@ -61,6 +61,13 @@ for (const locale of LOCALES) {
         await box(page).fill("guest@example");
         await button(page).click();
         await expect(footer(page).getByRole("alert")).toHaveText("[Enter a valid email]");
+        // Review fix: the server's own rule (lib/email-address.ts). The browser's type=email check lets these through
+        // (it allows any dots in the local part), the shared rule does not.
+        for (const bad of [".guest@example.com", "guest.@example.com", "gu..est@example.com"]) {
+          await box(page).fill(bad);
+          await button(page).click();
+          await expect(footer(page).getByRole("alert"), bad).toHaveText("[Enter a valid email]");
+        }
         await page.waitForTimeout(500);
         await expect(page.getByTestId("subscribed")).toHaveText("");
       });

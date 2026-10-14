@@ -118,6 +118,11 @@ test("email: one plain address only", () => {
     "a@b.com\u0000",
     "a\\b@c.com",
     "a:b@c.com",
+    // Review fix (3.3 part B): accepted by the old pattern.
+    "a@..b",
+    "a@.b.c",
+    "a@b.com.",
+    "a@-b.com",
   ]) {
     assert.equal(errorsOf({ email: bad }).email, "invalid", JSON.stringify(bad));
   }
@@ -206,9 +211,9 @@ test("composeInquiryEmail: from and to ALMAR, reply-to the visitor, a clean subj
   assert.ok(noPhone.text.includes("\nPage: https://almarprivatejourney.com/contact\n"));
 });
 
-test("the module is a leaf: its one import is ./locale-path", () => {
+test("the module is a leaf: its imports are ./email-address (the shared address rule) and ./locale-path", () => {
   const source = readFileSync(FILE, "utf8");
   const specifiers = [...source.matchAll(/^import .* from "([^"]+)";$/gm)].map((x) => x[1]);
-  assert.deepEqual(specifiers, ["./locale-path"]);
+  assert.deepEqual(specifiers, ["./email-address", "./locale-path"]);
   assert.equal(source.includes("re_"), false);
 });

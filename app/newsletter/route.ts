@@ -12,7 +12,7 @@
 // JSON response. Missing/empty key is a 503, not an invented success.
 
 import { Resend } from "resend";
-import { isInquiryEmail } from "../../lib/contact-inquiry";
+import { isPlainEmail } from "../../lib/email-address";
 import { allowFormPost } from "../../lib/form-rate-limit";
 
 export const runtime = "nodejs";
@@ -121,7 +121,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const email = formData.get("Email");
   const trimmedEmail = typeof email === "string" ? email.trim() : "";
-  if (!trimmedEmail || !isInquiryEmail(trimmedEmail)) {
+  if (!trimmedEmail || !isPlainEmail(trimmedEmail)) {
     return refused(400);
   }
 

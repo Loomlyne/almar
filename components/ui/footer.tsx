@@ -6,6 +6,7 @@ import { Button } from "./button";
 import { Divider } from "./divider";
 import { ToastProvider, useToast } from "./toast";
 import { postPreferences } from "../site/account-sync";
+import { isPlainEmail } from "../../lib/email-address";
 import { isDocumentLocale } from "../../lib/set-document-locale";
 
 const LINK =
@@ -83,9 +84,8 @@ const OWNER_CONTACT: FooterContact = {
   instagram: "https://www.instagram.com/almarprivatejourney/",
 };
 
-// Beyond the browser's own type="email" check: a dot in the domain, as the handler's rule (lib/contact-inquiry.ts
-// isInquiryEmail) wants, so an address the server would refuse is the invalid line here, not the failed one.
-const LOOKS_LIKE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Beyond the browser's own type="email" check: the handler's own rule (lib/email-address.ts isPlainEmail), so an
+// address the server would refuse is the invalid line here, not the failed one.
 
 function Newsletter({
   copy,
@@ -109,7 +109,7 @@ function Newsletter({
     const form = event.currentTarget;
     const input = form.elements.namedItem("email");
     const email = input instanceof HTMLInputElement ? input.value.trim() : "";
-    if (!(input instanceof HTMLInputElement) || !email || !input.checkValidity() || !LOOKS_LIKE_EMAIL.test(email)) {
+    if (!(input instanceof HTMLInputElement) || !email || !input.checkValidity() || !isPlainEmail(email)) {
       setError(copy.invalid);
       if (input instanceof HTMLInputElement) input.focus();
       return;
