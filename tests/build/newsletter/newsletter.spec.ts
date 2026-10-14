@@ -114,7 +114,9 @@ for (const locale of LOCALES) {
       await watch(page);
       for (const doc of byLocale(locale)) {
         const html = await (await page.request.get(doc.url, { maxRedirects: 0 })).text();
-        expect(html.includes("<form"), `${doc.url}: <form in the served HTML`).toBe(false);
+        // The one served form is the home's signed Search bar (role="search"); no other form may be served.
+        const forms = [...html.matchAll(/<form\b[^>]*>/g)].map((m) => m[0]).filter((tag) => !tag.includes('role="search"'));
+        expect(forms, `${doc.url}: a <form> other than Search in the served HTML`).toEqual([]);
         expect(html.includes("footer-newsletter-email"), `${doc.url}: the box in the served HTML`).toBe(false);
       }
       const context = await browser.newContext({ javaScriptEnabled: false });
