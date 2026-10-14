@@ -74,7 +74,7 @@ Plans:
   3. Guest hitting `/ops` or ops APIs gets 404 / denied; dashboard host (when gated) does not serve marketing
   4. Same URLs for EN/AR/ES; header language + currency; AR is `dir=rtl`; dates DD/MM/YYYY, week Monday, Western numerals
 
-**Plans:** 6/10 plans executed (02-09, 02-10 superseded; 02-05, 02-06 open)
+**Plans:** 8/10 plans executed and landed (02-09, 02-10 superseded); job 10 and job 02 plans 02-20..26 landed. Phase verification and owner UAT of Phase 2 still open (not deployed since 2026-10-05 for 02-05/02-06)
 
 Plans:
 
@@ -112,7 +112,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 02-06: Settings save, contrast gate, and maintenance page (wave 9)
+- [x] 02-06: Settings save, contrast gate, and maintenance page (wave 9) — landed `e7c65cf` 2026-10-14 with live migration `20261013120000_site_settings_brand`, not deployed
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
