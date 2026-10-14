@@ -347,8 +347,7 @@ const dayButton = (page: Page, iso: string, locale: Locale) => {
 
 /** Pick the first and then the last day in the Dates field of the open form. */
 async function pickDates(page: Page, first: string, last: string) {
-  const dialog = page.getByRole("dialog");
-  await dialog.locator('button[id$="-dates"]').click();
+  await page.locator("[data-edit-page]").locator('button[id$="-dates"]').click();
   // The picker opens on the month of today (Dubai); walk to the month of a day that is further on.
   for (const day of [first, last]) {
     const cell = page.locator(`[data-date="${dateKey(day)}"]`);
@@ -374,8 +373,11 @@ test.describe("behaviour", () => {
     const at = `${width} ${locale}`;
     const blockedDays = (page: Page) => page.getByRole("button", { name: new RegExp(`, ${copy.blockedDay}$`) });
     const deletes = (page: Page) => page.getByRole("button", { name: new RegExp(`^${copy.deleteNamed.split("{")[0].trim()}`) });
-    const dialog = (page: Page) => page.getByRole("dialog");
-    const blockButton = (page: Page) => dialog(page).getByRole("button", { name: copy.block, exact: true });
+    const kit = OPS_KIT_COPY[locale];
+    // Block dates is the kit editor page (signed 2026-10-15): it replaces the Calendar; Save is its one action.
+    const editor = (page: Page) => page.locator("[data-edit-page]");
+    const saveButton = (page: Page) => editor(page).getByRole("button", { name: kit.save, exact: true });
+    const reasonBox = (page: Page) => editor(page).getByRole("textbox", { name: copy.reasonOptional, exact: true });
 
     test(`the month loads from the API: window, blocked days, list, today is the Dubai day (${at})`, async ({ page }) => {
       const api = await mockApi(page);
@@ -398,17 +400,20 @@ test.describe("behaviour", () => {
       const api = await mockApi(page);
       await openCalendar(page, viewport, locale);
       await page.getByRole("button", { name: copy.blockDates, exact: true }).click();
-      await expect(dialog(page)).toBeVisible();
+      await expect(editor(page)).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1, name: copy.blockDates })).toBeVisible();
       await pickDates(page, "2026-10-27", "2026-10-28");
-      await dialog(page).getByLabel(copy.reasonOptional).fill("  [Owner stay]  ");
+      await reasonBox(page).fill("  [Owner stay]  ");
       const reads = api.gets.length;
-      await blockButton(page).click();
+      await saveButton(page).click();
       await expect.poll(() => api.posts.length).toBe(1);
       expect(api.posts[0]).toEqual({
         action: "add",
         block: { scope: "all", starts_on: "2026-10-27", ends_on: "2026-10-28", reason: "[Owner stay]" },
       });
-      await expect(dialog(page)).toHaveCount(0);
+      // Saved: the page closes and the Calendar is back.
+      await expect(editor(page)).toHaveCount(0);
+      await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible();
       await expect.poll(() => api.gets.length).toBeGreaterThan(reads);
       await expect(blockedDays(page)).toHaveCount(6);
       await expect(deletes(page)).toHaveCount(3);
@@ -419,13 +424,13 @@ test.describe("behaviour", () => {
       const api = await mockApi(page);
       await openCalendar(page, viewport, locale);
       await dayButton(page, "2026-10-25", locale).click();
-      await expect(dialog(page).locator('button[id$="-dates"]')).toContainText("25/10/2026");
-      await blockButton(page).click();
+      await expect(editor(page).locator('button[id$="-dates"]')).toContainText("25/10/2026");
+      await saveButton(page).click();
       await expect.poll(() => api.posts.length).toBe(1);
       expect(api.posts[0]).toEqual({ action: "add", block: { scope: "all", starts_on: "2026-10-25", ends_on: "2026-10-25", reason: null } });
       // In the picker, days before the Dubai today are not pickable either.
       await page.getByRole("button", { name: copy.blockDates, exact: true }).click();
-      await dialog(page).locator('button[id$="-dates"]').click();
+      await editor(page).locator('button[id$="-dates"]').click();
       await expect(page.locator(`[data-date="${dateKey("2026-10-13")}"]`)).toBeDisabled();
       await expect(page.locator(`[data-date="${dateKey("2026-10-14")}"]`)).toBeEnabled();
     });
@@ -434,20 +439,20 @@ test.describe("behaviour", () => {
       const api = await mockApi(page);
       await openCalendar(page, viewport, locale);
       await page.getByRole("button", { name: copy.blockDates, exact: true }).click();
-      await dialog(page).getByRole("button", { name: copy.oneDestination }).click();
-      await dialog(page).getByRole("combobox", { name: new RegExp(copy.destinations) }).click();
+      await editor(page).getByRole("button", { name: copy.oneDestination }).click();
+      await editor(page).getByRole("combobox", { name: new RegExp(copy.destinations) }).click();
       await page.getByRole("option", { name: "[Destination 2]" }).click();
       await pickDates(page, "2026-11-02", "2026-11-04");
-      await blockButton(page).click();
+      await saveButton(page).click();
       await expect.poll(() => api.posts.length).toBe(1);
       expect(api.posts[0]).toEqual({ action: "add", block: { scope: "destination", destination_id: D2, starts_on: "2026-11-02", ends_on: "2026-11-04", reason: null } });
 
       await page.getByRole("button", { name: copy.blockDates, exact: true }).click();
-      await dialog(page).getByRole("button", { name: copy.oneStay }).click();
-      await dialog(page).getByRole("combobox", { name: new RegExp(copy.stays) }).click();
+      await editor(page).getByRole("button", { name: copy.oneStay }).click();
+      await editor(page).getByRole("combobox", { name: new RegExp(copy.stays) }).click();
       await page.getByRole("option", { name: "[Stay 3]" }).click();
       await pickDates(page, "2026-10-30", "2026-10-30");
-      await blockButton(page).click();
+      await saveButton(page).click();
       await expect.poll(() => api.posts.length).toBe(2);
       expect(api.posts[1]).toEqual({ action: "add", block: { scope: "stay", stay_id: S3, starts_on: "2026-10-30", ends_on: "2026-10-30", reason: null } });
     });
@@ -456,11 +461,14 @@ test.describe("behaviour", () => {
       const api = await mockApi(page);
       await openCalendar(page, viewport, locale);
       await page.getByRole("button", { name: copy.blockDates, exact: true }).click();
-      await blockButton(page).click();
-      await expect(dialog(page).getByRole("alert")).toHaveText(copy.needDates);
-      await dialog(page).getByRole("button", { name: copy.oneStay }).click();
-      await blockButton(page).click();
-      await expect(dialog(page).getByRole("alert")).toHaveText(copy.needStay);
+      await saveButton(page).click();
+      await expect(editor(page).getByRole("alert")).toHaveText(copy.needDates);
+      await editor(page).getByRole("button", { name: copy.oneStay }).click();
+      // A change clears the sentence until the next Save.
+      await expect(editor(page).getByRole("alert")).toHaveCount(0);
+      await saveButton(page).click();
+      await expect(editor(page).getByRole("alert")).toHaveText(copy.needStay);
+      await expect(editor(page)).toBeVisible();
       expect(api.posts).toEqual([]);
     });
 
@@ -468,16 +476,16 @@ test.describe("behaviour", () => {
       const api = await mockApi(page, { overlap: 2 });
       await openCalendar(page, viewport, locale);
       await dayButton(page, "2026-10-26", locale).click();
-      await blockButton(page).click();
+      await saveButton(page).click();
       await expect(page.getByRole("status").filter({ hasText: overlapLine(locale, 2) })).toBeVisible();
       await page.getByRole("status").getByRole("button").click();
       await expect(page.getByRole("status").filter({ hasText: overlapLine(locale, 2) })).toHaveCount(0);
 
       api.addFails = 400;
       await dayButton(page, "2026-10-29", locale).click();
-      await blockButton(page).click();
-      await expect(dialog(page).getByRole("alert")).toHaveText(OPS_KIT_COPY[locale].errors.invalid);
-      await expect(dialog(page)).toBeVisible();
+      await saveButton(page).click();
+      await expect(editor(page).getByRole("alert")).toHaveText(kit.errors.invalid);
+      await expect(editor(page)).toBeVisible();
     });
 
     test(`Delete asks first; Cancel keeps the block, Delete posts the id and the list is fetched again (${at})`, async ({ page }) => {
@@ -527,12 +535,13 @@ test.describe("behaviour", () => {
     const api = await mockApi(page);
     const copy = OPS_CALENDAR_COPY.en;
     await openCalendar(page, "phone", "en", `?block=stay&stay_id=${S2}&reason=HACK&starts_on=2026-10-30`);
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await expect(page.getByRole("dialog").getByRole("button", { name: copy.oneStay, pressed: true })).toBeVisible();
-    await expect(page.getByRole("dialog").getByRole("combobox", { name: /\[Stay 2\]/ })).toBeVisible();
-    await expect(page.getByRole("dialog").getByLabel(copy.reasonOptional)).toHaveValue("");
+    const editor = page.locator("[data-edit-page]");
+    await expect(editor).toBeVisible();
+    await expect(editor.getByRole("button", { name: copy.oneStay, pressed: true })).toBeVisible();
+    await expect(editor.getByRole("combobox", { name: /\[Stay 2\]/ })).toBeVisible();
+    await expect(editor.getByRole("textbox", { name: copy.reasonOptional, exact: true })).toHaveValue("");
     await pickDates(page, "2026-10-30", "2026-10-30");
-    await page.getByRole("dialog").getByRole("button", { name: copy.block, exact: true }).click();
+    await editor.getByRole("button", { name: OPS_KIT_COPY.en.save, exact: true }).click();
     await expect.poll(() => api.posts.length).toBe(1);
     expect(api.posts[0]).toEqual({ action: "add", block: { scope: "stay", stay_id: S2, starts_on: "2026-10-30", ends_on: "2026-10-30", reason: null } });
 
@@ -541,16 +550,16 @@ test.describe("behaviour", () => {
       await page.goto(`/dashboard/calendar${search}`);
       await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible({ timeout: 45_000 });
       await page.waitForTimeout(500);
-      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await expect(page.locator("[data-edit-page]")).toHaveCount(0);
     }
   });
 
   test("the link of a destination page opens the form with that destination, in Arabic", async ({ page }) => {
     await mockApi(page);
     await openCalendar(page, "desktop", "ar", `?block=destination&destination_id=${D2}`);
-    const dialog = page.getByRole("dialog");
-    await expect(dialog.getByRole("button", { name: OPS_CALENDAR_COPY.ar.oneDestination, pressed: true })).toBeVisible({ timeout: 45_000 });
-    await expect(dialog.getByRole("combobox", { name: /\[Destination 2\]/ })).toBeVisible();
+    const editor = page.locator("[data-edit-page]");
+    await expect(editor.getByRole("button", { name: OPS_CALENDAR_COPY.ar.oneDestination, pressed: true })).toBeVisible({ timeout: 45_000 });
+    await expect(editor.getByRole("combobox", { name: /\[Destination 2\]/ })).toBeVisible();
   });
 
   test("the Dubai day turns over at 20:00 UTC: 19:59 is the 14th, 20:01 is the 15th (the 14th is then past)", async ({ page }) => {
@@ -572,7 +581,33 @@ test.describe("behaviour", () => {
       await openCalendar(page, "phone", locale);
       await page.getByRole("button", { name: OPS_CALENDAR_COPY[locale].blockDates, exact: true }).click();
       await expectNoSidewaysScroll(page);
-      await page.getByRole("dialog").getByRole("button", { name: OPS_KIT_COPY[locale].close }).click();
+      // Nothing typed: the back link closes at once.
+      await page.locator("[data-edit-page]").getByRole("button", { name: OPS_CALENDAR_COPY[locale].title, exact: true }).click();
+      await expect(page.locator("[data-edit-page]")).toHaveCount(0);
     }
+  });
+
+  test("with something typed, the back link asks Discard changes?: Keep editing keeps it, Discard closes and sends nothing", async ({ page }) => {
+    const api = await mockApi(page);
+    const copy = OPS_CALENDAR_COPY.en;
+    const kit = OPS_KIT_COPY.en;
+    await openCalendar(page, "desktop", "en");
+    const opener = page.getByRole("button", { name: copy.blockDates, exact: true });
+    await opener.click();
+    const editor = page.locator("[data-edit-page]");
+    await editor.getByRole("textbox", { name: copy.reasonOptional, exact: true }).fill("[Owner stay]");
+    await editor.getByRole("button", { name: copy.title, exact: true }).click();
+    await expect(page.getByRole("alertdialog").or(page.getByRole("dialog"))).toContainText(kit.discardTitle);
+    await page.getByRole("button", { name: kit.keepEditing }).click();
+    await expect(editor.getByRole("textbox", { name: copy.reasonOptional, exact: true })).toHaveValue("[Owner stay]");
+    await editor.getByRole("button", { name: copy.title, exact: true }).click();
+    await page.getByRole("button", { name: kit.discard, exact: true }).click();
+    await expect(editor).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible();
+    // Opened again: the form starts afresh, and focus went back to the button that opened it.
+    await expect(opener).toBeFocused();
+    await opener.click();
+    await expect(editor.getByRole("textbox", { name: copy.reasonOptional, exact: true })).toHaveValue("");
+    expect(api.posts).toEqual([]);
   });
 });

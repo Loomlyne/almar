@@ -48,8 +48,6 @@ export type OpsCalendarCopy = {
   /** CANVAS (k386), by plural form of `{n}`. `other` is required; a missing form falls back to it. */
   overlap: Partial<Record<Intl.LDMLPluralRule, string>> & { other: string };
 
-  /** DRAFT. The submit button of the form. */
-  block: string;
   /** DRAFT. Placeholder of the destination list. */
   chooseDestination: string;
   /** DRAFT. Placeholder of the stay list. */
@@ -105,7 +103,6 @@ export const OPS_CALENDAR_COPY: Record<Locale3, OpsCalendarCopy> = {
       other: "{n} bookings overlap these dates. Blocking does not cancel them.",
     },
 
-    block: "Block",
     chooseDestination: "Choose a destination",
     chooseStay: "Choose a stay",
     filterLabel: "Show: {name}",
@@ -151,7 +148,6 @@ export const OPS_CALENDAR_COPY: Record<Locale3, OpsCalendarCopy> = {
       other: "يتداخل {n} حجز مع هذه التواريخ. الحجب لا يلغيها.",
     },
 
-    block: "حجب",
     chooseDestination: "اختر وجهة",
     chooseStay: "اختر إقامة",
     filterLabel: "عرض: {name}",
@@ -194,7 +190,6 @@ export const OPS_CALENDAR_COPY: Record<Locale3, OpsCalendarCopy> = {
       other: "{n} reservas coinciden con estas fechas. Bloquear no las cancela.",
     },
 
-    block: "Bloquear",
     chooseDestination: "Elija un destino",
     chooseStay: "Elija una estancia",
     filterLabel: "Mostrar: {name}",
