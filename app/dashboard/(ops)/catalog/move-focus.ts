@@ -1,7 +1,8 @@
-// Keyboard focus after a move in the catalog lists (review round 2 of PR #18). A fallback: the focus loss came from the
-// disabled fieldset (removed), and in Chromium focus stays on the moved row's button on its own; its bite check (this
-// call removed) did not fail, 2026-10-15. Kept for a browser that re-places the focused row's node: once the list is
-// read back, the view puts focus back on the moved row's move button. DOM only, no React; the kit's table is not changed.
+// Keyboard focus after a move in the catalog lists (review round 2 of PR #18). The focus loss came from the disabled
+// fieldset (removed). This is the recovery once focus is lost: with the fieldset put back and this call kept, both
+// keyboard tests still passed (bite check, 2026-10-15 23:55). Without the fieldset, Chromium keeps focus on its own
+// (removing only this call did not fail either). Once the list is read back, the view puts focus back on the moved
+// row's move button. DOM only, no React; the kit's table is not changed.
 
 /**
  * Focuses the move button of the visible row whose open button reads `name`: the button for the same direction, or the
