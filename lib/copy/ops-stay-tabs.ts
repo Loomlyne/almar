@@ -68,7 +68,7 @@ export type OpsStayTabsCopy = {
     saveAccess: string;
     tooLong: string;
     saved: string;
-    /** DRAFT (controller 2026-10-15): replaces the kit's line, which speaks of Publish; for the owner's signature. */
+    /** Replaces the kit's line, which speaks of Publish. Signed by the owner as drafted, 2026-10-15 23:56. */
     translationFailed: string;
   };
   loading: string;
