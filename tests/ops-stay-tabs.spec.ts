@@ -118,6 +118,24 @@ async function mockApi(page: Page, locale: Locale, fixture: Fixture): Promise<Ca
 }
 
 /** Every text node is a non-empty string with no "[object", "undefined" or "NaN"; no `{token}` is left unfilled. */
+/**
+ * The real Arabic face is on the page, not only its Arial fallback (controller 2026-10-15 05:12: a network drop once
+ * made next/font fall back and the dev cache kept it). document.fonts.check alone is true when no face matches, so the
+ * face itself must exist and be loaded.
+ */
+async function expectArabicFont(page: Page) {
+  const font = await page.evaluate(async () => {
+    await document.fonts.ready;
+    await document.fonts.load('16px "Noto Sans Arabic"', "عربي");
+    const faces = [...document.fonts].filter((face) => face.family.replace(/["']/g, "") === "Noto Sans Arabic");
+    return { faces: faces.length, loaded: faces.filter((face) => face.status === "loaded").length, check: document.fonts.check('16px "Noto Sans Arabic"') };
+  });
+  console.log(`FONT Noto Sans Arabic faces=${font.faces} loaded=${font.loaded} check=${font.check}`);
+  expect(font.faces, "a real Noto Sans Arabic @font-face").toBeGreaterThan(0);
+  expect(font.loaded, "the Arabic face loaded").toBeGreaterThan(0);
+  expect(font.check, 'document.fonts.check(16px "Noto Sans Arabic")').toBe(true);
+}
+
 async function expectRealText(page: Page) {
   const bad = await page.evaluate(() => {
     const out: string[] = [];
@@ -352,6 +370,7 @@ test.describe("pictures", () => {
           await page.waitForFunction(() => window.scrollY === 0);
           await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
           await page.waitForTimeout(400);
+          await expectArabicFont(page);
           await expectRealText(page);
           await expectVisibleProperties(page);
           await page.screenshot({ path: join(FOLDER, `${shot.state}-${width}-${locale}.png`), fullPage: true });
