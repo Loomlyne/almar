@@ -274,6 +274,9 @@ test.describe("behaviour", () => {
       expect(api.of("destinations")).toHaveLength(0);
     });
 
+    // A pin for "one request": the kit disables Publish in the first click's own event, so the second click of a
+    // double-click lands on a disabled button. The screen's ref guard is a second line a UI click cannot reach (its bite
+    // check did not fail, 2026-10-15); this test keeps the one-request behaviour from regressing either way.
     test(`A double-click on Publish sends one save and one publish (${at})`, async ({ page, baseURL }) => {
       const api = await mockCatalogApi(page);
       await open(page, baseURL);
