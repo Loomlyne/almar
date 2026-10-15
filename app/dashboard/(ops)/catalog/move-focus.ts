@@ -1,6 +1,7 @@
-// Keyboard focus after a move in the catalog lists (review round 2 of PR #18). React re-places the moved row's node, and
-// a node taken out of the page loses focus; the kit's table is not changed, so the view puts focus back on the moved
-// row's move button once the list is read back. DOM only, no React.
+// Keyboard focus after a move in the catalog lists (review round 2 of PR #18). A fallback: the focus loss came from the
+// disabled fieldset (removed), and in Chromium focus stays on the moved row's button on its own; its bite check (this
+// call removed) did not fail, 2026-10-15. Kept for a browser that re-places the focused row's node: once the list is
+// read back, the view puts focus back on the moved row's move button. DOM only, no React; the kit's table is not changed.
 
 /**
  * Focuses the move button of the visible row whose open button reads `name`: the button for the same direction, or the
