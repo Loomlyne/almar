@@ -367,8 +367,11 @@ test.describe("pictures", () => {
 
           await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
           // A click can leave the page scrolled; the full-page shot must start at the top with the bar at the top.
-          await page.evaluate(() => window.scrollTo(0, 0));
-          await page.waitForFunction(() => window.scrollY === 0);
+          // Scrolled again on every poll: a late layout shift (the alert, a font swap) can move the page after one scroll.
+          await page.waitForFunction(() => {
+            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+            return window.scrollY === 0;
+          }, undefined, { timeout: 15_000 });
           await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
           await page.waitForTimeout(400);
           await expectArabicFont(page);
