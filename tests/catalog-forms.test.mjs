@@ -66,6 +66,7 @@ const {
   liveGaps,
   strandedItems,
   connectedAfter,
+  afterSave,
 } = await loadTs("app/dashboard/(ops)/catalog/catalog-forms.ts");
 const { saveThenPublish, saveConnections } = await loadTs("app/dashboard/(ops)/catalog/persist.ts");
 
@@ -308,4 +309,21 @@ test("saveConnections: stops at the first refusal and says how many saved, of ho
   assert.deepEqual(await saveConnections(send, changes), { saved: 1, total: 3, failed: { id: "c3", error: refused("invalid").error } });
   assert.equal(calls.length, 2);
   assert.deepEqual(await saveConnections(fakeSend().send, changes), { saved: 3, total: 3, failed: null });
+});
+
+test("afterSave: the new id; after a taken Publish, published, with each language that has a name published", () => {
+  const form = {
+    ...emptyDestinationForm(),
+    slug: "medellin",
+    text: { en: { ...emptyDestinationForm().text.en, name: "Medellin" }, ar: { ...emptyDestinationForm().text.ar, name: "ميديلين" }, es: emptyDestinationForm().text.es },
+    status: { en: "published", ar: "draft", es: "draft" },
+  };
+  assert.deepEqual(afterSave(form, "d2", false), { ...form, id: "d2" });
+  const held = afterSave(form, "d2", true);
+  assert.equal(held.id, "d2");
+  assert.equal(held.published, true);
+  assert.deepEqual(held.status, { en: "published", ar: "published", es: "draft" });
+  const payload = destinationPayload(held, { publish: false });
+  assert.equal("slug" in payload, false, "the address is fixed once published");
+  assert.equal(payload.translations.ar.status, "published", "a Save keeps the published Arabic published");
 });

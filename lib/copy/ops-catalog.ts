@@ -99,6 +99,8 @@ export type OpsCatalogCopy = {
     priceHint: string;
     /** A published item missing a fact Publish needs: Save waits. {list} = the kit's missing lines. */
     liveNeeds: string;
+    /** The "Publish needs" line for a price that is typed but not money (not an empty one). */
+    validPrice: string;
     fieldSlug: string;
     slugHint: string;
     slugLocked: string;
@@ -196,6 +198,7 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       fieldPrice: "Price in AED",
       priceHint: "Digits 0–9 only, up to two decimals, no currency sign or commas. Leave empty if not set.",
       liveNeeds: "It is on the site, so it can only be saved with: {list}. To save without it, unpublish first.",
+      validPrice: "A valid price in AED",
       fieldSlug: "Web address",
       slugHint: "Lowercase letters, numbers and hyphens. It cannot change after publishing.",
       slugLocked: "The web address cannot change after publishing.",
@@ -297,6 +300,7 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       fieldPrice: "السعر بالدرهم",
       priceHint: "أرقام من 0 إلى 9 فقط، بحد أقصى منزلتين عشريتين، بدون رمز العملة أو الفواصل. اتركه فارغًا إن لم يُحدَّد.",
       liveNeeds: "إنه منشور على الموقع، لذا لا يُحفظ إلا مع: {list}. لحفظه بدون ذلك، ألغِ نشره أولًا.",
+      validPrice: "سعر صالح بالدرهم الإماراتي",
       fieldSlug: "عنوان الويب",
       slugHint: "أحرف صغيرة وأرقام وشرطات. لا يمكن تغييره بعد النشر.",
       slugLocked: "لا يمكن تغيير عنوان الويب بعد النشر.",
@@ -384,6 +388,7 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       fieldPrice: "Precio en AED",
       priceHint: "Solo cifras del 0 al 9, con hasta dos decimales, sin símbolo de moneda ni comas. Déjelo vacío si no está definido.",
       liveNeeds: "Está en el sitio, así que solo puede guardarse con: {list}. Para guardarlo sin ello, despublíquelo primero.",
+      validPrice: "Un precio válido en AED",
       fieldSlug: "Dirección web",
       slugHint: "Letras minúsculas, números y guiones. No se puede cambiar después de publicar.",
       slugLocked: "La dirección web no se puede cambiar después de publicar.",

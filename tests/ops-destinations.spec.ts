@@ -4,7 +4,7 @@ import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
 import { OPS_MEDIA_COPY } from "../lib/copy/ops-media";
 import type { Locale3 } from "../components/ops/api-types";
 import { missingLine } from "../components/ops/error-text";
-import { holdPost, mockCatalogApi, openDashboard, openRow, postsTo, refusal } from "./helpers/ops-catalog-api";
+import { NEW_ID, holdPost, mockCatalogApi, openDashboard, openRow, postsTo, refusal } from "./helpers/ops-catalog-api";
 import type { Viewport } from "./journey/matrix";
 import { definePictures } from "./helpers/ops-catalog-pictures";
 import { numbered, words } from "./journey/scenes/_ops-catalog-words";
@@ -308,18 +308,82 @@ test.describe("behaviour", () => {
       expect(reorder).toEqual({ action: "reorder", ids: ["d2", "d1", "d3"] });
     });
 
-    test(`Reorder refused: the sentence stays on the list after it is read back; the buttons wait meanwhile (${at})`, async ({ page, baseURL }) => {
+    test(`Reorder refused: the sentence stays on the list after it is read back; a second move waits meanwhile (${at})`, async ({ page, baseURL }) => {
       const api = await mockCatalogApi(page);
       const hold = await holdPost(page, "destinations", (body) => body.action === "reorder");
       await open(page, baseURL);
       const down = page.getByRole("button", { name: kit.moveDown }).filter({ visible: true }).first();
       await down.click();
       await hold.seen;
-      await expect(down).toBeDisabled();
+      await expect(page.locator('[aria-busy="true"]').filter({ has: down })).toHaveCount(1);
+      await down.click();
+      await page.waitForTimeout(300);
       hold.release(refusal(409, "invalid"));
       await expect(page.getByText(kit.errors.invalid, { exact: true })).toBeVisible();
-      await expect(down).toBeEnabled();
-      expect(api.of("destinations")).toHaveLength(0);
+      await page.waitForTimeout(500);
+      expect(api.of("destinations"), "the second move was not sent").toHaveLength(0);
+    });
+
+    test(`Reorder by keyboard: after the move, focus is on the moved row's move button (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      await open(page, baseURL);
+      await page.getByRole("button", { name: kit.moveDown }).filter({ visible: true }).first().focus();
+      await page.keyboard.press("Enter");
+      const [reorder] = await postsTo(api, "destinations");
+      expect(reorder).toEqual({ action: "reorder", ids: ["d2", "d1", "d3"] });
+      const moved = page.locator("tr, li").filter({ visible: true }).filter({ has: page.getByRole("button", { name: "Cartagena", exact: true }) });
+      await expect(moved.getByRole("button", { name: kit.moveDown })).toBeFocused();
+    });
+
+    test(`Publish refused after the save was taken: the save went first, the editor reads it back, the refusal in words (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page, (path) => (path === "publish" ? refusal(503, "unavailable") : null));
+      await open(page, baseURL);
+      await openRow(page, "Medellin").click();
+      const reads = () => api.gets.filter((u) => u.pathname.endsWith("/destinations") && u.searchParams.get("id") === "d2").length;
+      await expect.poll(reads).toBe(1);
+      await page.getByRole("button", { name: kit.publish, exact: true }).click();
+      await postsTo(api, "publish");
+      expect(api.of("destinations")).toHaveLength(1);
+      expect(api.posts.findIndex((p) => p.path === "destinations")).toBeLessThan(api.posts.findIndex((p) => p.path === "publish"));
+      await expect.poll(reads, { message: "read back after the refused publish" }).toBe(2);
+      await expect(page.getByText(kit.errors.unavailable, { exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: kit.publish, exact: true })).toBeVisible();
+    });
+
+    test(`A new destination whose read-back fails keeps its id: the next Save updates it (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page, undefined, (path, query) => (path === "destinations" && query.get("id") === NEW_ID ? refusal(503, "unavailable") : null));
+      await open(page, baseURL);
+      await page.getByRole("button", { name: copy.newDestination, exact: true }).first().click();
+      await page.getByLabel(copy.fieldName).fill("Bogota");
+      await page.getByLabel(copy.fieldSlug).fill("bogota");
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      const [first] = await postsTo(api, "destinations");
+      expect((first!.item as { id?: string }).id).toBeUndefined();
+      await expect(page.getByText(kit.errors.unavailable, { exact: true })).toBeVisible();
+      await page.getByLabel(copy.fieldName).fill("Bogota city");
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      const saves = await postsTo(api, "destinations", 2);
+      expect((saves[1]!.item as { id?: string }).id).toBe(NEW_ID);
+    });
+
+    test(`Published, then the read-back fails: the next Save keeps Arabic and Spanish published and the address fixed (${at})`, async ({ page, baseURL }) => {
+      let reads = 0;
+      const api = await mockCatalogApi(page, undefined, (path, query) =>
+        path === "destinations" && query.get("id") === "d2" && ++reads > 1 ? refusal(503, "unavailable") : null,
+      );
+      await open(page, baseURL);
+      await openRow(page, "Medellin").click();
+      await page.getByRole("button", { name: kit.publish, exact: true }).click();
+      await postsTo(api, "publish");
+      await expect(page.getByText(kit.errors.unavailable, { exact: true })).toBeVisible();
+      await page.getByLabel(copy.fieldName).fill("Medellin City");
+      await page.getByRole("button", { name: kit.saveAndUpdateSite, exact: true }).click();
+      const saves = await postsTo(api, "destinations", 2);
+      const item = saves[1]!.item as { id: string; slug?: string; translations: Record<string, { status: string } | null> };
+      expect(item.id).toBe("d2");
+      expect(item.slug, "a published address is not sent").toBeUndefined();
+      expect(item.translations.ar!.status).toBe("published");
+      expect(item.translations.es!.status).toBe("published");
     });
   }
 });

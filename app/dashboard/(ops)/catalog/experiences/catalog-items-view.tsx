@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { Send } from "../../../../../components/ops/auto-translate";
 import { ConnectPicker } from "../../../../../components/ops/connect-picker";
 import { EditPage, type SaveIntent, type SavePayload } from "../../../../../components/ops/edit-page";
@@ -32,6 +32,7 @@ import {
   type CatalogItemText,
 } from "../catalog-forms";
 import { LockedAddress } from "../locked-address";
+import { focusMovedRow } from "../move-focus";
 
 /** One row of the list. `priceText` is already formatted ("AED 1,250.00") or null for "not set". */
 export type CatalogRow = {
@@ -114,6 +115,15 @@ export function CatalogItemsView({
   const [filter, setFilter] = useState<CatalogFilter>(initialFilter);
   // A stay is being read for the filter: the list is marked busy and the stay select takes no pick until it answers.
   const [reading, setReading] = useState(false);
+  const kit = OPS_KIT_COPY[loc];
+  const listRef = useRef<HTMLDivElement>(null);
+  // The row just moved: once the list is read back, focus returns to its move button.
+  const moved = useRef<{ name: string; by: -1 | 1 } | null>(null);
+  useEffect(() => {
+    if (reordering || !moved.current) return;
+    focusMovedRow(listRef.current, moved.current.name, moved.current.by, { up: kit.moveUp, down: kit.moveDown });
+    moved.current = null;
+  }, [reordering]); // eslint-disable-line react-hooks/exhaustive-deps
   const dir = loc === "ar" ? "rtl" : "ltr";
 
   const shown = filterCatalogRows(rows, filter);
@@ -146,7 +156,7 @@ export function CatalogItemsView({
   ];
 
   const list = (
-    <div className="flex min-w-0 flex-col gap-6" aria-busy={reading || reordering || undefined}>
+    <div ref={listRef} className="flex min-w-0 flex-col gap-6" aria-busy={reading || reordering || undefined}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.title}</h1>
         <Button onClick={onNew}>{copy.newItem}</Button>
@@ -199,15 +209,25 @@ export function CatalogItemsView({
           </div>
         </div>
       ) : null}
-      {/* While an order is on its way the list's buttons wait (a disabled fieldset; the kit's table is not changed). */}
-      <fieldset disabled={reordering} className="m-0 min-w-0 border-0 p-0">
       <ListTable
         caption={copy.caption}
         columns={columns}
         rows={shown}
         onOpen={(row) => onOpen(row.id)}
         // A filtered list shows part of an order the owner cannot see: no reorder while a filter or search is on.
-        reorder={filtering ? undefined : { onMove, onDropOrder }}
+        // While an order is on its way the list is aria-busy and the screen takes no second move; the buttons stay
+        // enabled so keyboard focus is not lost.
+        reorder={
+          filtering
+            ? undefined
+            : {
+                onMove: (id, by) => {
+                  moved.current = { name: rows.find((row) => row.id === id)?.name ?? "", by };
+                  onMove(id, by);
+                },
+                onDropOrder,
+              }
+        }
         empty={
           rows.length === 0 ? (
             <div className="flex flex-col items-start gap-2">
@@ -219,7 +239,6 @@ export function CatalogItemsView({
           )
         }
       />
-      </fieldset>
     </div>
   );
 
@@ -418,7 +437,7 @@ function CatalogItemEditor({ panel, list }: { panel: CatalogPanel | null; list: 
     field === "slug"
       ? copy.fieldSlug.toLocaleLowerCase(loc)
       : field === "price_aed"
-        ? copy.fieldPrice
+        ? copy.validPrice
         : field in fieldLabels
           ? fieldLabels[field as keyof typeof fieldLabels]
           : undefined;

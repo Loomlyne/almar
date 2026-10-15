@@ -21,6 +21,7 @@ import { useDashboardLocale } from "../../../../../components/ops/use-dashboard-
 import { OPS_CATALOG_COPY, fillCatalogCopy } from "../../../../../lib/copy/ops-catalog";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
 import {
+  afterSave,
   connectedAfter,
   connectionChanges,
   destinationFormOf,
@@ -130,8 +131,12 @@ export function DestinationsScreen({ send }: { send?: Send } = {}) {
     }
     if (publish && !result.publishError) setWarnings(result.warnings);
     const reread = await openDetail(result.id);
-    // Saved but not read back: the editor keeps what was sent, with its id, so the next Save updates it.
-    if (reread) setOpen({ form: { ...form, id: result.id }, saved: { ...form, id: result.id } });
+    // Saved but not read back: the editor keeps what was sent, with its id (and, after a taken Publish, published), so
+    // the next Save updates it and keeps the site's Arabic and Spanish published.
+    if (reread) {
+      const held = afterSave(form, result.id, publish && !result.publishError);
+      setOpen({ form: held, saved: held });
+    }
     await loadLists();
     writing.current = false;
     setBusy(false);

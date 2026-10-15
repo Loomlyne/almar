@@ -347,3 +347,18 @@ export function connectedAfter(before: readonly string[], after: readonly string
   const removed = new Set(before.filter((id) => !after.includes(id)));
   return [...new Set([...now, ...added])].filter((id) => !removed.has(id));
 }
+
+/**
+ * The form as the server holds it after a taken save, when the read-back did not come: the new id; and after a taken
+ * Publish, published, with each language whose record was sent (it has a name) published too, so the next Save keeps
+ * the site's Arabic and Spanish published and no longer sends the web address.
+ */
+export function afterSave<F extends { id: string | null; published: boolean; text: Record<Locale3, { name: string }>; status: Record<Locale3, TextStatus> }>(
+  form: F,
+  id: string,
+  published: boolean,
+): F {
+  if (!published) return { ...form, id };
+  const status = (target: Target): TextStatus => (form.text[target].name.trim() !== "" ? "published" : form.status[target]);
+  return { ...form, id, published: true, status: { en: "published", ar: status("ar"), es: status("es") } };
+}

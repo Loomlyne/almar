@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { Send } from "../../../../../components/ops/auto-translate";
 import { ConnectPicker } from "../../../../../components/ops/connect-picker";
 import { EditPage, type SaveIntent, type SavePayload } from "../../../../../components/ops/edit-page";
@@ -19,6 +19,7 @@ import { OPS_CATALOG_COPY, fillCatalogCopy } from "../../../../../lib/copy/ops-c
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
 import { DESTINATION_TEXT_FIELDS, liveFields, liveGaps, type DestinationForm, type DestinationText } from "../catalog-forms";
 import { LockedAddress } from "../locked-address";
+import { focusMovedRow } from "../move-focus";
 
 export type DestinationRow = { id: string; name: string; stayCount: number; published: boolean };
 export type DestinationStay = { id: string; name: string; published: boolean };
@@ -85,6 +86,14 @@ export function DestinationsView({
   const kit = OPS_KIT_COPY[loc];
   const searchId = useId();
   const [query, setQuery] = useState(initialQuery);
+  const listRef = useRef<HTMLDivElement>(null);
+  // The row just moved: once the list is read back, focus returns to its move button.
+  const moved = useRef<{ name: string; by: -1 | 1 } | null>(null);
+  useEffect(() => {
+    if (reordering || !moved.current) return;
+    focusMovedRow(listRef.current, moved.current.name, moved.current.by, { up: kit.moveUp, down: kit.moveDown });
+    moved.current = null;
+  }, [reordering]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const needle = foldText(query.trim());
   const shown = needle === "" ? rows : rows.filter((row) => foldText(row.name).includes(needle));
@@ -96,22 +105,32 @@ export function DestinationsView({
   ];
 
   const list = (
-    <div className="flex min-w-0 flex-col gap-6" aria-busy={reordering || undefined}>
+    <div ref={listRef} className="flex min-w-0 flex-col gap-6" aria-busy={reordering || undefined}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.title}</h1>
         <Button onClick={onNew}>{copy.newDestination}</Button>
       </div>
       {notice}
       {rows.length > 0 ? <Field id={searchId} label={copy.search} search autoComplete="off" value={query} onChange={(event) => setQuery(event.target.value)} /> : null}
-      {/* While an order is on its way the list's buttons wait (a disabled fieldset; the kit's table is not changed). */}
-      <fieldset disabled={reordering} className="m-0 min-w-0 border-0 p-0">
       <ListTable
         caption={copy.caption}
         columns={columns}
         rows={shown}
         onOpen={(row) => onOpen(row.id)}
         // Moving a row inside a filtered list would change an order the owner cannot see: no reorder while searching.
-        reorder={needle === "" ? { onMove, onDropOrder } : undefined}
+        // While an order is on its way the list is aria-busy and the screen takes no second move; the buttons stay
+        // enabled so keyboard focus is not lost.
+        reorder={
+          needle === ""
+            ? {
+                onMove: (id, by) => {
+                  moved.current = { name: rows.find((row) => row.id === id)?.name ?? "", by };
+                  onMove(id, by);
+                },
+                onDropOrder,
+              }
+            : undefined
+        }
         empty={
           rows.length === 0 ? (
             <div className="flex flex-col items-start gap-2">
@@ -123,7 +142,6 @@ export function DestinationsView({
           )
         }
       />
-      </fieldset>
     </div>
   );
 
