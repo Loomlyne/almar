@@ -14,6 +14,7 @@ import { TARGETS, planTranslation, requestTranslations, touchKey, type Send, typ
 import { errorText } from "../../../../../components/ops/error-text";
 import { opsFetch, opsSend } from "../../../../../components/ops/ops-client";
 import type { Locale3, StayAccessView } from "../../../../../components/ops/api-types";
+import { ChevronIcon } from "../../../../../components/icons/icons";
 import { Button } from "../../../../../components/ui/button";
 import { Field } from "../../../../../components/ui/field";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
@@ -193,12 +194,22 @@ export function StayAccessSection({
       <Field {...field("wifi_password")} label={copy.access.wifiPassword} type="password" autoComplete="new-password" />
       <Field {...field("door_code")} label={copy.access.doorCode} type="password" autoComplete="new-password" />
       <Field {...field("notes")} label={copy.access.notes} hint={copy.access.notesHint} multiline lang="en" dir="ltr" />
-      <div className="flex flex-col items-start gap-3" data-notes-translations>
-        <Button variant="ghost" aria-expanded={showTranslations} onClick={() => setShowTranslations((was) => !was)}>
+      <div className="flex min-w-0 flex-col items-start gap-4" data-notes-translations>
+        {/* The kit's Edit translations control (TranslationBoxes in components/ops/edit-page.tsx, not exported): the same
+            button, chevron and classes, so it reads the same as on the Text card. */}
+        <button
+          type="button"
+          aria-expanded={showTranslations}
+          aria-controls={showTranslations ? `${id}-notes-translations` : undefined}
+          onClick={() => setShowTranslations((was) => !was)}
+          className="inline-flex min-h-control cursor-pointer items-center gap-2 border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4"
+        >
+          <ChevronIcon size={16} className={showTranslations ? "-rotate-90" : "rotate-90"} aria-hidden="true" />
           {showTranslations ? kit.editor.hideTranslations : kit.editor.editTranslations}
-        </Button>
+        </button>
         {showTranslations ? (
-          <>
+          // Full width like Notes above (the column's items-start would shrink each box to its text).
+          <div id={`${id}-notes-translations`} className="flex w-full min-w-0 flex-col gap-4">
             <p className="m-0 text-label text-muted">{kit.editor.translationsNote}</p>
             {TARGETS.map((target) => (
               <Field
@@ -220,7 +231,7 @@ export function StayAccessSection({
                 }}
               />
             ))}
-          </>
+          </div>
         ) : null}
       </div>
       {failed ? (

@@ -201,6 +201,31 @@ const SHOTS: Shot[] = [
 /** The card a state is about, scrolled to the top of a phone picture's story (full-page shots show all of it anyway). */
 const card = (page: Page, title: string) => page.locator("section").filter({ has: page.getByRole("heading", { name: title, exact: true }) });
 
+/**
+ * The Access card's Edit translations control is the kit's (controller review 2026-10-15 05:00): the same classes as
+ * the Text card's control and a chevron. Open, the Arabic and Spanish Notes boxes are as wide as the English Notes box.
+ */
+async function expectKitTranslations(page: Page, locale: Locale, open: boolean) {
+  const copy = OPS_STAY_TABS_COPY[locale];
+  const kit = OPS_KIT_COPY[locale];
+  const toggle = open ? kit.editor.hideTranslations : kit.editor.editTranslations;
+  const access = card(page, copy.access.title);
+  const mine = access.getByRole("button", { name: toggle, exact: true });
+  const text = page
+    .locator("section")
+    .filter({ hasNot: page.getByRole("heading", { name: copy.access.title, exact: true }) })
+    .getByRole("button", { name: kit.editor.editTranslations, exact: true });
+  await expect(text).toHaveCount(1);
+  expect(await mine.getAttribute("class"), "the Access control has the Text card's classes").toBe(await text.getAttribute("class"));
+  await expect(mine.locator("svg"), "the Access control has the chevron").toHaveCount(1);
+  if (!open) return;
+  const notes = await access.getByLabel(copy.access.notes, { exact: true }).boundingBox();
+  for (const target of ["ar", "es"] as const) {
+    const box = await access.getByLabel(`${copy.access.notes} · ${kit.languages[target]}`, { exact: true }).boundingBox();
+    expect(Math.abs(box!.width - notes!.width), `Notes · ${target} is as wide as Notes`).toBeLessThanOrEqual(1);
+  }
+}
+
 test.describe("pictures", () => {
   test.skip(!TO, "set STAY_TABS_PICTURES=1 (or a folder) to shoot the pictures");
   test.describe.configure({ mode: "parallel" });
@@ -290,6 +315,7 @@ test.describe("pictures", () => {
             await expect(access.getByLabel(copy.access.wifiPassword, { exact: true })).toHaveAttribute("type", "password");
             await expect(access.getByLabel(copy.access.doorCode, { exact: true })).toHaveAttribute("type", "password");
             await expect(access.getByText(copy.access.guestLine, { exact: true })).toBeVisible();
+            await expectKitTranslations(page, locale, false);
           }
 
           if (shot.state === "access-translations") {
@@ -298,6 +324,7 @@ test.describe("pictures", () => {
             await access.getByRole("button", { name: kit.editor.editTranslations, exact: true }).click();
             await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.ar}`, { exact: true })).toHaveValue(NOTES_AR);
             await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.es}`, { exact: true })).toHaveValue(NOTES_ES);
+            await expectKitTranslations(page, locale, true);
           }
 
           if (shot.state === "access-ai-failed") {
@@ -307,6 +334,7 @@ test.describe("pictures", () => {
             await access.getByRole("button", { name: copy.access.saveAccess, exact: true }).click();
             await expect(alerts(page).filter({ hasText: copy.access.translationFailed })).toBeVisible();
             await expect(access.getByRole("button", { name: copy.access.saveAccess, exact: true })).toBeEnabled();
+            await expectKitTranslations(page, locale, false);
           }
 
           if (shot.state === "two-saves") {
@@ -470,8 +498,10 @@ test.describe("behaviour", () => {
         expect(body.access.notes).toBe("[New note]");
         expect(body.access.notes_ar).toBe("[AR] [New note]");
         expect(body.access.notes_es).toBe("[ES] [New note]");
+        await expectKitTranslations(page, locale, false);
         await access.getByRole("button", { name: kit.editor.editTranslations, exact: true }).click();
         await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.ar}`, { exact: true })).toHaveValue("[AR] [New note]");
+        await expectKitTranslations(page, locale, true);
       });
 
       test(`access: when the AI fails, the English and the other fields save, Arabic and Spanish stay, and the card says why (${at})`, async ({ page }) => {
