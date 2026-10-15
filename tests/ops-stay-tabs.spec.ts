@@ -202,7 +202,7 @@ const SHOTS: Shot[] = [
 const card = (page: Page, title: string) => page.locator("section").filter({ has: page.getByRole("heading", { name: title, exact: true }) });
 
 /**
- * The Access card's Edit translations control is the kit's (controller review 2026-10-15 05:00): the same classes as
+ * The Access card's Edit translations control is the kit's (controller review 2026-10-15 04:54): the same classes as
  * the Text card's control and a chevron. Open, the Arabic and Spanish Notes boxes are as wide as the English Notes box.
  */
 async function expectKitTranslations(page: Page, locale: Locale, open: boolean) {
