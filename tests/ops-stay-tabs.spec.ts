@@ -121,19 +121,20 @@ async function mockApi(page: Page, locale: Locale, fixture: Fixture): Promise<Ca
 /**
  * The real Arabic face is on the page, not only its Arial fallback (controller 2026-10-15 05:12: a network drop once
  * made next/font fall back and the dev cache kept it). document.fonts.check alone is true when no face matches, so the
- * face itself must exist and be loaded.
+ * face itself must exist and be loaded. The check uses Arabic text: with its default text (a space) it asks for the
+ * font's Latin subset, which only an Arabic page loads.
  */
 async function expectArabicFont(page: Page) {
   const font = await page.evaluate(async () => {
     await document.fonts.ready;
     await document.fonts.load('16px "Noto Sans Arabic"', "عربي");
     const faces = [...document.fonts].filter((face) => face.family.replace(/["']/g, "") === "Noto Sans Arabic");
-    return { faces: faces.length, loaded: faces.filter((face) => face.status === "loaded").length, check: document.fonts.check('16px "Noto Sans Arabic"') };
+    return { faces: faces.length, loaded: faces.filter((face) => face.status === "loaded").length, check: document.fonts.check('16px "Noto Sans Arabic"', "عربي") };
   });
   console.log(`FONT Noto Sans Arabic faces=${font.faces} loaded=${font.loaded} check=${font.check}`);
   expect(font.faces, "a real Noto Sans Arabic @font-face").toBeGreaterThan(0);
   expect(font.loaded, "the Arabic face loaded").toBeGreaterThan(0);
-  expect(font.check, 'document.fonts.check(16px "Noto Sans Arabic")').toBe(true);
+  expect(font.check, 'document.fonts.check(16px "Noto Sans Arabic", Arabic text)').toBe(true);
 }
 
 async function expectRealText(page: Page) {
