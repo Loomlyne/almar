@@ -16,6 +16,7 @@ import type {
   TextStatus,
 } from "../../../../components/ops/api-types";
 import type { Fields, LiveFields, Target } from "../../../../components/ops/auto-translate";
+import type { MissingItem } from "../../../../components/ops/publish-check";
 import { foldText } from "../../../../lib/data/stay-filter";
 
 export const FORM_LOCALES: readonly Locale3[] = ["en", "ar", "es"];
@@ -210,8 +211,9 @@ export const sameForm = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.s
 
 /**
  * What the owner typed in "Price in AED" as the contract's money (a decimal string with two decimals, never a float):
- * "" is not set (null); "1250" -> "1250.00"; "12.5" -> "12.50"; anything else ("abc", "-1", "1.234", "1,250") is refused
- * before any request.
+ * "" is not set (null); "1250" -> "1250.00"; "12.5" -> "12.50"; "0" -> "0.00"; anything else ("abc", "-1", "1.234",
+ * "1,250", more than 10 whole digits) is refused before any request. The 10-digit cap is the server's MONEY
+ * (lib/ops/validate.ts), counted after leading zeros go.
  */
 export function normalisePrice(raw: string): { ok: true; value: string | null } | { ok: false } {
   const typed = raw.trim();
@@ -219,6 +221,7 @@ export function normalisePrice(raw: string): { ok: true; value: string | null } 
   const m = /^(\d+)(?:\.(\d{1,2}))?$/.exec(typed);
   if (!m) return { ok: false };
   const whole = m[1].replace(/^0+(?=\d)/, "");
+  if (whole.length > 10) return { ok: false };
   return { ok: true, value: `${whole}.${(m[2] ?? "").padEnd(2, "0")}` };
 }
 
@@ -310,4 +313,37 @@ export function movedIds(rows: readonly { id: string; position: number }[], id: 
   if (at < 0 || to < 0 || to >= ids.length) return ids;
   [ids[at], ids[to]] = [ids[to], ids[at]];
   return ids;
+}
+
+// ---- what a published item cannot lose by Save --------------------------------------------------------------------
+
+/**
+ * The gaps a published item cannot be saved with (review of PR #18): the facts with no language (its photo, its
+ * destination) and English. ops_save does not re-check the publish rules, so a live item saved without them would stay
+ * live. Arabic and Spanish gaps are the kit's: it fills them on Save, or holds the save of a live item.
+ */
+export function liveGaps(published: boolean, missing: readonly MissingItem[]): MissingItem[] {
+  return published ? missing.filter((gap) => gap.locale === null || gap.locale === "en") : [];
+}
+
+/** The published items a destination-level change would leave with no destination (Publish needs one). */
+export function strandedItems(
+  items: readonly Pick<CatalogSummary, "id" | "destination_ids" | "is_published" | "name_en">[],
+  destinationId: string,
+  connected: readonly string[],
+): { id: string; name: string }[] {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  return connectionChanges(items, destinationId, connected)
+    .filter((change) => change.destination_ids.length === 0 && byId.get(change.id)?.is_published === true)
+    .map((change) => ({ id: change.id, name: byId.get(change.id)?.name_en ?? "" }));
+}
+
+/**
+ * The connected set to save, from what the owner changed (`before` -> `after` in the picker) applied to the list read
+ * just now: an item connected or removed elsewhere meanwhile is kept as it is now.
+ */
+export function connectedAfter(before: readonly string[], after: readonly string[], now: readonly string[]): string[] {
+  const added = after.filter((id) => !before.includes(id));
+  const removed = new Set(before.filter((id) => !after.includes(id)));
+  return [...new Set([...now, ...added])].filter((id) => !removed.has(id));
 }

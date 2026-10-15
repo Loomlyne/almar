@@ -1,8 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
-import { OPS_CATALOG_COPY } from "../lib/copy/ops-catalog";
+import { OPS_CATALOG_COPY, fillCatalogCopy } from "../lib/copy/ops-catalog";
 import { OPS_KIT_COPY, fillCopy } from "../lib/copy/ops-kit";
 import type { Locale3 } from "../components/ops/api-types";
-import { mockCatalogApi, openDashboard, openRow, postsTo, refusal } from "./helpers/ops-catalog-api";
+import { missingLine } from "../components/ops/error-text";
+import { NEW_ID, holdPost, mockCatalogApi, openDashboard, openRow, postsTo, refusal } from "./helpers/ops-catalog-api";
 import type { Viewport } from "./journey/matrix";
 import { definePictures, type PictureLocale } from "./helpers/ops-catalog-pictures";
 import { numbered, words } from "./journey/scenes/_ops-catalog-words";
@@ -156,14 +157,27 @@ test.describe("behaviour", () => {
       await expect(page.getByRole("heading", { level: 1, name: "Sunset sail" })).toBeVisible();
     });
 
-    test(`A price that is not money is refused in words before any request (${at})`, async ({ page, baseURL }) => {
+    test(`A price that is not money is refused as it is typed: Save and Publish wait, no AI translate, no save (${at})`, async ({ page, baseURL }) => {
       const api = await mockCatalogApi(page);
       await open(page, baseURL);
       await openRow(page, "Airport transfer").click();
-      await page.getByLabel(copy.fieldPrice).fill("abc");
-      await page.getByRole("button", { name: kit.save, exact: true }).click();
-      await expect(page.getByText(fillCopy(kit.invalidField, { field: copy.fieldPrice.toLocaleLowerCase(locale) }), { exact: true })).toBeVisible();
-      expect(api.of("catalog")).toHaveLength(0);
+      const refused = page.getByText(fillCopy(kit.invalidField, { field: copy.fieldPrice.toLocaleLowerCase(locale) }), { exact: true });
+      const save = page.getByRole("button", { name: kit.save, exact: true });
+      // A name change too, so a Save would ask the AI for Arabic and Spanish first.
+      await page.getByLabel(copy.fieldName).fill("Airport transfer VIP");
+      for (const typed of ["abc", "12345678901"]) {
+        await page.getByLabel(copy.fieldPrice).fill(typed);
+        await expect(refused, typed).toBeVisible();
+        await expect(save, typed).toBeDisabled();
+        await expect(page.getByRole("button", { name: kit.publish, exact: true }), typed).toBeDisabled();
+      }
+      await save.click({ force: true });
+      await page.waitForTimeout(500);
+      expect(api.of("translate"), "no AI translate").toHaveLength(0);
+      expect(api.of("catalog"), "no save").toHaveLength(0);
+      await page.getByLabel(copy.fieldPrice).fill("9999999999.5");
+      await expect(refused).toHaveCount(0);
+      await expect(save).toBeEnabled();
     });
 
     test(`Home pickup refused by the server: the line under that toggle, the form kept (${at})`, async ({ page, baseURL }) => {
@@ -204,6 +218,83 @@ test.describe("behaviour", () => {
       await page.getByRole("dialog").getByRole("button", { name: kit.delete, exact: true }).click();
       const [del] = await postsTo(api, "catalog");
       expect(del).toEqual({ action: "delete", id: "c1" });
+    });
+
+    test(`Publish refused after the save was taken: the save went first, the editor reads the item back, the refusal in words (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page, (path) => (path === "publish" ? refusal(503, "unavailable") : null));
+      await open(page, baseURL);
+      await openRow(page, "Airport transfer").click();
+      const itemReads = () => api.gets.filter((u) => u.pathname.endsWith("/catalog") && u.searchParams.get("id") === "c2").length;
+      await expect.poll(itemReads).toBe(1);
+      await page.getByRole("button", { name: kit.publish, exact: true }).click();
+      await postsTo(api, "publish");
+      expect(api.of("catalog")).toHaveLength(1);
+      expect(api.posts.findIndex((p) => p.path === "catalog")).toBeLessThan(api.posts.findIndex((p) => p.path === "publish"));
+      await expect.poll(itemReads, { message: "read back after the refused publish" }).toBe(2);
+      await expect(page.getByText(kit.errors.unavailable, { exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: kit.publish, exact: true })).toBeVisible();
+    });
+
+    test(`A new item whose read-back fails keeps its id: the next Save updates it, not a second create (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page, undefined, (path, query) => (path === "catalog" && query.get("id") === NEW_ID ? refusal(503, "unavailable") : null));
+      await open(page, baseURL);
+      await page.getByRole("button", { name: copy.newItem, exact: true }).first().click();
+      await page.getByLabel(copy.fieldName).fill("Sunset sail");
+      await page.getByLabel(copy.fieldSlug).fill("sunset-sail");
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      const [first] = await postsTo(api, "catalog");
+      expect((first!.item as { id?: string }).id).toBeUndefined();
+      await expect(page.getByText(kit.errors.unavailable, { exact: true })).toBeVisible();
+      await page.getByLabel(copy.fieldName).fill("Sunset sail at dusk");
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      const saves = await postsTo(api, "catalog", 2);
+      expect((saves[1]!.item as { id?: string }).id).toBe(NEW_ID);
+    });
+
+    test(`A double-click on Save sends one save; on Publish one save and one publish (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      await open(page, baseURL);
+      await openRow(page, "Airport transfer").click();
+      await page.getByLabel(copy.fieldName).fill("Airport transfer VIP");
+      await page.getByRole("button", { name: kit.save, exact: true }).dblclick();
+      await postsTo(api, "catalog");
+      await page.waitForTimeout(1_000);
+      expect(api.of("catalog"), "one save").toHaveLength(1);
+      await expect(page.getByRole("button", { name: kit.save, exact: true })).toBeDisabled();
+      await page.getByRole("button", { name: kit.publish, exact: true }).dblclick();
+      await postsTo(api, "publish");
+      await page.waitForTimeout(1_000);
+      expect(api.of("catalog"), "one more save").toHaveLength(2);
+      expect(api.of("publish"), "one publish").toHaveLength(1);
+    });
+
+    test(`Reorder: the move buttons wait while the order is on its way; a refusal is said on the list (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      const hold = await holdPost(page, "catalog", (body) => body.action === "reorder");
+      await open(page, baseURL);
+      const down = page.getByRole("button", { name: kit.moveDown }).filter({ visible: true }).first();
+      await down.click();
+      await hold.seen;
+      await expect(down).toBeDisabled();
+      await down.click({ force: true });
+      hold.release(refusal(503, "unavailable"));
+      await expect(page.getByText(kit.errors.unavailable, { exact: true })).toBeVisible();
+      await expect(down).toBeEnabled();
+      expect(api.of("catalog"), "the second move was not sent").toHaveLength(0);
+    });
+
+    test(`Published item: with its only destination removed, Save waits and says what it needs (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      await open(page, baseURL);
+      await openRow(page, "Coffee farm").click();
+      const save = page.getByRole("button", { name: kit.saveAndUpdateSite, exact: true });
+      await page.getByRole("button", { name: kit.removeNamed.replace("{name}", "Cartagena"), exact: true }).click();
+      await expect(page.getByText(fillCatalogCopy(copy.liveNeeds, { list: missingLine(kit, { locale: null, field: "destination_ids" }) }), { exact: true })).toBeVisible();
+      await expect(save).toBeDisabled();
+      await save.click({ force: true });
+      await page.waitForTimeout(500);
+      expect(api.of("catalog")).toHaveLength(0);
+      expect(api.of("translate")).toHaveLength(0);
     });
 
     test(`Stay filter: one read of the picked stay, kept for the session; no read per item (${at})`, async ({ page, baseURL }) => {

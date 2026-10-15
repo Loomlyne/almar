@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { OPS_CATALOG_COPY, type OpsCatalogCopy } from "../lib/copy/ops-catalog";
+import { OPS_CATALOG_COPY, fillCatalogCopy, type OpsCatalogCopy } from "../lib/copy/ops-catalog";
 import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
+import { OPS_MEDIA_COPY } from "../lib/copy/ops-media";
 import type { Locale3 } from "../components/ops/api-types";
-import { mockCatalogApi, openDashboard, openRow, postsTo, refusal } from "./helpers/ops-catalog-api";
+import { missingLine } from "../components/ops/error-text";
+import { holdPost, mockCatalogApi, openDashboard, openRow, postsTo, refusal } from "./helpers/ops-catalog-api";
 import type { Viewport } from "./journey/matrix";
 import { definePictures } from "./helpers/ops-catalog-pictures";
 import { numbered, words } from "./journey/scenes/_ops-catalog-words";
@@ -208,7 +210,7 @@ test.describe("behaviour", () => {
       await expect(page.getByRole("button", { name: copy.deleteDestination, exact: true })).toBeDisabled();
     });
 
-    test(`Connect and Remove at destination level: one catalog save per item, with its new destinations (${at})`, async ({ page, baseURL }) => {
+    test(`Connect and Remove at destination level: one catalog save per item; a published item's only destination is kept (${at})`, async ({ page, baseURL }) => {
       const api = await mockCatalogApi(page);
       await open(page, baseURL);
       await openRow(page, "Cartagena").click();
@@ -217,9 +219,70 @@ test.describe("behaviour", () => {
       await picker.getByRole("button", { name: kit.connectSelected, exact: true }).click();
       const [connect] = await postsTo(api, "catalog");
       expect(connect).toEqual({ action: "save", item: { id: "c3", destination_ids: ["d1"] } });
+      // Coffee farm is published and Cartagena is its only destination: refused in words, nothing saved.
       await picker.getByRole("button", { name: kit.removeNamed.replace("{name}", "Coffee farm"), exact: true }).click();
+      await expect(page.getByText(fillCatalogCopy(copy.lastDestination, { name: "Coffee farm" }), { exact: true })).toBeVisible();
+      await page.waitForTimeout(500);
+      expect(api.of("catalog")).toHaveLength(1);
+      await expect(picker.getByRole("button", { name: kit.removeNamed.replace("{name}", "Coffee farm"), exact: true })).toBeVisible();
+      await picker.getByRole("button", { name: kit.removeNamed.replace("{name}", "Chef dinner"), exact: true }).click();
       const saves = await postsTo(api, "catalog", 2);
-      expect(saves[1]).toEqual({ action: "save", item: { id: "c1", destination_ids: [] } });
+      expect(saves[1]).toEqual({ action: "save", item: { id: "c3", destination_ids: [] } });
+    });
+
+    test(`Connect reads the item list first: a destination added elsewhere meanwhile is kept (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      await open(page, baseURL);
+      await openRow(page, "Cartagena").click();
+      // Chef dinner was connected to Medellin in another tab after this page loaded its list.
+      api.store.items.find((item) => item.id === "c3")!.destination_ids = ["d2"];
+      const picker = page.getByRole("region", { name: copy.experiencesTitle });
+      await picker.getByText("Chef dinner", { exact: true }).click();
+      await picker.getByRole("button", { name: kit.connectSelected, exact: true }).click();
+      const [connect] = await postsTo(api, "catalog");
+      expect(connect).toEqual({ action: "save", item: { id: "c3", destination_ids: ["d2", "d1"] } });
+    });
+
+    test(`Connect stops at a refused second save and says how many saved and which item did not (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page, (path, body) =>
+        path === "catalog" && (body.item as { id?: string } | undefined)?.id === "c3" ? refusal(409, "in_use") : null,
+      );
+      await open(page, baseURL);
+      await openRow(page, "Cartagena").click();
+      const picker = page.getByRole("region", { name: copy.experiencesTitle });
+      await picker.getByText("Airport transfer", { exact: true }).click();
+      await picker.getByText("Chef dinner", { exact: true }).click();
+      await picker.getByRole("button", { name: kit.connectSelected, exact: true }).click();
+      const saves = await postsTo(api, "catalog", 2);
+      expect(saves.map((save) => (save.item as { id: string }).id)).toEqual(["c2", "c3"]);
+      await expect(
+        page.getByText(fillCatalogCopy(copy.connectPartial, { saved: 1, total: 2, name: "Chef dinner", reason: kit.errors.in_use }), { exact: true }),
+      ).toBeVisible();
+      await expect(picker.getByRole("button", { name: kit.removeNamed.replace("{name}", "Airport transfer"), exact: true })).toBeVisible();
+    });
+
+    test(`Published destination: with its photo removed, Save waits and says what it needs (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      await open(page, baseURL);
+      await openRow(page, "Cartagena").click();
+      await page.getByRole("button", { name: OPS_MEDIA_COPY[locale].removePhoto, exact: true }).click();
+      await expect(page.getByText(fillCatalogCopy(copy.liveNeeds, { list: missingLine(kit, { locale: null, field: "hero_media_id" }) }), { exact: true })).toBeVisible();
+      const save = page.getByRole("button", { name: kit.saveAndUpdateSite, exact: true });
+      await expect(save).toBeDisabled();
+      await save.click({ force: true });
+      await page.waitForTimeout(500);
+      expect(api.of("destinations")).toHaveLength(0);
+    });
+
+    test(`A double-click on Publish sends one save and one publish (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      await open(page, baseURL);
+      await openRow(page, "Medellin").click();
+      await page.getByRole("button", { name: kit.publish, exact: true }).dblclick();
+      await postsTo(api, "publish");
+      await page.waitForTimeout(1_000);
+      expect(api.of("destinations"), "one save").toHaveLength(1);
+      expect(api.of("publish"), "one publish").toHaveLength(1);
     });
 
     test(`Delete: an unpublished destination with no stays, after the question (${at})`, async ({ page, baseURL }) => {
@@ -240,6 +303,20 @@ test.describe("behaviour", () => {
       await page.getByRole("button", { name: kit.moveDown }).filter({ visible: true }).first().click();
       const [reorder] = await postsTo(api, "destinations");
       expect(reorder).toEqual({ action: "reorder", ids: ["d2", "d1", "d3"] });
+    });
+
+    test(`Reorder refused: the sentence stays on the list after it is read back; the buttons wait meanwhile (${at})`, async ({ page, baseURL }) => {
+      const api = await mockCatalogApi(page);
+      const hold = await holdPost(page, "destinations", (body) => body.action === "reorder");
+      await open(page, baseURL);
+      const down = page.getByRole("button", { name: kit.moveDown }).filter({ visible: true }).first();
+      await down.click();
+      await hold.seen;
+      await expect(down).toBeDisabled();
+      hold.release(refusal(409, "invalid"));
+      await expect(page.getByText(kit.errors.invalid, { exact: true })).toBeVisible();
+      await expect(down).toBeEnabled();
+      expect(api.of("destinations")).toHaveLength(0);
     });
   }
 });

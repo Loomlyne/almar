@@ -152,6 +152,8 @@ export type Api = {
   /** Every POST body, by endpoint ("destinations", "stays", "catalog", "publish", "translate"), in order. */
   posts: { path: string; body: Record<string, unknown> }[];
   of: (path: string) => Record<string, unknown>[];
+  /** The fixtures as stored now: a test changes a row here to stand for a change made elsewhere. */
+  store: Store;
 };
 
 /**
@@ -164,7 +166,7 @@ export async function mockCatalogApi(
   answerGet: (path: string, query: URLSearchParams) => Reply | null = () => null,
 ): Promise<Api> {
   const store: Store = freshStore();
-  const api: Api = { gets: [], posts: [], of: (path) => api.posts.filter((post) => post.path === path).map((post) => post.body) };
+  const api: Api = { gets: [], posts: [], of: (path) => api.posts.filter((post) => post.path === path).map((post) => post.body), store };
   const reply = (route: Route, status: number, json: unknown) =>
     route.fulfill({ status, contentType: "application/json", headers: { "cache-control": "no-store" }, body: JSON.stringify(json) });
 
@@ -278,4 +280,26 @@ export const openRow = (page: Page, name: string) => page.getByRole("button", { 
 export async function postsTo(api: Api, path: string, count = 1) {
   await expect.poll(() => api.of(path).length, { timeout: 15_000 }).toBeGreaterThanOrEqual(count);
   return api.of(path);
+}
+
+/**
+ * Holds the next POST to `path` that `match` accepts until `release` is called with the reply to give; other requests go
+ * on to the mock. Register after mockCatalogApi (the last route registered runs first).
+ */
+export async function holdPost(page: Page, path: string, match: (body: Record<string, unknown>) => boolean) {
+  let release: (reply: Reply) => void = () => undefined;
+  const answer = new Promise<Reply>((resolve) => (release = resolve));
+  let markSeen: () => void = () => undefined;
+  const seen = new Promise<void>((resolve) => (markSeen = resolve));
+  let held = false;
+  await page.route(new RegExp(`/api/ops/${path}$`), async (route) => {
+    const request = route.request();
+    const body = request.method() === "POST" ? (request.postDataJSON() as Record<string, unknown>) : null;
+    if (held || !body || !match(body)) return route.fallback();
+    held = true;
+    markSeen();
+    const reply = await answer;
+    await route.fulfill({ status: reply.status, contentType: "application/json", body: JSON.stringify(reply.json) });
+  });
+  return { seen, release: (reply: Reply) => release(reply) };
 }

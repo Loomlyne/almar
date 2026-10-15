@@ -6,6 +6,7 @@ import { ConnectPicker } from "../../../../../components/ops/connect-picker";
 import { EditPage, type SaveIntent, type SavePayload } from "../../../../../components/ops/edit-page";
 import { ListTable, type Column } from "../../../../../components/ops/list-table";
 import { MediaField } from "../../../../../components/ops/media-field";
+import { missingLine } from "../../../../../components/ops/error-text";
 import { missingForPublish } from "../../../../../components/ops/publish-check";
 import { StatusChip } from "../../../../../components/ops/status-chip";
 import { useDashboardLocale } from "../../../../../components/ops/use-dashboard-locale";
@@ -16,7 +17,7 @@ import { Field } from "../../../../../components/ui/field";
 import { foldText } from "../../../../../lib/data/stay-filter";
 import { OPS_CATALOG_COPY, fillCatalogCopy } from "../../../../../lib/copy/ops-catalog";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
-import { DESTINATION_TEXT_FIELDS, liveFields, type DestinationForm, type DestinationText } from "../catalog-forms";
+import { DESTINATION_TEXT_FIELDS, liveFields, liveGaps, type DestinationForm, type DestinationText } from "../catalog-forms";
 import { LockedAddress } from "../locked-address";
 
 export type DestinationRow = { id: string; name: string; stayCount: number; published: boolean };
@@ -37,6 +38,8 @@ export type DestinationPanel = {
   /** The items connected at destination level. */
   connectedIds: string[];
   onConnectedChange: (ids: string[]) => void;
+  /** The Connections card's own line: a refused removal, or a connect that stopped partway. */
+  connectNote?: string | null;
   warnings: PublishWarningCode[];
   error: OpsError | null;
   /** The kit's Save: the English as typed plus the Arabic and Spanish it filled; resolves true when the server took it. */
@@ -62,6 +65,7 @@ export function DestinationsView({
   onDropOrder,
   panel,
   initialQuery = "",
+  reordering = false,
   notice,
 }: {
   rows: DestinationRow[];
@@ -71,6 +75,8 @@ export function DestinationsView({
   onDropOrder: (ids: string[]) => void;
   panel: DestinationPanel | null;
   initialQuery?: string;
+  /** An order is on its way: the move buttons wait until the list is read back. */
+  reordering?: boolean;
   /** A line of the screen's own under the title, such as a list that did not load. */
   notice?: ReactNode;
 }) {
@@ -90,13 +96,15 @@ export function DestinationsView({
   ];
 
   const list = (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6" aria-busy={reordering || undefined}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.title}</h1>
         <Button onClick={onNew}>{copy.newDestination}</Button>
       </div>
       {notice}
       {rows.length > 0 ? <Field id={searchId} label={copy.search} search autoComplete="off" value={query} onChange={(event) => setQuery(event.target.value)} /> : null}
+      {/* While an order is on its way the list's buttons wait (a disabled fieldset; the kit's table is not changed). */}
+      <fieldset disabled={reordering} className="m-0 min-w-0 border-0 p-0">
       <ListTable
         caption={copy.caption}
         columns={columns}
@@ -115,6 +123,7 @@ export function DestinationsView({
           )
         }
       />
+      </fieldset>
     </div>
   );
 
@@ -193,14 +202,21 @@ function DestinationEditor({ panel, list }: { panel: DestinationPanel | null; li
         key: "connections",
         title: kit.editor.sections.connections,
         content: (
-          <ConnectPicker
-            title={copy.experiencesTitle}
-            searchLabel={copy.experiencesSearch}
-            hint={copy.experiencesHint}
-            options={panel.items}
-            connected={panel.connectedIds}
-            onChange={panel.onConnectedChange}
-          />
+          <>
+            <ConnectPicker
+              title={copy.experiencesTitle}
+              searchLabel={copy.experiencesSearch}
+              hint={copy.experiencesHint}
+              options={panel.items}
+              connected={panel.connectedIds}
+              onChange={panel.onConnectedChange}
+            />
+            {panel.connectNote ? (
+              <p role="alert" className="m-0 text-label text-error">
+                {panel.connectNote}
+              </p>
+            ) : null}
+          </>
         ),
       },
       {
@@ -254,6 +270,16 @@ function DestinationEditor({ panel, list }: { panel: DestinationPanel | null; li
   }
 
   const missing = form ? missingForPublish("destination", { translations: form.text, media_id: form.hero?.id ?? null }) : [];
+  const fieldLabel = (field: string) =>
+    field === "slug" ? copy.fieldSlug.toLocaleLowerCase(loc) : field in fieldLabels ? fieldLabels[field as keyof typeof fieldLabels] : undefined;
+  // On a published destination, Save waits while a fact Publish needs is gone (the server's save does not check it).
+  const live = liveGaps(form?.published ?? false, missing);
+  const liveNote =
+    live.length > 0 ? (
+      <p role="status" className="m-0 text-label text-ink">
+        {fillCatalogCopy(copy.liveNeeds, { list: live.map((gap) => missingLine(kit, gap, fieldLabel)).join(", ") })}
+      </p>
+    ) : null;
 
   return (
     <>
@@ -270,7 +296,9 @@ function DestinationEditor({ panel, list }: { panel: DestinationPanel | null; li
         missing={missing}
         warnings={panel?.warnings ?? []}
         error={slugError ? null : (panel?.error ?? null)}
-        fieldLabel={(field) => (field === "slug" ? copy.fieldSlug.toLocaleLowerCase(loc) : field in fieldLabels ? fieldLabels[field as keyof typeof fieldLabels] : undefined)}
+        fieldLabel={fieldLabel}
+        canSave={live.length === 0}
+        notice={liveNote}
         english={form ? englishOf(form.text.en) : {}}
         savedEnglish={panel ? englishOf(panel.saved.en) : {}}
         translations={form ? { ar: englishOf(form.text.ar), es: englishOf(form.text.es) } : { ar: {}, es: {} }}

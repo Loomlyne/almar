@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   CatalogDetail,
   CatalogSummary,
@@ -31,6 +31,7 @@ import {
   withTranslations,
   type CatalogItemForm,
 } from "../catalog-forms";
+import { saveThenPublish } from "../persist";
 import { CatalogItemsView, type CatalogRow } from "./catalog-items-view";
 
 const PATH = "/api/ops/catalog";
@@ -61,8 +62,13 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<OpsError | null>(null);
   const [warnings, setWarnings] = useState<PublishWarningCode[]>([]);
+  const [reordering, setReordering] = useState(false);
+  // A second Save, Publish or move while one is on its way is not taken (the kit's busy state lands a render later).
+  const writing = useRef(false);
+  const moving = useRef(false);
 
-  async function loadLists(): Promise<void> {
+  /** Reads the three lists; the first refusal is shown on the list and returned. */
+  async function loadLists(): Promise<OpsError | null> {
     const [c, d, s] = await Promise.all([
       opsFetch<ListReply<CatalogSummary>>(PATH),
       opsFetch<ListReply<DestinationSummary>>("/api/ops/destinations"),
@@ -72,7 +78,9 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
     if (d.ok) setDestinations(d.items);
     if (s.ok) setStays(s.items);
     const failed = [c, d, s].find((reply) => !reply.ok);
-    setListError(failed && !failed.ok ? failed.error : null);
+    const refusal = failed && !failed.ok ? failed.error : null;
+    setListError(refusal);
+    return refusal;
   }
 
   useEffect(() => {
@@ -130,29 +138,30 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
 
   /** One save, and on `publish` the publish call after it; then the editor and the lists are read again. */
   async function persist(form: CatalogItemForm, publish: boolean): Promise<boolean> {
+    if (writing.current) return false;
     const payload = catalogItemPayload(form, { publish });
     if (!payload.ok) {
       setError(priceRefused);
       return false;
     }
+    writing.current = true;
     setBusy(true);
     setError(null);
-    const reply = await opsSend<WriteResult>(PATH, { action: "save", item: payload.item });
-    if (!reply.ok) {
+    const result = await saveThenPublish(opsSend, PATH, "catalog_item", payload.item, publish);
+    if (!result.ok) {
+      writing.current = false;
       setBusy(false);
-      setError(reply.error);
+      setError(result.error);
       return false;
     }
-    let refusal: OpsError | null = null;
-    if (publish) {
-      const published = await opsSend<PublishResult>("/api/ops/publish", { entity: "catalog_item", id: reply.id, published: true });
-      if (published.ok) setWarnings(published.warnings.map((warning) => warning.code));
-      else refusal = published.error;
-    }
-    const reread = await openDetail(reply.id);
+    if (publish && !result.publishError) setWarnings(result.warnings);
+    const reread = await openDetail(result.id);
+    // Saved but not read back: the editor keeps what was sent, with its id, so the next Save updates it.
+    if (reread) setOpen({ form: { ...form, id: result.id }, saved: { ...form, id: result.id } });
     await loadLists();
+    writing.current = false;
     setBusy(false);
-    setError(refusal ?? reread);
+    setError(result.publishError ?? reread);
     return true;
   }
 
@@ -187,10 +196,16 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
     setBusy(false);
   }
 
+  /** One order at a time: the move buttons wait until the list is read back. A refusal stays on the list. */
   async function reorder(ids: string[]) {
+    if (moving.current) return;
+    moving.current = true;
+    setReordering(true);
     const reply = await opsSend(PATH, { action: "reorder", ids });
-    if (!reply.ok) setListError(reply.error);
     await loadLists();
+    if (!reply.ok) setListError(reply.error);
+    moving.current = false;
+    setReordering(false);
   }
 
   const shown: CatalogRow[] = rows
@@ -231,6 +246,7 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
       onMove={(id, by) => void reorder(movedIds(rows, id, by))}
       onDropOrder={(ids) => void reorder(ids)}
       onStayFilter={onStayFilter}
+      reordering={reordering}
       notice={
         listError ? (
           <p role="alert" className="m-0 text-label text-error">

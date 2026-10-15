@@ -63,7 +63,11 @@ const {
   connectionChanges,
   movedIds,
   emptyDestinationForm,
+  liveGaps,
+  strandedItems,
+  connectedAfter,
 } = await loadTs("app/dashboard/(ops)/catalog/catalog-forms.ts");
+const { saveThenPublish, saveConnections } = await loadTs("app/dashboard/(ops)/catalog/persist.ts");
 
 test("normalisePrice: empty is not set, a decimal gets two places, anything else is refused", () => {
   assert.deepEqual(normalisePrice(""), { ok: true, value: null });
@@ -73,6 +77,13 @@ test("normalisePrice: empty is not set, a decimal gets two places, anything else
   assert.deepEqual(normalisePrice("007.25"), { ok: true, value: "7.25" });
   assert.deepEqual(normalisePrice("0"), { ok: true, value: "0.00" });
   for (const bad of ["abc", "-1", "1.234", "1,250", "1e3", "12."]) assert.deepEqual(normalisePrice(bad), { ok: false }, bad);
+});
+
+test("normalisePrice: at most 10 whole digits, as the server's MONEY (leading zeros do not count)", () => {
+  assert.deepEqual(normalisePrice("9999999999.99"), { ok: true, value: "9999999999.99" });
+  assert.deepEqual(normalisePrice("0009999999999"), { ok: true, value: "9999999999.00" });
+  assert.deepEqual(normalisePrice("10000000000"), { ok: false });
+  assert.deepEqual(normalisePrice("12345678901.5"), { ok: false });
 });
 
 const itemDetail = {
@@ -215,4 +226,86 @@ test("movedIds: one row up or down in position order; the ends do not move", () 
   assert.deepEqual(movedIds(rows, "b", -1), ["b", "a", "c"]);
   assert.deepEqual(movedIds(rows, "b", 1), ["a", "c", "b"]);
   assert.deepEqual(movedIds(rows, "a", -1), ["a", "b", "c"]);
+});
+
+test("liveGaps: a published item cannot be saved without its photo, its destination or its English; AR/ES are the kit's", () => {
+  const missing = [
+    { locale: null, field: "media_id" },
+    { locale: null, field: "destination_ids" },
+    { locale: "en", field: "name" },
+    { locale: "ar", field: "name" },
+    { locale: "es", field: "summary" },
+  ];
+  assert.deepEqual(liveGaps(true, missing), missing.slice(0, 3));
+  assert.deepEqual(liveGaps(false, missing), []);
+  assert.deepEqual(liveGaps(true, []), []);
+});
+
+test("strandedItems: only a published item left with no destination is refused", () => {
+  const items = [
+    { id: "c1", name_en: "Coffee farm", is_published: true, destination_ids: ["d1"] },
+    { id: "c2", name_en: "Airport transfer", is_published: true, destination_ids: ["d1", "d2"] },
+    { id: "c3", name_en: "Chef dinner", is_published: false, destination_ids: ["d1"] },
+  ];
+  assert.deepEqual(strandedItems(items, "d1", []), [{ id: "c1", name: "Coffee farm" }]);
+  assert.deepEqual(strandedItems(items, "d1", ["c1"]), []);
+  assert.deepEqual(strandedItems(items, "d2", []), []);
+});
+
+test("connectedAfter: the owner's change applied to the list read now, keeping a change made elsewhere", () => {
+  assert.deepEqual(connectedAfter(["c1"], ["c1", "c2"], ["c1", "c3"]), ["c1", "c3", "c2"]);
+  assert.deepEqual(connectedAfter(["c1", "c2"], ["c2"], ["c1", "c2", "c3"]), ["c2", "c3"]);
+  assert.deepEqual(connectedAfter([], ["c2"], ["c2"]), ["c2"]);
+});
+
+/** A fake send: answers in order from `replies` (default: taken) and records every call. */
+function fakeSend(replies = {}) {
+  const calls = [];
+  const send = async (path, body) => {
+    calls.push({ path, body });
+    const answer = replies[calls.length];
+    if (answer) return answer;
+    if (path === "/api/ops/publish") return { ok: true, id: body.id, is_published: true, affects_site: true, warnings: [{ code: "no_price" }] };
+    return { ok: true, id: body.item?.id ?? "new-id", affects_site: true };
+  };
+  return { send, calls };
+}
+const refused = (code) => ({ ok: false, status: 409, error: { code, field: null, locale: null, detail: null } });
+
+test("saveThenPublish: the save first, then the publish call with the saved id", async () => {
+  const { send, calls } = fakeSend();
+  const result = await saveThenPublish(send, "/api/ops/catalog", "catalog_item", { slug: "x" }, true);
+  assert.deepEqual(calls, [
+    { path: "/api/ops/catalog", body: { action: "save", item: { slug: "x" } } },
+    { path: "/api/ops/publish", body: { entity: "catalog_item", id: "new-id", published: true } },
+  ]);
+  assert.deepEqual(result, { ok: true, id: "new-id", publishError: null, warnings: ["no_price"] });
+});
+
+test("saveThenPublish: a refused save never calls publish; a refused publish still reports the saved id", async () => {
+  const one = fakeSend({ 1: refused("slug_taken") });
+  assert.deepEqual(await saveThenPublish(one.send, "/api/ops/destinations", "destination", { id: "d2" }, true), { ok: false, error: refused("slug_taken").error });
+  assert.equal(one.calls.length, 1);
+  const two = fakeSend({ 2: refused("publish_incomplete") });
+  assert.deepEqual(await saveThenPublish(two.send, "/api/ops/destinations", "destination", { id: "d2" }, true), {
+    ok: true,
+    id: "d2",
+    publishError: refused("publish_incomplete").error,
+    warnings: [],
+  });
+  const save = fakeSend();
+  await saveThenPublish(save.send, "/api/ops/destinations", "destination", { id: "d2" }, false);
+  assert.equal(save.calls.length, 1, "a Save sends no publish call");
+});
+
+test("saveConnections: stops at the first refusal and says how many saved, of how many, and which item", async () => {
+  const { send, calls } = fakeSend({ 2: refused("invalid") });
+  const changes = [
+    { id: "c2", destination_ids: ["d2", "d1"] },
+    { id: "c3", destination_ids: ["d1"] },
+    { id: "c4", destination_ids: ["d1"] },
+  ];
+  assert.deepEqual(await saveConnections(send, changes), { saved: 1, total: 3, failed: { id: "c3", error: refused("invalid").error } });
+  assert.equal(calls.length, 2);
+  assert.deepEqual(await saveConnections(fakeSend().send, changes), { saved: 3, total: 3, failed: null });
 });

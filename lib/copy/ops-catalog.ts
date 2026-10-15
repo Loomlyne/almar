@@ -52,6 +52,12 @@ export type OpsCatalogCopy = {
     deleteDestination: string;
     deleteTitle: string;
     deleteNeedsMove: string;
+    /** A published destination missing a fact Publish needs: Save waits. {list} = the kit's missing lines. */
+    liveNeeds: string;
+    /** Removing a published item's only destination is refused before any save. */
+    lastDestination: string;
+    /** The connect loop stopped partway: how many saved, which item did not, and why. */
+    connectPartial: string;
     /** Accessible name of the table. */
     caption: string;
   };
@@ -91,6 +97,8 @@ export type OpsCatalogCopy = {
     fieldUnit: string;
     fieldPrice: string;
     priceHint: string;
+    /** A published item missing a fact Publish needs: Save waits. {list} = the kit's missing lines. */
+    liveNeeds: string;
     fieldSlug: string;
     slugHint: string;
     slugLocked: string;
@@ -150,6 +158,9 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       deleteDestination: "Delete destination",
       deleteTitle: "Delete {name}? This cannot be undone.",
       deleteNeedsMove: "Move its stays first",
+      liveNeeds: "It is on the site, so it can only be saved with: {list}. To save without it, unpublish first.",
+      lastDestination: "{name} is published and this is its only destination. Connect it to another destination first, or unpublish it.",
+      connectPartial: "{saved} of {total} saved. {name} was not saved: {reason}",
       caption: "Destinations",
     },
     items: {
@@ -183,7 +194,8 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       fieldType: "Type",
       fieldUnit: "Unit",
       fieldPrice: "Price in AED",
-      priceHint: "Leave empty if not set",
+      priceHint: "Digits 0–9 only, up to two decimals, no currency sign or commas. Leave empty if not set.",
+      liveNeeds: "It is on the site, so it can only be saved with: {list}. To save without it, unpublish first.",
       fieldSlug: "Web address",
       slugHint: "Lowercase letters, numbers and hyphens. It cannot change after publishing.",
       slugLocked: "The web address cannot change after publishing.",
@@ -233,6 +245,9 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       deleteDestination: "حذف الوجهة",
       deleteTitle: "حذف {name}؟ لا يمكن التراجع عن ذلك.",
       deleteNeedsMove: "انقل إقاماتها أولًا",
+      liveNeeds: "إنها منشورة على الموقع، لذا لا تُحفظ إلا مع: {list}. لحفظها بدون ذلك، ألغِ نشرها أولًا.",
+      lastDestination: "{name} منشور وهذه وجهته الوحيدة. اربطه بوجهة أخرى أولًا، أو ألغِ نشره.",
+      connectPartial: "حُفظ {saved} من {total}. لم يُحفظ {name}: {reason}",
       caption: "الوجهات",
     },
     items: {
@@ -280,7 +295,8 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       fieldType: "النوع",
       fieldUnit: "الوحدة",
       fieldPrice: "السعر بالدرهم",
-      priceHint: "اتركه فارغًا إن لم يُحدَّد",
+      priceHint: "أرقام من 0 إلى 9 فقط، بحد أقصى منزلتين عشريتين، بدون رمز العملة أو الفواصل. اتركه فارغًا إن لم يُحدَّد.",
+      liveNeeds: "إنه منشور على الموقع، لذا لا يُحفظ إلا مع: {list}. لحفظه بدون ذلك، ألغِ نشره أولًا.",
       fieldSlug: "عنوان الويب",
       slugHint: "أحرف صغيرة وأرقام وشرطات. لا يمكن تغييره بعد النشر.",
       slugLocked: "لا يمكن تغيير عنوان الويب بعد النشر.",
@@ -330,6 +346,9 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       deleteDestination: "Eliminar destino",
       deleteTitle: "¿Eliminar {name}? No se puede deshacer.",
       deleteNeedsMove: "Primero mueva sus estancias",
+      liveNeeds: "Está en el sitio, así que solo puede guardarse con: {list}. Para guardarlo sin ello, despublíquelo primero.",
+      lastDestination: "{name} está publicado y este es su único destino. Conéctelo antes a otro destino o despublíquelo.",
+      connectPartial: "Se guardaron {saved} de {total}. {name} no se guardó: {reason}",
       caption: "Destinos",
     },
     items: {
@@ -363,7 +382,8 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       fieldType: "Tipo",
       fieldUnit: "Unidad",
       fieldPrice: "Precio en AED",
-      priceHint: "Déjelo vacío si no está definido",
+      priceHint: "Solo cifras del 0 al 9, con hasta dos decimales, sin símbolo de moneda ni comas. Déjelo vacío si no está definido.",
+      liveNeeds: "Está en el sitio, así que solo puede guardarse con: {list}. Para guardarlo sin ello, despublíquelo primero.",
       fieldSlug: "Dirección web",
       slugHint: "Letras minúsculas, números y guiones. No se puede cambiar después de publicar.",
       slugLocked: "La dirección web no se puede cambiar después de publicar.",

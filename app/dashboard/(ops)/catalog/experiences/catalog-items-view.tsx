@@ -6,7 +6,8 @@ import { ConnectPicker } from "../../../../../components/ops/connect-picker";
 import { EditPage, type SaveIntent, type SavePayload } from "../../../../../components/ops/edit-page";
 import { ListTable, type Column } from "../../../../../components/ops/list-table";
 import { MediaField } from "../../../../../components/ops/media-field";
-import { missingForPublish } from "../../../../../components/ops/publish-check";
+import { missingLine } from "../../../../../components/ops/error-text";
+import { missingForPublish, type MissingItem } from "../../../../../components/ops/publish-check";
 import { StatusChip } from "../../../../../components/ops/status-chip";
 import { useDashboardLocale } from "../../../../../components/ops/use-dashboard-locale";
 import type { CatalogKind, CatalogUnit, Locale3, OpsError, PublishWarningCode } from "../../../../../components/ops/api-types";
@@ -24,6 +25,8 @@ import {
   NO_CATALOG_FILTER,
   filterCatalogRows,
   liveFields,
+  liveGaps,
+  normalisePrice,
   type CatalogFilter,
   type CatalogItemForm,
   type CatalogItemText,
@@ -83,6 +86,7 @@ export function CatalogItemsView({
   panel,
   initialFilter = NO_CATALOG_FILTER,
   onStayFilter,
+  reordering = false,
   notice,
 }: {
   rows: CatalogRow[];
@@ -99,6 +103,8 @@ export function CatalogItemsView({
    * resolves true; false leaves it on all stays. Absent: the rows already carry their stays.
    */
   onStayFilter?: (stayId: string) => Promise<boolean>;
+  /** An order is on its way: the move buttons wait until the list is read back. */
+  reordering?: boolean;
   /** A line of the screen's own under the title, such as a list that did not load. */
   notice?: ReactNode;
 }) {
@@ -140,7 +146,7 @@ export function CatalogItemsView({
   ];
 
   const list = (
-    <div className="flex min-w-0 flex-col gap-6" aria-busy={reading || undefined}>
+    <div className="flex min-w-0 flex-col gap-6" aria-busy={reading || reordering || undefined}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.title}</h1>
         <Button onClick={onNew}>{copy.newItem}</Button>
@@ -193,6 +199,8 @@ export function CatalogItemsView({
           </div>
         </div>
       ) : null}
+      {/* While an order is on its way the list's buttons wait (a disabled fieldset; the kit's table is not changed). */}
+      <fieldset disabled={reordering} className="m-0 min-w-0 border-0 p-0">
       <ListTable
         caption={copy.caption}
         columns={columns}
@@ -211,6 +219,7 @@ export function CatalogItemsView({
           )
         }
       />
+      </fieldset>
     </div>
   );
 
@@ -236,7 +245,10 @@ function CatalogItemEditor({ panel, list }: { panel: CatalogPanel | null; list: 
   const error = panel?.error ?? null;
   const title = form?.text.en.name || copy.newItem;
   const homePickupRefused = error?.field === "is_home_pickup";
-  const priceError = error?.field === "price_aed" ? fillCopy(kit.invalidField, { field: copy.fieldPrice.toLocaleLowerCase(loc) }) : undefined;
+  // A price that is not money is said as it is typed, so no Save (and no AI translate) runs with it.
+  const priceTyped = form ? normalisePrice(form.price).ok : true;
+  const priceError =
+    error?.field === "price_aed" || !priceTyped ? fillCopy(kit.invalidField, { field: copy.fieldPrice.toLocaleLowerCase(loc) }) : undefined;
   const slugError = error?.field === "slug" && error.code === "slug_taken" ? kit.errors.slug_taken : undefined;
   const ownField = homePickupRefused || priceError !== undefined || slugError !== undefined;
 
@@ -402,9 +414,27 @@ function CatalogItemEditor({ panel, list }: { panel: CatalogPanel | null; list: 
     ];
   }
 
-  const missing = form
+  const fieldLabel = (field: string) =>
+    field === "slug"
+      ? copy.fieldSlug.toLocaleLowerCase(loc)
+      : field === "price_aed"
+        ? copy.fieldPrice
+        : field in fieldLabels
+          ? fieldLabels[field as keyof typeof fieldLabels]
+          : undefined;
+  const rules = form
     ? missingForPublish("catalog_item", { translations: form.text, media_id: form.media?.id ?? null, destination_ids: form.destination_ids })
     : [];
+  // A price that is not money also keeps Publish waiting: Publish saves first.
+  const missing: MissingItem[] = priceTyped ? rules : [...rules, { locale: null, field: "price_aed" }];
+  // On a published item, Save waits while a fact Publish needs is gone (the server's save does not check it).
+  const live = liveGaps(form?.published ?? false, rules);
+  const liveNote =
+    live.length > 0 ? (
+      <p role="status" className="m-0 text-label text-ink">
+        {fillCatalogCopy(copy.liveNeeds, { list: live.map((gap) => missingLine(kit, gap, fieldLabel)).join(", ") })}
+      </p>
+    ) : null;
 
   return (
     <>
@@ -421,7 +451,9 @@ function CatalogItemEditor({ panel, list }: { panel: CatalogPanel | null; list: 
         missing={missing}
         warnings={panel?.warnings ?? []}
         error={ownField ? null : error}
-        fieldLabel={(field) => (field === "slug" ? copy.fieldSlug.toLocaleLowerCase(loc) : field in fieldLabels ? fieldLabels[field as keyof typeof fieldLabels] : undefined)}
+        fieldLabel={fieldLabel}
+        canSave={priceTyped && live.length === 0}
+        notice={liveNote}
         english={form ? englishOf(form.text.en) : {}}
         savedEnglish={panel ? englishOf(panel.saved.en) : {}}
         translations={form ? { ar: englishOf(form.text.ar), es: englishOf(form.text.es) } : { ar: {}, es: {} }}
