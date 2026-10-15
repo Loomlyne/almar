@@ -422,9 +422,12 @@ test.describe("behaviour", () => {
         expect(first.searchParams.get("from")).toBe(`${y}-${m}-01`);
         const availability = card(page, copy.availability.title);
         await expect(availability.locator("td[data-blocked]")).toHaveCount(4 + 1 + 3);
+        // Every request so far is for this month (next dev mounts twice in strict mode, so there may be two).
+        const before = blocks().length;
+        expect(blocks().every((url) => url.searchParams.get("from") === `${y}-${m}-01`)).toBe(true);
         await availability.getByRole("button", { name: copy.availability.nextMonth, exact: true }).click();
-        await expect.poll(() => blocks().length).toBe(2);
-        expect(blocks()[1]!.searchParams.get("from")).not.toBe(`${y}-${m}-01`);
+        await expect.poll(() => blocks().length).toBeGreaterThan(before);
+        expect(blocks().at(-1)!.searchParams.get("from")).not.toBe(`${y}-${m}-01`);
         // The harness is not under /dashboard, so the link is the ops host's /calendar.
         await expect(availability.getByRole("link", { name: copy.availability.blockDates, exact: true })).toHaveAttribute(
           "href",
@@ -509,8 +512,10 @@ test.describe("behaviour", () => {
         const kit = OPS_KIT_COPY[locale];
         await openEditor(page, "access", viewport, locale, { base: true, ranges: true });
         await card(page, copy.access.title).getByLabel(copy.access.address, { exact: true }).fill("[Other address]");
+        // The card tells the page after its render; wait for the page's own "Unsaved changes" before trying to leave.
+        await expect(page.getByRole("status").filter({ hasText: kit.editor.unsaved })).toBeVisible();
         await page.keyboard.press("Escape");
-        await expect(page.getByText(kit.discardTitle, { exact: true })).toBeVisible();
+        await expect(page.getByRole("dialog", { name: kit.discardTitle })).toBeVisible();
       });
     }
   }
