@@ -39,6 +39,10 @@ restoring by copy, never `git checkout` a file)
    "no text field outside the footer" count behind the phone sheet, excludes only `type=hidden`; make it exclude
    submit, button, checkbox and radio like `expectFooterNewsletter` in `tests/build/newsletter/_footer.ts`. Test-only;
    prove the spec still fails when a real text field is added outside the footer.
+9. **Calendar errors** (PR #17 review round 2, 2026-10-15): `app/dashboard/(ops)/calendar/calendar-screen.tsx` (the
+   `deleteError` block near line 157) keeps a failed Delete's sentence through a month change and a later good add, with no
+   dismiss: clear it on those. Add a spec for the `visibilitychange` path of the `today` refresh (near line 67; only
+   `focus` is tested). Lands after PR #17.
 
 Not in this job: the primary button's text colour (ivory vs white), the nosniff header on the media host and the
 `wrangler tail` CPU reading (deploy-time items for the controller).
