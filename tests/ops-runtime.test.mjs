@@ -409,7 +409,7 @@ test("wrangler.ops.toml: one route, the dashboard host as a custom domain", () =
   assert.deepEqual(OPS.split("\n").filter((l) => l.startsWith("pattern = ")), ['pattern = "dashboard.almarprivatejourney.com"']);
 });
 
-test("the two public Worker files bind only ASSETS and never name almar-ops or the dashboard host", () => {
+test("the two public Worker files bind only ASSETS and FORM_LIMITER (plan 03.3-26) and never name almar-ops or the dashboard host", () => {
   for (const file of ["wrangler.toml", "wrangler.preview.toml"]) {
     const text = readFileSync(file, "utf8");
     assert.equal(/almar-ops|dashboard\.almarprivatejourney|out-ops|almar-ops-routes/.test(text), false, file);

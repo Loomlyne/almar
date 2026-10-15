@@ -6,7 +6,7 @@ import test from "node:test";
 import { HELD_PATHS, OPS_API_PREFIX, SERVER_PATHS_OUTSIDE_API, isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { JOB02_SERVER_PATHS } from "../lib/auth/server-paths.ts";
 import { assembleOut, assertNoBundledEnv, assertNoPublicEnv, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
-import { handle } from "../worker/handle.mjs";
+import { FORM_BODY_CAPS, handle } from "../worker/handle.mjs";
 
 // Job 10 (plan 02-20): what may run on the server, and the Worker's request router. No build and no wrangler here;
 // the built Worker is proven by tests/build/server-runtime.spec.ts.
@@ -54,33 +54,34 @@ test("serverPathsFrom: dynamic, catch-all, grouped and parallel segments under /
   }
 });
 
-test("HELD_PATHS is the five sections still held (/booking left it with plan 04-02); SERVER_PATHS_OUTSIDE_API is job 02's six sign-in paths (02-23 task 3)", () => {
-  assert.deepEqual([...HELD_PATHS], ["/dashboard", "/fx", "/newsletter", "/embed", "/__harness"]);
-  assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], ["/login", "/auth/confirm", "/auth/sign-out", "/auth/handoff/start", "/account", "/bookings"]);
+test("HELD_PATHS is the four sections still held (/booking left it with plan 04-02, /newsletter with 03.3-27); SERVER_PATHS_OUTSIDE_API is job 02's six sign-in paths (02-23 task 3) plus /newsletter", () => {
+  assert.deepEqual([...HELD_PATHS], ["/dashboard", "/fx", "/embed", "/__harness"]);
+  assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], ["/login", "/auth/confirm", "/auth/sign-out", "/auth/handoff/start", "/account", "/bookings", "/newsletter"]);
 });
 
-test("three places agree: JOB02_SERVER_PATHS, SERVER_PATHS_OUTSIDE_API and run_worker_first in both Worker files; none is held", () => {
-  assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], [...JOB02_SERVER_PATHS]);
+test("three places agree: JOB02_SERVER_PATHS + /newsletter, SERVER_PATHS_OUTSIDE_API and run_worker_first in both Worker files; none is held", () => {
+  // Plan 03.3-27: /newsletter (the footer's POST handler) follows job 02's six, in the same order everywhere.
+  assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], [...JOB02_SERVER_PATHS, "/newsletter"]);
   for (const file of ["wrangler.toml", "wrangler.preview.toml"]) {
     const line = readFileSync(file, "utf8").split("\n").find((l) => l.startsWith("run_worker_first"));
     const list = JSON.parse(line.replace(/^run_worker_first = /, ""));
-    assert.deepEqual(list.slice(1), [...JOB02_SERVER_PATHS], file);
+    assert.deepEqual(list.slice(1), [...SERVER_PATHS_OUTSIDE_API], file);
     assert.equal(list[0], "/api/*", file);
   }
-  for (const path of JOB02_SERVER_PATHS) {
+  for (const path of SERVER_PATHS_OUTSIDE_API) {
     assert.equal(isHeldPath(path), false, path);
     assert.equal(isHeldPath(`/ar${path}`), false, `/ar${path}`);
   }
   // Only the exact path opens: a child, a locale prefix or the ops-host handoff stay out of the list.
-  for (const path of ["/login/x", "/account/x", "/auth/handoff", "/auth/confirm/x", "/ar/login", "/es/account"]) {
+  for (const path of ["/login/x", "/account/x", "/auth/handoff", "/auth/confirm/x", "/ar/login", "/es/account", "/newsletter/x", "/ar/newsletter", "/es/newsletter"]) {
     assert.equal(SERVER_PATHS_OUTSIDE_API.includes(path), false, path);
   }
 });
 
 test("serverPathsFrom: an extra path outside /api is added; one under a held section stops the build", () => {
   assert.deepEqual(serverPathsFrom(TODAY, ["/subscribe"]), ["/api/health", "/subscribe"]);
-  assert.deepEqual(serverPathsFrom(TODAY), ["/api/health", ...[...JOB02_SERVER_PATHS].sort()].sort());
-  for (const held of ["/newsletter", "/dashboard/home", "/es/dashboard", "/ar/fx", "/__harness"]) {
+  assert.deepEqual(serverPathsFrom(TODAY), ["/api/health", ...SERVER_PATHS_OUTSIDE_API].sort());
+  for (const held of ["/embed/hero-booker", "/dashboard/home", "/es/dashboard", "/ar/fx", "/__harness"]) {
     assert.throws(() => serverPathsFrom(TODAY, [held]), /held/);
   }
 });
@@ -109,7 +110,7 @@ test("serverPathsFrom: an app/api route can never shadow a held section", () => 
 test("serverPathsFrom: /api/ops/* is the owner's dashboard API, served by almar-ops only: skipped here, never listed (plan 03.2-03)", () => {
   assert.equal(OPS_API_PREFIX, "/api/ops/");
   assert.deepEqual(serverPathsFrom(["/api/ops/stays/route", "/api/ops/route", "/api/health/route"], []), ["/api/health"]);
-  assert.deepEqual(serverPathsFrom([...TODAY, "/api/ops/publish/route", "/api/ops/site-status/route"]), ["/api/health", ...[...JOB02_SERVER_PATHS].sort()].sort());
+  assert.deepEqual(serverPathsFrom([...TODAY, "/api/ops/publish/route", "/api/ops/site-status/route"]), ["/api/health", ...SERVER_PATHS_OUTSIDE_API].sort());
   // Only the exact prefix: a near miss is an ordinary /api route, and a malformed one still stops the build.
   assert.deepEqual(serverPathsFrom(["/api/operations/route"], []), ["/api/operations"]);
   assert.throws(() => serverPathsFrom(["/api/ops/x/page"]), /\/api\/ops\/x\/page/);
@@ -268,9 +269,63 @@ test("handle: Next never sees a visitor's x-forwarded-host, and x-forwarded-for 
 
 test("handle: a POST to a held path also goes to the static assets", async () => {
   const { calls, run } = harness();
-  await run("/newsletter", { method: "POST", body: "Email=a@b.co" });
+  await run("/fx", { method: "POST", body: "Email=a@b.co" });
   assert.equal(calls.next.length, 0);
-  assert.deepEqual(calls.assets, ["/newsletter"]);
+  assert.deepEqual(calls.assets, ["/fx"]);
+});
+
+test("handle (plan 03.3-27): with /newsletter on the list, only the exact path goes to Next, for every method", async () => {
+  // GET and HEAD go to Next too, which answers 405 (app/newsletter/route.ts exports POST only): never a page.
+  const { calls, run } = harness(["/api/health", ...SERVER_PATHS_OUTSIDE_API]);
+  await run("/newsletter", { method: "POST", body: "Email=a@b.co" });
+  await run("/newsletter");
+  await run("/newsletter?x=1", { method: "HEAD" });
+  assert.deepEqual(calls.next.map((c) => c.path), ["/newsletter", "/newsletter", "/newsletter"]);
+  for (const miss of ["/newsletter/", "/newsletter/x", "/ar/newsletter", "/es/newsletter", "/Newsletter", "/newsletter%2F", "/newsletter.html"]) {
+    const res = await run(miss, { method: "POST", body: "Email=a@b.co" });
+    assert.equal(res.status, 404, miss);
+  }
+  assert.equal(calls.next.length, 3);
+  assert.equal(calls.assets.length, 7);
+});
+
+test("handle (review fix, PR #16): a form POST whose Content-Length is above its route's cap is 413 before Next", async () => {
+  const { calls, run } = harness(["/api/health", "/api/contact", ...SERVER_PATHS_OUTSIDE_API]);
+  const post = (url, length, body = "x") => run(url, { method: "POST", headers: { "content-length": String(length) }, body });
+  for (const [path, cap] of [["/api/contact", 16384], ["/newsletter", 8192]]) {
+    const res = await post(path, cap + 1);
+    assert.equal(res.status, 413, path);
+    assert.deepEqual(await res.json(), { ok: false });
+    // The route's own 413 (Response.json with no-store), as handle() passes it on (plus noindex).
+    assert.equal(res.headers.get("content-type"), "application/json");
+    assert.equal(res.headers.get("cache-control"), "no-store");
+    assert.equal(res.headers.get("x-robots-tag"), "noindex");
+    assert.equal((await post(`${path}?x=1`, 10 ** 9)).status, 413, "the query string changes nothing");
+  }
+  assert.equal(calls.next.length, 0, "Next never ran");
+  assert.deepEqual(calls.assets, []);
+
+  // At the cap, a missing length or a non-numeric one: the route decides (its own cap applies while it reads).
+  await post("/api/contact", 16384);
+  await post("/newsletter", 8192);
+  await run("/api/contact", { method: "POST", body: "Name=a" });
+  await run("/newsletter", { method: "POST", body: new ReadableStream({ start: (c) => (c.enqueue(new Uint8Array(9000)), c.close()) }), duplex: "half" });
+  await post("/api/contact", "1e9");
+  await post("/newsletter", "-1");
+  // Only POST, and only these two paths.
+  await run("/newsletter", { method: "PUT", headers: { "content-length": "99999" }, body: "x" });
+  await post("/api/health", 10 ** 6);
+  assert.deepEqual(calls.next.map((c) => c.path), ["/api/contact", "/newsletter", "/api/contact", "/newsletter", "/api/contact", "/newsletter", "/newsletter", "/api/health"]);
+});
+
+test("handle (review fix, PR #16): the Worker's caps are the routes' caps", () => {
+  assert.deepEqual([...FORM_BODY_CAPS.keys()].sort(), ["/api/contact", "/newsletter"]);
+  const contact = readFileSync(new URL("../lib/contact-inquiry.ts", import.meta.url), "utf8");
+  assert.equal(FORM_BODY_CAPS.get("/api/contact"), Number(/body: (\d+) \} as const;/.exec(contact)?.[1]));
+  const newsletter = readFileSync(new URL("../app/newsletter/route.ts", import.meta.url), "utf8");
+  assert.equal(FORM_BODY_CAPS.get("/newsletter"), Number(/^const MAX_BODY_BYTES = (\d+);$/m.exec(newsletter)?.[1]));
+  assert.ok(/readBody\(request, INQUIRY_LIMITS\.body\)/.test(readFileSync(new URL("../app/api/contact/route.ts", import.meta.url), "utf8")));
+  assert.ok(/readBody\(request, MAX_BODY_BYTES\)/.test(newsletter));
 });
 
 test("handle: an error from Next propagates (Cloudflare answers 500; no page is invented)", async () => {
@@ -310,7 +365,7 @@ test("assembleOut: a held-section HTML source is still skipped silently", () => 
 });
 
 test("assembleOut: a prerendered file under /api or a held section stops the build before out/ is written", () => {
-  for (const f of ["api/x.body", "api/health.body", "fx.body", "newsletter.body", "embed/hero-booker.body", "ar/api/x.body"]) {
+  for (const f of ["api/x.body", "api/health.body", "fx.body", "dashboard.body", "embed/hero-booker.body", "ar/api/x.body"]) {
     const base = scratchDir({ [`app/${f}`]: "x", "app/index.html": "home", "static/css/x.css": "body{}" });
     const outDir = join(base, "out");
     assert.throws(
@@ -323,7 +378,7 @@ test("assembleOut: a prerendered file under /api or a held section stops the bui
 });
 
 test("assembleOut: a public/ file under /api or a held section stops the build before out/ is written", () => {
-  for (const f of ["api/health", "api/x.json", "fx.html", "dashboard/index.html", "ar/newsletter.html", "embed/x.js"]) {
+  for (const f of ["api/health", "api/x.json", "fx.html", "dashboard/index.html", "es/dashboard.html", "embed/x.js"]) {
     const base = scratchDir({ [`public/${f}`]: "x", "app/index.html": "home", "static/css/x.css": "body{}" });
     const outDir = join(base, "out");
     assert.throws(
@@ -370,7 +425,7 @@ test("writeServerPaths: writes the sorted list next to the OpenNext worker; refu
     "app-paths-manifest.json": JSON.stringify({ "/api/health/route": "x", "/about/route": "x", "/page": "x" }),
     ".open-next/worker.js": "export default {}",
   });
-  const want = ["/api/health", ...JOB02_SERVER_PATHS].sort();
+  const want = ["/api/health", ...SERVER_PATHS_OUTSIDE_API].sort();
   assert.deepEqual(writeServerPaths({ manifestFile: join(base, "app-paths-manifest.json"), openNextDir: join(base, ".open-next") }), want);
   assert.equal(readFileSync(join(base, ".open-next/almar-server-routes.json"), "utf8"), `${JSON.stringify(want)}\n`);
   const empty = scratchDir({ "app-paths-manifest.json": "{}" });
@@ -418,6 +473,16 @@ test("neither Worker file binds a variable, store, queue, service or object", ()
     const text = readFileSync(file, "utf8");
     assert.equal(/^\[vars\]|^\[\[?(kv_namespaces|r2_buckets|d1_databases|durable_objects|services|queues|hyperdrive|vectorize|ai|browser|images|analytics_engine_datasets|send_email|secrets_store_secrets)/m.test(text), false, file);
     assert.equal(/eyJ|re_[A-Za-z0-9]{8,}|sk_(live|test)_/.test(text), false, `${file} holds something that looks like a key`);
+  }
+});
+
+test("the one binding besides ASSETS is the forms' rate limiter FORM_LIMITER (plan 03.3-26), the same in both Worker files", () => {
+  for (const file of WORKER_FILES) {
+    const text = readFileSync(file, "utf8");
+    const tables = [...text.matchAll(/^\[\[?([a-z_]+)\]?\]$/gm)].map((m) => m[1]);
+    assert.deepEqual([...new Set(tables)].sort(), ["assets", "ratelimits", "routes"], file);
+    assert.equal(tables.filter((t) => t === "ratelimits").length, 1, file);
+    assert.match(text, /^\[\[ratelimits\]\]\nname = "FORM_LIMITER"\nnamespace_id = "1001"\nsimple = \{ limit = 5, period = 60 \}$/m, file);
   }
 });
 

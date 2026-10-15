@@ -85,11 +85,13 @@ for (const locale of LOCALES) {
         }
       });
 
-      test(`2 layout (design 12.2 part A): title block, divider, h2s, icon groups, two columns (${where})`, async ({ page }) => {
+      test(`2 layout (design 12.2): title block, divider, h2s, icon groups, two columns, Travel With Confidence below (${where})`, async ({ page }) => {
         const watched = await watch(page);
         const d = await getContactDetails(locale);
         const copy = CONTACT_PAGE_COPY[locale];
         await open(page, url);
+        // Plan 26: the form box (and with it the h2 order and the end column) exists after hydration.
+        await page.locator("#inquiry form").waitFor();
 
         // Title block: kicker, the one h1 at the hero token, the intro line, all centred.
         const h1 = page.locator("main h1");
@@ -132,10 +134,10 @@ for (const locale of LOCALES) {
         expect(await style(diamond, "background-color")).not.toBe(gold);
         expect(await style(dividers.first().locator("span.bg-teal-tint").first(), "background-color")).toBe(await token(page, "teal-tint"));
 
-        // h2s in DOM order, 48 / 32; no h3; no team heading.
+        // h2s in DOM order, the two visible ones 48 / 32 (the form box's h2 is visually hidden, S3-13); no h3; no team heading.
         const h2s = page.locator("main h2");
-        expect(await h2s.allTextContents()).toEqual([d.business_name, copy.confidence.heading]);
-        for (let i = 0; i < 2; i++) expect(await style(h2s.nth(i), "font-size")).toBe(display);
+        expect(await h2s.allTextContents()).toEqual([d.business_name, copy.form.heading, copy.confidence.heading]);
+        for (const i of [0, 2]) expect(await style(h2s.nth(i), "font-size")).toBe(display);
         await expect(page.locator("main h3")).toHaveCount(0);
         await expect(page.getByText(copy.team.title)).toHaveCount(0);
 
@@ -150,21 +152,24 @@ for (const locale of LOCALES) {
         expect(await groups.nth(1).locator("small").allTextContents()).toEqual([copy.details.inquiryLine, copy.details.whatsapp]);
         await expect(groups.nth(2).locator("a")).toHaveCount(1);
 
-        // Message on WhatsApp sits under the details, inside the start column.
+        // Message on WhatsApp sits inside the form box (S3-25), not under the details.
         const wa = page.locator('main a[href^="https://wa.me/971563883302?text="]');
         await expect(wa).toHaveCount(1);
         const col1 = columns.locator("> *").nth(0);
         const col2 = columns.locator("> *").nth(1);
         await expect(columns.locator("> *")).toHaveCount(2);
-        await expect(col1.locator('a[href^="https://wa.me/971563883302?text="]')).toHaveCount(1);
-        const dlb = await box(dl);
-        expect((await box(wa)).y).toBeGreaterThan(dlb.y + dlb.height - 1);
+        await expect(col1.locator('a[href^="https://wa.me/971563883302?text="]')).toHaveCount(0);
+        await expect(page.locator('#inquiry a[href^="https://wa.me/971563883302?text="]')).toHaveCount(1);
 
-        // Columns: two equal ones from 1024 px, details at the start and Travel With Confidence at the end, never empty;
-        // stacked below, details first.
+        // Columns: two equal ones from 1024 px, details at the start and the form box at the end; stacked below,
+        // details first. Travel With Confidence is its own section below both (S3-3).
         await expect(col1.locator("h2")).toHaveText(d.business_name);
-        await expect(col2.locator("h2")).toHaveText(copy.confidence.heading);
-        await expect(col2.getByText(copy.confidence.body)).toHaveCount(1);
+        await expect(col2).toHaveAttribute("id", "inquiry");
+        await expect(col2.locator("h2")).toHaveText(copy.form.heading);
+        const confidence = page.locator('section[aria-labelledby="contact-confidence-heading"]');
+        await expect(confidence.locator("h2")).toHaveText(copy.confidence.heading);
+        await expect(confidence.getByText(copy.confidence.body)).toHaveCount(1);
+        await expect(columns.locator('section[aria-labelledby="contact-confidence-heading"]')).toHaveCount(0);
         const tracks = (await style(columns, "grid-template-columns")).split(" ").map(num);
         const a = await box(col1);
         const b = await box(col2);
@@ -180,6 +185,7 @@ for (const locale of LOCALES) {
           expect(tracks).toHaveLength(1);
           expect(b.y).toBeGreaterThanOrEqual(a.y + a.height - 1);
         }
+        expect((await box(confidence)).y).toBeGreaterThanOrEqual(Math.max(a.y + a.height, b.y + b.height) - 1);
 
         // The header is solid (not over an image).
         expect(await style(page.locator("header").first(), "position")).not.toBe("absolute");
@@ -312,7 +318,8 @@ for (const locale of LOCALES) {
       });
 
       test(`9 animations: visible with JavaScript off, still under reduced motion, A5/A7 with motion (${where})`, async ({ page, browser }) => {
-        // (a) JavaScript off: the title block, both h2 blocks, the three detail groups, the button, everything in place.
+        // (a) JavaScript off: the title block, both h2 blocks, the three detail groups and their links, everything in place
+        // (plan 26: `Message on WhatsApp` is in the JavaScript-only form box now, so it is not among them).
         const off = await browser.newContext({ javaScriptEnabled: false, reducedMotion: "no-preference", viewport: { width, height } });
         try {
           const p = await off.newPage();

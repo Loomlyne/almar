@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { HOME_COPY } from "../../../lib/copy/home";
+import { OUTSIDE_FOOTER, expectFooterNewsletter } from "../newsletter/_footer";
 import { HOME_PAGE_COPY } from "../../../lib/copy/home-page";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { localePath, type Locale } from "../../../lib/locale-path";
@@ -16,12 +17,14 @@ import { LOCALES, WIDTHS, open, openMenu, watch } from "../slice3-pages";
 // It is the language control that is rendered and tested (about.spec.ts), so the select entry is scoped to main and
 // to the page outside the header.
 
+// design 11.2: the newsletter is live in the footer (plan 27): form, input and submit count outside it, and the
+// footer's one newsletter form is asserted by expectFooterNewsletter.
 const HELD_SELECTORS = [
-  "form",
-  "input",
+  `form${OUTSIDE_FOOTER}`,
+  `input${OUTSIDE_FOOTER}`,
   "textarea",
   "main select",
-  'button[type="submit"]',
+  `button[type="submit"]${OUTSIDE_FOOTER}`,
   "[role=search]",
   "video",
 ] as const;
@@ -43,7 +46,9 @@ async function assertHeld(page: Page, locale: Locale, where: string) {
   await expect(page.getByRole("link", { name: CART }), where).toHaveCount(0);
   await expect(page.getByRole("button", { name: CART }), where).toHaveCount(0);
   await expect(page.getByRole("link", { name: PACKAGES }), where).toHaveCount(0);
-  await expect(page.getByRole("textbox"), `${where}: any textbox (newsletter Email)`).toHaveCount(0);
+  // design 11.2: the newsletter is live in the footer: its Email box is the one textbox on the page.
+  await expectFooterNewsletter(page, locale, where);
+  expect(await page.getByRole("textbox").count(), `${where}: a textbox outside the footer`).toBe(1);
   await expect(page.getByRole("combobox", { name: /^(Currency|العملة|Moneda)/ }), where).toHaveCount(0);
   expect(await page.locator("body").innerText(), `${where}: partnerships@`).not.toContain("partnerships@");
   // One photo, no slideshow dots: the hero holds one img and no button.

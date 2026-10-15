@@ -3,6 +3,7 @@ import path from "node:path";
 import { expect, test as base, type Locator, type Page } from "@playwright/test";
 import { DESTINATIONS_PAGE_COPY } from "../../../lib/copy/destinations-page";
 import { HOME_COPY } from "../../../lib/copy/home";
+import { OUTSIDE_FOOTER, expectFooterNewsletter } from "../newsletter/_footer";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { getDestinations, getDestinationsPageHero } from "../../../lib/data/destinations";
 import { MEDIA_BASE_URL } from "../../../lib/data/media";
@@ -416,12 +417,14 @@ for (const locale of LOCALES) {
             await expect(named(role, boardWordByEn("Login", locale)), `Login ${role} (${where})`).toHaveCount(0);
             await expect(named(role, d.nav.login), `Login by nav string ${role} (${where})`).toHaveCount(0);
           }
-          await expect(page.locator("form"), `a form (${where})`).toHaveCount(0);
-          await expect(page.getByRole("textbox"), `a textbox (${where})`).toHaveCount(0);
-          await expect(page.locator('input[type="email"]'), `an email input (${where})`).toHaveCount(0);
+          // design 11.2: the newsletter is live in the footer; none of these outside it.
+          await expectFooterNewsletter(page, locale, where);
+          await expect(page.locator(`form${OUTSIDE_FOOTER}`), `a form outside the footer (${where})`).toHaveCount(0);
+          expect(await page.getByRole("textbox").count(), `a textbox outside the footer (${where})`).toBe(1);
+          await expect(page.locator(`input[type="email"]${OUTSIDE_FOOTER}`), `an email input outside the footer (${where})`).toHaveCount(0);
           await expect(named("button", HOME_COPY[locale].subscribe), `Subscribe (${where})`).toHaveCount(0);
           await expect(page.getByText(HOME_COPY[locale].listTitle, { exact: true }), `List with us (${where})`).toHaveCount(0);
-          await expect(page.locator('button[type="submit"], input[type="submit"]'), `a submit (${where})`).toHaveCount(0);
+          await expect(page.locator(`button[type="submit"]${OUTSIDE_FOOTER}, input[type="submit"]${OUTSIDE_FOOTER}`), `a submit outside the footer (${where})`).toHaveCount(0);
           const currencyPrefix = d.journey.locale.currency.split("{code}")[0].trim();
           await expect(page.getByRole("combobox", { name: new RegExp(`^${escapeRegExp(currencyPrefix)}`) }), `currency (${where})`).toHaveCount(0);
           await expect(page.locator('[aria-disabled="true"], button:disabled'), `a dead control (${where})`).toHaveCount(0);

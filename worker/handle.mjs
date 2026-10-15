@@ -10,6 +10,27 @@
 // with a fake env.
 
 /**
+ * Review fix (PR #16 round 1): the byte caps of the two public form handlers, the same numbers as
+ * INQUIRY_LIMITS.body (lib/contact-inquiry.ts) and MAX_BODY_BYTES (app/newsletter/route.ts); tests/server-runtime.test.mjs
+ * pins them. OpenNext reads a POST body whole before the route runs, so a POST whose Content-Length is above its
+ * route's cap is answered 413 here, before Next, with the route's own 413 (JSON {"ok":false}, no-store, noindex). A
+ * missing or non-numeric Content-Length (a chunked upload) goes on to the route, whose own cap still applies while it
+ * reads (and a non-numeric length is its 400).
+ */
+export const FORM_BODY_CAPS = new Map([
+  ["/api/contact", 16384],
+  ["/newsletter", 8192],
+]);
+
+/** The declared length of a form POST is above its route's cap. */
+function declaredTooLarge(request, pathname) {
+  const cap = request.method === "POST" ? FORM_BODY_CAPS.get(pathname) : undefined;
+  if (cap === undefined) return false;
+  const declared = request.headers.get("content-length");
+  return declared !== null && /^[0-9]{1,12}$/.test(declared) && Number(declared) > cap;
+}
+
+/**
  * @param {Request} request
  * @param {{ ASSETS: { fetch: (request: Request) => Promise<Response> } }} env
  * @param {unknown} ctx
@@ -19,6 +40,9 @@
 export async function handle(request, env, ctx, { serverPaths, nextFetch }) {
   const { pathname } = new URL(request.url);
   if (!serverPaths.has(pathname)) return env.ASSETS.fetch(request);
+  if (declaredTooLarge(request, pathname)) {
+    return Response.json({ ok: false }, { status: 413, headers: { "cache-control": "no-store", "x-robots-tag": "noindex" } });
+  }
 
   // Next trusts these two headers (OpenNext copies x-forwarded-host into Host, and reads the client address from
   // x-forwarded-for), and a visitor can send either. Drop the host; take the address from Cloudflare only.
