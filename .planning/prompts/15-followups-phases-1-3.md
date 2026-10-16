@@ -42,7 +42,7 @@ restoring by copy, never `git checkout` a file)
 9. **Calendar errors** (PR #17 review round 2, 2026-10-15): `app/dashboard/(ops)/calendar/calendar-screen.tsx` (the
    `deleteError` block near line 157) keeps a failed Delete's sentence through a month change and a later good add, with no
    dismiss: clear it on those. Add a spec for the `visibilitychange` path of the `today` refresh (near line 67; only
-   `focus` is tested). Lands after PR #17.
+   `focus` is tested). PR #17 landed on `main` as `b1cf7ae` on 2026-10-16 15:56; merge `origin/main` first.
 
 Not in this job: the primary button's text colour (ivory vs white), the nosniff header on the media host and the
 `wrangler tail` CPU reading (deploy-time items for the controller).
