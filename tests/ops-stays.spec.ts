@@ -124,7 +124,12 @@ test.describe("pictures", () => {
         test(`${state} ${width} ${locale}`, async ({ page }) => {
           await openScene(page, state, viewport, locale);
           if (state === "editor-translations") {
+            // The owner's path: open Edit translations, then take one line out of the Arabic amenities, so the lock speaks.
             await page.getByRole("button", { name: OPS_KIT_COPY[locale].editor.editTranslations, exact: true }).click();
+            const arabic = page.getByLabel(`${OPS_STAYS_COPY[locale].amenities} · AR`, { exact: true });
+            const lines = (await arabic.inputValue()).split("\n");
+            await arabic.fill(lines.slice(0, -1).join("\n"));
+            await expect(page.getByRole("dialog")).toHaveCount(0);
           }
           await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
           // The picture must show strings, never an object, undefined or NaN printed by mistake.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
+import { useLayoutEffect, useState, type ReactNode } from "react";
 // The ops shell the owner sees (job 02: the layout picks a mode, the shell itself is a client component). The scene
 // frames every state in the preview shell so the rail and the density match.
 import { OpsShell } from "../../../app/dashboard/(ops)/ops-shell";
@@ -229,19 +229,11 @@ const okSend: Send = async (_path, body) => {
 
 function EditorScene({ ctx, state }: { ctx: SceneContext; state: EditorState }) {
   const published = state === "published" || state === "translations";
+  // Edit translations: the page opens clean, and the spec types in the Arabic amenities as the owner would (a page that
+  // was dirty before her first click could meet the kit's Back guard on a reload and ask "Discard changes?").
   const start = formOf(state);
-  // Edit translations: the owner took one line out of the Arabic amenities, so the lock speaks.
-  const typed: StayForm =
-    state === "translations"
-      ? { ...start, translations: { ...start.translations, ar: { ...start.translations.ar, amenities: (start.translations.ar.amenities as string[]).slice(0, 3) } } }
-      : start;
-  // The page opens clean and the typing comes after, as for the owner: a page that opened with unsaved changes would
-  // set its Back guard twice under React's dev double effects and ask "Discard changes?" on its own.
   const [form, setForm] = useState<StayForm>(start);
   const [saved, setSaved] = useState<StayForm>(start);
-  useEffect(() => {
-    if (typed !== start) setForm(typed);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [log, setLog] = useState<string[]>([]);
   const note = (entry: string) => setLog((previous) => [...previous, entry]);
   const stay = state === "new" ? null : detailOf(start, published);
