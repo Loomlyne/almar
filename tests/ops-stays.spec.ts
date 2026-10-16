@@ -21,6 +21,23 @@ async function openScene(page: Page, state: string, viewport: Viewport, locale: 
   // The dev server's own indicator can sit over the page corner.
   await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
   await page.waitForFunction((l) => document.documentElement.lang === l, locale);
+  if (locale === "ar") await assertArabicFont(page);
+}
+
+/**
+ * The real Arabic face, not a fallback (controller, 2026-10-15): a network drop makes next/font/google fall back to
+ * Arial and the webpack cache keeps it. If this fails, delete .next/cache/webpack and restart the dev server.
+ */
+async function assertArabicFont(page: Page) {
+  const font = await page.evaluate(async () => {
+    await document.fonts.load('16px "Noto Sans Arabic"', "عربي");
+    return {
+      check: document.fonts.check('16px "Noto Sans Arabic"', "عربي"),
+      faces: [...document.fonts].filter((face) => face.family.replace(/["']/g, "") === "Noto Sans Arabic").length,
+    };
+  });
+  expect(font.faces, "a FontFace named Noto Sans Arabic").toBeGreaterThan(0);
+  expect(font.check, "Noto Sans Arabic loaded for Arabic text").toBe(true);
 }
 
 // ---- copy ---------------------------------------------------------------------------------------------------------
@@ -93,7 +110,8 @@ const PICTURE_LOCALES = ["en", "ar", "es"] as const;
 test.describe("pictures", () => {
   test.skip(!PICTURES_TO, "set OPS_STAYS_PICTURES=1 (or an absolute folder) to shoot the pictures");
   test.describe.configure({ mode: "parallel" });
-  test.setTimeout(120_000);
+  // A loaded Mac draws an editor picture in about 80 s (2026-10-16 shoot): room for that.
+  test.setTimeout(240_000);
   if (PICTURES_TO) mkdirSync(PICTURES, { recursive: true });
 
   for (const state of sceneStates("ops-stays")) {
