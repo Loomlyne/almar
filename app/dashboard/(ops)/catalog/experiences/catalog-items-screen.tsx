@@ -201,10 +201,19 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
     setBusy(false);
   }
 
-  /** One order at a time: the move buttons wait until the list is read back. A refusal stays on the list. */
-  async function reorder(ids: string[]) {
-    if (moving.current) return;
+  /**
+   * One order at a time: a second move waits until the list is read back. Says at once whether it took this one
+   * (false while an order is on its way), so the view moves focus only for a move that was taken.
+   */
+  function reorder(ids: string[]): boolean {
+    if (moving.current) return false;
     moving.current = true;
+    void sendOrder(ids);
+    return true;
+  }
+
+  /** Sends the order, reads the list back; a refusal stays on the list. */
+  async function sendOrder(ids: string[]) {
     setReordering(true);
     const reply = await opsSend(PATH, { action: "reorder", ids });
     await loadLists();
@@ -248,8 +257,10 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
       stays={stayOptions}
       onNew={onNew}
       onOpen={(id) => void onOpen(id)}
-      onMove={(id, by) => void reorder(movedIds(rows, id, by))}
-      onDropOrder={(ids) => void reorder(ids)}
+      onMove={(id, by) => reorder(movedIds(rows, id, by))}
+      onDropOrder={(ids) => {
+        reorder(ids);
+      }}
       onStayFilter={onStayFilter}
       reordering={reordering}
       notice={

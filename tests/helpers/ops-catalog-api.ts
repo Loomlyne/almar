@@ -291,6 +291,28 @@ export async function warmDashboard(browser: Browser, path: string, baseURL: str
 /** The row (desktop table) or card (phone) button that opens an item by its name. */
 export const openRow = (page: Page, name: string) => page.getByRole("button", { name, exact: true }).filter({ visible: true }).first();
 
+/**
+ * Counts the POSTs to `path` that `match` accepts as the page sends them, held or not (the request event, before any
+ * route). For "the second move was not sent": no fixed wait, the count is read once the refusal is on screen.
+ */
+export function countPosts(page: Page, path: string, match: (body: Record<string, unknown>) => boolean): () => number {
+  let count = 0;
+  const pattern = new RegExp(`/api/ops/${path}$`);
+  page.on("request", (request) => {
+    if (request.method() !== "POST" || !pattern.test(new URL(request.url()).pathname)) return;
+    if (match(request.postDataJSON() as Record<string, unknown>)) count += 1;
+  });
+  return () => count;
+}
+
+/** The name a focused control carries (aria-label, else its text): to check focus stayed on the same control. */
+export const activeName = (page: Page) =>
+  page.evaluate(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return null;
+    return (el.getAttribute("aria-label") ?? el.textContent ?? "").trim();
+  });
+
 /** Waits until `count` POSTs to `path` were made. */
 export async function postsTo(api: Api, path: string, count = 1) {
   await expect.poll(() => api.of(path).length, { timeout: 15_000 }).toBeGreaterThanOrEqual(count);

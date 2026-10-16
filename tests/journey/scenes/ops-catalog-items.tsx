@@ -117,7 +117,7 @@ function CatalogItemsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
         stays={staysOf(locale)}
         onNew={noop}
         onOpen={noop}
-        onMove={noop}
+        onMove={() => false}
         onDropOrder={noop}
         panel={panel}
         initialFilter={filter}

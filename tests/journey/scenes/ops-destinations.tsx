@@ -97,7 +97,7 @@ function DestinationsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
         rows={variant === "list-empty" ? [] : rowsOf(locale)}
         onNew={noop}
         onOpen={noop}
-        onMove={noop}
+        onMove={() => false}
         onDropOrder={noop}
         panel={panel}
       />

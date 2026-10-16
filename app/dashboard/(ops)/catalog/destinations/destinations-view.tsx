@@ -72,7 +72,8 @@ export function DestinationsView({
   rows: DestinationRow[];
   onNew: () => void;
   onOpen: (id: string) => void;
-  onMove: (id: string, by: -1 | 1) => void;
+  /** Takes a move; false when the screen refused it (an order is already on its way). */
+  onMove: (id: string, by: -1 | 1) => boolean;
   onDropOrder: (ids: string[]) => void;
   panel: DestinationPanel | null;
   initialQuery?: string;
@@ -124,8 +125,9 @@ export function DestinationsView({
           needle === ""
             ? {
                 onMove: (id, by) => {
-                  moved.current = { name: rows.find((row) => row.id === id)?.name ?? "", by };
-                  onMove(id, by);
+                  // Only a move the screen took moves focus: a refused second press leaves the first one's target.
+                  const name = rows.find((row) => row.id === id)?.name ?? "";
+                  if (onMove(id, by)) moved.current = { name, by };
                 },
                 onDropOrder,
               }

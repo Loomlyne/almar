@@ -3,7 +3,7 @@ import { OPS_CATALOG_COPY, fillCatalogCopy } from "../lib/copy/ops-catalog";
 import { OPS_KIT_COPY, fillCopy } from "../lib/copy/ops-kit";
 import type { Locale3 } from "../components/ops/api-types";
 import { missingLine } from "../components/ops/error-text";
-import { NEW_ID, holdPost, mockCatalogApi, openDashboard, openRow, postsTo, refusal, warmDashboard } from "./helpers/ops-catalog-api";
+import { NEW_ID, activeName, countPosts, holdPost, mockCatalogApi, openDashboard, openRow, postsTo, refusal, warmDashboard } from "./helpers/ops-catalog-api";
 import type { Viewport } from "./journey/matrix";
 import { definePictures, type PictureLocale } from "./helpers/ops-catalog-pictures";
 import { numbered, words } from "./journey/scenes/_ops-catalog-words";
@@ -278,8 +278,9 @@ test.describe("behaviour", () => {
     });
 
     test(`Reorder: one order at a time while the list is busy; a refusal is said on the list (${at})`, async ({ page, baseURL }) => {
-      const api = await mockCatalogApi(page);
+      await mockCatalogApi(page);
       const hold = await holdPost(page, "catalog", (body) => body.action === "reorder");
+      const reorders = countPosts(page, "catalog", (body) => body.action === "reorder");
       await open(page, baseURL);
       const down = page.getByRole("button", { name: kit.moveDown }).filter({ visible: true }).first();
       await down.click();
@@ -288,11 +289,9 @@ test.describe("behaviour", () => {
       // The buttons stay enabled (keyboard focus is kept); the screen takes no second move meanwhile.
       await expect(down).toBeEnabled();
       await down.click();
-      await page.waitForTimeout(300);
       hold.release(refusal(503, "unavailable"));
       await expect(page.getByText(kit.errors.unavailable, { exact: true })).toBeVisible();
-      await page.waitForTimeout(500);
-      expect(api.of("catalog"), "the second move was not sent").toHaveLength(0);
+      expect(reorders(), "the second move was not sent").toBe(1);
     });
 
     test(`Reorder by keyboard: after the move, focus is on the moved row's move button (${at})`, async ({ page, baseURL }) => {
@@ -304,6 +303,26 @@ test.describe("behaviour", () => {
       expect(reorder).toEqual({ action: "reorder", ids: ["c2", "c1", "c3"] });
       const moved = page.locator("tr, li").filter({ visible: true }).filter({ has: page.getByRole("button", { name: "Coffee farm", exact: true }) });
       await expect(moved.getByRole("button", { name: kit.moveDown })).toBeFocused();
+    });
+
+    test(`Reorder by keyboard: a Tab away while the order is on its way keeps focus where the owner put it (${at})`, async ({ page, baseURL }) => {
+      await mockCatalogApi(page);
+      const hold = await holdPost(page, "catalog", (body) => body.action === "reorder");
+      await open(page, baseURL);
+      await page.getByRole("button", { name: kit.moveDown }).filter({ visible: true }).first().focus();
+      await page.keyboard.press("Enter");
+      await hold.seen;
+      // The owner moves on before the list is read back; the view must not pull focus back to the moved row.
+      await page.keyboard.press("Tab");
+      const away = await activeName(page);
+      expect(away, "Tab reached a control").not.toBeNull();
+      expect(away).not.toBe(kit.moveDown);
+      hold.release({ status: 200, json: { ok: true, affects_site: true } });
+      await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
+      await expect.poll(() => activeName(page), { message: "focus stayed where the owner Tabbed to" }).toBe(away);
+      // Still there a moment later: nothing re-placed it after the read-back.
+      await expect(page.getByRole("button", { name: "Coffee farm", exact: true }).filter({ visible: true })).toBeVisible();
+      expect(await activeName(page)).toBe(away);
     });
 
     test(`Published item: with its only destination removed, Save waits and says what it needs (${at})`, async ({ page, baseURL }) => {

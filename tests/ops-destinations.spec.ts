@@ -4,7 +4,7 @@ import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
 import { OPS_MEDIA_COPY } from "../lib/copy/ops-media";
 import type { Locale3 } from "../components/ops/api-types";
 import { missingLine } from "../components/ops/error-text";
-import { NEW_ID, holdPost, mockCatalogApi, openDashboard, openRow, postsTo, refusal, warmDashboard } from "./helpers/ops-catalog-api";
+import { NEW_ID, activeName, countPosts, holdPost, mockCatalogApi, openDashboard, openRow, postsTo, refusal, warmDashboard } from "./helpers/ops-catalog-api";
 import type { Viewport } from "./journey/matrix";
 import { definePictures } from "./helpers/ops-catalog-pictures";
 import { numbered, words } from "./journey/scenes/_ops-catalog-words";
@@ -313,19 +313,18 @@ test.describe("behaviour", () => {
     });
 
     test(`Reorder refused: the sentence stays on the list after it is read back; a second move waits meanwhile (${at})`, async ({ page, baseURL }) => {
-      const api = await mockCatalogApi(page);
+      await mockCatalogApi(page);
       const hold = await holdPost(page, "destinations", (body) => body.action === "reorder");
+      const reorders = countPosts(page, "destinations", (body) => body.action === "reorder");
       await open(page, baseURL);
       const down = page.getByRole("button", { name: kit.moveDown }).filter({ visible: true }).first();
       await down.click();
       await hold.seen;
       await expect(page.locator('[aria-busy="true"]').filter({ has: down })).toHaveCount(1);
       await down.click();
-      await page.waitForTimeout(300);
       hold.release(refusal(409, "invalid"));
       await expect(page.getByText(kit.errors.invalid, { exact: true })).toBeVisible();
-      await page.waitForTimeout(500);
-      expect(api.of("destinations"), "the second move was not sent").toHaveLength(0);
+      expect(reorders(), "the second move was not sent").toBe(1);
     });
 
     test(`Reorder by keyboard: after the move, focus is on the moved row's move button (${at})`, async ({ page, baseURL }) => {
@@ -337,6 +336,26 @@ test.describe("behaviour", () => {
       expect(reorder).toEqual({ action: "reorder", ids: ["d2", "d1", "d3"] });
       const moved = page.locator("tr, li").filter({ visible: true }).filter({ has: page.getByRole("button", { name: "Cartagena", exact: true }) });
       await expect(moved.getByRole("button", { name: kit.moveDown })).toBeFocused();
+    });
+
+    test(`Reorder by keyboard: a Tab away while the order is on its way keeps focus where the owner put it (${at})`, async ({ page, baseURL }) => {
+      await mockCatalogApi(page);
+      const hold = await holdPost(page, "destinations", (body) => body.action === "reorder");
+      await open(page, baseURL);
+      await page.getByRole("button", { name: kit.moveDown }).filter({ visible: true }).first().focus();
+      await page.keyboard.press("Enter");
+      await hold.seen;
+      // The owner moves on before the list is read back; the view must not pull focus back to the moved row.
+      await page.keyboard.press("Tab");
+      const away = await activeName(page);
+      expect(away, "Tab reached a control").not.toBeNull();
+      expect(away).not.toBe(kit.moveDown);
+      hold.release({ status: 200, json: { ok: true, affects_site: true } });
+      await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
+      await expect.poll(() => activeName(page), { message: "focus stayed where the owner Tabbed to" }).toBe(away);
+      // Still there a moment later: nothing re-placed it after the read-back.
+      await expect(page.getByRole("button", { name: "Cartagena", exact: true }).filter({ visible: true })).toBeVisible();
+      expect(await activeName(page)).toBe(away);
     });
 
     test(`Publish refused after the save was taken: the save went first, the editor reads it back, the refusal in words (${at})`, async ({ page, baseURL }) => {
