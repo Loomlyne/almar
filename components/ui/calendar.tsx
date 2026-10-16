@@ -50,6 +50,8 @@ export function CalendarPanel({
   onPick,
   onHover,
   describedBy,
+  now: nowOverride,
+  openOnStart = false,
 }: {
   start: CalendarDate | null;
   end: CalendarDate | null;
@@ -57,12 +59,19 @@ export function CalendarPanel({
   onPick: (date: CalendarDate) => void;
   onHover: (date: CalendarDate | null) => void;
   describedBy?: string;
+  /** The day that counts as today (earlier days cannot be picked). Defaults to today on this device; the dashboard passes the Dubai day. */
+  now?: CalendarDate;
+  /** Open on the month of `start` when it is today or later (the dashboard's date field). Off by default: the hero booker opens on today. */
+  openOnStart?: boolean;
 }) {
-  const now = today(getLocalTimeZone());
+  const now = nowOverride ?? today(getLocalTimeZone());
   const titleId = useId();
   const gridRef = useRef<HTMLDivElement>(null);
   const pendingFocus = useRef<string | null>(null);
-  const [cursor, setCursor] = useState(() => new CalendarDate(now.year, now.month, 1));
+  const [cursor, setCursor] = useState(() => {
+    const from = openOnStart && start && compare(start, now) >= 0 ? start : now;
+    return new CalendarDate(from.year, from.month, 1);
+  });
   const [focused, setFocused] = useState<CalendarDate | null>(null);
   const [focusTick, setFocusTick] = useState(0);
   const first = new CalendarDate(cursor.year, cursor.month, 1);

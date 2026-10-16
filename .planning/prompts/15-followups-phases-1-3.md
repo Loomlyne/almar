@@ -25,12 +25,24 @@ restoring by copy, never `git checkout` a file)
    callers can race. Take the lock first. Test it without starting a stack.
 4. **Translate route signal** (03.2-10 follow-up): `worker/handle.mjs` passes no `signal` to the translate call, and
    `someLeft` shows only when both targets return. Read PR #9's thread. **`worker/handle.mjs` is also edited by PR #16
-   (3.3 part B, landing first):** do this item last, after the controller tells you PR #16 has landed, and merge
-   `origin/main` before you touch the file.
+   (3.3 part B):** PR #16 landed on `main` as `7cf9ce2` on 2026-10-15 03:12. Do this item last, and merge `origin/main`
+   before you touch the file.
 5. **Language hint cookie** (02-05 follow-up): a signed-in session without the hint cookie gets it set; read PR #4–#7
    review threads and `02-05-SUMMARY.md` for the case.
 6. **`database.types.ts` refresh** from the migrations on main. This needs a local Supabase stack: ask the controller
    "slot? stack" and wait for "go" (its landing check holds the one stack now). Do it last with item 4.
+7. **Publish rules on Save** (PR #18 review, 2026-10-15): `ops_save_catalog_item` and `ops_save_destination` do not
+   re-check the publish rules (photo, at least one destination) when the row is already published; only `ops_publish`
+   does. 03.2-06 blocks it in the dashboard; the server must refuse it too. Needs a migration: ask the controller for a
+   number first, pgTAP for each refusal, no change for draft rows.
+8. **Held-spec selector** (PR #16 review round 3, 2026-10-15): `tests/build/stay-detail/stay-detail-held.spec.ts:106`, the
+   "no text field outside the footer" count behind the phone sheet, excludes only `type=hidden`; make it exclude
+   submit, button, checkbox and radio like `expectFooterNewsletter` in `tests/build/newsletter/_footer.ts`. Test-only;
+   prove the spec still fails when a real text field is added outside the footer.
+9. **Calendar errors** (PR #17 review round 2, 2026-10-15): `app/dashboard/(ops)/calendar/calendar-screen.tsx` (the
+   `deleteError` block near line 157) keeps a failed Delete's sentence through a month change and a later good add, with no
+   dismiss: clear it on those. Add a spec for the `visibilitychange` path of the `today` refresh (near line 67; only
+   `focus` is tested). PR #17 landed on `main` as `b1cf7ae` on 2026-10-16 15:56; merge `origin/main` first.
 
 Not in this job: the primary button's text colour (ivory vs white), the nosniff header on the media host and the
 `wrangler tail` CPU reading (deploy-time items for the controller).

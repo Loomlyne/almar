@@ -22,7 +22,6 @@
 export const HELD_PATHS = [
   "/dashboard",
   "/fx",
-  "/newsletter",
   "/embed",
   "/__harness",
 ] as const;
@@ -32,8 +31,9 @@ export const OPS_API_PREFIX = "/api/ops/";
 
 /**
  * Exact server paths outside /api. Phase 2's sign-in (plan 02-23 task 3): the same six as JOB02_SERVER_PATHS in
- * lib/auth/server-paths.ts (tests/server-runtime.test.mjs asserts they are equal). Known future user: slice 3
- * plan 27 (`/newsletter`, moved out of HELD_PATHS in the same commit).
+ * lib/auth/server-paths.ts (tests/server-runtime.test.mjs asserts they are equal), then slice 3 plan 27's
+ * `/newsletter` (the footer's POST handler, app/newsletter/route.ts; it left HELD_PATHS in the same commit). Only the
+ * exact path is served: `/ar/newsletter`, `/newsletter/x` and a GET page are not (a GET is Next's 405).
  */
 export const SERVER_PATHS_OUTSIDE_API: readonly string[] = [
   "/login",
@@ -42,6 +42,7 @@ export const SERVER_PATHS_OUTSIDE_API: readonly string[] = [
   "/auth/handoff/start",
   "/account",
   "/bookings",
+  "/newsletter",
 ];
 
 const LOCALE_PREFIXES = ["/ar", "/es"];

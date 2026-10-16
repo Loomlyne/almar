@@ -140,3 +140,16 @@ test("plan 41: SiteFooter with no tone is the footer it was (snapshot taken befo
   assert.equal(html.replaceAll(' dir="ltr"', ""), before);
   assert.equal(html.split(' dir="ltr"').length - 1, 2, "exactly the tel and the mailto link gain dir=ltr");
 });
+
+test("plan 03.3-27: with the real footer table the served markup has no newsletter (it mounts only in the browser)", async () => {
+  const { SITE_FOOTER_COPY } = await import("../lib/copy/site-footer.ts");
+  for (const locale of ["en", "ar", "es"]) {
+    const html = render(props({ locale, footerCopy: SITE_FOOTER_COPY[locale] }));
+    assert.equal(html.includes("<form"), false, `${locale}: <form`);
+    assert.equal(html.includes("footer-newsletter"), false, `${locale}: the column`);
+    assert.equal(/type="email"|name="website"|name="comments"/.test(html), false, `${locale}: a box or a trap`);
+    assert.equal(html.includes(SITE_FOOTER_COPY[locale].newsletter.subscribe), false, `${locale}: Join the List`);
+    // And the footer the column joins is still there, in that language.
+    assert.ok(html.includes(SITE_FOOTER_COPY[locale].copyright), `${locale}: the footer`);
+  }
+});
