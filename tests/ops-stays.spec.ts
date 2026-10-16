@@ -16,7 +16,10 @@ const harnessUrl = (state: string, locale: string) => `/__harness?c=ops-stays&s=
 
 async function openScene(page: Page, state: string, viewport: Viewport, locale: Locale) {
   await page.setViewportSize(VIEWPORTS[viewport]);
-  await page.goto(harnessUrl(state, locale));
+  // The dev server can read a build manifest while webpack rewrites it (Next's load-manifest: readFileSync, then
+  // JSON.parse; "Unexpected end of JSON input" on /__harness under load) and answer 500 once: load the scene again.
+  const first = await page.goto(harnessUrl(state, locale));
+  if (!first || first.status() >= 500) await page.goto(harnessUrl(state, locale));
   await settle(page);
   // The dev server's own indicator can sit over the page corner.
   await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
