@@ -1,4 +1,4 @@
-import { expect, type Page, type Route } from "@playwright/test";
+import { expect, type Browser, type Page, type Route } from "@playwright/test";
 import type {
   CatalogDetail,
   CatalogSummary,
@@ -271,6 +271,21 @@ export async function openDashboard(page: Page, path: string, viewport: Viewport
   await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
   await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
   await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible({ timeout: 20_000 });
+}
+
+/**
+ * Opens the page once before a behaviour block, so `next dev` compiles it outside a test's budget. In a parallel block
+ * on a cold server, the first tests on each worker spent their 120 s on that compile and timed out on their first
+ * click (03.2-06, run after the PR #17 merge, --workers=2). Call from `beforeAll` with its own timeout.
+ */
+export async function warmDashboard(browser: Browser, path: string, baseURL: string | undefined, heading: string) {
+  const page = await browser.newPage({ baseURL });
+  try {
+    await mockCatalogApi(page);
+    await openDashboard(page, path, "desktop", "en", baseURL, heading);
+  } finally {
+    await page.close();
+  }
 }
 
 /** The row (desktop table) or card (phone) button that opens an item by its name. */

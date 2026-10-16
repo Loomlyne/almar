@@ -4,7 +4,7 @@ import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
 import { OPS_MEDIA_COPY } from "../lib/copy/ops-media";
 import type { Locale3 } from "../components/ops/api-types";
 import { missingLine } from "../components/ops/error-text";
-import { NEW_ID, holdPost, mockCatalogApi, openDashboard, openRow, postsTo, refusal } from "./helpers/ops-catalog-api";
+import { NEW_ID, holdPost, mockCatalogApi, openDashboard, openRow, postsTo, refusal, warmDashboard } from "./helpers/ops-catalog-api";
 import type { Viewport } from "./journey/matrix";
 import { definePictures } from "./helpers/ops-catalog-pictures";
 import { numbered, words } from "./journey/scenes/_ops-catalog-words";
@@ -132,6 +132,10 @@ const PAGE_PATH = "/dashboard/catalog/destinations";
 test.describe("behaviour", () => {
   test.describe.configure({ mode: "parallel" });
   test.setTimeout(120_000);
+  test.beforeAll(async ({ browser, baseURL }) => {
+    test.setTimeout(300_000);
+    await warmDashboard(browser, PAGE_PATH, baseURL, OPS_CATALOG_COPY.en.destinations.title);
+  });
 
   for (const { viewport, locale } of COMBOS) {
     const copy = OPS_CATALOG_COPY[locale].destinations;
