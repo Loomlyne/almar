@@ -352,10 +352,14 @@ test.describe("behaviour", () => {
       expect(away).not.toBe(kit.moveDown);
       hold.release({ status: 200, json: { ok: true, affects_site: true } });
       await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
-      await expect.poll(() => activeName(page), { message: "focus stayed where the owner Tabbed to" }).toBe(away);
-      // Still there a moment later: nothing re-placed it after the read-back.
-      await expect(page.getByRole("button", { name: "Cartagena", exact: true }).filter({ visible: true })).toBeVisible();
-      expect(await activeName(page)).toBe(away);
+      // A late refocus would land just after the read-back: the focused control must stay put for 500 ms, read every
+      // two animation frames (a poll would pass on its first try and miss it).
+      const until = Date.now() + 500;
+      do {
+        expect(await activeName(page), "focus stayed where the owner Tabbed to").toBe(away);
+        await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => done(null)))));
+      } while (Date.now() < until);
+      expect(await activeName(page), "focus stayed where the owner Tabbed to").toBe(away);
     });
 
     test(`Publish refused after the save was taken: the save went first, the editor reads it back, the refusal in words (${at})`, async ({ page, baseURL }) => {
