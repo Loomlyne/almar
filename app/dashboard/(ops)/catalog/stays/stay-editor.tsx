@@ -244,16 +244,36 @@ export function StayEditor({
   const fromDestination = new Set(destinationItems);
   const kindWord = (kind: CatalogChoice["kind"]) => (kind === "experience" ? copy.kindExperience : copy.kindService);
   const options = catalog.map((item) => ({ id: item.id, label: item.name, meta: kindWord(item.kind) }));
+  // The destination's items are shown, not offered: the kit's read-only group names only what is in `options` and has no
+  // kind label, so this card draws them itself, name and kind like the Connected rows.
+  const byId = new Map(catalog.map((item) => [item.id, item]));
+  const destinationRows = destinationItems.map((id) => byId.get(id)).filter((item): item is CatalogChoice => item !== undefined);
   const connectionsCard = (
-    <ConnectPicker
-      title={copy.pickerTitle}
-      searchLabel={copy.searchConnections}
-      hint={copy.connectionsHint}
-      options={options.filter((option) => !fromDestination.has(option.id))}
-      connected={form.connected.filter((id) => !fromDestination.has(id))}
-      onChange={(connected) => onFormChange({ ...form, connected })}
-      groups={destinationItems.length > 0 ? [{ label: copy.fromDestination, ids: destinationItems }] : undefined}
-    />
+    <div className="flex min-w-0 flex-col gap-4">
+      <ConnectPicker
+        title={copy.pickerTitle}
+        searchLabel={copy.searchConnections}
+        hint={copy.connectionsHint}
+        options={options.filter((option) => !fromDestination.has(option.id))}
+        connected={form.connected.filter((id) => !fromDestination.has(id))}
+        onChange={(connected) => onFormChange({ ...form, connected })}
+      />
+      {destinationRows.length > 0 ? (
+        <div className="flex flex-col gap-2" data-stay-from-destination="">
+          <h4 className="m-0 text-caption font-normal uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">
+            {copy.fromDestination}
+          </h4>
+          <ul className="m-0 flex list-none flex-col border border-line p-0">
+            {destinationRows.map((item) => (
+              <li key={item.id} className="flex min-w-0 flex-wrap items-baseline gap-x-2 border-b border-line px-2 py-2 text-label text-ink last:border-b-0">
+                <span>{item.name}</span>
+                <span className="text-caption text-muted">{kindWord(item.kind)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
   );
 
   const placeCard = (

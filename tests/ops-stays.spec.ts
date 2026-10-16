@@ -95,6 +95,13 @@ async function editorChecks(page: Page, state: string, viewport: Viewport, local
     await expect(editor.getByText(OPS_KIT_COPY[locale].warnNoBaseRate, { exact: true })).toBeVisible();
     await expect(editor.getByText(OPS_KIT_COPY[locale].unpublishFirst, { exact: true })).toBeVisible();
   }
+  // "From the destination" names its items with their kind, never a raw id (03.2-07 review, 2026-10-16: "e3", "v2").
+  if (state !== "editor-new") {
+    const fromDestination = editor.locator("[data-stay-from-destination] li");
+    await expect(fromDestination).toHaveCount(2);
+    const rows = await fromDestination.allInnerTexts();
+    expect(rows.map((row) => row.replace(/\s+/g, " ").trim())).toEqual([`[Experience 3] ${copy.kindExperience}`, `[Service 2] ${copy.kindService}`]);
+  }
   // Arabic reads right to left.
   if (locale === "ar") expect(await page.evaluate(() => getComputedStyle(document.querySelector("[data-edit-page]")!).direction)).toBe("rtl");
 }
@@ -139,6 +146,8 @@ test.describe("pictures", () => {
           // Network idle is capped (a bare wait times out on a cold dev server), then a short settle.
           await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
           await page.waitForTimeout(400);
+          // Capture only: the shell's sticky header would be drawn again partway down a full-page shot.
+          await page.addStyleTag({ content: "header.sticky { position: static !important; }" });
           await page.screenshot({ path: join(PICTURES, `${state}-${width}-${locale}.png`), fullPage: true });
         });
       }
