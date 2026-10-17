@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { canMove, moveConnected } from "../components/ops/connect-order.ts";
-import { emptyStayForm, groupByKind, stayPayload } from "../app/dashboard/(ops)/catalog/stays/stay-forms.ts";
+import { emptyStayForm, groupByKind, keepHidden, stayPayload } from "../app/dashboard/(ops)/catalog/stays/stay-forms.ts";
 
 const KIND = { e1: "experience", e2: "experience", e3: "experience", v1: "service", v2: "service" };
 const kindOf = (id) => KIND[id];
@@ -47,4 +47,29 @@ test("Save sends each kind's ids in the order shown, so the server stores positi
   // Same order as saved: the join set is left out, so nothing is rewritten.
   const unchanged = stayPayload(saved, saved, { id: "s1", publish: false, live: {}, kindOf });
   assert.equal("connections" in unchanged.item, false);
+});
+
+// PR #19 review round 1: a stay can link directly an item its destination also brings. The picker does not show it, so
+// the picker's next list must be put back around it, or Save would delete that link on the server.
+test("keepHidden: a direct link to a destination item keeps its place in its kind through a move, an add and a remove", () => {
+  const hidden = new Set(["e3"]);
+  const full = ["e1", "e3", "e2", "v1"];
+  // Move e1 down in the picker (it shows e1, e2, v1): e3 keeps place 1 of the experiences.
+  assert.deepEqual(keepHidden(full, ["e2", "e1", "v1"], hidden, kindOf), ["e2", "e3", "e1", "v1"]);
+  // Nothing changed in the picker: the same list, so the form stays clean.
+  assert.deepEqual(keepHidden(full, ["e1", "e2", "v1"], hidden, kindOf), full);
+  // Add v2 at the end; remove e1.
+  assert.deepEqual(keepHidden(full, ["e1", "e2", "v1", "v2"], hidden, kindOf), ["e1", "e3", "e2", "v1", "v2"]);
+  assert.deepEqual(keepHidden(full, ["e2", "v1"], hidden, kindOf), ["e2", "e3", "v1"]);
+  // A destination change that makes an existing direct link hidden: the link stays.
+  assert.deepEqual(keepHidden(["e1", "e2"], ["e2"], new Set(["e1"]), kindOf), ["e1", "e2"]);
+});
+
+test("keepHidden + stayPayload: Save after a move still sends the destination item in its kind", () => {
+  const saved = { ...emptyStayForm(), connected: ["e1", "e3", "e2", "v1"] };
+  saved.facts = { ...saved.facts, destinationId: "d1", slug: "stay-one" };
+  saved.english = { ...saved.english, title: "[Stay]" };
+  const form = { ...saved, connected: keepHidden(saved.connected, ["e2", "e1", "v1"], new Set(["e3"]), kindOf) };
+  const body = stayPayload(form, saved, { id: "s1", publish: false, live: {}, kindOf });
+  assert.deepEqual(body.item.connections, { experience_ids: ["e2", "e3", "e1"], service_ids: ["v1"] });
 });

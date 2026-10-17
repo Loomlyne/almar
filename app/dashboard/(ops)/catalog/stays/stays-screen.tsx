@@ -78,11 +78,9 @@ export function StaysScreen({ send }: { send?: Send } = {}) {
     if (!stays.ok || !catalog.ok || !destinations.ok) return;
     const replies = await Promise.all(stays.items.map((one) => opsFetch<DetailReply<StayDetail>>(PATH, { id: one.id })));
     if (ticket !== latest.current) return;
+    // A stay whose read fails keeps its row with a count of 0; opening it reads it again (onOpen) and says the error there.
     const details = new Map<string, StayDetail>();
-    for (const reply of replies) {
-      if (!reply.ok) return setListError(errorText(kit, reply.error));
-      details.set(reply.item.id, reply.item);
-    }
+    for (const reply of replies) if (reply.ok) details.set(reply.item.id, reply.item);
     setListError(null);
     setLists({ stays: stays.items, details, catalog: catalog.items, destinations: destinations.items });
   }, [kit]);

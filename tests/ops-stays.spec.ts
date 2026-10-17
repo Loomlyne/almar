@@ -306,6 +306,20 @@ test.describe("behaviour", () => {
       await expect.poll(() => page.locator("[data-connect-row]").evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.connectRow))).toEqual(["e2", "e1", "v1"]);
     });
 
+    test(`A direct link to a destination's own item survives a move and Save (review round 1) (${at})`, async ({ page, baseURL }) => {
+      const api = await mockStaysApi(page);
+      // [Experience 3] belongs to [Destination 1]; [Casa Dos] (in d1) also links it directly, between e1 and e2.
+      api.store.stays.find((s) => s.id === "s2")!.experience_ids = ["e1", "e3", "e2"];
+      await open(page, baseURL);
+      await openStay(page, "[Casa Dos]");
+      await expect(page.locator('[data-connect-row="e3"]')).toHaveCount(0);
+      await page.locator('[data-connect-row="e1"] button[data-move="down"]').click();
+      await expect.poll(() => page.locator("[data-connect-row]").evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.connectRow))).toEqual(["e2", "e1", "v1"]);
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      const [save] = await postsTo(api, "stays");
+      expect(itemOf(save!).connections).toEqual({ experience_ids: ["e2", "e3", "e1"], service_ids: ["v1"] });
+    });
+
     test(`A save the server refuses (destination not published) is said in words, the form kept (${at})`, async ({ page, baseURL }) => {
       const api = await mockStaysApi(page, (path, body) => (path === "stays" && body.action === "save" ? refusal(409, "parent_unpublished") : null));
       await open(page, baseURL);

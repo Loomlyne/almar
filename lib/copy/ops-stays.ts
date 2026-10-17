@@ -86,6 +86,7 @@ export type OpsStaysCopy = {
   gallery: string;
   /** DRAFT: what keeps Save off, said under the bar. */
   problemWhole: string;
+  problemTooLarge: string;
   problemAtLeastOne: string;
   problemGuestsOrder: string;
   problemFee: string;
@@ -157,6 +158,7 @@ export const OPS_STAYS_COPY: Record<OpsStaysLocale, OpsStaysCopy> = {
     hero: "Hero photo",
     gallery: "Gallery",
     problemWhole: "{field}: a whole number, 0 or more.",
+    problemTooLarge: "{field}: at most 2147483647.",
     problemAtLeastOne: "{field}: a whole number, 1 or more.",
     problemGuestsOrder: "Max guests cannot be below min guests.",
     problemFee: "{field}: an amount in AED with up to two decimals.",
@@ -225,6 +227,7 @@ export const OPS_STAYS_COPY: Record<OpsStaysLocale, OpsStaysCopy> = {
     hero: "الصورة الرئيسية",
     gallery: "المعرض",
     problemWhole: "{field}: عدد صحيح، صفر أو أكثر.",
+    problemTooLarge: "{field}: 2147483647 على الأكثر.",
     problemAtLeastOne: "{field}: عدد صحيح، 1 أو أكثر.",
     problemGuestsOrder: "لا يمكن أن يقل أقصى عدد للضيوف عن أدنى عدد.",
     problemFee: "{field}: مبلغ بالدرهم بمنزلتين عشريتين على الأكثر.",
@@ -293,6 +296,7 @@ export const OPS_STAYS_COPY: Record<OpsStaysLocale, OpsStaysCopy> = {
     hero: "Foto principal",
     gallery: "Galería",
     problemWhole: "{field}: un número entero, 0 o más.",
+    problemTooLarge: "{field}: como máximo 2147483647.",
     problemAtLeastOne: "{field}: un número entero, 1 o más.",
     problemGuestsOrder: "El máximo de huéspedes no puede ser menor que el mínimo.",
     problemFee: "{field}: un importe en AED con hasta dos decimales.",

@@ -17,6 +17,7 @@ import {
   STAY_LISTS,
   amenityCounts,
   groupByKind,
+  keepHidden,
   linesOf,
   lockedLength,
   validateStayFacts,
@@ -59,6 +60,7 @@ const FACT_LABEL: Partial<Record<FactKey, keyof OpsStaysCopy>> = {
 };
 const PROBLEM: Record<FactProblem, keyof OpsStaysCopy> = {
   whole: "problemWhole",
+  tooLarge: "problemTooLarge",
   atLeastOne: "problemAtLeastOne",
   guestsOrder: "problemGuestsOrder",
   fee: "problemFee",
@@ -261,7 +263,8 @@ export function StayEditor({
           form.connected.filter((id) => !fromDestination.has(id)),
           kindOf,
         )}
-        onChange={(connected) => onFormChange({ ...form, connected: groupByKind(connected, kindOf) })}
+        // The destination's own items are not in the picker; a direct link to one keeps its place (keepHidden).
+        onChange={(connected) => onFormChange({ ...form, connected: keepHidden(form.connected, connected, fromDestination, kindOf) })}
         // Move up / Move down (owner 2026-10-17), within a kind: the save keeps one order per kind.
         reorder={{ canSwap: (above, below) => kindOf(above) === kindOf(below) }}
       />

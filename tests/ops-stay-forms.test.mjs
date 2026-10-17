@@ -4,6 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   amenityCounts,
+  INT_MAX,
   emptyStayForm,
   linesOf,
   lockedLength,
@@ -181,4 +182,21 @@ test("stayPayload: Arabic or Spanish with no title yet is not sent", () => {
 
 test("validateStayFacts: a pet fee of 0 or with a leading zero is refused, as the server does", () => {
   for (const bad of ["0", "0.00", "007"]) assert.equal(validateStayFacts(facts({ petsRule: "fee", petsFee: bad })).petsFee, "fee", bad);
+});
+
+test("validateStayFacts: whole numbers stop at the server's INT_MAX (lib/ops/validate.ts), said on the field", () => {
+  assert.equal(INT_MAX, 2147483647);
+  for (const key of ["maxGuests", "minGuests", "bedrooms", "bathrooms"]) {
+    assert.equal(validateStayFacts(facts({ [key]: "2147483647" }))[key], undefined, key);
+    assert.equal(validateStayFacts(facts({ [key]: "2147483648" }))[key], "tooLarge", key);
+  }
+  assert.equal(validateStayFacts(facts({ minNights: "2147483647" })).minNights, undefined);
+  assert.equal(validateStayFacts(facts({ minNights: "99999999999" })).minNights, "tooLarge");
+  // A wrong shape is still "whole" / "atLeastOne", not "too large".
+  assert.equal(validateStayFacts(facts({ bedrooms: "9999999999.5" })).bedrooms, "whole");
+  assert.equal(validateStayFacts(facts({ minNights: "0" })).minNights, "atLeastOne");
+  for (const locale of ["en", "ar", "es"]) {
+    const line = OPS_STAYS_COPY[locale].problemTooLarge;
+    assert.ok(line.includes("{field}") && line.includes("2147483647"), locale);
+  }
 });

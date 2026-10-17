@@ -44,7 +44,7 @@ export type StayForm = {
 
 export type FactKey = keyof StayFacts;
 /** A fact error, said by the screen in its own words. */
-export type FactProblem = "whole" | "atLeastOne" | "guestsOrder" | "fee" | "feeNeeded" | "slug" | "slugNeeded" | "destinationNeeded";
+export type FactProblem = "whole" | "tooLarge" | "atLeastOne" | "guestsOrder" | "fee" | "feeNeeded" | "slug" | "slugNeeded" | "destinationNeeded";
 
 const blankText = (): Fields => ({
   ...Object.fromEntries(STAY_LINES.map((name) => [name, ""])),
@@ -107,6 +107,8 @@ export function stayForm(stay: StayDetail): StayForm {
 }
 
 const WHOLE = /^\d+$/;
+/** The server's limit on a whole number (lib/ops/validate.ts INT_MAX, Postgres int); a larger one is refused there. */
+export const INT_MAX = 2147483647;
 // The server's money rule (lib/ops/validate.ts), and the fee must be above 0.
 const MONEY = /^(0|[1-9]\d{0,9})(\.\d{1,2})?$/;
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -124,9 +126,11 @@ export function validateStayFacts(facts: StayFacts): Partial<Record<FactKey, Fac
   for (const key of ["maxGuests", "minGuests", "bedrooms", "bathrooms"] as const) {
     const value = facts[key].trim();
     if (value !== "" && !WHOLE.test(value)) out[key] = "whole";
+    else if (value !== "" && Number(value) > INT_MAX) out[key] = "tooLarge";
   }
   const nights = facts.minNights.trim();
   if (nights !== "" && (!WHOLE.test(nights) || Number(nights) < 1)) out.minNights = "atLeastOne";
+  else if (nights !== "" && Number(nights) > INT_MAX) out.minNights = "tooLarge";
   if (!out.maxGuests && !out.minGuests && facts.maxGuests.trim() !== "" && facts.minGuests.trim() !== "") {
     if (Number(facts.maxGuests) < Number(facts.minGuests)) out.maxGuests = "guestsOrder";
   }
@@ -254,4 +258,30 @@ export function stayPayload(
  */
 export function groupByKind(ids: readonly string[], kindOf: (id: string) => "experience" | "service" | undefined): string[] {
   return [...ids.filter((id) => kindOf(id) !== "service"), ...ids.filter((id) => kindOf(id) === "service")];
+}
+
+/**
+ * The picker's list put back into the stay's whole list. The picker shows only the stay's own links, not the items its
+ * destination already brings (`hidden`); a stay can still link one of those directly (linked before, or its destination
+ * changed to one that owns it). Such a link must survive an edit, or Save would delete it on the server: it keeps its
+ * place in its kind, the picker's rows fill the other places of that kind in the order the picker gives, and new rows
+ * go at the end of their kind. Experiences first, then services, as groupByKind.
+ */
+export function keepHidden(
+  full: readonly string[],
+  picked: readonly string[],
+  hidden: ReadonlySet<string>,
+  kindOf: (id: string) => "experience" | "service" | undefined,
+): string[] {
+  const out: string[] = [];
+  for (const service of [false, true]) {
+    const ofKind = (id: string) => (kindOf(id) === "service") === service;
+    const queue = picked.filter((id) => ofKind(id) && !hidden.has(id));
+    for (const id of full.filter(ofKind)) {
+      if (hidden.has(id)) out.push(id);
+      else if (queue.length > 0) out.push(queue.shift()!);
+    }
+    out.push(...queue);
+  }
+  return out;
 }
