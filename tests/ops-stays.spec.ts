@@ -111,6 +111,7 @@ async function listChecks(page: Page, state: string, viewport: Viewport, locale:
   // The filter shows "All destinations", never an empty box (Radix reads "" as no value: the list sends "all").
   await expect(page.locator("#stays-destination")).toHaveText(copy.allDestinations);
   // One stay has one destination: the column says so in the singular. No match draws no table, so no header there.
+  if (state === "list-no-match") await expect(page.getByText(copy.noMatch, { exact: true })).toBeVisible();
   if (state === "list" && viewport !== "phone") await expect(page.getByRole("columnheader", { name: copy.columnDestination, exact: true })).toBeVisible();
 }
 
