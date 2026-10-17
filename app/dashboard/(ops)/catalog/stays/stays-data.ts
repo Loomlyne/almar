@@ -81,3 +81,11 @@ export function movedOrder(ids: string[], id: string, by: -1 | 1): string[] {
   [next[from], next[to]] = [next[to], next[from]];
   return next;
 }
+
+/**
+ * The destination filter's value in the kit Select. Radix reads "" as "no value" and would draw an empty trigger, so
+ * "every destination" is the non-empty `ALL_DESTINATIONS` there (as the calendar's FILTER_ALL); the list keeps "".
+ */
+export const ALL_DESTINATIONS = "all";
+export const filterSelectValue = (destinationId: string) => (destinationId === "" ? ALL_DESTINATIONS : destinationId);
+export const filterFromSelect = (value: string) => (value === ALL_DESTINATIONS ? "" : value);

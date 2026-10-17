@@ -8,6 +8,7 @@ import { Field } from "../../../../../components/ui/field";
 import { Select } from "../../../../../components/ui/select";
 import { DASHBOARD_COPY } from "../../../../../lib/copy/dashboard";
 import { OPS_STAYS_COPY } from "../../../../../lib/copy/ops-stays";
+import { ALL_DESTINATIONS, filterFromSelect, filterSelectValue } from "./stays-data";
 
 /** One line of the stays list. The screen builds it from the stays read and the catalog read (D-88). */
 export type StayRow = {
@@ -73,7 +74,7 @@ export function StaysList({
     { key: "status", label: copy.columnStatus, phone: "meta", render: (row) => <StatusChip published={row.published} locale={locale} /> },
   ];
 
-  const options = [{ value: "", label: copy.allDestinations }, ...destinations.map((one) => ({ value: one.id, label: one.name }))];
+  const options = [{ value: ALL_DESTINATIONS, label: copy.allDestinations }, ...destinations.map((one) => ({ value: one.id, label: one.name }))];
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -91,9 +92,9 @@ export function StaysList({
             <Select
               id="stays-destination"
               label={copy.filterLabel}
-              value={destinationId}
+              value={filterSelectValue(destinationId)}
               options={options}
-              onChange={onDestinationChange}
+              onChange={(next) => onDestinationChange(filterFromSelect(next))}
               dir={locale === "ar" ? "rtl" : "ltr"}
             />
           </div>

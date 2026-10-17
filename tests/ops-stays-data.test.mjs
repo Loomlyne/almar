@@ -159,3 +159,23 @@ test("Move up and Move down swap neighbours and never leave the list", () => {
   assert.deepEqual(data.movedOrder(["a", "b", "c"], "c", 1), ["a", "b", "c"]);
   assert.deepEqual(data.movedOrder(["a", "b"], "x", 1), ["a", "b"]);
 });
+
+test("the destination filter never hands Radix an empty value: every destination is 'all' in the Select, '' in the list", () => {
+  assert.equal(data.ALL_DESTINATIONS, "all");
+  assert.equal(data.filterSelectValue(""), "all");
+  assert.equal(data.filterSelectValue("d1"), "d1");
+  assert.equal(data.filterFromSelect("all"), "");
+  assert.equal(data.filterFromSelect("d1"), "d1");
+});
+
+test("the list's destination column is singular: one stay has one destination", async () => {
+  const { OPS_STAYS_COPY } = await loadTs("lib/copy/ops-stays.ts");
+  assert.deepEqual(
+    ["en", "ar", "es"].map((code) => OPS_STAYS_COPY[code].columnDestination),
+    ["Destination", "الوجهة", "Destino"],
+  );
+  assert.deepEqual(
+    ["en", "ar", "es"].map((code) => OPS_STAYS_COPY[code].allDestinations),
+    ["All destinations", "كل الوجهات", "Todos los destinos"],
+  );
+});
