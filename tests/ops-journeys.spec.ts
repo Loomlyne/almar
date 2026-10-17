@@ -54,7 +54,12 @@ definePictures("ops-journeys", {
     folder: "editor",
     check: async (page, l) => {
       const kit = OPS_KIT_COPY[l];
-      return [page.getByText(kit.publishNeeds, { exact: true }), page.getByRole("button", { name: kit.publish, exact: true })];
+      await expect(page.getByRole("button", { name: kit.publish, exact: true })).toBeDisabled();
+      return [
+        page.getByText(kit.publishNeeds, { exact: true }),
+        page.getByText(kit.fields.photo, { exact: true }),
+        page.getByRole("button", { name: kit.publish, exact: true }),
+      ];
     },
   },
 });

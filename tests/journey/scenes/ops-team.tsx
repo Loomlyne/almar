@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 // The ops shell the owner sees, in preview mode, so the rail and the density match the real screen (as ops-kit.tsx).
 import { OpsShell } from "../../../app/dashboard/(ops)/ops-shell";
 import { TeamView, type TeamPanel, type TeamRow } from "../../../app/dashboard/(ops)/content/team/team-screen";
@@ -60,9 +60,26 @@ function formOf(variant: Variant): TeamForm {
   };
 }
 
+/**
+ * True one tick after mount when `on`. Next dev mounts every effect twice (React Strict Mode): the kit's Back guard,
+ * mounted dirty, takes its history entry away with history.back() on the first cleanup, and the second mount then reads
+ * that popstate as the owner pressing Back ("Discard changes?"). Becoming dirty after mount is also what happens when the
+ * owner types, so the guard mounts once.
+ */
+function useDirtyAfterMount(on: boolean): boolean {
+  const [dirty, setDirty] = useState(false);
+  useEffect(() => {
+    if (!on) return;
+    const timer = window.setTimeout(() => setDirty(true), 0);
+    return () => window.clearTimeout(timer);
+  }, [on]);
+  return dirty;
+}
+
 function TeamScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }) {
   const locale = ctx.locale as Locale3;
   const [form, setForm] = useState<TeamForm>(() => formOf(variant));
+  const dirty = useDirtyAfterMount(variant === "new" || variant === "links-error");
   const noop = () => undefined;
   const hasPanel = variant !== "list" && variant !== "list-empty";
 
@@ -71,7 +88,7 @@ function TeamScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }) {
         form,
         saved: variant === "new" ? emptyTeamForm().text : { en: textOf("en"), ar: textOf("ar"), es: textOf("es") },
         onForm: setForm,
-        dirty: variant === "new" || variant === "links-error",
+        dirty,
         busy: false,
         error: null,
         onSave: () => Promise.resolve(false),

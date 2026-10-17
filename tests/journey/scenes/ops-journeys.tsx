@@ -49,15 +49,15 @@ function textOf(locale: Locale3): JourneyText {
 
 function formOf(variant: Exclude<Variant, "list">): JourneyForm {
   const published = variant !== "hidden";
-  const ar = textOf("ar");
   return {
     id: "j1",
     slug: "[web-address]",
     published,
     is_featured: false,
-    media: JOURNEY_PHOTO,
-    // Hidden: the Arabic price line is empty, so Publish says what it needs.
-    text: { en: textOf("en"), ar: variant === "hidden" ? { ...ar, price_label: "" } : ar, es: textOf("es") },
+    // Hidden: no photo, so Publish says what it needs. (An empty Arabic or Spanish line is not a gap for Maria: the next
+    // Save fills it, so the kit does not list it.)
+    media: variant === "hidden" ? null : JOURNEY_PHOTO,
+    text: { en: textOf("en"), ar: textOf("ar"), es: textOf("es") },
     status: { en: "published", ar: published ? "published" : "draft", es: published ? "published" : "draft" },
     price_from: variant === "price-unreadable" ? null : { amount: AMOUNT_PLACEHOLDER, currency: "USD" },
     price_estimate: null,

@@ -93,7 +93,10 @@ export function TeamView({
         <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.title}</h1>
         {rows.length > 0 ? newButton : null}
       </div>
-      <p className="m-0 text-pretty text-label text-ink">{copy.publicNote}</p>
+      <div className="flex flex-col gap-1">
+        <p className="m-0 text-pretty text-label text-ink">{copy.publicNote}</p>
+        {rows.length > 1 ? <p className="m-0 text-pretty text-label text-muted">{copy.orderNote}</p> : null}
+      </div>
       <ListTable
         caption={copy.caption}
         columns={columns}
@@ -107,7 +110,6 @@ export function TeamView({
           </div>
         }
       />
-      {rows.length > 1 ? <p className="m-0 text-pretty text-label text-muted">{copy.orderNote}</p> : null}
     </div>
   );
 
