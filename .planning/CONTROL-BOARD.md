@@ -185,6 +185,7 @@ the day it lands; `.claude/worktrees/repo-tidy` stays until job 04 lands.
 | Phase 4 (job 12 plans) | `20261005110000_<name>.sql`, same |
 | Minimal ops 05-01 (job 12 plans) | `20261005120000_ops.sql`, the controller's next-hour rule |
 | 03.2-15 stay access notes in Arabic and Spanish | `20261015120000_stay_access_notes_i18n.sql`, given by the controller 2026-10-15 02:58 (owner chose AI-translated Access Notes at 02:56); applied live by the controller at landing after a second-model check |
+| Follow-ups item 7 (server publish rules on save of a published row) | `20261017120000_ops_save_publish_rules.sql`, given by the controller 2026-10-17 13:51 CET to the follow-ups session (`fix/phase-1-3-followups`) |
 | Next | The controller hands them out and records them here at ship |
 
 ## Known, not fixed
