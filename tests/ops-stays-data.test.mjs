@@ -179,3 +179,10 @@ test("the list's destination column is singular: one stay has one destination", 
     ["All destinations", "كل الوجهات", "Todos los destinos"],
   );
 });
+
+test("Arabic says the web address as destinations and team do: عنوان الويب, never عنوان الصفحة", async () => {
+  const { OPS_STAYS_COPY } = await loadTs("lib/copy/ops-stays.ts");
+  assert.equal(OPS_STAYS_COPY.ar.slug, "عنوان الويب");
+  assert.equal(OPS_STAYS_COPY.ar.problemSlugNeeded, "أدخل عنوان الويب.");
+  assert.equal(Object.values(OPS_STAYS_COPY.ar).some((line) => line.includes("عنوان الصفحة")), false);
+});
