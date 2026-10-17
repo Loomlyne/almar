@@ -88,7 +88,9 @@ export function Select({
           <span
             aria-hidden="true"
             className={cn(
-              "inline-flex size-3 items-center justify-center transition-transform duration-fast ease-standard rtl:-scale-x-100",
+              // No RTL mirror: the turned chevron points down or up in both directions. Mirrored before the turn (scale
+              // runs before rotate), it pointed up when closed in Arabic (follow-up 11).
+              "inline-flex size-3 items-center justify-center transition-transform duration-fast ease-standard",
               open ? "-rotate-90" : "rotate-90",
             )}
           >

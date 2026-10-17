@@ -271,6 +271,46 @@ for (const viewport of WIDTHS) {
         await expect(page.getByTestId("select-value")).toHaveText("a");
         await expect(page.getByTestId("select-calls")).toHaveText("1");
       });
+
+      test("the chevron points down while closed and up while open (follow-up 11: it pointed up closed in Arabic)", async ({ page }) => {
+        await open(page, "select", "chosen", locale, viewport);
+        const trigger = page.getByRole("combobox");
+        // Where the icon's right-pointing path ends up on screen: every transform from the trigger down to the svg,
+        // each element's translate, rotate, scale and transform in the order CSS applies them.
+        const chevron = () =>
+          trigger.locator("svg").evaluate((svg) => {
+            const chain: Element[] = [];
+            for (let el: Element | null = svg; el && el.getAttribute("role") !== "combobox"; el = el.parentElement) chain.unshift(el);
+            const m = new DOMMatrix();
+            for (const el of chain) {
+              const cs = getComputedStyle(el);
+              if (cs.translate !== "none") {
+                const [x, y = "0px"] = cs.translate.split(" ");
+                m.translateSelf(parseFloat(x), parseFloat(y));
+              }
+              if (cs.rotate !== "none") m.rotateSelf(parseFloat(cs.rotate.split(" ").at(-1)!));
+              if (cs.scale !== "none") {
+                const [sx, sy = sx] = cs.scale.split(" ").map(Number);
+                m.scaleSelf(sx, sy);
+              }
+              if (cs.transform !== "none") m.multiplySelf(new DOMMatrix(cs.transform));
+            }
+            const tip = m.transformPoint(new DOMPoint(1, 0));
+            const base = m.transformPoint(new DOMPoint(0, 0));
+            const dx = tip.x - base.x;
+            const dy = tip.y - base.y;
+            if (Math.abs(dy) > Math.abs(dx)) return dy > 0 ? "down" : "up";
+            return dx > 0 ? "right" : "left";
+          });
+        expect(await trigger.locator("svg path").getAttribute("d")).toBe("M9 6.5 14.5 12 9 17.5"); // points right
+        await expect.poll(chevron).toBe("down");
+        await trigger.click();
+        await expect(page.getByRole("listbox")).toBeVisible();
+        await expect.poll(chevron).toBe("up");
+        await page.keyboard.press("Escape");
+        await expect(page.getByRole("listbox")).toHaveCount(0);
+        await expect.poll(chevron).toBe("down");
+      });
     });
 
     test.describe(`Amount ${where}`, () => {
