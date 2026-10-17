@@ -215,7 +215,11 @@ function TeamEditor({ panel, list }: { panel: TeamPanel | null; list: ReactNode 
                         error={error}
                         onChange={(event) => setLink(row.key, { url: event.target.value })}
                       />
-                      <div className="flex md:pt-7">
+                      <div className="grid gap-2">
+                        {/* An empty label line from 768, so Remove sits level with the two controls beside it. */}
+                        <span aria-hidden="true" className="invisible hidden text-label md:block">
+                          {copy.linkAddress}
+                        </span>
                         <Button
                           variant="ghost"
                           aria-label={fillTeamCopy(copy.removeLink, { platform: row.label })}

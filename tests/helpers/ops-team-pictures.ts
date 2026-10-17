@@ -50,6 +50,29 @@ async function expectInPicture(page: Page, target: Locator) {
   }
 }
 
+/**
+ * The real Arabic face is on the page, not its Arial fallback (controller, 2026-10-15): a network drop once made
+ * next/font/google fall back and the dev webpack cache kept it. document.fonts.check alone is true when no face matches,
+ * so the face itself must exist and be loaded. The check uses Arabic text: with its default text (a space) it asks for the
+ * Latin subset, which only an Arabic page loads. If this fails, delete .next/cache/webpack and restart the dev server.
+ */
+async function expectArabicFont(page: Page) {
+  const font = await page.evaluate(async () => {
+    await document.fonts.ready;
+    await document.fonts.load('16px "Noto Sans Arabic"', "عربي");
+    const faces = [...document.fonts].filter((face) => face.family.replace(/["']/g, "") === "Noto Sans Arabic");
+    return {
+      faces: faces.length,
+      loaded: faces.filter((face) => face.status === "loaded").length,
+      check: document.fonts.check('16px "Noto Sans Arabic"', "عربي"),
+    };
+  });
+  console.log(`FONT Noto Sans Arabic faces=${font.faces} loaded=${font.loaded} check=${font.check}`);
+  expect(font.faces, "a real Noto Sans Arabic @font-face").toBeGreaterThan(0);
+  expect(font.loaded, "the Arabic face loaded").toBeGreaterThan(0);
+  expect(font.check, 'document.fonts.check(16px "Noto Sans Arabic", Arabic text)').toBe(true);
+}
+
 /** Registers one test per state x width x language. Call inside the spec file, once per scene. */
 export function definePictures(scene: string, states: Record<string, PictureState>) {
   test.describe(`pictures ${scene}`, () => {
@@ -70,6 +93,8 @@ export function definePictures(scene: string, states: Record<string, PictureStat
             // The dev server's own indicator can sit over the page corner.
             await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
             await page.waitForFunction((l) => document.documentElement.lang === l, locale);
+            // Every picture, every language: the Arabic face is real (the rail's language names use it too).
+            await expectArabicFont(page);
             for (const line of await def.check(page, locale)) await expectInPicture(page, line);
             // Every label is a string: a value that was an object would print "[object Object]".
             const text = await page.locator("body").innerText();
