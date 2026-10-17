@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import type { Fields, LiveFields, Send, Target } from "../../../../../components/ops/auto-translate";
 import type { Locale3, OpsError, PetsRule, PublishWarningCode, StayDetail } from "../../../../../components/ops/api-types";
 import { ConnectPicker } from "../../../../../components/ops/connect-picker";
@@ -26,6 +26,7 @@ import {
   type StayLine,
   type StayList,
 } from "./stay-forms";
+import { stayTabSections, type StaySectionKey } from "./stay-tab-sections";
 
 export type DestinationChoice = { id: string; name: string; published: boolean };
 /** An experience or a service the stay can connect. */
@@ -89,9 +90,9 @@ const sameList = (a: Fields[string] | undefined, b: Fields[string] | undefined) 
  * field: the nightly rate lives in Rates (03.2-15), one place for money. Presentational: the screen holds the form and
  * the requests.
  *
- * Extension point (03.2-15, after this lands): its Rates, Availability and Access cards go on the right, after Stay
- * rules, only once the stay has an id: one spread in `sections` (`...stayTabSections({ stay, reload, onDirtyChange })`)
- * and its dirty flags ORed into `dirty`. Nothing else here changes.
+ * 03.2-15's Rates, Availability and Access cards follow the stay's own cards once the stay has an id (one spread in
+ * `sections`); each saves on its own route, and its unsaved typing is ORed into `dirty`. Their columns are the ones the
+ * owner signed for 03.2-15 (Rates and Availability left, Access right).
  */
 export function StayEditor({
   locale,
@@ -148,6 +149,11 @@ export function StayEditor({
   const dir = locale === "ar" ? "rtl" : "ltr";
   const isNew = stay === null;
   const isPublished = stay?.is_published ?? false;
+  // 03.2-15's cards: each one says when it holds typing its own route has not taken.
+  const [cardsDirty, setCardsDirty] = useState<Record<StaySectionKey, boolean>>({ rates: false, availability: false, access: false });
+  const onCardDirty = useCallback((key: StaySectionKey, value: boolean) => {
+    setCardsDirty((was) => (was[key] === value ? was : { ...was, [key]: value }));
+  }, []);
 
   const facts = form.facts;
   const problems = validateStayFacts(facts);
@@ -379,6 +385,7 @@ export function StayEditor({
     { key: "place", title: copy.sectionPlace, column: "side", content: placeCard },
     { key: "capacity", title: copy.sectionCapacity, column: "side", content: capacityCard },
     { key: "rules", title: copy.sectionRules, column: "side", content: rulesCard },
+    ...stayTabSections({ stayId: stay?.id ?? null, locale, onDirtyChange: onCardDirty, onBaseSaved: () => void reload() }),
   ];
 
   // Unsaved work, by part: the page asks "Discard changes?" when any is true.
@@ -386,7 +393,7 @@ export function StayEditor({
   const factsDirty = JSON.stringify(form.facts) !== JSON.stringify(saved.facts);
   const photosDirty = JSON.stringify([form.hero, form.gallery]) !== JSON.stringify([saved.hero, saved.gallery]);
   const connectionsDirty = JSON.stringify(form.connected) !== JSON.stringify(saved.connected);
-  const dirty = textDirty || factsDirty || photosDirty || connectionsDirty;
+  const dirty = textDirty || factsDirty || photosDirty || connectionsDirty || Object.values(cardsDirty).some(Boolean);
 
   const notes = [
     ...needs.map(([, problem]) => text(copy, PROBLEM[problem])),

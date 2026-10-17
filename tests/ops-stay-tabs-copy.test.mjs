@@ -66,3 +66,11 @@ test("sections: Rates and Availability in the main column, Access in the side; n
   assert.equal(columnOf("access"), "side");
   assert.match(source, /if \(stayId === null\) return \[\];/);
 });
+
+test("wiring: 03.2-07's stay editor spreads the cards after its own and ORs their unsaved typing into dirty", () => {
+  const source = readFileSync(DIR + "stay-editor.tsx", "utf8");
+  assert.match(source, /\.\.\.stayTabSections\(\{ stayId: stay\?\.id \?\? null, locale, onDirtyChange: onCardDirty/);
+  assert.match(source, /const dirty = [^;]*Object\.values\(cardsDirty\)\.some\(Boolean\)/);
+  // After the stay's own settings: the last own card is Stay rules.
+  assert.ok(source.indexOf('key: "rules"') < source.indexOf("...stayTabSections("), "the cards follow the stay's own");
+});
