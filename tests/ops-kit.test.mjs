@@ -713,6 +713,23 @@ test("PublishBar parts: actions draw only buttons, notes draw only the lists and
   assert.match(buttonTag(actions, "Publish"), /aria-describedby="k-gaps"/, "the button in one part names the list in the other");
 });
 
+test("PublishBar: when a save is needed and the screen holds Save, Publish waits too; nothing is added to Publish needs:", () => {
+  for (const state of [{ isNew: true }, { dirty: true }, { dirty: false, savePending: true }]) {
+    const html = bar({ ...barProps, ...state, saveBlocked: true });
+    assert.equal(isDisabled(buttonTag(html, "Save")), true, JSON.stringify(state));
+    assert.equal(isDisabled(buttonTag(html, "Publish")), true, JSON.stringify(state));
+    assert.equal(html.includes("Publish needs:"), false, JSON.stringify(state));
+  }
+  // Nothing to save: Publish publishes what is stored, as before.
+  assert.equal(isDisabled(buttonTag(bar({ ...barProps, dirty: false, saveBlocked: true }), "Publish")), false);
+  // Save not held: Publish as before.
+  assert.equal(isDisabled(buttonTag(bar({ ...barProps, isNew: true, saveBlocked: false }), "Publish")), false);
+  // Published and clean: Save and update site waits for a change, Unpublish stays live, as before.
+  const live = bar({ ...barProps, isPublished: true, dirty: false, saveBlocked: true });
+  assert.equal(isDisabled(buttonTag(live, "Unpublish")), false);
+  assert.equal(isDisabled(buttonTag(live, "Save and update site")), true);
+});
+
 test("PublishBar, busy: every button is disabled", () => {
   const html = bar({ ...barProps, busy: true });
   for (const label of ["Publish"]) assert.equal(isDisabled(buttonTag(html, label)), true, label);
@@ -1065,6 +1082,22 @@ test("EditPage: an Arabic or Spanish gap the next Save fills does not hold Publi
   const photo = page({ ...pageProps, missing: [{ locale: null, field: "hero_media_id" }] });
   assert.match(photo, /Publish needs:/);
   assert.equal(isDisabled(buttonTag(photo, "Publish")), true);
+});
+
+test("EditPage: a new or edited item whose Save the screen holds (canSave false) has Publish off, and publish() refuses", () => {
+  for (const state of [{ isNew: true }, { dirty: true }]) {
+    const held = page({ ...pageProps, ...state, canSave: false });
+    assert.equal(isDisabled(buttonTag(held, "Save")), true, JSON.stringify(state));
+    assert.equal(isDisabled(buttonTag(held, "Publish")), true, JSON.stringify(state));
+    assert.equal(held.includes("Publish needs:"), false, JSON.stringify(state));
+    assert.equal(isDisabled(buttonTag(page({ ...pageProps, ...state }), "Publish")), false, `${JSON.stringify(state)} with canSave`);
+  }
+  // Clean and complete: Publish publishes what is stored, as before.
+  assert.equal(isDisabled(buttonTag(page({ ...pageProps, canSave: false }), "Publish")), false);
+  // A Publish click that would save first returns before the save when the screen holds Save.
+  const source = read("edit-page.tsx");
+  const publishFn = /async function publish\(\) \{[\s\S]*?\n  \}\n/.exec(source)?.[0] ?? "";
+  assert.match(publishFn, /if \(isNew \|\| dirty \|\| savePending\) \{\s*(?:\/\/[^\n]*\s*)*if \(!canSave\) return;\s*await save\("publish"\);/);
 });
 
 test("EditPage closed: only the list", () => {

@@ -65,8 +65,9 @@ definePictures("ops-team", {
       await expect(page.getByRole("button", { name: kit.save, exact: true })).toBeDisabled();
       // Publish is held by the same need, never on while Save is off.
       await expect(page.getByRole("button", { name: kit.publish, exact: true })).toBeDisabled();
+      // The need line is the screen's own (under the bar); the kit's list stays for publish gaps.
+      await expect(page.getByText(kit.publishNeeds, { exact: true })).toHaveCount(0);
       return [
-        page.getByText(kit.publishNeeds, { exact: true }),
         page.getByRole("heading", { level: 2, name: kit.editor.sections.settings, exact: true }),
         page.getByText(copy.slugHint, { exact: true }),
         page.getByText(copy.problemSlugNeeded, { exact: true }),
@@ -100,8 +101,9 @@ definePictures("ops-team", {
       await expect(page.getByText(copy.problemSlugNeeded, { exact: true })).toHaveCount(0);
       // Publish is held by the same link, never on while Save is off.
       await expect(page.getByRole("button", { name: kit.publish, exact: true })).toBeDisabled();
+      // Nothing of the screen's own is added to the kit's list.
+      await expect(page.getByText(kit.publishNeeds, { exact: true })).toHaveCount(0);
       return [
-        page.getByText(kit.publishNeeds, { exact: true }),
         page.getByText(copy.linkNeedsHttps, { exact: true }),
         page.getByRole("combobox", { name: `${copy.linkPlatform}: LinkedIn` }),
         page.getByRole("combobox", { name: `${copy.linkPlatform}: Instagram` }),

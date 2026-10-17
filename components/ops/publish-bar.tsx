@@ -12,8 +12,10 @@ import { useDashboardLocale } from "./use-dashboard-locale";
  * The actions of the editor page's top bar (kit panel B, research 4.5). An unpublished item has Save (outlined) and
  * Publish (teal); a published one has Save and update site (content is baked at build, so a save on a live item changes
  * the site) and, when the screen has one, Unpublish. Publish is disabled while anything is missing (the gaps are listed
- * in words), after a 409 publish_incomplete (the server's list, same words), and while a translation did not finish
- * (`translationAlertId` names the alert that says why). `part` splits the bar: the editor draws the buttons beside the
+ * in words), after a 409 publish_incomplete (the server's list, same words), while a translation did not finish
+ * (`translationAlertId` names the alert that says why), and whenever a save is needed (new, edited, or a translation to
+ * try again) while Save is held by the screen's own fields (`saveBlocked`): Publish saves first, so it never runs past a
+ * Save that is off. The screen says why under the bar; nothing is added to "Publish needs:". `part` splits the bar: the editor draws the buttons beside the
  * title and the notes under the bar; `all` (the default) draws both, notes first.
  */
 export function PublishBar({
@@ -75,7 +77,10 @@ export function PublishBar({
         ? alertId
         : translationAlertId
     : undefined;
-  const canSave = !busy && !saveBlocked && (isNew || dirty || savePending);
+  const saveNeeded = isNew || dirty || savePending;
+  const canSave = !busy && !saveBlocked && saveNeeded;
+  // Publish saves first when a save is needed (edit-page publish()): it waits while the screen holds Save.
+  const publishHeld = saveNeeded && saveBlocked;
 
   const notes =
     gaps.length > 0 || warnings.length > 0 || showAlert ? (
@@ -121,7 +126,7 @@ export function PublishBar({
           <Button variant="secondary" busy={busy} disabled={!canSave} onClick={onSave}>
             {copy.save}
           </Button>
-          <Button disabled={busy || blocked} aria-describedby={publishReason} onClick={onPublish}>
+          <Button disabled={busy || blocked || publishHeld} aria-describedby={publishReason} onClick={onPublish}>
             {copy.publish}
           </Button>
         </>

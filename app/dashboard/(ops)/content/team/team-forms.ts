@@ -4,7 +4,6 @@
 
 import type { Locale3, MediaRef, TeamDetail, TeamLink, TextStatus } from "../../../../../components/ops/api-types";
 import type { LiveFields } from "../../../../../components/ops/auto-translate";
-import type { MissingItem } from "../../../../../components/ops/publish-check";
 
 /** The platforms a member's link may be (contract 5.7 stores the name as the link's label). */
 export const LINK_PLATFORMS = ["Instagram", "LinkedIn", "Facebook", "X"] as const;
@@ -131,19 +130,6 @@ export function slugProblem(form: Pick<TeamForm, "slug" | "published">): SlugPro
 /** What Save sends for the address: as typed (trimmed) while the member is not published; nothing once it is. */
 export function slugToSend(form: Pick<TeamForm, "slug" | "published">): { slug: string } | Record<string, never> {
   return form.published ? {} : { slug: form.slug.trim() };
-}
-
-/**
- * What holds Publish besides the kit's own list (missingForPublish): the web address, the links and the email, the
- * same checks that hold Save. The kit's Publish follows only `missing`, so without these Publish would stay on while
- * Save is off and send a member with no address or an http:// link (the server would refuse it).
- */
-export function teamPublishHolds(form: TeamForm): MissingItem[] {
-  const holds: MissingItem[] = [];
-  if (slugProblem(form) !== null) holds.push({ locale: null, field: "slug" });
-  if (!validateLinks(form.links).ok) holds.push({ locale: null, field: "links" });
-  if (!emailOk(form.email)) holds.push({ locale: null, field: "email" });
-  return holds;
 }
 
 /**

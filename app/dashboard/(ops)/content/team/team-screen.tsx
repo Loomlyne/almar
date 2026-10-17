@@ -24,7 +24,6 @@ import {
   TEAM_TEXT_FIELDS,
   emailOk,
   slugProblem,
-  teamPublishHolds,
   linkKey,
   liveTeamFields,
   validateLinks,
@@ -302,10 +301,7 @@ function TeamEditor({ panel, list }: { panel: TeamPanel | null; list: ReactNode 
     ];
   }
 
-  // Publish is off whenever Save is held by the address, a link or the email, as well as by the kit's own list.
-  const missing = form
-    ? [...missingForPublish("team_member", { translations: form.text, media_id: form.photo?.id ?? null }), ...teamPublishHolds(form)]
-    : [];
+  const missing = form ? missingForPublish("team_member", { translations: form.text, media_id: form.photo?.id ?? null }) : [];
 
   return (
     <>
@@ -330,15 +326,7 @@ function TeamEditor({ panel, list }: { panel: TeamPanel | null; list: ReactNode 
         missing={missing}
         error={slugTaken ? null : (panel?.error ?? null)}
         fieldLabel={(field) =>
-          field === "slug"
-            ? copy.fieldSlug.toLocaleLowerCase(loc)
-            : field === "links"
-              ? copy.links.toLocaleLowerCase(loc)
-              : field === "email"
-                ? copy.emailSection.toLocaleLowerCase(loc)
-                : field in fieldLabels
-                  ? fieldLabels[field as TeamTextField]
-                  : undefined
+          field === "slug" ? copy.fieldSlug.toLocaleLowerCase(loc) : field in fieldLabels ? fieldLabels[field as TeamTextField] : undefined
         }
         english={form ? englishOf(form.text.en) : {}}
         savedEnglish={panel ? englishOf(panel.saved.en) : {}}
