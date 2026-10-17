@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CatalogScreen } from "../catalog-screen";
+import { DestinationsScreen } from "./destinations-screen";
 
 export const metadata: Metadata = {
   title: "Destinations",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardDestinationsPage() {
-  return <CatalogScreen kind="destinations" />;
+  return <DestinationsScreen />;
 }
