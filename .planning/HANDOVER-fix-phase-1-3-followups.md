@@ -1,12 +1,16 @@
 # Hand-over: phase 1–3 follow-ups (DRAFT)
 
-**Status: DRAFT, written 2026-10-17 14:31 CET.** Four runs are still pending: they wait for the controller's "go".
+**Status: DRAFT, written 2026-10-17 14:31 CET, updated 14:47 CET after the merge of `origin/main` `82b66bf`.** Four runs are still pending: they wait for the controller's "go".
 This file is completed and committed again after those runs.
 
 - Job: `.planning/prompts/15-followups-phases-1-3.md`
 - Branch: `fix/phase-1-3-followups` (worktree `.claude/worktrees/compassionate-dubinsky-66be64`, local branch
-  `claude/compassionate-dubinsky-66be64`), cut from `origin/main` `bfc3326`; `origin/main` `deb3bda` merged in `ef28ffc`.
-- Code tip at draft time: `3bd80f4` (this file's commit sits on top of it; final commit named in the final version).
+  `claude/compassionate-dubinsky-66be64`), cut from `origin/main` `bfc3326`; `origin/main` `deb3bda` merged in `ef28ffc`;
+  `origin/main` `82b66bf` (PR #18, 03.2-06 catalog, landed as `fa5c3b2`) merged in `f97ff70` with no conflicts.
+- Code tip at draft time: `3bd80f4`, then the merge `f97ff70` (this file's commits sit on top; final commit named in the final version).
+- PR #18 and item 2: 06's destination and catalog-item editors mount `EditPage` with the same props; they open and close
+  it through React state only (no URL change, no `router.refresh`, no server action), so the back-guard flag is not
+  dropped there. PR #18 changes neither `edit-page.tsx` nor any migration. Its specs join run (b).
 - Nothing pushed to `main`, no PR, no deploy, nothing run against the live Supabase project.
 
 ## Items (one commit each, oldest first)
@@ -81,11 +85,12 @@ Diff of each function against `20261005100000` (the check lines are the only cha
 
 | Check | Result |
 |---|---|
-| `npx tsc --noEmit` at `3bd80f4` | 0 |
-| `npm run tokens:check` at `3bd80f4` | theme up to date |
-| `node --test tests/*.test.mjs` at `3bd80f4` | 1934 tests, 1897 pass, 0 fail, 37 skipped (stack tests skip without a stack) |
+| `npx tsc --noEmit` at `f97ff70` | 0 |
+| `npm run tokens:check` at `f97ff70` | theme up to date |
+| `node --test tests/*.test.mjs` at `f97ff70` | 1964 tests, 1924 pass, 0 fail, 40 skipped (stack tests skip without a stack) |
+| same three at `3bd80f4`, before the merge | 0; up to date; 1934 tests, 1897 pass, 0 fail, 37 skipped |
 | (a) stack: item 6 `database.types.ts`, item 7 pgTAP (new file + full `supabase/tests`), bite (check removed from a copy must fail the new pgTAP) | **pending, needs go** |
-| (b) dev: `tests/ops-kit.spec.ts` "Back guard" (4 specs), then a build with the harness flag and `PW_NEXT=start`, same 4 specs | **pending, needs go** |
+| (b) dev: `tests/ops-kit.spec.ts` "Back guard" (4 specs), `tests/ops-catalog-items.spec.ts`, `tests/ops-destinations.spec.ts` (06's editors on the new back-guard); then a build with the harness flag and `PW_NEXT=start`, same three files | **pending, needs go** |
 | (c) dev: `tests/ops-calendar.spec.ts` (item 9) + bite (old `calendar-screen.tsx` must fail the refused-Delete specs) | **pending, needs go** |
 | (d) build lane: `tests/build/stay-detail/stay-detail-held.spec.ts` (item 8) + bite (a real text input outside the footer must fail) | **pending, needs go** |
 | `next build` with next 15.5.27 | **pending**: runs in (b) and in the controller's landing lane |
