@@ -146,7 +146,7 @@ function columnsOf(t: Text, locale: Locale3): Column<Row>[] {
   ];
 }
 
-type PageVariant = "new" | "draft" | "published" | "error" | "warning";
+type PageVariant = "new" | "draft" | "dirty" | "published" | "error" | "warning";
 
 /** The three translated fields, by the names the translate route and the missing list use. */
 const NAMES = ["name", "short_line", "summary"] as const;
@@ -182,7 +182,11 @@ function PageScene({ ctx, variant }: { ctx: SceneContext; variant: PageVariant }
   const kit = OPS_KIT_COPY[ctx.locale];
   const [openKey, setOpenKey] = useState<string | null>(variant === "new" ? "new" : "r1");
   const [published, setPublished] = useState(variant === "published" || variant === "warning");
-  const [values, setValues] = useState<Values>(() => initialValues(variant, t));
+  // "dirty" opens with an English word not yet saved: the Back guard is up from the first render (follow-up 2).
+  const [values, setValues] = useState<Values>(() => {
+    const start = initialValues(variant, t);
+    return variant === "dirty" ? { ...start, en: { ...start.en, name: "[Unsaved]" } } : start;
+  });
   const [saved, setSaved] = useState<Values>(() => initialValues(variant, t));
   const [isNew, setIsNew] = useState(variant === "new");
   const [error, setError] = useState<OpsError | null>(variant === "error" ? SERVER_MISSING : null);
@@ -427,6 +431,7 @@ function ConnectScene({ ctx }: { ctx: SceneContext }) {
 export const scenes: Scenes = {
   "page-new": (ctx) => <PageScene ctx={ctx} variant="new" />,
   "page-draft": (ctx) => <PageScene ctx={ctx} variant="draft" />,
+  "page-dirty": (ctx) => <PageScene ctx={ctx} variant="dirty" />,
   "page-published": (ctx) => <PageScene ctx={ctx} variant="published" />,
   "page-error": (ctx) => <PageScene ctx={ctx} variant="error" />,
   "page-warning": (ctx) => <PageScene ctx={ctx} variant="warning" />,

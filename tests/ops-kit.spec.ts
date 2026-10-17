@@ -563,6 +563,71 @@ test.describe("behaviour", () => {
   }
 });
 
+// ---- the Back guard (follow-up 2) -----------------------------------------------------------------------------------
+// Dev (next dev, React strict mode: effects run twice) by default; the production server with PW_NEXT=start after
+// `ALMAR_HARNESS=1 npx next build`. The node side of the same cases is tests/ops-back-guard.test.mjs.
+
+test.describe("Back guard", () => {
+  test.setTimeout(120_000);
+  const copy = OPS_KIT_COPY.en;
+  const question = (page: Page) => page.getByRole("dialog", { name: copy.discardTitle });
+  const sceneOf = (page: Page) => new URL(page.url()).searchParams.get("s");
+  const back = (page: Page) => page.evaluate(() => window.history.back());
+
+  test("opened with unsaved changes, nothing is asked until Back; Back asks, Keep editing stays", async ({ page }) => {
+    await openScene(page, "page-dirty", "desktop", "en");
+    await expect(page.locator("#kit-name")).toHaveValue("[Unsaved]");
+    await page.waitForTimeout(1_500);
+    await expect(question(page), "strict mode's double effect asks nothing").toHaveCount(0);
+    await back(page);
+    await expect(question(page)).toBeVisible();
+    await button(page, copy.keepEditing).click();
+    await expect(question(page)).toHaveCount(0);
+    expect(sceneOf(page)).toBe("page-dirty");
+    await back(page);
+    await expect(question(page), "the guard is back on after Keep editing").toBeVisible();
+  });
+
+  test("Save, then a navigation at once: it is neither aborted nor undone", async ({ page }) => {
+    await mockTranslate(page, "ok");
+    await openScene(page, "page-draft", "desktop", "en");
+    await page.locator("#kit-name").fill("[Renamed]");
+    await button(page, copy.save).click();
+    await expectCalled(page, "save:save:complete");
+    const response = await page.goto(harnessUrl("list", "en"));
+    expect(response?.ok(), "page.goto is not aborted (net::ERR_ABORTED)").toBe(true);
+    await page.waitForTimeout(1_000);
+    expect(sceneOf(page), "no late Back undid the navigation").toBe("list");
+  });
+
+  test("after Save, one Back leaves the page", async ({ page }) => {
+    await mockTranslate(page, "ok");
+    await openScene(page, "list", "desktop", "en");
+    await openScene(page, "page-draft", "desktop", "en");
+    await page.locator("#kit-name").fill("[Renamed]");
+    await button(page, copy.save).click();
+    await expectCalled(page, "save:save:complete");
+    await back(page);
+    await expect.poll(() => sceneOf(page), { timeout: 10_000 }).toBe("list");
+  });
+
+  test("a reload with unsaved changes, then Forward: one Back still leaves the page", async ({ page }) => {
+    page.on("dialog", (dialog) => void dialog.accept());
+    await openScene(page, "list", "desktop", "en");
+    await openScene(page, "page-draft", "desktop", "en");
+    await page.locator("#kit-name").fill("[Changed]");
+    await page.reload();
+    await settle(page);
+    await page.waitForTimeout(1_000);
+    await page.goForward().catch(() => null);
+    await settle(page);
+    await page.waitForTimeout(1_000);
+    expect(sceneOf(page)).toBe("page-draft");
+    await back(page);
+    await expect.poll(() => sceneOf(page), { timeout: 10_000, message: "Forward did not leave a spare entry under the page" }).toBe("list");
+  });
+});
+
 // ---- dates --------------------------------------------------------------------------------------------------------
 
 /** Today in Dubai plus `days`, as YYYY-MM-DD (the scene seeds its ranges the same way). */

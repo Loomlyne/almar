@@ -28,7 +28,9 @@ export default defineConfig({
     baseURL,
   },
   webServer: {
-    command: `npm run dev -- -H 127.0.0.1 -p ${port}`,
+    // PW_NEXT=start runs the production server (after `ALMAR_HARNESS=1 npx next build`), for a spec that must hold in
+    // the build as well as in dev's strict mode (tests/ops-kit.spec.ts "Back guard").
+    command: process.env.PW_NEXT === "start" ? `npm run start -- -H 127.0.0.1 -p ${port}` : `npm run dev -- -H 127.0.0.1 -p ${port}`,
     url: baseURL,
     reuseExistingServer: false,
     env: { ALMAR_HARNESS: "1" },
