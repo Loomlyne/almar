@@ -48,6 +48,13 @@ restoring by copy, never `git checkout` a file)
    cache poisoning), with anything pinned to it; the lockfile changes only for `next` and its own packages. Last commit
    on the branch, so it merges cleanly after the wave 4 jobs land.
 
+11. **Arabic Select chevron points up** (03.2-07 picture review, 2026-10-17): `components/ui/select.tsx:91-92` combines
+   `rtl:-scale-x-100` with `rotate-90`. Tailwind v4 applies scale before rotate, so in RTL the closed chevron points up
+   (seen in every Arabic dashboard Select: stays list filter, Pets, Infants, Destination). The down chevron is symmetric,
+   so drop the mirror on this span (or mirror only before rotating). On `main` since `7902a7d`. Test: in Arabic, the
+   closed trigger's chevron points down and the open one points up (DOM check of the computed transform), bitten.
+   Edit before item 10's commit; its spec joins one of your queued runs, with no extra slot.
+
 Not in this job: the primary button's text colour (ivory vs white), the nosniff header on the media host and the
 `wrangler tail` CPU reading (deploy-time items for the controller).
 
