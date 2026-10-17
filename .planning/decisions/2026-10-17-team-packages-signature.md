@@ -12,3 +12,9 @@ Owner, question form in the controller session, answered between 15:08 and 15:10
    member editor gets a Web address field, that works the same as on stays and destinations: same field, same pattern rule and
    help line, and it locks once the member is published. The team editor states that change are shot
    again, and the owner signs that change on its own.
+
+**Signed, 15:31–15:37 CET** (question form, "Signed"): the change as built and shot at `e0a87fa` (27 team-editor
+pictures). It covers the member Web address field (it locks once published), "Link address" / "Dirección del enlace" on
+social-media rows (Arabic was already "عنوان الرابط"), and a kit fix on every editor: Publish is off whenever Save is
+blocked (`components/ops/publish-bar.tsx`, `edit-page.tsx`, commit `c4155f9`). Before the fix, the site refused the
+publish, but the button looked usable.
