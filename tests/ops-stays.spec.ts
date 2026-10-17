@@ -3,12 +3,17 @@ import { isAbsolute, join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
 import { OPS_STAYS_COPY } from "../lib/copy/ops-stays";
+import { DASHBOARD_COPY } from "../lib/copy/dashboard";
+import type { Locale3 } from "../components/ops/api-types";
+import { openDashboard, openRow } from "./helpers/ops-catalog-api";
+import { STAY_NEW_ID, mockStaysApi, postsTo, refusal, warmStays } from "./helpers/ops-stays-api";
 import { VIEWPORTS, sceneStates, settle, type Viewport } from "./journey/matrix";
 
 // Catalog -> Stays on its harness scene (tests/journey/scenes/ops-stays.tsx): the list and the stay editor on the kit's
 // editor page (kit panel B). The API is never called: the scene holds its own state and writes every handler into a
-// hidden log (`ops-stays-log`). The behaviour block (request bodies against /api/ops/* mocks) comes with the wiring,
-// after the owner has signed the pictures.
+// hidden log (`ops-stays-log`). The behaviour block at the end runs on the real page (/dashboard/catalog/stays, next
+// dev) with every /api/ops/* answered by page.route fixtures shaped like the contract (tests/helpers/ops-stays-api.ts);
+// the request bodies are asserted.
 
 type Locale = "en" | "ar" | "es";
 
@@ -192,5 +197,149 @@ test.describe("pictures", () => {
         });
       }
     }
+  }
+});
+
+// ---- behaviour: the real page, the API mocked -------------------------------------------------------------------
+
+const PAGE_PATH = "/dashboard/catalog/stays";
+const COMBOS: { viewport: Viewport; locale: Locale3 }[] = [
+  { viewport: "desktop", locale: "en" },
+  { viewport: "phone", locale: "ar" },
+];
+
+type SaveItem = { id?: string; translations?: Record<string, Record<string, unknown> | null>; connections?: unknown; gallery_media_ids?: unknown } & Record<string, unknown>;
+const itemOf = (body: Record<string, unknown>) => body.item as SaveItem;
+
+test.describe("behaviour", () => {
+  test.describe.configure({ mode: "parallel" });
+  test.setTimeout(120_000);
+  test.beforeAll(async ({ browser, baseURL }) => {
+    test.setTimeout(300_000);
+    await warmStays(browser, PAGE_PATH, baseURL, DASHBOARD_COPY.en.rail.stays);
+  });
+
+  for (const { viewport, locale } of COMBOS) {
+    const copy = OPS_STAYS_COPY[locale];
+    const kit = OPS_KIT_COPY[locale];
+    const heading = DASHBOARD_COPY[locale].rail.stays;
+    const at = `${viewport} ${locale}`;
+    const open = (page: Page, baseURL: string | undefined) => openDashboard(page, PAGE_PATH, viewport, locale, baseURL, heading);
+    const openStay = async (page: Page, title: string) => {
+      await openRow(page, title).click();
+      await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+    };
+
+    test(`Save on a draft: English as typed, the AI's Arabic and Spanish as drafts, no join set resent (${at})`, async ({ page, baseURL }) => {
+      const api = await mockStaysApi(page);
+      await open(page, baseURL);
+      await openStay(page, "[Casa Dos]");
+      await page.locator("#stay-tagline").fill("[New tagline]");
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      const [save] = await postsTo(api, "stays");
+      expect(api.of("translate").map((t) => t.target).sort()).toEqual(["ar", "es"]);
+      const item = itemOf(save!);
+      expect(save!.action).toBe("save");
+      expect(item).toMatchObject({ id: "s2", slug: "casa-dos", destination_id: "d1", min_nights: 2, pets_rule: "not_allowed", pets_fee_aed: null, hero_media_id: "h-s2" });
+      expect(item.translations!.en).toMatchObject({ title: "[Casa Dos]", tagline: "[New tagline]", status: "draft" });
+      expect(item.translations!.ar).toMatchObject({ tagline: "[AR] [New tagline]", status: "draft" });
+      expect(item.translations!.es).toMatchObject({ tagline: "[ES] [New tagline]", status: "draft" });
+      // The gallery and the connections did not change, so they are not sent (a key not sent is left alone).
+      expect("gallery_media_ids" in item).toBe(false);
+      expect("connections" in item).toBe(false);
+      expect(api.of("publish")).toHaveLength(0);
+      await expect(page.getByText(kit.editor.translationsUpdated, { exact: true })).toBeVisible();
+    });
+
+    test(`Publish a saved draft: one save with every language published, then the publish call; the no-rate warning (${at})`, async ({ page, baseURL }) => {
+      const api = await mockStaysApi(page);
+      await open(page, baseURL);
+      await openStay(page, "[Casa Dos]");
+      await page.getByRole("button", { name: kit.publish, exact: true }).click();
+      const [publish] = await postsTo(api, "publish");
+      const saves = api.of("stays");
+      expect(saves).toHaveLength(1);
+      const tr = itemOf(saves[0]!).translations!;
+      expect([tr.en!.status, tr.ar!.status, tr.es!.status]).toEqual(["published", "published", "published"]);
+      expect(publish).toEqual({ entity: "stay", id: "s2", published: true });
+      expect(api.posts.findIndex((p) => p.path === "stays")).toBeLessThan(api.posts.findIndex((p) => p.path === "publish"));
+      await expect(page.getByRole("button", { name: kit.unpublish, exact: true })).toBeVisible();
+      await expect(page.getByText(kit.warnNoBaseRate, { exact: true })).toBeVisible();
+    });
+
+    test(`Delete waits while published; Unpublish sends publish false, then Delete asks and sends delete (${at})`, async ({ page, baseURL }) => {
+      const api = await mockStaysApi(page);
+      await open(page, baseURL);
+      await openStay(page, "[Casa Uno]");
+      const remove = page.getByRole("button", { name: copy.deleteStay, exact: true });
+      await expect(remove).toBeDisabled();
+      await page.getByRole("button", { name: kit.unpublish, exact: true }).click();
+      const [publish] = await postsTo(api, "publish");
+      expect(publish).toEqual({ entity: "stay", id: "s1", published: false });
+      await expect(remove).toBeEnabled();
+      await remove.click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible();
+      await dialog.getByRole("button", { name: copy.deleteStay, exact: true }).click();
+      await expect.poll(() => api.of("stays").filter((b) => b.action === "delete")).toEqual([{ action: "delete", id: "s1" }]);
+      await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+      await expect(openRow(page, "[Casa Uno]")).toHaveCount(0);
+    });
+
+    test(`Reorder: Move down on the first stay sends every id in the new order (${at})`, async ({ page, baseURL }) => {
+      const api = await mockStaysApi(page);
+      await open(page, baseURL);
+      await page.getByRole("button", { name: kit.moveDown, exact: true }).filter({ visible: true }).first().click();
+      await expect.poll(() => api.of("stays")).toEqual([{ action: "reorder", ids: ["s2", "s1", "s3"] }]);
+    });
+
+    test(`Connections order: Move down on an experience, Save sends each kind in the order shown (${at})`, async ({ page, baseURL }) => {
+      const api = await mockStaysApi(page);
+      await open(page, baseURL);
+      await openStay(page, "[Casa Dos]");
+      await page.locator('[data-connect-row="e1"] button[data-move="down"]').click();
+      await expect.poll(() => page.locator("[data-connect-row]").evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.connectRow))).toEqual(["e2", "e1", "v1"]);
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      const [save] = await postsTo(api, "stays");
+      expect(itemOf(save!).connections).toEqual({ experience_ids: ["e2", "e1"], service_ids: ["v1"] });
+      // Read back: the editor shows the stored order.
+      await expect.poll(() => page.locator("[data-connect-row]").evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.connectRow))).toEqual(["e2", "e1", "v1"]);
+    });
+
+    test(`A save the server refuses (destination not published) is said in words, the form kept (${at})`, async ({ page, baseURL }) => {
+      const api = await mockStaysApi(page, (path, body) => (path === "stays" && body.action === "save" ? refusal(409, "parent_unpublished") : null));
+      await open(page, baseURL);
+      await openStay(page, "[Casa Uno]");
+      await page.locator("#stay-tagline").fill("[Changed]");
+      await page.getByRole("button", { name: kit.saveAndUpdateSite, exact: true }).click();
+      await postsTo(api, "stays");
+      await expect(page.getByText(kit.errors.parent_unpublished, { exact: true })).toBeVisible();
+      await expect(page.getByText("parent_unpublished")).toHaveCount(0);
+      await expect(page.locator("#stay-tagline")).toHaveValue("[Changed]");
+    });
+
+    test(`New stay: Save creates it with every fact, empty join sets and the English, then edits it by its id (${at})`, async ({ page, baseURL }) => {
+      const api = await mockStaysApi(page);
+      await open(page, baseURL);
+      await page.getByRole("button", { name: DASHBOARD_COPY[locale].newStay, exact: true }).click();
+      await page.locator("#stay-title").fill("[Casa Nueva]");
+      await page.locator("#stay-destination").click();
+      await page.getByRole("option", { name: "[Destination 1]", exact: true }).click();
+      await page.locator("#stay-slug").fill("casa-nueva");
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      const [create] = await postsTo(api, "stays");
+      const item = itemOf(create!);
+      expect("id" in item).toBe(false);
+      expect(item).toMatchObject({ slug: "casa-nueva", destination_id: "d1", min_nights: 1, pets_rule: null, pets_fee_aed: null, infants_count: null, hero_media_id: null });
+      expect(item.gallery_media_ids).toEqual([]);
+      expect(item.connections).toEqual({ experience_ids: [], service_ids: [] });
+      expect(item.translations!.en).toMatchObject({ title: "[Casa Nueva]", status: "draft" });
+      await expect(page.getByRole("heading", { level: 1, name: "[Casa Nueva]" })).toBeVisible();
+      // The next Save edits the stay it created, by its id.
+      await page.locator("#stay-tagline").fill("[Second]");
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      const saves = await postsTo(api, "stays", 2);
+      expect(itemOf(saves[1]!).id).toBe(STAY_NEW_ID);
+    });
   }
 });
