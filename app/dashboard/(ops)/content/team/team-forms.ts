@@ -1,9 +1,9 @@
-// The pure side of Content -> Team (plan 03.2-08): form state, the link and email rules, and the live Arabic and Spanish
-// fields for the kit editor. No React, no fetch, no directive. The save payload (teamPayload) joins this file in Task 2,
-// after the owner signs the pictures.
+// The pure side of Content -> Team (plan 03.2-08): form state, the web address, link and email rules, the save payload,
+// and the live Arabic and Spanish fields for the kit editor. No React, no fetch, no directive.
 
 import type { Locale3, MediaRef, TeamDetail, TeamLink, TextStatus } from "../../../../../components/ops/api-types";
 import type { LiveFields } from "../../../../../components/ops/auto-translate";
+import { translationsFor } from "../../catalog/catalog-forms";
 
 /** The platforms a member's link may be (contract 5.7 stores the name as the link's label). */
 export const LINK_PLATFORMS = ["Instagram", "LinkedIn", "Facebook", "X"] as const;
@@ -130,6 +130,30 @@ export function slugProblem(form: Pick<TeamForm, "slug" | "published">): SlugPro
 /** What Save sends for the address: as typed (trimmed) while the member is not published; nothing once it is. */
 export function slugToSend(form: Pick<TeamForm, "slug" | "published">): { slug: string } | Record<string, never> {
   return form.published ? {} : { slug: form.slug.trim() };
+}
+
+export type TeamRefusal = "slug" | "links" | "email";
+
+/**
+ * The `save` item of /api/ops/team (contract 5.7), or the field the screen refuses before any request (the same rules
+ * the server applies). The web address is sent as typed until published, never after; an empty email is null; links
+ * are the trimmed rows with an address. On Publish every language with a name goes out published; a Save keeps each
+ * language as it is (a published one stays published).
+ */
+export function teamPayload(form: TeamForm, { publish }: { publish: boolean }): { ok: true; item: Record<string, unknown> } | { ok: false; field: TeamRefusal } {
+  if (slugProblem(form) !== null) return { ok: false, field: "slug" };
+  const links = validateLinks(form.links);
+  if (!links.ok) return { ok: false, field: "links" };
+  if (!emailOk(form.email)) return { ok: false, field: "email" };
+  const item: Record<string, unknown> = {};
+  if (form.id !== null) item.id = form.id;
+  Object.assign(item, slugToSend(form));
+  item.photo_media_id = form.photo?.id ?? null;
+  const email = form.email.trim();
+  item.email = email === "" ? null : email;
+  item.links = links.links;
+  item.translations = translationsFor(form, publish);
+  return { ok: true, item };
 }
 
 /**

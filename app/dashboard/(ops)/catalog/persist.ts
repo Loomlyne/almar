@@ -17,7 +17,7 @@ export type Persisted =
 export async function saveThenPublish(
   send: SendFn,
   path: `/api/ops/${string}`,
-  entity: "destination" | "catalog_item",
+  entity: "destination" | "catalog_item" | "team_member" | "journey_tier",
   item: Record<string, unknown>,
   publish: boolean,
 ): Promise<Persisted> {

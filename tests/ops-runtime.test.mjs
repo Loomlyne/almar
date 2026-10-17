@@ -127,14 +127,14 @@ test("OPS_LIVE_SECTIONS holds wired sections only (03.2-09: /content/media); unw
   assert.equal(OPS_PATH_HEADER, "x-almar-ops-path");
 });
 
-test("OPS_LIVE_SECTIONS pins all five wired content sections (03.2-09 media, 03.2-12 pages, blog, legal, navigation); Team and the rest stay off", () => {
-  for (const section of ["/content/media", "/content/pages", "/content/blog", "/content/legal", "/content/navigation"]) {
+test("OPS_LIVE_SECTIONS pins the wired content and team sections (03.2-09 media, 03.2-12 pages, blog, legal, navigation, 03.2-08 team and packages); the rest stay off", () => {
+  for (const section of ["/content/media", "/content/pages", "/content/blog", "/content/legal", "/content/navigation", "/content/team", "/catalog/packages"]) {
     assert.ok(OPS_LIVE_SECTIONS.includes(section), `${section} is listed`);
     assert.equal(isLiveOpsPath(section), true, `${section} (browser path)`);
     assert.equal(isLiveOpsPath(`/dashboard${section}`), true, `/dashboard${section} (rewrite target)`);
     assert.equal(isLiveOpsPath(`${section}/`), true, `${section}/ (trailing slash)`);
   }
-  for (const path of ["/content", "/content/team", "/content/pages-old", "/catalog/packages"]) assert.equal(isLiveOpsPath(path), false, path);
+  for (const path of ["/content", "/content/team-old", "/content/pages-old", "/catalog/packages-old", "/catalog"]) assert.equal(isLiveOpsPath(path), false, path);
   assert.equal(new Set(OPS_LIVE_SECTIONS).size, OPS_LIVE_SECTIONS.length, "no section is listed twice");
 });
 

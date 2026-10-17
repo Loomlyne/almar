@@ -237,7 +237,8 @@ test("the Media page is a server component with noindex and no gate of its own; 
   assert.ok(OPS_LIVE_SECTIONS.includes("/content/media"));
   assert.equal(isLiveOpsPath("/content/media"), true);
   assert.equal(isLiveOpsPath("/dashboard/content/media"), true);
-  assert.equal(isLiveOpsPath("/content/team"), false);
+  // A sibling under /content is not Media: exact segments only.
+  assert.equal(isLiveOpsPath("/content/media-old"), false);
 });
 
 test("the Media screen is on the kit's editor page: no drawer, no language tabs, no I-checked box, no Translate button", () => {

@@ -1,10 +1,11 @@
 // The pure side of Catalog -> Packages, the three home journeys (plan 03.2-08, C-15): form state, how the site reads the
 // price line, and the live Arabic and Spanish fields for the kit editor. No React, no fetch, no directive. The price line
 // is the owner's own text: nothing here computes, rounds or fills a price; the reading only repeats what the server
-// parsed from the saved English line (contract 5.8). The save payload (journeyPayload) joins this file in Task 2.
+// parsed from the saved English line (contract 5.8).
 
 import type { JourneyDetail, Locale3, MediaRef, TextStatus } from "../../../../../components/ops/api-types";
 import type { LiveFields } from "../../../../../components/ops/auto-translate";
+import { translationsFor } from "../catalog-forms";
 
 export const JOURNEY_TEXT_FIELDS = ["name", "price_label", "tagline", "duration_label", "ideal_for_label", "ideal_for", "body"] as const;
 export type JourneyTextField = (typeof JOURNEY_TEXT_FIELDS)[number];
@@ -88,4 +89,21 @@ export function liveJourneyFields(published: boolean, status: Record<Locale3, Te
     live[target] = JOURNEY_TEXT_FIELDS.filter((field) => saved[target][field].trim() !== "");
   }
   return live;
+}
+
+/**
+ * The `save` item of /api/ops/journeys (contract 5.8): existing ids only (C-15: no create, no slug), the stored
+ * `is_featured` sent back unchanged, the photo, and the translations. English always carries the name and the price
+ * line as typed (the server reads the price from it); no price column is ever sent. On Publish every language with a
+ * name goes out published; a Save keeps each language as it is. The price line is required in every record the server
+ * takes (contract 5.8), so an Arabic or Spanish record with a name and no price line (the AI did not fill it) is left
+ * out: that language stays as it is, as one with no name does.
+ */
+export function journeyPayload(form: JourneyForm, { publish }: { publish: boolean }): Record<string, unknown> {
+  const translations = translationsFor(form, publish);
+  for (const target of ["ar", "es"] as const) {
+    const record = translations[target];
+    if (record && record.price_label === null) delete translations[target];
+  }
+  return { id: form.id, is_featured: form.is_featured, media_id: form.media?.id ?? null, translations };
 }

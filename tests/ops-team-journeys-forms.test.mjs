@@ -9,6 +9,7 @@ const team = await loadTs("app/dashboard/(ops)/content/team/team-forms.ts");
 const journeys = await loadTs("app/dashboard/(ops)/catalog/packages/journey-forms.ts");
 const { OPS_TEAM_COPY } = await loadTs("lib/copy/ops-team.ts");
 const server = await loadTs("lib/ops/validate.ts");
+const parse = await loadTs("lib/ops/validate-catalog.ts");
 
 const row = (url, label = "Instagram") => ({ key: `k-${url}-${label}`, label, url });
 
@@ -163,3 +164,99 @@ test("OPS_TEAM_COPY: the same keys in en, ar and es, none empty; dashboard Spani
   // A link's address and the member's web address are two fields on one page: never one name for both.
   for (const l of ["en", "ar", "es"]) assert.notEqual(OPS_TEAM_COPY[l].team.linkAddress, OPS_TEAM_COPY[l].team.fieldSlug, l);
 });
+
+// ---- payloads (Task 2): what Save and Publish send, read by the server's own parsers -----------------------------
+
+const PHOTO = { id: "11111111-1111-4111-8111-111111111111", key: "uploads/a.webp", url: "https://media.example/a.webp", width: 10, height: 10 };
+const MEMBER_ID = "22222222-2222-4222-8222-222222222222";
+const memberText = (name, role = "", bio = "") => ({ name, role, bio });
+const member = (over = {}) => ({
+  ...team.emptyTeamForm(),
+  slug: "first-last",
+  email: " name@example.com ",
+  links: [row(" https://www.instagram.com/a "), row("")],
+  text: { en: memberText("[Name]", "[Role]"), ar: memberText(""), es: memberText("") },
+  ...over,
+});
+
+test("teamPayload: a new member sends the typed address, the photo, the trimmed email and links, English published", () => {
+  const out = team.teamPayload(member({ photo: PHOTO }), { publish: false });
+  assert.equal(out.ok, true);
+  assert.deepEqual(out.item, {
+    slug: "first-last",
+    photo_media_id: PHOTO.id,
+    email: "name@example.com",
+    links: [{ label: "Instagram", url: "https://www.instagram.com/a" }],
+    translations: { en: { name: "[Name]", role: "[Role]", bio: null, status: "published" }, ar: null, es: null },
+  });
+  assert.equal("id" in out.item, false, "a new member has no id");
+  const parsed = parse.parseTeamAction({ action: "save", item: out.item });
+  assert.equal(parsed.action, "save");
+  assert.equal(parsed.item.slug, "first-last");
+});
+
+test("teamPayload: no email is null; a published member sends no address; Save keeps drafts, Publish publishes them", () => {
+  const draft = member({ id: MEMBER_ID, email: "", text: { en: memberText("[Name]"), ar: memberText("[AR]"), es: memberText("[ES]") } });
+  const saved = team.teamPayload(draft, { publish: false });
+  assert.equal(saved.item.email, null);
+  assert.equal(saved.item.id, MEMBER_ID);
+  assert.equal(saved.item.translations.ar.status, "draft");
+  assert.equal(team.teamPayload(draft, { publish: true }).item.translations.es.status, "published");
+  const live = team.teamPayload({ ...draft, published: true, slug: "Locked Old", status: { en: "published", ar: "published", es: "draft" } }, { publish: false });
+  assert.equal(live.ok, true);
+  assert.equal("slug" in live.item, false);
+  assert.equal(live.item.translations.ar.status, "published", "a Save never takes a live language off");
+  assert.equal(parse.parseTeamAction({ action: "save", item: live.item }).item.slug, undefined);
+});
+
+test("teamPayload: a missing or bad address, an http link or a bad email is refused before any request, by field", () => {
+  assert.deepEqual(team.teamPayload(member({ slug: "" }), { publish: false }), { ok: false, field: "slug" });
+  assert.deepEqual(team.teamPayload(member({ slug: "Bad_Address" }), { publish: true }), { ok: false, field: "slug" });
+  assert.deepEqual(team.teamPayload(member({ links: [row("http://www.linkedin.com/in/a", "LinkedIn")] }), { publish: false }), { ok: false, field: "links" });
+  assert.deepEqual(team.teamPayload(member({ email: "name@" }), { publish: false }), { ok: false, field: "email" });
+});
+
+const journeyDetail = (over = {}) => ({
+  id: "33333333-3333-4333-8333-333333333333",
+  slug: "the-classic",
+  is_featured: true,
+  media_id: PHOTO.id,
+  image: PHOTO,
+  price_from: { amount: "4900.00", currency: "USD" },
+  price_estimate: null,
+  is_published: true,
+  position: 1,
+  translations: {
+    en: { name: "[Name]", price_label: "From USD [amount]", tagline: "[Tagline]", duration_label: null, ideal_for_label: null, ideal_for: null, body: null, status: "published" },
+    ar: { name: "[AR]", price_label: "[AR price]", tagline: null, duration_label: null, ideal_for_label: null, ideal_for: null, body: null, status: "published" },
+    es: null,
+  },
+  translation_state: {},
+  updated_at: "2026-10-17T00:00:00Z",
+  ...over,
+});
+
+test("journeyPayload: the id, the stored is_featured, the photo and the text; never a price column, a slug or a create", () => {
+  const item = journeys.journeyPayload(journeys.journeyForm(journeyDetail()), { publish: false });
+  assert.deepEqual(Object.keys(item).sort(), ["id", "is_featured", "media_id", "translations"]);
+  assert.equal(item.is_featured, true);
+  assert.equal(item.media_id, PHOTO.id);
+  assert.deepEqual(item.translations.en, { name: "[Name]", price_label: "From USD [amount]", tagline: "[Tagline]", duration_label: null, ideal_for_label: null, ideal_for: null, body: null, status: "published" });
+  assert.equal(item.translations.ar.status, "published");
+  assert.equal(item.translations.es, null);
+  for (const key of ["price_from", "price_estimate", "slug", "price_from_amount"]) assert.equal(key in item, false, key);
+  const parsed = parse.parseJourneyAction({ action: "save", item });
+  assert.equal(parsed.action, "save");
+  assert.equal(parsed.item.translations.en.price_label, "From USD [amount]", "the line is stored as typed");
+});
+
+test("journeyPayload: an Arabic or Spanish record with a name and no price line is left out (the server needs one)", () => {
+  const form = journeys.journeyForm(journeyDetail());
+  form.text.es = { ...journeys.blankJourneyText(), name: "[ES]" };
+  form.text.ar = { ...form.text.ar, price_label: "" };
+  const item = journeys.journeyPayload(form, { publish: true });
+  assert.equal("ar" in item.translations, false);
+  assert.equal("es" in item.translations, false);
+  assert.doesNotThrow(() => parse.parseJourneyAction({ action: "save", item }));
+});
+

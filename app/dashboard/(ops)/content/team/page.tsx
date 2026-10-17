@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ContentScreen } from "../content-screen";
+import { TeamScreen } from "./team-screen";
 
 export const metadata: Metadata = {
   title: "Team",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardTeamPage() {
-  return <ContentScreen kind="team" />;
+  return <TeamScreen />;
 }
