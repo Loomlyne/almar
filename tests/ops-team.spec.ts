@@ -88,8 +88,8 @@ definePictures("ops-team", {
       await expect(page.getByLabel(copy.linkAddress)).toHaveCount(2);
       return [
         page.getByText(copy.linkNeedsHttps, { exact: true }),
-        page.getByRole("button", { name: `${copy.linkPlatform}: LinkedIn` }),
-        page.getByRole("button", { name: `${copy.linkPlatform}: Instagram` }),
+        page.getByRole("combobox", { name: `${copy.linkPlatform}: LinkedIn` }),
+        page.getByRole("combobox", { name: `${copy.linkPlatform}: Instagram` }),
       ];
     },
   },
