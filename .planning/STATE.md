@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
-**2026-10-17 14:41 CET:** **03.2-06 landed** (catalog: destinations, experiences and services on the kit editor) as `fa5c3b2` on the owner's Ship, PR #18; no migration, not deployed. Wave 4 left: 03.2-07 (pictures shooting), 03.2-15 (after 07), 03.2-08 (pictures next); follow-ups job in progress.
+**2026-10-17 14:41 CET:** **03.2-06 landed** (catalog: destinations, experiences and services on the kit editor) as `fa5c3b2` on the owner's Ship, PR #18; no migration, not deployed. Wave 4 left: 03.2-07 (pictures shooting since 14:44; the 14:38 go never ran, its detached launcher was blocked), 03.2-15 (after 07), 03.2-08 (pictures next); follow-ups job in progress.
 
 **2026-10-16 16:00 CET:** **03.2-13 landed** (Calendar: block dates on the kit editor page) as `b1cf7ae` on the owner's Ship (15:55, question form), PR #17; no migration, not deployed. Earlier, **3.3 part B landed** (Contact inquiry form, footer newsletter, form hardening; plans 03.3-26, -27, -29) as `7cf9ce2` on 2026-10-15 03:12 (+04), PR #16; not deployed (Resend domain, `RESEND_API_KEY` on `almar` and the preview review gate it). Wave 4 left: 03.2-06 (PR #18, lands next), 03.2-07 (pictures), 03.2-15 (signed, waits for 07), then 03.2-08. Board: `.planning/CONTROL-BOARD.md`.
 
