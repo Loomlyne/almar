@@ -42,6 +42,9 @@ export const OPS_LIVE_SECTIONS: readonly string[] = [
   "/content/blog",
   "/content/legal",
   "/content/navigation",
+  // 03.2-06: Catalog -> Destinations and Experiences and services, on the kit editor.
+  "/catalog/destinations",
+  "/catalog/experiences",
   // 03.2-13: the calendar (block dates).
   "/calendar",
 ];
