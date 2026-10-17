@@ -18,32 +18,45 @@ test("calendar page has no page gate (02-04 owner gate in the layout) and delega
   assert.match(page, /from ["']\.\/calendar-screen["']/);
 });
 
-test("calendar screen uses Asia/Dubai and does not implement overlap, hold, or cutoff", () => {
-  const text = readFileSync(CALENDAR_SCREEN, "utf8");
-  assert.match(text, /Asia\/Dubai/);
-  assert.doesNotMatch(text.toLowerCase(), /overlap/);
-  assert.doesNotMatch(text.toLowerCase(), /\bhold\b/);
-  assert.doesNotMatch(text.toLowerCase(), /cutoff/);
+const CALENDAR_FILES = [
+  "app/dashboard/(ops)/calendar/calendar-screen.tsx",
+  "app/dashboard/(ops)/calendar/calendar-view.tsx",
+  "app/dashboard/(ops)/calendar/block-form.ts",
+  "app/dashboard/(ops)/calendar/block-form-fields.tsx",
+];
+const calendarText = () => CALENDAR_FILES.map((file) => readFileSync(file, "utf8")).join("\n");
+const stripComments = (text) => text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+
+test("the Calendar reads days in Asia/Dubai (OPS-09) and implements no hold or cutoff; an overlap is only the server's count", () => {
+  assert.match(readFileSync("app/dashboard/(ops)/calendar/block-form.ts", "utf8"), /Asia\/Dubai/);
+  const text = stripComments(calendarText()).toLowerCase();
+  assert.doesNotMatch(text, /\bhold\b/);
+  assert.doesNotMatch(text, /cutoff/);
 });
 
-test("calendar screen draws no booking and does not use CalendarPanel", () => {
-  const text = readFileSync(CALENDAR_SCREEN, "utf8");
+test("calendar screen draws no booking and does not use CalendarPanel itself (the date field does)", () => {
+  const text = calendarText();
   assert.doesNotMatch(text, /CalendarPanel/);
   assert.doesNotMatch(text, /booking-row|booking-bar|booking-title/);
 });
 
-test("calendar screen uses getDayOfWeek with en-GB for the Monday-start grid", () => {
-  const text = readFileSync(CALENDAR_SCREEN, "utf8");
-  assert.match(text, /getDayOfWeek\(/);
-  assert.match(text, /"en-GB"/);
-  assert.match(text, /today\(/);
+test("the month grid is Monday-first (getDayOfWeek with en-GB) and the screen takes today from the Dubai day", () => {
+  const view = readFileSync("app/dashboard/(ops)/calendar/calendar-view.tsx", "utf8");
+  assert.match(view, /getDayOfWeek\(/);
+  assert.match(view, /"en-GB"/);
+  const screen = readFileSync(CALENDAR_SCREEN, "utf8");
+  assert.match(screen, /dubaiDay\(/);
 });
 
-test("the empty day sidebar has No bookings yet, New booking, and Block", () => {
-  const text = readFileSync(CALENDAR_SCREEN, "utf8");
-  assert.match(text, /copy\.noBookingsYet/);
-  assert.match(text, /copy\.newBooking/);
-  assert.match(text, /copy\.block/);
+test("no dead control: the New booking form, its Guest and Status fields and the old Block button are gone", () => {
+  const text = stripComments(calendarText());
+  assert.doesNotMatch(text, /New booking|newBooking|noBookingsYet|DASHBOARD_COPY/);
+  assert.doesNotMatch(text, /label="Guest"|label="Status"|label="Destination"|label="Dates"/);
+  assert.doesNotMatch(text, /onClick=\{\(\) => undefined\}/);
+  // Delete and Block are wired: the screen posts both.
+  const screen = readFileSync(CALENDAR_SCREEN, "utf8");
+  assert.match(screen, /action: "add"/);
+  assert.match(screen, /action: "delete"/);
 });
 
 test("sidebar.tsx keeps its close control and docks to the end side", () => {

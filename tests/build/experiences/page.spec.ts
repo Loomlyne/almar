@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { HOME_COPY } from "../../../lib/copy/home";
+import { OUTSIDE_FOOTER, expectFooterNewsletter } from "../newsletter/_footer";
 import { MEDIA_BASE_URL } from "../../../lib/data/media";
 import { fill, formatPlural } from "../../../lib/journey-format";
 import { SITE_ORIGIN, localePath, type Locale } from "../../../lib/locale-path";
@@ -79,8 +80,13 @@ async function expectHeldAbsent(page: Page, d: Data, where: string) {
   expect(text.includes(boardWord("experiences", "k75", d.locale)), `"2 added" (${where})`).toBe(false);
   expect(text.includes(boardWord("overlay", "k11", d.locale)), `"per person" (${where})`).toBe(false);
   expect(/\b(AED|USD|EUR|COP)\b|[$€£]/.test(text), `a currency or an amount (${where})`).toBe(false);
-  await expect(page.locator("form"), `a form (${where})`).toHaveCount(0);
-  await expect(page.locator('button[type="submit"], input[type="submit"]'), `a submit (${where})`).toHaveCount(0);
+  // design 11.2: the newsletter is live in the footer; no form or submit outside it. While a modal (the overlay or the
+  // Filters sheet) is open the page behind it leaves the accessibility tree, so the footer box is checked by role only
+  // with no dialog open, and by its element otherwise.
+  if ((await page.getByRole("dialog").count()) === 0) await expectFooterNewsletter(page, d.locale, where);
+  else await expect(page.locator('footer input[type="email"]'), `the footer email box behind the dialog (${where})`).toHaveCount(1);
+  await expect(page.locator(`form${OUTSIDE_FOOTER}`), `a form outside the footer (${where})`).toHaveCount(0);
+  await expect(page.locator(`button[type="submit"]${OUTSIDE_FOOTER}, input[type="submit"]${OUTSIDE_FOOTER}`), `a submit outside the footer (${where})`).toHaveCount(0);
   await expect(page.locator('[aria-label*="pagination" i], select'), `pagination or a sort (${where})`).toHaveCount(0);
   await expect(page.locator('[aria-disabled="true"], button:disabled'), `a dead control (${where})`).toHaveCount(0);
 }

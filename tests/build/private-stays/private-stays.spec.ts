@@ -3,6 +3,7 @@ import path from "node:path";
 import { expect, test as base, type Locator, type Page } from "@playwright/test";
 import { BEDROOM_BUCKETS } from "../../../components/pages/private-stays/filter-state";
 import { HOME_COPY } from "../../../lib/copy/home";
+import { OUTSIDE_FOOTER, expectFooterNewsletter } from "../newsletter/_footer";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { STAY_DETAIL_COPY } from "../../../lib/copy/stay-detail";
 import { STAYS_LIST_COPY } from "../../../lib/copy/stays-list";
@@ -626,7 +627,8 @@ for (const locale of LOCALES) {
           const named = (role: "button" | "link", name: string) => page.getByRole(role, { name, exact: true });
           // #1 journey bar / sheet Search
           await expect(named("button", d.journey.bar.search), `#1 Search button (${where})`).toHaveCount(0);
-          await expect(page.locator("form"), `#1 any form (${where})`).toHaveCount(0);
+          // design 11.2: the newsletter is live in the footer; no form outside it.
+          await expect(page.locator(`form${OUTSIDE_FOOTER}`), `#1 any form outside the footer (${where})`).toHaveCount(0);
           await expect(page.locator('[role="search"]'), `#1 role=search (${where})`).toHaveCount(0);
           await expect(group(page, d.journey.bar.label), `#1 the bar's group (${where})`).toHaveCount(0);
           // #2 nav cart
@@ -638,11 +640,11 @@ for (const locale of LOCALES) {
             await expect(named(role, boardWord("k27", locale)), `#3 Login ${role} (${where})`).toHaveCount(0);
             await expect(named(role, d.nav.login), `#3 Login ${role} by the nav string (${where})`).toHaveCount(0);
           }
-          // #4 footer newsletter: Email + Subscribe
-          await expect(page.locator("footer form"), `#4 footer form (${where})`).toHaveCount(0);
-          await expect(page.locator("footer input"), `#4 footer input (${where})`).toHaveCount(0);
-          await expect(page.locator('input[type="email"]'), `#4 email input (${where})`).toHaveCount(0);
-          await expect(page.getByRole("textbox"), `#4 any textbox (${where})`).toHaveCount(0);
+          // #4 footer newsletter. design 11.2: the newsletter is live in the footer: exactly one form, box and submit
+          // there (named in this language), none outside it; the held "Subscribe" names below stay absent.
+          await expectFooterNewsletter(page, locale, `#4 (${where})`);
+          await expect(page.locator(`input[type="email"]${OUTSIDE_FOOTER}`), `#4 an email input outside the footer (${where})`).toHaveCount(0);
+          expect(await page.getByRole("textbox").count(), `#4 a textbox outside the footer (${where})`).toBe(1);
           await expect(named("button", boardWord("k54", locale)), `#4 Subscribe (${where})`).toHaveCount(0);
           await expect(named("button", HOME_COPY[locale].subscribe), `#4 Subscribe by the home string (${where})`).toHaveCount(0);
           // #5 footer List with us
@@ -660,7 +662,8 @@ for (const locale of LOCALES) {
           // No currency select (design 4.1 row 6), no submit, no sort, no pagination, no dead disabled control.
           const currencyPrefix = d.journey.locale.currency.split("{code}")[0].trim();
           await expect(page.getByRole("combobox", { name: new RegExp(`^${escapeRegExp(currencyPrefix)}`) }), `currency select (${where})`).toHaveCount(0);
-          await expect(page.locator('button[type="submit"], input[type="submit"]'), `a submit (${where})`).toHaveCount(0);
+          // design 11.2: the newsletter is live in the footer; no submit outside it.
+          await expect(page.locator(`button[type="submit"]${OUTSIDE_FOOTER}, input[type="submit"]${OUTSIDE_FOOTER}`), `a submit outside the footer (${where})`).toHaveCount(0);
           await expect(page.getByRole("navigation", { name: /pagination|paginación|ترقيم/i })).toHaveCount(0);
           await expect(page.getByRole("button", { name: /^(sort|order by|ordenar|ترتيب)/i })).toHaveCount(0);
           const disabled = await page.locator('[aria-disabled="true"]').evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));

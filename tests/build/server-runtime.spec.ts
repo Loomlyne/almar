@@ -17,18 +17,17 @@ const CONFIG_TEXT = readFileSync(CONFIG, "utf8");
 const FOLDER = /^directory = "\.\/([^"]+)"$/m.exec(CONFIG_TEXT)?.[1] ?? "";
 const IS_PREVIEW = /^name = "almar-preview"$/m.test(CONFIG_TEXT);
 
-// The five sections still held (the prompt's nine minus /login, /account and /bookings, opened by plan 02-23 task 3,
-// and /booking, opened by plan 04-02), pinned here on purpose: changing HELD_PATHS breaks this spec until the spec is
-// changed in the same commit (lib/server-routes.ts, step 3 of its how-to). The six opened sign-in paths are proven in
-// tests/build/auth-paths.spec.ts.
-const PINNED_HELD = ["/dashboard", "/fx", "/newsletter", "/embed", "/__harness"];
+// The four sections still held (the prompt's nine minus /login, /account and /bookings, opened by plan 02-23 task 3,
+// /booking, opened by plan 04-02, and /newsletter, opened by plan 03.3-27), pinned here on purpose: changing HELD_PATHS
+// breaks this spec until the spec is changed in the same commit (lib/server-routes.ts, step 3 of its how-to). The six
+// opened sign-in paths are proven in tests/build/auth-paths.spec.ts; /newsletter in test 9 below.
+const PINNED_HELD = ["/dashboard", "/fx", "/embed", "/__harness"];
 
 const HELD_PROBES = [
   "/dashboard",
   "/dashboard/home",
   "/dashboard/catalog/stays",
   "/fx",
-  "/newsletter",
   "/embed/hero-booker",
   "/embed/font/x.woff2",
   "/__harness",
@@ -55,6 +54,10 @@ const OTHER_MISSES = [
   "/auth/confirm/x",
   "/auth/sign-out/x",
   "/auth/handoff/start/x",
+  // Plan 03.3-27: only the exact /newsletter is served; a locale prefix or a child path is the static 404.
+  "/ar/newsletter",
+  "/es/newsletter",
+  "/newsletter/x",
   // Plan 03.2-03: the owner's dashboard API is served by Worker almar-ops only; on almar and almar-preview it is the
   // same static 404, whatever app/ holds (lib/server-routes.ts skips it, worker/almar.mjs refuses it at startup).
   "/api/ops",
@@ -94,7 +97,7 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(FOLDER === "out-preview").toBe(IS_PREVIEW);
     expect(existsSync(join(FOLDER, "index.html"))).toBe(true);
     expect(JSON.parse(readFileSync(".open-next/almar-server-routes.json", "utf8"))).toEqual(
-      ["/api/booking/hold", "/api/booking/quote", "/api/booking/release", "/api/health", "/api/preferences", ...[...JOB02_SERVER_PATHS].sort()].sort(),
+      ["/api/booking/hold", "/api/booking/quote", "/api/booking/release", "/api/contact", "/api/health", "/api/preferences", ...JOB02_SERVER_PATHS, "/newsletter"].sort(),
     );
   });
 
@@ -109,7 +112,7 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     }
   });
 
-  test("2. the held list is the five sections still held, and every one is probed", () => {
+  test("2. the held list is the four sections still held, and every one is probed", () => {
     expect([...HELD_PATHS]).toEqual(PINNED_HELD);
     for (const entry of PINNED_HELD) {
       const probed = HELD_PROBES.some((p) => {
@@ -197,7 +200,7 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     const health = await request.get("/api/health", { headers: nav, maxRedirects: 0 });
     expect(health.status()).toBe(200);
     expect(await health.text()).toBe('{"ok":true}');
-    for (const path of ["/ar/login", "/dashboard", "/es/account", "/newsletter", "/api/nope", "/wp-login.php"]) {
+    for (const path of ["/ar/login", "/dashboard", "/es/account", "/ar/newsletter", "/api/nope", "/wp-login.php"]) {
       const res = await request.get(path, { headers: nav, maxRedirects: 0 });
       expect(res.status(), path).toBe(404);
       expect(Buffer.compare(await res.body(), nearest404(path)), path).toBe(0);
@@ -262,5 +265,53 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(res.headers()["x-robots-tag"]).toBe("noindex");
     const get = await request.get("/api/booking/quote", { maxRedirects: 0 });
     expect(get.status()).toBe(405);
+  });
+
+  test("9. /newsletter is the footer's POST handler (plan 03.3-27): GET and HEAD are 405, never a page; a refused POST is JSON, no-store, noindex", async ({ request, baseURL }) => {
+    const navigations: Array<Record<string, string>> = [{}, { "sec-fetch-mode": "navigate", "sec-fetch-dest": "document", accept: "text/html" }];
+    for (const nav of navigations) {
+      const get = await request.get("/newsletter", { headers: nav, maxRedirects: 0 });
+      expect(get.status(), JSON.stringify(nav)).toBe(405);
+      expect(await get.text(), JSON.stringify(nav)).not.toMatch(/<html|<form/i);
+      expect(get.headers()["x-robots-tag"]).toBe("noindex");
+    }
+    const head = await request.head("/newsletter", { maxRedirects: 0 });
+    expect(head.status()).toBe(405);
+    // No Origin (the request API sends none): 403 before anything else. Never a valid address here: no contact is created.
+    const bare = await request.post("/newsletter", { multipart: { Email: "guest@example.com" }, maxRedirects: 0 });
+    expect(bare.status()).toBe(403);
+    expect(await bare.text()).toBe('{"ok":false}');
+    expect(bare.headers()["content-type"]).toMatch(/^application\/json/);
+    expect(bare.headers()["cache-control"]).toContain("no-store");
+    expect(bare.headers()["x-robots-tag"]).toBe("noindex");
+    const origin = new URL(baseURL ?? "http://127.0.0.1").origin;
+    const urlencoded = await request.post("/newsletter", {
+      form: { Email: "guest@example.com" },
+      headers: { origin },
+      maxRedirects: 0,
+    });
+    expect(urlencoded.status()).toBe(415);
+    // A filled trap with the site's own Origin: the honeypot answer, 400, so the handler is live without a Resend call.
+    const trap = await request.post("/newsletter", { multipart: { Email: "guest@example.com", website: "x" }, headers: { origin }, maxRedirects: 0 });
+    expect(trap.status()).toBe(400);
+    expect(await trap.text()).toBe('{"ok":false}');
+  });
+
+  test("10. review fix (PR #16): a form POST declaring more than its route's cap is 413 from the Worker, before Next", async ({ request }) => {
+    // No Origin: Next would answer 403 first, so a 413 here can only come from worker/handle.mjs. At the cap the same
+    // post reaches the route (403), so the guard turns away only what is too large.
+    for (const [path, cap] of [["/api/contact", 16384], ["/newsletter", 8192]] as const) {
+      const post = (bytes: number) =>
+        request.post(path, { data: "x".repeat(bytes), headers: { "content-type": "application/x-www-form-urlencoded" }, maxRedirects: 0 });
+      const big = await post(cap + 1);
+      expect(big.status(), path).toBe(413);
+      expect(await big.text()).toBe('{"ok":false}');
+      expect(big.headers()["content-type"]).toMatch(/^application\/json/);
+      expect(big.headers()["cache-control"]).toContain("no-store");
+      expect(big.headers()["x-robots-tag"]).toBe("noindex");
+      const atCap = await post(cap);
+      expect(atCap.status(), path).toBe(403);
+      expect(await atCap.text()).toBe('{"ok":false}');
+    }
   });
 });
