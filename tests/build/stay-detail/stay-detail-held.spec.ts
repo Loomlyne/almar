@@ -9,6 +9,10 @@ import { fill } from "../../../lib/journey-format";
 import type { Locale } from "../../../lib/locale-path";
 import { FIXED_NOW, FOCUS, LOCALES, WIDTHS, openStay, stayUrl, watch } from "./_helpers";
 
+// A text field as expectFooterNewsletter counts one (tests/build/newsletter/_footer.ts): a hidden, submit, button,
+// checkbox or radio input is not a text box (follow-up 8, PR #16 review round 3).
+const TEXT_FIELD = 'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"])';
+
 // Plan 03.3-06 task 5. Every held control is absent, and no amount or minimum stay is shown, on the stay page
 // (design 4.3 rows 1-8, 3.9). The byte layer is built-documents.test.mjs (36 documents, money fields, currency
 // codes, forbidden hosts, <form>). This is the browser layer: 3 stays x en, ar, es x 390, 834, 1440 = 27 contexts,
@@ -103,7 +107,7 @@ async function assertHeld(page: Page, s: Setup, where: string, { modal = false }
   // hidden; the sheet itself holds no text box.
   await expectFooterNewsletter(page, s.locale, where, { behindModal: modal });
   if (modal) {
-    await expect(page.locator(`input:not([type="hidden"])${OUTSIDE_FOOTER}, textarea${OUTSIDE_FOOTER}`), say("no text box outside the footer")).toHaveCount(0);
+    await expect(page.locator(`${TEXT_FIELD}${OUTSIDE_FOOTER}, textarea${OUTSIDE_FOOTER}`), say("no text box outside the footer")).toHaveCount(0);
     expect(await page.getByRole("textbox").count(), say("no text box in the sheet")).toBe(0);
   } else {
     expect(await page.getByRole("textbox").count(), say("no text box outside the footer")).toBe(1);
