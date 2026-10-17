@@ -4,6 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
 import { OPS_STAYS_COPY } from "../lib/copy/ops-stays";
 import { VIEWPORTS, sceneStates, settle, type Viewport } from "./journey/matrix";
+import { routeStayTabs } from "./helpers/stay-tabs-routes";
 
 // Catalog -> Stays on its harness scene (tests/journey/scenes/ops-stays.tsx): the list and the stay editor on the kit's
 // editor page (kit panel B). The API is never called: the scene holds its own state and writes every handler into a
@@ -16,6 +17,8 @@ const harnessUrl = (state: string, locale: string) => `/__harness?c=ops-stays&s=
 
 async function openScene(page: Page, state: string, viewport: Viewport, locale: Locale) {
   await page.setViewportSize(VIEWPORTS[viewport]);
+  // 03.2-15: a saved stay shows the Rates, Availability and Access cards, which read their own routes.
+  await routeStayTabs(page, locale);
   // The dev server can read a build manifest while webpack rewrites it (Next's load-manifest: readFileSync, then
   // JSON.parse; "Unexpected end of JSON input" on /__harness under load) and answer 500 once: load the scene again.
   const first = await page.goto(harnessUrl(state, locale));
