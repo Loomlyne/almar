@@ -44,7 +44,7 @@ function formOf(variant: Variant): TeamForm {
   const published = variant === "published";
   return {
     id: "t1",
-    slug: "[web-address]",
+    slug: "web-address",
     published,
     photo: null,
     email: "name@example.com",

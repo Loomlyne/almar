@@ -2,11 +2,13 @@
 // server's detail, how the site reads the price line, and what the kit editor is told is live. Task 2 adds the payloads.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { loadTs } from "./helpers/load-ts.mjs";
 
 const team = await loadTs("app/dashboard/(ops)/content/team/team-forms.ts");
 const journeys = await loadTs("app/dashboard/(ops)/catalog/packages/journey-forms.ts");
 const { OPS_TEAM_COPY } = await loadTs("lib/copy/ops-team.ts");
+const server = await loadTs("lib/ops/validate.ts");
 
 const row = (url, label = "Instagram") => ({ key: `k-${url}-${label}`, label, url });
 
@@ -49,9 +51,38 @@ test("emailOk: empty is fine; an address must have one @ and a dot in the domain
   for (const bad of ["name", "name@", "name@example", "a b@example.com"]) assert.equal(team.emailOk(bad), false, bad);
 });
 
-test("slugFrom: accents folded, lower case, dashes", () => {
-  assert.equal(team.slugFrom("  Café Ñandú-Río "), "cafe-nandu-rio");
-  assert.equal(team.slugFrom("!!!"), "");
+test("slugProblem: a member that is not published needs a typed address; nothing is made up from the name", () => {
+  assert.equal(team.slugProblem({ slug: "", published: false }), "needed");
+  assert.equal(team.slugProblem({ slug: "   ", published: false }), "needed");
+  assert.equal(team.slugProblem(team.emptyTeamForm()), "needed");
+  assert.equal(team.emptyTeamForm().slug, "");
+  assert.equal(team.slugFrom, undefined);
+});
+
+test("slugProblem: the same pattern rule as the server, accepted and refused alike", () => {
+  const good = ["a", "maria", "first-last", "team-2", " padded-address ", "a".repeat(80)];
+  const bad = ["First-Last", "first_last", "first--last", "-first", "last-", "café", "[web-address]", "a b", "a".repeat(81)];
+  for (const value of good) {
+    assert.equal(team.slugProblem({ slug: value, published: false }), null, value);
+    assert.equal(server.slug(value), value.trim(), value);
+  }
+  for (const value of bad) {
+    assert.equal(team.slugProblem({ slug: value, published: false }), "pattern", value);
+    assert.throws(() => server.slug(value), value);
+  }
+});
+
+test("the address locks once published: not checked, not sent; before that Save sends what is typed", () => {
+  assert.equal(team.slugProblem({ slug: "Not-Valid", published: true }), null);
+  assert.deepEqual(team.slugToSend({ slug: "web-address", published: true }), {});
+  assert.deepEqual(team.slugToSend({ slug: " web-address ", published: false }), { slug: "web-address" });
+});
+
+test("the member editor draws a published address as text and a draft one as a field with the hint", () => {
+  const source = readFileSync(new URL("../app/dashboard/(ops)/content/team/team-screen.tsx", import.meta.url), "utf8");
+  assert.match(source, /form\.published \? \(\s*<LockedAddress label=\{copy\.fieldSlug\} value=\{form\.slug\} note=\{copy\.slugLocked\} \/>/);
+  assert.match(source, /hint=\{copy\.slugHint\}/);
+  assert.match(source, /canSave=\{form \? form\.text\.en\.name\.trim\(\) !== "" && slugIssue === null/);
 });
 
 test("teamForm: the detail becomes a form; a missing language is blank and draft; an unknown label reads as Instagram", () => {
@@ -125,4 +156,8 @@ test("OPS_TEAM_COPY: the same keys in en, ar and es, none empty; dashboard Spani
   for (const l of ["ar", "es"]) assert.deepEqual(keys(OPS_TEAM_COPY[l]), ref, l);
   for (const l of ["en", "ar", "es"]) for (const k of ref) assert.ok(String(get(OPS_TEAM_COPY[l], k)).trim().length > 0, `${l}.${k}`);
   assert.match(OPS_TEAM_COPY.es.team.orderNote, /^Arrastre /);
+  // The web address reads as on stays, worded for a member; the need line is the stays line.
+  assert.equal(OPS_TEAM_COPY.en.team.slugHint, "Lowercase letters, numbers and dashes. It cannot change once the member is published.");
+  assert.equal(OPS_TEAM_COPY.en.team.problemSlugNeeded, "Enter a web address.");
+  assert.match(OPS_TEAM_COPY.es.team.problemSlugNeeded, /^Indique /);
 });

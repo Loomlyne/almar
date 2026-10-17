@@ -16,12 +16,14 @@ import { Field } from "../../../../../components/ui/field";
 import { Select } from "../../../../../components/ui/select";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
 import { OPS_TEAM_COPY, fillTeamCopy } from "../../../../../lib/copy/ops-team";
+import { LockedAddress } from "../../catalog/locked-address";
 import {
   LINK_PLATFORMS,
   MAX_LINKS,
   MAX_LINK_URL,
   TEAM_TEXT_FIELDS,
   emailOk,
+  slugProblem,
   linkKey,
   liveTeamFields,
   validateLinks,
@@ -119,9 +121,10 @@ export function TeamView({
 const englishOf = (text: TeamText) => Object.fromEntries(TEAM_TEXT_FIELDS.map((field) => [field, text[field]]));
 
 /**
- * The member's editor page (kit EditPage): Text (name, role, bio), Photo and Social media on the left; Email on the
- * right; one column on a phone. Maria writes English only; the kit fills Arabic and Spanish on Save. Delete is a link,
- * off while the member is published ("Unpublish first").
+ * The member's editor page (kit EditPage): Text (name, role, bio), Photo and Social media on the left; Settings (the web
+ * address, typed by the owner, locked once published) and Email on the right; one column on a phone. Maria writes
+ * English only; the kit fills Arabic and Spanish on Save. Delete is a link, off while the member is published
+ * ("Unpublish first").
  */
 function TeamEditor({ panel, list }: { panel: TeamPanel | null; list: ReactNode }) {
   const loc = useDashboardLocale();
@@ -135,6 +138,10 @@ function TeamEditor({ panel, list }: { panel: TeamPanel | null; list: ReactNode 
   const fieldLabels: Record<TeamTextField, string> = { name: copy.fieldName, role: copy.fieldRole, bio: copy.fieldBio };
   const linkCheck = form ? validateLinks(form.links) : null;
   const emailBad = form ? !emailOk(form.email) : false;
+  // The web address, as on stays: typed by the owner, needed before the first Save, locked once published.
+  const slugIssue = form ? slugProblem(form) : null;
+  const slugTaken = panel?.error?.field === "slug" && panel.error.code !== "invalid";
+  const slugError = slugTaken ? kit.errors.slug_taken : slugIssue === "pattern" ? fillTeamCopy(copy.problemSlug, { field: copy.fieldSlug }) : undefined;
   const dir = loc === "ar" ? "rtl" : "ltr";
 
   function sections(panel: TeamPanel, form: TeamForm): EditSection[] {
@@ -250,6 +257,27 @@ function TeamEditor({ panel, list }: { panel: TeamPanel | null; list: ReactNode 
         ),
       },
       {
+        key: "settings",
+        title: kit.editor.sections.settings,
+        column: "side",
+        content: form.published ? (
+          <LockedAddress label={copy.fieldSlug} value={form.slug} note={copy.slugLocked} />
+        ) : (
+          <Field
+            id={`${idBase}-slug`}
+            label={copy.fieldSlug}
+            className="max-w-none"
+            dir="ltr"
+            autoComplete="off"
+            spellCheck={false}
+            value={form.slug}
+            hint={copy.slugHint}
+            error={slugError}
+            onChange={(event) => onForm({ ...form, slug: event.target.value })}
+          />
+        ),
+      },
+      {
         key: "email",
         title: copy.emailSection,
         column: "side",
@@ -287,10 +315,19 @@ function TeamEditor({ panel, list }: { panel: TeamPanel | null; list: ReactNode 
         isPublished={form?.published ?? false}
         dirty={panel?.dirty ?? false}
         busy={panel?.busy ?? false}
-        canSave={form ? form.text.en.name.trim() !== "" && (linkCheck?.ok ?? true) && !emailBad : false}
+        canSave={form ? form.text.en.name.trim() !== "" && slugIssue === null && (linkCheck?.ok ?? true) && !emailBad : false}
+        notice={
+          slugIssue === "needed" ? (
+            <ul role="status" className="m-0 flex list-none flex-col gap-1 border-s border-gold p-0 ps-2 text-label text-ink">
+              <li>{copy.problemSlugNeeded}</li>
+            </ul>
+          ) : null
+        }
         missing={missing}
-        error={panel?.error ?? null}
-        fieldLabel={(field) => (field in fieldLabels ? fieldLabels[field as TeamTextField] : undefined)}
+        error={slugTaken ? null : (panel?.error ?? null)}
+        fieldLabel={(field) =>
+          field === "slug" ? copy.fieldSlug.toLocaleLowerCase(loc) : field in fieldLabels ? fieldLabels[field as TeamTextField] : undefined
+        }
         english={form ? englishOf(form.text.en) : {}}
         savedEnglish={panel ? englishOf(panel.saved.en) : {}}
         translations={form ? { ar: englishOf(form.text.ar), es: englishOf(form.text.es) } : { ar: {}, es: {} }}

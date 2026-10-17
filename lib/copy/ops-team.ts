@@ -54,6 +54,11 @@ export type OpsTeamCopy = {
     fieldEmail: string;
     emailNote: string;
     emailInvalid: string;
+    fieldSlug: string;
+    slugHint: string;
+    slugLocked: string;
+    problemSlug: string;
+    problemSlugNeeded: string;
     /** CANVAS. */
     deleteMember: string;
     /** `{name}`. */
@@ -126,6 +131,11 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       fieldEmail: "Email (optional)",
       emailNote: "Not shown on the public site.",
       emailInvalid: "Use an email address such as name@example.com.",
+      fieldSlug: "Web address",
+      slugHint: "Lowercase letters, numbers and dashes. It cannot change once the member is published.",
+      slugLocked: "The web address cannot change after publishing.",
+      problemSlug: "{field}: lowercase letters, numbers and single dashes.",
+      problemSlugNeeded: "Enter a web address.",
       deleteMember: "Delete member",
       deleteTitle: "Delete {name}?",
       deleteText: "The member and their links are deleted. The photo stays in Media.",
@@ -185,6 +195,11 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       fieldEmail: "البريد الإلكتروني (اختياري)",
       emailNote: "لا يظهر في الموقع العام.",
       emailInvalid: "استخدم عنوان بريد مثل name@example.com.",
+      fieldSlug: "عنوان الويب",
+      slugHint: "أحرف لاتينية صغيرة وأرقام وشرطات. لا يمكن تغييره بعد نشر العضو.",
+      slugLocked: "لا يمكن تغيير عنوان الويب بعد النشر.",
+      problemSlug: "{field}: أحرف لاتينية صغيرة وأرقام وشرطة واحدة بين الكلمات.",
+      problemSlugNeeded: "أدخل عنوان الويب.",
       deleteMember: "حذف العضو",
       deleteTitle: "حذف {name}؟",
       deleteText: "يُحذف العضو وروابطه. تبقى الصورة في الوسائط.",
@@ -244,6 +259,11 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       fieldEmail: "Correo (opcional)",
       emailNote: "No se muestra en el sitio público.",
       emailInvalid: "Use una dirección de correo como name@example.com.",
+      fieldSlug: "Dirección web",
+      slugHint: "Minúsculas, números y guiones. No se puede cambiar una vez publicado el miembro.",
+      slugLocked: "La dirección web no se puede cambiar después de publicar.",
+      problemSlug: "{field}: minúsculas, números y un solo guion entre palabras.",
+      problemSlugNeeded: "Indique una dirección web.",
       deleteMember: "Eliminar miembro",
       deleteTitle: "¿Eliminar a {name}?",
       deleteText: "Se eliminan el miembro y sus enlaces. La foto queda en Medios.",

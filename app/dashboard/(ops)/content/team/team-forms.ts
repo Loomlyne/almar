@@ -110,15 +110,26 @@ export function emailOk(email: string): boolean {
   return value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-/** A web-address part from the English name, for a new member (the public site has no member page; it must be unique). */
-export function slugFrom(name: string): string {
-  return name
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
+// The server's web-address rule (lib/ops/validate.ts SLUG and the 80 cap; the team_members check is the same).
+const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/** "needed": a member that is not published has no address yet; "pattern": not lowercase letters, numbers and dashes. */
+export type SlugProblem = "needed" | "pattern";
+
+/**
+ * The web address as the screen checks it, the same as on stays: the owner types it (owner, 2026-10-17: shown, never
+ * filled in silently). A published member's address cannot change, so it is not checked and not sent.
+ */
+export function slugProblem(form: Pick<TeamForm, "slug" | "published">): SlugProblem | null {
+  if (form.published) return null;
+  const slug = form.slug.trim();
+  if (slug === "") return "needed";
+  return slug.length > 80 || !SLUG.test(slug) ? "pattern" : null;
+}
+
+/** What Save sends for the address: as typed (trimmed) while the member is not published; nothing once it is. */
+export function slugToSend(form: Pick<TeamForm, "slug" | "published">): { slug: string } | Record<string, never> {
+  return form.published ? {} : { slug: form.slug.trim() };
 }
 
 /**
