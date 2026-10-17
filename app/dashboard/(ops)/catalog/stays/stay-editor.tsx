@@ -16,6 +16,7 @@ import {
   STAY_LINES,
   STAY_LISTS,
   amenityCounts,
+  groupByKind,
   linesOf,
   lockedLength,
   validateStayFacts,
@@ -248,6 +249,7 @@ export function StayEditor({
   // kind label, so this card draws them itself, name and kind like the Connected rows.
   const byId = new Map(catalog.map((item) => [item.id, item]));
   const destinationRows = destinationItems.map((id) => byId.get(id)).filter((item): item is CatalogChoice => item !== undefined);
+  const kindOf = (id: string) => byId.get(id)?.kind;
   const connectionsCard = (
     <div className="flex min-w-0 flex-col gap-4">
       <ConnectPicker
@@ -255,8 +257,13 @@ export function StayEditor({
         searchLabel={copy.searchConnections}
         hint={copy.connectionsHint}
         options={options.filter((option) => !fromDestination.has(option.id))}
-        connected={form.connected.filter((id) => !fromDestination.has(id))}
-        onChange={(connected) => onFormChange({ ...form, connected })}
+        connected={groupByKind(
+          form.connected.filter((id) => !fromDestination.has(id)),
+          kindOf,
+        )}
+        onChange={(connected) => onFormChange({ ...form, connected: groupByKind(connected, kindOf) })}
+        // Move up / Move down (owner 2026-10-17), within a kind: the save keeps one order per kind.
+        reorder={{ canSwap: (above, below) => kindOf(above) === kindOf(below) }}
       />
       {destinationRows.length > 0 ? (
         <div className="flex flex-col gap-2" data-stay-from-destination="">

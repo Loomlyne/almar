@@ -115,6 +115,34 @@ async function listChecks(page: Page, state: string, viewport: Viewport, locale:
   if (state === "list" && viewport !== "phone") await expect(page.getByRole("columnheader", { name: copy.columnDestination, exact: true })).toBeVisible();
 }
 
+// ---- connections order (owner 2026-10-17: Move up / Move down) --------------------------------------------------
+
+test("Move up / Move down reorder a stay's experiences within their kind, and focus stays on the moved row", async ({ page }) => {
+  test.setTimeout(240_000);
+  await openScene(page, "editor-draft", "desktop", "en");
+  const kit = OPS_KIT_COPY.en;
+  const rows = page.locator("[data-connect-row]");
+  const order = () => rows.evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.connectRow));
+  const button = (id: string, way: "up" | "down") => page.locator(`[data-connect-row="${id}"] button[data-move="${way}"]`);
+  await expect.poll(order).toEqual(["e1", "e2", "v1"]);
+  await expect(button("e1", "up")).toHaveText(kit.moveUp);
+  await expect(button("e1", "up")).toBeDisabled();
+  // The last experience cannot go below the first service: the save keeps one order per kind.
+  await expect(button("e2", "down")).toBeDisabled();
+  await expect(button("v1", "up")).toBeDisabled();
+
+  await button("e1", "down").click();
+  await expect.poll(order).toEqual(["e2", "e1", "v1"]);
+  // e1 reached the end of the experiences, so its Move down is off and focus is on its Move up.
+  await expect(button("e1", "up")).toBeFocused();
+
+  await page.keyboard.press("Enter");
+  await expect.poll(order).toEqual(["e1", "e2", "v1"]);
+  await expect(button("e1", "down")).toBeFocused();
+  // The page counts the new order as unsaved work.
+  await expect(page.getByText(kit.editor.unsaved, { exact: true })).toBeVisible();
+});
+
 // ---- pictures -----------------------------------------------------------------------------------------------------
 // Full-page PNGs for the owner's signature, written outside tests/ (page.screenshot, not toHaveScreenshot), so no
 // baseline is committed under tests/. States x 3 widths x 3 languages. The block runs only when asked:

@@ -246,3 +246,12 @@ export function stayPayload(
   if (Object.keys(translations).length > 0) item.translations = translations;
   return { action: "save" as const, item };
 }
+
+/**
+ * Connected ids as the server keeps them: experiences, then services, each in its own order. The save stores a position
+ * per kind (contract 5.2 `connections`; the stay save function numbers each kind from 0), so an order across kinds would
+ * not survive a reload: the editor keeps the list grouped and moves a row only within its kind.
+ */
+export function groupByKind(ids: readonly string[], kindOf: (id: string) => "experience" | "service" | undefined): string[] {
+  return [...ids.filter((id) => kindOf(id) !== "service"), ...ids.filter((id) => kindOf(id) === "service")];
+}
