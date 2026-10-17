@@ -78,10 +78,23 @@ test("the address locks once published: not checked, not sent; before that Save 
   assert.deepEqual(team.slugToSend({ slug: " web-address ", published: false }), { slug: "web-address" });
 });
 
+test("teamPublishHolds: Publish waits for the address, the links and the email, the same as Save", () => {
+  const ok = { ...team.emptyTeamForm(), slug: "web-address", email: "name@example.com", links: [row("https://www.instagram.com/a")] };
+  assert.deepEqual(team.teamPublishHolds(ok), []);
+  assert.deepEqual(team.teamPublishHolds(team.emptyTeamForm()), [{ locale: null, field: "slug" }]);
+  assert.deepEqual(team.teamPublishHolds({ ...ok, slug: "Bad_Address" }), [{ locale: null, field: "slug" }]);
+  assert.deepEqual(team.teamPublishHolds({ ...ok, links: [row("http://www.linkedin.com/in/a", "LinkedIn")] }), [{ locale: null, field: "links" }]);
+  assert.deepEqual(team.teamPublishHolds({ ...ok, email: "name@" }), [{ locale: null, field: "email" }]);
+  // Published: the address is locked and not checked again.
+  assert.deepEqual(team.teamPublishHolds({ ...ok, slug: "", published: true }), []);
+});
+
 test("the member editor draws a published address as text and a draft one as a field with the hint", () => {
   const source = readFileSync(new URL("../app/dashboard/(ops)/content/team/team-screen.tsx", import.meta.url), "utf8");
   assert.match(source, /form\.published \? \(\s*<LockedAddress label=\{copy\.fieldSlug\} value=\{form\.slug\} note=\{copy\.slugLocked\} \/>/);
   assert.match(source, /hint=\{copy\.slugHint\}/);
+  // The kit's Publish follows only `missing`: the holds go into it.
+  assert.match(source, /missingForPublish\("team_member", \{[^}]*\}\), \.\.\.teamPublishHolds\(form\)\]/);
   assert.match(source, /canSave=\{form \? form\.text\.en\.name\.trim\(\) !== "" && slugIssue === null/);
 });
 

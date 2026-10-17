@@ -63,7 +63,10 @@ definePictures("ops-team", {
       // No web address yet: the owner types it (never filled in silently), and Save waits for it.
       await expect(page.getByLabel(copy.fieldSlug, { exact: true })).toHaveValue("");
       await expect(page.getByRole("button", { name: kit.save, exact: true })).toBeDisabled();
+      // Publish is held by the same need, never on while Save is off.
+      await expect(page.getByRole("button", { name: kit.publish, exact: true })).toBeDisabled();
       return [
+        page.getByText(kit.publishNeeds, { exact: true }),
         page.getByRole("heading", { level: 2, name: kit.editor.sections.settings, exact: true }),
         page.getByText(copy.slugHint, { exact: true }),
         page.getByText(copy.problemSlugNeeded, { exact: true }),
@@ -95,7 +98,10 @@ definePictures("ops-team", {
       // The typed address follows the rule, so the link is the only thing holding Save.
       await expect(page.getByLabel(copy.fieldSlug, { exact: true })).toHaveValue("web-address");
       await expect(page.getByText(copy.problemSlugNeeded, { exact: true })).toHaveCount(0);
+      // Publish is held by the same link, never on while Save is off.
+      await expect(page.getByRole("button", { name: kit.publish, exact: true })).toBeDisabled();
       return [
+        page.getByText(kit.publishNeeds, { exact: true }),
         page.getByText(copy.linkNeedsHttps, { exact: true }),
         page.getByRole("combobox", { name: `${copy.linkPlatform}: LinkedIn` }),
         page.getByRole("combobox", { name: `${copy.linkPlatform}: Instagram` }),
