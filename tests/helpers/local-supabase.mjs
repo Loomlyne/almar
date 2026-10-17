@@ -26,9 +26,11 @@
 //   node tests/helpers/local-supabase.mjs test       (every supabase/tests/*.test.sql) or runPgTap(["supabase/tests/<your file>.test.sql"])
 //   ALMAR_REQUIRE_STACK=1 node --test <your tests>   (a missing stack FAILS instead of skipping)
 //   node tests/helpers/local-supabase.mjs stop       (or stopLocal(); do it when your session idles)
-// In a test: `const stack = requireStack(t); if (!stack) return;` then use stack.url, stack.serviceKey, stack.dbUrl.
+// In a test that only reads: `const stack = requireStack(t); if (!stack) return;` then use stack.url, stack.serviceKey,
+// stack.dbUrl. In a test that writes: `const locked = await lockStack(t); if (!locked) return;`, then locked.stack, and
+// locked.release() after its own cleanup (the lock comes first, then the stack is looked for).
 //
-// Exports: stackId, stackPorts, localStack, requireStack, acquireStackLock, startLocal, resetLocal, runPgTap, runSql, stopLocal,
+// Exports: stackId, stackPorts, localStack, requireStack, lockStack, acquireStackLock, startLocal, resetLocal, runPgTap, runSql, stopLocal,
 // genTypes (and workdir, buildStackConfig for the helper's own test).
 
 import { spawnSync } from "node:child_process";
@@ -177,11 +179,37 @@ export function localStack({ fresh = false } = {}) {
 export function requireStack(t) {
   const stack = localStack();
   if (stack) return stack;
+  return missingStack(t);
+}
+
+function missingStack(t) {
   if (process.env.ALMAR_REQUIRE_STACK === "1") {
     throw new Error("ALMAR_REQUIRE_STACK=1 but no local Supabase stack runs for this worktree (node tests/helpers/local-supabase.mjs start)");
   }
   t.skip("no local Supabase stack for this worktree");
   return null;
+}
+
+/**
+ * In a node test that writes to the stack: `const locked = await lockStack(t); if (!locked) return;` then locked.stack,
+ * and locked.release() after its own cleanup (an `after` hook). The lock is taken BEFORE the stack is looked for
+ * (follow-up 3): `supabase status` fails while another file holds the lock and resets the database, and a look taken
+ * then (localStack() remembers it for the process) skipped the test, or failed it under ALMAR_REQUIRE_STACK=1. The look
+ * after the lock is a fresh one. Without a stack the lock is given back at once and the test is skipped (or fails).
+ * `dir` and `probe` are the helper test's seams.
+ */
+export async function lockStack(t, { timeoutMs, dir, probe = () => localStack({ fresh: true }) } = {}) {
+  const release = await acquireStackLock({ timeoutMs, dir });
+  let stack;
+  try {
+    stack = probe();
+  } catch (error) {
+    release();
+    throw error;
+  }
+  if (stack) return { stack, release };
+  release();
+  return missingStack(t);
 }
 
 /** Ports of this stack that something is listening on: [{ name, port }]. */
@@ -267,8 +295,7 @@ export function stopLocal({ inherit = false } = {}) {
  * calls the returned release() after its own cleanup (an `after` hook). The lock is a directory with its owner's pid; one
  * whose owner is gone (or that never got a pid, ten seconds old) is stale and taken over.
  */
-export async function acquireStackLock({ timeoutMs = 900_000 } = {}) {
-  const dir = join(repoRoot(), "supabase", ".temp", "stack-test.lock");
+export async function acquireStackLock({ timeoutMs = 900_000, dir = join(repoRoot(), "supabase", ".temp", "stack-test.lock") } = {}) {
   mkdirSync(dirname(dir), { recursive: true });
   const deadline = Date.now() + timeoutMs;
   for (;;) {

@@ -1,12 +1,12 @@
 // Plan 02-06 (PR #14 review round 2), against this worktree's local stack: postSettings with the service-role client
 // saves through public.save_site_settings, so the settings row and the owner's language and currency change together;
-// a refused call (not the owner) changes neither and replies with the error. requireStack(t): skipped without a stack,
+// a refused call (not the owner) changes neither and replies with the error. lockStack(t): skipped without a stack,
 // FAILS under ALMAR_REQUIRE_STACK=1. The owner user is made here when missing (and then deleted); the settings row and
 // her profile are put back after.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
-import { acquireStackLock, requireStack } from "./helpers/local-supabase.mjs";
+import { lockStack } from "./helpers/local-supabase.mjs";
 import { loadTs } from "./helpers/load-ts.mjs";
 
 const h = await loadTs("lib/settings/handlers.ts");
@@ -62,9 +62,10 @@ async function state(ownerId) {
 }
 
 test("a Settings save goes through the one-transaction function: both change, or (refused) neither", async (t) => {
-  const stack = requireStack(t);
-  if (!stack) return;
-  release = await acquireStackLock();
+  const locked = await lockStack(t);
+  if (!locked) return;
+  release = locked.release;
+  const stack = locked.stack;
   admin = createClient(stack.url, stack.serviceKey, NO_PERSIST);
   const profile = await ownerProfile();
   const row = await admin.from("site_settings").select("teal, vat_percent, deposit_percent, maintenance").eq("id", 1).single();
