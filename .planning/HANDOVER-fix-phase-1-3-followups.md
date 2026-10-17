@@ -1,6 +1,6 @@
 # Hand-over: phase 1–3 follow-ups (DRAFT)
 
-**Status: DRAFT, written 2026-10-17 14:31 CET, updated 14:47 CET after the merge of `origin/main` `82b66bf`.** Four runs are still pending: they wait for the controller's "go".
+**Status: DRAFT, written 2026-10-17 14:31 CET, updated 14:42 CET after the merge of `origin/main` `82b66bf`.** Four runs are still pending: they wait for the controller's "go".
 This file is completed and committed again after those runs.
 
 - Job: `.planning/prompts/15-followups-phases-1-3.md`
