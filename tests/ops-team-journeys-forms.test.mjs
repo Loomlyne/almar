@@ -160,4 +160,6 @@ test("OPS_TEAM_COPY: the same keys in en, ar and es, none empty; dashboard Spani
   assert.equal(OPS_TEAM_COPY.en.team.slugHint, "Lowercase letters, numbers and dashes. It cannot change once the member is published.");
   assert.equal(OPS_TEAM_COPY.en.team.problemSlugNeeded, "Enter a web address.");
   assert.match(OPS_TEAM_COPY.es.team.problemSlugNeeded, /^Indique /);
+  // A link's address and the member's web address are two fields on one page: never one name for both.
+  for (const l of ["en", "ar", "es"]) assert.notEqual(OPS_TEAM_COPY[l].team.linkAddress, OPS_TEAM_COPY[l].team.fieldSlug, l);
 });

@@ -61,7 +61,7 @@ definePictures("ops-team", {
       // A new member has no Delete yet.
       await expect(page.getByRole("button", { name: copy.deleteMember, exact: true })).toHaveCount(0);
       // No web address yet: the owner types it (never filled in silently), and Save waits for it.
-      await expect(page.getByLabel(copy.fieldSlug)).toHaveValue("");
+      await expect(page.getByLabel(copy.fieldSlug, { exact: true })).toHaveValue("");
       await expect(page.getByRole("button", { name: kit.save, exact: true })).toBeDisabled();
       return [
         page.getByRole("heading", { level: 2, name: kit.editor.sections.settings, exact: true }),
@@ -91,9 +91,9 @@ definePictures("ops-team", {
       const kit = OPS_KIT_COPY[l];
       // A link that is not https keeps Save off and says why under the address.
       await expect(page.getByRole("button", { name: kit.save, exact: true })).toBeDisabled();
-      await expect(page.getByLabel(copy.linkAddress)).toHaveCount(2);
+      await expect(page.getByLabel(copy.linkAddress, { exact: true })).toHaveCount(2);
       // The typed address follows the rule, so the link is the only thing holding Save.
-      await expect(page.getByLabel(copy.fieldSlug)).toHaveValue("web-address");
+      await expect(page.getByLabel(copy.fieldSlug, { exact: true })).toHaveValue("web-address");
       await expect(page.getByText(copy.problemSlugNeeded, { exact: true })).toHaveCount(0);
       return [
         page.getByText(copy.linkNeedsHttps, { exact: true }),
@@ -110,7 +110,7 @@ definePictures("ops-team", {
       const kit = OPS_KIT_COPY[l];
       await expect(page.getByRole("button", { name: copy.deleteMember, exact: true })).toBeDisabled();
       // Published: the address is text, not a box (it cannot change).
-      await expect(page.getByLabel(copy.fieldSlug)).toHaveCount(0);
+      await expect(page.getByLabel(copy.fieldSlug, { exact: true })).toHaveCount(0);
       return [
         page.getByText("web-address", { exact: true }),
         page.getByText(copy.slugLocked, { exact: true }),
