@@ -1,13 +1,16 @@
 # Hand-over: phase 1–3 follow-ups (DRAFT)
 
-**Status: DRAFT, written 2026-10-17 14:31 CET, updated 14:42 CET after the merge of `origin/main` `82b66bf`.** Four runs are still pending: they wait for the controller's "go".
+**Status: DRAFT, written 2026-10-17 14:31 CET, updated 14:42 CET after the merge of `origin/main` `82b66bf` and 14:53 CET with item 11 (main `5ade3df` merged in `4ccd821`).** Four runs are still pending: they wait for the controller's "go".
 This file is completed and committed again after those runs.
 
 - Job: `.planning/prompts/15-followups-phases-1-3.md`
 - Branch: `fix/phase-1-3-followups` (worktree `.claude/worktrees/compassionate-dubinsky-66be64`, local branch
   `claude/compassionate-dubinsky-66be64`), cut from `origin/main` `bfc3326`; `origin/main` `deb3bda` merged in `ef28ffc`;
   `origin/main` `82b66bf` (PR #18, 03.2-06 catalog, landed as `fa5c3b2`) merged in `f97ff70` with no conflicts.
-- Code tip at draft time: `3bd80f4`, then the merge `f97ff70` (this file's commits sit on top; final commit named in the final version).
+- Code tip at draft time: `99bc83b` (item 10, last). Merges: `f97ff70` (`82b66bf`), `4ccd821` (`5ade3df`). This file's
+  commits sit on top; the final commit is named in the final version.
+- Item 10 stays last: item 11 came after item 10 was pushed, so `309383d` reverts item 10, `04d93fd` is item 11, and
+  `99bc83b` applies item 10 again by cherry-pick of `3bd80f4` (package files identical to `3bd80f4`). No force-push.
 - PR #18 and item 2: 06's destination and catalog-item editors mount `EditPage` with the same props; they open and close
   it through React state only (no URL change, no `router.refresh`, no server action), so the back-guard flag is not
   dropped there. PR #18 changes neither `edit-page.tsx` nor any migration. Its specs join run (b).
@@ -25,7 +28,8 @@ This file is completed and committed again after those runs.
 | 8 | `d4a9e49` | Held stay spec counts text fields with the same selector as the footer check (`TEXT_FIELD`). | **pending (d)** |
 | 4 | `560437b` | `worker/handle.mjs` passes `request.signal` into the rebuilt Request, so the visitor's abort reaches Next. | old handle: 1 fail |
 | 7 | `d36bc47` | Migration `20261017120000_ops_save_publish_rules.sql` (see below) + pgTAP `supabase/tests/ops_save_publish_rules.test.sql` (24 asserts) + static node test `tests/ops-save-publish-rules-migration.test.mjs`. | static: no hero check 2 fail, no item photo check 2 fail, hero check before the translations save 1 fail. pgTAP: **pending (a)** |
-| 10 | `3bd80f4` (last) | `next` 15.5.27 exact (Dependabot #38–#41). Lockfile changes only `next`, `@next/env`, `@next/swc-*`. The `overrides` block (`next` → `postcss: "$postcss"`) pins no next version and is unchanged. `tests/phase-02-gates.test.mjs` pinned next exactly to 15.5.26; it now pins 15.5.27. | the old pin failed against the bump (1 fail), as expected |
+| 11 | `04d93fd` | `components/ui/select.tsx`: the chevron span loses `rtl:-scale-x-100`. CSS runs scale before rotate, so with `rotate-90` the closed chevron pointed up in Arabic (and down when open). Spec in `tests/ui/primitives.spec.ts` (Select block, every locale and width): computed translate, rotate, scale and transform from the trigger to the svg; closed down, open up, closed down again. | **pending (b)**: the old `select.tsx` (backup copy) must fail it in `ar` |
+| 10 | `99bc83b` (last; first pushed as `3bd80f4`) | `next` 15.5.27 exact (Dependabot #38–#41). Lockfile changes only `next`, `@next/env`, `@next/swc-*`. The `overrides` block (`next` → `postcss: "$postcss"`) pins no next version and is unchanged. `tests/phase-02-gates.test.mjs` pinned next exactly to 15.5.26; it now pins 15.5.27. | the old pin failed against the bump (1 fail), as expected |
 | 6 | — | `database.types.ts` refresh. | **pending (a)**, needs the stack |
 
 ## Item 7 in detail
@@ -85,12 +89,13 @@ Diff of each function against `20261005100000` (the check lines are the only cha
 
 | Check | Result |
 |---|---|
-| `npx tsc --noEmit` at `f97ff70` | 0 |
-| `npm run tokens:check` at `f97ff70` | theme up to date |
-| `node --test tests/*.test.mjs` at `f97ff70` | 1964 tests, 1924 pass, 0 fail, 40 skipped (stack tests skip without a stack) |
+| `npx tsc --noEmit` at `99bc83b` | 0 |
+| `npm run tokens:check` at `99bc83b` | theme up to date |
+| `node --test tests/*.test.mjs` at `99bc83b` | 1964 tests, 1924 pass, 0 fail, 40 skipped (stack tests skip without a stack) |
+| same three at `f97ff70` | 0; up to date; 1964 tests, 1924 pass, 0 fail, 40 skipped |
 | same three at `3bd80f4`, before the merge | 0; up to date; 1934 tests, 1897 pass, 0 fail, 37 skipped |
 | (a) stack: item 6 `database.types.ts`, item 7 pgTAP (new file + full `supabase/tests`), bite (check removed from a copy must fail the new pgTAP) | **pending, needs go** |
-| (b) dev: `tests/ops-kit.spec.ts` "Back guard" (4 specs), `tests/ops-catalog-items.spec.ts`, `tests/ops-destinations.spec.ts` (06's editors on the new back-guard); then a build with the harness flag and `PW_NEXT=start`, same three files | **pending, needs go** |
+| (b) dev: `tests/ops-kit.spec.ts` "Back guard" (4 specs), `tests/ops-catalog-items.spec.ts`, `tests/ops-destinations.spec.ts` (06's editors on the new back-guard); `tests/ui/primitives.spec.ts` Select block (item 11, with its bite); then a build with the harness flag and `PW_NEXT=start`, same files | **pending, needs go** |
 | (c) dev: `tests/ops-calendar.spec.ts` (item 9) + bite (old `calendar-screen.tsx` must fail the refused-Delete specs) | **pending, needs go** |
 | (d) build lane: `tests/build/stay-detail/stay-detail-held.spec.ts` (item 8) + bite (a real text input outside the footer must fail) | **pending, needs go** |
 | `next build` with next 15.5.27 | **pending**: runs in (b) and in the controller's landing lane |
@@ -112,3 +117,8 @@ All browser runs at `--workers=2`, one lane at a time.
 - Deleting a draft destination cascades its `catalog_item_destinations` rows and may leave a published item with no
   destination (not checked).
 - `someLeft` in the prompt is obsolete: it went with kit panel B.
+- Same bug as item 11 elsewhere: `app/dashboard/(ops)/ops-shell.tsx:243`, the catalog nav chevron, combines
+  `rtl:-scale-x-100` with `-rotate-90` / `rotate-90`, so in Arabic it points the wrong way too. Not changed here.
+- Item 11 changes Arabic pictures with a Select (e.g. `tests/account-select.spec.ts` `ar-closed.png` / `ar-open.png`,
+  Arabic dashboard and contact-form shots): their baselines show the old up chevron and need a re-baseline when
+  those suites run.
