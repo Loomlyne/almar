@@ -44,6 +44,8 @@ export const OPS_LIVE_SECTIONS: readonly string[] = [
   "/content/navigation",
   // 03.2-13: the calendar (block dates).
   "/calendar",
+  // 03.2-07: the stays list and the stay editor.
+  "/catalog/stays",
 ];
 
 /**
