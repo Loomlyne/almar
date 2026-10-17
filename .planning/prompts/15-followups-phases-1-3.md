@@ -44,6 +44,10 @@ restoring by copy, never `git checkout` a file)
    dismiss: clear it on those. Add a spec for the `visibilitychange` path of the `today` refresh (near line 67; only
    `focus` is tested). PR #17 landed on `main` as `b1cf7ae` on 2026-10-16 15:56; merge `origin/main` first.
 
+10. **Next.js security patch** (Dependabot #38-#41, medium, seen 2026-10-17): `next` 15.5.26 to exactly 15.5.27 (SSG/ISR
+   cache poisoning), with anything pinned to it; the lockfile changes only for `next` and its own packages. Last commit
+   on the branch, so it merges cleanly after the wave 4 jobs land.
+
 Not in this job: the primary button's text colour (ivory vs white), the nosniff header on the media host and the
 `wrangler tail` CPU reading (deploy-time items for the controller).
 
