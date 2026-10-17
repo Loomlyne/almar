@@ -42,6 +42,8 @@ export const OPS_LIVE_SECTIONS: readonly string[] = [
   "/content/blog",
   "/content/legal",
   "/content/navigation",
+  // 03.2-13: the calendar (block dates).
+  "/calendar",
 ];
 
 /**

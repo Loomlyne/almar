@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { expect, test, type BrowserContext, type Locator, type Page } from "@playwright/test";
 import { HOME_COPY } from "../../lib/copy/home";
+import { expectFooterNewsletter } from "./newsletter/_footer";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { getCatalogItem } from "../../lib/data/experiences";
 import { fill } from "../../lib/journey-format";
@@ -130,12 +131,14 @@ function surfaceOf(root: Locator | Page): Promise<Surface> {
     const collapse = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").trim();
     const nameOf = (n: Element) => collapse(n.getAttribute("aria-label")) || collapse(n.textContent) || collapse(n.querySelector("img")?.getAttribute("alt"));
     const controls = Array.from(scope.querySelectorAll('button, a, [role="button"], [role="link"], input[type="button"], input[type="submit"]'));
+    // design 11.2: the newsletter is live in the footer (plan 27): submits, email boxes and forms count outside it.
+    const outsideFooter = (selector: string) => Array.from(scope.querySelectorAll(selector)).filter((n) => !n.closest("footer")).length;
     return {
       names: controls.map(nameOf).filter((n) => n.length > 0),
       text: el instanceof HTMLElement ? el.innerText : document.body.innerText,
-      submits: scope.querySelectorAll('button[type="submit"], input[type="submit"]').length,
-      emailInputs: scope.querySelectorAll('input[type="email"]').length,
-      forms: scope.querySelectorAll("form").length,
+      submits: outsideFooter('button[type="submit"], input[type="submit"]'),
+      emailInputs: outsideFooter('input[type="email"]'),
+      forms: outsideFooter("form"),
       comboboxes: Array.from(scope.querySelectorAll('[role="combobox"]')).map((n) => collapse(n.getAttribute("aria-label"))),
     };
   };
@@ -254,12 +257,13 @@ test.describe("sweep", () => {
           expect(await page.locator(`a[href^="${WA}?text="]`).count(), "the request link").toBeGreaterThanOrEqual(1);
         }
 
-        // Footer (SITE-13): contact unchanged, no newsletter, no bare social link, one Instagram link.
+        // Footer (SITE-13): contact unchanged, the newsletter live (design 11.2), no bare social link, one Instagram link.
         const footerText = (await page.locator("footer").innerText()).replace(/\s+/g, " ");
         expect(footerText, "footer mail").toContain("inquiries@almarprivatejourney.com");
         expect(footerText, "footer phone").toContain("+971 56 388 3302");
-        await expect(page.locator("footer form"), "no footer form").toHaveCount(0);
-        await expect(page.locator('input[type="email"]'), "no email field").toHaveCount(0);
+        // design 11.2: the newsletter is live in the footer: its one form and email box, none outside it.
+        await expectFooterNewsletter(page, doc.locale, `${doc.url} @${viewport.width}`);
+        await expect(page.locator('input[type="email"]:not(footer *)'), "no email field outside the footer").toHaveCount(0);
         const allHrefs = await page.locator("a[href]").evaluateAll((nodes) => nodes.map((n) => n.getAttribute("href") ?? ""));
         for (const href of allHrefs) expect(href, "a bare social link").not.toMatch(/^https?:\/\/(www\.)?(facebook|youtube|tiktok)\.com\/?$/i);
         if (JOB11_FOOTER) {

@@ -31,7 +31,8 @@ test("the newsletter route does not set a from address", () => {
 test("a non-empty title honeypot is a rejection path in the source", () => {
   assert.equal(routeSource.includes('"title"'), true);
   assert.equal(routeSource.includes("HONEYPOT_FIELDS"), true);
-  assert.match(routeSource, /status:\s*400/);
+  // Plan 27 hardening: every refusal goes through refused(<status>) (JSON {"ok":false}, no-store).
+  assert.match(routeSource, /isFilled\(formData\.get\(field\)\)\)\s*\{\s*return refused\(400\)/);
 });
 
 test("the other listed honeypot fields are present", () => {
@@ -54,8 +55,9 @@ test("the other listed honeypot fields are present", () => {
 
 test("a missing RESEND_API_KEY is a 503 and does not toast from this file", () => {
   assert.equal(routeSource.includes("RESEND_API_KEY"), true);
-  assert.match(routeSource, /status:\s*503/);
-  assert.equal(routeSource.includes("push("), false);
+  assert.match(routeSource, /if \(!apiKey\) \{\s*return refused\(503\)/);
+  // No toast from this file (the capped body reader's chunks.push is not one).
+  assert.equal(/(?<!chunks\.)push\(|useToast/.test(routeSource), false);
 });
 
 test("the route source has no hardcoded re_ key string", () => {
@@ -72,7 +74,37 @@ test("the newsletter route reads the email from field name Email", () => {
   assert.equal(routeSource.includes('formData.get("Email")'), true);
 });
 
-test("success requires data.id to be a non-empty string", () => {
+test("success requires data.id to be a non-empty string, and the 200 is exactly {ok: true}: the id never leaves", () => {
   assert.match(routeSource, /data\?\.id/);
-  assert.match(routeSource, /status:\s*200/);
+  assert.match(routeSource, /return reply\(\{ ok: true \}, 200\)/);
+  // Plan 27: the Resend contact id is not in any answer.
+  assert.equal(/id:\s*data\.id|ok: true, id/.test(routeSource), false);
+});
+
+test("plan 27 hardening is in the source: origin, content type, size, rate limit, no-store, no address logged", () => {
+  assert.match(routeSource, /if \(!sameOrigin\(request\)\) return refused\(403\)/);
+  assert.match(routeSource, /return refused\(415\)/);
+  assert.match(routeSource, /readBody\(request, MAX_BODY_BYTES\)/);
+  assert.match(routeSource, /allowFormPost\(request, "newsletter"\)\)\) return refused\(429\)/);
+  assert.match(routeSource, /"cache-control": "no-store"/);
+  assert.equal(/console\.(log|info|warn|debug)|NODE_ENV/.test(routeSource), false);
+  const logs = routeSource.match(/console\.\w+\([^;]*\);/g) ?? [];
+  assert.equal(logs.length, 2);
+  for (const line of logs) assert.equal(/mail|formData|data\b|error\)/i.test(line.replace("newsletter: add failed", "")), false, line);
+  assert.equal(routeSource.includes("re_"), false);
+});
+
+test("review fix (3.3-27): the footer's traps carry the contact form's anti-autofill attributes, not autoComplete=off", () => {
+  const inquiry = readFileSync("components/pages/contact/inquiry-form.tsx", "utf8");
+  const attrs = ['autoComplete="one-time-code"', 'data-1p-ignore=""', 'data-lpignore="true"', 'data-bwignore="true"', 'data-form-type="other"'];
+  for (const attr of attrs) {
+    assert.ok(inquiry.includes(attr), `the contact form's traps: ${attr}`);
+    assert.ok(footerSource.includes(attr), `the footer's traps: ${attr}`);
+  }
+  assert.equal(footerSource.includes('autoComplete="off"'), false);
+});
+
+test("review fix (3.3-27): contacts.create gets the address only, never an unsubscribed field", () => {
+  assert.match(routeSource, /contacts\.create\(\{ email: trimmedEmail \}\)/);
+  assert.equal(/unsubscribed\s*:/.test(routeSource), false);
 });

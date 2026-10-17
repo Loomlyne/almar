@@ -1,153 +1,192 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { CalendarDate, getDayOfWeek, today } from "@internationalized/date";
-import { formatDate } from "../../../../components/ui/calendar";
-import { Button } from "../../../../components/ui/button";
-import { Field } from "../../../../components/ui/field";
-import { Sidebar } from "../../../../components/ui/sidebar";
-import { ChevronIcon } from "../../../../components/icons/icons";
-import { DASHBOARD_COPY } from "../../../../lib/copy/dashboard";
-import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
+import { useEffect, useRef, useState } from "react";
+import { errorText } from "../../../../components/ops/error-text";
+import { opsFetch, opsSend } from "../../../../components/ops/ops-client";
+import { useDashboardLocale } from "../../../../components/ops/use-dashboard-locale";
+import type {
+  Block,
+  BlockAddResult,
+  BlocksView,
+  DestinationSummary,
+  ListReply,
+  StaySummary,
+} from "../../../../components/ops/api-types";
+import { overlapLine } from "../../../../lib/copy/ops-calendar";
+import { OPS_KIT_COPY } from "../../../../lib/copy/ops-kit";
+import { dubaiDay, monthWindow, prefillFromQuery, shiftMonth, type BlockFormValues, type BlockPayload } from "./block-form";
+import type { CalendarPlace, CalendarStay } from "./block-form-fields";
+import { CalendarView, FILTER_ALL, type BlockPanelState } from "./calendar-view";
 
-const DUBAI_TIME_ZONE = "Asia/Dubai";
-const WEEKDAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+// Calendar -> Block dates (plan 03.2-13, contract 5.4). This file owns the data: the Dubai day, the month and filter
+// the owner is looking at, the blocks of that window from /api/ops/blocks, and the three writes (add, delete, and the
+// refetch after each). It draws nothing itself: CalendarView and the form do.
 
-type SidebarView = "day" | "newBooking";
+const EMPTY: BlockFormValues = { scope: "all", destinationId: null, stayId: null, first: null, last: null, reason: "" };
 
-function readLocale(): DocumentLocale {
-  const matched = document.cookie.match(/(?:^|;\s*)almar-locale=([^;]*)/);
-  const value = matched ? decodeURIComponent(matched[1] ?? "") : "";
-  return isDocumentLocale(value) ? value : "en";
-}
+type Entry = ReturnType<typeof prefillFromQuery>;
 
-function monthLabel(date: CalendarDate) {
-  return new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric" }).format(
-    new Date(date.year, date.month - 1, 1),
-  );
-}
-
-function isSameDate(a: CalendarDate, b: CalendarDate) {
-  return a.year === b.year && a.month === b.month && a.day === b.day;
+/** `destination:<id>` and `stay:<id>` to the query the blocks endpoint takes; "all" sends neither. */
+function filterQuery(filter: string): { destination_id?: string; stay_id?: string } {
+  const [kind, id] = filter.split(":");
+  if (kind === "destination" && id) return { destination_id: id };
+  if (kind === "stay" && id) return { stay_id: id };
+  return {};
 }
 
 export function CalendarScreen() {
-  const [locale, setLocale] = useState<DocumentLocale>("en");
-  const [now, setNow] = useState<CalendarDate | null>(null);
-  const [cursor, setCursor] = useState<CalendarDate | null>(null);
-  const [open, setOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<CalendarDate | null>(null);
-  const [view, setView] = useState<SidebarView>("day");
-  const copy = DASHBOARD_COPY[locale];
+  const locale = useDashboardLocale();
+  const kit = OPS_KIT_COPY[locale];
+
+  const [today, setToday] = useState<string | null>(null);
+  const [cursor, setCursor] = useState<{ year: number; month: number } | null>(null);
+  const [filter, setFilter] = useState(FILTER_ALL);
+  const [blocks, setBlocks] = useState<Block[]>([]);
+  const [destinations, setDestinations] = useState<CalendarPlace[]>([]);
+  const [stays, setStays] = useState<CalendarStay[]>([]);
+  const [listsReady, setListsReady] = useState(false);
+  const [reload, setReload] = useState(0);
+  // Three errors, each kept until its own read or write succeeds: a later read of something else never hides it.
+  const [listsError, setListsError] = useState<string | null>(null);
+  const [monthError, setMonthError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [panel, setPanel] = useState<BlockPanelState | null>(null);
+  const [deleting, setDeleting] = useState<Block | null>(null);
+  // The link from a stay or destination page (03.2-15): read once on mount, used once the lists are known.
+  const entry = useRef<Entry>(null);
+  const latest = useRef(0);
 
   useEffect(() => {
-    setLocale(readLocale());
-    const dubaiToday = today(DUBAI_TIME_ZONE);
-    setNow(dubaiToday);
-    setCursor(new CalendarDate(dubaiToday.year, dubaiToday.month, 1));
+    const day = dubaiDay(new Date());
+    setToday(day);
+    setCursor({ year: Number(day.slice(0, 4)), month: Number(day.slice(5, 7)) });
+    entry.current = prefillFromQuery(window.location.search);
   }, []);
 
-  const cells = useMemo(() => {
-    if (!cursor) return [];
-    const first = new CalendarDate(cursor.year, cursor.month, 1);
-    const lead = getDayOfWeek(first, "en-GB");
-    const count = first.calendar.getDaysInMonth(first);
-    const days: Array<CalendarDate | null> = Array.from({ length: lead }, () => null);
-    for (let day = 1; day <= count; day += 1) {
-      days.push(new CalendarDate(cursor.year, cursor.month, day));
-    }
-    while (days.length % 7 !== 0) {
-      days.push(null);
-    }
-    return days;
-  }, [cursor]);
+  // A tab left open past Dubai midnight: read the day again when the owner comes back to it, so the grid and the
+  // picker agree on which days are past. The month shown stays where she left it.
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === "hidden") return;
+      const day = dubaiDay(new Date());
+      setToday((old) => (old === day ? old : day));
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
 
-  function openDay(date: CalendarDate) {
-    setSelectedDate(date);
-    setView("day");
-    setOpen(true);
+  // The pick lists: destinations and stays, by their English names (the dashboard is English).
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      const [destinationReply, stayReply] = await Promise.all([
+        opsFetch<ListReply<DestinationSummary>>("/api/ops/destinations"),
+        opsFetch<ListReply<StaySummary>>("/api/ops/stays"),
+      ]);
+      if (!live) return;
+      if (!destinationReply.ok) return setListsError(errorText(kit, destinationReply.error));
+      if (!stayReply.ok) return setListsError(errorText(kit, stayReply.error));
+      setListsError(null);
+      setDestinations(destinationReply.items.map((one) => ({ id: one.id, name: one.name_en })));
+      setStays(stayReply.items.map((one) => ({ id: one.id, name: one.title_en, destinationId: one.destination_id })));
+      setListsReady(true);
+    })();
+    return () => {
+      live = false;
+    };
+  }, [kit]);
+
+  // The blocks of the shown month (both ends inclusive), narrowed by the filter.
+  useEffect(() => {
+    if (!cursor) return;
+    const ticket = (latest.current += 1);
+    (async () => {
+      const reply = await opsFetch<BlocksView>("/api/ops/blocks", { ...monthWindow(cursor.year, cursor.month), ...filterQuery(filter) });
+      if (ticket !== latest.current) return;
+      if (!reply.ok) {
+        // Never the last month's blocks under this month's title: the grid shows nothing blocked, and says why.
+        setBlocks([]);
+        return setMonthError(errorText(kit, reply.error));
+      }
+      setMonthError(null);
+      setBlocks(reply.blocks);
+    })();
+  }, [cursor, filter, reload, kit]);
+
+  // The entry link opens the form with that stay or destination chosen, once it is known; an unknown id is ignored.
+  useEffect(() => {
+    const wanted = entry.current;
+    if (!wanted || !listsReady || !today) return;
+    entry.current = null;
+    const known =
+      wanted.scope === "stay" ? stays.some((one) => one.id === wanted.stayId) : destinations.some((one) => one.id === wanted.destinationId);
+    if (!known) return;
+    setPanel({
+      initial: { ...EMPTY, scope: wanted.scope, ...(wanted.scope === "stay" ? { stayId: wanted.stayId } : { destinationId: wanted.destinationId }) },
+      busy: false,
+      error: null,
+    });
+  }, [listsReady, today, stays, destinations]);
+
+  async function add(payload: BlockPayload): Promise<boolean> {
+    setPanel((old) => (old ? { ...old, busy: true, error: null } : old));
+    const reply = await opsSend<BlockAddResult>("/api/ops/blocks", { action: "add", block: payload });
+    if (!reply.ok) {
+      // A refused field of the block (`block`, `block.ends_on`) is one of the form's own: the generic sentence, not a
+      // column name.
+      const ownField = reply.error.code === "invalid" && /^block(\.|$)/.test(reply.error.field ?? "");
+      const sentence = ownField ? kit.errors.invalid : errorText(kit, reply.error);
+      setPanel((old) => (old ? { ...old, busy: false, error: sentence } : old));
+      return false;
+    }
+    setPanel(null);
+    setNotice(reply.overlapping_bookings > 0 ? overlapLine(locale, reply.overlapping_bookings) : null);
+    setReload((n) => n + 1);
+    return true;
   }
 
-  const title = selectedDate
-    ? view === "newBooking"
-      ? copy.newBooking
-      : formatDate(selectedDate)
-    : "";
-
-  if (!cursor || !now) {
-    return <div className="flex min-w-0 flex-col gap-6" />;
+  async function confirmDelete() {
+    const block = deleting;
+    setDeleting(null);
+    if (!block) return;
+    setDeleteError(null);
+    const reply = await opsSend<{ id: string }>("/api/ops/blocks", { action: "delete", id: block.id });
+    // A refused delete changed nothing: say so, and leave the month as it is.
+    if (!reply.ok) return setDeleteError(errorText(kit, reply.error));
+    setReload((n) => n + 1);
   }
+
+  if (!cursor || !today) return <div className="flex min-w-0 flex-col gap-6" />;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
-      <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.rail.calendar}</h1>
-      <div className="flex min-h-control items-center justify-between">
-        <button
-          type="button"
-          className="inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border-0 bg-transparent p-0 text-ink"
-          aria-label="Previous month"
-          onClick={() => setCursor((value) => (value ? value.subtract({ months: 1 }) : value))}
-        >
-          <ChevronIcon size={20} className="-scale-x-100 rtl:scale-x-100" />
-        </button>
-        <p className="m-0 flex-1 text-center font-body text-body tabular-nums text-teal">{monthLabel(cursor)}</p>
-        <button
-          type="button"
-          className="inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border-0 bg-transparent p-0 text-ink"
-          aria-label="Next month"
-          onClick={() => setCursor((value) => (value ? value.add({ months: 1 }) : value))}
-        >
-          <ChevronIcon size={20} className="rtl:-scale-x-100" />
-        </button>
-      </div>
-      <div className="grid grid-cols-7 justify-items-center font-body text-label text-muted" aria-hidden="true">
-        {WEEKDAY_LABELS.map((label) => (
-          <span key={label}>{label}</span>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 justify-items-center gap-2" role="grid">
-        {cells.map((date, index) =>
-          date ? (
-            <button
-              key={date.toString()}
-              type="button"
-              role="gridcell"
-              className="relative flex size-control cursor-pointer flex-col items-center justify-center gap-1 rounded-none border border-ink bg-surface font-body text-ink hover:bg-ivory focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
-              aria-label={formatDate(date)}
-              onClick={() => openDay(date)}
-            >
-              <span className="text-label tabular-nums">{date.day}</span>
-              {isSameDate(date, now) ? <span className="size-1 bg-ink" aria-hidden="true" /> : null}
-            </button>
-          ) : (
-            <span key={`pad-${index}`} className="size-control" />
-          ),
-        )}
-      </div>
-      <Sidebar open={open} onOpenChange={setOpen} title={title} closeLabel={copy.close}>
-        {view === "newBooking" ? (
-          <>
-            <Field id="calendar-booking-guest" label="Guest" name="guest" />
-            <Field id="calendar-booking-destination" label="Destination" name="destination" />
-            <Field
-              id="calendar-booking-dates"
-              label="Dates"
-              name="dates"
-              placeholder="DD/MM/YYYY"
-              defaultValue={selectedDate ? formatDate(selectedDate) : undefined}
-            />
-            <Field id="calendar-booking-status" label="Status" name="status" />
-          </>
-        ) : (
-          <div className="flex flex-col items-start gap-2">
-            <p className="m-0 text-pretty text-body text-ink">{copy.noBookingsYet}</p>
-            <div className="flex gap-2">
-              <Button onClick={() => setView("newBooking")}>{copy.newBooking}</Button>
-              <Button variant="secondary">{copy.block}</Button>
-            </div>
-          </div>
-        )}
-      </Sidebar>
-    </div>
+    <CalendarView
+      locale={locale}
+      today={today}
+      year={cursor.year}
+      month={cursor.month}
+      onMonthChange={(delta) => setCursor((old) => (old ? shiftMonth(old.year, old.month, delta) : old))}
+      blocks={blocks}
+      destinations={destinations}
+      stays={stays}
+      filter={filter}
+      onFilterChange={setFilter}
+      errors={[deleteError, monthError, listsError].filter((one): one is string => one !== null)}
+      notice={notice}
+      onDismissNotice={() => setNotice(null)}
+      onOpenBlock={(day) => setPanel({ initial: { ...EMPTY, first: day, last: day }, busy: false, error: null })}
+      panel={panel}
+      onSubmitBlock={add}
+      onClosePanel={() => setPanel(null)}
+      onEditBlock={() => setPanel((old) => (old && old.error ? { ...old, error: null } : old))}
+      deleting={deleting}
+      onAskDelete={setDeleting}
+      onConfirmDelete={confirmDelete}
+      onCancelDelete={() => setDeleting(null)}
+    />
   );
 }
