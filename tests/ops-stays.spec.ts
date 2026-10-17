@@ -106,12 +106,12 @@ async function editorChecks(page: Page, state: string, viewport: Viewport, local
   if (locale === "ar") expect(await page.evaluate(() => getComputedStyle(document.querySelector("[data-edit-page]")!).direction)).toBe("rtl");
 }
 
-async function listChecks(page: Page, viewport: Viewport, locale: Locale) {
+async function listChecks(page: Page, state: string, viewport: Viewport, locale: Locale) {
   const copy = OPS_STAYS_COPY[locale];
   // The filter shows "All destinations", never an empty box (Radix reads "" as no value: the list sends "all").
   await expect(page.locator("#stays-destination")).toHaveText(copy.allDestinations);
-  // One stay has one destination: the column says so in the singular.
-  if (viewport !== "phone") await expect(page.getByRole("columnheader", { name: copy.columnDestination, exact: true })).toBeVisible();
+  // One stay has one destination: the column says so in the singular. No match draws no table, so no header there.
+  if (state === "list" && viewport !== "phone") await expect(page.getByRole("columnheader", { name: copy.columnDestination, exact: true })).toBeVisible();
 }
 
 // ---- pictures -----------------------------------------------------------------------------------------------------
@@ -151,7 +151,7 @@ test.describe("pictures", () => {
           const body = (await page.locator("body").innerText()) ?? "";
           expect(body, "no [object] in the scene").not.toMatch(/\[object|undefined|NaN/);
           if (state.startsWith("editor-")) await editorChecks(page, state, viewport, locale);
-          if (state === "list" || state === "list-no-match") await listChecks(page, viewport, locale);
+          if (state === "list" || state === "list-no-match") await listChecks(page, state, viewport, locale);
           // Network idle is capped (a bare wait times out on a cold dev server), then a short settle.
           await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
           await page.waitForTimeout(400);
