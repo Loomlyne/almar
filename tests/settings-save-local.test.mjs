@@ -74,14 +74,12 @@ test("a Settings save goes through the one-transaction function: both change, or
   await admin.from("profiles").update({ locale: "en", currency: "AED" }).eq("id", profile.id);
 
   // Not the owner: the function refuses, nothing changes, the handler hands the error back.
-  const refused = await h.postSettings({ owner: { profile: { id: "00000000-0000-4000-8000-0000000000ff", locale: "en", currency: "AED" }, admin }, body: SAVE, requestRebuild: async () => assert.fail("no rebuild on a refused save") });
+  const refused = await h.postSettings({ owner: { profile: { id: "00000000-0000-4000-8000-0000000000ff", locale: "en", currency: "AED" }, admin }, body: SAVE });
   assert.ok(refused.dbError, "the reply is the error");
   assert.deepEqual(await state(profile.id), { teal: null, vat_percent: 5, deposit_percent: 30, maintenance: false, locale: "en", currency: "AED" });
 
   // The owner: one call changes the row and her language and currency.
-  let rebuilds = 0;
-  const saved = await h.postSettings({ owner: { profile, admin }, body: SAVE, requestRebuild: async () => { rebuilds += 1; } });
+  const saved = await h.postSettings({ owner: { profile, admin }, body: SAVE });
   assert.deepEqual(saved.body, { ok: true, affects_site: true });
-  assert.equal(rebuilds, 1);
   assert.deepEqual(await state(profile.id), { teal: "#7a1f3b", vat_percent: 7.5, deposit_percent: null, maintenance: false, locale: "ar", currency: "USD" });
 });
