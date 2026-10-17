@@ -122,9 +122,9 @@ test("opsPathsFrom: a section named like a server prefix stops the build", () =>
 
 test("OPS_LIVE_SECTIONS holds wired sections only (03.2-09: /content/media); unwired ones stay off; the header name is fixed", () => {
   assert.ok(OPS_LIVE_SECTIONS.includes("/content/media"));
-  // 03.2-07 wired /catalog/stays; experiences are not wired yet.
+  // 03.2-07 wired /catalog/stays; packages are not wired yet.
   assert.equal(isLiveOpsPath("/catalog/stays"), true);
-  assert.equal(isLiveOpsPath("/catalog/experiences"), false);
+  assert.equal(isLiveOpsPath("/catalog/packages"), false);
   assert.equal(isLiveOpsPath("/"), false);
   assert.equal(OPS_PATH_HEADER, "x-almar-ops-path");
 });

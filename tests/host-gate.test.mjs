@@ -162,7 +162,7 @@ test("live sections are only the wired ones (03.2-09 media; 02-06 settings; 03.2
   const { OPS_LIVE_SECTIONS, isLiveOpsPath } = await import("../lib/ops-routes.ts");
   for (const section of ["/content/media", "/settings", "/content/pages", "/content/blog", "/content/legal", "/content/navigation", "/catalog/stays"]) assert.ok(OPS_LIVE_SECTIONS.includes(section), section);
   assert.equal(isLiveOpsPath("/dashboard/settings"), true);
-  for (const path of ["/", "/home", "/content/team", "/bookings", "/catalog/experiences", "/profile"]) assert.equal(isLiveOpsPath(path), false, path);
+  for (const path of ["/", "/home", "/content/team", "/bookings", "/catalog/packages", "/profile"]) assert.equal(isLiveOpsPath(path), false, path);
 });
 
 // ---- Fable review of 7527f88: a trailing dot is the same host --------------------------------------------------
