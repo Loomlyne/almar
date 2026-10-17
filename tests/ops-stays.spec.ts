@@ -135,12 +135,14 @@ test("Move up / Move down reorder a stay's experiences within their kind, and fo
   await expect.poll(order).toEqual(["e2", "e1", "v1"]);
   // e1 reached the end of the experiences, so its Move down is off and focus is on its Move up.
   await expect(button("e1", "up")).toBeFocused();
+  // The page counts the new order as unsaved work.
+  await expect(page.getByText(kit.editor.unsaved, { exact: true })).toBeVisible();
 
   await page.keyboard.press("Enter");
   await expect.poll(order).toEqual(["e1", "e2", "v1"]);
   await expect(button("e1", "down")).toBeFocused();
-  // The page counts the new order as unsaved work.
-  await expect(page.getByText(kit.editor.unsaved, { exact: true })).toBeVisible();
+  // Back in the saved order: nothing is unsaved any more.
+  await expect(page.getByText(kit.editor.unsaved, { exact: true })).toHaveCount(0);
 });
 
 // ---- pictures -----------------------------------------------------------------------------------------------------
