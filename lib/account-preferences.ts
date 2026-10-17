@@ -30,6 +30,30 @@ export function signedInHintOptions(production: boolean, maxAge: number = SIGNED
   return { path: "/", maxAge, sameSite: "lax" as const, secure: production, httpOnly: false };
 }
 
+/**
+ * Follow-up 5 (PR #6 review, finding 2): a valid public session without the hint (signed in before the hint existed,
+ * or the hint expired) gets it on the next Worker request, so her picks sync without a new sign-in. The middleware
+ * sets it. Not on the ops host (the hint is the public site's), not under /auth/ (the confirm action sets it and the
+ * sign-out clears it; a second Set-Cookie there could undo the clear), and only on GET and HEAD.
+ */
+export function needsSignedInHint({
+  signedIn,
+  opsHost,
+  method,
+  path,
+  hint,
+}: {
+  signedIn: boolean;
+  opsHost: boolean;
+  method: string;
+  path: string;
+  hint: string | undefined;
+}): boolean {
+  if (!signedIn || opsHost || hint === "1") return false;
+  if (method !== "GET" && method !== "HEAD") return false;
+  return path !== "/auth" && !path.startsWith("/auth/");
+}
+
 /** A profile row created this recently was created by this very confirmation: a new account. */
 export const NEW_ACCOUNT_WINDOW_MS = 15 * 60 * 1000;
 
