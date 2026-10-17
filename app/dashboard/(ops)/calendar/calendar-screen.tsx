@@ -46,7 +46,9 @@ export function CalendarScreen() {
   const [stays, setStays] = useState<CalendarStay[]>([]);
   const [listsReady, setListsReady] = useState(false);
   const [reload, setReload] = useState(0);
-  // Three errors, each kept until its own read or write succeeds: a later read of something else never hides it.
+  // Three errors, each kept until its own read or write succeeds: a later read of something else never hides it. A
+  // refused Delete is about the month it was shown on: it also goes when the month changes or a block is added
+  // (follow-up 9, PR #17 review round 2).
   const [listsError, setListsError] = useState<string | null>(null);
   const [monthError, setMonthError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -145,6 +147,7 @@ export function CalendarScreen() {
       return false;
     }
     setPanel(null);
+    setDeleteError(null);
     setNotice(reply.overlapping_bookings > 0 ? overlapLine(locale, reply.overlapping_bookings) : null);
     setReload((n) => n + 1);
     return true;
@@ -169,7 +172,10 @@ export function CalendarScreen() {
       today={today}
       year={cursor.year}
       month={cursor.month}
-      onMonthChange={(delta) => setCursor((old) => (old ? shiftMonth(old.year, old.month, delta) : old))}
+      onMonthChange={(delta) => {
+        setDeleteError(null);
+        setCursor((old) => (old ? shiftMonth(old.year, old.month, delta) : old));
+      }}
       blocks={blocks}
       destinations={destinations}
       stays={stays}

@@ -660,7 +660,7 @@ test.describe("behaviour", () => {
   // The screen's own alerts: Next's route announcer is an empty role=alert too.
   const pageAlert = (page: Page) => page.locator('[role="alert"]:not(#__next-route-announcer__)');
 
-  test("a refused Delete says so and stays said: nothing is fetched again, and the next month load does not hide it", async ({ page }) => {
+  test("a refused Delete says so: nothing is fetched again; a month change takes the sentence away (follow-up 9)", async ({ page }) => {
     const api = await mockApi(page, { deleteFails: 503 });
     await openCalendar(page, "desktop", "en");
     await expect(deletesOf(page)).toHaveCount(2);
@@ -672,11 +672,27 @@ test.describe("behaviour", () => {
     await page.waitForTimeout(500);
     expect(api.gets.length, "no refetch after a refused delete").toBe(reads);
     await expect(deletesOf(page)).toHaveCount(2);
-    // Another read succeeds; the refusal is still said.
+    // The refusal was about October's block: November does not say it.
     await page.getByRole("button", { name: copy.nextMonth }).click();
     await expect.poll(() => api.gets.at(-1)).toBe("?from=2026-11-01&to=2026-11-30");
     await expect(page.getByText(copy.noBlocks)).toBeVisible();
+    await expect(pageAlert(page)).toHaveCount(0);
+  });
+
+  test("a refused Delete's sentence goes once a block is added (follow-up 9)", async ({ page }) => {
+    const api = await mockApi(page, { deleteFails: 503 });
+    await openCalendar(page, "desktop", "en");
+    await expect(deletesOf(page)).toHaveCount(2);
+    await deletesOf(page).first().click();
+    await page.getByRole("dialog").getByRole("button", { name: kit.delete, exact: true }).click();
     await expect(pageAlert(page)).toHaveText(kit.errors.unavailable);
+    await dayButton(page, "2026-10-26", "en").click();
+    const editor = page.locator("[data-edit-page]");
+    await editor.getByRole("button", { name: kit.save, exact: true }).click();
+    await expect(editor).toHaveCount(0);
+    expect(api.posts.at(-1)).toMatchObject({ action: "add" });
+    await expect(deletesOf(page)).toHaveCount(3);
+    await expect(pageAlert(page)).toHaveCount(0);
   });
 
   for (const list of ["destinations", "stays"] as const) {
@@ -731,6 +747,18 @@ test.describe("behaviour", () => {
     await expect(dayButton(page, "2026-10-14", "en")).toHaveAttribute("aria-current", "date", { timeout: 45_000 });
     await page.clock.setFixedTime(new Date("2026-10-14T20:01:00Z"));
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await expect(dayButton(page, "2026-10-15", "en")).toHaveAttribute("aria-current", "date");
+    await expect(dayButton(page, "2026-10-14", "en")).toBeDisabled();
+  });
+
+  test("the Dubai day is read again when the tab becomes visible again (visibilitychange, no focus event) (follow-up 9)", async ({ page }) => {
+    await mockApi(page);
+    await page.setViewportSize(VIEWPORTS.desktop);
+    await page.clock.setFixedTime(new Date("2026-10-14T19:59:00Z"));
+    await page.goto("/dashboard/calendar");
+    await expect(dayButton(page, "2026-10-14", "en")).toHaveAttribute("aria-current", "date", { timeout: 45_000 });
+    await page.clock.setFixedTime(new Date("2026-10-14T20:01:00Z"));
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
     await expect(dayButton(page, "2026-10-15", "en")).toHaveAttribute("aria-current", "date");
     await expect(dayButton(page, "2026-10-14", "en")).toBeDisabled();
   });
