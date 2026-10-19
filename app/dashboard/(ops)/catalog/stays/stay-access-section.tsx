@@ -9,7 +9,7 @@
 // the English and the other fields still save and the Arabic and Spanish stay as they were. The other fields are
 // literal values and are never translated.
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { TARGETS, planTranslation, requestTranslations, touchKey, type Send, type Target } from "../../../../../components/ops/auto-translate";
 import { errorText } from "../../../../../components/ops/error-text";
 import { opsFetch, opsSend } from "../../../../../components/ops/ops-client";
@@ -95,10 +95,14 @@ export function StayAccessSection({
 
   const dirty = saved !== null && (!same(saved, typed) || TARGETS.some((target) => notes[target] !== savedNotes[target]));
   const retry = saved !== null && translatedFrom !== typed.notes;
-  // Told only when it changes; the latest callback is kept in a ref so an inline one cannot loop.
+  // Told only when it changes; the latest callback is kept in a ref so an inline one cannot loop. A layout effect, so the
+  // page's own state (its "Unsaved changes" and its Escape and Back guard, a document listener re-set in a passive effect)
+  // is updated in the same task as the keystroke: from a passive effect the page re-rendered at default priority, its
+  // listener still held the old `dirty` after the status was painted, and an Escape in that gap closed with no
+  // "Discard changes?" (slot 8, 2026-10-19, 1440 ar under load).
   const tell = useRef(onDirtyChange);
   tell.current = onDirtyChange;
-  useEffect(() => {
+  useLayoutEffect(() => {
     tell.current?.(dirty);
   }, [dirty]);
   useEffect(() => () => tell.current?.(false), []);

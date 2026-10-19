@@ -564,10 +564,23 @@ test.describe("behaviour", () => {
         const copy = OPS_STAY_TABS_COPY[locale];
         const kit = OPS_KIT_COPY[locale];
         await openEditor(page, "access", viewport, locale, { base: true, ranges: true });
+        // Escape in the first microtask after the page shows "Unsaved changes": the page's Escape guard must already know
+        // (slot 8, 2026-10-19: a card that told the page from a passive effect left that guard a render behind, and an
+        // Escape in the gap closed the page with no question). Watching starts before the typing.
+        await page.evaluate((unsaved) => {
+          const shown = () => [...document.querySelectorAll('[role="status"]')].some((el) => el.textContent?.includes(unsaved));
+          (window as unknown as { __escaped: Promise<void> }).__escaped = new Promise<void>((resolve) => {
+            const watch = new MutationObserver(() => {
+              if (!shown()) return;
+              watch.disconnect();
+              document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+              resolve();
+            });
+            watch.observe(document.body, { subtree: true, childList: true, characterData: true });
+          });
+        }, kit.editor.unsaved);
         await card(page, copy.access.title).getByLabel(copy.access.address, { exact: true }).fill("[Other address]");
-        // The card tells the page after its render; wait for the page's own "Unsaved changes" before trying to leave.
-        await expect(page.getByRole("status").filter({ hasText: kit.editor.unsaved })).toBeVisible();
-        await page.keyboard.press("Escape");
+        await page.evaluate(() => (window as unknown as { __escaped: Promise<void> }).__escaped);
         await expect(page.getByRole("dialog", { name: kit.discardTitle })).toBeVisible();
       });
     }

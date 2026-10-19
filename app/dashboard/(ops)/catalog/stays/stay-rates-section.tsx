@@ -7,7 +7,7 @@
 // a rate is read live and never rebuilds the site (C-04). It never computes a total and never shows a default amount:
 // every rate on screen is one the owner typed and the server returned.
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { parseDate } from "@internationalized/date";
 import { DateRangeField } from "../../../../../components/ops/date-range-field";
 import { errorText } from "../../../../../components/ops/error-text";
@@ -96,10 +96,14 @@ export function StayRatesSection({
 
   const savedBase = view?.base_nightly_rate_aed ?? "";
   const dirty = base.trim() !== savedBase || draft !== null;
-  // Told only when it changes; the latest callback is kept in a ref so an inline one cannot loop.
+  // Told only when it changes; the latest callback is kept in a ref so an inline one cannot loop. A layout effect, so the
+  // page's own state (its "Unsaved changes" and its Escape and Back guard, a document listener re-set in a passive effect)
+  // is updated in the same task as the keystroke: from a passive effect the page re-rendered at default priority, its
+  // listener still held the old `dirty` after the status was painted, and an Escape in that gap closed with no
+  // "Discard changes?" (slot 8, 2026-10-19, 1440 ar under load).
   const tell = useRef(onDirtyChange);
   tell.current = onDirtyChange;
-  useEffect(() => {
+  useLayoutEffect(() => {
     tell.current?.(dirty);
   }, [dirty]);
   useEffect(() => () => tell.current?.(false), []);
