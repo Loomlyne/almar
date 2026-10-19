@@ -1,12 +1,12 @@
 // Follow-up 7: a Save keeps a published destination or catalog item inside the publish rules (migration
-// 20261017120000_ops_save_publish_rules.sql). Static checks of the migration text; the behaviour is proved by
+// 20261019130000_ops_save_publish_rules.sql). Static checks of the migration text; the behaviour is proved by
 // supabase/tests/ops_save_publish_rules.test.sql on a local stack.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 
 const BASE = "supabase/migrations/20261005100000_catalog_and_team.sql";
-const FILE = "supabase/migrations/20261017120000_ops_save_publish_rules.sql";
+const FILE = "supabase/migrations/20261019130000_ops_save_publish_rules.sql";
 const PGTAP = "supabase/tests/ops_save_publish_rules.test.sql";
 
 const fn = (sql, name) => {
@@ -65,7 +65,7 @@ test("the grants are the same as before: service_role only, invoker, empty searc
 test("no later migration replaces the two saves again", () => {
   const later = readdirSync("supabase/migrations")
     .sort()
-    .filter((name) => name > "20261017120000_ops_save_publish_rules.sql")
+    .filter((name) => name > "20261019130000_ops_save_publish_rules.sql")
     .filter((name) => /function public\.ops_save_(destination|catalog_item)\(/.test(readFileSync(`supabase/migrations/${name}`, "utf8")));
   assert.deepEqual(later, []);
 });

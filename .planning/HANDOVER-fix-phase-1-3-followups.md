@@ -34,12 +34,17 @@ Every run is done. The final commit is the one that adds this version of the fil
 | 9 | `11d589b` | Calendar: a refused Delete's sentence goes on a month change and on a successful add; visibilitychange today spec added. | Run (c) dev: 44 passed, 63 skipped (pictures), 0 failed; bite `calendar-screen.tsx` as on main: 2 failed, 0 passed (both refused-Delete specs, alert count 1 not 0); restored by copy, identical |
 | 8 | `d4a9e49` | Held stay spec counts text fields with the same selector as the footer check (`TEXT_FIELD`). | Run (d) build: 31 passed, 0 failed; bite (a `type="text"` input with `className="hidden"` in the stay hero, re-assembled): 1 failed, 0 passed (`en getsemani-colonial-house @390`, "with the sheet open at When: no text box outside the footer", 1 not 0). The input is display:none, so `getByRole("textbox")` cannot see it; only the item 8 selector does. Restored by copy, identical, re-assembled |
 | 4 | `560437b` | `worker/handle.mjs` passes `request.signal` into the rebuilt Request, so the visitor's abort reaches Next. | old handle: 1 fail |
-| 7 | `d36bc47` | Migration `20261017120000_ops_save_publish_rules.sql` (see below) + pgTAP `supabase/tests/ops_save_publish_rules.test.sql` (24 asserts) + static node test `tests/ops-save-publish-rules-migration.test.mjs`. | static: no hero check 2 fail, no item photo check 2 fail, hero check before the translations save 1 fail. pgTAP (run a): 24/24 pass; bite (both checks removed from a copy): 10 of 24 fail (tests 1-4, 12-17), restored copy identical, 24/24 pass again |
+| 7 | `d36bc47` | Migration `20261019130000_ops_save_publish_rules.sql` (see below; first committed as `20261017120000`, renamed after the live `20261019120000_owner_emails`) + pgTAP `supabase/tests/ops_save_publish_rules.test.sql` (24 asserts) + static node test `tests/ops-save-publish-rules-migration.test.mjs`. | static: no hero check 2 fail, no item photo check 2 fail, hero check before the translations save 1 fail. pgTAP (run a): 24/24 pass; bite (both checks removed from a copy): 10 of 24 fail (tests 1-4, 12-17), restored copy identical, 24/24 pass again |
 | 11 | `04d93fd`, `bd3a053` | `components/ui/select.tsx`: the chevron span loses `rtl:-scale-x-100`. CSS runs scale before rotate, so with `rotate-90` the closed chevron pointed up in Arabic (and down when open). Spec in `tests/ui/primitives.spec.ts` (Select block, every locale and width): computed translate, rotate, scale and transform from the trigger to the svg; closed down, open up, closed down again. | Run (b) dev: Select block 45 passed (after `bd3a053`: the spec finds the trigger by CSS, an open Radix Select hides it from the accessibility tree); bite old `select.tsx`, ar only: 3 failed, 0 passed (2026-10-17 and 2026-10-19) |
 | 10 | `25f99f0` (last; first pushed as `3bd80f4`) | `next` 15.5.27 exact (Dependabot #38–#41). Lockfile changes only `next`, `@next/env`, `@next/swc-*`. The `overrides` block (`next` → `postcss: "$postcss"`) pins no next version and is unchanged. `tests/phase-02-gates.test.mjs` pinned next exactly to 15.5.26; it now pins 15.5.27. | the old pin failed against the bump (1 fail), as expected |
 | 6 | `417dbaf` | `lib/supabase/database.types.ts` from `local-supabase.mjs types` after a reset that applied every migration. New: `api_site_settings`, the nine bookings tables, `stripe_events`. Gone: `site_settings_public` (dropped by `20261013120000`). | a generated file: proof is the run (a) output plus tsc 0 and node 0 fail with it |
 
 ## Item 7 in detail
+
+**Version (settled 2026-10-19):** renamed from `20261017120000` to `20261019130000` on the controller's word, so it runs
+after `20261019120000_owner_emails` (live since about 11:53, PR #20) and is in order on live. Content unchanged (git
+sees a 100% rename); the static test's `FILE` and its "no later migration" filter and the pgTAP header follow the new
+name. The two migrations touch different functions.
 
 The new bodies of `ops_save_destination` and `ops_save_catalog_item` are the latest definitions in
 `20261005100000_catalog_and_team.sql` plus one check each. That migration is the only one that defines either function
@@ -50,7 +55,7 @@ Diff of each function against `20261005100000` (the check lines are the only cha
 
 ```diff
 --- 20261005100000 ops_save_destination
-+++ 20261017120000 ops_save_destination
++++ 20261019130000 ops_save_destination
 @@ -46,6 +46,10 @@
  
    perform public.catalog_save_translations('destination', v_id, p -> 'translations', v_create);
@@ -66,7 +71,7 @@ Diff of each function against `20261005100000` (the check lines are the only cha
 
 ```diff
 --- 20261005100000 ops_save_catalog_item
-+++ 20261017120000 ops_save_catalog_item
++++ 20261019130000 ops_save_catalog_item
 @@ -90,6 +90,13 @@
    end if;
  
@@ -86,7 +91,7 @@ Diff of each function against `20261005100000` (the check lines are the only cha
 - Surfaces as 409 `invalid` with field `hero_media_id`, `media_id` or `destination_ids` (as a slug change on a
   published row does). The whole save rolls back. Draft rows are not checked (ops_publish checks them).
 - No table or row change; the revoke/grant lines are stated again as they were (service_role only).
-- **Safe on real rows: yes.** `20261017120000` only replaces two function bodies (`create or replace`); it runs no
+- **Safe on real rows: yes.** `20261019130000` only replaces two function bodies (`create or replace`); it runs no
   `update`, `insert` or `delete` and changes no table, so applying it cannot change or lose a live row. Its only effect
   is on later saves: a Save of a published row that already lacks its hero photo, photo or destination is refused (409)
   until that is added. Whether such rows exist on live is not known here (this session never reads live); the read-only
@@ -122,10 +127,6 @@ All browser runs at `--workers=2`, one lane at a time.
 
 - `database.types.ts` was not regenerated after the merge: main's `20261019120000_owner_emails.sql` only replaces the
   trigger function `handle_new_auth_user` and updates rows, which the generated types do not list; tsc is 0.
-- Migration order on live: item 7's `20261017120000` is older than `20261019120000_owner_emails`, which main already
-  carries (applied live at about 11:53 for PR #20, per `STATE.md`). Applying item 7 after it is an out-of-order version;
-  `supabase db push` would need `--include-all`, the Management API path does not care. The two touch different
-  functions. Renaming item 7's version is the controller's call at landing.
 - Fix 2 on the build path: a production build drops the harness scenes (03.2-12), so the Back guard is browser-tested in
   dev strict mode only (plus node).
 - The node stack tests (`ALMAR_REQUIRE_STACK=1`, e.g. fix 3's lock callers) were not part of run (a); they skip without a stack.

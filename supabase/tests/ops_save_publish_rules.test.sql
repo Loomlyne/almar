@@ -1,4 +1,4 @@
--- pgTAP: follow-up 7 (PR #18 review), migration 20261017120000_ops_save_publish_rules.sql. A Save of a published
+-- pgTAP: follow-up 7 (PR #18 review), migration 20261019130000_ops_save_publish_rules.sql. A Save of a published
 -- destination or catalog item that would leave it without what ops_publish requires (the hero photo; the photo and at
 -- least one destination) is refused as almar:invalid with that field, and the whole save rolls back. A draft row is
 -- saved as before, and so is a published row that keeps its photo and a destination. Rows use the zz7 prefix.
