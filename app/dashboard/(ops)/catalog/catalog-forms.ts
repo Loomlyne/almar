@@ -248,7 +248,8 @@ function recordFor(text: Record<string, string>, status: TextStatus, english: bo
 const statusFor = (form: { status: Record<Locale3, TextStatus> }, target: Target, publish: boolean): TextStatus =>
   publish || form.status[target] === "published" ? "published" : "draft";
 
-function translationsFor(form: { text: Record<Locale3, Record<string, string>>; status: Record<Locale3, TextStatus> }, publish: boolean) {
+/** The `translations` of a save (shared with Content -> Team and Packages, plan 03.2-08). */
+export function translationsFor(form: { text: Record<Locale3, Record<string, string>>; status: Record<Locale3, TextStatus> }, publish: boolean) {
   const out: Record<string, SentRecord | null> = {};
   out.en = recordFor(form.text.en, "published", true) as SentRecord;
   for (const target of ["ar", "es"] as const) {

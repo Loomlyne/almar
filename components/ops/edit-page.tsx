@@ -461,6 +461,8 @@ export function EditPage({
   async function publish() {
     if (working || failed) return;
     if (isNew || dirty || savePending) {
+      // Publish saves first: never past a Save the screen holds (its own required fields or rules).
+      if (!canSave) return;
       await save("publish");
       return;
     }

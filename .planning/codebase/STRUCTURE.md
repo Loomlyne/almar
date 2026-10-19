@@ -28,7 +28,7 @@ almarprod-Website-Code/
 │   │   └── (ops)/                # Route group: layout.tsx (rail) + one folder per section
 │   │       ├── home/ bookings/ customers/ calendar/ settings/ profile/
 │   │       ├── catalog/{destinations,stays,experiences,packages}/   # share catalog-screen.tsx
-│   │       └── content/{pages,blog,team,legal}/                     # share content-screen.tsx
+│   │       └── content/{pages,blog,team,legal}/                     # each page has its own screen (content-screen.tsx is gone, 03.2-08)
 │   ├── fx/route.ts               # GET FX rates (dev only)
 │   ├── newsletter/route.ts       # POST Resend contact (dev only)
 │   ├── embed/hero-booker/route.ts        # esbuild-bundled hero booker JS (dev only)
@@ -90,7 +90,7 @@ almarprod-Website-Code/
 
 **`app/dashboard/(ops)/`:**
 - Purpose: Ops dashboard shell; `(ops)` is a route group, so it adds no URL segment (`/dashboard/home`, not `/dashboard/ops/home`).
-- Key files: `layout.tsx` (client; rail array `RAIL`, mobile menu, `data-density` set to compact), `home/home-screen.tsx`, `catalog/catalog-screen.tsx` (`kind` prop: destinations, stays, experiences, packages), `content/content-screen.tsx` (`kind`: pages, blog, team, legal), `settings/settings-screen.tsx`.
+- Key files: `layout.tsx` (client; rail array `RAIL`, mobile menu, `data-density` set to compact), `home/home-screen.tsx`, `catalog/catalog-screen.tsx` (`kind` prop: destinations, stays, experiences; no page imports it since 03.2-08), Team in `content/team/team-screen.tsx` and Packages in `catalog/packages/journeys-screen.tsx` (03.2-08; `content/content-screen.tsx` is deleted), `settings/settings-screen.tsx`.
 - `settings/page.tsx` is the only page that is `async` (calls `loadRates()` after the production gate).
 
 **`components/ui/`:**

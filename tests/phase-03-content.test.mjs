@@ -1,19 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { DASHBOARD_COPY } from "../lib/copy/dashboard.ts";
 import { OPS_CONTENT_COPY } from "../lib/copy/ops-content.ts";
 
 const CONTENT_DIR = "app/dashboard/(ops)/content";
-const SCREEN = `${CONTENT_DIR}/content-screen.tsx`;
+// Plan 03.2-08: Team is its own screen on the kit editor; content-screen.tsx is gone.
+const TEAM_SCREEN = `${CONTENT_DIR}/team/team-screen.tsx`;
+const TEAM_PAGE = `${CONTENT_DIR}/team/page.tsx`;
 
 const COMING_SOON = `${CONTENT_DIR}/coming-soon.tsx`;
 const KINDS = ["pages", "blog", "legal", "navigation"];
-// Plan 03.2-12: pages, blog, legal and navigation are Coming soon pages. Team still uses ContentScreen until 03.2-08.
-const PAGES = [
-  ...KINDS.map((kind) => ({ path: `${CONTENT_DIR}/${kind}/page.tsx`, kind, screen: "coming-soon" })),
-  { path: `${CONTENT_DIR}/team/page.tsx`, kind: "team", screen: "content-screen" },
-];
+// Plan 03.2-12: pages, blog, legal and navigation are Coming soon pages.
+const PAGES = KINDS.map((kind) => ({ path: `${CONTENT_DIR}/${kind}/page.tsx`, kind, screen: "coming-soon" }));
 
 test("each content page has no page gate (02-04 owner gate in the layout), is noindex and delegates to its screen with its kind", () => {
   for (const { path, kind, screen } of PAGES) {
@@ -25,6 +24,16 @@ test("each content page has no page gate (02-04 owner gate in the layout), is no
     assert.match(text, new RegExp(`kind=["']${kind}["']`));
     if (screen === "coming-soon") assert.match(text, /<ComingSoonScreen kind=/);
   }
+});
+
+test("the team page has no page gate, is noindex and renders the wired Team screen; the old content screen is gone", () => {
+  const text = readFileSync(TEAM_PAGE, "utf8");
+  assert.equal(text.includes("use client"), false);
+  assert.equal(/NODE_ENV|notFound\(\)/.test(text), false);
+  assert.match(text, /robots: \{ index: false, follow: false \}/);
+  assert.match(text, /from ["']\.\/team-screen["']/);
+  assert.match(text, /<TeamScreen \/>/);
+  assert.equal(existsSync(`${CONTENT_DIR}/content-screen.tsx`), false);
 });
 
 test("coming-soon.tsx has no control: no Field, Button, input, button, link or onClick", () => {
@@ -100,27 +109,18 @@ test("rail labels and Coming soon blocks are separate namespaces, and every rail
   }
 });
 
-test("the four empty lines and their New actions are wired to dashboard copy", () => {
-  const text = readFileSync(SCREEN, "utf8");
-  assert.match(text, /copy\.noPagesYet/);
-  assert.match(text, /copy\.newPage/);
-  assert.match(text, /copy\.noPostsYet/);
-  assert.match(text, /copy\.newPost/);
-  assert.match(text, /copy\.noTeamMembersYet/);
+test("Team starts empty: its list reads the server only, with the empty line and New member; no row is written in", () => {
+  const text = readFileSync(TEAM_SCREEN, "utf8");
+  assert.match(text, /copy\.empty/);
   assert.match(text, /copy\.newMember/);
-  assert.match(text, /copy\.noLegalPagesYet/);
-  assert.match(text, /copy\.newLegalPage/);
-  assert.match(text, /<tbody\s*\/>/, "content list must not render a sample row");
-});
-
-test("team editor Photo URL keeps every keystroke and flags a value that cannot become https://", () => {
-  const text = readFileSync(SCREEN, "utf8");
-  assert.equal(text.includes("Photo"), true, "missing team field: Photo");
-  assert.match(text, /setPhotoInvalid\(!canBecomeHttpsUrl\(value\)\)/);
+  assert.match(text, /opsFetch<ListReply<TeamSummary>>\(PATH\)/);
+  assert.equal(/name_en:\s*["']/.test(text), false, "no member is written into the screen");
+  // The photo is a Media library pick, not a typed URL.
+  assert.match(text, /<MediaField id=\{`\$\{idBase\}-photo`\}/);
 });
 
 test("no file input and no SEO field anywhere in the content screens", () => {
-  const text = readFileSync(SCREEN, "utf8");
+  const text = readFileSync(TEAM_SCREEN, "utf8");
   assert.equal(text.includes('type="file"'), false, "no file input");
   assert.equal(/seo/i.test(text), false, "CMS-05 is deferred; no SEO field");
   for (const { path } of PAGES) {
@@ -130,11 +130,10 @@ test("no file input and no SEO field anywhere in the content screens", () => {
   assert.equal(/seo/i.test(readFileSync("lib/copy/ops-content.ts", "utf8")), false, "no SEO field in the Coming soon copy");
 });
 
-test("Publish is a Button that does not publish; Close closes", () => {
-  const text = readFileSync(SCREEN, "utf8");
-  assert.match(text, /<Button onClick=\{\(\) => undefined\}>\{copy\.publish\}<\/Button>/);
-  assert.match(text, /onOpenChange=\{setOpen\}/);
-  assert.equal(text.includes("fetch("), false, "Publish must not call a server");
+test("Team's Publish and Unpublish are real: the contract's publish call with entity team_member", () => {
+  const text = readFileSync(TEAM_SCREEN, "utf8");
+  assert.match(text, /saveThenPublish\(opsSend, PATH, "team_member", payload\.item, publish\)/);
+  assert.match(text, /opsSend<PublishResult>\("\/api\/ops\/publish", \{ entity: "team_member", id: open\.form\.id, published: false \}\)/);
 });
 
 test("no content row is seeded and no file under content is named seed", () => {
