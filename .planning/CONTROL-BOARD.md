@@ -186,6 +186,7 @@ the day it lands; `.claude/worktrees/repo-tidy` stays until job 04 lands.
 | Minimal ops 05-01 (job 12 plans) | `20261005120000_ops.sql`, the controller's next-hour rule |
 | 03.2-15 stay access notes in Arabic and Spanish | `20261019140000_stay_access_notes_i18n.sql` (renumbered 2026-10-19 from `20261015120000`, so it runs after live `20261019120000_owner_emails`; renamed on the branch as `1da8e4f`), first given by the controller 2026-10-15 02:58 (owner chose AI-translated Access Notes at 02:56); applied live by the controller at landing after a second-model check |
 | Follow-ups item 7 (server publish rules on save of a published row) | `20261019130000_ops_save_publish_rules.sql` (renumbered 2026-10-19 from `20261017120000`, so it runs after live `20261019120000_owner_emails`; it lands before 03.2-15), first given by the controller 2026-10-17 13:51 CET to the follow-ups session (`fix/phase-1-3-followups`) |
+| Phase 4 book and request (plans on `phase-04-book-and-request`, session `local_4bdab007`) | `20261019160000_<name>.sql` and `20261019170000_<name>.sql`, reserved 2026-10-19 16:3x CET; a third only from the controller |
 | Next | The controller hands them out and records them here at ship |
 
 ## Known, not fixed
