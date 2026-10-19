@@ -47,6 +47,8 @@ export const OPS_LIVE_SECTIONS: readonly string[] = [
   "/catalog/experiences",
   // 03.2-13: the calendar (block dates).
   "/calendar",
+  // 03.2-07: the stays list and the stay editor.
+  "/catalog/stays",
   // 03.2-08: Content -> Team and Catalog -> Packages (the three home journeys), on the kit editor.
   "/content/team",
   "/catalog/packages",

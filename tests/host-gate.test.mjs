@@ -158,13 +158,13 @@ test("the (ops) layout renders a section's page only when isLiveOpsPath says so,
   assert.equal((layout.match(/\? children : null/g) ?? []).length, 1, "and behind the live-section gate on the ops host, nowhere else");
 });
 
-test("live sections are only the wired ones (03.2-09 media; 02-06 settings; 03.2-12 pages, blog, legal, navigation; 03.2-08 team, packages); the rest show Not ready", async () => {
+test("live sections are only the wired ones (03.2-09 media; 02-06 settings; 03.2-12 pages, blog, legal, navigation; 03.2-07 stays; 03.2-08 team, packages); the rest show Not ready", async () => {
   const { OPS_LIVE_SECTIONS, isLiveOpsPath } = await import("../lib/ops-routes.ts");
-  for (const section of ["/content/media", "/settings", "/content/pages", "/content/blog", "/content/legal", "/content/navigation"]) assert.ok(OPS_LIVE_SECTIONS.includes(section), section);
+  for (const section of ["/content/media", "/settings", "/content/pages", "/content/blog", "/content/legal", "/content/navigation", "/catalog/stays"]) assert.ok(OPS_LIVE_SECTIONS.includes(section), section);
   assert.equal(isLiveOpsPath("/dashboard/settings"), true);
   // 03.2-08 wires Team and Packages: pinned live both ways (the browser path and the rewrite target).
   for (const path of ["/content/team", "/dashboard/content/team", "/catalog/packages", "/dashboard/catalog/packages"]) assert.equal(isLiveOpsPath(path), true, path);
-  for (const path of ["/", "/home", "/bookings", "/catalog/stays", "/profile", "/content/team-old", "/catalog"]) assert.equal(isLiveOpsPath(path), false, path);
+  for (const path of ["/", "/home", "/bookings", "/profile", "/content/team-old", "/catalog"]) assert.equal(isLiveOpsPath(path), false, path);
 });
 
 // ---- Fable review of 7527f88: a trailing dot is the same host --------------------------------------------------
