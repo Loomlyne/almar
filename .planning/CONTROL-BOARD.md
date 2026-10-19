@@ -229,6 +229,7 @@ the day it lands; `.claude/worktrees/repo-tidy` stays until job 04 lands.
 | Phone booking steps leave no room above the iPhone home bar | Phase 4 |
 | AR and ES copy is draft for the owner's review | Owner |
 | `npm run build` kills a running dev server | Restart it after a build |
+| **Kit (all editors): Unpublish, and Publish on a clean page, re-read the item and discard unsaved edits without "Discard changes?".** Found by PR #19's verifier (2026-10-17 15:43 CET) in `stays-screen.tsx:181-201`; `destinations-screen.tsx:152-164` does the same, so it is the kit pattern, not 07's | A later kit job (after 03.2-08 lands) |
 
 ## Owed by the controller
 
