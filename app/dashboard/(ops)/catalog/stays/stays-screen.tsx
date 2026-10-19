@@ -20,6 +20,7 @@ import { ConfirmDialog } from "../../../../../components/ui/confirm-dialog";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
 import { OPS_STAYS_COPY } from "../../../../../lib/copy/ops-stays";
 import { StayEditor } from "./stay-editor";
+import { withBaseRate } from "./rates-forms";
 import { emptyStayForm, stayForm, stayPayload, type StayForm } from "./stay-forms";
 import {
   catalogChoices,
@@ -144,10 +145,13 @@ export function StaysScreen({ send }: { send?: Send } = {}) {
     setListError(null);
   }
 
-  /** The open stay and the list, read again (also the extension point's `reload` for 03.2-15's cards). */
-  async function reload() {
-    if (stay) await readStay(stay.id);
-    await load();
+  /**
+   * 03.2-15's Rates card saved the base rate: only the stay's price (so the no-rate warning) and the list change. The
+   * form and its saved copy are left alone: a full re-read here threw away unsaved edits with no question (PR #23 review).
+   */
+  function onBaseRate(base: string | null) {
+    setStay((was) => withBaseRate(was, base));
+    void load();
   }
 
   const kindOf = (id: string) => lists?.catalog.find((one) => one.id === id)?.kind;
@@ -277,7 +281,7 @@ export function StaysScreen({ send }: { send?: Send } = {}) {
         openKey={openKey}
         onClose={onClose}
         stay={stay}
-        reload={reload}
+        onBaseRate={onBaseRate}
         form={form}
         saved={saved}
         onFormChange={(next) => {

@@ -410,13 +410,13 @@ isOneToOne: false
                   ]
                 },"stay_access": {
                   Row: {
-                    "address": string | null,"door_code": string | null,"notes": string | null,"stay_id": string,"updated_at": string,"wifi_name": string | null,"wifi_password": string | null
+                    "address": string | null,"door_code": string | null,"notes": string | null,"notes_ar": string | null,"notes_es": string | null,"stay_id": string,"updated_at": string,"wifi_name": string | null,"wifi_password": string | null
                   }
                   Insert: {
-                    "address"?: string | null,"door_code"?: string | null,"notes"?: string | null,"stay_id": string,"updated_at"?: string,"wifi_name"?: string | null,"wifi_password"?: string | null
+                    "address"?: string | null,"door_code"?: string | null,"notes"?: string | null,"notes_ar"?: string | null,"notes_es"?: string | null,"stay_id": string,"updated_at"?: string,"wifi_name"?: string | null,"wifi_password"?: string | null
                   }
                   Update: {
-                    "address"?: string | null,"door_code"?: string | null,"notes"?: string | null,"stay_id"?: string,"updated_at"?: string,"wifi_name"?: string | null,"wifi_password"?: string | null
+                    "address"?: string | null,"door_code"?: string | null,"notes"?: string | null,"notes_ar"?: string | null,"notes_es"?: string | null,"stay_id"?: string,"updated_at"?: string,"wifi_name"?: string | null,"wifi_password"?: string | null
                   }
                   Relationships: [
                     {

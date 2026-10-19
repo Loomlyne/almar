@@ -491,6 +491,60 @@ test.describe("behaviour", () => {
         );
       });
 
+      test(`availability: two quick Next month clicks: the first month's late reply is not drawn over the second month (PR #23 review) (${at})`, async ({ page }) => {
+        const copy = OPS_STAY_TABS_COPY[locale];
+        await openEditor(page, "availability", viewport, locale, { base: true, ranges: true });
+        const availability = card(page, copy.availability.title);
+        await expect(availability.locator("td[data-blocked]")).toHaveCount(4 + 1 + 3);
+        const { y, m } = thisMonth();
+        const start = (ahead: number) => {
+          const at = new Date(Date.UTC(Number(y), Number(m) - 1 + ahead, 1));
+          return at.toISOString().slice(0, 10);
+        };
+        const next = start(1);
+        const later = start(2);
+        const blockOn = (from: string, first: number, last: number) => ({
+          id: `block-${from}`,
+          scope: "stay",
+          destination_id: null,
+          stay_id: STAY_ID,
+          starts_on: `${from.slice(0, 8)}${String(first).padStart(2, "0")}`,
+          ends_on: `${from.slice(0, 8)}${String(last).padStart(2, "0")}`,
+          reason: null,
+          created_at: "2026-10-01T00:00:00Z",
+        });
+        // Registered after the fixture's, so it answers first. Next month's reply waits until the test lets it go.
+        let release!: () => void;
+        const held = new Promise<void>((done) => (release = done));
+        let lateAnswered = 0;
+        await page.route(/\/api\/ops\/blocks(\?.*)?$/, async (route) => {
+          const from = new URL(route.request().url()).searchParams.get("from");
+          if (from === next) {
+            await held;
+            await reply(route, 200, { ok: true, blocks: [blockOn(next, 3, 9)] });
+            lateAnswered += 1;
+            return;
+          }
+          if (from === later) return reply(route, 200, { ok: true, blocks: [blockOn(later, 10, 11)] });
+          return route.fallback();
+        });
+        const nextButton = availability.getByRole("button", { name: copy.availability.nextMonth, exact: true });
+        await nextButton.click();
+        await nextButton.click();
+        // The month after next is on screen with its own two blocked days.
+        await expect(availability.locator("td[data-blocked]")).toHaveCount(2);
+        const late = page.waitForResponse((response) => new URL(response.url()).searchParams.get("from") === next);
+        release();
+        await late;
+        await expect.poll(() => lateAnswered).toBeGreaterThan(0);
+        // The late reply has reached the page; give it time to be drawn (the code before the fix drew it within a frame),
+        // then count once, without retrying: the month on screen still shows its own two days, not next month's seven.
+        await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+        await page.waitForTimeout(300);
+        expect(await availability.locator("td[data-blocked]").count()).toBe(2);
+        await expect(availability.locator("td[data-blocked]").first()).toContainText("10");
+      });
+
       test(`access: password and door code are hidden with the eye; Save sends exactly the five fields with blanks as null; over 2,000 characters is refused before any request (${at})`, async ({ page }) => {
         const copy = OPS_STAY_TABS_COPY[locale];
         const calls = await openEditor(page, "access", viewport, locale, { base: true, ranges: true });

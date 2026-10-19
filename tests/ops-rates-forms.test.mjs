@@ -8,7 +8,7 @@ import { loadTs } from "./helpers/load-ts.mjs";
 const FILE = "app/dashboard/(ops)/catalog/stays/rates-forms.ts";
 const {
   moneyString, rangePayload, nightsInRange, lastToExclusive, checkSpan, monthWindow, blockedDays, calendarBlockHref,
-  accessPayload, MAX_RANGE_NIGHTS, MAX_CHECK_NIGHTS, MAX_ACCESS_CHARS,
+  accessPayload, withBaseRate, MAX_RANGE_NIGHTS, MAX_CHECK_NIGHTS, MAX_ACCESS_CHARS,
 } = await loadTs(FILE);
 
 test("moneyString: the API's 2-decimal AED string, never a float", () => {
@@ -107,6 +107,18 @@ test("accessPayload: blanks are null, the rest exactly as typed, 2,000 character
   assert.equal(accessPayload({ ...empty, notes: "ب".repeat(2000) }).ok, true);
   assert.equal(accessPayload({ ...empty, notes: "😀".repeat(2000) }).ok, true, "characters, not UTF-16 units");
   assert.deepEqual(accessPayload({ ...empty, door_code: "x".repeat(2001) }), { ok: false, field: "door_code" });
+});
+
+test("withBaseRate: only the stay's price changes; the same object when nothing changed; null stays null (PR #23 review)", () => {
+  const stay = { id: "s2", base_nightly_rate_aed: null, translations: { en: { title: "[Casa Dos]" } } };
+  const priced = withBaseRate(stay, "12.50");
+  assert.notEqual(priced, stay, "a new object, so the screen draws it");
+  assert.deepEqual(priced, { ...stay, base_nightly_rate_aed: "12.50" });
+  assert.equal(priced.translations, stay.translations, "everything else is the same reference");
+  assert.equal(stay.base_nightly_rate_aed, null, "the old stay is not changed");
+  assert.equal(withBaseRate(priced, "12.50"), priced, "same price: same object");
+  assert.deepEqual(withBaseRate(priced, null), { ...stay, base_nightly_rate_aed: null }, "cleared");
+  assert.equal(withBaseRate(null, "12.50"), null, "no stay open");
 });
 
 test("source guards: pure module, no request, no console, never a total", () => {

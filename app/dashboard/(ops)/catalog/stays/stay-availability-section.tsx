@@ -4,7 +4,7 @@
 // Read only: the month of this stay's blocked days (its own, its destination's and everything blocks, C-13 / D-87) with
 // their reasons, and a link to the Calendar's block form with this stay chosen (03.2-13). Booked days arrive with Phase 4.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { opsFetch } from "../../../../../components/ops/ops-client";
 import type { Block, BlocksView, IsoDay, Locale3 } from "../../../../../components/ops/api-types";
@@ -48,10 +48,17 @@ export function StayAvailabilitySection({ stayId, locale }: { stayId: string; lo
   const [loadError, setLoadError] = useState(false);
   const { from, to } = monthWindow(month.year, month.month);
 
+  // The month last asked for. Two quick month clicks send two reads; an older month's reply that comes back last is
+  // dropped, so it never draws its blocks over the month on screen (PR #23 review).
+  const asked = useRef("");
+
   const load = useCallback(async () => {
+    const key = `${stayId} ${from} ${to}`;
+    asked.current = key;
     setLoadError(false);
     setBlocks(null);
     const reply = await opsFetch<BlocksView>("/api/ops/blocks", { from, to, stay_id: stayId });
+    if (asked.current !== key) return;
     if (!reply.ok) setLoadError(true);
     else setBlocks(reply.blocks);
   }, [from, to, stayId]);

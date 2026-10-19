@@ -20,8 +20,8 @@ export type StaySectionContext = {
   locale: Locale3;
   /** A card has typing its route has not taken (the page's Discard guard covers it); false again when it unmounts. */
   onDirtyChange?: (key: StaySectionKey, dirty: boolean) => void;
-  /** The base nightly rate was saved: the stay's "bookable" follows it, so the page may reload the stay. */
-  onBaseSaved?: () => void;
+  /** The base nightly rate the server took (null = cleared): the page updates the stay's price only, never its form. */
+  onBaseSaved?: (base: string | null) => void;
 };
 
 export function stayTabSections({ stayId, locale, onDirtyChange, onBaseSaved }: StaySectionContext): EditSection[] {

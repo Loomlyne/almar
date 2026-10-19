@@ -14,6 +14,16 @@ import { addDays, daysBetween, isIsoDate } from "../../../../../lib/money/dates"
 const MONEY = /^(0|[1-9]\d{0,9})(\.\d{1,2})?$/;
 
 /** At most 730 nights in one range (the database's limit); at most 366 nights in one price check (contract §5.3). */
+/**
+ * The open stay after the Rates card saved its base rate: only `base_nightly_rate_aed` changes (and with it the page's
+ * no-rate warning). The page's form and its saved copy are never touched, so unsaved edits elsewhere on the page stay
+ * (PR #23 review: a full re-read after "Save price" threw them away with no question).
+ */
+export function withBaseRate<T extends { base_nightly_rate_aed: string | null }>(stay: T | null, base: string | null): T | null {
+  if (stay === null || stay.base_nightly_rate_aed === base) return stay;
+  return { ...stay, base_nightly_rate_aed: base };
+}
+
 export const MAX_RANGE_NIGHTS = 730;
 export const MAX_CHECK_NIGHTS = 366;
 /** Each stay access field holds at most 2,000 characters (contract §5.5). */

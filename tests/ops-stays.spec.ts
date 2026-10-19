@@ -4,6 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
 import { OPS_STAYS_COPY } from "../lib/copy/ops-stays";
 import { DASHBOARD_COPY } from "../lib/copy/dashboard";
+import { OPS_STAY_TABS_COPY } from "../lib/copy/ops-stay-tabs";
 import type { Locale3 } from "../components/ops/api-types";
 import { openDashboard, openRow } from "./helpers/ops-catalog-api";
 import { STAY_NEW_ID, mockStaysApi, postsTo, refusal, warmStays } from "./helpers/ops-stays-api";
@@ -404,6 +405,37 @@ test.describe("behaviour", () => {
       await expect(page.getByRole("alert").filter({ hasText: kit.errors.unavailable })).toBeVisible();
       // The same element (not a new one drawn in its place) still has the focus.
       expect(await page.evaluate(() => document.activeElement?.hasAttribute("data-before-alert") ?? false)).toBe(true);
+    });
+
+    test(`Save price keeps the page's unsaved edits: the fact and the tagline stay, the page is still dirty (PR #23 review) (${at})`, async ({ page, baseURL }) => {
+      await mockStaysApi(page);
+      const prices: unknown[] = [];
+      await open(page, baseURL);
+      // Registered after the cards' GET routes, so it answers the POST first; GETs fall back to them.
+      await page.route(/\/api\/ops\/stay-rates(\?.*)?$/, (route) => {
+        if (route.request().method() !== "POST") return route.fallback();
+        const body = route.request().postDataJSON() as { stay_id: string; base_nightly_rate_aed: string | null };
+        prices.push(body);
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ ok: true, stay_id: body.stay_id, base_nightly_rate_aed: body.base_nightly_rate_aed, affects_site: false }),
+        });
+      });
+      await openStay(page, "[Casa Dos]");
+      await page.locator("#stay-maxGuests").fill("7");
+      await page.locator("#stay-tagline").fill("[Unsaved tagline]");
+      await expect(page.getByText(kit.editor.unsaved, { exact: true })).toBeVisible();
+      const tabs = OPS_STAY_TABS_COPY[locale];
+      const rates = page.locator("section").filter({ has: page.getByRole("heading", { name: tabs.rates.title, exact: true }) });
+      await rates.getByLabel(tabs.rates.baseLabel).fill("12.5");
+      await rates.getByRole("button", { name: tabs.rates.savePrice, exact: true }).click();
+      await expect.poll(() => prices).toEqual([{ action: "set_base", stay_id: "s2", base_nightly_rate_aed: "12.50" }]);
+      await expect(rates.getByText(tabs.rates.saved, { exact: true })).toBeVisible();
+      // The price save did not put the saved stay back over the form.
+      await expect(page.locator("#stay-maxGuests")).toHaveValue("7");
+      await expect(page.locator("#stay-tagline")).toHaveValue("[Unsaved tagline]");
+      await expect(page.getByText(kit.editor.unsaved, { exact: true })).toBeVisible();
     });
 
     test(`A save the server refuses (destination not published) is said in words, the form kept (${at})`, async ({ page, baseURL }) => {

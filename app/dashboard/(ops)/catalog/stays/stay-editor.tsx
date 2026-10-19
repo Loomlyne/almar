@@ -102,7 +102,7 @@ export function StayEditor({
   openKey,
   onClose,
   stay,
-  reload,
+  onBaseRate,
   form,
   saved,
   onFormChange,
@@ -127,7 +127,11 @@ export function StayEditor({
   onClose: () => void;
   /** The stay as last read; null for a new stay. */
   stay: StayDetail | null;
-  reload: () => Promise<void>;
+  /**
+   * 03.2-15's Rates card saved the base rate (null = cleared): the screen updates the stay's price and the list, never
+   * the form or its saved copy, so unsaved edits on this page stay.
+   */
+  onBaseRate: (base: string | null) => void;
   form: StayForm;
   saved: StayForm;
   onFormChange: (next: StayForm) => void;
@@ -394,7 +398,7 @@ export function StayEditor({
     { key: "place", title: copy.sectionPlace, column: "side", content: placeCard },
     { key: "capacity", title: copy.sectionCapacity, column: "side", content: capacityCard },
     { key: "rules", title: copy.sectionRules, column: "side", content: rulesCard },
-    ...stayTabSections({ stayId: stay?.id ?? null, locale, onDirtyChange: onCardDirty, onBaseSaved: () => void reload() }),
+    ...stayTabSections({ stayId: stay?.id ?? null, locale, onDirtyChange: onCardDirty, onBaseSaved: onBaseRate }),
   ];
 
   // Unsaved work, by part: the page asks "Discard changes?" when any is true.

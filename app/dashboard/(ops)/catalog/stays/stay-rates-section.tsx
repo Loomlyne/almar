@@ -51,8 +51,8 @@ export function StayRatesSection({
   locale: Locale3;
   /** The card has typing the server has not taken: the page ORs it into EditPage's `dirty`. */
   onDirtyChange?: (dirty: boolean) => void;
-  /** The base rate changed (the stay's `bookable` follows it): the page may reload the stay. */
-  onBaseSaved?: () => void;
+  /** The base rate the server took (null = cleared): the page updates the stay's price only, never its form. */
+  onBaseSaved?: (base: string | null) => void;
 }) {
   const copy = OPS_STAY_TABS_COPY[locale];
   const kit = OPS_KIT_COPY[locale];
@@ -127,7 +127,7 @@ export function StayRatesSection({
     setBase(reply.base_nightly_rate_aed ?? "");
     setView((was) => (was ? { ...was, base_nightly_rate_aed: reply.base_nightly_rate_aed } : was));
     setBaseSaved(true);
-    onBaseSaved?.();
+    onBaseSaved?.(reply.base_nightly_rate_aed);
   }
 
   async function saveRange() {

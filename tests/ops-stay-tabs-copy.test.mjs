@@ -69,10 +69,22 @@ test("sections: Rates and Availability in the main column, Access in the side; n
 
 test("wiring: 03.2-07's stay editor spreads the cards after its own and ORs their unsaved typing into dirty", () => {
   const source = readFileSync(DIR + "stay-editor.tsx", "utf8");
-  assert.match(source, /\.\.\.stayTabSections\(\{ stayId: stay\?\.id \?\? null, locale, onDirtyChange: onCardDirty/);
+  assert.match(source, /\.\.\.stayTabSections\(\{ stayId: stay\?\.id \?\? null, locale, onDirtyChange: onCardDirty, onBaseSaved: onBaseRate \}\)/);
   assert.match(source, /const dirty = [^;]*Object\.values\(cardsDirty\)\.some\(Boolean\)/);
   // After the stay's own settings: the last own card is Stay rules.
   assert.ok(source.indexOf('key: "rules"') < source.indexOf("...stayTabSections("), "the cards follow the stay's own");
+  // PR #23 review: a saved price updates only the stay's price and the list, never the form or its saved copy.
+  const screen = readFileSync(DIR + "stays-screen.tsx", "utf8");
+  assert.match(screen, /function onBaseRate\(base: string \| null\) \{\s*setStay\(\(was\) => withBaseRate\(was, base\)\);\s*void load\(\);\s*\}/);
+  assert.match(screen, /onBaseRate=\{onBaseRate\}/);
+  assert.doesNotMatch(screen, /function reload\(|reload=\{/, "no reload of the open stay");
+  assert.doesNotMatch(source, /\breload\b/, "the editor has no reload prop");
+});
+
+test("availability: a month reply that is not for the month last asked for is dropped (PR #23 review)", () => {
+  const source = readFileSync(DIR + "stay-availability-section.tsx", "utf8");
+  assert.match(source, /const key = `\$\{stayId\} \$\{from\} \$\{to\}`;\s*asked\.current = key;/);
+  assert.match(source, /await opsFetch<BlocksView>\("\/api\/ops\/blocks", \{ from, to, stay_id: stayId \}\);\s*if \(asked\.current !== key\) return;/);
 });
 
 test("names: the Access card's Edit translations control is named for its field from signed strings only; the kit's keeps its words", async () => {
