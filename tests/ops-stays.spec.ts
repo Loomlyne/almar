@@ -320,6 +320,28 @@ test.describe("behaviour", () => {
       expect(itemOf(save!).connections).toEqual({ experience_ids: ["e2", "e3", "e1"], service_ids: ["v1"] });
     });
 
+    test(`A stay whose read fails shows 0 on the list; opening it says the kit's sentence on the list (review round 2) (${at})`, async ({ page, baseURL }) => {
+      await mockStaysApi(page);
+      // Registered after the mock, so it answers first: every read of [Casa Dos] (3 connected) by its id fails.
+      let reads = 0;
+      await page.route(/\/api\/ops\/stays\?(.*&)?id=s2(&|$)/, (route) => {
+        reads += 1;
+        const { status, json } = refusal(500, "unavailable");
+        return route.fulfill({ status, contentType: "application/json", body: JSON.stringify(json) });
+      });
+      await open(page, baseURL);
+      const row = page.locator("tr, li").filter({ hasText: "[Casa Dos]", visible: true });
+      await expect(row.locator("td, dd").filter({ hasText: /^0$/ })).toHaveCount(1);
+      await expect(page.getByRole("alert").filter({ hasText: kit.errors.unavailable })).toHaveCount(0);
+      const before = reads;
+      await openRow(page, "[Casa Dos]").click();
+      await expect(page.getByRole("alert").filter({ hasText: kit.errors.unavailable })).toBeVisible();
+      expect(reads).toBeGreaterThan(before);
+      // The page did not open: the list and its heading are still there.
+      await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+      await expect(openRow(page, "[Finca Tres]")).toBeVisible();
+    });
+
     test(`A save the server refuses (destination not published) is said in words, the form kept (${at})`, async ({ page, baseURL }) => {
       const api = await mockStaysApi(page, (path, body) => (path === "stays" && body.action === "save" ? refusal(409, "parent_unpublished") : null));
       await open(page, baseURL);

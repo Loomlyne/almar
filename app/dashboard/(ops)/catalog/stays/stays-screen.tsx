@@ -109,12 +109,22 @@ export function StaysScreen({ send }: { send?: Send } = {}) {
     return true;
   }
 
-  /** The stay as the last list read it (every write reads the list again), so the page opens at once. */
+  /**
+   * The stay as the last list read it (every write reads the list again), so the page opens at once. A stay the list
+   * could not read is read now; if that fails too the page does not open, so the error is said on the list (the kit's
+   * EditPage draws `error` only on an open page).
+   */
   async function onOpen(id: string) {
     setError(null);
     const known = lists?.details.get(id);
-    if (known) show(known);
-    else await readStay(id);
+    if (known) {
+      setListError(null);
+      return show(known);
+    }
+    const reply = await opsFetch<DetailReply<StayDetail>>(PATH, { id });
+    if (!reply.ok) return setListError(errorText(kit, reply.error));
+    setListError(null);
+    show(reply.item);
   }
 
   function onNew() {
