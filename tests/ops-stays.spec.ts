@@ -9,7 +9,6 @@ import { openDashboard, openRow } from "./helpers/ops-catalog-api";
 import { STAY_NEW_ID, mockStaysApi, postsTo, refusal, warmStays } from "./helpers/ops-stays-api";
 import { VIEWPORTS, sceneStates, settle, type Viewport } from "./journey/matrix";
 import { routeStayTabs } from "./helpers/stay-tabs-routes";
-import { controlName } from "../components/ops/control-name";
 
 // Catalog -> Stays on its harness scene (tests/journey/scenes/ops-stays.tsx): the list and the stay editor on the kit's
 // editor page (kit panel B). The API is never called: the scene holds its own state and writes every handler into a
@@ -180,9 +179,11 @@ test.describe("pictures", () => {
           await openScene(page, state, viewport, locale);
           if (state === "editor-translations") {
             // The owner's path: open Edit translations, then take one line out of the Arabic amenities, so the lock speaks.
-            // The Text card's control, by its accessible name (03.2-15's Access card has one with the same visible words).
-            const editText = controlName(locale, OPS_KIT_COPY[locale].editor.editTranslations, OPS_STAYS_COPY[locale].sectionText);
-            await page.getByRole("button", { name: editText, exact: true }).click();
+            // The Text card's control by its exact accessible name; 03.2-15's Access card shows the same words but is named
+            // "Edit translations: Notes", so an exact match finds only this one.
+            const editText = page.getByRole("button", { name: OPS_KIT_COPY[locale].editor.editTranslations, exact: true });
+            await expect(editText).toHaveCount(1);
+            await editText.click();
             const arabic = page.getByLabel(`${OPS_STAYS_COPY[locale].amenities} · AR`, { exact: true });
             const lines = (await arabic.inputValue()).split("\n");
             await arabic.fill(lines.slice(0, -1).join("\n"));

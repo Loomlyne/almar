@@ -6,8 +6,7 @@ import { ConfirmDialog } from "../ui/confirm-dialog";
 import { Field } from "../ui/field";
 import { cn } from "../../lib/cn";
 import { OPS_KIT_COPY, type OpsKitCopy } from "../../lib/copy/ops-kit";
-import type { Locale3, OpsError, PublishWarningCode } from "./api-types";
-import { controlName } from "./control-name";
+import type { OpsError, PublishWarningCode } from "./api-types";
 import { missingLine } from "./error-text";
 import {
   TARGETS,
@@ -40,11 +39,6 @@ export type EditSection = {
   column?: "main" | "side";
   /** The card holding the English text: it says "Write in English" and carries the Edit translations link. */
   translatable?: boolean;
-  /**
-   * Optional: this card's name in the Edit translations link's accessible name ("Edit translations, Text"), for a page
-   * that shows another control with the same words (a stay's Access card). The visible words do not change.
-   */
-  translationsName?: string;
   content: ReactNode;
 };
 
@@ -519,8 +513,6 @@ export function EditPage({
           <TranslationBoxes
             idBase={idBase}
             copy={copy}
-            locale={locale}
-            name={section.translationsName}
             open={showTranslations}
             onToggle={() => setShowTranslations((was) => !was)}
             fields={translationFields}
@@ -679,8 +671,6 @@ export function EditPage({
 function TranslationBoxes({
   idBase,
   copy,
-  locale,
-  name,
   open,
   onToggle,
   fields,
@@ -690,9 +680,6 @@ function TranslationBoxes({
 }: {
   idBase: string;
   copy: OpsKitCopy;
-  locale: Locale3;
-  /** The card's name, added to the link's accessible name after its visible words (EditSection.translationsName). */
-  name?: string;
   open: boolean;
   onToggle: () => void;
   fields: TranslatableField[];
@@ -701,19 +688,17 @@ function TranslationBoxes({
   onChange: (target: Target, name: string, value: string | string[]) => void;
 }) {
   const regionId = `${idBase}-translations`;
-  const words = open ? copy.editor.hideTranslations : copy.editor.editTranslations;
   return (
     <div className="flex min-w-0 flex-col items-start gap-4">
       <button
         type="button"
-        aria-label={name ? controlName(locale, words, name) : undefined}
         aria-expanded={open}
         aria-controls={open ? regionId : undefined}
         onClick={onToggle}
         className="inline-flex min-h-control cursor-pointer items-center gap-2 border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4"
       >
         <ChevronIcon size={16} className={open ? "-rotate-90" : "rotate-90"} aria-hidden="true" />
-        {words}
+        {open ? copy.editor.hideTranslations : copy.editor.editTranslations}
       </button>
       {open ? (
         <div id={regionId} className="flex w-full min-w-0 flex-col gap-4">

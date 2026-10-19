@@ -3,8 +3,6 @@ import { isAbsolute, join } from "node:path";
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { OPS_STAY_TABS_COPY } from "../lib/copy/ops-stay-tabs";
 import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
-import { OPS_STAYS_COPY } from "../lib/copy/ops-stays";
-import { controlName } from "../components/ops/control-name";
 import { VIEWPORTS, settle, type Viewport } from "./journey/matrix";
 
 // Plan 03.2-15: the stay editor's Rates, Availability and Access cards inside the kit EditPage (option B). For now only
@@ -231,13 +229,15 @@ async function expectKitTranslations(page: Page, locale: Locale, open: boolean) 
   const kit = OPS_KIT_COPY[locale];
   const toggle = open ? kit.editor.hideTranslations : kit.editor.editTranslations;
   const access = card(page, copy.access.title);
-  // Each control is named for its card after the visible words (controller 2026-10-19); the scene's Text card has the
-  // stay editor's title for it (OPS_STAYS_COPY sectionText).
-  const mine = access.getByRole("button", { name: controlName(locale, toggle, copy.access.translationsName), exact: true });
-  const text = page.getByRole("button", { name: controlName(locale, kit.editor.editTranslations, OPS_STAYS_COPY[locale].sectionText), exact: true });
+  // Two such controls on one page, each with its own exact accessible name (controller 2026-10-19): the Text card's is
+  // the kit's words alone; the Access card's adds its field after the words on screen ("Edit translations: Notes").
+  const mine = page.getByRole("button", { name: `${toggle}: ${copy.access.notes}`, exact: true });
+  const text = page.getByRole("button", { name: kit.editor.editTranslations, exact: true });
   await expect(mine).toHaveCount(1);
+  await expect(access.locator("button[aria-expanded]")).toHaveAccessibleName(`${toggle}: ${copy.access.notes}`);
   await expect(text).toHaveCount(1);
-  // Each name starts with the words on screen (WCAG 2.5.3, label in name).
+  await expect(text).toHaveAccessibleName(kit.editor.editTranslations);
+  // The words on screen start each name (WCAG 2.5.3, label in name).
   await expect(mine).toHaveText(toggle);
   await expect(text).toHaveText(kit.editor.editTranslations);
   expect(await mine.getAttribute("class"), "the Access control has the Text card's classes").toBe(await text.getAttribute("class"));
@@ -345,7 +345,7 @@ test.describe("pictures", () => {
           if (shot.state === "access-translations") {
             // Edit translations open under the English Notes: the Arabic and Spanish the AI filled, editable.
             const access = card(page, copy.access.title);
-            await access.getByRole("button", { name: controlName(locale, kit.editor.editTranslations, copy.access.translationsName), exact: true }).click();
+            await access.getByRole("button", { name: `${kit.editor.editTranslations}: ${copy.access.notes}`, exact: true }).click();
             await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.ar}`, { exact: true })).toHaveValue(NOTES_AR);
             await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.es}`, { exact: true })).toHaveValue(NOTES_ES);
             await expectKitTranslations(page, locale, true);
@@ -527,7 +527,7 @@ test.describe("behaviour", () => {
         expect(body.access.notes_ar).toBe("[AR] [New note]");
         expect(body.access.notes_es).toBe("[ES] [New note]");
         await expectKitTranslations(page, locale, false);
-        await access.getByRole("button", { name: controlName(locale, kit.editor.editTranslations, copy.access.translationsName), exact: true }).click();
+        await access.getByRole("button", { name: `${kit.editor.editTranslations}: ${copy.access.notes}`, exact: true }).click();
         await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.ar}`, { exact: true })).toHaveValue("[AR] [New note]");
         await expectKitTranslations(page, locale, true);
       });
@@ -546,7 +546,7 @@ test.describe("behaviour", () => {
         expect(body.access.notes).toBe("[New note]");
         expect("notes_ar" in body.access).toBe(false);
         expect("notes_es" in body.access).toBe(false);
-        await access.getByRole("button", { name: controlName(locale, kit.editor.editTranslations, copy.access.translationsName), exact: true }).click();
+        await access.getByRole("button", { name: `${kit.editor.editTranslations}: ${copy.access.notes}`, exact: true }).click();
         await expect(access.getByLabel(`${copy.access.notes} · ${kit.languages.ar}`, { exact: true })).toHaveValue(NOTES_AR);
         // Save stays pressable with nothing else changed, and the next Save asks the AI again (now answering).
         await page.route("**/api/ops/translate", (route) => {

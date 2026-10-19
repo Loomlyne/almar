@@ -75,26 +75,15 @@ test("wiring: 03.2-07's stay editor spreads the cards after its own and ORs thei
   assert.ok(source.indexOf('key: "rules"') < source.indexOf("...stayTabSections("), "the cards follow the stay's own");
 });
 
-test("names: the two Edit translations controls on a stay have different accessible names that start with the words shown", async () => {
-  const { controlName } = await loadTs("components/ops/control-name.ts");
-  const { OPS_KIT_COPY: KIT } = await loadTs("lib/copy/ops-kit.ts");
-  const { OPS_STAYS_COPY: STAYS } = await loadTs("lib/copy/ops-stays.ts");
-  assert.equal(controlName("en", "Edit translations", "Text"), "Edit translations, Text");
-  assert.equal(controlName("es", "Editar traducciones", "Texto"), "Editar traducciones, Texto");
-  assert.equal(controlName("ar", "تعديل الترجمات", "النص"), "تعديل الترجمات، النص");
-  for (const locale of ["en", "ar", "es"]) {
-    for (const words of [KIT[locale].editor.editTranslations, KIT[locale].editor.hideTranslations]) {
-      const text = controlName(locale, words, STAYS[locale].sectionText);
-      const access = controlName(locale, words, COPY[locale].access.translationsName);
-      assert.notEqual(text, access, `${locale}: ${text}`);
-      assert.ok(text.startsWith(words) && access.startsWith(words), `${locale}: label in name`);
-    }
-  }
-  // Wired: the stay editor names its Text card, the Access card names itself; the kit adds the name only when given.
-  const editor = readFileSync(`${DIR}stay-editor.tsx`, "utf8");
-  assert.match(editor, /key: "text",[^\n]*translatable: true, translationsName: copy\.sectionText/);
+test("names: the Access card's Edit translations control is named for its field from signed strings only; the kit's keeps its words", async () => {
   const access = readFileSync(`${DIR}stay-access-section.tsx`, "utf8");
-  assert.match(access, /aria-label=\{controlName\(\s*locale,[\s\S]{0,160}copy\.access\.translationsName,?\s*\)\}/);
-  const kit = readFileSync("components/ops/edit-page.tsx", "utf8");
-  assert.match(kit, /aria-label=\{name \? controlName\(locale, words, name\) : undefined\}/);
+  // "Edit translations: Notes" / "Hide translations: Notes" (controller 2026-10-19): the words on screen first.
+  assert.match(access, /aria-label=\{`\$\{showTranslations \? kit\.editor\.hideTranslations : kit\.editor\.editTranslations\}: \$\{copy\.access\.notes\}`\}/);
+  const { OPS_KIT_COPY: KIT } = await loadTs("lib/copy/ops-kit.ts");
+  for (const locale of ["en", "ar", "es"]) {
+    const name = `${KIT[locale].editor.editTranslations}: ${COPY[locale].access.notes}`;
+    assert.notEqual(name, KIT[locale].editor.editTranslations, locale);
+    assert.ok(name.startsWith(KIT[locale].editor.editTranslations), `${locale}: label in name`);
+  }
+  assert.equal(`${(await loadTs("lib/copy/ops-kit.ts")).OPS_KIT_COPY.ar.editor.editTranslations}: ${COPY.ar.access.notes}`, "تعديل الترجمات: ملاحظات");
 });

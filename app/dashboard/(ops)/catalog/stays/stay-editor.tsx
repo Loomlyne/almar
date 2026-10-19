@@ -388,7 +388,7 @@ export function StayEditor({
 
   // Every card of the page, in one place. Left: Text, Photos, Experiences and services. Right: the settings.
   const sections: EditSection[] = [
-    { key: "text", title: copy.sectionText, column: "main", translatable: true, translationsName: copy.sectionText, content: textCard },
+    { key: "text", title: copy.sectionText, column: "main", translatable: true, content: textCard },
     { key: "photos", title: copy.sectionPhotos, column: "main", content: photosCard },
     { key: "connections", title: copy.columnConnected, column: "main", content: connectionsCard },
     { key: "place", title: copy.sectionPlace, column: "side", content: placeCard },
