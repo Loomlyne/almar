@@ -53,9 +53,10 @@ floor applies. If the 30-minute hold lapsed before Request, the guest restarts f
 
 **Record payment** (`ops_record_payment`) follows the card path already in the migration (`record_payment`):
 - the money that arrived is recorded as it is; above what is owed it is kept and flagged `overpaid` (never refused);
-- on an `expired` or `cancelled` booking it re-claims the nights if they are still free and flags `needs_attention`
-  (`paid_after_expiry`, `nights_lost`, `paid_after_cancel`), so the owner decides and refunds from the bank;
-- status rules for partial and short amounts wait for Q7 and Q8.
+- on an `expired` or `cancelled` booking it records the money, flags `needs_attention` (`paid_after_expiry`,
+  `paid_after_cancel`) and never re-claims nights; the owner re-books or refunds from the bank (owner, Q9, B-34);
+- a total below the deposit stays `awaiting_payment` with "part received" (Q7, B-32); a short total can be closed by
+  the owner's "Accept as paid" with a reason (Q8, B-33).
 
 **Void payment** (`ops_void_payment`) reverses one recorded row: `paid_fils` goes down, the row is `voided` with a
 reason, and the booking's status is recomputed (back to `awaiting_payment` with a fresh deadline when nothing paid
