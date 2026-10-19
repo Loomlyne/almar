@@ -1,4 +1,4 @@
--- pgTAP: the Arabic and Spanish access notes (plan 03.2-15, migration 20261015120000_stay_access_notes_i18n.sql). Runs
+-- pgTAP: the Arabic and Spanish access notes (plan 03.2-15, migration 20261019140000_stay_access_notes_i18n.sql). Runs
 -- as the postgres owner inside one transaction that is rolled back: nothing it creates stays in the database.
 begin;
 create extension if not exists pgtap with schema extensions;

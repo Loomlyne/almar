@@ -1,5 +1,5 @@
 // Plan 03.2-15 (owner, 2026-10-15): the stay's private access Notes in English with the Arabic and Spanish the AI fills
-// (migration 20261015120000_stay_access_notes_i18n.sql). The validator takes notes_ar and notes_es like notes; the
+// (migration 20261019140000_stay_access_notes_i18n.sql). The validator takes notes_ar and notes_es like notes; the
 // handlers read and pass them through. No server, no database: the owner client is a fake. The database side (columns,
 // checks, absent-untouched, grants) is supabase/tests/stay_access_notes.test.sql.
 import test from "node:test";
