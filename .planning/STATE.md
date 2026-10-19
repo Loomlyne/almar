@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-17 15:44 CET:** **PR #19** (03.2-07 Stays) open on final commit `98c35f9`. Verifier round 1 (the `reviewer` agent, Sonnet 5.5; Grok unavailable in Claude Code): ship with fixes. One should-fix: a save drops a stay's direct link to an item its destination also has (`stay-editor.tsx:259-264`). Two nits: one failed detail read empties the list; no INT_MAX bound on whole numbers. All three went back to 07. The kit-wide discard-on-Unpublish nit went to Known, not fixed. The clean-clone landing lane runs on the fixed tip. Follow-ups run (b) re-run since 15:40, because the first run executed no spec (a zsh string-command bug in its script).
+
 **2026-10-17 15:10 CET:** Owner signed the **03.2-07** stays pictures (72 at `8191760`) and the **03.2-08** team and packages pictures (81 at `891101d`), question form. Two changes follow, each re-shot and signed on its own: stay connections get Move up / Move down (`e320fce`), and team members get a Web address field (`e64668e`); the journey price line is AI-filled in AR/ES like every other text. 03.2-15: specs 37/0 on `0630c94`, build after 07 lands. Follow-ups: item 11 (Arabic Select chevron) added, `d889cb4`.
 
 **2026-10-17 14:41 CET:** **03.2-06 landed** (catalog: destinations, experiences and services on the kit editor) as `fa5c3b2` on the owner's Ship, PR #18; no migration, not deployed. Wave 4 left: 03.2-07 (pictures shooting since 14:44; the 14:38 go never ran, its detached launcher was blocked), 03.2-15 (after 07), 03.2-08 (pictures next); follow-ups job in progress.
