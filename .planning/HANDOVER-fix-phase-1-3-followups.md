@@ -1,16 +1,17 @@
-# Hand-over: phase 1–3 follow-ups (DRAFT)
+# Hand-over: phase 1–3 follow-ups
 
-**Status: DRAFT, written 2026-10-17 14:31 CET, updated 14:42 CET after the merge of `origin/main` `82b66bf` and 14:53 CET with item 11 (main `5ade3df` merged in `4ccd821`), and 15:28 CET after run (a), and 2026-10-19 11:27 CET after run (b) (main `f9d7cb1` merged in `4832169`).**
-Runs (c) and (d) are still pending: each waits for the controller's "go".
-This file is completed and committed again after those runs.
+**Status: DRAFT, written 2026-10-17 14:31 CET, updated 14:42 CET after the merge of `origin/main` `82b66bf` and 14:53 CET with item 11 (main `5ade3df` merged in `4ccd821`), and 15:28 CET after run (a), 2026-10-19 11:27 CET after run (b) (main `f9d7cb1` merged in `4832169`), and finished 2026-10-19 12:56 CET after
+runs (c)+(d) and the merge of `origin/main` `9b71d59` in `a98f0a8`.**
+Every run is done. The final commit is the one that adds this version of the file, on top of `a98f0a8`.
 
 - Job: `.planning/prompts/15-followups-phases-1-3.md`
 - Branch: `fix/phase-1-3-followups` (worktree `.claude/worktrees/compassionate-dubinsky-66be64`, local branch
   `claude/compassionate-dubinsky-66be64`), cut from `origin/main` `bfc3326`; `origin/main` `deb3bda` merged in `ef28ffc`;
   `origin/main` `82b66bf` (PR #18, 03.2-06 catalog, landed as `fa5c3b2`) merged in `f97ff70` with no conflicts.
-- Code tip at draft time: `25f99f0` (item 10, last). Merges: `f97ff70` (`82b66bf`), `4ccd821` (`5ade3df`),
-  `4832169` (`f9d7cb1`, docs only). This file's
-  commits sit on top; the final commit is named in the final version.
+- Last code commit: `25f99f0` (item 10). Merges after it: `4832169` (`f9d7cb1`, docs only), `c4adcad` (`dc91813`,
+  docs only), `a98f0a8` (`9b71d59`: PR #20 `77f8d51` auth and 03.2-07 `40b5b65` Stays, no conflicts, no file in common
+  with this branch, no package change). Earlier: `f97ff70` (`82b66bf`), `4ccd821` (`5ade3df`). Only this file's commits
+  sit on top of `a98f0a8`.
 - Item 10 stays last: item 11 came after item 10 was pushed, so `309383d` reverts item 10, `04d93fd` is item 11, and
   `99bc83b` applies item 10 again by cherry-pick of `3bd80f4` (package files identical to `3bd80f4`). Item 6 came after
   that: `7c693e5` reverts item 10 again, `417dbaf` is item 6, `2c07126` is item 10 by cherry-pick of `3bd80f4`. After
@@ -30,8 +31,8 @@ This file is completed and committed again after those runs.
 | 2 | `e9c4986`, `715f8ee`, `31c0ad9`, `f49fc37` | Editor Back guard (`components/ops/back-guard.ts`, new, pure): the guard entry is flagged on `history.state` (`__almarEditTrap`), not by address and history length; closing or saving takes no history step; a watcher steps past a spare entry. `edit-page.tsx`: no prop or section API change. `31c0ad9` (run b): a second `loaded()` (strict mode's double mount: loaded, arm, release, loaded, arm) never steps off this document's own entry; it did, and EditPage then asked "Discard changes?" at once. `f49fc37`: `playwright.config.ts` is main's again (no `PW_NEXT`): a production build drops the harness scenes (03.2-12), so the build path is **not browser-tested** for fix 2. | node: step at release 4, arm always pushes 1, no Back-past-spare rule 1, no step-off-spare rule 2, no step wait 1, address+length mark 1, old edit-page 1; `31c0ad9`'s sequence test 1 (restored: 11 pass). Browser, dev strict mode (run b, 2026-10-19): 4 passed; bite back-guard.ts before `31c0ad9`: 1 failed, 0 passed; bite edit-page.tsx as on main: 1 failed, 0 passed |
 | 3 | `0b1c8b6` | Stack tests take the stack lock before they look for the stack (`lockStack(t)` in `tests/helpers/local-supabase.mjs`); six callers moved. | look-first 1, old helper 1 |
 | 5 | `1db1b3d` | A valid public session without the `almar-signed-in` hint gets it back (`needsSignedInHint` in `lib/account-preferences.ts`, set in `middleware.ts`); not on the ops host, not on `/auth*`, GET/HEAD only. | old middleware 3; /auth, POST and ops rules 2 each |
-| 9 | `11d589b` | Calendar: a refused Delete's sentence goes on a month change and on a successful add; visibilitychange today spec added. | **pending (c)** |
-| 8 | `d4a9e49` | Held stay spec counts text fields with the same selector as the footer check (`TEXT_FIELD`). | **pending (d)** |
+| 9 | `11d589b` | Calendar: a refused Delete's sentence goes on a month change and on a successful add; visibilitychange today spec added. | Run (c) dev: 44 passed, 63 skipped (pictures), 0 failed; bite `calendar-screen.tsx` as on main: 2 failed, 0 passed (both refused-Delete specs, alert count 1 not 0); restored by copy, identical |
+| 8 | `d4a9e49` | Held stay spec counts text fields with the same selector as the footer check (`TEXT_FIELD`). | Run (d) build: 31 passed, 0 failed; bite (a `type="text"` input with `className="hidden"` in the stay hero, re-assembled): 1 failed, 0 passed (`en getsemani-colonial-house @390`, "with the sheet open at When: no text box outside the footer", 1 not 0). The input is display:none, so `getByRole("textbox")` cannot see it; only the item 8 selector does. Restored by copy, identical, re-assembled |
 | 4 | `560437b` | `worker/handle.mjs` passes `request.signal` into the rebuilt Request, so the visitor's abort reaches Next. | old handle: 1 fail |
 | 7 | `d36bc47` | Migration `20261017120000_ops_save_publish_rules.sql` (see below) + pgTAP `supabase/tests/ops_save_publish_rules.test.sql` (24 asserts) + static node test `tests/ops-save-publish-rules-migration.test.mjs`. | static: no hero check 2 fail, no item photo check 2 fail, hero check before the translations save 1 fail. pgTAP (run a): 24/24 pass; bite (both checks removed from a copy): 10 of 24 fail (tests 1-4, 12-17), restored copy identical, 24/24 pass again |
 | 11 | `04d93fd`, `bd3a053` | `components/ui/select.tsx`: the chevron span loses `rtl:-scale-x-100`. CSS runs scale before rotate, so with `rotate-90` the closed chevron pointed up in Arabic (and down when open). Spec in `tests/ui/primitives.spec.ts` (Select block, every locale and width): computed translate, rotate, scale and transform from the trigger to the svg; closed down, open up, closed down again. | Run (b) dev: Select block 45 passed (after `bd3a053`: the spec finds the trigger by CSS, an open Radix Select hides it from the accessibility tree); bite old `select.tsx`, ar only: 3 failed, 0 passed (2026-10-17 and 2026-10-19) |
@@ -105,15 +106,21 @@ Diff of each function against `20261005100000` (the check lines are the only cha
 | (b) first try 2026-10-17 15:37 (`run-b.log`) | void: a zsh string held the Playwright command, every call 127, 0 tests; only the build ran (0) |
 | (b) 2026-10-17 15:41 (`run-b2.log`, on `d2cc6a1`) | dev Back guard 1 failed 3 passed (strict-mode fault, fixed in `31c0ad9`); catalog 64 passed 90 skipped; Select 9 failed 36 passed (chevron spec's open check, fixed in `bd3a053`); bite old edit-page 1 failed 1 passed (not valid); bite old select ar 3 failed 0 passed; build 0; every `next start` spec timed out (harness not in a build; switch removed in `f49fc37`). The Mac slept on battery: step 6 stamped 06:45 the next day |
 | (b) dev re-run 2026-10-19 11:23:22-11:24:57 CET (`run-b3.log`, on `4191877`), exit=0, AC power | Back guard 4 passed; Select block 45 passed; bite back-guard.ts before `31c0ad9`: 1 failed, 0 passed; bite edit-page.tsx as on main: 1 failed, 0 passed; bite old select.tsx ar: 3 failed, 0 passed; each file restored by copy, identical, matches the commit; git clean, port 3010 free |
-| (c) dev: `tests/ops-calendar.spec.ts` (item 9) + bite (old `calendar-screen.tsx` must fail the refused-Delete specs) | **pending, needs go** |
-| (d) build lane: `tests/build/stay-detail/stay-detail-held.spec.ts` (item 8) + bite (a real text input outside the footer must fail) | **pending, needs go** |
+| (c)+(d) one run, go 12:51 CET, log `~/.almar-followups-work/run-cd.log`, 12:51:36-12:54:32 CET, exit=0, AC power, on `c4adcad` | (c) `tests/ops-calendar.spec.ts` dev: 44 passed, 63 skipped, 0 failed; bite old `calendar-screen.tsx`, `-g "refused Delete"`: 2 failed, 0 passed; restored by copy, identical, matches the commit; port 3010 free. (d) assemble (local target, fixtures) 0, 69 html, 3 404s; `stay-detail-held.spec.ts` 31 passed, 0 failed; bite hero input, re-assemble 0, `-g "en getsemani-colonial-house @390"`: 1 failed, 0 passed; restored by copy, identical, matches the commit; re-assemble 0; port 8787 free; git clean |
+| (d) leftover check | the script's own count of bite inputs left in `out/` was void (zsh globbed `--include=*.html`: "no matches found"); counted again by hand with a quoted grep: 0 files in `out/` and `.open-next`, 0 "bite" in `hero.tsx` |
+| `npx tsc --noEmit` and `node --test tests/*.test.mjs` at `a98f0a8` (after the merge) | tsc 0; 2000 tests, 1958 pass, 0 fail, 42 skipped (`node-suite-10.log`) |
 | `next build` with next 15.5.27 | `ALMAR_HARNESS=1 npm run build` 0 in run (b) (2026-10-17); the assembled build runs in (d) and in the controller's landing lane |
 
 All browser runs at `--workers=2`, one lane at a time.
 
 ## Not verified
 
-- Runs (c) and (d) above.
+- `database.types.ts` was not regenerated after the merge: main's `20261019120000_owner_emails.sql` only replaces the
+  trigger function `handle_new_auth_user` and updates rows, which the generated types do not list; tsc is 0.
+- Migration order on live: item 7's `20261017120000` is older than `20261019120000_owner_emails`, which main already
+  carries (applied live at about 11:53 for PR #20, per `STATE.md`). Applying item 7 after it is an out-of-order version;
+  `supabase db push` would need `--include-all`, the Management API path does not care. The two touch different
+  functions. Renaming item 7's version is the controller's call at landing.
 - Fix 2 on the build path: a production build drops the harness scenes (03.2-12), so the Back guard is browser-tested in
   dev strict mode only (plus node).
 - The node stack tests (`ALMAR_REQUIRE_STACK=1`, e.g. fix 3's lock callers) were not part of run (a); they skip without a stack.
