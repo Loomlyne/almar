@@ -20,10 +20,10 @@ Requirements for this product. Each maps to roadmap phases.
 ### Discover and booking
 
 - [ ] **BOOK-01**: Guest can search from the hero with one destination, date range, and adults/children/infants without being charged
-- [ ] **BOOK-02**: Guest is taken to `/booking/trip` and can go summary → choose stay (overlay + filter) → add-ons → traveler details → pay, and can go back and edit until pay
-- [ ] **BOOK-03**: Guest sees a 30-minute hold on the pay step; on expiry the stay pick restarts
+- [ ] **BOOK-02**: Guest is taken to `/booking/trip` and can go summary → choose stay (overlay + filter) → add-ons → traveler details → request, and can go back and edit until request
+- [ ] **BOOK-03**: Guest sees a 30-minute hold on the request step; on expiry the stay pick restarts; after Request the nights stay held to the transfer deadline
 - [ ] **BOOK-04**: Guest books one destination per booking; a second city in the same timeline opens WhatsApp to ops with the booking id prefilled
-- [ ] **BOOK-05**: Guest sees package cards under the hero booker; choosing a package opens its page then a tailored `/booking/trip` (request → ops confirm → deposit or full)
+- [ ] **BOOK-05**: Guest sees package cards under the hero booker; choosing a package opens its page then a tailored `/booking/trip` (request → ops confirm → bank transfer, deposit or full)
 - [ ] **BOOK-06**: Guest can share a stay (copy / WhatsApp / native share)
 - [ ] **BOOK-07**: Signed-in guest can favorite a stay; unsigned guest cannot
 - [ ] **BOOK-08**: Guest sees an approximate map publicly and the exact stay address only after Confirmed
@@ -33,7 +33,7 @@ Requirements for this product. Each maps to roadmap phases.
 - [ ] **STAY-01**: Guest sees stays for the chosen destination, dates, and occupancy; sold-out / too many guests / min nights are shown with a reason, not hidden
 - [ ] **STAY-02**: Guest cannot select a party over stay max; adults always count, children always count, infants count only if that stay’s toggle is on (ages 0–2 / 3–12 / 13+)
 - [ ] **STAY-03**: Guest cannot book a stay with no rates
-- [ ] **STAY-04**: Overlapping Deposit-paid or Confirmed nights are a hard block; unpaid draft holds 30 minutes; ops maintenance blocks dates
+- [ ] **STAY-04**: Overlapping Deposit-paid or Confirmed nights are a hard block; unpaid draft holds 30 minutes; a sent request holds to its transfer deadline; ops maintenance blocks dates
 - [ ] **STAY-05**: Guest sees pets rule per stay (allowed / not / fee)
 - [ ] **STAY-06**: Min nights default to 1 per stay; there is no max nights
 - [ ] **STAY-07**: Same-day Instant Book respects ops cutoff hours/days per destination (UAE timezone)
@@ -52,7 +52,7 @@ Requirements for this product. Each maps to roadmap phases.
 ### Add-ons
 
 - [ ] **ADDN-01**: Guest can add destination experiences/services plus global ones, priced per-night or per-stay as set in CMS, charged as a group
-- [ ] **ADDN-02**: After pay, an unverified guest can add add-ons and pay the difference; a signed-in guest requests any other change and waits for ops (price-difference link, no auto refund)
+- [ ] **ADDN-02**: After pay, an unverified guest can add add-ons and gets transfer instructions for the difference; a signed-in guest requests any other change and waits for ops (transfer instructions for the difference, no auto refund)
 - [ ] **ADDN-03**: Package included add-ons cannot be removed; extra custom requests go to WhatsApp
 
 ### Checkout identity
@@ -63,23 +63,26 @@ Requirements for this product. Each maps to roadmap phases.
 
 ### Money
 
-- [ ] **PAY-01**: Guest sees breakdown in order: nights, add-ons, coupon, subtotal, VAT, grand total, then deposit or full amount; damage hold is listed separately as “temporarily held”
+- [ ] **PAY-01**: Guest sees breakdown in order: nights, add-ons, coupon, subtotal, VAT, grand total, then deposit or full amount
 - [ ] **PAY-02**: VAT % comes from Settings; deposit is Settings % of grand total (example: 1000 + 5% = 1050; 30% of 1050); VAT is not applied twice
-- [ ] **PAY-03**: Guest can pay deposit or pay in full; full skips remainder and reminders
+- [ ] **PAY-03**: Guest chooses deposit or full before requesting; full skips remainder and reminders
 - [ ] **PAY-04**: Ops can change deposit % until first payment, then it locks (no min deposit %)
 - [ ] **PAY-05**: Guest can apply one coupon (% or amount, expiry, max uses, max uses per email) on the total then deposit %; total cannot go below 0
-- [ ] **PAY-06**: Guest pays on branded `/booking/trip` with Stripe Payment Element (card + Apple Pay + Link); never a Stripe hosted page; never raw PAN; ops sees last 4 only
-- [ ] **PAY-07**: No saved cards in our app; no split pay; no gift cards; no BNPL
-- [ ] **PAY-08**: Stripe is TEST until a dedicated go-live plan
-- [ ] **PAY-09**: 3DS runs when the bank requires it; pay is idempotent; webhook is source of truth; refresh does not create a new charge
-- [ ] **PAY-10**: Remainder and extra charges use the same branded checkout
+- [ ] **PAY-06**: *(Backlog: Card payments)* Guest pays on branded `/booking/trip` with Stripe Payment Element (card + Apple Pay + Link); never a Stripe hosted page; never raw PAN; ops sees last 4 only
+- [ ] **PAY-07**: No gift cards; no BNPL. *(Backlog: Card payments: no saved cards in our app; no split pay. Bank transfers may arrive in parts.)*
+- [ ] **PAY-08**: *(Backlog: Card payments)* Stripe is TEST until a dedicated go-live plan
+- [ ] **PAY-09**: *(Backlog: Card payments)* 3DS runs when the bank requires it; pay is idempotent; webhook is source of truth; refresh does not create a new charge
+- [ ] **PAY-10**: Remainder and extra charges are paid by transfer with the same instructions on the booking page *(card checkout: Backlog: Card payments)*
 - [ ] **PAY-11**: Unpaid remainder gets at most 3 default reminders (ops sets day/time, can add more); unpaid by deadline → cancelled, deposit kept; skip if paid in full
-- [ ] **PAY-12**: Refunds are never automatic; ops starts a Stripe refund to the original payment, never more than captured; chargebacks are visible with no auto-refund
-- [ ] **PAY-13**: Damage hold is a separate Stripe auth (not capture), amount per stay, at checkout; ops release/capture only; coupon does not reduce the hold
+- [ ] **PAY-12**: Refunds are never automatic: they are made from the owner's bank, and the dashboard records them, never sends money
+- [ ] **PAY-13**: *(Backlog: Card payments)* Damage hold is a separate Stripe auth (not capture), amount per stay, at checkout; ops release/capture only; coupon does not reduce the hold
 - [ ] **PAY-14**: Booking reference is `ALMAR-XXXXXX`
-- [ ] **PAY-15**: Guest is charged in the selected currency (AED default, or USD/EUR); live FX is cached and locked for the 30-min hold; FX fail uses last cache; new booking uses new FX; currency switch on pay restarts the hold
-- [ ] **PAY-16**: Nightly rates are AED by month/season with date overrides; Stripe fees, service, and cleaning sit in the subtotal; add-ons convert like nights
-- [ ] **PAY-17**: Guest receives email receipt + PDF; ops can resend; emails are in the guest’s site language
+- [ ] **PAY-15**: *(Backlog: Card payments)* Guest is charged in the selected currency (AED default, or USD/EUR); live FX is cached and locked for the 30-min hold; FX fail uses last cache; new booking uses new FX; currency switch on pay restarts the hold
+- [ ] **PAY-16**: Nightly rates are AED by month/season with date overrides; payment fees, service, and cleaning sit in the subtotal; add-ons convert like nights
+- [ ] **PAY-17**: Guest receives an email receipt after the owner records the payment; ops can resend; emails are in the guest’s site language (PDF stays deferred)
+- [ ] **PAY-18**: Owner keeps bank details and the transfer window in the dashboard; they are stored owner-only and appear only in a guest's own emails and booking page
+- [ ] **PAY-19**: Owner records a payment (amount as received, date, bank reference, one confirm) and can void one with a reason; status follows the amounts; late, short and extra money is flagged, never refused; every record and void is logged with time and owner
+- [ ] **PAY-20**: A request with no recorded payment by its deadline expires on schedule, frees its nights, and the guest is emailed
 
 ### Auth
 
@@ -115,10 +118,10 @@ Requirements for this product. Each maps to roadmap phases.
 
 - [ ] **OPS-01**: Ops uses `dashboard.almarprivatejourney.com` when DNS is gated; until then local `/ops` with no public link
 - [ ] **OPS-02**: Ops nav is Home · Bookings · Customers · Calendar · Catalog (Destinations, Stays, Experiences & Services, Packages) · Content (Pages, Blog, Team, Legal) · Settings · Profile
-- [ ] **OPS-03**: Home shows bookings, revenue (captured − refunds), cost, outstanding remainder, occupancy by destination, reminders, charts; analytics in AED; date dropdown this month / last 30 / custom; profit = revenue − ops costs (stay, flight, transfer, guide, security, other)
+- [ ] **OPS-03**: Home shows bookings, revenue (recorded payments − recorded refunds), cost, outstanding remainder, occupancy by destination, reminders, charts; analytics in AED; date dropdown this month / last 30 / custom; profit = revenue − ops costs (stay, flight, transfer, guide, security, other)
 - [ ] **OPS-04**: Ops can search and filter bookings (status, destination, dates); one booking = 1 destination + 1 stay + add-ons + journey
 - [ ] **OPS-05**: Statuses are Draft → Deposit paid → Confirmed → In trip → Completed / Cancelled, plus Driver assigned and Flights booked; ops clicks In trip / Completed
-- [ ] **OPS-06**: Ops can create a booking and send a pay link
+- [ ] **OPS-06**: Ops can create a booking and send payment instructions
 - [ ] **OPS-07**: Ops internal notes are staff-only; audit log is timestamp + action; CSV export works
 - [ ] **OPS-08**: Customer profile shows photo, locked passport/ID, customer since, first booking, counts, phone, email, nationality, emergency, address book, bookings
 - [ ] **OPS-09**: Calendar is UAE timezone; conversion code exists but is off; overlap is a hard block
@@ -166,7 +169,7 @@ Deferred. Not in the current roadmap.
 | Comments on stories | Out of scope |
 | Gift cards, BNPL, split pay, saved cards in our app | Product ban |
 | Careem/Uber API | Ops marks Driver assigned |
-| Stripe live charges | Until dedicated go-live plan |
+| Stripe live charges | Until dedicated go-live plan (applies when card payments are added) |
 | `/en` `/ar` `/es` URL prefixes | Same URLs, language toggle |
 | Dark mode | Brand book: light only |
 | Extra-person fee | Another stay if over max |
@@ -179,7 +182,7 @@ Deferred. Not in the current roadmap.
 | Eje Cafetero until ops adds it | CMS, not code |
 | vinext / Next 16 | Next 15.5.26 + @opennextjs/cloudflare 1.20.6 installed 2026-09-26 (02-08); vinext and Next 16 wait for a gated bump |
 | Supabase Storage | R2 only |
-| Stripe hosted Checkout / Card Element / PAN in our app | Payment Element only |
+| Stripe hosted Checkout / Card Element / PAN in our app | Payment Element only (applies when card payments are added) |
 
 ## Traceability
 
@@ -228,18 +231,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PAY-03 | Phase 4 | Pending |
 | PAY-04 | Phase 5 | Pending |
 | PAY-05 | Phase 4 | Pending |
-| PAY-06 | Phase 4 | Pending |
+| PAY-06 | Backlog: Card payments | Pending |
 | PAY-07 | Phase 4 | Pending |
-| PAY-08 | Phase 4 | Pending |
-| PAY-09 | Phase 4 | Pending |
+| PAY-08 | Backlog: Card payments | Pending |
+| PAY-09 | Backlog: Card payments | Pending |
 | PAY-10 | Phase 4 | Pending |
 | PAY-11 | Phase 5 | Pending |
 | PAY-12 | Phase 5 | Pending |
-| PAY-13 | Phase 4 | Pending |
+| PAY-13 | Backlog: Card payments | Pending |
 | PAY-14 | Phase 4 | Pending |
-| PAY-15 | Phase 4 | Pending |
+| PAY-15 | Backlog: Card payments | Pending |
 | PAY-16 | Phase 3 | Pending |
 | PAY-17 | Phase 4 | Pending |
+| PAY-18 | Phase 4 | Pending |
+| PAY-19 | Phase 4 | Pending |
+| PAY-20 | Phase 4 | Pending |
 | AUTH-01 | Phase 4 | Pending |
 | AUTH-02 | Phase 2 | Pending |
 | AUTH-03 | Phase 5 | Pending |
@@ -267,7 +273,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-01 | Phase 2 | Pending |
 | OPS-02 | Phase 5 | Pending |
 | OPS-03 | Phase 5 | Pending |
-| OPS-04 | Phase 5 | Pending |
+| OPS-04 | Phase 4 | Pending |
 | OPS-05 | Phase 5 | Pending |
 | OPS-06 | Phase 5 | Pending |
 | OPS-07 | Phase 5 | Pending |
@@ -293,8 +299,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAT-05 | Phase 1 | Pending |
 
 **Coverage:**
-- v1 requirements: 104 total
-- Mapped to phases: 104
+- v1 requirements: 107 total
+- Mapped to phases: 107
 - Unmapped: 0 ✓
 
 

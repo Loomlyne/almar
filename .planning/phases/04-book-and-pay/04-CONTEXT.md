@@ -128,3 +128,12 @@ Not in v1 (owner): damage hold (PAY-13), coupons (PAY-05), attached PDF receipt,
   charging in USD/EUR with an FX lock (PAY-15); reminders and auto-cancel (PAY-11); refunds from our app
   (PAY-12); guest add-ons after pay (ADDN-02); stay overlay in `/booking/trip`; saved address book.
 </deferred>
+
+### Changed 2026-10-19 (owner): request to book, bank transfer
+- **B-23 (owner):** Last step is Request, not Pay. No card provider in Phase 4. See `decisions/2026-10-19-request-to-book-bank-transfer.md`.
+- **B-24 (owner):** Guest pays by bank transfer in AED with `ALMAR-XXXXXX` as the reference; the owner records it (PAY-19).
+- **B-25:** `booking_payments.method` (`bank_transfer`; `card` later). Wrong records are voided with a reason, never deleted.
+- **Superseded:** B-03, B-06, B-07, B-08, B-19, B-20. **Reworded:** B-02, B-09, B-11 (Pay → Request); B-14 (receipt
+  after the owner records); B-15 (balance by transfer instructions); B-18 (owner emailed on each request and each
+  recorded payment).
+- Q1–Q10 of the decision record: answered in `/gsd-discuss-phase 4`.

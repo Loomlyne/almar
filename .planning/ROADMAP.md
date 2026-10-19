@@ -17,7 +17,7 @@ Rebuild the Framer HTML export into a live booking OS. Tokens and components fir
 - [x] **Phase 3.1: Design system and journey bar** (INSERTED) - One token set, CSS per component, journey bar and booking components from the design canvas
 - [ ] **Phase 3.3: Public site in React** (INSERTED, reshaped 2026-10-02) - All 26 public pages in React on one fixture-backed data layer; the Framer bridge comes out
 - [ ] **Phase 3.2: Real catalog and team** (INSERTED, moved after Phase 2) - The data layer swaps fixtures for Supabase; dashboard Catalog and Team built already wired
-- [ ] **Phase 4: Book and pay** - Hero → `/booking/trip` → Stripe TEST deposit or full
+- [ ] **Phase 4: Book and request** - Hero → `/booking/trip` → request, bank transfer, owner records the payment
 - [ ] **Phase 5: Ops OS** - `/ops` runs bookings, customers, money, brand publish
 - [ ] **Phase 6: Rest of CMS** - Packages, consult, i18n publish, remaining CMS (the page replacement moved to 3.3)
 
@@ -233,20 +233,24 @@ Plans:
 
 **Plans:** TBD
 
-### Phase 4: Book and pay
+### Phase 4: Book and request
 
-**Goal:** A guest can complete a real one-destination trip (stay + add-ons + pay) on TEST Stripe.
+**Goal:** A guest can request a real one-destination trip (stay + add-ons), pay it by bank transfer, and the owner
+records the payment in the dashboard. No card provider is needed.
 **Mode:** mvp
 **Depends on:** Phase 3
-**Requirements:** BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-08, STAY-01, STAY-02, JOUR-01, JOUR-02, JOUR-03, JOUR-04, ADDN-01, IDEN-01, IDEN-02, PAY-01, PAY-02, PAY-03, PAY-05, PAY-06, PAY-07, PAY-08, PAY-09, PAY-10, PAY-13, PAY-14, PAY-15, PAY-17, AUTH-01, OPS-10, OPS-13
+**Requirements:** BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-08, STAY-01, STAY-02, JOUR-01, JOUR-02, JOUR-03, JOUR-04,
+ADDN-01, IDEN-01, IDEN-02, PAY-01, PAY-02, PAY-03, PAY-05, PAY-14, PAY-16, PAY-17, PAY-18, PAY-19, PAY-20, AUTH-01,
+OPS-04, OPS-10, OPS-13
 **Success Criteria** (what must be TRUE):
 
-  1. Guest searches from the hero (one destination, dates, guests) with no charge, then completes `/booking/trip` and can go back until pay
-  2. Sold-out / too many guests / min nights show a reason; 30-minute pay hold; expiry restarts stay pick
-  3. Checkout shows nights → add-ons → coupon → subtotal → VAT → grand → deposit or full; damage hold separate; Payment Element card + Apple Pay + Link on TEST; webhook marks paid; refresh does not double-charge
-  4. Guest gets `ALMAR-XXXXXX`, email receipt + PDF, booking page as source of truth; exact address only after Confirmed
+  1. Guest goes Stay → Add-ons → Travellers → Request on `/booking/trip`, can go back until Request, and is never charged on the site
+  2. Sold-out / too many guests / min nights show a reason; 30-minute hold while filling; after Request the nights stay held to the owner's transfer deadline, then lapse on schedule and the guest is emailed
+  3. Request shows nights → add-ons → subtotal → VAT → grand → deposit or full; the guest gets `ALMAR-XXXXXX` and an email in their language with the amount, bank details, reference and deadline; the owner is emailed
+  4. Owner clicks Record payment (amount, date, bank reference, confirm); the booking becomes Deposit paid or Paid in full, nights block for good, the guest gets the receipt; late, short and extra money is flagged for the owner; a wrong entry is voided with a reason, never deleted
+  5. Booking page is the source of truth: status, amounts paid and owed, transfer instructions while unpaid; exact address only after Confirmed; bank details never readable without the booking's signed link
 
-**Plans:** TBD
+**Plans:** 8 active (04-01, 04-02 landed; 04-03, 04-05, 04-06, 04-07 rewritten; 04-08, 04-09 new); 04-04 parked.
 
 Plans:
 
@@ -259,11 +263,11 @@ Plans:
 **Goal:** Owner can run the booking and the brand from `/ops` with no guest access.
 **Mode:** mvp
 **Depends on:** Phase 4
-**Requirements:** DSGN-04, STAY-08, JOUR-06, JOUR-07, ADDN-02, IDEN-03, PAY-04, PAY-11, PAY-12, AUTH-03, AUTH-04, OPS-02, OPS-03, OPS-04, OPS-05, OPS-06, OPS-07, OPS-08, OPS-11
+**Requirements:** DSGN-04, STAY-08, JOUR-06, JOUR-07, ADDN-02, IDEN-03, PAY-04, PAY-11, PAY-12, AUTH-03, AUTH-04, OPS-02, OPS-03, OPS-05, OPS-06, OPS-07, OPS-08, OPS-11
 **Success Criteria** (what must be TRUE):
 
   1. Owner uses Home · Bookings · Customers · Calendar · Catalog · Content · Settings · Profile
-  2. Ops can filter bookings, change status, create a booking, send a pay link, refund ≤ captured, release/capture damage hold, mark Driver assigned, send “flight booked”
+  2. Ops can filter bookings, change status, create a booking, send payment instructions, record a refund made from the bank, mark Driver assigned, send “flight booked”
   3. Settings Publish applies brand tokens site-wide; VAT % and deposit % work; reminders fire for unpaid remainder
   4. Passport/ID is encrypted and opens only after extra owner confirm; guest can change email/phone and delete account (PII stripped)
 
@@ -294,6 +298,13 @@ Plans:
 - [ ] 06-01: Replace Framer marketing routes with tokenized pages
 - [ ] 06-02: Packages, consult, Plan/List with us, content CMS, i18n publish
 
+## Backlog
+
+- **Card payments (parked until the owners have a provider account).** Add `card` beside `bank_transfer`: branded
+  payment form, webhook, balance and extras by card, refunds to card, damage hold as a card hold near arrival.
+  Provider picked from the owners' company country and bank. Parked work: tag `archive/phase-04-book-and-pay`.
+  Requirements: PAY-06, PAY-08, PAY-09, PAY-10 (card part), PAY-13, PAY-15; PAY-07's card rules.
+
 ## Progress
 
 **Execution Order:**
@@ -307,6 +318,6 @@ Reshaped by the owner 2026-10-02 13:30-13:35 (frontend before backend): 1 → 3 
 | 3.1 Design system and journey bar | 29/29 | Complete | 2026-10-01 |
 | 3.2 Real catalog and team | 0/? | Not started | - |
 | 3.3 Booking-path pages | 0/? | Not started | - |
-| 4. Book and pay | 0/3 | Not started | - |
+| 4. Book and request | 2/8 | Rewritten 2026-10-19 (bank transfer) | - |
 | 5. Ops OS | 0/2 | Not started | - |
 | 6. Site and rest of CMS | 0/2 | Not started | - |
