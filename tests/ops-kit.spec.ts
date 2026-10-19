@@ -564,8 +564,9 @@ test.describe("behaviour", () => {
 });
 
 // ---- the Back guard (follow-up 2) -----------------------------------------------------------------------------------
-// Dev (next dev, React strict mode: effects run twice) by default; the production server with PW_NEXT=start after
-// `ALMAR_HARNESS=1 npx next build`. The node side of the same cases is tests/ops-back-guard.test.mjs.
+// Dev only (next dev, React strict mode: effects run twice, the harder case): a production build drops the harness
+// scenes (03.2-12), so the build path is not browser-tested here. The node side of the same cases is
+// tests/ops-back-guard.test.mjs.
 
 test.describe("Back guard", () => {
   test.setTimeout(120_000);
