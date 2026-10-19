@@ -190,8 +190,9 @@ test.describe(`almar-ops on the built Worker (${FOLDER}/)`, () => {
         expect(res.headers()["x-robots-tag"] ?? "", `${method} ${path}`).not.toBe("noindex");
       }
     }
-    // A browser following it lands on the ops sign-in.
-    const followed = await request.get("/login");
+    // Following it lands on the ops sign-in. Followed by hand: Playwright's own redirect follow drops the ops Host header.
+    const location = (await request.get("/login", { maxRedirects: 0 })).headers()["location"];
+    const followed = await request.get(location, { maxRedirects: 0 });
     expect(followed.status()).toBe(200);
     expect(await followed.text()).toContain("sign-in-email");
     // Near misses are still the branded 404.
