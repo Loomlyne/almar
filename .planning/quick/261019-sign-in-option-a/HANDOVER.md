@@ -35,6 +35,25 @@ One wording change from the picture: the kicker says "Owner access", not "Owner 
 - Not seen in a browser, in any of EN, AR (RTL) or ES.
 - No migration and no new environment names.
 
+## Mac runs (controller's go)
+**Run 1** (1b86a40, 13:11–13:14): rejected.
+- The dev specs passed 66 of 66.
+- The baselines were written at workers=2 under tests/, which made dev recompile mid-capture: `login-en-834` came out blank and `login-ar-834` failed. No PNG from run 1 was committed.
+- 4b failed because Playwright's redirect follow drops the ops Host header. Fixed in daf12c6, which follows the Location by hand.
+
+**Run 2** (daf12c6, 13:48–13:50, exit=0): accepted by the controller. All steps ran at workers=1.
+- p0/p1: 12 login and dashboard pictures captured with main's sign-in code and again with option A, both outside tests/.
+- p1b: option A changed all 12, the dashboard ones included, because the signed-out /dashboard renders the ops sign-in.
+- p3: strict recheck of the 12 on a fresh server, 12 passed.
+- p4: after-mode guard on all 24 pictures, 24 passed.
+- Committed alone as **e05b123**: the 12 PNGs, for example `login-en-834` 356,398 → 360,953 bytes.
+- **Stale baselines, out of scope, left alone:** `booking-trip-{en,ar}-{390,834,1440}` fail strict mode (6), and their baselines date from 9fd6786 (2026-10-02). All 6 account pictures pass.
+- Bites both count:
+  - "/login" back in MISSES, test 4 only: 1 failed, 0 passed.
+  - origin/main's worker on 4b and 5b: 2 failed, 0 passed.
+  - Files restored, matching HEAD.
+- Ops specs: 22 passed, 4 skipped, 1 failed at `ops-runtime.spec.ts:97`. That failure came from run order: the out-ops build was reused after next dev had rewritten `.next/`. Run 1, which built straight before the specs, passed `:97`. The landing lane proves `:97`, 4b and 5b on a clean clone with a fresh build.
+
 ## Owner test steps (after deploy)
 1. Open https://dashboard.almarprivatejourney.com/sign-in. Expect "OWNER ACCESS" above "Sign in", then a short gold line. The email box is exactly as wide as the button. Under the button: "The link works once, for one hour."
 2. Switch to Arabic. Expect the same layout mirrored, the kicker not in capitals, and the gold line on the right.
