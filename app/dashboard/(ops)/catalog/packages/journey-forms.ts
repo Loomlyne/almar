@@ -21,6 +21,8 @@ export type JourneyForm = {
   media: MediaRef | null;
   text: Record<Locale3, JourneyText>;
   status: Record<Locale3, TextStatus>;
+  /** Whether an Arabic or Spanish record is stored: a stored one may be saved without its price line (kept as saved). */
+  stored: Record<"ar" | "es", boolean>;
   /** What the server read from the saved English price line (read-only). */
   price_from: JourneyDetail["price_from"];
   price_estimate: JourneyDetail["price_estimate"];
@@ -45,6 +47,7 @@ export function journeyForm(detail: JourneyDetail): JourneyForm {
     media: detail.image,
     text: { en: text("en"), ar: text("ar"), es: text("es") },
     status: { en: status("en"), ar: status("ar"), es: status("es") },
+    stored: { ar: detail.translations.ar !== null, es: detail.translations.es !== null },
     price_from: detail.price_from,
     price_estimate: detail.price_estimate,
   };
@@ -91,19 +94,35 @@ export function liveJourneyFields(published: boolean, status: Record<Locale3, Te
   return live;
 }
 
+export type PriceGaps = { kept: ("ar" | "es")[]; held: ("ar" | "es")[] };
+
+/**
+ * The Arabic and Spanish records that go out with an empty price line. The database keeps a stored record's line
+ * when the key is not sent (catalog_save_translations), so a stored one is `kept`; a new record cannot be created
+ * without one (price_label is not null), so it is `held`: not sent, and the screen says why and keeps the typed text.
+ */
+export function journeyPriceGaps(form: JourneyForm, { publish }: { publish: boolean }): PriceGaps {
+  const translations = translationsFor(form, publish);
+  const gaps: PriceGaps = { kept: [], held: [] };
+  for (const target of ["ar", "es"] as const) {
+    const record = translations[target];
+    if (record && record.price_label === null) gaps[form.stored[target] ? "kept" : "held"].push(target);
+  }
+  return gaps;
+}
+
 /**
  * The `save` item of /api/ops/journeys (contract 5.8): existing ids only (C-15: no create, no slug), the stored
  * `is_featured` sent back unchanged, the photo, and the translations. English always carries the name and the price
  * line as typed (the server reads the price from it); no price column is ever sent. On Publish every language with a
- * name goes out published; a Save keeps each language as it is. The price line is required in every record the server
- * takes (contract 5.8), so an Arabic or Spanish record with a name and no price line (the AI did not fill it) is left
- * out: that language stays as it is, as one with no name does.
+ * name goes out published; a Save keeps each language as it is. An Arabic or Spanish record with an empty price line
+ * is never dropped whole: a stored one goes without the price key (its saved line stays, the rest of the text is
+ * saved); only a new one, which the database cannot create without the line, is left out (journeyPriceGaps).
  */
 export function journeyPayload(form: JourneyForm, { publish }: { publish: boolean }): Record<string, unknown> {
   const translations = translationsFor(form, publish);
-  for (const target of ["ar", "es"] as const) {
-    const record = translations[target];
-    if (record && record.price_label === null) delete translations[target];
-  }
+  const gaps = journeyPriceGaps(form, { publish });
+  for (const target of gaps.kept) delete translations[target]!.price_label;
+  for (const target of gaps.held) delete translations[target];
   return { id: form.id, is_featured: form.is_featured, media_id: form.media?.id ?? null, translations };
 }

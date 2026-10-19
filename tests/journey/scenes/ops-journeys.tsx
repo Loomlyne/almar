@@ -59,6 +59,7 @@ function formOf(variant: Exclude<Variant, "list">): JourneyForm {
     media: variant === "hidden" ? null : JOURNEY_PHOTO,
     text: { en: textOf("en"), ar: textOf("ar"), es: textOf("es") },
     status: { en: "published", ar: published ? "published" : "draft", es: published ? "published" : "draft" },
+    stored: { ar: true, es: true },
     price_from: variant === "price-unreadable" ? null : { amount: AMOUNT_PLACEHOLDER, currency: "USD" },
     price_estimate: null,
   };

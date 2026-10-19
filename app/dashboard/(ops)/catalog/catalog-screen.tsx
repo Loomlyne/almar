@@ -8,7 +8,7 @@ import { DASHBOARD_COPY, type DashboardCopy } from "../../../../lib/copy/dashboa
 import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
 import { canBecomeHttpsUrl } from "../../../../lib/https-url";
 
-export type CatalogKind = "destinations" | "stays" | "experiences" | "packages";
+export type CatalogKind = "destinations" | "stays" | "experiences";
 
 
 type Config = {
@@ -32,11 +32,6 @@ const CONFIG: Record<CatalogKind, Config> = {
     title: (copy) => copy.rail.experiences,
     emptyText: (copy) => copy.noExperiencesYet,
     newLabel: (copy) => copy.newExperience,
-  },
-  packages: {
-    title: (copy) => copy.rail.packages,
-    emptyText: (copy) => copy.noPackagesYet,
-    newLabel: (copy) => copy.newPackage,
   },
 };
 
@@ -155,7 +150,7 @@ function Fields({
   const name = <Field key="name" id={`${kind}-name`} label="Name" name="name" />;
   const status = <Field key="status" id={`${kind}-status`} label="Status" name="status" />;
 
-  if (kind === "destinations" || kind === "packages") {
+  if (kind === "destinations") {
     return (
       <>
         {name}

@@ -31,6 +31,38 @@ test("validateLinks: http, javascript and a bare word are refused by row", () =>
   }
 });
 
+test("validateLinks: an https address the URL parser refuses (a port over 65535) gets the inline message, not the server's 422", () => {
+  const bad = row("https://a.b:99999");
+  const out = team.validateLinks([bad]);
+  assert.equal(out.ok, false);
+  assert.equal(out.problems[bad.key], "https");
+  assert.throws(() => parse.parseTeamAction({ action: "save", item: { id: "11111111-1111-4111-8111-111111111111", links: [{ label: "Instagram", url: "https://a.b:99999" }] } }), "the server refuses it too");
+});
+
+test("teamForm and validateLinks: a stored label outside the four platforms is kept, offered in its row, and saved unchanged", () => {
+  const form = team.teamForm({
+    id: "11111111-1111-4111-8111-111111111111",
+    slug: "member",
+    photo_media_id: null,
+    photo: null,
+    email: null,
+    links: [{ label: "TikTok", url: "https://www.tiktok.com/@a" }],
+    is_published: false,
+    position: 1,
+    translations: { en: { name: "[Name]", role: null, bio: null, status: "published" }, ar: null, es: null },
+    translation_state: {},
+    updated_at: "2026-10-19T00:00:00Z",
+  });
+  const [link] = form.links;
+  assert.equal(link.label, "TikTok", "not rewritten as Instagram");
+  assert.deepEqual(team.linkLabels(link), ["Instagram", "LinkedIn", "Facebook", "X", "TikTok"]);
+  const out = team.validateLinks(form.links);
+  assert.equal(out.ok, true);
+  assert.deepEqual(out.links, [{ label: "TikTok", url: "https://www.tiktok.com/@a" }]);
+  const payload = team.teamPayload(form, { publish: false });
+  assert.deepEqual(payload.item.links, [{ label: "TikTok", url: "https://www.tiktok.com/@a" }]);
+});
+
 test("validateLinks: an address over 300 characters and a platform outside the list are refused", () => {
   const long = row(`https://www.instagram.com/${"a".repeat(300)}`);
   assert.equal(team.validateLinks([long]).problems[long.key], "too_long");
@@ -86,7 +118,7 @@ test("the member editor draws a published address as text and a draft one as a f
   assert.match(source, /canSave=\{form \? form\.text\.en\.name\.trim\(\) !== "" && slugIssue === null/);
 });
 
-test("teamForm: the detail becomes a form; a missing language is blank and draft; an unknown label reads as Instagram", () => {
+test("teamForm: the detail becomes a form; a missing language is blank and draft; an unknown label is kept as stored", () => {
   const form = team.teamForm({
     id: "t1",
     slug: "a",
@@ -101,7 +133,8 @@ test("teamForm: the detail becomes a form; a missing language is blank and draft
     updated_at: "2026-10-15T00:00:00Z",
   });
   assert.equal(form.email, "");
-  assert.equal(form.links[0].label, "Instagram");
+  assert.equal(form.links[0].label, "Other");
+  assert.equal(form.links[0].stored, "Other");
   assert.deepEqual(form.text.en, { name: "[Name]", role: "", bio: "" });
   assert.deepEqual(form.text.ar, { name: "", role: "", bio: "" });
   assert.deepEqual(form.status, { en: "published", ar: "draft", es: "draft" });
@@ -250,13 +283,33 @@ test("journeyPayload: the id, the stored is_featured, the photo and the text; ne
   assert.equal(parsed.item.translations.en.price_label, "From USD [amount]", "the line is stored as typed");
 });
 
-test("journeyPayload: an Arabic or Spanish record with a name and no price line is left out (the server needs one)", () => {
+test("journeyPayload: a stored Arabic record with an empty price line is still saved, without the price key (its line is kept)", () => {
+  const form = journeys.journeyForm(journeyDetail());
+  // The owner fixes the Arabic name and tagline; the Arabic price line is empty.
+  form.text.ar = { ...form.text.ar, name: "[AR fixed]", tagline: "[AR tagline]", price_label: "" };
+  const item = journeys.journeyPayload(form, { publish: false });
+  assert.ok(item.translations.ar, "the Arabic record is sent, not dropped");
+  assert.equal(item.translations.ar.name, "[AR fixed]");
+  assert.equal(item.translations.ar.tagline, "[AR tagline]");
+  assert.equal("price_label" in item.translations.ar, false, "no price key: the database keeps the saved line");
+  assert.deepEqual(journeys.journeyPriceGaps(form, { publish: false }), { kept: ["ar"], held: [] });
+  const parsed = parse.parseJourneyAction({ action: "save", item });
+  assert.equal(parsed.item.translations.ar.name, "[AR fixed]");
+});
+
+test("journeyPayload: a new Spanish record with no price line cannot be created, so it is left out and named as held", () => {
   const form = journeys.journeyForm(journeyDetail());
   form.text.es = { ...journeys.blankJourneyText(), name: "[ES]" };
-  form.text.ar = { ...form.text.ar, price_label: "" };
   const item = journeys.journeyPayload(form, { publish: true });
-  assert.equal("ar" in item.translations, false);
   assert.equal("es" in item.translations, false);
+  assert.deepEqual(journeys.journeyPriceGaps(form, { publish: true }), { kept: [], held: ["es"] });
   assert.doesNotThrow(() => parse.parseJourneyAction({ action: "save", item }));
+  for (const locale of ["en", "ar", "es"]) {
+    for (const key of ["priceKept", "priceHeld"]) assert.match(OPS_TEAM_COPY[locale].journeys[key], /\{languages\}/, `${locale}.${key}`);
+  }
+});
+
+test("journeyForm: which Arabic and Spanish records are stored", () => {
+  assert.deepEqual(journeys.journeyForm(journeyDetail()).stored, { ar: true, es: false });
 });
 

@@ -96,6 +96,10 @@ export type OpsTeamCopy = {
     noDelete: string;
     /** The page title while the English name is empty. */
     untitled: string;
+    /** `{languages}`: after a save, a stored translation whose price line was empty kept its saved line. */
+    priceKept: string;
+    /** `{languages}`: after a save, a new translation with no price line was not saved (the line is required). */
+    priceHeld: string;
   };
 };
 
@@ -164,6 +168,8 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       readingSaved: "Read from the price line as last saved.",
       noDelete: "The three journeys stay. Unpublish one to hide it from the home page.",
       untitled: "Journey",
+      priceKept: "{languages}: the price line was empty, so the saved one is kept.",
+      priceHeld: "{languages}: not saved, because a new translation needs a price line. Add it under Edit translations, then save again.",
     },
   },
   ar: {
@@ -228,6 +234,8 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       readingSaved: "مقروء من سطر السعر كما حُفظ آخر مرة.",
       noDelete: "تبقى الرحلات الثلاث. ألغِ نشر إحداها لإخفائها من الصفحة الرئيسية.",
       untitled: "رحلة",
+      priceKept: "{languages}: كان سطر السعر فارغًا، لذلك يبقى السطر المحفوظ.",
+      priceHeld: "{languages}: لم يُحفظ، لأن الترجمة الجديدة تحتاج إلى سطر سعر. أضفه في تعديل الترجمات، ثم احفظ مرة أخرى.",
     },
   },
   es: {
@@ -292,6 +300,8 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       readingSaved: "Leído de la línea de precio guardada por última vez.",
       noDelete: "Los tres viajes se mantienen. Deje de publicar uno para ocultarlo de la página de inicio.",
       untitled: "Viaje",
+      priceKept: "{languages}: la línea de precio estaba vacía, así que se mantiene la guardada.",
+      priceHeld: "{languages}: no se guardó, porque una traducción nueva necesita una línea de precio. Agréguela en Editar traducciones y vuelva a guardar.",
     },
   },
 };

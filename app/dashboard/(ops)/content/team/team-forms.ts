@@ -18,8 +18,12 @@ export type TeamTextField = (typeof TEAM_TEXT_FIELDS)[number];
 /** The text of one language. Empty string = not set. */
 export type TeamText = Record<TeamTextField, string>;
 
-/** One link row as typed. `key` keeps the row's identity in the list while rows are added and removed. */
-export type LinkRow = { key: string; label: LinkPlatform; url: string };
+/**
+ * One link row as typed. `key` keeps the row's identity in the list while rows are added and removed. `label` is one of
+ * the four platforms, or `stored`: a label saved outside the list (the server takes any), kept as it is and offered
+ * in the row's select beside the four, so a Save never rewrites it.
+ */
+export type LinkRow = { key: string; label: string; url: string; stored?: string };
 
 export type TeamForm = {
   id: string | null;
@@ -55,7 +59,7 @@ export const linkKey = () => `link-${++rowCount}`;
 
 const isPlatform = (label: string): label is LinkPlatform => (LINK_PLATFORMS as readonly string[]).includes(label);
 
-/** The form for a member as the server returns it. A stored label outside the list reads as the first platform. */
+/** The form for a member as the server returns it. A stored label outside the list is kept as it is (`stored`). */
 export function teamForm(detail: TeamDetail): TeamForm {
   const text = (locale: Locale3): TeamText => {
     const record = detail.translations[locale];
@@ -68,7 +72,9 @@ export function teamForm(detail: TeamDetail): TeamForm {
     published: detail.is_published,
     photo: detail.photo,
     email: detail.email ?? "",
-    links: detail.links.map((link) => ({ key: linkKey(), label: isPlatform(link.label) ? link.label : LINK_PLATFORMS[0], url: link.url })),
+    links: detail.links.map((link) =>
+      isPlatform(link.label) ? { key: linkKey(), label: link.label, url: link.url } : { key: linkKey(), label: link.label, url: link.url, stored: link.label },
+    ),
     text: { en: text("en"), ar: text("ar"), es: text("es") },
     status: { en: status("en"), ar: status("ar"), es: status("es") },
   };
@@ -85,9 +91,26 @@ export type LinkCheck = {
   ok: boolean;
 };
 
+/** The labels a row may carry: the four platforms, and its own stored label when that is outside them. */
+export function linkLabels(row: Pick<LinkRow, "stored">): string[] {
+  return row.stored && !isPlatform(row.stored) ? [...LINK_PLATFORMS, row.stored] : [...LINK_PLATFORMS];
+}
+
+/** An https address the URL parser takes, with a host (as the server's teamLinks: a port over 65535 is refused here). */
+function httpsAddress(url: string): boolean {
+  if (!/^https:\/\/[^\s/]+\.[^\s]+$/i.test(url)) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" && parsed.hostname.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /**
- * The link rule of contract 5.7 as the screen shows it: a platform from the list and an https address of at most 300
- * characters, at most eight. A row with no address is dropped, not refused. The server checks again.
+ * The link rule of contract 5.7 as the screen shows it: a platform from the list (or the row's own stored label) and
+ * an https address the URL parser takes, of at most 300 characters, at most eight. A row with no address is dropped,
+ * not refused. The server checks again.
  */
 export function validateLinks(rows: readonly LinkRow[]): LinkCheck {
   const problems: Record<string, LinkProblem> = {};
@@ -95,9 +118,9 @@ export function validateLinks(rows: readonly LinkRow[]): LinkCheck {
   for (const row of rows) {
     const url = row.url.trim();
     if (url === "") continue;
-    if (!isPlatform(row.label)) problems[row.key] = "label";
+    if (!linkLabels(row).includes(row.label)) problems[row.key] = "label";
     else if (url.length > MAX_LINK_URL) problems[row.key] = "too_long";
-    else if (!/^https:\/\/[^\s/]+\.[^\s]+$/i.test(url)) problems[row.key] = "https";
+    else if (!httpsAddress(url)) problems[row.key] = "https";
     links.push({ label: row.label, url });
   }
   const tooMany = links.length > MAX_LINKS;

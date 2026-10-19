@@ -42,9 +42,9 @@ import {
   teamForm,
   teamPayload,
   linkKey,
+  linkLabels,
   liveTeamFields,
   validateLinks,
-  type LinkPlatform,
   type TeamForm,
   type TeamText,
   type TeamTextField,
@@ -200,7 +200,7 @@ function TeamEditor({ panel, list }: { panel: TeamPanel | null; list: ReactNode 
       };
       return extra?.multiline ? <Field {...common} multiline rows={6} /> : <Field {...common} autoComplete="off" />;
     };
-    const setLink = (key: string, change: Partial<{ label: LinkPlatform; url: string }>) =>
+    const setLink = (key: string, change: Partial<{ label: string; url: string }>) =>
       onForm({ ...form, links: form.links.map((row) => (row.key === key ? { ...row, ...change } : row)) });
     const full = form.links.length >= MAX_LINKS;
 
@@ -241,10 +241,9 @@ function TeamEditor({ panel, list }: { panel: TeamPanel | null; list: ReactNode 
                         </span>
                         <Select
                           value={row.label}
-                          options={LINK_PLATFORMS.map((platform) => ({ value: platform, label: platform }))}
+                          options={linkLabels(row).map((platform) => ({ value: platform, label: platform }))}
                           onChange={(next) => {
-                            const platform = LINK_PLATFORMS.find((p) => p === next);
-                            if (platform) setLink(row.key, { label: platform });
+                            if (linkLabels(row).includes(next)) setLink(row.key, { label: next });
                           }}
                           label={`${copy.linkPlatform}: {name}`}
                           dir={dir}

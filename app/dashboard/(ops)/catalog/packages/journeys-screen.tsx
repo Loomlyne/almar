@@ -17,9 +17,20 @@ import { OPS_CATALOG_COPY, fillCatalogCopy } from "../../../../../lib/copy/ops-c
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
 import { afterSave, liveGaps, movedIds, sameForm, withTranslations } from "../catalog-forms";
 import { saveThenPublish } from "../persist";
-import { OPS_TEAM_COPY } from "../../../../../lib/copy/ops-team";
 import { focusMovedRow } from "../move-focus";
-import { JOURNEY_TEXT_FIELDS, journeyForm, journeyPayload, liveJourneyFields, priceReading, type JourneyForm, type JourneyText, type JourneyTextField } from "./journey-forms";
+import {
+  JOURNEY_TEXT_FIELDS,
+  journeyForm,
+  journeyPayload,
+  journeyPriceGaps,
+  liveJourneyFields,
+  priceReading,
+  type JourneyForm,
+  type JourneyText,
+  type JourneyTextField,
+  type PriceGaps,
+} from "./journey-forms";
+import { OPS_TEAM_COPY, fillTeamCopy } from "../../../../../lib/copy/ops-team";
 
 export type JourneyRow = { id: string; name: string; priceLine: string; published: boolean };
 
@@ -35,6 +46,8 @@ export type JourneyPanel = {
   onPublish: () => void | Promise<unknown>;
   onUnpublish: () => void;
   onClose: () => void;
+  /** After the last save: Arabic or Spanish text whose empty price line was kept as saved, or that could not be saved. */
+  priceGaps?: PriceGaps | null;
   /** Test seam for the translate request (the kit's opsSend by default). */
   send?: Send;
 };
@@ -208,11 +221,22 @@ function JourneyEditor({ panel, list }: { panel: JourneyPanel | null; list: Reac
   // A shown journey cannot be saved without what Publish needs (its photo, its English): the server's save does not
   // check it, so it would stay on the home page without it. The catalog's line says so, as on Destinations.
   const live = liveGaps(form?.published ?? false, missing);
+  const gaps = panel?.priceGaps ?? null;
+  const languages = (targets: readonly ("ar" | "es")[]) => targets.map((target) => kit.languages[target]).join(", ");
+  const notes = [
+    live.length > 0 ? fillCatalogCopy(OPS_CATALOG_COPY[loc].destinations.liveNeeds, { list: live.map((gap) => missingLine(kit, gap, fieldLabel)).join(", ") }) : null,
+    gaps && gaps.held.length > 0 ? fillTeamCopy(copy.priceHeld, { languages: languages(gaps.held) }) : null,
+    gaps && gaps.kept.length > 0 ? fillTeamCopy(copy.priceKept, { languages: languages(gaps.kept) }) : null,
+  ].filter((note): note is string => note !== null);
   const liveNote =
-    live.length > 0 ? (
-      <p role="status" className="m-0 text-label text-ink">
-        {fillCatalogCopy(OPS_CATALOG_COPY[loc].destinations.liveNeeds, { list: live.map((gap) => missingLine(kit, gap, fieldLabel)).join(", ") })}
-      </p>
+    notes.length > 0 ? (
+      <div role="status" className="flex flex-col gap-1">
+        {notes.map((note) => (
+          <p key={note} className="m-0 text-label text-ink">
+            {note}
+          </p>
+        ))}
+      </div>
     ) : null;
 
   return (
@@ -269,6 +293,7 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
   const [open, setOpen] = useState<Open | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<OpsError | null>(null);
+  const [priceGaps, setPriceGaps] = useState<PriceGaps | null>(null);
   const [reordering, setReordering] = useState(false);
   // A second Save, Publish or move while one is on its way is not taken (the kit's busy state lands a render later).
   const writing = useRef(false);
@@ -298,6 +323,7 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
   async function onOpen(id: string) {
     if (busy) return;
     setError(null);
+    setPriceGaps(null);
     setBusy(true);
     const refusal = await openDetail(id);
     setBusy(false);
@@ -310,6 +336,8 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
     writing.current = true;
     setBusy(true);
     setError(null);
+    setPriceGaps(null);
+    const gaps = journeyPriceGaps(form, { publish });
     const result = await saveThenPublish(opsSend, PATH, "journey_tier", journeyPayload(form, { publish }), publish);
     if (!result.ok) {
       writing.current = false;
@@ -324,6 +352,16 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
       const held = afterSave(form, result.id, publish && !result.publishError);
       setOpen({ form: held, saved: held });
     }
+    // A language that could not be saved keeps what was typed in the editor (unsaved), so the owner adds its price line.
+    if (gaps.held.length > 0) {
+      setOpen((was) => {
+        if (!was) return was;
+        const text = { ...was.form.text };
+        for (const target of gaps.held) text[target] = form.text[target];
+        return { ...was, form: { ...was.form, text } };
+      });
+    }
+    if (gaps.kept.length > 0 || gaps.held.length > 0) setPriceGaps(gaps);
     await loadList();
     writing.current = false;
     setBusy(false);
@@ -394,6 +432,7 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
               saved: open.saved.text,
               onForm: (form) => {
                 setError(null);
+                setPriceGaps(null);
                 setOpen((was) => (was ? { ...was, form } : was));
               },
               dirty: !sameForm(open.form, open.saved),
@@ -406,7 +445,9 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
                 if (busy) return;
                 setOpen(null);
                 setError(null);
+                setPriceGaps(null);
               },
+              priceGaps,
               send,
             }
           : null
