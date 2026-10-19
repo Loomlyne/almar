@@ -66,7 +66,7 @@ const MISSES = [
   "/api/booking/quote",
   "/api/stripe/webhook",
   "/__harness",
-  "/login",
+  // "/login" is not a miss since 2026-10-19: GET and HEAD are a 308 to /sign-in (test 4b); POST and PUT stay misses (test 5b).
   "/account",
   "/fx",
   "/newsletter",
@@ -180,6 +180,26 @@ test.describe(`almar-ops on the built Worker (${FOLDER}/)`, () => {
     }
   });
 
+  test("4b. GET and HEAD /login on the ops host answer 308 to /sign-in, query kept, never from Next", async ({ request }) => {
+    for (const path of ["/login", "/login?expired=1"]) {
+      for (const method of ["GET", "HEAD"]) {
+        const res = await request.fetch(path, { method, maxRedirects: 0 });
+        expect(res.status(), `${method} ${path}`).toBe(308);
+        expect(res.headers()["location"], `${method} ${path}`).toBe(path.replace("/login", "/sign-in"));
+        expect(res.headers()["cache-control"], `${method} ${path}`).toBe("no-store");
+        expect(res.headers()["x-robots-tag"] ?? "", `${method} ${path}`).not.toBe("noindex");
+      }
+    }
+    // A browser following it lands on the ops sign-in.
+    const followed = await request.get("/login");
+    expect(followed.status()).toBe(200);
+    expect(await followed.text()).toContain("sign-in-email");
+    // Near misses are still the branded 404.
+    const slash = await request.get("/login/", { maxRedirects: 0 });
+    expect(slash.status()).toBe(404);
+    expect(Buffer.compare(await slash.body(), nearest404("/login/"))).toBe(0);
+  });
+
   test("4. a browser navigation to a miss gets the same 404; the Worker runs for it (run_worker_first), Next does not", async ({ request }) => {
     const nav = { "sec-fetch-mode": "navigate", "sec-fetch-dest": "document", accept: "text/html" };
     for (const path of ["/about", "/private-stays", "/ar/", "/booking/trip", "/wp-login.php"]) {
@@ -202,6 +222,20 @@ test.describe(`almar-ops on the built Worker (${FOLDER}/)`, () => {
         expect(res.headers()["content-type"] ?? "", `${method} ${path}`).not.toMatch(/json/);
         expect(res.headers()["x-robots-tag"] ?? "", `${method} ${path}`).not.toBe("noindex");
       }
+    }
+  });
+
+  test("5b. POST and PUT to /login are a miss (404 or 405), never redirected and never from Next", async ({ request }) => {
+    for (const method of ["POST", "PUT"]) {
+      const res = await request.fetch("/login", {
+        method,
+        data: "email=a%40b.co",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        maxRedirects: 0,
+      });
+      expect([404, 405], method).toContain(res.status());
+      expect(res.headers()["location"], method).toBeUndefined();
+      expect(res.headers()["x-robots-tag"] ?? "", method).not.toBe("noindex");
     }
   });
 
