@@ -291,6 +291,20 @@ test("the ops Worker: on the ops host a listed path goes to Next and anything el
   assert.deepEqual(assets, ["/about", "/api/ops/not-written-yet"]);
 });
 
+test("the ops Worker: /login on the ops host is a 308 to /sign-in with the query kept, and never reaches Next", async () => {
+  const { next, assets, run } = await opsWorker();
+  const plain = await run(`${OPS_URL}/login`);
+  assert.equal(plain.status, 308);
+  assert.equal(plain.headers.get("location"), `${OPS_URL}/sign-in`);
+  const query = await run(`${OPS_URL}/login?expired=1`);
+  assert.equal(query.headers.get("location"), `${OPS_URL}/sign-in?expired=1`);
+  // Exact path only, and a foreign host keeps its own /login.
+  await run(`${OPS_URL}/login/`);
+  await run(`${MARKETING_URL}/login`);
+  assert.deepEqual(next, []);
+  assert.deepEqual(assets, ["/login/", "/login"]);
+});
+
 test("the ops Worker: a request whose host is not the ops host never reaches Next, except /api/health", async () => {
   const { next, assets, run } = await opsWorker();
   const paths = ["/", "/sign-in", "/home", "/bookings", "/dashboard", "/dashboard/home", "/auth/confirm", "/auth/handoff", "/auth/sign-out", "/catalog/stays", "/api/ops/stays"];

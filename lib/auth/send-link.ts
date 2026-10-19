@@ -41,14 +41,15 @@ export async function sendMagicLink(
     /** The origin she asked on, e.g. https://almarprivatejourney.com. */
     origin: string;
     host: "public" | "ops";
-    ownerEmail: string;
+    /** Lower-case owner addresses (OWNER_EMAILS). */
+    ownerEmails: readonly string[];
     isEmail(value: string): boolean;
   },
   deps: SendLinkDeps,
 ): Promise<SendLinkResult> {
   const email = input.email.trim().toLowerCase();
   if (!input.isEmail(email)) return { status: "invalid" };
-  const owner = email === input.ownerEmail;
+  const owner = input.ownerEmails.includes(email);
 
   // The ops host only ever signs the owner in (02-04). Nothing is called for anyone else.
   if (input.host === "ops" && !owner) return { status: "refused" };

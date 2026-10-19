@@ -20,6 +20,9 @@ for (const path of opsRoutes) assertOpsPath(path, opsRoutes);
 
 const OPS_PATHS = new Set(opsRoutes);
 
+/** Owner, 2026-10-19: a typed dashboard.almarprivatejourney.com/login lands on the dashboard sign-in (query kept). */
+const OPS_LOGIN_ALIAS = "/login";
+
 /**
  * True only for the ops host, by the URL's host and by the Host header (both, so a mismatch fails closed). "production"
  * is passed on purpose: process.env.NODE_ENV is not set in this script, and dashboard.localhost must not count here.
@@ -39,7 +42,9 @@ function nextFetch(request, env, ctx) {
 
 export default {
   fetch: (request, env, ctx) => {
-    if (!onOpsHost(request) && new URL(request.url).pathname !== OPS_API_HEALTH) return env.ASSETS.fetch(request);
+    const url = new URL(request.url);
+    if (!onOpsHost(request) && url.pathname !== OPS_API_HEALTH) return env.ASSETS.fetch(request);
+    if (url.pathname === OPS_LOGIN_ALIAS) return Response.redirect(new URL(`/sign-in${url.search}`, url.origin).href, 308);
     return handle(request, env, ctx, { serverPaths: OPS_PATHS, nextFetch });
   },
 };

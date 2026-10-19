@@ -16,7 +16,7 @@ import {
   signContinue,
   signEmail,
 } from "./continue";
-import { isEmail, OWNER_EMAIL, type AuthLocale } from "./rules";
+import { isEmail, OWNER_EMAILS, type AuthLocale } from "./rules";
 import { linkOrigin } from "./allowed-origin";
 import { limiterHash, visitorIpKey } from "./limit";
 import { SHELL_HEADER } from "../host";
@@ -67,7 +67,7 @@ export async function sendLinkFromRequest({
   const host = (await headers()).get(SHELL_HEADER) === "ops" ? "ops" : "public";
   // The ops host refuses a guest email before any service is touched, configured or not.
   const address = email.trim().toLowerCase();
-  if (host === "ops" && isEmail(address) && address !== OWNER_EMAIL) return { status: "refused" };
+  if (host === "ops" && isEmail(address) && !OWNER_EMAILS.includes(address)) return { status: "refused" };
 
   const admin = createSupabaseAdmin();
   const resendKey = process.env.RESEND_API_KEY?.trim();
@@ -82,7 +82,7 @@ export async function sendLinkFromRequest({
   const ipHash = limiterHash(limitKey, "ip", visitorIpKey((await headers()).get("x-forwarded-for")));
 
   return sendMagicLink(
-    { email, origin: await requestOrigin(), host, ownerEmail: OWNER_EMAIL, isEmail },
+    { email, origin: await requestOrigin(), host, ownerEmails: OWNER_EMAILS, isEmail },
     {
       async claimSlot(address) {
         // Hashes only leave this function. A failed call throws, and sendMagicLink fails closed.
