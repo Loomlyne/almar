@@ -38,6 +38,8 @@ export const scenes: Scenes = {
   "ops-host-blog": opsHost("/content/blog", <ComingSoonScreen kind="blog" />),
   "ops-host-legal": opsHost("/content/legal", <ComingSoonScreen kind="legal" />),
   "ops-host-navigation": opsHost("/content/navigation", <ComingSoonScreen kind="navigation" />),
-  // Team is not a live section yet (03.2-08): the same layout shows "Not ready." even though a page is passed.
-  "ops-host-team": opsHost("/content/team", <ComingSoonScreen kind="legal" />),
+  // Home ("/" in the browser, "/home" after the rewrite) is the one rail section not live yet: the same layout shows
+  // "Not ready." even though a page is passed. Team and Packages went live in 03.2-08; the plan that wires Home moves
+  // this scene to the next section still off (tests/ops-coming-soon.spec.ts asserts isLiveOpsPath is false here).
+  "ops-host-home": opsHost("/home", <ComingSoonScreen kind="legal" />),
 };
