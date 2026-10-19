@@ -3,6 +3,7 @@ import { isAbsolute, join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { DASHBOARD_COPY } from "../lib/copy/dashboard";
 import { OPS_CONTENT_COPY } from "../lib/copy/ops-content";
+import { isLiveOpsPath } from "../lib/ops-routes";
 import { VIEWPORTS, sceneStates, settle, type Viewport } from "./journey/matrix";
 
 // Content -> Pages, Blog, Legal and Navigation and footer as Coming soon pages, and the Content rail with its Soon chips
@@ -171,11 +172,14 @@ test.describe("coming soon pages", () => {
     }
   }
 
-  test("ops host: a section that is not live (Team) still shows Not ready", async ({ page, baseURL }) => {
+  test("ops host: a section that is not live (Home) still shows Not ready", async ({ page, baseURL }) => {
+    // Scene ops-host-home (tests/journey/scenes/ops-coming-soon.tsx) passes "/home" to the layout: it needs a section that
+    // is not live. When Home is wired, point the scene and this line at the next section still off.
+    expect(isLiveOpsPath("/home"), "/home is live now: move scene ops-host-home to a section still not live").toBe(false);
     await answerSiteStatus(page);
     await page.setViewportSize(VIEWPORTS.desktop);
     await page.context().addCookies([{ name: "almar-locale", value: "en", url: baseURL ?? "http://127.0.0.1:3010" }]);
-    await page.goto("/__harness?c=ops-coming-soon&s=ops-host-team&l=en");
+    await page.goto("/__harness?c=ops-coming-soon&s=ops-host-home&l=en");
     await settle(page);
     await expect(page.locator("main#content h1")).toHaveText(DASHBOARD_COPY.en.notReady);
     await expect(page.locator("main#content h2")).toHaveCount(0);
