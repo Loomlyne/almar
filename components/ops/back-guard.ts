@@ -24,7 +24,10 @@ export interface GuardWindow {
 }
 
 export interface BackGuards {
-  /** Once per load: a load on a spare guard entry (a reload or Forward with unsaved changes) steps off it. */
+  /**
+   * Once per load: a load on a spare guard entry (a reload or Forward with unsaved changes) steps off it. An entry this
+   * document stood up itself is never a load's spare: strict mode runs it again after the first arm.
+   */
   loaded(): void;
   /**
    * Unsaved changes: stand a guard entry up (or stand on the spare one already under the page) and own it. Idempotent:
@@ -50,6 +53,8 @@ export function createBackGuards(win: GuardWindow, now: () => number = Date.now)
   let standing: { id: string; href: string } | null = null;
   let steppingUntil = 0;
   let count = 0;
+  // The guard entries this document pushed: a second loaded() (strict mode's double mount) must not step off them.
+  const made = new Set<string>();
 
   const stepping = () => now() < steppingUntil;
   const stepBack = () => {
@@ -79,7 +84,7 @@ export function createBackGuards(win: GuardWindow, now: () => number = Date.now)
   return {
     loaded() {
       const id = trapOf(win.history.state);
-      if (id === null) return;
+      if (id === null || made.has(id)) return;
       standing = { id, href: win.location.href };
       if (id !== owned) stepBack();
     },
@@ -91,6 +96,7 @@ export function createBackGuards(win: GuardWindow, now: () => number = Date.now)
         id = `${now().toString(36)}-${count}`;
         const state = win.history.state !== null && typeof win.history.state === "object" ? win.history.state : {};
         win.history.pushState({ ...state, [TRAP_KEY]: id }, "", win.location.href);
+        made.add(id);
       }
       owned = id;
       standing = { id, href: win.location.href };

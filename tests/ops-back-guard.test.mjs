@@ -112,6 +112,22 @@ test("strict mode's double effect (arm, release, arm) adds one entry and takes n
   assert.equal(tab.index, 2);
 });
 
+test("strict mode's double mount as EditPage runs it (loaded, arm, release, loaded, arm): no step, so nothing is asked", () => {
+  // Run (b) 2026-10-17: the second loaded() found the entry this page had just pushed, took it for a reload's spare
+  // and stepped back; EditPage's popstate listener then asked "Discard changes?" at once.
+  const tab = fakeTab();
+  const guards = guardsFor(tab);
+  guards.loaded();
+  const first = guards.arm();
+  guards.release(first);
+  guards.loaded();
+  const second = guards.arm();
+  tab.flush();
+  assert.equal(second, first);
+  assert.deepEqual(tab.steps, [], "no history.back(): no popstate reaches the page");
+  assert.equal(tab.index, 2);
+});
+
 test("Save closes the page, then a navigation starts at once: it is neither undone nor aborted", () => {
   const tab = fakeTab();
   const guards = guardsFor(tab);
