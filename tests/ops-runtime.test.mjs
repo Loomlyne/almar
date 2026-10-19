@@ -122,7 +122,9 @@ test("opsPathsFrom: a section named like a server prefix stops the build", () =>
 
 test("OPS_LIVE_SECTIONS holds wired sections only (03.2-09: /content/media); unwired ones stay off; the header name is fixed", () => {
   assert.ok(OPS_LIVE_SECTIONS.includes("/content/media"));
-  assert.equal(isLiveOpsPath("/catalog/stays"), false);
+  // 03.2-07 wired /catalog/stays; packages are not wired yet.
+  assert.equal(isLiveOpsPath("/catalog/stays"), true);
+  assert.equal(isLiveOpsPath("/catalog/packages"), false);
   assert.equal(isLiveOpsPath("/"), false);
   assert.equal(OPS_PATH_HEADER, "x-almar-ops-path");
 });
@@ -289,6 +291,20 @@ test("the ops Worker: on the ops host a listed path goes to Next and anything el
   await run(`${OPS_URL}/api/ops/not-written-yet`);
   assert.deepEqual(next.map((c) => c.path), ["/sign-in", "/api/health"]);
   assert.deepEqual(assets, ["/about", "/api/ops/not-written-yet"]);
+});
+
+test("the ops Worker: /login on the ops host is a 308 to /sign-in with the query kept, and never reaches Next", async () => {
+  const { next, assets, run } = await opsWorker();
+  const plain = await run(`${OPS_URL}/login`);
+  assert.equal(plain.status, 308);
+  assert.equal(plain.headers.get("location"), `${OPS_URL}/sign-in`);
+  const query = await run(`${OPS_URL}/login?expired=1`);
+  assert.equal(query.headers.get("location"), `${OPS_URL}/sign-in?expired=1`);
+  // Exact path only, and a foreign host keeps its own /login.
+  await run(`${OPS_URL}/login/`);
+  await run(`${MARKETING_URL}/login`);
+  assert.deepEqual(next, []);
+  assert.deepEqual(assets, ["/login/", "/login"]);
 });
 
 test("the ops Worker: a request whose host is not the ops host never reaches Next, except /api/health", async () => {

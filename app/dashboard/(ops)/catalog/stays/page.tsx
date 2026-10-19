@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CatalogScreen } from "../catalog-screen";
+import { StaysScreen } from "./stays-screen";
 
 export const metadata: Metadata = {
   title: "Stays",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardStaysPage() {
-  return <CatalogScreen kind="stays" />;
+  return <StaysScreen />;
 }

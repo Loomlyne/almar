@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sendMagicLink } from "../lib/auth/send-link.ts";
-import { isEmail, OWNER_EMAIL, safeReturnPath } from "../lib/auth/rules.ts";
+import { isEmail, OWNER_EMAIL, OWNER_EMAILS, safeReturnPath } from "../lib/auth/rules.ts";
 import { linkOrigin } from "../lib/auth/allowed-origin.ts";
 import { renderMagicLinkEmail } from "../lib/email/magic-link.ts";
 import { GUEST_COPY } from "../lib/copy/guest.ts";
@@ -36,7 +36,7 @@ function fakeDeps({ claim = true, exists = false, link = { ok: true, tokenHash: 
   };
 }
 
-const base = { origin: "https://almarprivatejourney.com", host: "public", ownerEmail: OWNER_EMAIL, isEmail };
+const base = { origin: "https://almarprivatejourney.com", host: "public", ownerEmails: OWNER_EMAILS, isEmail };
 
 test("an unknown email gets a link that creates the account (confirm email)", async () => {
   const { deps, calls } = fakeDeps({ exists: false, link: { ok: true, tokenHash: "h1", verificationType: "signup" } });

@@ -17,7 +17,7 @@ import {
   verifyEmail,
 } from "../lib/auth/continue.ts";
 import { sendMagicLink } from "../lib/auth/send-link.ts";
-import { isEmail, OWNER_EMAIL } from "../lib/auth/rules.ts";
+import { isEmail, OWNER_EMAILS } from "../lib/auth/rules.ts";
 
 const KEY = "test-key-not-a-secret";
 
@@ -64,7 +64,7 @@ function run(continueProof) {
     ...(continueProof ? { continueProof } : {}),
   };
   return sendMagicLink(
-    { email: "Lina@Gmail.com", origin: "https://almarprivatejourney.com", host: "public", ownerEmail: OWNER_EMAIL, isEmail },
+    { email: "Lina@Gmail.com", origin: "https://almarprivatejourney.com", host: "public", ownerEmails: OWNER_EMAILS, isEmail },
     deps,
   ).then(() => new URL(sent[0].href));
 }
