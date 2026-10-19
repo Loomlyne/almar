@@ -240,8 +240,8 @@ records the payment in the dashboard. No card provider is needed.
 **Mode:** mvp
 **Depends on:** Phase 3
 **Requirements:** BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-08, STAY-01, STAY-02, JOUR-01, JOUR-02, JOUR-03, JOUR-04,
-ADDN-01, IDEN-01, IDEN-02, PAY-01, PAY-02, PAY-03, PAY-05, PAY-14, PAY-16, PAY-17, PAY-18, PAY-19, PAY-20, AUTH-01,
-OPS-04, OPS-10, OPS-13
+ADDN-01, IDEN-01, IDEN-02, PAY-01, PAY-02, PAY-03, PAY-05, PAY-07, PAY-10, PAY-14, PAY-17, PAY-18, PAY-19, PAY-20,
+AUTH-01, OPS-04, OPS-10, OPS-13
 **Success Criteria** (what must be TRUE):
 
   1. Guest goes Stay → Add-ons → Travellers → Request on `/booking/trip`, can go back until Request, and is never charged on the site
@@ -250,13 +250,19 @@ OPS-04, OPS-10, OPS-13
   4. Owner clicks Record payment (amount, date, bank reference, confirm); the booking becomes Deposit paid or Paid in full, nights block for good, the guest gets the receipt; late, short and extra money is flagged for the owner; a wrong entry is voided with a reason, never deleted
   5. Booking page is the source of truth: status, amounts paid and owed, transfer instructions while unpaid; exact address only after Confirmed; bank details never readable without the booking's signed link
 
-**Plans:** 8 active (04-01, 04-02 landed; 04-03, 04-05, 04-06, 04-07 rewritten; 04-08, 04-09 new); 04-04 parked.
+**Plans:** 8 active (04-01, 04-02 landed; 04-03, 04-05, 04-06, 04-07 to rewrite; 04-08, 04-09 new); 04-04 parked.
 
 Plans:
 
-- [ ] 04-01: Hero + `/booking/trip` stay overlay + add-ons + travelers
-- [ ] 04-02: Money math, FX lock, Payment Element, two PaymentIntents, webhook
-- [ ] 04-03: Confirmation email/PDF + booking page + 30-min hold job
+- [x] 04-01: Money engine (fils, VAT, deposit, balance due, late-booking rule)
+- [x] 04-02: Bookings database, quote, hold, owner booking functions (live migration `20261005110000`)
+- [ ] 04-08: Request function, payment recording and void, owner-only bank details, rebuilt gate, scheduled lapse
+- [ ] 04-03: `/booking/trip` Stay → Add-ons → Travellers → Request (pictures first)
+- [ ] 04-09: Dashboard Bookings list and detail with notes, Record payment / Void, money Settings (pictures first)
+- [ ] 04-05: Emails (request + transfer instructions, owner notice, receipt, lapsed) and the booking page (pictures first)
+- [ ] 04-06: Submit request, resume after refresh, guest `/bookings` list
+- [ ] 04-07: Numbered UAT on preview, no Stripe steps
+- 04-04: Parked (Stripe) → backlog "Card payments"; tag `archive/phase-04-book-and-pay`
 
 ### Phase 5: Ops OS
 
