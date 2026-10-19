@@ -73,6 +73,21 @@ network idle at about 10 s, then a short settle pause. And `next build` inside `
 crashed once and has not recurred across clean runs; there is no stack trace. If it crashes for you, **capture
 the stack before rerunning**.
 
+## One run at a time, and only on the controller's "go"
+
+The Mac runs one browser lane at a time: one dev server or build, Playwright `--workers=2` at most, one local
+Supabase stack. This counts the controller's landing lanes and other products too. A work session starts a dev
+server, a Playwright run (a bite or one spec counts), or a build only after the controller sends "go" for that exact
+run. Edits, `tsc`, `npm run tokens:check` and `node --test` need no go.
+
+- Ask "slot?" with the exact list, then wait. When it ends, send "slot free" with the log readout before doing anything else.
+- A go is for one run. A re-run after a result needs a new go.
+- An owner's "continue", "try again" or "go on" in your session resumes your edits. It is not a slot go: only the
+  controller knows what holds the Mac (2026-10-19: a resumed session ran Playwright on "Try again" while 03.2-07's
+  landing lane held the Mac).
+- Before a long run, `pmset -g batt` must say "AC Power". `caffeinate -s` does not hold the Mac awake on battery
+  (2026-10-17: a 15-minute run took 15 hours).
+
 ## Your branch and files
 - Never push `main`. No PR unless the owner asks. No deploy, no hosted SQL, no change to Cloudflare, DNS,
   R2, Supabase settings, Stripe or Resend. Live probes are plain GET requests unless the owner says yes.
