@@ -70,6 +70,11 @@ export type OpsStayTabsCopy = {
     saved: string;
     /** Replaces the kit's line, which speaks of Publish. Signed by the owner as drafted, 2026-10-15 23:56. */
     translationFailed: string;
+    /**
+     * DRAFTED, never shown: added after the Edit translations words in the Access control's accessible name, so a screen
+     * reader tells it from the Text card's ("Edit translations, Access notes"; controller 2026-10-19).
+     */
+    translationsName: string;
   };
   loading: string;
   loadFailed: string;
@@ -132,6 +137,7 @@ export const OPS_STAY_TABS_COPY: Record<Locale3, OpsStayTabsCopy> = {
       wifiPassword: "Wi-Fi password",
       doorCode: "Door code",
       notes: "Notes",
+      translationsName: "Access notes",
       notesHint: "Parking, keys, anything the guest needs on arrival. Up to 2,000 characters.",
       saveAccess: "Save access",
       tooLong: "Up to 2,000 characters.",
@@ -199,6 +205,7 @@ export const OPS_STAY_TABS_COPY: Record<Locale3, OpsStayTabsCopy> = {
       wifiPassword: "كلمة مرور Wi-Fi",
       doorCode: "رمز الباب",
       notes: "ملاحظات",
+      translationsName: "ملاحظات الوصول",
       notesHint: "الموقف، المفاتيح، وكل ما يحتاجه الضيف عند الوصول. حتى 2,000 حرف.",
       saveAccess: "حفظ معلومات الوصول",
       tooLong: "حتى 2,000 حرف.",
@@ -265,6 +272,7 @@ export const OPS_STAY_TABS_COPY: Record<Locale3, OpsStayTabsCopy> = {
       wifiPassword: "Contraseña del Wi-Fi",
       doorCode: "Código de la puerta",
       notes: "Notas",
+      translationsName: "Notas de acceso",
       notesHint: "Aparcamiento, llaves, todo lo que el huésped necesita al llegar. Hasta 2.000 caracteres.",
       saveAccess: "Guardar acceso",
       tooLong: "Hasta 2.000 caracteres.",

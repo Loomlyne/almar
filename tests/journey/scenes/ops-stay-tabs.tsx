@@ -74,6 +74,7 @@ function StayEditor({ ctx, isNew = false }: { ctx: SceneContext; isNew?: boolean
             key: "text",
             title: t.text,
             translatable: true,
+            translationsName: t.text,
             content: (
               <Field id="stay-name" label={t.name} className="max-w-none" lang="en" dir="ltr" value={name} onChange={(event) => setName(event.target.value)} />
             ),

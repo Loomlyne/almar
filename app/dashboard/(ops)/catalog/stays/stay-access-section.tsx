@@ -15,6 +15,7 @@ import { errorText } from "../../../../../components/ops/error-text";
 import { opsFetch, opsSend } from "../../../../../components/ops/ops-client";
 import type { Locale3, StayAccessView } from "../../../../../components/ops/api-types";
 import { ChevronIcon } from "../../../../../components/icons/icons";
+import { controlName } from "../../../../../components/ops/control-name";
 import { Button } from "../../../../../components/ui/button";
 import { Field } from "../../../../../components/ui/field";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
@@ -200,9 +201,15 @@ export function StayAccessSection({
       <Field {...field("notes")} label={copy.access.notes} hint={copy.access.notesHint} multiline lang="en" dir="ltr" />
       <div className="flex min-w-0 flex-col items-start gap-4" data-notes-translations>
         {/* The kit's Edit translations control (TranslationBoxes in components/ops/edit-page.tsx, not exported): the same
-            button, chevron and classes, so it reads the same as on the Text card. */}
+            button, chevron and classes, so it reads the same as on the Text card. Its accessible name adds this card's
+            name after the visible words, so a screen reader tells the two apart (controller 2026-10-19). */}
         <button
           type="button"
+          aria-label={controlName(
+            locale,
+            showTranslations ? kit.editor.hideTranslations : kit.editor.editTranslations,
+            copy.access.translationsName,
+          )}
           aria-expanded={showTranslations}
           aria-controls={showTranslations ? `${id}-notes-translations` : undefined}
           onClick={() => setShowTranslations((was) => !was)}
