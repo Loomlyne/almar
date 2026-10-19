@@ -111,14 +111,21 @@ test("accessPayload: blanks are null, the rest exactly as typed, 2,000 character
 
 test("withBaseRate: only the stay's price changes; the same object when nothing changed; null stays null (PR #23 review)", () => {
   const stay = { id: "s2", base_nightly_rate_aed: null, translations: { en: { title: "[Casa Dos]" } } };
-  const priced = withBaseRate(stay, "12.50");
+  const priced = withBaseRate(stay, "s2", "12.50");
   assert.notEqual(priced, stay, "a new object, so the screen draws it");
   assert.deepEqual(priced, { ...stay, base_nightly_rate_aed: "12.50" });
   assert.equal(priced.translations, stay.translations, "everything else is the same reference");
   assert.equal(stay.base_nightly_rate_aed, null, "the old stay is not changed");
-  assert.equal(withBaseRate(priced, "12.50"), priced, "same price: same object");
-  assert.deepEqual(withBaseRate(priced, null), { ...stay, base_nightly_rate_aed: null }, "cleared");
-  assert.equal(withBaseRate(null, "12.50"), null, "no stay open");
+  assert.equal(withBaseRate(priced, "s2", "12.50"), priced, "same price: same object");
+  assert.deepEqual(withBaseRate(priced, "s2", null), { ...stay, base_nightly_rate_aed: null }, "cleared");
+  assert.equal(withBaseRate(null, "s2", "12.50"), null, "no stay open");
+});
+
+test("withBaseRate: a price saved for another stay leaves the open stay unchanged (PR #23 round 2)", () => {
+  // The owner opened [Casa Uno] while [Casa Dos]'s set_base was still in flight.
+  const open = { id: "s1", base_nightly_rate_aed: "[PRICE]" };
+  assert.equal(withBaseRate(open, "s2", "12.50"), open, "same object, its price untouched");
+  assert.equal(withBaseRate(open, "s2", null), open, "a clear for another stay changes nothing either");
 });
 
 test("source guards: pure module, no request, no console, never a total", () => {

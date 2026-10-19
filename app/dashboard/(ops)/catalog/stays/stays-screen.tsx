@@ -149,8 +149,8 @@ export function StaysScreen({ send }: { send?: Send } = {}) {
    * 03.2-15's Rates card saved the base rate: only the stay's price (so the no-rate warning) and the list change. The
    * form and its saved copy are left alone: a full re-read here threw away unsaved edits with no question (PR #23 review).
    */
-  function onBaseRate(base: string | null) {
-    setStay((was) => withBaseRate(was, base));
+  function onBaseRate(stayId: string, base: string | null) {
+    setStay((was) => withBaseRate(was, stayId, base));
     void load();
   }
 

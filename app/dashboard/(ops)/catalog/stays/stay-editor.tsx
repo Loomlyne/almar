@@ -128,10 +128,10 @@ export function StayEditor({
   /** The stay as last read; null for a new stay. */
   stay: StayDetail | null;
   /**
-   * 03.2-15's Rates card saved the base rate (null = cleared): the screen updates the stay's price and the list, never
-   * the form or its saved copy, so unsaved edits on this page stay.
+   * 03.2-15's Rates card saved a stay's base rate (null = cleared): the screen updates that stay's price, if it is still
+   * the open one, and the list; never the form or its saved copy, so unsaved edits on this page stay.
    */
-  onBaseRate: (base: string | null) => void;
+  onBaseRate: (stayId: string, base: string | null) => void;
   form: StayForm;
   saved: StayForm;
   onFormChange: (next: StayForm) => void;

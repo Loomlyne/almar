@@ -248,7 +248,7 @@ function EditorScene({ ctx, state }: { ctx: SceneContext; state: EditorState }) 
         openKey={stay ? stay.id : "new"}
         onClose={() => note("close")}
         stay={stay}
-        onBaseRate={(base) => note(`base:${base ?? "null"}`)}
+        onBaseRate={(stayId, base) => note(`base:${stayId}:${base ?? "null"}`)}
         form={form}
         saved={saved}
         onFormChange={setForm}

@@ -75,8 +75,10 @@ test("wiring: 03.2-07's stay editor spreads the cards after its own and ORs thei
   assert.ok(source.indexOf('key: "rules"') < source.indexOf("...stayTabSections("), "the cards follow the stay's own");
   // PR #23 review: a saved price updates only the stay's price and the list, never the form or its saved copy.
   const screen = readFileSync(DIR + "stays-screen.tsx", "utf8");
-  assert.match(screen, /function onBaseRate\(base: string \| null\) \{\s*setStay\(\(was\) => withBaseRate\(was, base\)\);\s*void load\(\);\s*\}/);
+  assert.match(screen, /function onBaseRate\(stayId: string, base: string \| null\) \{\s*setStay\(\(was\) => withBaseRate\(was, stayId, base\)\);\s*void load\(\);\s*\}/);
   assert.match(screen, /onBaseRate=\{onBaseRate\}/);
+  // Round 2: the card names the stay it saved for, so a late reply never prices another stay.
+  assert.match(readFileSync(DIR + "stay-rates-section.tsx", "utf8"), /onBaseSaved\?\.\(stayId, reply\.base_nightly_rate_aed\)/);
   assert.doesNotMatch(screen, /function reload\(|reload=\{/, "no reload of the open stay");
   assert.doesNotMatch(source, /\breload\b/, "the editor has no reload prop");
 });
