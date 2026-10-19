@@ -179,7 +179,9 @@ test.describe("pictures", () => {
           await openScene(page, state, viewport, locale);
           if (state === "editor-translations") {
             // The owner's path: open Edit translations, then take one line out of the Arabic amenities, so the lock speaks.
-            await page.getByRole("button", { name: OPS_KIT_COPY[locale].editor.editTranslations, exact: true }).click();
+            // The Text card's own control: 03.2-15's Access card has one with the same name on a saved stay.
+            const textCard = page.getByRole("region", { name: OPS_STAYS_COPY[locale].sectionText, exact: true });
+            await textCard.getByRole("button", { name: OPS_KIT_COPY[locale].editor.editTranslations, exact: true }).click();
             const arabic = page.getByLabel(`${OPS_STAYS_COPY[locale].amenities} · AR`, { exact: true });
             const lines = (await arabic.inputValue()).split("\n");
             await arabic.fill(lines.slice(0, -1).join("\n"));
