@@ -17,7 +17,8 @@
 /**
  * Sections that answer 404 on both hosts until their own phase ships, whatever app/ holds. Next compiles every
  * route in app/, so this list, not the absence of a file, is what keeps them closed. A locale prefix (/ar, /es)
- * does not change that. The last entry is the test harness page: a deny entry, not a link.
+ * does not change that. The last entry is the test harness page: a deny entry, not a link. /fx and /embed have had no
+ * file since Phase 3.3 close removed the Framer bridge; they stay here so a new file there cannot open them by accident.
  */
 export const HELD_PATHS = [
   "/dashboard",

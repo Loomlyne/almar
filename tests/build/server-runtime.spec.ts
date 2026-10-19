@@ -28,7 +28,10 @@ const HELD_PROBES = [
   "/dashboard/home",
   "/dashboard/catalog/stays",
   "/fx",
+  "/es/fx",
+  // Phase 3.3 close removed the Framer bridge files; their paths stay held and answer the static 404.
   "/embed/hero-booker",
+  "/embed/font/Lato-Regular.ttf",
   "/embed/font/x.woff2",
   "/__harness",
   "/ar/dashboard",
