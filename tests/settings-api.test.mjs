@@ -2,7 +2,12 @@
 // wrapper's (owner first, Origin, JSON): tests/ops-route.test.mjs covers that order for every route.
 import test from "node:test";
 import assert from "node:assert/strict";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadTs } from "./helpers/load-ts.mjs";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const v = await loadTs("lib/settings/validate.ts");
 const h = await loadTs("lib/settings/handlers.ts");
@@ -72,12 +77,10 @@ test("parseSettingsSave: the whole form, exact values; percents two places, empt
   assert.throws(() => v.parseSettingsSave({ ...SAVE, vat_percent: "5.125" }), (e) => e.field === "vat_percent");
 });
 
-test("postSettings: one call saves the singleton and her language/currency together; tokens sent as null; no rebuild when only VAT changes", async () => {
+test("postSettings: one call saves the singleton and her language/currency together; tokens sent as null; affects_site false when only VAT changes", async () => {
   const { admin, writes } = fakeAdmin();
-  let rebuilds = 0;
-  const out = await h.postSettings({ owner: owner(admin), body: { ...SAVE, vat_percent: "7.50", locale: "ar", currency: "USD" }, requestRebuild: async () => { rebuilds += 1; } });
+  const out = await h.postSettings({ owner: owner(admin), body: { ...SAVE, vat_percent: "7.50", locale: "ar", currency: "USD" } });
   assert.deepEqual(out.body, { ok: true, affects_site: false });
-  assert.equal(rebuilds, 0);
   assert.deepEqual(writes, [{
     rpc: "save_site_settings",
     args: {
@@ -91,23 +94,21 @@ test("postSettings: one call saves the singleton and her language/currency toget
   }], "one transaction, no direct table writes");
 });
 
-test("postSettings: maintenance, a colour or the logo affects the site and asks for one rebuild", async () => {
+test("postSettings: maintenance, a colour or the logo answers affects_site: true (the wrapper's afterWrite requests the update)", async () => {
   for (const body of [{ ...SAVE, maintenance: true }, { ...SAVE, colors: { ...SAVE.colors, teal: "#123456" } }]) {
     const { admin } = fakeAdmin();
-    let rebuilds = 0;
-    const out = await h.postSettings({ owner: owner(admin), body, requestRebuild: async () => { rebuilds += 1; } });
-    assert.equal(out.body.affects_site, true);
-    assert.equal(rebuilds, 1);
+    const out = await h.postSettings({ owner: owner(admin), body });
+    assert.deepEqual(out.body, { ok: true, affects_site: true });
   }
   const { admin } = fakeAdmin({ media: { [LOGO]: { id: LOGO, key: "brand/l.png", width: 512, height: 512, bytes: 2048, content_type: "image/png" } } });
-  const out = await h.postSettings({ owner: owner(admin), body: { ...SAVE, logo_media_id: LOGO }, requestRebuild: async () => {} });
+  const out = await h.postSettings({ owner: owner(admin), body: { ...SAVE, logo_media_id: LOGO } });
   assert.equal(out.body.affects_site, true);
 });
 
 test("postSettings: a failing contrast is refused on the server, charged to the changed colour; nothing written", async () => {
   const { admin, writes } = fakeAdmin();
   await assert.rejects(
-    h.postSettings({ owner: owner(admin), body: { ...SAVE, colors: { ...SAVE.colors, teal: "#9fb8bb" } }, requestRebuild: async () => {} }),
+    h.postSettings({ owner: owner(admin), body: { ...SAVE, colors: { ...SAVE.colors, teal: "#9fb8bb" } } }),
     (e) => e.name === "OpsInvalid" && e.field === "colors.teal",
   );
   assert.equal(writes.length, 0);
@@ -122,7 +123,7 @@ test("postSettings: a logo that is missing, too big or not PNG/JPEG/WebP is refu
   for (const [name, row] of Object.entries(cases)) {
     const { admin, writes } = fakeAdmin({ media: row ? { [LOGO]: row } : {} });
     await assert.rejects(
-      h.postSettings({ owner: owner(admin), body: { ...SAVE, logo_media_id: LOGO }, requestRebuild: async () => {} }),
+      h.postSettings({ owner: owner(admin), body: { ...SAVE, logo_media_id: LOGO } }),
       (e) => e.field === "logo_media_id",
       name,
     );
@@ -132,7 +133,7 @@ test("postSettings: a logo that is missing, too big or not PNG/JPEG/WebP is refu
 
 test("postSettings / getSettings: a database error is handed back for the wrapper to map (503), never echoed", async () => {
   const { admin } = fakeAdmin({ failOn: "rpc:save_site_settings" });
-  const out = await h.postSettings({ owner: owner(admin), body: SAVE, requestRebuild: async () => {} });
+  const out = await h.postSettings({ owner: owner(admin), body: SAVE });
   assert.ok("dbError" in out);
   const read = await h.getSettings({ owner: owner(fakeAdmin({ failOn: "read:site_settings" }).admin), loadRates: async () => null });
   assert.ok("dbError" in read);
@@ -155,12 +156,25 @@ test("getSettings: the row's VAT and deposit, design-system colours for nulls, l
   assert.equal(none.body.settings.vat_percent, null);
 });
 
-test("postSettings: a failed save (one transaction) replies with the error, writes nothing else and asks for no rebuild", async () => {
+test("postSettings: a failed save (one transaction) replies with the error and writes nothing else (no affects_site, so no update)", async () => {
   const { admin, writes } = fakeAdmin({ failOn: "rpc:save_site_settings" });
-  let rebuilds = 0;
-  const out = await h.postSettings({ owner: owner(admin), body: { ...SAVE, maintenance: true, locale: "ar" }, requestRebuild: async () => { rebuilds += 1; } });
+  const out = await h.postSettings({ owner: owner(admin), body: { ...SAVE, maintenance: true, locale: "ar" } });
   assert.ok(out.dbError, "the reply is the error, not ok");
   assert.equal(out.body, undefined);
   assert.deepEqual(writes, [], "no table write beside the function, no put-back");
-  assert.equal(rebuilds, 0);
+});
+
+test("follow-up 1: the 02-06 rebuild seam is gone; the Settings route rides opsPost's afterWrite like every other write", () => {
+  assert.equal(existsSync(join(ROOT, "lib/settings/site-rebuild.ts")), false, "lib/settings/site-rebuild.ts is removed");
+  const hits = [];
+  const walk = (dir) => {
+    for (const entry of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) walk(rel);
+      else if (/\.(m?[jt]sx?)$/.test(entry.name) && /site-rebuild|requestRebuild|RequestRebuild/.test(readFileSync(join(ROOT, rel), "utf8"))) hits.push(rel);
+    }
+  };
+  for (const dir of ["app", "lib", "components", "worker"]) walk(dir);
+  assert.deepEqual(hits, [], "nothing in app, lib, components or worker names the seam");
+  assert.match(readFileSync(join(ROOT, "app/api/ops/settings/route.ts"), "utf8"), /opsPost\(parseSettingsSave, postSettingsRoute\)/);
 });

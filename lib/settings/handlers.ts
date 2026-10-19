@@ -9,7 +9,6 @@ import { OpsInvalid } from "../ops/route-core";
 import { failingColors, type BrandColors, type BrandKey } from "./contrast";
 import { BRAND_DEFAULTS, BRAND_KEYS } from "../site-settings";
 import type { SettingsSave } from "./validate";
-import type { RequestRebuild } from "./site-rebuild";
 
 export const LOGO_MAX_BYTES = 1024 * 1024;
 const LOGO_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
@@ -97,7 +96,7 @@ export async function getSettings({ owner, loadRates }: { owner: Owner; loadRate
   return { body: { ok: true, settings } };
 }
 
-/** True when the save changes something the public site shows (it then needs a publish rebuild). */
+/** True when the save changes something the public site shows; opsPost's afterWrite then requests the update (03.2-05). */
 export function affectsSite(before: Row, save: SettingsSave): boolean {
   const colors = colorsOf(before);
   if (BRAND_KEYS.some((key) => colors[key] !== save.colors[key])) return true;
@@ -107,15 +106,7 @@ export function affectsSite(before: Row, save: SettingsSave): boolean {
   return false;
 }
 
-export async function postSettings({
-  owner,
-  body,
-  requestRebuild,
-}: {
-  owner: Owner;
-  body: SettingsSave;
-  requestRebuild: RequestRebuild;
-}): Promise<OpsOutcome> {
+export async function postSettings({ owner, body }: { owner: Owner; body: SettingsSave }): Promise<OpsOutcome> {
   const read = await readRow(owner.admin);
   if ("dbError" in read) return read;
   const before = read.row;
@@ -160,7 +151,5 @@ export async function postSettings({
   });
   if (error) return { dbError: error };
 
-  const affects = affectsSite(before, body);
-  if (affects) await requestRebuild(owner.admin);
-  return { body: { ok: true, affects_site: affects } };
+  return { body: { ok: true, affects_site: affectsSite(before, body) } };
 }

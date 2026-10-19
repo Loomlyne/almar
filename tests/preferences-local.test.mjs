@@ -1,12 +1,12 @@
 // Plan 02-05 (addendum 2026-10-11), against this worktree's local stack: saveOwnPreferences with a guest's own session
 // client writes her own profiles row, and the same client cannot write another guest's row (RLS "update own row") or a
-// column outside the grant. requireStack(t): skipped without a stack, FAILS under ALMAR_REQUIRE_STACK=1.
+// column outside the grant. lockStack(t): skipped without a stack, FAILS under ALMAR_REQUIRE_STACK=1.
 // Two throwaway users are made and deleted here; nothing else in the database is touched, so no reset is needed.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { acquireStackLock, requireStack } from "./helpers/local-supabase.mjs";
+import { lockStack, requireStack } from "./helpers/local-supabase.mjs";
 import { loadTs } from "./helpers/load-ts.mjs";
 
 const { saveOwnPreferences } = await loadTs("lib/preferences-route.ts");
@@ -44,9 +44,10 @@ async function row(id) {
 }
 
 test("her session writes her own locale and currency, and nobody else's", async (t) => {
-  const stack = requireStack(t);
-  if (!stack) return;
-  release = await acquireStackLock();
+  const locked = await lockStack(t);
+  if (!locked) return;
+  release = locked.release;
+  const stack = locked.stack;
   admin = createClient(stack.url, stack.serviceKey, NO_PERSIST);
 
   const a = await guest(stack);
@@ -74,9 +75,11 @@ test("her session writes her own locale and currency, and nobody else's", async 
 });
 
 test("followAccount on real sessions: a new account saves the browser's language, a returning one restores hers", async (t) => {
-  const stack = requireStack(t);
+  // The first test may hold the lock already; otherwise the lock comes before the stack look.
+  const locked = release ? { stack: requireStack(t), release } : await lockStack(t);
+  const stack = locked?.stack;
   if (!stack) return;
-  if (!release) release = await acquireStackLock();
+  release = locked.release;
   admin ??= createClient(stack.url, stack.serviceKey, NO_PERSIST);
   const { followAccount } = await loadTs("lib/account-follow.ts");
   const { isFirstSignIn } = await loadTs("lib/account-preferences.ts");

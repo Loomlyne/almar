@@ -1,12 +1,12 @@
 // Plan 02-06 (PR #14 review round 2), against this worktree's local stack: postSettings with the service-role client
 // saves through public.save_site_settings, so the settings row and the owner's language and currency change together;
-// a refused call (not the owner) changes neither and replies with the error. requireStack(t): skipped without a stack,
+// a refused call (not the owner) changes neither and replies with the error. lockStack(t): skipped without a stack,
 // FAILS under ALMAR_REQUIRE_STACK=1. The owner user is made here when missing (and then deleted); the settings row and
 // her profile are put back after.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
-import { acquireStackLock, requireStack } from "./helpers/local-supabase.mjs";
+import { lockStack } from "./helpers/local-supabase.mjs";
 import { loadTs } from "./helpers/load-ts.mjs";
 
 const h = await loadTs("lib/settings/handlers.ts");
@@ -62,9 +62,10 @@ async function state(ownerId) {
 }
 
 test("a Settings save goes through the one-transaction function: both change, or (refused) neither", async (t) => {
-  const stack = requireStack(t);
-  if (!stack) return;
-  release = await acquireStackLock();
+  const locked = await lockStack(t);
+  if (!locked) return;
+  release = locked.release;
+  const stack = locked.stack;
   admin = createClient(stack.url, stack.serviceKey, NO_PERSIST);
   const profile = await ownerProfile();
   const row = await admin.from("site_settings").select("teal, vat_percent, deposit_percent, maintenance").eq("id", 1).single();
@@ -74,14 +75,12 @@ test("a Settings save goes through the one-transaction function: both change, or
   await admin.from("profiles").update({ locale: "en", currency: "AED" }).eq("id", profile.id);
 
   // Not the owner: the function refuses, nothing changes, the handler hands the error back.
-  const refused = await h.postSettings({ owner: { profile: { id: "00000000-0000-4000-8000-0000000000ff", locale: "en", currency: "AED" }, admin }, body: SAVE, requestRebuild: async () => assert.fail("no rebuild on a refused save") });
+  const refused = await h.postSettings({ owner: { profile: { id: "00000000-0000-4000-8000-0000000000ff", locale: "en", currency: "AED" }, admin }, body: SAVE });
   assert.ok(refused.dbError, "the reply is the error");
   assert.deepEqual(await state(profile.id), { teal: null, vat_percent: 5, deposit_percent: 30, maintenance: false, locale: "en", currency: "AED" });
 
   // The owner: one call changes the row and her language and currency.
-  let rebuilds = 0;
-  const saved = await h.postSettings({ owner: { profile, admin }, body: SAVE, requestRebuild: async () => { rebuilds += 1; } });
+  const saved = await h.postSettings({ owner: { profile, admin }, body: SAVE });
   assert.deepEqual(saved.body, { ok: true, affects_site: true });
-  assert.equal(rebuilds, 1);
   assert.deepEqual(await state(profile.id), { teal: "#7a1f3b", vat_percent: 7.5, deposit_percent: null, maintenance: false, locale: "ar", currency: "USD" });
 });

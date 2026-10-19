@@ -7,7 +7,7 @@ import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { acquireStackLock, requireStack } from "./helpers/local-supabase.mjs";
+import { lockStack } from "./helpers/local-supabase.mjs";
 import { loadRoute } from "./helpers/load-route.mjs";
 
 const ORIGIN = "https://preview.almarprivatejourney.com";
@@ -33,10 +33,11 @@ async function waitReady(admin) {
 
 async function seed(t) {
   if (state) return state;
-  const stack = requireStack(t);
-  if (!stack) return null;
+  const locked = await lockStack(t);
+  if (!locked) return null;
+  releaseStackLock = locked.release;
+  const stack = locked.stack;
   assert.match(stack.url, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/, "this test only talks to a local stack");
-  releaseStackLock = await acquireStackLock();
   process.env.NEXT_PUBLIC_SUPABASE_URL = stack.url;
   process.env.SUPABASE_SERVICE_ROLE_KEY = stack.serviceKey;
   process.env.BOOKING_LINK_SECRET = SECRET;
