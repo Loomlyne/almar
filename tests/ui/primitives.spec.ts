@@ -274,7 +274,8 @@ for (const viewport of WIDTHS) {
 
       test("the chevron points down while closed and up while open (follow-up 11: it pointed up closed in Arabic)", async ({ page }) => {
         await open(page, "select", "chosen", locale, viewport);
-        const trigger = page.getByRole("combobox");
+        // By CSS, not by role: while the list is open Radix hides everything outside it (aria-hidden), the trigger too.
+        const trigger = page.locator('[data-testid="harness-select"] [role="combobox"]');
         // Where the icon's right-pointing path ends up on screen: every transform from the trigger down to the svg,
         // each element's translate, rotate, scale and transform in the order CSS applies them.
         const chevron = () =>
