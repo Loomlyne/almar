@@ -19,10 +19,17 @@ One wording change from the picture: the kicker says "Owner access", not "Owner 
 - `tests/phase-03-guest.test.mjs`: one new test.
 - The "Check your email" state is unchanged.
 
+## Also on this branch: dashboard /login spec fix (575f6e6, cherry-picked from f729b1f)
+- `tests/build/ops-runtime.spec.ts`: "/login" is out of MISSES. New 4b: GET and HEAD of /login answer 308 to /sign-in with the query kept. New 5b: POST and PUT to /login answer 404 or 405, with no Location.
+- **Behaviour change 1, methods:** `worker/almar-ops.mjs` now redirects /login for GET and HEAD only. POST, PUT and every other method fall through to the static assets like any miss, so no form body is forwarded.
+- **Behaviour change 2, Location:** the Location is relative (`/sign-in?...`, cache-control no-store) instead of absolute.
+- **Live until the next almar-ops deploy:** every method still gets the absolute 308 deployed at 12:42 (version fd4a3419).
+- `tests/ops-runtime.test.mjs` is updated to match. Unit bite: origin/main's worker fails the new /login unit test.
+
 ## Checks on the commit
 - `npm ci` exit 0
 - `npx tsc --noEmit` exit 0
-- `node --test tests/*.test.mjs`: 1,973 tests, 1,930 pass, 0 fail, 43 skipped
+- `node --test tests/*.test.mjs` on 4b74193: 1,973 tests, 1,930 pass, 0 fail, 43 skipped
 - `tokens:check`: up to date
 - NOT run, because they need the controller's go: `npm run build` and Playwright. Snapshot specs of /login and /sign-in, if any, will need new baselines.
 - Not seen in a browser, in any of EN, AR (RTL) or ES.
