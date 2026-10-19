@@ -349,6 +349,59 @@ test.describe("behaviour", () => {
       await expect(openRow(page, "[Finca Tres]")).toBeVisible();
     });
 
+    // Every read of [Casa Dos] by its id fails (registered after the mock, so it answers first).
+    const failCasaDos = (page: Page) =>
+      page.route(/\/api\/ops\/stays\?(.*&)?id=s2(&|$)/, (route) => {
+        const { status, json } = refusal(500, "unavailable");
+        return route.fulfill({ status, contentType: "application/json", body: JSON.stringify(json) });
+      });
+
+    test(`The list's alert does not come back after New stay or after closing a stay (review round 3) (${at})`, async ({ page, baseURL }) => {
+      const api = await mockStaysApi(page);
+      await failCasaDos(page);
+      // After the first reads, every read of the whole list fails (a Save reads it again while the page is open).
+      let failList = false;
+      await page.route(/\/api\/ops\/stays(\?.*)?$/, (route) => {
+        const url = new URL(route.request().url());
+        if (!failList || route.request().method() !== "GET" || url.searchParams.get("id")) return route.fallback();
+        const { status, json } = refusal(500, "unavailable");
+        return route.fulfill({ status, contentType: "application/json", body: JSON.stringify(json) });
+      });
+      await open(page, baseURL);
+      const alert = page.getByRole("alert").filter({ hasText: kit.errors.unavailable });
+      // New stay: the alert from opening [Casa Dos] is gone when the list comes back.
+      await openRow(page, "[Casa Dos]").click();
+      await expect(alert).toBeVisible();
+      await page.getByRole("button", { name: DASHBOARD_COPY[locale].newStay, exact: true }).click();
+      await expect(page.getByRole("heading", { level: 1, name: DASHBOARD_COPY[locale].newStay })).toBeVisible();
+      await page.getByRole("button", { name: heading, exact: true }).click();
+      await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+      await expect(alert).toHaveCount(0);
+      // Close: a Save whose list read fails sets the alert while the page is open; closing the page drops it.
+      await openStay(page, "[Finca Tres]");
+      failList = true;
+      await page.locator("#stay-tagline").fill("[Changed]");
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      await postsTo(api, "stays");
+      await expect.poll(() => page.evaluate(() => [...document.querySelectorAll("[role=alert]")].some((el) => el.closest("[hidden]")))).toBe(true);
+      await page.getByRole("button", { name: heading, exact: true }).click();
+      await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+      await expect(alert).toHaveCount(0);
+    });
+
+    test(`The list's alert appears without the list being drawn again: keyboard focus stays on the row (review round 3) (${at})`, async ({ page, baseURL }) => {
+      await mockStaysApi(page);
+      await failCasaDos(page);
+      await open(page, baseURL);
+      const row = openRow(page, "[Casa Dos]");
+      await row.focus();
+      await row.evaluate((el) => el.setAttribute("data-before-alert", ""));
+      await page.keyboard.press("Enter");
+      await expect(page.getByRole("alert").filter({ hasText: kit.errors.unavailable })).toBeVisible();
+      // The same element (not a new one drawn in its place) still has the focus.
+      expect(await page.evaluate(() => document.activeElement?.hasAttribute("data-before-alert") ?? false)).toBe(true);
+    });
+
     test(`A save the server refuses (destination not published) is said in words, the form kept (${at})`, async ({ page, baseURL }) => {
       const api = await mockStaysApi(page, (path, body) => (path === "stays" && body.action === "save" ? refusal(409, "parent_unpublished") : null));
       await open(page, baseURL);

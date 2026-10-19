@@ -130,15 +130,18 @@ export function StaysScreen({ send }: { send?: Send } = {}) {
   function onNew() {
     const start = emptyStayForm();
     setError(null);
+    setListError(null);
     setStay(null);
     setForm(start);
     setSaved(start);
     setOpenKey(NEW);
   }
 
+  // Both also drop the list's alert, so an old one never comes back with the list (PR #19 review round 3).
   function onClose() {
     setOpenKey(null);
     setError(null);
+    setListError(null);
   }
 
   /** The open stay and the list, read again (also the extension point's `reload` for 03.2-15's cards). */
@@ -253,15 +256,17 @@ export function StaysScreen({ send }: { send?: Send } = {}) {
   ) : (
     <div aria-busy="true" />
   );
-  const list = listError ? (
+  // One wrapper always, the alert inside it when there is one: the list keeps its place in the tree, so it is not
+  // mounted again and keyboard focus stays where it was when the alert appears (PR #19 review round 3).
+  const list = (
     <div className="flex min-w-0 flex-col gap-6">
-      <p role="alert" className="m-0 text-label text-error">
-        {listError}
-      </p>
+      {listError ? (
+        <p role="alert" className="m-0 text-label text-error">
+          {listError}
+        </p>
+      ) : null}
       {staysList}
     </div>
-  ) : (
-    staysList
   );
 
   return (
