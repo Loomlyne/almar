@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sendMagicLink } from "../lib/auth/send-link.ts";
-import { isEmail, isOwnerProfile, OWNER_EMAIL } from "../lib/auth/rules.ts";
+import { isEmail, isOwnerProfile, OWNER_EMAIL, OWNER_EMAILS } from "../lib/auth/rules.ts";
 import { handoffExpiry, hashHandoffToken, HANDOFF_SECONDS, isHandoffToken, newHandoffToken } from "../lib/auth/handoff.ts";
 import { DASHBOARD_COPY } from "../lib/copy/dashboard.ts";
 
@@ -20,11 +20,25 @@ test("ops sign-in refuses a guest email without calling Supabase", async () => {
     generateLink: async () => (calls++, { ok: true, tokenHash: "x", verificationType: "magiclink" }),
     sendEmail: async () => true,
   };
-  const base = { origin: "https://dashboard.almarprivatejourney.com", host: "ops", ownerEmail: OWNER_EMAIL, isEmail };
+  const base = { origin: "https://dashboard.almarprivatejourney.com", host: "ops", ownerEmails: OWNER_EMAILS, isEmail };
   assert.deepEqual(await sendMagicLink({ ...base, email: "guest@example.com" }, deps), { status: "refused" });
   assert.equal(calls, 0);
   assert.deepEqual(await sendMagicLink({ ...base, email: OWNER_EMAIL }, deps), { status: "sent" });
   assert.equal(calls, 1);
+  // Owner, 2026-10-19: Koss signs in to the dashboard too, in any letter case.
+  assert.deepEqual(await sendMagicLink({ ...base, email: " KoussayZayeni@gmail.com " }, deps), { status: "sent" });
+  assert.equal(calls, 2);
+});
+
+test("the owner list is Maria and Koss, and the newest migration gives both the owner role", () => {
+  assert.deepEqual([...OWNER_EMAILS], ["maria@almarprivatejourney.com", "koussayzayeni@gmail.com"]);
+  assert.equal(isOwnerProfile({ role: "owner", email: "koussayzayeni@gmail.com" }), true);
+  assert.equal(isOwnerProfile({ role: "guest", email: "koussayzayeni@gmail.com" }), false);
+  const sql = readFileSync("supabase/migrations/20261019120000_owner_emails.sql", "utf8");
+  const list = OWNER_EMAILS.map((email) => `'${email}'`).join(", ");
+  assert.equal(sql.split(`lower(new.email) in (${list}) then 'owner'`).length, 2, "the trigger holds the same list");
+  assert.match(sql, new RegExp(`lower\\(u\\.email\\) in \\(${list.replace(/\./g, "\\.")}\\)\\s+and p\\.role <> 'owner'`));
+  assert.match(sql, /u\.email_confirmed_at is not null/);
 });
 
 test("the host comes from the middleware shell header, never from the caller", () => {

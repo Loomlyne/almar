@@ -12,10 +12,13 @@ import { Select } from "../../../../../components/ui/select";
 import { DASHBOARD_COPY } from "../../../../../lib/copy/dashboard";
 import { fillCopy } from "../../../../../lib/copy/ops-kit";
 import { OPS_STAYS_COPY, type OpsStaysCopy } from "../../../../../lib/copy/ops-stays";
+import { stayTabSections, type StaySectionKey } from "./stay-tab-sections";
 import {
   STAY_LINES,
   STAY_LISTS,
   amenityCounts,
+  groupByKind,
+  keepHidden,
   linesOf,
   lockedLength,
   validateStayFacts,
@@ -26,7 +29,6 @@ import {
   type StayLine,
   type StayList,
 } from "./stay-forms";
-import { stayTabSections, type StaySectionKey } from "./stay-tab-sections";
 
 export type DestinationChoice = { id: string; name: string; published: boolean };
 /** An experience or a service the stay can connect. */
@@ -59,6 +61,7 @@ const FACT_LABEL: Partial<Record<FactKey, keyof OpsStaysCopy>> = {
 };
 const PROBLEM: Record<FactProblem, keyof OpsStaysCopy> = {
   whole: "problemWhole",
+  tooLarge: "problemTooLarge",
   atLeastOne: "problemAtLeastOne",
   guestsOrder: "problemGuestsOrder",
   fee: "problemFee",
@@ -90,9 +93,8 @@ const sameList = (a: Fields[string] | undefined, b: Fields[string] | undefined) 
  * field: the nightly rate lives in Rates (03.2-15), one place for money. Presentational: the screen holds the form and
  * the requests.
  *
- * 03.2-15's Rates, Availability and Access cards follow the stay's own cards once the stay has an id (one spread in
- * `sections`); each saves on its own route, and its unsaved typing is ORed into `dirty`. Their columns are the ones the
- * owner signed for 03.2-15 (Rates and Availability left, Access right).
+ * 03.2-15: its Rates, Availability and Access cards follow Stay rules, only once the stay has an id: one spread at the
+ * end of `sections` (stay-tab-sections.tsx) and each card's dirty flag ORed into `dirty`.
  */
 export function StayEditor({
   locale,
@@ -149,10 +151,10 @@ export function StayEditor({
   const dir = locale === "ar" ? "rtl" : "ltr";
   const isNew = stay === null;
   const isPublished = stay?.is_published ?? false;
-  // 03.2-15's cards: each one says when it holds typing its own route has not taken.
+  // 03.2-15's cards report their own unsaved typing; any of them makes the page ask "Discard changes?".
   const [cardsDirty, setCardsDirty] = useState<Record<StaySectionKey, boolean>>({ rates: false, availability: false, access: false });
   const onCardDirty = useCallback((key: StaySectionKey, value: boolean) => {
-    setCardsDirty((was) => (was[key] === value ? was : { ...was, [key]: value }));
+    setCardsDirty((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
   }, []);
 
   const facts = form.facts;
@@ -254,6 +256,7 @@ export function StayEditor({
   // kind label, so this card draws them itself, name and kind like the Connected rows.
   const byId = new Map(catalog.map((item) => [item.id, item]));
   const destinationRows = destinationItems.map((id) => byId.get(id)).filter((item): item is CatalogChoice => item !== undefined);
+  const kindOf = (id: string) => byId.get(id)?.kind;
   const connectionsCard = (
     <div className="flex min-w-0 flex-col gap-4">
       <ConnectPicker
@@ -261,8 +264,14 @@ export function StayEditor({
         searchLabel={copy.searchConnections}
         hint={copy.connectionsHint}
         options={options.filter((option) => !fromDestination.has(option.id))}
-        connected={form.connected.filter((id) => !fromDestination.has(id))}
-        onChange={(connected) => onFormChange({ ...form, connected })}
+        connected={groupByKind(
+          form.connected.filter((id) => !fromDestination.has(id)),
+          kindOf,
+        )}
+        // The destination's own items are not in the picker; a direct link to one keeps its place (keepHidden).
+        onChange={(connected) => onFormChange({ ...form, connected: keepHidden(form.connected, connected, fromDestination, kindOf) })}
+        // Move up / Move down (owner 2026-10-17), within a kind: the save keeps one order per kind.
+        reorder={{ canSwap: (above, below) => kindOf(above) === kindOf(below) }}
       />
       {destinationRows.length > 0 ? (
         <div className="flex flex-col gap-2" data-stay-from-destination="">

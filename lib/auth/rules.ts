@@ -3,6 +3,12 @@
 
 export const OWNER_EMAIL = "maria@almarprivatejourney.com";
 
+/**
+ * Every address the dashboard signs in as the owner (owner, 2026-10-19: Koss as well as Maria). The database trigger
+ * public.handle_new_auth_user holds the same list (migration 20261019120000_owner_emails); change both together.
+ */
+export const OWNER_EMAILS: readonly string[] = [OWNER_EMAIL, "koussayzayeni@gmail.com"];
+
 /** One hour: long enough to read the email and click the link. */
 export const RETURN_COOKIE_MAX_AGE = 60 * 60;
 
@@ -37,7 +43,7 @@ export function isEmail(value: string): boolean {
 }
 
 export function isOwnerEmail(value: string): boolean {
-  return normalizeEmail(value) === OWNER_EMAIL;
+  return OWNER_EMAILS.includes(normalizeEmail(value));
 }
 
 /** A same-site path only: starts with one slash, no protocol-relative or backslash tricks. */

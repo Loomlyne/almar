@@ -1,11 +1,12 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Field } from "../ui/field";
 import { foldText } from "../../lib/data/stay-filter";
 import { OPS_KIT_COPY, fillCopy } from "../../lib/copy/ops-kit";
+import { canMove, moveConnected, type CanSwap } from "./connect-order";
 import { useDashboardLocale } from "./use-dashboard-locale";
 
 type Option = { id: string; label: string; meta?: string };
@@ -14,6 +15,10 @@ type Option = { id: string; label: string; meta?: string };
  * Connect several items to one (stays to a destination, experiences to a stay): search, tick, "Connect selected",
  * then a list of what is connected with Remove on each. The order of `connected` is kept and new ids go to the end,
  * in option order. `groups` are read-only lists ("From the destination") that cannot be removed here.
+ *
+ * `reorder` (opt-in; the stay editor's experiences and services, owner 2026-10-17) adds Move up / Move down on each
+ * connected row, as the gallery has: off at the ends and wherever `canSwap` says two neighbours may not trade places, and
+ * focus stays on the moved row. Without it the picker draws as before.
  */
 export function ConnectPicker({
   title,
@@ -23,6 +28,7 @@ export function ConnectPicker({
   connected,
   onChange,
   groups,
+  reorder,
 }: {
   title: string;
   searchLabel: string;
@@ -31,11 +37,34 @@ export function ConnectPicker({
   connected: string[];
   onChange: (ids: string[]) => void;
   groups?: { label: string; ids: string[] }[];
+  reorder?: { canSwap?: CanSwap };
 }) {
   const copy = OPS_KIT_COPY[useDashboardLocale()];
   const searchId = useId();
   const [query, setQuery] = useState("");
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
+  const connectedRef = useRef<HTMLUListElement>(null);
+  // The row just moved by Move up / Move down: once the list has its new order, focus goes to its button for the same
+  // direction, or to the other one when the row reached an end (that one is now off).
+  const moved = useRef<{ id: string; by: -1 | 1 } | null>(null);
+
+  useEffect(() => {
+    const last = moved.current;
+    moved.current = null;
+    if (!last || !connectedRef.current) return;
+    const row = [...connectedRef.current.querySelectorAll<HTMLElement>("[data-connect-row]")].find((el) => el.dataset.connectRow === last.id);
+    const button = (way: "up" | "down") => row?.querySelector<HTMLButtonElement>(`button[data-move="${way}"]`);
+    const same = button(last.by === -1 ? "up" : "down");
+    const other = button(last.by === -1 ? "down" : "up");
+    (same && !same.disabled ? same : other)?.focus();
+  }, [connected]);
+
+  function move(id: string, by: -1 | 1) {
+    const next = moveConnected(connected, id, by, reorder?.canSwap);
+    if (next === connected) return;
+    moved.current = { id, by };
+    onChange([...next]);
+  }
 
   const byId = new Map(options.map((option) => [option.id, option]));
   const connectedSet = new Set(connected);
@@ -109,23 +138,62 @@ export function ConnectPicker({
           {copy.connected}
         </h4>
         {connected.length > 0 ? (
-          <ul className="m-0 flex list-none flex-col border border-line p-0">
+          <ul ref={connectedRef} className="m-0 flex list-none flex-col border border-line p-0">
             {connected.map((id) => {
               const option = byId.get(id);
               const label = option?.label ?? id;
+              const remove = (
+                <Button
+                  variant="ghost"
+                  aria-label={fillCopy(copy.removeNamed, { name: label })}
+                  onClick={() => onChange(connected.filter((other) => other !== id))}
+                >
+                  {copy.remove}
+                </Button>
+              );
+              const text = (
+                <span id={reorder ? `${searchId}-row-${id}` : undefined} className="flex min-w-0 flex-wrap items-baseline gap-x-2 text-label text-ink">
+                  <span>{label}</span>
+                  {option?.meta ? <span className="text-caption text-muted">{option.meta}</span> : null}
+                </span>
+              );
+              if (!reorder) {
+                return (
+                  <li key={id} className="flex items-center justify-between gap-2 border-b border-line ps-2 last:border-b-0">
+                    {text}
+                    {remove}
+                  </li>
+                );
+              }
+              // The row's name describes its move buttons, so "Move up" is said with the item it moves.
               return (
-                <li key={id} className="flex items-center justify-between gap-2 border-b border-line ps-2 last:border-b-0">
-                  <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 text-label text-ink">
-                    <span>{label}</span>
-                    {option?.meta ? <span className="text-caption text-muted">{option.meta}</span> : null}
+                <li
+                  key={id}
+                  data-connect-row={id}
+                  className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-line py-1 ps-2 last:border-b-0"
+                >
+                  {text}
+                  <span className="flex flex-wrap items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      data-move="up"
+                      aria-describedby={`${searchId}-row-${id}`}
+                      disabled={!canMove(connected, id, -1, reorder.canSwap)}
+                      onClick={() => move(id, -1)}
+                    >
+                      {copy.moveUp}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      data-move="down"
+                      aria-describedby={`${searchId}-row-${id}`}
+                      disabled={!canMove(connected, id, 1, reorder.canSwap)}
+                      onClick={() => move(id, 1)}
+                    >
+                      {copy.moveDown}
+                    </Button>
+                    {remove}
                   </span>
-                  <Button
-                    variant="ghost"
-                    aria-label={fillCopy(copy.removeNamed, { name: label })}
-                    onClick={() => onChange(connected.filter((other) => other !== id))}
-                  >
-                    {copy.remove}
-                  </Button>
                 </li>
               );
             })}
