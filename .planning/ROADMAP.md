@@ -245,7 +245,7 @@ AUTH-01, OPS-04, OPS-10, OPS-13
 **Success Criteria** (what must be TRUE):
 
   1. Guest goes Stay → Add-ons → Travellers → Request on `/booking/trip`, can go back until Request, and is never charged on the site
-  2. Sold-out / too many guests / min nights show a reason; 30-minute hold while filling; after Request the nights stay held to the owner's transfer deadline, then lapse on schedule and the guest is emailed
+  2. Sold-out / too many guests / min nights show a reason; 30-minute hold while filling; after Request the nights stay held to the owner's transfer deadline; an unpaid request then lapses on schedule and the guest is emailed, a part-paid one is kept and flagged for the owner (P-09, 2026-10-20)
   3. Request shows nights → add-ons → subtotal → VAT → grand → deposit or full; the guest gets `ALMAR-XXXXXX` and an email in their language with the amount, bank details, reference and deadline; the owner is emailed
   4. Owner clicks Record payment (amount, date, bank reference, confirm); the booking becomes Deposit paid or Paid in full, nights block for good, the guest gets the receipt; late, short and extra money is flagged for the owner; a wrong entry is voided with a reason, never deleted
   5. Booking page is the source of truth: status, amounts paid and owed, transfer instructions while unpaid; exact address only after Confirmed; bank details never readable without the booking's signed link or a signed-in guest with that email (04-CONTEXT)
