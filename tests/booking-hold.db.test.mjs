@@ -8,7 +8,7 @@ import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { acquireStackLock, requireStack } from "./helpers/local-supabase.mjs";
+import { lockStack } from "./helpers/local-supabase.mjs";
 import { loadTs } from "./helpers/load-ts.mjs";
 
 const OWNER = "00000000-0000-4000-8000-00000000f0a1";
@@ -100,10 +100,11 @@ async function waitReady(admin) {
 
 async function seed(t) {
   if (state || seedError) return state;
-  const stack = requireStack(t);
-  if (!stack) return null;
+  const locked = await lockStack(t);
+  if (!locked) return null;
+  releaseStackLock = locked.release;
+  const stack = locked.stack;
   assert.match(stack.url, /^http:\/\/(127\.0\.0\.1|localhost):\d+$/, "this test only talks to a local stack");
-  releaseStackLock = await acquireStackLock();
   const admin = createClient(stack.url, stack.serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   try {
     await waitReady(admin);

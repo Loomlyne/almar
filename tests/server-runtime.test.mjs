@@ -567,3 +567,41 @@ test("open-next.config.ts sets no cache override and no static export", () => {
   assert.match(source, /export default defineCloudflareConfig\(\{\}\);/);
   assert.equal(/output\s*:/.test(source), false);
 });
+
+// Follow-up 4 (PR #9 review, 03.2-10): handle() rebuilds the Request to set its headers; the rebuilt one must carry the
+// visitor's abort signal, so a closed tab reaches the route (almar-ops has enable_request_signal; Translate's
+// raceDeadline stops waiting for the model on it). A runtime that keeps a signal only when init names it is modelled
+// by DropsSignal: without `signal: request.signal` the route's signal never fires.
+const PlatformRequest = globalThis.Request;
+for (const [name, Make] of [
+  ["the platform Request", null],
+  ["a Request that keeps only init's signal", class DropsSignal extends PlatformRequest {
+    constructor(input, init = {}) {
+      const from = input instanceof PlatformRequest;
+      super(from ? input.url : input, { method: init.method ?? (from ? input.method : undefined), headers: init.headers ?? (from ? input.headers : undefined), signal: init.signal });
+    }
+  }],
+]) {
+  test(`handle (follow-up 4): the request Next gets is aborted when the visitor's is (${name})`, async () => {
+    const saved = globalThis.Request;
+    const seen = [];
+    const controller = new AbortController();
+    const visitor = new saved("https://dashboard.almarprivatejourney.com/api/ops/translate", { signal: controller.signal });
+    if (Make) globalThis.Request = Make;
+    try {
+      await handle(visitor, { ASSETS: { fetch: async () => new Response("asset") } }, {}, {
+        serverPaths: new Set(["/api/ops/translate"]),
+        nextFetch: async (request) => {
+          seen.push(request.signal);
+          return new Response("{}");
+        },
+      });
+    } finally {
+      globalThis.Request = saved;
+    }
+    assert.equal(seen.length, 1);
+    assert.equal(seen[0].aborted, false);
+    controller.abort();
+    assert.equal(seen[0].aborted, true, "the route sees the visitor go");
+  });
+}

@@ -128,3 +128,38 @@ Not in v1 (owner): damage hold (PAY-13), coupons (PAY-05), attached PDF receipt,
   charging in USD/EUR with an FX lock (PAY-15); reminders and auto-cancel (PAY-11); refunds from our app
   (PAY-12); guest add-ons after pay (ADDN-02); stay overlay in `/booking/trip`; saved address book.
 </deferred>
+
+### Changed 2026-10-19 (owner): request to book, bank transfer
+- **B-23 (owner):** Last step is Request, not Pay. No card provider in Phase 4. See `decisions/2026-10-19-request-to-book-bank-transfer.md`.
+- **B-24 (owner):** Guest pays by bank transfer in AED with `ALMAR-XXXXXX` as the reference; the owner records it (PAY-19).
+- **B-25:** `booking_payments.method` (`bank_transfer`; `card` later). Wrong records are voided with a reason, never deleted.
+- **Superseded:** B-03, B-06, B-07, B-08, B-19, B-20. **Reworded:** B-02, B-09, B-11 (Pay → Request); B-14 (receipt
+  after the owner records); B-15 (balance by transfer instructions); B-18 (owner emailed on each request and each
+  recorded payment).
+- Q1–Q10 of the decision record: answered in `/gsd-discuss-phase 4`.
+
+### Discussed 2026-10-19 16:19–16:27 CET (owner, question form, `/gsd-discuss-phase 4`): Q1–Q10
+- **B-26 (owner, Q1):** No accept step. The request email and the booking page carry the bank details at once; the
+  owner can still Cancel an `awaiting_payment` request. (Picture: `almar_q1_request_flow_options`.)
+- **B-27 (owner, Q2):** Transfer window is the owner's number in Dashboard → Settings → Money; the field starts empty
+  and live requests stay closed until it is set; floor 35 minutes; preview uses a test value.
+- **B-28 (owner, Q3):** No receipt upload in v1. The guest replies to the booking email with the bank receipt; the
+  owner checks the bank before recording. (Picture: `almar_q3_receipt_upload_options`.)
+- **B-29 (owner, Q4):** The guest pays all transfer fees ("all fees paid by sender", OUR). The email says so; the
+  booking terms use the owner's own wording only.
+- **B-30 (owner, Q5):** Bank fields: account name, bank, IBAN, SWIFT, bank address, and one note line; currency fixed
+  to AED. The owner types the values in the dashboard (never in chat). The note line is typed in English and AR/ES are
+  filled on Save (2026-10-14 auto-translate rule). Stored owner-only, outside `site_settings`.
+- **B-31 (owner, Q6):** Recording refunds made from the bank is Phase 5 (record only, never more than paid).
+- **B-32 (owner, Q7):** A recorded total below the deposit keeps the booking `awaiting_payment` with a "part received"
+  flag; the nights stay held only to the deadline; the guest sees what is still due. Deposit paid starts at
+  recorded total ≥ `deposit_fils`.
+- **B-33 (owner, Q8):** No automatic tolerance. When recording, the owner can tick "Accept as paid" and type a reason;
+  the gap is written off in the log and the status moves on.
+- **B-34 (owner, Q9, chose this over the recommended re-claim):** Money recorded on an `expired` or `cancelled`
+  booking never re-claims nights by itself. It is recorded, the booking is flagged `needs_attention`
+  (`paid_after_expiry` / `paid_after_cancel`), and the owner re-books or refunds from the bank. This replaces the
+  decision record's "re-claims the nights if they are still free" line.
+- **B-35 (owner, Q10):** Plan 04-09 builds the dashboard Bookings list and detail (with notes) and the money Settings
+  (VAT %, deposit %, balance due days, transfer window, bank details) in Phase 4; 05-01 shrinks to match.
+- Deferred: guest receipt upload on the booking page (Q3 option B).

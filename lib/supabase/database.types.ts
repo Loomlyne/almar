@@ -58,16 +58,229 @@ isOneToOne: false
       foreignKeyName: "availability_blocks_stay_id_fkey"
       columns: ["stay_id"]
 isOneToOne: false
-      referencedRelation: "api_stay_blocked_days"
-      referencedColumns: ["stay_id"]
+      referencedRelation: "api_stays"
+      referencedColumns: ["id"]
     },{
       foreignKeyName: "availability_blocks_stay_id_fkey"
+      columns: ["stay_id"]
+isOneToOne: false
+      referencedRelation: "stays"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"booking_disputes": {
+                  Row: {
+                    "amount_fils": number | null,"booking_id": string,"charge_id": string | null,"created_at": string,"id": number,"payment_id": string | null,"reason": string | null,"status": string | null,"stripe_dispute_id": string,"updated_at": string
+                  }
+                  Insert: {
+                    "amount_fils"?: number | null,"booking_id": string,"charge_id"?: string | null,"created_at"?: string,"id"?: never,"payment_id"?: string | null,"reason"?: string | null,"status"?: string | null,"stripe_dispute_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount_fils"?: number | null,"booking_id"?: string,"charge_id"?: string | null,"created_at"?: string,"id"?: never,"payment_id"?: string | null,"reason"?: string | null,"status"?: string | null,"stripe_dispute_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "booking_disputes_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "bookings"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "booking_disputes_payment_id_fkey"
+      columns: ["payment_id"]
+isOneToOne: false
+      referencedRelation: "booking_payments"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"booking_events": {
+                  Row: {
+                    "action": string,"actor": string,"at": string,"booking_id": string,"detail": NonNullable<Json>,"from_status": string | null,"id": number,"to_status": string | null
+                  }
+                  Insert: {
+                    "action": string,"actor": string,"at"?: string,"booking_id": string,"detail"?: NonNullable<Json>,"from_status"?: string | null,"id"?: never,"to_status"?: string | null
+                  }
+                  Update: {
+                    "action"?: string,"actor"?: string,"at"?: string,"booking_id"?: string,"detail"?: NonNullable<Json>,"from_status"?: string | null,"id"?: never,"to_status"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "booking_events_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "bookings"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"booking_hold_requests": {
+                  Row: {
+                    "created_at": string,"email_hash": string,"id": number,"ip_hash": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"email_hash": string,"id"?: never,"ip_hash": string
+                  }
+                  Update: {
+                    "created_at"?: string,"email_hash"?: string,"id"?: never,"ip_hash"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"booking_lines": {
+                  Row: {
+                    "booking_id": string,"catalog_item_id": string,"id": string,"is_uae": boolean,"kind": string,"line_fils": number,"name": string,"quantity": number,"unit": string,"unit_price_fils": number
+                  }
+                  Insert: {
+                    "booking_id": string,"catalog_item_id": string,"id"?: string,"is_uae": boolean,"kind"?: string,"line_fils": number,"name": string,"quantity": number,"unit": string,"unit_price_fils": number
+                  }
+                  Update: {
+                    "booking_id"?: string,"catalog_item_id"?: string,"id"?: string,"is_uae"?: boolean,"kind"?: string,"line_fils"?: number,"name"?: string,"quantity"?: number,"unit"?: string,"unit_price_fils"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "booking_lines_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "bookings"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "booking_lines_catalog_item_id_fkey"
+      columns: ["catalog_item_id"]
+isOneToOne: false
+      referencedRelation: "api_catalog"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "booking_lines_catalog_item_id_fkey"
+      columns: ["catalog_item_id"]
+isOneToOne: false
+      referencedRelation: "catalog_items"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"booking_nights": {
+                  Row: {
+                    "booking_id": string,"expires_at": string | null,"night": string,"stay_id": string
+                  }
+                  Insert: {
+                    "booking_id": string,"expires_at"?: string | null,"night": string,"stay_id": string
+                  }
+                  Update: {
+                    "booking_id"?: string,"expires_at"?: string | null,"night"?: string,"stay_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "booking_nights_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "bookings"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "booking_nights_stay_id_fkey"
       columns: ["stay_id"]
 isOneToOne: false
       referencedRelation: "api_stays"
       referencedColumns: ["id"]
     },{
-      foreignKeyName: "availability_blocks_stay_id_fkey"
+      foreignKeyName: "booking_nights_stay_id_fkey"
+      columns: ["stay_id"]
+isOneToOne: false
+      referencedRelation: "stays"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"booking_payments": {
+                  Row: {
+                    "amount_fils": number,"booking_id": string,"card_brand": string | null,"card_last4": string | null,"charge_id": string | null,"checkout_session_id": string | null,"created_at": string,"currency": string,"id": string,"kind": string,"paid_at": string | null,"payment_intent_id": string | null,"presentment_amount": number | null,"presentment_currency": string | null,"status": string,"wallet": string | null
+                  }
+                  Insert: {
+                    "amount_fils": number,"booking_id": string,"card_brand"?: string | null,"card_last4"?: string | null,"charge_id"?: string | null,"checkout_session_id"?: string | null,"created_at"?: string,"currency"?: string,"id"?: string,"kind": string,"paid_at"?: string | null,"payment_intent_id"?: string | null,"presentment_amount"?: number | null,"presentment_currency"?: string | null,"status"?: string,"wallet"?: string | null
+                  }
+                  Update: {
+                    "amount_fils"?: number,"booking_id"?: string,"card_brand"?: string | null,"card_last4"?: string | null,"charge_id"?: string | null,"checkout_session_id"?: string | null,"created_at"?: string,"currency"?: string,"id"?: string,"kind"?: string,"paid_at"?: string | null,"payment_intent_id"?: string | null,"presentment_amount"?: number | null,"presentment_currency"?: string | null,"status"?: string,"wallet"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "booking_payments_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "bookings"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"booking_refunds": {
+                  Row: {
+                    "amount_fils": number | null,"booking_id": string,"charge_id": string | null,"created_at": string,"id": number,"payment_id": string | null,"status": string | null,"stripe_refund_id": string
+                  }
+                  Insert: {
+                    "amount_fils"?: number | null,"booking_id": string,"charge_id"?: string | null,"created_at"?: string,"id"?: never,"payment_id"?: string | null,"status"?: string | null,"stripe_refund_id": string
+                  }
+                  Update: {
+                    "amount_fils"?: number | null,"booking_id"?: string,"charge_id"?: string | null,"created_at"?: string,"id"?: never,"payment_id"?: string | null,"status"?: string | null,"stripe_refund_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "booking_refunds_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "bookings"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "booking_refunds_payment_id_fkey"
+      columns: ["payment_id"]
+isOneToOne: false
+      referencedRelation: "booking_payments"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"booking_travellers": {
+                  Row: {
+                    "age": number | null,"booking_id": string,"full_name": string,"is_booker": boolean,"kind": string,"not_staying": boolean,"position": number
+                  }
+                  Insert: {
+                    "age"?: number | null,"booking_id": string,"full_name": string,"is_booker"?: boolean,"kind": string,"not_staying"?: boolean,"position": number
+                  }
+                  Update: {
+                    "age"?: number | null,"booking_id"?: string,"full_name"?: string,"is_booker"?: boolean,"kind"?: string,"not_staying"?: boolean,"position"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "booking_travellers_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "bookings"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"bookings": {
+                  Row: {
+                    "addons_fils": number,"adults": number,"airport": string | null,"arrive": string,"balance_due_date": string | null,"balance_due_days": number | null,"balance_fils": number,"children": number,"created_at": string,"created_by": string | null,"currency": string,"deposit_bp": number,"deposit_fils": number,"destination_id": string,"email": string,"emergency_name": string | null,"emergency_phone": string | null,"grand_fils": number,"guest_name": string,"hold_expires_at": string | null,"id": string,"infants": number,"is_test": boolean,"leave": string,"link_version": number,"locale": string,"nationality": string | null,"needs_attention": boolean,"nights_fils": number,"nights_snapshot": NonNullable<Json>,"ops_request_id": string | null,"paid_fils": number,"phone": string,"pickup_address": string | null,"plan": string,"ref": string,"source": string,"special_requests": string | null,"status": string,"stay_id": string,"subtotal_fils": number,"terms_accepted_at": string | null,"terms_version": string | null,"updated_at": string,"vat_bp": number,"vat_fils": number
+                  }
+                  Insert: {
+                    "addons_fils": number,"adults": number,"airport"?: string | null,"arrive": string,"balance_due_date"?: string | null,"balance_due_days"?: number | null,"balance_fils": number,"children"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deposit_bp": number,"deposit_fils": number,"destination_id": string,"email": string,"emergency_name"?: string | null,"emergency_phone"?: string | null,"grand_fils": number,"guest_name": string,"hold_expires_at"?: string | null,"id"?: string,"infants"?: number,"is_test"?: boolean,"leave": string,"link_version"?: number,"locale": string,"nationality"?: string | null,"needs_attention"?: boolean,"nights_fils": number,"nights_snapshot": NonNullable<Json>,"ops_request_id"?: string | null,"paid_fils"?: number,"phone": string,"pickup_address"?: string | null,"plan": string,"ref": string,"source": string,"special_requests"?: string | null,"status": string,"stay_id": string,"subtotal_fils": number,"terms_accepted_at"?: string | null,"terms_version"?: string | null,"updated_at"?: string,"vat_bp": number,"vat_fils": number
+                  }
+                  Update: {
+                    "addons_fils"?: number,"adults"?: number,"airport"?: string | null,"arrive"?: string,"balance_due_date"?: string | null,"balance_due_days"?: number | null,"balance_fils"?: number,"children"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deposit_bp"?: number,"deposit_fils"?: number,"destination_id"?: string,"email"?: string,"emergency_name"?: string | null,"emergency_phone"?: string | null,"grand_fils"?: number,"guest_name"?: string,"hold_expires_at"?: string | null,"id"?: string,"infants"?: number,"is_test"?: boolean,"leave"?: string,"link_version"?: number,"locale"?: string,"nationality"?: string | null,"needs_attention"?: boolean,"nights_fils"?: number,"nights_snapshot"?: NonNullable<Json>,"ops_request_id"?: string | null,"paid_fils"?: number,"phone"?: string,"pickup_address"?: string | null,"plan"?: string,"ref"?: string,"source"?: string,"special_requests"?: string | null,"status"?: string,"stay_id"?: string,"subtotal_fils"?: number,"terms_accepted_at"?: string | null,"terms_version"?: string | null,"updated_at"?: string,"vat_bp"?: number,"vat_fils"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "bookings_destination_id_fkey"
+      columns: ["destination_id"]
+isOneToOne: false
+      referencedRelation: "api_destinations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "bookings_destination_id_fkey"
+      columns: ["destination_id"]
+isOneToOne: false
+      referencedRelation: "destinations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "bookings_stay_id_fkey"
+      columns: ["stay_id"]
+isOneToOne: false
+      referencedRelation: "api_stays"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "bookings_stay_id_fkey"
       columns: ["stay_id"]
 isOneToOne: false
       referencedRelation: "stays"
@@ -134,12 +347,6 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "catalog_items"
       referencedColumns: ["id"]
-    },{
-      foreignKeyName: "catalog_item_stays_stay_id_fkey"
-      columns: ["stay_id"]
-isOneToOne: false
-      referencedRelation: "api_stay_blocked_days"
-      referencedColumns: ["stay_id"]
     },{
       foreignKeyName: "catalog_item_stays_stay_id_fkey"
       columns: ["stay_id"]
@@ -397,35 +604,35 @@ isOneToOne: false
                   ]
                 },"site_settings": {
                   Row: {
-                    "body_face": string | null,"charcoal": string | null,"deposit_percent": number | null,"gold": string | null,"id": number,"ivory": string | null,"logo_bytes": string | null,"logo_type": string | null,"maintenance": boolean,"teal": string | null,"title_face": string | null,"vat_percent": number | null,"white": string | null
+                    "balance_due_days": number | null,"body_face": string | null,"charcoal": string | null,"deposit_percent": number | null,"gold": string | null,"id": number,"ivory": string | null,"logo_media_id": string | null,"maintenance": boolean,"teal": string | null,"title_face": string | null,"vat_percent": number | null,"white": string | null
                   }
                   Insert: {
-                    "body_face"?: string | null,"charcoal"?: string | null,"deposit_percent"?: number | null,"gold"?: string | null,"id"?: number,"ivory"?: string | null,"logo_bytes"?: string | null,"logo_type"?: string | null,"maintenance"?: boolean,"teal"?: string | null,"title_face"?: string | null,"vat_percent"?: number | null,"white"?: string | null
+                    "balance_due_days"?: number | null,"body_face"?: string | null,"charcoal"?: string | null,"deposit_percent"?: number | null,"gold"?: string | null,"id"?: number,"ivory"?: string | null,"logo_media_id"?: string | null,"maintenance"?: boolean,"teal"?: string | null,"title_face"?: string | null,"vat_percent"?: number | null,"white"?: string | null
                   }
                   Update: {
-                    "body_face"?: string | null,"charcoal"?: string | null,"deposit_percent"?: number | null,"gold"?: string | null,"id"?: number,"ivory"?: string | null,"logo_bytes"?: string | null,"logo_type"?: string | null,"maintenance"?: boolean,"teal"?: string | null,"title_face"?: string | null,"vat_percent"?: number | null,"white"?: string | null
-                  }
-                  Relationships: [
-                    
-                  ]
-                },"stay_access": {
-                  Row: {
-                    "address": string | null,"door_code": string | null,"notes": string | null,"stay_id": string,"updated_at": string,"wifi_name": string | null,"wifi_password": string | null
-                  }
-                  Insert: {
-                    "address"?: string | null,"door_code"?: string | null,"notes"?: string | null,"stay_id": string,"updated_at"?: string,"wifi_name"?: string | null,"wifi_password"?: string | null
-                  }
-                  Update: {
-                    "address"?: string | null,"door_code"?: string | null,"notes"?: string | null,"stay_id"?: string,"updated_at"?: string,"wifi_name"?: string | null,"wifi_password"?: string | null
+                    "balance_due_days"?: number | null,"body_face"?: string | null,"charcoal"?: string | null,"deposit_percent"?: number | null,"gold"?: string | null,"id"?: number,"ivory"?: string | null,"logo_media_id"?: string | null,"maintenance"?: boolean,"teal"?: string | null,"title_face"?: string | null,"vat_percent"?: number | null,"white"?: string | null
                   }
                   Relationships: [
                     {
-      foreignKeyName: "stay_access_stay_id_fkey"
-      columns: ["stay_id"]
-isOneToOne: true
-      referencedRelation: "api_stay_blocked_days"
-      referencedColumns: ["stay_id"]
-    },{
+      foreignKeyName: "site_settings_logo_media_id_fkey"
+      columns: ["logo_media_id"]
+isOneToOne: false
+      referencedRelation: "media"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"stay_access": {
+                  Row: {
+                    "address": string | null,"door_code": string | null,"notes": string | null,"notes_ar": string | null,"notes_es": string | null,"stay_id": string,"updated_at": string,"wifi_name": string | null,"wifi_password": string | null
+                  }
+                  Insert: {
+                    "address"?: string | null,"door_code"?: string | null,"notes"?: string | null,"notes_ar"?: string | null,"notes_es"?: string | null,"stay_id": string,"updated_at"?: string,"wifi_name"?: string | null,"wifi_password"?: string | null
+                  }
+                  Update: {
+                    "address"?: string | null,"door_code"?: string | null,"notes"?: string | null,"notes_ar"?: string | null,"notes_es"?: string | null,"stay_id"?: string,"updated_at"?: string,"wifi_name"?: string | null,"wifi_password"?: string | null
+                  }
+                  Relationships: [
+                    {
       foreignKeyName: "stay_access_stay_id_fkey"
       columns: ["stay_id"]
 isOneToOne: true
@@ -460,12 +667,6 @@ isOneToOne: false
       foreignKeyName: "stay_gallery_stay_id_fkey"
       columns: ["stay_id"]
 isOneToOne: false
-      referencedRelation: "api_stay_blocked_days"
-      referencedColumns: ["stay_id"]
-    },{
-      foreignKeyName: "stay_gallery_stay_id_fkey"
-      columns: ["stay_id"]
-isOneToOne: false
       referencedRelation: "api_stays"
       referencedColumns: ["id"]
     },{
@@ -491,12 +692,6 @@ isOneToOne: false
       foreignKeyName: "stay_rates_stay_id_fkey"
       columns: ["stay_id"]
 isOneToOne: false
-      referencedRelation: "api_stay_blocked_days"
-      referencedColumns: ["stay_id"]
-    },{
-      foreignKeyName: "stay_rates_stay_id_fkey"
-      columns: ["stay_id"]
-isOneToOne: false
       referencedRelation: "api_stays"
       referencedColumns: ["id"]
     },{
@@ -519,12 +714,6 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
-      foreignKeyName: "stay_translations_stay_id_fkey"
-      columns: ["stay_id"]
-isOneToOne: false
-      referencedRelation: "api_stay_blocked_days"
-      referencedColumns: ["stay_id"]
-    },{
       foreignKeyName: "stay_translations_stay_id_fkey"
       columns: ["stay_id"]
 isOneToOne: false
@@ -568,6 +757,19 @@ isOneToOne: false
       referencedRelation: "media"
       referencedColumns: ["id"]
     }
+                  ]
+                },"stripe_events": {
+                  Row: {
+                    "claimed_at": string,"id": string,"processed_at": string | null,"received_at": string,"type": string | null
+                  }
+                  Insert: {
+                    "claimed_at"?: string,"id": string,"processed_at"?: string | null,"received_at"?: string,"type"?: string | null
+                  }
+                  Update: {
+                    "claimed_at"?: string,"id"?: string,"processed_at"?: string | null,"received_at"?: string,"type"?: string | null
+                  }
+                  Relationships: [
+                    
                   ]
                 },"team_member_translations": {
                   Row: {
@@ -726,6 +928,13 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"api_site_settings": {
+                  Row: {
+                    "body_face": string | null,"charcoal": string | null,"gold": string | null,"ivory": string | null,"logo_key": string | null,"maintenance": boolean | null,"teal": string | null,"title_face": string | null,"white": string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"api_site_version": {
                   Row: {
                     "requested_seq": number | null
@@ -746,12 +955,6 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
-      foreignKeyName: "stay_translations_stay_id_fkey"
-      columns: ["stay_id"]
-isOneToOne: false
-      referencedRelation: "api_stay_blocked_days"
-      referencedColumns: ["stay_id"]
-    },{
       foreignKeyName: "stay_translations_stay_id_fkey"
       columns: ["stay_id"]
 isOneToOne: false
@@ -810,23 +1013,95 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"site_settings_public": {
-                  Row: {
-                    "body_face": string | null,"charcoal": string | null,"deposit_percent": number | null,"gold": string | null,"ivory": string | null,"maintenance": boolean | null,"teal": string | null,"title_face": string | null,"vat_percent": number | null,"white": string | null
-                  }
-                  Insert: {
-                           "body_face"?: string | null,"charcoal"?: string | null,"deposit_percent"?: number | null,"gold"?: string | null,"ivory"?: string | null,"maintenance"?: boolean | null,"teal"?: string | null,"title_face"?: string | null,"vat_percent"?: number | null,"white"?: string | null
-                         }
-                        Update: {
-                           "body_face"?: string | null,"charcoal"?: string | null,"deposit_percent"?: number | null,"gold"?: string | null,"ivory"?: string | null,"maintenance"?: boolean | null,"teal"?: string | null,"title_face"?: string | null,"vat_percent"?: number | null,"white"?: string | null
-                         }
-                        Relationships: [
-                    
-                  ]
                 }
           }
           Functions: {
-            "catalog_blank":
+            "attach_checkout_session":
+{ Args: { "p_payment": string,"p_session": string }; Returns: undefined
+                           },
+"booking_by_ref":
+{ Args: { "p_ref": string }; Returns: Json
+                           },
+"booking_context":
+{ Args: { "p_from": string,"p_locale": string,"p_own_booking"?: string,"p_stay_slug": string,"p_to": string }; Returns: Json
+                           },
+"booking_date":
+{ Args: { "p": Json,"p_key": string,"p_path"?: string,"p_required": boolean }; Returns: string
+                           },
+"booking_drop_hold":
+{ Args: { "p_actor": string,"p_booking": string }; Returns: Json
+                           },
+"booking_fail":
+{ Args: { "p_code": string,"p_detail"?: Json,"p_field"?: string }; Returns: undefined
+                           },
+"booking_int":
+{ Args: { "p": Json,"p_key": string,"p_max": number,"p_min": number,"p_path"?: string }; Returns: number
+                           },
+"booking_lock":
+{ Args: { "p_booking": string }; Returns: {
+              "addons_fils": number,
+"adults": number,
+"airport": string | null,
+"arrive": string,
+"balance_due_date": string | null,
+"balance_due_days": number | null,
+"balance_fils": number,
+"children": number,
+"created_at": string,
+"created_by": string | null,
+"currency": string,
+"deposit_bp": number,
+"deposit_fils": number,
+"destination_id": string,
+"email": string,
+"emergency_name": string | null,
+"emergency_phone": string | null,
+"grand_fils": number,
+"guest_name": string,
+"hold_expires_at": string | null,
+"id": string,
+"infants": number,
+"is_test": boolean,
+"leave": string,
+"link_version": number,
+"locale": string,
+"nationality": string | null,
+"needs_attention": boolean,
+"nights_fils": number,
+"nights_snapshot": NonNullable<Json>,
+"ops_request_id": string | null,
+"paid_fils": number,
+"phone": string,
+"pickup_address": string | null,
+"plan": string,
+"ref": string,
+"source": string,
+"special_requests": string | null,
+"status": string,
+"stay_id": string,
+"subtotal_fils": number,
+"terms_accepted_at": string | null,
+"terms_version": string | null,
+"updated_at": string,
+"vat_bp": number,
+"vat_fils": number
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "bookings"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"booking_txt":
+{ Args: { "p": Json,"p_key": string,"p_max": number,"p_min": number,"p_path"?: string,"p_required": boolean }; Returns: string
+                           },
+"booking_uuid":
+{ Args: { "p": Json,"p_key": string,"p_path"?: string,"p_required": boolean }; Returns: string
+                           },
+"booking_write":
+{ Args: { "p": Json,"p_created_by": string,"p_hold_expires": string,"p_source": string,"p_status": string }; Returns: Json
+                           },
+"catalog_blank":
 { Args: { "j": Json }; Returns: boolean
                            },
 "catalog_entity_meta":
@@ -882,14 +1157,47 @@ isOneToOne: false
 "claim_confirm_slot":
 { Args: { "p_ip_key": string }; Returns: boolean
                            },
+"claim_hold_slot":
+{ Args: { "p_email_hash": string,"p_ip_hash": string }; Returns: boolean
+                           },
 "claim_link_slot":
 { Args: { "p_email_hash": string,"p_ip_hash": string }; Returns: boolean
+                           },
+"claim_stripe_event":
+{ Args: { "p_id": string,"p_type": string }; Returns: boolean
+                           },
+"create_web_booking":
+{ Args: { "p": Json }; Returns: Json
+                           },
+"drop_stripe_event":
+{ Args: { "p_id": string }; Returns: undefined
+                           },
+"finish_stripe_event":
+{ Args: { "p_id": string }; Returns: undefined
                            },
 "import_catalog":
 { Args: { "p": Json }; Returns: Json
                            },
+"log_booking_event":
+{ Args: { "p_action": string,"p_actor": string,"p_booking": string,"p_detail": Json }; Returns: undefined
+                           },
+"mark_session_expired":
+{ Args: { "p_actor": string,"p_session": string }; Returns: Json
+                           },
+"media_fold":
+{ Args: { "p": string }; Returns: string
+                           },
+"new_booking_ref":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"open_payment":
+{ Args: { "p_booking": string,"p_kind": string,"p_terms_version"?: string }; Returns: Json
+                           },
 "ops_add_block":
 { Args: { "p": Json }; Returns: Json
+                           },
+"ops_create_booking":
+{ Args: { "p": Json,"p_actor": string }; Returns: Json
                            },
 "ops_delete":
 { Args: { "p_entity": string,"p_id": string }; Returns: Json
@@ -906,8 +1214,14 @@ isOneToOne: false
 "ops_get":
 { Args: { "p_entity": string,"p_id": string }; Returns: Json
                            },
+"ops_lapse_holds":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
 "ops_list":
 { Args: { "p_entity": string }; Returns: Json
+                           },
+"ops_list_media":
+{ Args: { "p_after"?: string,"p_limit"?: number,"p_q"?: string }; Returns: Json
                            },
 "ops_publish":
 { Args: { "p_entity": string,"p_id": string,"p_published": boolean }; Returns: Json
@@ -944,6 +1258,32 @@ isOneToOne: false
                            },
 "ops_set_base_rate":
 { Args: { "p_rate": number,"p_stay": string }; Returns: Json
+                           },
+"ops_set_booking_status":
+{ Args: { "p_actor": string,"p_booking": string,"p_expected_from": string,"p_to": string }; Returns: Json
+                           },
+"place_hold":
+{ Args: { "p_booking": string,"p_expires": string,"p_from": string,"p_stay": string,"p_to": string }; Returns: string
+                           },
+"public_booked_nights":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "day": string,"stay_id": string
+            }[]
+                           },
+"record_dispute":
+{ Args: { "p_actor": string,"p_amount_fils": number,"p_charge": string,"p_dispute_id": string,"p_payment_intent": string,"p_reason": string,"p_status": string }; Returns: string
+                           },
+"record_payment":
+{ Args: { "p_actor": string,"p_payment_intent": string,"p_session": string }; Returns: Json
+                           },
+"record_refund":
+{ Args: { "p_actor": string,"p_amount_fils": number,"p_charge": string,"p_payment_intent": string,"p_refund_id": string,"p_status": string }; Returns: string
+                           },
+"save_site_settings":
+{ Args: { "p_body_face": string,"p_charcoal": string,"p_currency": string,"p_deposit_percent": number,"p_gold": string,"p_ivory": string,"p_locale": string,"p_logo_media_id": string,"p_maintenance": boolean,"p_owner_id": string,"p_teal": string,"p_title_face": string,"p_vat_percent": number,"p_white": string }; Returns: undefined
+                           },
+"set_payment_card":
+{ Args: { "p_brand": string,"p_charge": string,"p_last4": string,"p_payment": string,"p_presentment_amount": number,"p_presentment_currency": string,"p_wallet": string }; Returns: undefined
                            },
 "site_publish_state":
 { Args: Record<PropertyKey, never>; Returns: Json

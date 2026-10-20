@@ -165,6 +165,9 @@ export type StayAccess = {
   wifi_password: string | null;
   door_code: string | null;
   notes: string | null;
+  /** The Arabic and Spanish of `notes`, filled by the AI on Save (03.2-15); private like the rest. */
+  notes_ar: string | null;
+  notes_es: string | null;
   updated_at: string;
 };
 

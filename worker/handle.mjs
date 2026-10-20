@@ -52,7 +52,10 @@ export async function handle(request, env, ctx, { serverPaths, nextFetch }) {
   if (address) headers.set("x-forwarded-for", address);
   else headers.delete("x-forwarded-for");
 
-  const response = await nextFetch(new Request(request, { headers }), env, ctx);
+  // The visitor's abort signal goes with the rebuilt request (follow-up 4, PR #9 review): a closed tab then reaches the
+  // route (almar-ops has enable_request_signal; Translate stops waiting for the model on it). Named here, not left to
+  // the runtime's copy rule for a Request input.
+  const response = await nextFetch(new Request(request, { headers, signal: request.signal }), env, ctx);
   if (response.status === 101 || response.webSocket) return response;
   // A server answer is never a page to index, on either host.
   const out = new Headers(response.headers);

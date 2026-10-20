@@ -198,3 +198,55 @@ for (const [env, secure] of [["production", true], ["development", false]]) {
     });
   });
 }
+
+// ---- follow-up 5: the signed-in hint on a session that lacks it (PR #6 review, finding 2) -------------------------
+// A guest signed in before the hint existed, or whose 400-day hint expired, never synced a pick until she signed in
+// again. The middleware already asks Supabase for her user: a valid public session without `almar-signed-in=1` gets
+// it on the response. Not on the ops host, not under /auth/ (confirm sets it, sign-out clears it), only on GET/HEAD.
+
+const HINT = "almar-signed-in";
+const hintOf = (response) => response.headers.getSetCookie().filter((line) => line.startsWith(`${HINT}=`));
+
+async function middlewareRun({ path = "/", method = "GET", host = "almarprivatejourney.com", cookies = [`${COOKIE}=${expiredCookieValue()}`], env = "production" } = {}) {
+  return withEnv(env, async () => {
+    const request = new middlewareMod.NextRequest(`https://${host}${path}`, { method, headers: { host, cookie: cookies.join("; ") } });
+    return middlewareMod.middleware(request);
+  });
+}
+
+for (const [env, secure] of [["production", true], ["development", false]]) {
+  test(`hint (${env}): a valid public session without the hint gets almar-signed-in=1, readable, lax, path /, 400 days${secure ? ", Secure" : ""}`, async () => {
+    const response = await middlewareRun({ env });
+    const lines = hintOf(response);
+    assert.equal(lines.length, 1, `one hint Set-Cookie: ${response.headers.getSetCookie().join(" | ")}`);
+    const { flags } = attributes(lines[0]);
+    assert.ok(lines[0].startsWith(`${HINT}=1;`), lines[0]);
+    assert.equal(flags.includes("httponly"), false, "the browser script reads it");
+    assert.ok(flags.includes("samesite=lax"), lines[0]);
+    assert.ok(flags.includes("path=/"), lines[0]);
+    assert.ok(flags.includes(`max-age=${400 * 24 * 60 * 60}`), lines[0]);
+    assert.equal(flags.includes("secure"), secure, lines[0]);
+  });
+}
+
+test("hint: already there, no session, the ops host, /auth/* or a POST: nothing is set", async () => {
+  assert.deepEqual(hintOf(await middlewareRun({ cookies: [`${COOKIE}=${expiredCookieValue()}`, `${HINT}=1`] })), [], "already set");
+  assert.deepEqual(hintOf(await middlewareRun({ cookies: [] })), [], "signed out");
+  assert.deepEqual(hintOf(await middlewareRun({ host: "dashboard.almarprivatejourney.com" })), [], "the ops host");
+  assert.deepEqual(hintOf(await middlewareRun({ path: "/auth/sign-out", method: "POST" })), [], "sign-out clears it; nothing here may set it back");
+  assert.deepEqual(hintOf(await middlewareRun({ path: "/auth/confirm" })), [], "the confirm action sets it itself");
+  assert.deepEqual(hintOf(await middlewareRun({ path: "/api/preferences", method: "POST" })), [], "only a page or a read");
+});
+
+test("hint: a stale value is replaced, and the rule is the pure needsSignedInHint", async () => {
+  assert.equal(hintOf(await middlewareRun({ cookies: [`${COOKIE}=${expiredCookieValue()}`, `${HINT}=0`] })).length, 1);
+  const { needsSignedInHint } = await load("lib/account-preferences.ts");
+  const base = { signedIn: true, opsHost: false, method: "GET", path: "/account", hint: undefined };
+  assert.equal(needsSignedInHint(base), true);
+  assert.equal(needsSignedInHint({ ...base, method: "HEAD" }), true);
+  assert.equal(needsSignedInHint({ ...base, hint: "1" }), false);
+  assert.equal(needsSignedInHint({ ...base, signedIn: false }), false);
+  assert.equal(needsSignedInHint({ ...base, opsHost: true }), false);
+  assert.equal(needsSignedInHint({ ...base, path: "/auth/callback" }), false);
+  assert.equal(needsSignedInHint({ ...base, method: "POST" }), false);
+});

@@ -209,7 +209,7 @@ export async function getStayAccess({ owner, url }: GetCtx): Promise<OpsOutcome>
   if (!stay.found) return notFound();
   const { data, error } = await owner.admin
     .from("stay_access")
-    .select("address, wifi_name, wifi_password, door_code, notes, updated_at")
+    .select("address, wifi_name, wifi_password, door_code, notes, notes_ar, notes_es, updated_at")
     .eq("stay_id", stayId)
     .maybeSingle();
   if (error) return { dbError: error };

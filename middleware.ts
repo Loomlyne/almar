@@ -5,6 +5,7 @@ import { isOwnerEmail, LOCALE_COOKIE } from "./lib/auth/rules";
 import { OPS_PATH_HEADER } from "./lib/ops-routes";
 import { sessionCookieOptions } from "./lib/supabase/cookie-options";
 import { maintenanceResponse } from "./lib/maintenance-gate";
+import { needsSignedInHint, SIGNED_IN_HINT_COOKIE, signedInHintOptions } from "./lib/account-preferences";
 
 // Plan 02-02: keep her Supabase session fresh. Requests without a Supabase auth cookie never
 // wait on Supabase, so the static Framer pages stay fast.
@@ -89,6 +90,15 @@ export async function middleware(request: NextRequest) {
     response = NextResponse.next({ request: { headers: forwarded } });
   }
   for (const { name, value, options } of pending) response.cookies.set(name, value, options);
+  // Follow-up 5: a valid public session that lacks the readable hint gets it back (lib/account-preferences.ts).
+  const hint = {
+    signedIn: email !== undefined,
+    opsHost: isOpsHost(host),
+    method: request.method,
+    path: request.nextUrl.pathname,
+    hint: request.cookies.get(SIGNED_IN_HINT_COOKIE)?.value,
+  };
+  if (needsSignedInHint(hint)) response.cookies.set(SIGNED_IN_HINT_COOKIE, "1", signedInHintOptions(nodeEnv === "production"));
   return response;
 }
 

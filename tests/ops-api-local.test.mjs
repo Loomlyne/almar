@@ -3,9 +3,9 @@
 // lib/ops/route.ts builds it (origin, JSON, parse, handler, error mapping); only requireOwner() is replaced by a decide that
 // answers "the owner". Rates and prices here are symbolic test values on a local database, never real ones.
 //
-// requireStack(t): skipped without a stack, FAILS under ALMAR_REQUIRE_STACK=1. The stack is reset before (when not empty)
+// lockStack(t): skipped without a stack, FAILS under ALMAR_REQUIRE_STACK=1. The stack is reset before (when not empty)
 // and after, so the pgTAP files (which expect an empty catalogue) see the database as the migrations make it. The file
-// holds acquireStackLock() (plan 04-02) from before its first write until after its final reset, so it takes turns with
+// holds the stack lock (lockStack, plan 04-02) from before it looks for the stack until after its final reset, so it takes turns with
 // tests/import-catalog.test.mjs and the booking tests when node --test runs the files in parallel.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
@@ -13,7 +13,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import { loadTs } from "./helpers/load-ts.mjs";
-import { acquireStackLock, localStack, requireStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
+import { localStack, lockStack, resetLocal, runSql } from "./helpers/local-supabase.mjs";
 
 const { runOps } = await loadTs("lib/ops/route-core.ts");
 const parse = await loadTs("lib/ops/validate-catalog.ts");
@@ -133,9 +133,10 @@ async function settle(admin) {
 }
 
 test("local stack: the owner API end to end on the imported catalogue", { timeout: 600_000 }, async (t) => {
-  const stack = requireStack(t);
-  if (!stack) return;
-  releaseStackLock = await acquireStackLock();
+  const locked = await lockStack(t);
+  if (!locked) return;
+  releaseStackLock = locked.release;
+  const stack = locked.stack;
 
   reset = true;
   const existing = runSql("select count(*)::int as n from public.destinations").rows[0]?.n;
@@ -341,6 +342,16 @@ test("local stack: the owner API end to end on the imported catalogue", { timeou
     const partial = await AC.post({ action: "save", stay_id: GETSEMANI.id, access: { notes: "[note]" } });
     assert.equal(partial.status, 200);
     assert.equal((await AC.get(`stay_id=${GETSEMANI.id}`)).body.access.door_code, "[code]", "absent keys untouched");
+    // 03.2-15: the Notes' Arabic and Spanish are saved and read back; absent leaves them; blank empties them.
+    assert.equal((await AC.post({ action: "save", stay_id: GETSEMANI.id, access: { notes_ar: " [ar note] ", notes_es: "[es note]" } })).status, 200);
+    let notes = (await AC.get(`stay_id=${GETSEMANI.id}`)).body.access;
+    assert.deepEqual([notes.notes, notes.notes_ar, notes.notes_es], ["[note]", "[ar note]", "[es note]"]);
+    assert.equal((await AC.post({ action: "save", stay_id: GETSEMANI.id, access: { notes: "[note 2]" } })).status, 200);
+    notes = (await AC.get(`stay_id=${GETSEMANI.id}`)).body.access;
+    assert.deepEqual([notes.notes, notes.notes_ar, notes.notes_es], ["[note 2]", "[ar note]", "[es note]"], "absent translations untouched");
+    assert.equal((await AC.post({ action: "save", stay_id: GETSEMANI.id, access: { notes_ar: "", notes_es: "  " } })).status, 200);
+    notes = (await AC.get(`stay_id=${GETSEMANI.id}`)).body.access;
+    assert.deepEqual([notes.notes_ar, notes.notes_es], [null, null], "blank translations empty");
     assert.deepEqual((await AC.get(`stay_id=${COURTYARD.id}`)).body, { ok: true, stay_id: COURTYARD.id, access: null });
     assert.equal((await S.get(`id=${GETSEMANI.id}`)).body.item.has_access, true);
     assert.equal((await AC.get("stay_id=0b0b0b0b-0000-4000-8000-0000000000ee")).status, 404);

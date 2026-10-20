@@ -1,5 +1,5 @@
 // scripts/import-catalog.mjs (plan 03.2-01): the payload, the refusals, and (with this worktree's local stack) the
-// real import. Stack cases call requireStack(t): they skip without a stack and FAIL under ALMAR_REQUIRE_STACK=1.
+// real import. Stack cases call lockStack(t): they skip without a stack and FAIL under ALMAR_REQUIRE_STACK=1.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -7,7 +7,7 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildImportPayload, checkApplyTarget, formatReport, PAYLOAD_TABLES } from "../scripts/import-catalog.mjs";
-import { acquireStackLock, localStack, requireStack, runSql } from "./helpers/local-supabase.mjs";
+import { localStack, lockStack, runSql } from "./helpers/local-supabase.mjs";
 import { resetAndWait } from "./helpers/import-local.mjs";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
@@ -286,11 +286,12 @@ after(async () => {
 
 test("local stack: --apply --local imports, the public views return the fixtures, a second run writes nothing", { timeout: 600000 }, async (t) => {
   // The booking tests (plan 04-02) and tests/data-parity.test.mjs (plan 03.2-02) write to the same stack: take turns
-  // (node --test runs the files in parallel). The lock is taken BEFORE the stack is looked for: `supabase status` fails
-  // while another file resets the database, and localStack() remembers a failure for the rest of the process.
-  releaseStackLock = await acquireStackLock();
-  const stack = requireStack(t);
-  if (!stack) return;
+  // (node --test runs the files in parallel). lockStack takes the lock BEFORE the stack is looked for: `supabase status`
+  // fails while another file resets the database, and localStack() remembers a failure for the rest of the process.
+  const locked = await lockStack(t);
+  if (!locked) return;
+  releaseStackLock = locked.release;
+  const stack = locked.stack;
   const existing = runSql("select count(*)::int as n from public.destinations").rows[0]?.n;
   if (existing !== 0) assert.equal((await resetAndWait()).code, 0, "reset of the local stack");
   importedLocally = true;
