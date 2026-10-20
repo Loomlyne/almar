@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-20 08:33 CET:** PR #26 (Dependabot #43 sharp 0.35.5, #42 source-map-js 1.2.2) opened and reviewed SHIP; lane `p26` queued after PR #24's lane. PR #25 reviewed SHIP, lane after #24 lands. Nothing landed or deployed.
+
 **2026-10-20 08:06 CET:** **almar-ops deployed** as `267d7570` (rollback `fd4a3419`) from `main` `8a869be` on the owner's word (question form). Clean-clone ops build and dry run, reviewer GO, live checks signed out all as expected; signed-in screens not verified (owner UAT). The public `almar` Worker is not deployed.
 
 **2026-10-20 01:36 CET:** **03.2-15 landed** (stay Rates, Availability and Access cards on the kit editor) as `main` `6dcbabd` on the owner's Ship (question form, 01:29), a squash of `e6a12a6` (tags `archive/phase-3.2-p15`, `backup/main-pre-3.2-15-20261020-0129` = `760c94c`); staged tree `c4105913` = checked tree. Migration `20261019140000_stay_access_notes_i18n` applied live 01:30 after the reviewer agent's GO; version renamed and read back. Lane `p23` (clean clone, mostly on battery on his word): gates 0; dev 3056 passed, 60 timeouts passed solo; shards 992, 948, 945 (15 timeouts passed solo); ops A 19 plus the 2 known /login cases, ops B 10. Not deployed. Worktree, branches, check clone removed; session archived.

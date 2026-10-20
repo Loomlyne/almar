@@ -26,7 +26,7 @@ Driver assigned / Flights booked, guest cancellation requests, passport upload, 
 <decisions>
 ## Implementation Decisions
 
-- **O-01 (owner):** Refunds are made **in Stripe's dashboard**; the Stripe webhook records each refund (and any
+- **O-01 (owner; superseded 2026-10-19 by `decisions/2026-10-19-request-to-book-bank-transfer.md`: refunds are made from the owner's bank and recorded):** Refunds are made **in Stripe's dashboard**; the Stripe webhook records each refund (and any
   dispute) on the booking and the ops detail shows it. No refund button in v1.
 - **O-02 (owner):** **New booking by hand in v1**: guest, stay and dates (checked against availability and
   blocks), add-ons, deposit or full; it emails the guest a pay link to the same branded checkout (via the
@@ -34,7 +34,7 @@ Driver assigned / Flights booked, guest cancellation requests, passport upload, 
 - **O-03 (owner):** A hand-made unpaid booking **blocks the nights until a "hold until" date and time the owner
   sets** (UAE time). After it, the booking turns Expired and the nights free up (checked lazily, like the
   30-minute hold).
-- **O-04 (owner):** **No offline payment recording**: every payment is card or Apple Pay through the branded
+- **O-04 (owner; superseded 2026-10-19 by `decisions/2026-10-19-request-to-book-bank-transfer.md`: payments are bank transfers the owner records):** **No offline payment recording**: every payment is card or Apple Pay through the branded
   checkout. "Record payment" from the canvas `DashBookingDetailA` / `DashNewBookingA` is not shown.
 - **O-05:** Statuses in v1: Held (website, 30 min) / Awaiting payment (hand-made, until its hold date) →
   Deposit paid / Paid in full → Confirmed → Completed; Cancelled and Expired. Confirm is the owner's click
