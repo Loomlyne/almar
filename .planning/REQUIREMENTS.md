@@ -67,7 +67,7 @@ Requirements for this product. Each maps to roadmap phases.
 - [ ] **PAY-02**: VAT % comes from Settings; deposit is Settings % of grand total (example: 1000 + 5% = 1050; 30% of 1050); VAT is not applied twice
 - [ ] **PAY-03**: Guest chooses deposit or full before requesting; full skips remainder and reminders
 - [ ] **PAY-04**: Ops can change deposit % until first payment, then it locks (no min deposit %)
-- [ ] **PAY-05**: Guest can apply one coupon (% or amount, expiry, max uses, max uses per email) on the total then deposit %; total cannot go below 0
+- [ ] **PAY-05**: *(Deferred: not in v1, owner, 04-CONTEXT)* Guest can apply one coupon (% or amount, expiry, max uses, max uses per email) on the total then deposit %; total cannot go below 0
 - [ ] **PAY-06**: *(Backlog: Card payments)* Guest pays on branded `/booking/trip` with Stripe Payment Element (card + Apple Pay + Link); never a Stripe hosted page; never raw PAN; ops sees last 4 only
 - [ ] **PAY-07**: No gift cards; no BNPL. *(Backlog: Card payments: no saved cards in our app; no split pay. Bank transfers may arrive in parts.)*
 - [ ] **PAY-08**: *(Backlog: Card payments)* Stripe is TEST until a dedicated go-live plan
@@ -230,7 +230,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PAY-02 | Phase 4 | Pending |
 | PAY-03 | Phase 4 | Pending |
 | PAY-04 | Phase 5 | Pending |
-| PAY-05 | Phase 4 | Pending |
+| PAY-05 | Deferred (not in v1, owner) | Pending |
 | PAY-06 | Backlog: Card payments | Pending |
 | PAY-07 | Phase 4 | Pending |
 | PAY-08 | Backlog: Card payments | Pending |
