@@ -94,7 +94,10 @@ test("W4 calendar keeps one Tab stop after Next month, and Previous stops at thi
   await expect(previous).toHaveAttribute("aria-disabled", "true");
   const today = dubaiDay(0);
   await expect(grid.locator(`[data-date="${today.year}-${today.month}-${today.day}"]`)).toHaveCount(1);
-  await previous.click();
+  // aria-disabled, not disabled: it keeps focus, so Enter reaches it (Playwright refuses a mouse click), and nothing moves.
+  await previous.focus();
+  await page.keyboard.press("Enter");
+  await expect(previous).toBeFocused();
   await expect(grid.locator(`[data-date="${today.year}-${today.month}-${today.day}"]`)).toHaveCount(1);
 
   await page.getByRole("button", { name: "Next month" }).click();
