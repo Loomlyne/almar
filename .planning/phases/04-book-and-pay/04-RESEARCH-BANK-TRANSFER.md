@@ -856,18 +856,20 @@ reset role;
 | A11 | The preview test window may be the 35-minute floor | Q2, Q5 | Owner may want another test value |
 | A12 | A text copy button variant is acceptable on the booking page | Q8 | Design change only |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 These are the only items no file answers. None asks for a price, rate, fee, deadline or legal wording.
+Each is resolved in a plan as recommended below and marked **[signature]** there: the owner confirms or changes it at
+the plan gate (2026-10-20, plan-checker iteration 1); the controller writes his answer and the time into that row.
 
-1. **A request lapses after part of the money was recorded (B-32).** Recommended: flag `needs_attention` (`expired_with_payment`), send no automatic "lapsed" mail (it would say nothing was paid), the owner contacts the guest and refunds or re-books. Needs the owner's yes.
-2. **How many requests may one email keep open at once?** An anti-abuse limit, not a business value. Recommended: a small number (3), or the owner says none. Needs the owner's number.
-3. **Preview test window and the audit mail.** (a) Recommended: the preview window is the 35-minute floor itself, so no new number exists. (b) Recommended: a plain mail to `inquiries@` when bank details change (no values). Both need a yes.
-4. **Is the note line required for "bank details complete"?** Recommended: yes, so every mail has the same shape. Also: may "bank reference" be empty when recording? Recommended: required (PAY-19 lists it).
-5. **Can the guest withdraw a sent request on the booking page?** Today `booking_drop_hold` touches only `held`, so after Request only the owner Cancels (B-26) or it lapses. Recommended for v1: no guest withdrawal; the page shows how to reach the owner.
-6. **Does Void email the guest?** Recommended: no; the owner writes to the guest if a receipt was wrong.
-7. **What does the guest page say about a written-off gap?** Recommended: only that nothing more is due; the owner's reason stays internal. Owner approves the line in the pictures.
-8. **OPS-04 scope.** Signed list = search and status; REQUIREMENTS text adds destination and dates. Recommended: build the signed list, add destination and arrival range only if the pictures show them, and mark the traceability row "subset".
+1. **A request lapses after part of the money was recorded (B-32).** **RESOLVED → 04-08 P-09.** Recommended: flag `needs_attention` (`expired_with_payment`), send no automatic "lapsed" mail (it would say nothing was paid), the owner contacts the guest and refunds or re-books. Needs the owner's yes.
+2. **How many requests may one email keep open at once?** **RESOLVED → 04-08 P-05 (3).** An anti-abuse limit, not a business value. Recommended: a small number (3), or the owner says none. Needs the owner's number.
+3. **Preview test window and the audit mail.** **RESOLVED → 04-08 P-06 (35-minute TEST window); 04-08 P-15 and 04-09 Q-16 (audit row, no notice mail).** (a) Recommended: the preview window is the 35-minute floor itself, so no new number exists. (b) Recommended: a plain mail to `inquiries@` when bank details change (no values). Both need a yes.
+4. **Is the note line required for "bank details complete"?** **RESOLVED → 04-08 P-08 (note line required); bank reference required: 04-08 ops_record_payment and 04-09 Record payment.** Recommended: yes, so every mail has the same shape. Also: may "bank reference" be empty when recording? Recommended: required (PAY-19 lists it).
+5. **Can the guest withdraw a sent request on the booking page?** **RESOLVED → 04-08 P-19 (no guest withdrawal; 04-06 P6-13 points to WhatsApp).** Today `booking_drop_hold` touches only `held`, so after Request only the owner Cancels (B-26) or it lapses. Recommended for v1: no guest withdrawal; the page shows how to reach the owner.
+6. **Does Void email the guest?** **RESOLVED → 04-08 P-11 (no email).** Recommended: no; the owner writes to the guest if a receipt was wrong.
+7. **What does the guest page say about a written-off gap?** **RESOLVED → 04-05 E-08 (receipt and page lines; the reason stays internal).** Recommended: only that nothing more is due; the owner's reason stays internal. Owner approves the line in the pictures.
+8. **OPS-04 scope.** **RESOLVED → 04-09 builds the full OPS-04 (search, status, destination, arrival range; 04-08 ops_list_bookings).** Signed list = search and status; REQUIREMENTS text adds destination and dates. Recommended: build the signed list, add destination and arrival range only if the pictures show them, and mark the traceability row "subset".
 
 Owner values still needed before any live request (not questions, already known to the plans): transfer window, bank fields, balance due days N (without it deposit plans are refused: `settings_missing`), booking terms text, per-stay `infants_count`, `BOOKING_LINK_SECRET` and `RESEND_API_KEY` on `almar`, the Resend domain.
 
