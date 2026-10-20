@@ -34,3 +34,7 @@ Next: the Phase 4 plans session rewrites P-09, P-19 and P-21 and their ripples (
 ## Two rule conflicts settled (same sitting, question form)
 - **`BOOKING_LINK_SECRET`:** the controller sets it. It generates a random key and pipes it straight into `wrangler secret put` for `almar` (and `almar-preview` if needed), never printed or written to a file. This follows ALMAR's full-control rule over the global "secrets stay in his terminal" line.
 - **GSD `model_profile`:** `balanced`, as `CLAUDE.local.md` says; `.planning/config.json` had drifted to `adaptive` and is set back.
+
+## Plans signed
+
+Owner, 2026-10-20 10:37 CET, controller chat: "sign" on `phase-04-book-and-request` `feb08f2d` (revision 2 plus the second-check fixes; a 0 % deposit setting gives a floor of 0, stated before signing). Execution starts with 04-08 (job 16).
