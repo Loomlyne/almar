@@ -4,10 +4,12 @@ import { expect, test, type Page } from "@playwright/test";
 import { OPS_KIT_COPY } from "../lib/copy/ops-kit";
 import { OPS_STAYS_COPY } from "../lib/copy/ops-stays";
 import { DASHBOARD_COPY } from "../lib/copy/dashboard";
+import { OPS_STAY_TABS_COPY } from "../lib/copy/ops-stay-tabs";
 import type { Locale3 } from "../components/ops/api-types";
 import { openDashboard, openRow } from "./helpers/ops-catalog-api";
 import { STAY_NEW_ID, mockStaysApi, postsTo, refusal, warmStays } from "./helpers/ops-stays-api";
 import { VIEWPORTS, sceneStates, settle, type Viewport } from "./journey/matrix";
+import { routeStayTabs } from "./helpers/stay-tabs-routes";
 
 // Catalog -> Stays on its harness scene (tests/journey/scenes/ops-stays.tsx): the list and the stay editor on the kit's
 // editor page (kit panel B). The API is never called: the scene holds its own state and writes every handler into a
@@ -21,6 +23,8 @@ const harnessUrl = (state: string, locale: string) => `/__harness?c=ops-stays&s=
 
 async function openScene(page: Page, state: string, viewport: Viewport, locale: Locale) {
   await page.setViewportSize(VIEWPORTS[viewport]);
+  // 03.2-15: a saved stay shows the Rates, Availability and Access cards, which read their own routes.
+  await routeStayTabs(page, locale);
   // The dev server can read a build manifest while webpack rewrites it (Next's load-manifest: readFileSync, then
   // JSON.parse; "Unexpected end of JSON input" on /__harness under load) and answer 500 once: load the scene again.
   const first = await page.goto(harnessUrl(state, locale));
@@ -176,7 +180,11 @@ test.describe("pictures", () => {
           await openScene(page, state, viewport, locale);
           if (state === "editor-translations") {
             // The owner's path: open Edit translations, then take one line out of the Arabic amenities, so the lock speaks.
-            await page.getByRole("button", { name: OPS_KIT_COPY[locale].editor.editTranslations, exact: true }).click();
+            // The Text card's control by its exact accessible name; 03.2-15's Access card shows the same words but is named
+            // "Edit translations: Notes", so an exact match finds only this one.
+            const editText = page.getByRole("button", { name: OPS_KIT_COPY[locale].editor.editTranslations, exact: true });
+            await expect(editText).toHaveCount(1);
+            await editText.click();
             const arabic = page.getByLabel(`${OPS_STAYS_COPY[locale].amenities} · AR`, { exact: true });
             const lines = (await arabic.inputValue()).split("\n");
             await arabic.fill(lines.slice(0, -1).join("\n"));
@@ -224,7 +232,11 @@ test.describe("behaviour", () => {
     const kit = OPS_KIT_COPY[locale];
     const heading = DASHBOARD_COPY[locale].rail.stays;
     const at = `${viewport} ${locale}`;
-    const open = (page: Page, baseURL: string | undefined) => openDashboard(page, PAGE_PATH, viewport, locale, baseURL, heading);
+    // 03.2-15: a saved stay shows the Rates, Availability and Access cards, which read their own routes.
+    const open = async (page: Page, baseURL: string | undefined) => {
+      await routeStayTabs(page, locale);
+      await openDashboard(page, PAGE_PATH, viewport, locale, baseURL, heading);
+    };
     const openStay = async (page: Page, title: string) => {
       await openRow(page, title).click();
       await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
@@ -340,6 +352,90 @@ test.describe("behaviour", () => {
       // The page did not open: the list and its heading are still there.
       await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
       await expect(openRow(page, "[Finca Tres]")).toBeVisible();
+    });
+
+    // Every read of [Casa Dos] by its id fails (registered after the mock, so it answers first).
+    const failCasaDos = (page: Page) =>
+      page.route(/\/api\/ops\/stays\?(.*&)?id=s2(&|$)/, (route) => {
+        const { status, json } = refusal(500, "unavailable");
+        return route.fulfill({ status, contentType: "application/json", body: JSON.stringify(json) });
+      });
+
+    test(`The list's alert does not come back after New stay or after closing a stay (review round 3) (${at})`, async ({ page, baseURL }) => {
+      const api = await mockStaysApi(page);
+      await failCasaDos(page);
+      // After the first reads, every read of the whole list fails (a Save reads it again while the page is open).
+      let failList = false;
+      await page.route(/\/api\/ops\/stays(\?.*)?$/, (route) => {
+        const url = new URL(route.request().url());
+        if (!failList || route.request().method() !== "GET" || url.searchParams.get("id")) return route.fallback();
+        const { status, json } = refusal(500, "unavailable");
+        return route.fulfill({ status, contentType: "application/json", body: JSON.stringify(json) });
+      });
+      await open(page, baseURL);
+      const alert = page.getByRole("alert").filter({ hasText: kit.errors.unavailable });
+      // New stay: the alert from opening [Casa Dos] is gone when the list comes back.
+      await openRow(page, "[Casa Dos]").click();
+      await expect(alert).toBeVisible();
+      await page.getByRole("button", { name: DASHBOARD_COPY[locale].newStay, exact: true }).click();
+      await expect(page.getByRole("heading", { level: 1, name: DASHBOARD_COPY[locale].newStay })).toBeVisible();
+      await page.getByRole("button", { name: heading, exact: true }).click();
+      await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+      await expect(alert).toHaveCount(0);
+      // Close: a Save whose list read fails sets the alert while the page is open; closing the page drops it.
+      await openStay(page, "[Finca Tres]");
+      failList = true;
+      await page.locator("#stay-tagline").fill("[Changed]");
+      await page.getByRole("button", { name: kit.save, exact: true }).click();
+      await postsTo(api, "stays");
+      await expect.poll(() => page.evaluate(() => [...document.querySelectorAll("[role=alert]")].some((el) => el.closest("[hidden]")))).toBe(true);
+      await page.getByRole("button", { name: heading, exact: true }).click();
+      await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+      await expect(alert).toHaveCount(0);
+    });
+
+    test(`The list's alert appears without the list being drawn again: keyboard focus stays on the row (review round 3) (${at})`, async ({ page, baseURL }) => {
+      await mockStaysApi(page);
+      await failCasaDos(page);
+      await open(page, baseURL);
+      const row = openRow(page, "[Casa Dos]");
+      await row.focus();
+      await row.evaluate((el) => el.setAttribute("data-before-alert", ""));
+      await page.keyboard.press("Enter");
+      await expect(page.getByRole("alert").filter({ hasText: kit.errors.unavailable })).toBeVisible();
+      // The same element (not a new one drawn in its place) still has the focus.
+      expect(await page.evaluate(() => document.activeElement?.hasAttribute("data-before-alert") ?? false)).toBe(true);
+    });
+
+    test(`Save price keeps the page's unsaved edits: the fact and the tagline stay, the page is still dirty (PR #23 review) (${at})`, async ({ page, baseURL }) => {
+      await mockStaysApi(page);
+      const prices: unknown[] = [];
+      await open(page, baseURL);
+      // Registered after the cards' GET routes, so it answers the POST first; GETs fall back to them.
+      await page.route(/\/api\/ops\/stay-rates(\?.*)?$/, (route) => {
+        if (route.request().method() !== "POST") return route.fallback();
+        const body = route.request().postDataJSON() as { stay_id: string; base_nightly_rate_aed: string | null };
+        prices.push(body);
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ ok: true, stay_id: body.stay_id, base_nightly_rate_aed: body.base_nightly_rate_aed, affects_site: false }),
+        });
+      });
+      await openStay(page, "[Casa Dos]");
+      await page.locator("#stay-maxGuests").fill("7");
+      await page.locator("#stay-tagline").fill("[Unsaved tagline]");
+      await expect(page.getByText(kit.editor.unsaved, { exact: true })).toBeVisible();
+      const tabs = OPS_STAY_TABS_COPY[locale];
+      const rates = page.locator("section").filter({ has: page.getByRole("heading", { name: tabs.rates.title, exact: true }) });
+      await rates.getByLabel(tabs.rates.baseLabel).fill("12.5");
+      await rates.getByRole("button", { name: tabs.rates.savePrice, exact: true }).click();
+      await expect.poll(() => prices).toEqual([{ action: "set_base", stay_id: "s2", base_nightly_rate_aed: "12.50" }]);
+      await expect(rates.getByText(tabs.rates.saved, { exact: true })).toBeVisible();
+      // The price save did not put the saved stay back over the form.
+      await expect(page.locator("#stay-maxGuests")).toHaveValue("7");
+      await expect(page.locator("#stay-tagline")).toHaveValue("[Unsaved tagline]");
+      await expect(page.getByText(kit.editor.unsaved, { exact: true })).toBeVisible();
     });
 
     test(`A save the server refuses (destination not published) is said in words, the form kept (${at})`, async ({ page, baseURL }) => {

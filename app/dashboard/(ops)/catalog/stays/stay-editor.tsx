@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import type { Fields, LiveFields, Send, Target } from "../../../../../components/ops/auto-translate";
 import type { Locale3, OpsError, PetsRule, PublishWarningCode, StayDetail } from "../../../../../components/ops/api-types";
 import { ConnectPicker } from "../../../../../components/ops/connect-picker";
@@ -12,6 +12,7 @@ import { Select } from "../../../../../components/ui/select";
 import { DASHBOARD_COPY } from "../../../../../lib/copy/dashboard";
 import { fillCopy } from "../../../../../lib/copy/ops-kit";
 import { OPS_STAYS_COPY, type OpsStaysCopy } from "../../../../../lib/copy/ops-stays";
+import { stayTabSections, type StaySectionKey } from "./stay-tab-sections";
 import {
   STAY_LINES,
   STAY_LISTS,
@@ -92,9 +93,8 @@ const sameList = (a: Fields[string] | undefined, b: Fields[string] | undefined) 
  * field: the nightly rate lives in Rates (03.2-15), one place for money. Presentational: the screen holds the form and
  * the requests.
  *
- * Extension point (03.2-15, after this lands): its Rates, Availability and Access cards go on the right, after Stay
- * rules, only once the stay has an id: one spread in `sections` (`...stayTabSections({ stay, reload, onDirtyChange })`)
- * and its dirty flags ORed into `dirty`. Nothing else here changes.
+ * 03.2-15: its Rates, Availability and Access cards follow Stay rules, only once the stay has an id: one spread at the
+ * end of `sections` (stay-tab-sections.tsx) and each card's dirty flag ORed into `dirty`.
  */
 export function StayEditor({
   locale,
@@ -102,7 +102,7 @@ export function StayEditor({
   openKey,
   onClose,
   stay,
-  reload,
+  onBaseRate,
   form,
   saved,
   onFormChange,
@@ -127,7 +127,11 @@ export function StayEditor({
   onClose: () => void;
   /** The stay as last read; null for a new stay. */
   stay: StayDetail | null;
-  reload: () => Promise<void>;
+  /**
+   * 03.2-15's Rates card saved a stay's base rate (null = cleared): the screen updates that stay's price, if it is still
+   * the open one, and the list; never the form or its saved copy, so unsaved edits on this page stay.
+   */
+  onBaseRate: (stayId: string, base: string | null) => void;
   form: StayForm;
   saved: StayForm;
   onFormChange: (next: StayForm) => void;
@@ -151,6 +155,11 @@ export function StayEditor({
   const dir = locale === "ar" ? "rtl" : "ltr";
   const isNew = stay === null;
   const isPublished = stay?.is_published ?? false;
+  // 03.2-15's cards report their own unsaved typing; any of them makes the page ask "Discard changes?".
+  const [cardsDirty, setCardsDirty] = useState<Record<StaySectionKey, boolean>>({ rates: false, availability: false, access: false });
+  const onCardDirty = useCallback((key: StaySectionKey, value: boolean) => {
+    setCardsDirty((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
+  }, []);
 
   const facts = form.facts;
   const problems = validateStayFacts(facts);
@@ -389,6 +398,7 @@ export function StayEditor({
     { key: "place", title: copy.sectionPlace, column: "side", content: placeCard },
     { key: "capacity", title: copy.sectionCapacity, column: "side", content: capacityCard },
     { key: "rules", title: copy.sectionRules, column: "side", content: rulesCard },
+    ...stayTabSections({ stayId: stay?.id ?? null, locale, onDirtyChange: onCardDirty, onBaseSaved: onBaseRate }),
   ];
 
   // Unsaved work, by part: the page asks "Discard changes?" when any is true.
@@ -396,7 +406,7 @@ export function StayEditor({
   const factsDirty = JSON.stringify(form.facts) !== JSON.stringify(saved.facts);
   const photosDirty = JSON.stringify([form.hero, form.gallery]) !== JSON.stringify([saved.hero, saved.gallery]);
   const connectionsDirty = JSON.stringify(form.connected) !== JSON.stringify(saved.connected);
-  const dirty = textDirty || factsDirty || photosDirty || connectionsDirty;
+  const dirty = textDirty || factsDirty || photosDirty || connectionsDirty || Object.values(cardsDirty).some(Boolean);
 
   const notes = [
     ...needs.map(([, problem]) => text(copy, PROBLEM[problem])),

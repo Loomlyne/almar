@@ -368,16 +368,19 @@ const ACCESS_MAX = 2000;
 
 export type AccessSave = { action: "save"; stay_id: string; access: Record<string, string | null> };
 
-/** Address, wifi name and notes are trimmed; the wifi password and the door code are kept exactly as typed. */
+/**
+ * Address, wifi name and the notes (English, and the Arabic and Spanish the AI fills, 03.2-15) are trimmed; the wifi
+ * password and the door code are kept exactly as typed.
+ */
 export function parseAccessSave(value: unknown): AccessSave {
   const body = bodyOf(value);
   action(body, ["save"] as const);
   onlyKeys(body, ["action", "stay_id", "access"]);
   const stay = uuid(body.stay_id, "stay_id");
   const access = record(body.access, "access");
-  onlyKeys(access, ["address", "wifi_name", "wifi_password", "door_code", "notes"], "access.");
+  onlyKeys(access, ["address", "wifi_name", "wifi_password", "door_code", "notes", "notes_ar", "notes_es"], "access.");
   const out: Record<string, string | null> = {};
-  for (const key of ["address", "wifi_name", "notes"] as const) {
+  for (const key of ["address", "wifi_name", "notes", "notes_ar", "notes_es"] as const) {
     if (has(access, key)) out[key] = text(access[key], `access.${key}`, { max: ACCESS_MAX });
   }
   for (const key of ["wifi_password", "door_code"] as const) {
