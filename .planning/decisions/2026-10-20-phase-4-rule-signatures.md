@@ -27,6 +27,7 @@ The questions came from the 13 `[signature]` rows of `04-08-PLAN.md` and items U
 
 ## Already settled, not asked again
 - U-02 (primary button text): **White on Teal**, the owner's rule of 2026-10-13 for the site, the dashboard and emails (gold is lines only).
+  Clarified by the owner on 2026-10-20 (controller chat, picture A vs B): "White" is the kit's Ivory `#fffaf0` (`bg-teal text-ivory`), as on the live site. No kit change.
 
 Next: the Phase 4 plans session rewrites P-09, P-19 and P-21 and their ripples (04-05 emails, 04-06 booking page, 04-07 UAT, VALIDATION, pgTAP cases, bite checks). One more plan check follows, then the owner's signature on the plans as a whole. Any new screen state, such as the Withdraw control and its confirmation, is drawn for him first.
 
