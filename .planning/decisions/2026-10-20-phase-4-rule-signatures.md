@@ -29,3 +29,7 @@ The questions came from the 13 `[signature]` rows of `04-08-PLAN.md` and items U
 - U-02 (primary button text): **White on Teal**, the owner's rule of 2026-10-13 for the site, the dashboard and emails (gold is lines only).
 
 Next: the Phase 4 plans session rewrites P-09, P-19 and P-21 and their ripples (04-05 emails, 04-06 booking page, 04-07 UAT, VALIDATION, pgTAP cases, bite checks). One more plan check follows, then the owner's signature on the plans as a whole. Any new screen state, such as the Withdraw control and its confirmation, is drawn for him first.
+
+## Two rule conflicts settled (same sitting, question form)
+- **`BOOKING_LINK_SECRET`:** the controller sets it. It generates a random key and pipes it straight into `wrangler secret put` for `almar` (and `almar-preview` if needed), never printed or written to a file. This follows ALMAR's full-control rule over the global "secrets stay in his terminal" line.
+- **GSD `model_profile`:** `balanced`, as `CLAUDE.local.md` says; `.planning/config.json` had drifted to `adaptive` and is set back.
