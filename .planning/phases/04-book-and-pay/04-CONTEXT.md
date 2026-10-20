@@ -154,6 +154,9 @@ Not in v1 (owner): damage hold (PAY-13), coupons (PAY-05), attached PDF receipt,
 - **B-32 (owner, Q7):** A recorded total below the deposit keeps the booking `awaiting_payment` with a "part received"
   flag; the nights stay held only to the deadline; the guest sees what is still due. Deposit paid starts at
   recorded total ≥ `deposit_fils`.
+  **Superseded by P-09 (owner 2026-10-20, `.planning/decisions/2026-10-20-phase-4-rule-signatures.md`):** a request with money recorded keeps its
+  nights past the deadline and is flagged `deadline_passed_part_paid` for the owner to act on; only an unpaid request
+  lapses (04-08 P-09).
 - **B-33 (owner, Q8):** No automatic tolerance. When recording, the owner can tick "Accept as paid" and type a reason;
   the gap is written off in the log and the status moves on.
 - **B-34 (owner, Q9, chose this over the recommended re-claim):** Money recorded on an `expired` or `cancelled`
