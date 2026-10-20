@@ -254,7 +254,7 @@ end $$;
 - "Exactly once": the sent timestamp ends it; the lease stops two ticks sending together; Resend's idempotency key stops a duplicate if the Worker dies after Resend accepted the mail but before `finish`. Keys last 24 hours, up to 256 characters, same key with another payload returns 409. [CITED: resend.com/docs/dashboard/emails/idempotency-keys] Node: `resend.emails.send(payload, { idempotencyKey })`. [CITED: same page]
 - Why not use the count: a request swept by `place_hold` (a competing guest asks for the same nights) is expired without `ops_lapse_holds()` ever seeing it.
 - Never email: a `held` booking that expired before Request (`requested_at is null`), an ops-made booking (`source = 'ops'`), an owner-cancelled booking (status `cancelled`).
-- **Money recorded before the lapse** (B-32 part payment): a trigger flags it. `bookings_flag_expired_money` (BEFORE UPDATE OF status): when a `held`/`awaiting_payment` row becomes `expired` and `paid_fils > 0`, set `needs_attention = true`, `attention_reason = 'expired_with_payment'` and add a `needs_attention` event. A trigger covers every sweep path (`place_hold`, `ops_lapse_holds`, `mark_session_expired`, `booking_drop_hold`) without redefining those big functions. The claim skips these bookings (`paid_fils = 0`). This case is not in B-27..B-35; see Open Question 1.
+- **Money recorded before the lapse** (B-32 part payment): a trigger flags it. `bookings_flag_expired_money` (BEFORE UPDATE OF status): when a `held`/`awaiting_payment` row becomes `expired` and `paid_fils > 0`, set `needs_attention = true`, `attention_reason = 'expired_with_payment'` and add a `needs_attention` event. A trigger covers every sweep path (`place_hold`, `ops_lapse_holds`, `mark_session_expired`, `booking_drop_hold`) without redefining those big functions. The claim skips these bookings (`paid_fils = 0`). This case is not in B-27..B-35; see Open Question 1. **Superseded by revision 2 (owner 2026-10-20, `.planning/decisions/2026-10-20-phase-4-rule-signatures.md`):** no part-paid request lapses; `ops_lapse_holds` flags it `deadline_passed_part_paid` and the guard trigger `bookings_keep_paid_request` refuses awaiting -> expired while money is recorded (04-08 P-09); `expired_with_payment` is not used.
 
 ### Tests
 
@@ -334,6 +334,7 @@ alter table public.bookings
   add column if not exists written_off_fils bigint not null default 0 check (written_off_fils >= 0),
   add column if not exists attention_reason text
     check (attention_reason in ('paid_after_expiry','paid_after_cancel','overpaid','expired_with_payment','nights_lost'));
+    -- superseded by revision 2 (owner 2026-10-20): 04-08 Task 1 step 2 holds the list ('paid_after_expiry','paid_after_cancel','overpaid','deadline_passed_part_paid')
 alter table public.bookings add constraint bookings_attention_pair check (needs_attention or attention_reason is null) not valid;
 alter table public.bookings validate constraint bookings_attention_pair;
 
@@ -422,7 +423,7 @@ Payload keys (unknown keys refused, like `booking_write`): `ref` or `booking_id`
 | Status before | After |
 |---------------|-------|
 | `deposit_paid`, `paid_in_full` | settled >= `grand_fils`: `paid_in_full`; plan deposit and settled >= `deposit_fils`: `deposit_paid`; else `awaiting_payment` with `hold_expires_at = now() + window` and the booking's nights timed again to that deadline (the cron email logic then applies if it lapses) |
-| `confirmed`, `completed` | if settled after < the plan target (`deposit_fils` for plan deposit, `grand_fils` for full): refuse `almar:cancel_first`; else status unchanged |
+| `confirmed`, `completed` | if settled after < the plan target (`deposit_fils` for plan deposit, `grand_fils` for full): refuse `almar:cancel_first`; else status unchanged. **Superseded by revision 2 (owner 2026-10-20, `.planning/decisions/2026-10-20-phase-4-rule-signatures.md`):** the floor is the deposit on every plan (`booking_deposit_floor`, 04-08 P-21) |
 | `awaiting_payment` | stays; flags recomputed |
 | `expired`, `cancelled` | status unchanged; clear `needs_attention` only when its reason is one of the money reasons and no money remains |
 
@@ -662,7 +663,7 @@ Node: `lib/ops/booking-rules.ts` (actions per status, query parsing, `settle()` 
 | 04-06 resumes payment after refresh through `/api/booking/pay` | Resume the Request step: read the stored `{ref, t, holdExpiresAt}`, ask `/api/booking/view`; `held` and alive -> same step; `awaiting_payment` -> go to the booking page; `expired` -> "start again". |
 | Booking page "Pay balance" opens the checkout (04-05) | Shows the transfer instructions for the amount still due (PAY-10) |
 | Receipt emailed when the webhook fulfils (04-05) | After the owner records (Q6) |
-| `releaseWebHold` returns Stripe session ids (`server.ts:466-481`) | Always empty now; leave the code, remove the 04-04 expiry call. Release still works only for `held`; after Request a guest cannot withdraw (Open Question 5). |
+| `releaseWebHold` returns Stripe session ids (`server.ts:466-481`) | Always empty now; leave the code, remove the 04-04 expiry call. Release still works only for `held`; after Request a guest cannot withdraw (Open Question 5). **Superseded by revision 2 (owner 2026-10-20, `.planning/decisions/2026-10-20-phase-4-rule-signatures.md`):** an unpaid request is withdrawn through `/api/booking/withdraw` (04-08 P-19) |
 
 What stays: `StepRail`, reason codes and `BookingReasons`, `HoldTimer` for the 30-minute hold, the quote/hold/release routes and their Origin/size/limiter rules, the signed link (`lib/booking/link.ts`, `access.ts`), booking page URL `/bookings/trip?ref=&t=` as a static shell in three languages with `Referrer-Policy: no-referrer` and noindex (04-RESEARCH Q7 and Q9 still apply: add `"/bookings/trip"` to `PUBLIC_PAGES`, `isHeldPath` stays false), the `/bookings` list for a signed-in guest (04-06; the current screen is a placeholder: `app/bookings/bookings-screen.tsx` shows `noBookingsYet` only).
 
