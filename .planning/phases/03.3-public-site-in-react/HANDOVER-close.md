@@ -70,7 +70,7 @@ landings are previewed and deployed. Nothing is missing in the code.
 
 ## Not verified
 
-- No Playwright run and no build in this job; spec pass results come from `03.3-CLOSE-HANDOVER.md` run 2 (`d1805e4b`) and
+- **Not verified, needs the landing lane** (owner 2026-10-21: no test runs in work sessions): every Playwright spec and the build. No Playwright run and no build in this job; spec pass results come from `03.3-CLOSE-HANDOVER.md` run 2 (`d1805e4b`) and
   earlier slice hand-overs. The controller's landing lane runs the full set.
 - Live Worker versions, the contact form and newsletter (POST), the visual Framer match, and AR/ES wording (delegated
   review `I18N-REVIEW-2026-10-05.md`).
