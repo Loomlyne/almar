@@ -12,11 +12,11 @@ Rebuild the Framer HTML export into a live booking OS. Tokens and components fir
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Design system** - Tokens, core components, RTL states, owner `/design` (completed 2026-09-23)
-- [ ] **Phase 2: Platform spine** - Supabase auth, host gate, locale/currency, no ops leak
+- [x] **Phase 2: Platform spine** - Supabase auth, host gate, locale/currency, no ops leak (complete 2026-10-21: landed and deployed from main 64c3475d; no owner UAT, his word)
 - [x] **Phase 3: Public site and dashboard** - Public site and dashboard screens first; catalogue, connections, and calculations after (13/13 plans built 2026-09-27, landed in `9fd6786` 2026-10-02; catalogue criteria carried by 3.2)
 - [x] **Phase 3.1: Design system and journey bar** (INSERTED) - One token set, CSS per component, journey bar and booking components from the design canvas
-- [ ] **Phase 3.3: Public site in React** (INSERTED, reshaped 2026-10-02) - All 26 public pages in React on one fixture-backed data layer; the Framer bridge comes out
-- [ ] **Phase 3.2: Real catalog and team** (INSERTED, moved after Phase 2) - The data layer swaps fixtures for Supabase; dashboard Catalog and Team built already wired
+- [x] **Phase 3.3: Public site in React** (INSERTED, reshaped 2026-10-02) - All 26 public pages in React on one fixture-backed data layer; the Framer bridge comes out (complete 2026-10-21: landed and deployed from main 64c3475d; no owner UAT, his word)
+- [x] **Phase 3.2: Real catalog and team** (INSERTED, moved after Phase 2) - The data layer swaps fixtures for Supabase; dashboard Catalog and Team built already wired (complete 2026-10-21: landed and deployed from main 64c3475d; no owner UAT, his word)
 - [ ] **Phase 4: Book and request** - Hero → `/booking/trip` → request, bank transfer, owner records the payment
 - [ ] **Phase 5: Ops OS** - `/ops` runs bookings, customers, money, brand publish
 - [ ] **Phase 6: Rest of CMS** - Packages, consult, i18n publish, remaining CMS (the page replacement moved to 3.3)
@@ -319,11 +319,11 @@ Reshaped by the owner 2026-10-02 13:30-13:35 (frontend before backend): 1 → 3 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design system | 6/6 | Complete   | 2026-09-23 |
-| 2. Platform spine | 1/10 | In Progress|  |
+| 2. Platform spine | 17/17 | Complete | 2026-10-21 |
 | 3. Public site and dashboard | 13/13 | Executed, not verified | - |
 | 3.1 Design system and journey bar | 29/29 | Complete | 2026-10-01 |
-| 3.2 Real catalog and team | 0/? | Not started | - |
-| 3.3 Booking-path pages | 0/? | Not started | - |
+| 3.2 Real catalog and team | 15/15 (14 not in v1) | Complete | 2026-10-21 |
+| 3.3 Public site in React | 41/41 | Complete | 2026-10-21 |
 | 4. Book and request | 2/8 | Rewritten 2026-10-19 (bank transfer) | - |
 | 5. Ops OS | 0/2 | Not started | - |
 | 6. Site and rest of CMS | 0/2 | Not started | - |
