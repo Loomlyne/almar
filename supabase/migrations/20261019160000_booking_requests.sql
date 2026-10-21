@@ -1055,3 +1055,1029 @@ grant execute on function public.guest_bookings(text, text, boolean) to service_
 -- ============================================================================================================
 -- PART B (Task 2 of 04-08 appends below this line)
 -- ============================================================================================================
+
+-- ------------------------------------------------------------------------------------------------------------
+-- ops_record_payment (B-32, B-33, B-34, PAY-19): the owner records one bank transfer as received, amount as received.
+-- Owner only (re-checked here), idempotent on request_id (the dialog makes it when it opens): the same id answers the
+-- stored outcome with first_time false; the same id with another booking or amount is almar:changed. Under the stay
+-- lock: an unpaid hold or request whose deadline + 2 minutes passed lapses first (P-10, the sweep's rule; a part-paid
+-- request never lapses: P-09); expected_status must be the status (almar:changed, detail status); a hold is
+-- almar:not_requested. paid_fils and written_off_fils are summed again from the succeeded rows, never added to the old
+-- value. Status: booking_next_status for awaiting_payment and deposit_paid; expired and cancelled keep their status and
+-- are flagged paid_after_expiry / paid_after_cancel, with no night touched (B-34: never place_hold here); paid_in_full,
+-- confirmed and completed are unchanged. Accept as paid (B-33) writes the gap off on this row. The first payment on a
+-- request makes its nights permanent (P-09). Above the grand total: flagged overpaid.
+-- ------------------------------------------------------------------------------------------------------------
+
+create or replace function public.ops_record_payment(p jsonb, p_actor uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  c_keys constant text[] := array['booking_id', 'request_id', 'expected_status', 'amount_fils', 'received_on',
+    'bank_reference', 'accept_short', 'accept_reason'];
+  v_key text;
+  v_booking uuid;
+  v_request uuid;
+  v_amount bigint;
+  v_expected text;
+  v_received date;
+  v_ref text;
+  v_accept boolean := false;
+  v_reason text;
+  v_old public.booking_payments;
+  v_ev jsonb;
+  v_b public.bookings;
+  v_locked boolean := false;
+  v_retry boolean := false;
+  v_constraint text;
+  v_today date := (now() at time zone 'Asia/Dubai')::date;
+  v_before text;
+  v_after text;
+  v_pay uuid;
+  v_paid bigint;
+  v_off bigint;
+  v_settled bigint;
+  v_target bigint;
+  v_gap bigint := 0;
+  v_have int;
+  v_flag text;
+  v_need boolean;
+  v_why text;
+  v_cleared boolean := false;
+begin
+  perform public.booking_assert_owner(p_actor);
+  if jsonb_typeof(p) is distinct from 'object' then
+    perform public.booking_fail('invalid', 'payload');
+  end if;
+  for v_key in select jsonb_object_keys(p) loop
+    if not (v_key = any (c_keys)) then
+      perform public.booking_fail('invalid', v_key);
+    end if;
+  end loop;
+  v_booking := public.booking_uuid(p, 'booking_id', true);
+  v_request := public.booking_uuid(p, 'request_id', true);
+  v_amount := public.booking_int(p, 'amount_fils', 1, 1000000000000);
+
+  <<attempt>>
+  loop
+    -- Replay: first without the lock (the common double click), again under it (two calls at once: the second waits
+    -- on the lock and then finds the first one's row), and once more after a unique_violation on request_id.
+    select x.* into v_old from public.booking_payments x where x.request_id = v_request;
+    if found then
+      if v_old.booking_id <> v_booking or v_old.amount_fils <> v_amount then
+        perform public.booking_fail('changed');
+      end if;
+      select e.detail into v_ev from public.booking_events e
+        where e.booking_id = v_old.booking_id and e.action = 'payment_recorded' and e.detail ->> 'payment_id' = v_old.id::text
+        order by e.id limit 1;
+      select b.* into v_b from public.bookings b where b.id = v_old.booking_id;
+      return jsonb_build_object(
+        'first_time', false,
+        'booking_id', v_b.id,
+        'ref', v_b.ref,
+        'payment_id', v_old.id,
+        'status_before', coalesce(v_ev ->> 'status_before', v_b.status),
+        'status_after', coalesce(v_ev ->> 'status_after', v_b.status),
+        'amount_fils', v_old.amount_fils,
+        'paid_fils', coalesce((v_ev ->> 'paid_fils')::bigint, v_b.paid_fils),
+        'written_off_fils', coalesce((v_ev ->> 'written_off_fils')::bigint, v_b.written_off_fils),
+        'write_off_fils', v_old.write_off_fils,
+        'flags', public.booking_flags(v_b),
+        'is_test', v_b.is_test,
+        'locale', v_b.locale,
+        'link_version', v_b.link_version);
+    end if;
+    if v_retry then
+      -- A unique_violation on request_id, yet no row to answer with: never expected; refused, nothing kept.
+      perform public.booking_fail('changed');
+    end if;
+    if not v_locked then
+      v_b := public.booking_lock(v_booking);
+      if v_b.id is null then
+        perform public.booking_fail('not_found');
+      end if;
+      v_locked := true;
+      continue attempt;
+    end if;
+
+    -- P-10: lapse first, on the sweep's rule, so B-34 holds whatever the cron's timing. Rolled back with any refusal below.
+    if (v_b.status = 'held' or (v_b.status = 'awaiting_payment' and v_b.paid_fils = 0))
+       and v_b.hold_expires_at < now() - interval '2 minutes' then
+      update public.bookings set status = 'expired' where id = v_b.id;
+      delete from public.booking_nights where booking_id = v_b.id and expires_at is not null;
+      insert into public.booking_events (booking_id, actor, action, from_status, to_status, detail)
+      values (v_b.id, 'system', 'hold_expired', v_b.status, 'expired', jsonb_build_object('swept_by', 'ops_record_payment'));
+      select b.* into v_b from public.bookings b where b.id = v_b.id;
+    end if;
+
+    v_expected := public.booking_txt(p, 'expected_status', 1, 40, true);
+    if v_expected is distinct from v_b.status then
+      perform public.booking_fail('changed', null, jsonb_build_object('status', v_b.status));
+    end if;
+    if v_b.status = 'held' then
+      perform public.booking_fail('not_requested');
+    end if;
+
+    v_received := public.booking_date(p, 'received_on', true);
+    if v_received > v_today or v_received < (v_b.created_at at time zone 'Asia/Dubai')::date then
+      perform public.booking_fail('invalid', 'received_on');
+    end if;
+    if jsonb_typeof(p -> 'bank_reference') is distinct from 'string' then
+      perform public.booking_fail('invalid', 'bank_reference');
+    end if;
+    v_ref := btrim(p ->> 'bank_reference');
+    if char_length(v_ref) < 1 or char_length(v_ref) > 100 then
+      perform public.booking_fail('invalid', 'bank_reference');
+    end if;
+    if jsonb_typeof(p -> 'accept_short') is not null and jsonb_typeof(p -> 'accept_short') <> 'null' then
+      if jsonb_typeof(p -> 'accept_short') <> 'boolean' then
+        perform public.booking_fail('invalid', 'accept_short');
+      end if;
+      v_accept := (p ->> 'accept_short')::boolean;
+    end if;
+    if v_accept then
+      if jsonb_typeof(p -> 'accept_reason') is distinct from 'string' then
+        perform public.booking_fail('invalid', 'accept_reason');
+      end if;
+      v_reason := btrim(p ->> 'accept_reason');
+      if char_length(v_reason) < 3 or char_length(v_reason) > 300 then
+        perform public.booking_fail('invalid', 'accept_reason');
+      end if;
+    elsif jsonb_typeof(p -> 'accept_reason') is not null and jsonb_typeof(p -> 'accept_reason') <> 'null' then
+      perform public.booking_fail('invalid', 'accept_reason');
+    end if;
+
+    -- Accept as paid (B-33): the gap to the target after this row is written off on this row.
+    if v_accept then
+      if v_b.status not in ('awaiting_payment', 'deposit_paid', 'confirmed', 'completed') then
+        perform public.booking_fail('not_applicable');
+      end if;
+      select coalesce(sum(x.amount_fils + x.write_off_fils), 0) into v_settled
+        from public.booking_payments x where x.booking_id = v_b.id and x.status = 'succeeded';
+      v_target := case when v_b.status = 'awaiting_payment' and v_b.plan = 'deposit' then v_b.deposit_fils else v_b.grand_fils end;
+      v_gap := v_target - (v_settled + v_amount);
+      if v_gap <= 0 then
+        perform public.booking_fail('nothing_to_write_off');
+      end if;
+    end if;
+
+    begin
+      insert into public.booking_payments (booking_id, kind, method, status, amount_fils, paid_at, received_on,
+        bank_reference, recorded_by, request_id, write_off_fils, write_off_reason)
+      values (v_b.id, 'transfer', 'bank_transfer', 'succeeded', v_amount, now(), v_received,
+        v_ref, p_actor, v_request, v_gap, case when v_gap > 0 then v_reason end)
+      returning id into v_pay;
+    exception when unique_violation then
+      get stacked diagnostics v_constraint = constraint_name;
+      if v_constraint = 'booking_payments_request_id_key' then
+        v_retry := true;
+        continue attempt;
+      end if;
+      raise;
+    end;
+    exit attempt;
+  end loop;
+
+  -- The sums, again from the rows.
+  select coalesce(sum(x.amount_fils), 0), coalesce(sum(x.write_off_fils), 0) into v_paid, v_off
+    from public.booking_payments x where x.booking_id = v_b.id and x.status = 'succeeded';
+
+  v_before := v_b.status;
+  v_after := case
+    when v_b.status in ('awaiting_payment', 'deposit_paid')
+      then public.booking_next_status(v_b.status, v_b.plan, v_b.grand_fils, v_b.deposit_fils, v_paid + v_off)
+    else v_b.status end;
+
+  -- The nights: permanent from the first payment on a request (P-09), and for deposit_paid / paid_in_full. A missing
+  -- night is a refusal, never a re-claim (unreachable under the lock).
+  if v_after in ('awaiting_payment', 'deposit_paid', 'paid_in_full') then
+    update public.booking_nights set expires_at = null where booking_id = v_b.id and expires_at is not null;
+    select count(*) into v_have from public.booking_nights n where n.booking_id = v_b.id;
+    if v_have < v_b.leave - v_b.arrive then
+      perform public.booking_fail('nights_lost');
+    end if;
+  end if;
+
+  -- The flag: money on an expired or cancelled booking first, else overpaid. A deadline_passed_part_paid flag ends once
+  -- the request is no longer awaiting_payment. A new overpaid never replaces a money-on-a-dead-booking reason.
+  v_flag := case v_b.status when 'expired' then 'paid_after_expiry' when 'cancelled' then 'paid_after_cancel' end;
+  if v_flag is null and v_paid > v_b.grand_fils then
+    v_flag := 'overpaid';
+  end if;
+  v_need := v_b.needs_attention;
+  v_why := v_b.attention_reason;
+  if v_why = 'deadline_passed_part_paid' and v_after <> 'awaiting_payment' then
+    v_need := false;
+    v_why := null;
+    v_cleared := true;
+  end if;
+  if v_flag is not null then
+    v_need := true;
+    if not coalesce(v_why in ('paid_after_expiry', 'paid_after_cancel') and v_flag = 'overpaid', false) then
+      v_why := v_flag;
+    end if;
+  end if;
+
+  update public.bookings
+    set paid_fils = v_paid, written_off_fils = v_off, status = v_after, needs_attention = v_need, attention_reason = v_why
+    where id = v_b.id;
+
+  insert into public.booking_events (booking_id, actor, action, from_status, to_status, detail)
+  values (v_b.id, 'owner:' || p_actor::text, 'payment_recorded', v_before, v_after, jsonb_build_object(
+    'payment_id', v_pay,
+    'amount_fils', v_amount,
+    'received_on', to_char(v_received, 'YYYY-MM-DD'),
+    'bank_reference', v_ref,
+    'paid_fils', v_paid,
+    'written_off_fils', v_off,
+    'write_off_fils', v_gap,
+    'request_id', v_request,
+    'status_before', v_before,
+    'status_after', v_after,
+    'attention_cleared', v_cleared));
+  if v_flag is not null then
+    insert into public.booking_events (booking_id, actor, action, from_status, to_status, detail)
+    values (v_b.id, 'owner:' || p_actor::text, 'needs_attention', v_before, v_after,
+      jsonb_build_object('reason', v_flag, 'payment_id', v_pay));
+  end if;
+
+  select b.* into v_b from public.bookings b where b.id = v_b.id;
+  return jsonb_build_object(
+    'first_time', true,
+    'booking_id', v_b.id,
+    'ref', v_b.ref,
+    'payment_id', v_pay,
+    'status_before', v_before,
+    'status_after', v_after,
+    'amount_fils', v_amount,
+    'paid_fils', v_paid,
+    'written_off_fils', v_off,
+    'write_off_fils', v_gap,
+    'flags', public.booking_flags(v_b),
+    'is_test', v_b.is_test,
+    'locale', v_b.locale,
+    'link_version', v_b.link_version);
+end;
+$$;
+
+revoke execute on function public.ops_record_payment(jsonb, uuid) from public, anon, authenticated;
+grant execute on function public.ops_record_payment(jsonb, uuid) to service_role;
+
+-- ------------------------------------------------------------------------------------------------------------
+-- The cancel_first floor (P-21 as the owner changed it 2026-10-20: the deposit on every plan). A deposit plan: its
+-- stored deposit_fils. Any other plan (the table keeps deposit_fils 0 there): the deposit it would have had,
+-- (grand x deposit_bp + 5000) / 10000, the half-up pct() of lib/money/fils.ts. A 0 % deposit gives 0. Null in, null
+-- out. 04-09's void preview mirrors it.
+-- ------------------------------------------------------------------------------------------------------------
+
+create or replace function public.booking_deposit_floor(p_plan text, p_grand bigint, p_deposit bigint, p_deposit_bp int)
+returns bigint
+language sql
+immutable
+security definer
+set search_path = ''
+as $$
+  select case
+    when p_plan is null or p_grand is null or p_deposit is null or p_deposit_bp is null then null
+    when p_plan = 'deposit' then p_deposit
+    else (p_grand * p_deposit_bp + 5000) / 10000
+  end
+$$;
+
+revoke execute on function public.booking_deposit_floor(text, bigint, bigint, int) from public, anon, authenticated;
+grant execute on function public.booking_deposit_floor(text, bigint, bigint, int) to service_role;
+
+-- ------------------------------------------------------------------------------------------------------------
+-- ops_void_payment (PAY-19): the owner voids one bank row with a reason. The row is marked voided, never removed. Under
+-- the stay lock, then the row. Before any write: a confirmed or completed booking may not drop below its deposit floor
+-- (almar:cancel_first, P-21); a void that leaves the booking awaiting payment needs the transfer window
+-- (almar:window_missing). Then the sums are taken again from the rows and the status rule runs: deposit_paid /
+-- paid_in_full may go back to awaiting_payment with a fresh deadline (its nights timed to it only when no payment is
+-- left; with a payment left they stay permanent: P-09); an unpaid-again request gets greatest(deadline, now + window)
+-- and its nights timed to it; everything else keeps its status. Only the booking's own nights are touched, never
+-- through place_hold. No email (P-11).
+-- ------------------------------------------------------------------------------------------------------------
+
+create or replace function public.ops_void_payment(p_payment uuid, p_reason text, p_actor uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_reason text := btrim(p_reason);
+  v_bid uuid;
+  v_b public.bookings;
+  v_pay public.booking_payments;
+  v_ev public.booking_events;
+  v_settled_after bigint;
+  v_paid_after bigint;
+  v_after text;
+  v_window int;
+  v_deadline timestamptz;
+  v_retime timestamptz;
+  v_paid bigint;
+  v_off bigint;
+  v_have int;
+  v_need boolean;
+  v_why text;
+  v_cleared boolean := false;
+  v_iso text;
+  v_before text;
+begin
+  perform public.booking_assert_owner(p_actor);
+  if v_reason is null or char_length(v_reason) < 3 or char_length(v_reason) > 300 then
+    perform public.booking_fail('invalid', 'reason');
+  end if;
+  select x.booking_id into v_bid from public.booking_payments x where x.id = p_payment;
+  if v_bid is null then
+    perform public.booking_fail('not_found');
+  end if;
+  v_b := public.booking_lock(v_bid);
+  select x.* into v_pay from public.booking_payments x where x.id = p_payment for update;
+
+  if v_pay.status = 'voided' then
+    select e.* into v_ev from public.booking_events e
+      where e.booking_id = v_b.id and e.action = 'payment_voided' and e.detail ->> 'payment_id' = v_pay.id::text
+      order by e.id limit 1;
+    return jsonb_build_object(
+      'first_time', false,
+      'booking_id', v_b.id,
+      'ref', v_b.ref,
+      'payment_id', v_pay.id,
+      'status_before', coalesce(v_ev.from_status, v_b.status),
+      'status_after', coalesce(v_ev.to_status, v_b.status),
+      'paid_fils', coalesce((v_ev.detail ->> 'paid_fils')::bigint, v_b.paid_fils),
+      'written_off_fils', coalesce((v_ev.detail ->> 'written_off_fils')::bigint, v_b.written_off_fils),
+      'deadline', v_ev.detail ->> 'deadline',
+      'flags', public.booking_flags(v_b));
+  end if;
+  if v_pay.status <> 'succeeded' or v_pay.method <> 'bank_transfer' then
+    perform public.booking_fail('not_voidable');
+  end if;
+
+  select coalesce(sum(x.amount_fils + x.write_off_fils), 0), coalesce(sum(x.amount_fils), 0)
+    into v_settled_after, v_paid_after
+    from public.booking_payments x where x.booking_id = v_b.id and x.status = 'succeeded' and x.id <> v_pay.id;
+
+  -- Before any write.
+  if v_b.status in ('confirmed', 'completed')
+     and v_settled_after < public.booking_deposit_floor(v_b.plan, v_b.grand_fils, v_b.deposit_fils, v_b.deposit_bp) then
+    perform public.booking_fail('cancel_first', null, jsonb_build_object(
+      'floor_fils', public.booking_deposit_floor(v_b.plan, v_b.grand_fils, v_b.deposit_fils, v_b.deposit_bp),
+      'settled_after_fils', v_settled_after));
+  end if;
+  v_after := v_b.status;
+  if v_b.status in ('deposit_paid', 'paid_in_full') then
+    v_after := public.booking_next_status(v_b.status, v_b.plan, v_b.grand_fils, v_b.deposit_fils, v_settled_after);
+  end if;
+  if (v_b.status in ('deposit_paid', 'paid_in_full') and v_after = 'awaiting_payment')
+     or (v_b.status = 'awaiting_payment' and v_paid_after = 0) then
+    v_window := public.booking_window_minutes(v_b.is_test);
+    if v_window is null then
+      perform public.booking_fail('window_missing');
+    end if;
+  end if;
+
+  v_before := v_b.status;
+  update public.booking_payments
+    set status = 'voided', void_reason = v_reason, voided_at = now(), voided_by = p_actor
+    where id = v_pay.id;
+  select coalesce(sum(x.amount_fils), 0), coalesce(sum(x.write_off_fils), 0) into v_paid, v_off
+    from public.booking_payments x where x.booking_id = v_b.id and x.status = 'succeeded';
+
+  v_deadline := v_b.hold_expires_at;
+  if v_b.status in ('deposit_paid', 'paid_in_full') and v_after = 'awaiting_payment' then
+    v_deadline := now() + make_interval(mins => v_window);
+    if v_paid = 0 then
+      v_retime := v_deadline;
+    end if;
+  elsif v_b.status = 'awaiting_payment' and v_paid = 0 then
+    v_deadline := greatest(v_b.hold_expires_at, now() + make_interval(mins => v_window));
+    v_retime := v_deadline;
+  end if;
+  if v_retime is not null then
+    update public.booking_nights set expires_at = v_retime where booking_id = v_b.id;
+    select count(*) into v_have from public.booking_nights n where n.booking_id = v_b.id;
+    if v_have < v_b.leave - v_b.arrive then
+      perform public.booking_fail('nights_lost');
+    end if;
+  end if;
+
+  v_need := v_b.needs_attention;
+  v_why := v_b.attention_reason;
+  if (v_why = 'overpaid' and v_paid <= v_b.grand_fils)
+     or (v_why in ('paid_after_expiry', 'paid_after_cancel', 'deadline_passed_part_paid') and v_paid = 0) then
+    v_need := false;
+    v_why := null;
+    v_cleared := true;
+  end if;
+
+  update public.bookings
+    set paid_fils = v_paid, written_off_fils = v_off, status = v_after, hold_expires_at = v_deadline,
+        needs_attention = v_need, attention_reason = v_why
+    where id = v_b.id;
+
+  v_iso := case when v_after = 'awaiting_payment'
+    then to_char(v_deadline at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') end;
+  insert into public.booking_events (booking_id, actor, action, from_status, to_status, detail)
+  values (v_b.id, 'owner:' || p_actor::text, 'payment_voided', v_b.status, v_after, jsonb_build_object(
+    'payment_id', v_pay.id,
+    'amount_fils', v_pay.amount_fils,
+    'reason', v_reason,
+    'paid_fils', v_paid,
+    'written_off_fils', v_off,
+    'deadline', v_iso,
+    'attention_cleared', v_cleared));
+
+  select b.* into v_b from public.bookings b where b.id = v_b.id;
+  return jsonb_build_object(
+    'first_time', true,
+    'booking_id', v_b.id,
+    'ref', v_b.ref,
+    'payment_id', v_pay.id,
+    'status_before', v_before,
+    'status_after', v_after,
+    'paid_fils', v_paid,
+    'written_off_fils', v_off,
+    'deadline', v_iso,
+    'flags', public.booking_flags(v_b));
+end;
+$$;
+
+revoke execute on function public.ops_void_payment(uuid, text, uuid) from public, anon, authenticated;
+grant execute on function public.ops_void_payment(uuid, text, uuid) to service_role;
+
+-- ------------------------------------------------------------------------------------------------------------
+-- Attention and notes (owner only)
+-- ------------------------------------------------------------------------------------------------------------
+
+-- Resolve: the owner's note (3..500 characters) is kept as a booking note, the flag and its reason are cleared, one
+-- attention_resolved event. A booking that is not flagged answers first_time false and writes nothing.
+create or replace function public.ops_resolve_attention(p_booking uuid, p_note text, p_actor uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_note text := btrim(p_note);
+  v_b public.bookings;
+  v_id bigint;
+begin
+  perform public.booking_assert_owner(p_actor);
+  if v_note is null or char_length(v_note) < 3 or char_length(v_note) > 500 then
+    perform public.booking_fail('invalid', 'note');
+  end if;
+  v_b := public.booking_lock(p_booking);
+  if v_b.id is null then
+    perform public.booking_fail('not_found');
+  end if;
+  if not v_b.needs_attention then
+    return jsonb_build_object('first_time', false, 'booking_id', v_b.id, 'note_id', null);
+  end if;
+  insert into public.booking_notes (booking_id, actor, body)
+  values (v_b.id, 'owner:' || p_actor::text, v_note)
+  returning id into v_id;
+  update public.bookings set needs_attention = false, attention_reason = null where id = v_b.id;
+  insert into public.booking_events (booking_id, actor, action, from_status, to_status, detail)
+  values (v_b.id, 'owner:' || p_actor::text, 'attention_resolved', null, null,
+    jsonb_build_object('reason', v_b.attention_reason, 'note_id', v_id));
+  return jsonb_build_object('first_time', true, 'booking_id', v_b.id, 'note_id', v_id);
+end;
+$$;
+
+revoke execute on function public.ops_resolve_attention(uuid, text, uuid) from public, anon, authenticated;
+grant execute on function public.ops_resolve_attention(uuid, text, uuid) to service_role;
+
+-- One owner note (1..2000 characters, not blank). The note_added event carries the note id only, never the text.
+create or replace function public.ops_add_booking_note(p_booking uuid, p_body text, p_actor uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_id bigint;
+  v_at timestamptz;
+begin
+  perform public.booking_assert_owner(p_actor);
+  if p_booking is null or not exists (select 1 from public.bookings b where b.id = p_booking) then
+    perform public.booking_fail('not_found');
+  end if;
+  if p_body is null or char_length(p_body) < 1 or char_length(p_body) > 2000 or btrim(p_body) = '' then
+    perform public.booking_fail('invalid', 'body');
+  end if;
+  insert into public.booking_notes (booking_id, actor, body)
+  values (p_booking, 'owner:' || p_actor::text, p_body)
+  returning id, at into v_id, v_at;
+  insert into public.booking_events (booking_id, actor, action, from_status, to_status, detail)
+  values (p_booking, 'owner:' || p_actor::text, 'note_added', null, null, jsonb_build_object('note_id', v_id));
+  return jsonb_build_object('id', v_id, 'at', to_char(v_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
+end;
+$$;
+
+revoke execute on function public.ops_add_booking_note(uuid, text, uuid) from public, anon, authenticated;
+grant execute on function public.ops_add_booking_note(uuid, text, uuid) to service_role;
+
+-- A booking's notes, newest first, with the owner's email when the actor is 'owner:<uuid>'.
+create or replace function public.ops_list_booking_notes(p_booking uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select jsonb_build_object('items', coalesce(jsonb_agg(jsonb_build_object(
+      'id', n.id,
+      'at', to_char(n.at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+      'actor', n.actor,
+      'actor_email', (
+        select pr.email from public.profiles pr
+        where pr.id = case when n.actor ~ '^owner:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+          then (substr(n.actor, 7))::uuid end),
+      'body', n.body) order by n.at desc, n.id desc), '[]'::jsonb))
+  from public.booking_notes n
+  where n.booking_id = p_booking
+$$;
+
+revoke execute on function public.ops_list_booking_notes(uuid) from public, anon, authenticated;
+grant execute on function public.ops_list_booking_notes(uuid) to service_role;
+
+-- ------------------------------------------------------------------------------------------------------------
+-- The owner's reads (OPS-04 server side). English titles: the dashboard is English. Neither runs ops_lapse_holds:
+-- 04-09's handler calls it first.
+-- ------------------------------------------------------------------------------------------------------------
+
+-- One page of bookings. p_q (at most 100 characters): starting with 'almar-' in any case it matches the start of the
+-- ref, otherwise it is searched, case- and accent-folded, in the guest name, the email and the ref. p_status: one of
+-- the eight statuses or 'attention' (flagged); null hides abandoned holds (a web hold never requested that expired).
+-- p_arrive_from / p_arrive_to: an arrival range. p_after: the next of the previous page (an offset as text). p_limit
+-- 1..60. Order: flagged first, then awaiting payment by deadline, then deposit_paid / paid_in_full / confirmed
+-- arriving today or later by arrival, then holds newest first, then the rest by arrival newest first; then id.
+-- Returns { items, next } with next null on the last page.
+create or replace function public.ops_list_bookings(p_q text default null, p_status text default null, p_destination uuid default null,
+  p_arrive_from date default null, p_arrive_to date default null, p_after text default null, p_limit int default 30)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_q text := nullif(btrim(coalesce(p_q, '')), '');
+  v_prefix text;
+  v_needle text;
+  v_offset int;
+  v_today date := (now() at time zone 'Asia/Dubai')::date;
+  v_items jsonb;
+  v_more boolean;
+begin
+  if p_q is not null and char_length(p_q) > 100 then
+    perform public.booking_fail('invalid', 'q');
+  end if;
+  if p_status is not null and p_status not in ('held', 'awaiting_payment', 'deposit_paid', 'paid_in_full', 'confirmed',
+      'completed', 'cancelled', 'expired', 'attention') then
+    perform public.booking_fail('invalid', 'status');
+  end if;
+  if p_arrive_from is not null and p_arrive_to is not null and p_arrive_from > p_arrive_to then
+    perform public.booking_fail('invalid', 'arrive');
+  end if;
+  if p_after is not null and p_after !~ '^[0-9]{1,6}$' then
+    perform public.booking_fail('invalid', 'after');
+  end if;
+  if p_limit is null or p_limit < 1 or p_limit > 60 then
+    perform public.booking_fail('invalid', 'limit');
+  end if;
+  v_offset := coalesce(p_after::int, 0);
+  if v_q is not null and lower(v_q) like 'almar-%' then
+    v_prefix := upper(v_q);
+  elsif v_q is not null then
+    v_needle := public.media_fold(v_q);
+  end if;
+
+  with hits as (
+    select b as bk,
+      case
+        when b.needs_attention then 1
+        when b.status = 'awaiting_payment' then 2
+        when b.status in ('deposit_paid', 'paid_in_full', 'confirmed') and b.arrive >= v_today then 3
+        when b.status = 'held' then 4
+        else 5
+      end as rnk
+    from public.bookings b
+    where (v_prefix is null or left(b.ref, char_length(v_prefix)) = v_prefix)
+      and (v_needle is null
+        or strpos(public.media_fold(b.guest_name), v_needle) > 0
+        or strpos(public.media_fold(b.email), v_needle) > 0
+        or strpos(public.media_fold(b.ref), v_needle) > 0)
+      and (case
+        when p_status is null then not (b.source = 'web' and b.requested_at is null and b.status = 'expired')
+        when p_status = 'attention' then b.needs_attention
+        else b.status = p_status end)
+      and (p_destination is null or b.destination_id = p_destination)
+      and (p_arrive_from is null or b.arrive >= p_arrive_from)
+      and (p_arrive_to is null or b.arrive <= p_arrive_to)
+  ),
+  ordered as (
+    select h.bk, row_number() over (order by
+        h.rnk,
+        case when h.rnk = 1 then (h.bk).arrive end,
+        case when h.rnk = 2 then (h.bk).hold_expires_at end,
+        case when h.rnk = 3 then (h.bk).arrive end,
+        case when h.rnk = 4 then (h.bk).created_at end desc,
+        case when h.rnk = 5 then (h.bk).arrive end desc,
+        (h.bk).id) as ord
+    from hits h
+  ),
+  page as (
+    select o.bk, o.ord from ordered o where o.ord > v_offset and o.ord <= v_offset + p_limit + 1
+  )
+  select
+    coalesce(jsonb_agg(jsonb_build_object(
+        'id', (pg.bk).id,
+        'ref', (pg.bk).ref,
+        'status', (pg.bk).status,
+        'source', (pg.bk).source,
+        'is_test', (pg.bk).is_test,
+        'guest_name', (pg.bk).guest_name,
+        'email', (pg.bk).email,
+        'stay_slug', s.slug,
+        'stay_title', coalesce((select t.title from public.stay_translations t where t.stay_id = s.id and t.locale = 'en'), s.slug),
+        'destination_id', (pg.bk).destination_id,
+        'destination_name', coalesce(
+          (select t.name from public.destination_translations t where t.destination_id = (pg.bk).destination_id and t.locale = 'en'),
+          (select d.slug from public.destinations d where d.id = (pg.bk).destination_id)),
+        'arrive', to_char((pg.bk).arrive, 'YYYY-MM-DD'),
+        'leave', to_char((pg.bk).leave, 'YYYY-MM-DD'),
+        'guests', (pg.bk).adults + (pg.bk).children + (pg.bk).infants,
+        'plan', (pg.bk).plan,
+        'grand_fils', (pg.bk).grand_fils,
+        'paid_fils', (pg.bk).paid_fils,
+        'written_off_fils', (pg.bk).written_off_fils,
+        'due_now_fils', public.booking_flags(pg.bk) -> 'due_now_fils',
+        'deadline', case when (pg.bk).status = 'awaiting_payment'
+          then to_char((pg.bk).hold_expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') end,
+        'balance_due_date', to_char((pg.bk).balance_due_date, 'YYYY-MM-DD'),
+        'created_at', to_char((pg.bk).created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+        'requested_at', to_char((pg.bk).requested_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+        'flags', public.booking_flags(pg.bk)) order by pg.ord) filter (where pg.ord <= v_offset + p_limit), '[]'::jsonb),
+    coalesce(bool_or(pg.ord > v_offset + p_limit), false)
+  into v_items, v_more
+  from page pg
+  join public.stays s on s.id = (pg.bk).stay_id;
+
+  return jsonb_build_object('items', v_items, 'next', case when v_more then (v_offset + p_limit)::text end);
+end;
+$$;
+
+revoke execute on function public.ops_list_bookings(text, text, uuid, date, date, text, int) from public, anon, authenticated;
+grant execute on function public.ops_list_bookings(text, text, uuid, date, date, text, int) to service_role;
+
+-- One booking for the owner by its ref (section B "owner detail"), or null. Payments include voided rows with their
+-- reason; events newest first, at most 200.
+create or replace function public.ops_get_booking(p_ref text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_b public.bookings;
+  v_trav jsonb;
+  v_lines jsonb;
+  v_pays jsonb;
+  v_events jsonb;
+begin
+  if p_ref is null then
+    return null;
+  end if;
+  select b.* into v_b from public.bookings b where b.ref = upper(btrim(p_ref));
+  if v_b.id is null then
+    return null;
+  end if;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+      'kind', t.kind,
+      'full_name', t.full_name,
+      'age', t.age,
+      'is_booker', t.is_booker,
+      'not_staying', t.not_staying) order by t.position), '[]'::jsonb)
+    into v_trav
+    from public.booking_travellers t
+    where t.booking_id = v_b.id;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+      'catalog_item_id', l.catalog_item_id,
+      'name', l.name,
+      'unit', l.unit,
+      'is_uae', l.is_uae,
+      'unit_price_fils', l.unit_price_fils,
+      'quantity', l.quantity,
+      'line_fils', l.line_fils) order by l.name, l.id), '[]'::jsonb)
+    into v_lines
+    from public.booking_lines l
+    where l.booking_id = v_b.id;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+      'id', x.id,
+      'kind', x.kind,
+      'method', x.method,
+      'status', x.status,
+      'amount_fils', x.amount_fils,
+      'received_on', to_char(x.received_on, 'YYYY-MM-DD'),
+      'bank_reference', x.bank_reference,
+      'recorded_by', x.recorded_by,
+      'recorded_by_email', (select pr.email from public.profiles pr where pr.id = x.recorded_by),
+      'created_at', to_char(x.created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+      'write_off_fils', x.write_off_fils,
+      'write_off_reason', x.write_off_reason,
+      'void_reason', x.void_reason,
+      'voided_at', to_char(x.voided_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+      'voided_by', x.voided_by,
+      'voided_by_email', (select pr.email from public.profiles pr where pr.id = x.voided_by),
+      'card_brand', x.card_brand,
+      'card_last4', x.card_last4) order by x.created_at desc, x.id), '[]'::jsonb)
+    into v_pays
+    from public.booking_payments x
+    where x.booking_id = v_b.id;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+      'id', e.id,
+      'at', to_char(e.at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+      'actor', e.actor,
+      'action', e.action,
+      'from_status', e.from_status,
+      'to_status', e.to_status,
+      'detail', e.detail) order by e.id desc), '[]'::jsonb)
+    into v_events
+    from (
+      select * from public.booking_events ev where ev.booking_id = v_b.id order by ev.id desc limit 200
+    ) e;
+
+  return jsonb_build_object(
+    'id', v_b.id,
+    'ref', v_b.ref,
+    'status', v_b.status,
+    'source', v_b.source,
+    'is_test', v_b.is_test,
+    'link_version', v_b.link_version,
+    'created_at', to_char(v_b.created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+    'updated_at', to_char(v_b.updated_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+    'requested_at', to_char(v_b.requested_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+    'hold_expires_at', to_char(v_b.hold_expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+    'deadline', case when v_b.status = 'awaiting_payment'
+      then to_char(v_b.hold_expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') end,
+    'guest', jsonb_build_object(
+      'name', v_b.guest_name,
+      'email', v_b.email,
+      'phone', v_b.phone,
+      'nationality', v_b.nationality,
+      'special_requests', v_b.special_requests,
+      'emergency_name', v_b.emergency_name,
+      'emergency_phone', v_b.emergency_phone,
+      'locale', v_b.locale),
+    'stay', (select jsonb_build_object(
+        'id', s.id,
+        'slug', s.slug,
+        'title', coalesce((select t.title from public.stay_translations t where t.stay_id = s.id and t.locale = 'en'), s.slug))
+      from public.stays s where s.id = v_b.stay_id),
+    'destination', (select jsonb_build_object(
+        'id', d.id,
+        'name', coalesce((select t.name from public.destination_translations t where t.destination_id = d.id and t.locale = 'en'), d.slug))
+      from public.destinations d where d.id = v_b.destination_id),
+    'arrive', to_char(v_b.arrive, 'YYYY-MM-DD'),
+    'leave', to_char(v_b.leave, 'YYYY-MM-DD'),
+    'nights', v_b.leave - v_b.arrive,
+    'adults', v_b.adults,
+    'children', v_b.children,
+    'infants', v_b.infants,
+    'airport', v_b.airport,
+    'pickup_address', v_b.pickup_address,
+    'terms_version', v_b.terms_version,
+    'terms_accepted_at', to_char(v_b.terms_accepted_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+    'plan', v_b.plan,
+    'money', jsonb_build_object(
+      'nights_fils', v_b.nights_fils,
+      'addons_fils', v_b.addons_fils,
+      'subtotal_fils', v_b.subtotal_fils,
+      'vat_bp', v_b.vat_bp,
+      'vat_fils', v_b.vat_fils,
+      'grand_fils', v_b.grand_fils,
+      'deposit_bp', v_b.deposit_bp,
+      'deposit_fils', v_b.deposit_fils,
+      'balance_fils', v_b.balance_fils,
+      'paid_fils', v_b.paid_fils,
+      'written_off_fils', v_b.written_off_fils,
+      'balance_due_days', v_b.balance_due_days,
+      'balance_due_date', to_char(v_b.balance_due_date, 'YYYY-MM-DD')),
+    'flags', public.booking_flags(v_b),
+    'travellers', v_trav,
+    'lines', v_lines,
+    'payments', v_pays,
+    'notes', public.ops_list_booking_notes(v_b.id) -> 'items',
+    'events', v_events,
+    'lapse_email', jsonb_build_object(
+      'sent_at', to_char(v_b.lapse_email_sent_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+      'attempts', v_b.lapse_email_attempts,
+      'claimed_at', to_char(v_b.lapse_email_claimed_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')));
+end;
+$$;
+
+revoke execute on function public.ops_get_booking(text) from public, anon, authenticated;
+grant execute on function public.ops_get_booking(text) to service_role;
+
+-- ------------------------------------------------------------------------------------------------------------
+-- The lapse (PAY-20; P-09 as the owner changed it 2026-10-20: a request with a recorded payment never lapses; it keeps
+-- its nights and is flagged for the owner).
+-- ------------------------------------------------------------------------------------------------------------
+
+-- ops_lapse_holds, replaced (same signature and grants as 20261005110000). Lapsed: a hold, or a request with nothing
+-- paid, more than two minutes past its end: expired, its timed nights freed, one hold_expired event, counted. Flagged,
+-- in the same pass: a request with a payment more than two minutes past its deadline stays awaiting_payment with its
+-- nights and gets needs_attention deadline_passed_part_paid and one needs_attention event, once per deadline (a
+-- resolved flag stays resolved; a later deadline after a void flags again); flags are not counted. One pass in stay
+-- order, so two calls at once take the stay locks in the same order. Called by the almar-ops cron every 5 minutes and
+-- by 04-09's handler before every owner read.
+create or replace function public.ops_lapse_holds()
+returns int
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_row record;
+  v_b public.bookings;
+  v_n int := 0;
+  v_deadline text;
+begin
+  for v_row in
+    select b.id from public.bookings b
+    where b.status in ('held', 'awaiting_payment') and b.hold_expires_at < now() - interval '2 minutes'
+    order by b.stay_id, b.id
+  loop
+    v_b := public.booking_lock(v_row.id);
+    if v_b.id is null or not coalesce(v_b.hold_expires_at < now() - interval '2 minutes', false) then
+      continue;
+    end if;
+    if v_b.status = 'held' or (v_b.status = 'awaiting_payment' and v_b.paid_fils = 0) then
+      update public.bookings set status = 'expired' where id = v_b.id;
+      delete from public.booking_nights where booking_id = v_b.id and expires_at is not null;
+      insert into public.booking_events (booking_id, actor, action, from_status, to_status, detail)
+      values (v_b.id, 'system', 'hold_expired', v_b.status, 'expired', jsonb_build_object('swept_by', 'ops_lapse_holds'));
+      v_n := v_n + 1;
+    end if;
+    if v_b.status = 'awaiting_payment' and v_b.paid_fils > 0 then
+      v_deadline := to_char(v_b.hold_expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"');
+      if not exists (
+        select 1 from public.booking_events e
+        where e.booking_id = v_b.id and e.action = 'needs_attention'
+          and e.detail ->> 'reason' = 'deadline_passed_part_paid' and e.detail ->> 'deadline' = v_deadline
+      ) then
+        update public.bookings
+          set needs_attention = true, attention_reason = coalesce(attention_reason, 'deadline_passed_part_paid')
+          where id = v_b.id;
+        insert into public.booking_events (booking_id, actor, action, from_status, to_status, detail)
+        values (v_b.id, 'system', 'needs_attention', null, null, jsonb_build_object(
+          'reason', 'deadline_passed_part_paid', 'paid_fils', v_b.paid_fils, 'deadline', v_deadline));
+      end if;
+    end if;
+  end loop;
+  return v_n;
+end;
+$$;
+
+revoke execute on function public.ops_lapse_holds() from public, anon, authenticated;
+grant execute on function public.ops_lapse_holds() to service_role;
+
+-- The guard: a request with a recorded payment is never expired. No path reaches it (ops_lapse_holds skips these rows,
+-- place_hold's sweep takes timed nights only and a part-paid request's nights are permanent, booking_drop_hold and
+-- mark_session_expired touch held only, the inline lapse in ops_record_payment runs on paid 0 only); it is the last
+-- line if one ever does.
+create or replace function public.bookings_keep_paid_request()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.booking_fail('paid_request_kept', null, jsonb_build_object('booking_id', new.id, 'paid_fils', old.paid_fils));
+  return new;
+end;
+$$;
+
+revoke execute on function public.bookings_keep_paid_request() from public, anon, authenticated;
+grant execute on function public.bookings_keep_paid_request() to service_role;
+
+create trigger bookings_keep_paid_request
+  before update of status on public.bookings
+  for each row
+  when (old.status = 'awaiting_payment' and new.status = 'expired' and old.paid_fils > 0)
+  execute function public.bookings_keep_paid_request();
+
+-- The lapse email claim (cron only). Unpaid web requests that lapsed (expired, requested, nothing paid), not sent yet,
+-- fewer than 5 tries, deadline within the last 48 hours (P-12: never a stale email), lease free or older than 10
+-- minutes. Each row is claimed by one caller only (skip locked); the claim takes the lease and counts a try. The
+-- notifier sends with the idempotency key lapse/<booking_id>; finish_lapse_email records the outcome.
+create index bookings_lapse_email_idx on public.bookings (hold_expires_at)
+  where status = 'expired' and source = 'web' and requested_at is not null and lapse_email_sent_at is null;
+
+create or replace function public.claim_lapse_emails(p_limit int default 5)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  c_lease constant interval := interval '10 minutes';
+  c_max_attempts constant int := 5;
+  c_max_age constant interval := interval '48 hours';
+  v_out jsonb;
+begin
+  with picked as (
+    select b.id from public.bookings b
+    where b.status = 'expired' and b.source = 'web' and b.requested_at is not null and b.paid_fils = 0
+      and b.lapse_email_sent_at is null and b.lapse_email_attempts < c_max_attempts
+      and b.hold_expires_at > now() - c_max_age
+      and (b.lapse_email_claimed_at is null or b.lapse_email_claimed_at < now() - c_lease)
+    order by b.hold_expires_at, b.id
+    limit least(greatest(coalesce(p_limit, 5), 1), 10)
+    for no key update skip locked
+  ),
+  claimed as (
+    update public.bookings b
+      set lapse_email_claimed_at = now(), lapse_email_attempts = b.lapse_email_attempts + 1
+      from picked
+      where b.id = picked.id
+      returning b.id, b.ref, b.email, b.guest_name, b.locale, b.is_test, b.stay_id, b.arrive, b.leave, b.hold_expires_at
+  )
+  select coalesce(jsonb_agg(jsonb_build_object(
+      'booking_id', c.id,
+      'ref', c.ref,
+      'email', c.email,
+      'guest_name', c.guest_name,
+      'locale', c.locale,
+      'is_test', c.is_test,
+      'stay_slug', s.slug,
+      'stay_title', coalesce(
+        (select t.title from public.stay_translations t where t.stay_id = s.id and t.locale = c.locale and t.status = 'published'),
+        (select t.title from public.stay_translations t where t.stay_id = s.id and t.locale = 'en'),
+        s.slug),
+      'arrive', to_char(c.arrive, 'YYYY-MM-DD'),
+      'leave', to_char(c.leave, 'YYYY-MM-DD'),
+      'deadline', to_char(c.hold_expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'))
+      order by c.hold_expires_at, c.id), '[]'::jsonb)
+    into v_out
+    from claimed c
+    join public.stays s on s.id = c.stay_id;
+  return v_out;
+end;
+$$;
+
+revoke execute on function public.claim_lapse_emails(int) from public, anon, authenticated;
+grant execute on function public.claim_lapse_emails(int) to service_role;
+
+-- The outcome of one lapse email. Sent: lapse_email_sent_at and one email_sent event (a second report of the same
+-- send writes nothing). Not sent: one email_failed event with the error name only (lower case, a-z 0-9 and _, at most
+-- 60 characters); the lease runs out by itself, so the next try comes after 10 minutes, at most 5 in all. Both events
+-- carry the key lapse/<booking_id>.
+create or replace function public.finish_lapse_email(p_booking uuid, p_ok boolean, p_error text default null)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_key text;
+  v_done int;
+begin
+  if p_booking is null or p_ok is null then
+    perform public.booking_fail('invalid');
+  end if;
+  if not exists (select 1 from public.bookings b where b.id = p_booking) then
+    perform public.booking_fail('not_found');
+  end if;
+  v_key := 'lapse/' || p_booking::text;
+  if p_ok then
+    update public.bookings set lapse_email_sent_at = now() where id = p_booking and lapse_email_sent_at is null;
+    get diagnostics v_done = row_count;
+    if v_done = 1 then
+      insert into public.booking_events (booking_id, actor, action, detail)
+      values (p_booking, 'system', 'email_sent', jsonb_build_object('template', 'request_lapsed', 'key', v_key));
+    end if;
+  else
+    insert into public.booking_events (booking_id, actor, action, detail)
+    values (p_booking, 'system', 'email_failed', jsonb_build_object(
+      'template', 'request_lapsed',
+      'key', v_key,
+      'error', left(regexp_replace(lower(coalesce(p_error, 'unknown')), '[^a-z0-9_]', '', 'g'), 60)));
+  end if;
+end;
+$$;
+
+revoke execute on function public.finish_lapse_email(uuid, boolean, text) from public, anon, authenticated;
+grant execute on function public.finish_lapse_email(uuid, boolean, text) to service_role;
