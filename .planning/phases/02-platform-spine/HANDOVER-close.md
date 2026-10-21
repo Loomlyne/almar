@@ -23,8 +23,10 @@ Work session job 18, 2026-10-21 (times from `date`, +0100). Branch `gsd/phase-02
 - Bite: `tests/password-eye.test.mjs` against `origin/main`'s `field.tsx` (copied in, restored by copy, `cmp` equal):
   0 pass, 1 fail. On the fix: 1 pass.
 - First attempt with `right-1`/`pr-12` failed `tests/design-tokens.test.mjs` (physical utilities); replaced, now green.
-- `npm ci`: not re-run (worktree `node_modules` already present). **NOT run (need your slot go):** `npm run build`,
-  Playwright. Expected effect on snapshots: none (the dashboard is LTR; `ltr:pe-12` = `pe-12` there).
+- `npm ci`: not re-run (worktree `node_modules` already present).
+- **Not verified, needs the landing lane** (owner 2026-10-21: no test runs in work sessions): `npm run build`,
+  Playwright (incl. `tests/ops-stay-tabs.spec.ts`), the dashboard snapshots, and the eye seen in a browser.
+  Expected effect on snapshots: none (the dashboard is LTR; `ltr:pe-12` = `pe-12` there).
   `tests/ops-stay-tabs.spec.ts` uses `.is-password input` and the "Show password" name, both unchanged.
 - Not seen in a browser. No migration. No new environment names.
 
@@ -55,14 +57,20 @@ Facts: the line (`lib/copy/guest.ts:102`, AR `:176`, ES `:250`) shows on public 
 is only the Supabase setting (`enable_signup = false`). The server sends links with admin `generateLink`
 (`lib/auth/magic-link-server.ts:101`), which **creates the account for a new email and ignores that setting**
 (`02-JOB02-DECISIONS.md:15-18`). So today the line is true: a new guest does get an account from the link.
+Pictures (real tokens from `tokens.json`, PR #24's option A form, EN/AR/ES each; draft text outlined dashed):
+`.planning/phases/02-platform-spine/pictures/new-here/new-here-options.html` (one static page, no server; opened once
+in the browser pane to check it renders). Questa is drawn with Georgia (licensed face not on the page).
 Options for the picture question (one decision):
 - **A (recommended): keep the line, keep the setting.** Guest sign-up through our own link is AUTH-02 / D-01; the
   setting only blocks direct API sign-ups that skip our limits and branded email. No code change.
 - B: no public sign-ups. Remove the line and the "or create an account" heading; refuse unknown emails on `/login`
   (send-link would check `accountExists` first). Reverses AUTH-02 and D-01; guests then get an account only from a
   booking (AUTH-01, Phase 4). Needs pictures in EN/AR/ES and his signature.
-- C: keep sign-up but reword to say it plainly, e.g. "No account yet? The link creates one." Copy change in EN/AR/ES,
-  pictures first.
+  Draft refusal: EN "We could not find an account for this email. Your account is made when you book." AR
+  "لا نجد حسابًا بهذا البريد. يُنشأ حسابك عند الحجز." ES "No encontramos una cuenta con este correo. Tu cuenta se crea al reservar."
+- C: keep sign-up but reword to say it plainly. Draft: EN "No account yet? The link creates one." AR "ليس لديك حساب
+  بعد؟ الرابط ينشئه لك." ES "¿Aún no tienes cuenta? El enlace la crea." Copy change only (`lib/copy/guest.ts`, which
+  PR #24 also edits: do it after #24 lands).
 
 ## Owner UAT (after the controller deploys `almar` and `almar-ops` with PR #24 and this branch)
 Guest sign-in
