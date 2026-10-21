@@ -52,7 +52,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - `next dev --webpack` / `next build --webpack` / `next start` - `package.json` scripts `dev`, `build`, `start`.
 - Wrangler 4.151.3 - Cloudflare deploys, run by hand with the ALMAR login: `HOME=/Users/koss/.almar-cloudflare CLOUDFLARE_ACCOUNT_ID=f1d9a1fa3abdda98c15161b00b40385c ./node_modules/.bin/wrangler deploy` (preview: add `-c wrangler.preview.toml` after `node scripts/assemble-cloudflare.mjs --target=preview`). No `package.json` script deploys.
 - `@opennextjs/cloudflare` 1.20.12 (peer: Next >=15.5.28 <16 || >=16.4.1, wrangler ^4.148.0) - configured since job 10: `open-next.config.ts`, and `scripts/assemble-cloudflare.mjs` runs `opennextjs-cloudflare build` for Workers `almar`, `almar-preview` and `almar-ops`. It refuses a Next major older than two years (Next 15 from 2026-10-21).
-- esbuild 0.25.4 - hoisted transitive dependency (of `@opennextjs/aws`), not declared. Nothing in `app/` uses it any more (the dev-only `app/embed/hero-booker` route was removed in Phase 3.3).
+- esbuild 0.25.4 - declared devDependency (`package.json`). Nothing in `app/` uses it any more (the dev-only `app/embed/hero-booker` route was removed in Phase 3.3).
 - `scripts/generate-theme.mjs` - `npm run tokens` writes `tokens.json` into the block between `/* GENERATED:THEME:START */` and `/* GENERATED:THEME:END */` in `app/globals.css`; `npm run tokens:check` fails if it is out of date.
 - `scripts/assemble-cloudflare.mjs` - runs `npm run build`, copies `public/` into `out/`, copies every `.next/server/app/**/*.body` to `out/<route>.html` (`index.html` for the home page), writes `out/404.html` from `renderStaticNotFound()` in `lib/not-found-document.ts`, copies `_headers`, and throws if `index.html` or `404.html` is missing.
 - `scripts/screens-diff.mjs` - before/after screenshot ratios using `playwright-core/lib/coreBundle`; writes `tests/screens/INDEX.md`.
@@ -71,22 +71,22 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - Font stacks per locale live in `tokens.json` (`face.display`, `face.body`, `face.display-ar`, `face.body-ar`) and are switched with `:root:lang(ar)`.
 ## Configuration
 - Variable names are listed in `.env.example` (names only, values empty): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`.
-- `.gitignore` ignores `.env*.local`. No `.env.local` exists on this checkout; the app is not wired to Supabase.
+- `.gitignore` ignores `.env*.local`. Supabase is wired: `lib/supabase/clients.ts`, `lib/auth/*` and `lib/data/*` read the live project through the three public/service variables above; secrets live on the Workers, never in the repo.
 - Other variables read by code or tests: `NODE_ENV` (production gate, see below), `ALMAR_HARNESS` (`app/%5F%5Fharness/page.tsx`, set only in `playwright.config.ts` `webServer.env`), `PW_PORT` (Playwright port), `SCREENS_MODE` (`tests/screens-before-after.spec.ts`).
 - Production gate: the dev-only pages (`app/%5F%5Fharness`, and any page still marked dev) check `process.env.NODE_ENV === "production"` and return 404 / `notFound()`. The public pages, `app/login`, `app/account`, `app/bookings`, `app/api/**` and `app/auth/**` are live; the Worker `almar` runs only for its `run_worker_first` paths (see `wrangler.toml`), every other path is a file in `out/`.
 - The design harness route is `app/%5F%5Fharness/` (URL `/__harness`); it 404s unless `ALMAR_HARNESS=1` (enforced by `tests/harness-gate.test.mjs`).
 - `next.config.ts` - SVG handling: `brand/Logo Monogram/Curves_black.svg` and `Poly_Black.svg` are imported as raw markup strings (`asset/source`, regex `MARKUP_SVG`); every other SVG (for example `brand/Logo Typography/Stacked_Charcoal.svg`) is a Next static-image object, use `.src`. Types for this are in `svg.d.ts`. `tests/next-config.test.mjs` asserts `next.config.ts` is the only Next config.
 - `tsconfig.json`, `postcss.config.mjs`, `playwright.config.ts`, `tokens.json`, `svg.d.ts` at the repo root.
-- `wrangler.toml` - Worker `almar`, `workers_dev = true`, `[assets] directory = "./out"`, `html_handling = "auto-trailing-slash"`, `not_found_handling = "404-page"`, two `[[routes]]` custom domains (`almarprivatejourney.com`, `www.almarprivatejourney.com`). No `account_id`, no `main`, no `[vars]`, no bindings, no observability block.
+- `wrangler.toml` - Worker `almar`, `account_id` pinned, `main = "worker/almar.mjs"` (forwards only `lib/server-routes.ts` paths to Next), `workers_dev = false`, `preview_urls = false`, `nodejs_compat`, `[assets] directory = "./out"` with `run_worker_first` = `/api/*`, `/login`, `/auth/confirm`, `/auth/sign-out`, `/auth/handoff/start`, `/account`, `/bookings`, `/newsletter`; `html_handling = "auto-trailing-slash"`, `not_found_handling = "404-page"`, two `[[routes]]` custom domains (`almarprivatejourney.com`, `www`), and the `FORM_LIMITER` rate-limit binding (namespace `1001`). `wrangler.preview.toml` (`almar-preview`, namespace `1002`) and `wrangler.ops.toml` (`almar-ops`) are the other two Workers.
 - `_headers` - copied into `out/_headers`; `Cache-Control: public, max-age=31536000, immutable` for `/assets/*`, `*.webp`, `*.woff2`, `*.css`, `*.js`.
-- Leftovers, not in the deploy path: `.vercel` (ignored), `README.md` ("Deploy to Vercel/Netlify"), `_README.txt`, `PLAN_FIX_ALL.md`, `framer-export/` (Framer catalog JSON and component source, excluded from `tsconfig.json`). `tests/host-config.test.mjs` forbids any `vercel` script in `package.json`. `vercel.json`, `Dockerfile` and `.dockerignore` are gone.
+- Leftovers, not in the deploy path: `README.md` ("Deploy to Vercel/Netlify"), `framer-export/` (Framer catalog JSON and component source, excluded from `tsconfig.json`). `tests/host-config.test.mjs` forbids any `vercel` script in `package.json`. `vercel.json`, `Dockerfile`, `.dockerignore`, `_README.txt` and `PLAN_FIX_ALL.md` are gone.
 - `.mcp.json` - four HTTP MCP connectors for Claude sessions (Cloudflare, Supabase, Stripe, Resend); OAuth, no keys in the file.
 ## Platform Requirements
 - Node >= 22.18, npm 11, `npm ci`.
 - Playwright chromium browser installed locally (`npx playwright install chromium`); tests start their own dev server on port 3010 (port 3000 is held by another local app).
 - Checks before a hand-over (see `.planning/CONTROL-BOARD.md`): `npx tsc --noEmit`, `node --test tests/*.test.mjs`, `npm run tokens:check`, `npm run build`, `npx playwright test`.
 - Fonts and brand assets are read from `brand/` (committed) and images from `public/assets/img` (300 files) and `public/assets/fonts`.
-- Cloudflare Worker `almar` (static assets from `out/`) on the Cloudflare account "Almar Private Journey" (`f1d9a1fa...`, since 2026-10-02). Live domains: `almarprivatejourney.com`, `www.almarprivatejourney.com`, plus `almar.almar-private-journey.workers.dev`.
+- Cloudflare Worker `almar` (static assets from `out/` plus the OpenNext script for its `run_worker_first` paths) on the Cloudflare account "Almar Private Journey" (`f1d9a1fa...`, since 2026-10-02). Live domains: `almarprivatejourney.com`, `www.almarprivatejourney.com`; `workers_dev` is off. Also `almar-preview` (`preview.almarprivatejourney.com`) and `almar-ops` (`dashboard.almarprivatejourney.com`).
 - Deploy is manual: build with `node scripts/assemble-cloudflare.mjs`, then the ALMAR-login `wrangler deploy` command above (plain `wrangler` uses the Vamos login on this Mac; `wrangler.toml` pins `account_id`). Only on the owner's explicit word. Runbook: `.planning/phases/02-platform-spine/02-RUNTIME-DEPLOY.md`.
 - The Next server runtime (OpenNext, `open-next.config.ts`) is configured since job 10: `scripts/assemble-cloudflare.mjs` builds Workers `almar`, `almar-preview` and `almar-ops`; the Worker serves `out/` and runs only for its `run_worker_first` paths.
 - No CI (`.github/` absent).
@@ -207,7 +207,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 |-----------|----------------|------|
 | Public pages | React `page.tsx` per public URL, EN at the root and mirrored under `app/ar/` and `app/es/`; data through `lib/data/<entity>.ts` | `app/page.tsx`, `app/<page>/page.tsx`, `app/ar/**`, `app/es/**` |
 | Assemble script | Runs `npm run build`, copies `public/` and every `.body` into `out/`, writes `out/404.html`, copies `_headers`, fails if `index.html` or `404.html` is missing | `scripts/assemble-cloudflare.mjs` |
-| Worker config | Assets-only Worker named `almar`, custom domains, 404 handling | `wrangler.toml` |
+| Worker config | Worker `almar`: static assets from `out/`, `main = worker/almar.mjs` for the `run_worker_first` paths, custom domains, 404 handling, `FORM_LIMITER`; preview and ops have their own files | `wrangler.toml`, `wrangler.preview.toml`, `wrangler.ops.toml`, `worker/almar.mjs` |
 | Static 404 | Standalone HTML string with inline tokens-only CSS and the inlined monogram SVG; no React | `lib/not-found-document.ts` (`renderStaticNotFound()`) |
 | Dev 404 and error UI | React 404 and error boundary using `StatusFrame` | `app/not-found.tsx`, `app/error.tsx`, `components/status-frame.tsx` |
 | Root layout | `<html lang="en" dir="ltr">`, font CSS variables, skip link, imports `app/globals.css`; applies to React pages only (route handlers bypass it) | `app/layout.tsx` |
@@ -223,10 +223,10 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 | Dashboard screens | One `*-screen.tsx` client component per section, mounted by a thin `page.tsx` | `app/dashboard/(ops)/<section>/<section>-screen.tsx` |
 | Test harness | Renders one named scene of one component for visual and a11y tests | `app/%5F%5Fharness/page.tsx`, `app/%5F%5Fharness/harness-client.tsx`, `tests/journey/scenes/*.tsx` |
 ## Pattern Overview
-- The Worker serves `out/` and runs only for its `run_worker_first` paths (`/api/*`, `/login`, `/auth/*`, `/account`, `/bookings`; check `wrangler.toml`). Every other path is a file in `out/`, built from the React `page.tsx` files.
+- The Worker serves `out/` and runs only for its `run_worker_first` paths: `/api/*`, `/login`, `/auth/confirm`, `/auth/sign-out`, `/auth/handoff/start`, `/account`, `/bookings`, `/newsletter` (`wrangler.toml`). Every other path is a file in `out/`, built from the React `page.tsx` files.
 - Dev-only pages (`/__harness`) are gated twice: `notFound()` outside the harness flag, and the assemble script never copies their `.html`.
-- A server runtime exists (OpenNext on Worker `almar`, job 10) for the `run_worker_first` paths; Supabase auth and the ops API run there. `resend` is imported by `app/newsletter/route.ts` and `app/api/contact/route.ts`.
-- No data layer. Dashboard and guest screens hold local `useState` only; forms do not persist.
+- A server runtime exists (OpenNext on Worker `almar`, job 10) for the `run_worker_first` paths; Supabase auth and the ops API run there. `resend` is imported by `app/newsletter/route.ts`, `app/api/contact/route.ts` and `lib/auth/magic-link-server.ts`.
+- Data layer: every public read goes through `lib/data/<entity>.ts` (live Supabase rows baked at build, fixtures as the fallback shape); the dashboard reads and writes through `app/api/ops/*`. Some guest screens still hold local `useState` only.
 - Imports are relative (`../../lib/cn`). `tsconfig.json` has no `paths` alias and `@/` is not used.
 - `framer-export/` is excluded from TypeScript and is never imported; it holds Framer-side reference material.
 ## Layers
@@ -250,7 +250,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - Journey components take `copy: JourneyCopy` and `locale` as props and never read the cookie; UI primitives either take labels as props (`SiteNav` `labels`) or default to English.
 - Depends on: `lib/cn.ts`, `lib/copy/*`, `lib/journey-format.ts`, `brand/` SVGs.
 - Used by: React screens and the harness scenes.
-- Purpose: Guest and ops front ends built to the design system, not yet connected to data.
+- Purpose: Guest and ops front ends built to the design system; the dashboard is wired to Supabase through `app/api/ops/*`, the guest sign-in, account and bookings pages through `lib/auth/*`.
 - Location: `app/account/`, `app/login/`, `app/bookings/`, `app/booking/trip/`, `app/dashboard/`, `app/dashboard/(ops)/`.
 - Pattern: `page.tsx` (server component: metadata + production gate + render) imports `<name>-screen.tsx` (`"use client"`, local state). Guest screens render `SiteNav` + `<main id="content">` + `WhatsApp`; ops screens render inside `(ops)/layout.tsx`.
 - `app/booking/trip/trip-screen.tsx` reads the query `where, check-in, check-out, adults, children, infants` (written by the embed bundle) and shows an empty state; it does not use `components/journey`.
@@ -260,7 +260,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - Types: `DocumentLocale` (`lib/set-document-locale.ts`), `HomeLocale`, `GuestLocale`, `DashboardLocale`, `JourneyLocale`, `Locale` all equal `"en" | "ar" | "es"`.
 - Some screens still define a small inline `COPY` object per locale (`app/account/account-screen.tsx`, `app/login/sign-in-screen.tsx`, `app/bookings/bookings-screen.tsx`, `app/booking/trip/trip-screen.tsx`); new copy goes into `lib/copy/`.
 - `app/newsletter/route.ts` (POST, Resend contact create, honeypot fields, 503 when `RESEND_API_KEY` is unset). `app/fx` and `app/embed/**` were removed in Phase 3.3.
-- Every handler starts with `if (process.env.NODE_ENV === "production") return 404`.
+- Dev-only handlers answer 404 in production; `app/newsletter/route.ts` is live (POST, rate-limited, honeypots, 503 without `RESEND_API_KEY`) and is not NODE_ENV-gated.
 - Purpose: Deterministic scenes of journey components for Playwright screenshots, RTL and a11y checks.
 - Location: `app/%5F%5Fharness/page.tsx` (the on-disk folder name is literally `%5F%5Fharness`; the URL is `/__harness`), `app/%5F%5Fharness/harness-client.tsx`, `tests/journey/`.
 - Gate: `export const dynamic = "force-dynamic"`, then `if (process.env.ALMAR_HARNESS !== "1") notFound()` before anything reads `searchParams`. `ALMAR_HARNESS=1` is set only in `playwright.config.ts` `webServer.env`.
@@ -311,7 +311,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - **Threading:** Node server in dev; production runs OpenNext on a Cloudflare Worker for the `run_worker_first` paths only.
 - **Global state:** `memory` in `lib/fx/rates.ts`. Nothing else is module-level mutable.
 - **Circular imports:** None detected.
-- **Production gate is per page:** `app/dashboard/(ops)/layout.tsx` is a client component with no gate; every new React page and every new route handler must carry its own `NODE_ENV === "production"` check until a real runtime and auth exist.
+- **Production gate is per page:** a dev-only page (`/__harness`) carries its own gate. `app/dashboard/(ops)/layout.tsx` is a server layout: on the ops host it requires an owner session (else `/sign-in`); off the ops host it calls `notFound()` in production.
 - **`.body` is the only way into `out/`:** a public page is a React `page.tsx` that Next prerenders (`generateStaticParams` for dynamic ones); the assemble script copies the prerendered output (and `tests/harness-gate.test.mjs` still requires it to name only `.body` files and never the harness).
 - **Brand SVG imports:** `next.config.ts` makes `Curves_black.svg` and `Poly_Black.svg` markup strings (`asset/source`); `Stacked_Charcoal.svg`, `Poly_White.svg`, `Curves_White.svg` are static-image objects (use `.src`). Do not pass an imported object through `encodeURIComponent`. Typings are in `svg.d.ts`.
 - **Build needs network:** `lib/fonts.ts` uses `next/font/google` for Noto Naskh/Sans Arabic.
