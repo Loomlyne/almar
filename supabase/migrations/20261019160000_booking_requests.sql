@@ -637,6 +637,9 @@ begin
     return jsonb_build_object('ok', false, 'reason', 'requests_closed');
   end if;
 
+  -- One email at a time past this point: booking_lock serializes one stay only, so two requests of one email on
+  -- two stays could both pass the count. Taken only here, after the one stay lock, so it cannot deadlock.
+  perform pg_advisory_xact_lock(hashtextextended('almar-request-email:' || lower(v_b.email), 0));
   select count(*) into v_open
   from public.bookings o
   where o.email = v_b.email
