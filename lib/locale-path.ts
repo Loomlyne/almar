@@ -14,7 +14,8 @@ export function localeDir(locale: Locale): "rtl" | "ltr" {
   return locale === "ar" ? "rtl" : "ltr";
 }
 
-const PREFIXED = ["ar", "es"] as const;
+/** Every locale has its prefix (owner, 2026-10-21, decision #13): /en/…, /ar/…, /es/…. "/" itself is the Worker's language redirect. */
+const PREFIXED = LOCALES;
 
 /** A path is "plain" when it is a site-absolute path with no origin, query, hash, backslash or empty segment. */
 function assertPlainPath(path: string): void {
@@ -35,8 +36,11 @@ function assertPlainPath(path: string): void {
 /**
  * The URL of a page in a locale, in the form the server serves without a redirect.
  *
- *   en:       "/"  ->  "/"               "/private-stays"  ->  "/private-stays"
- *   ar / es:  "/"  ->  "/ar/"            "/private-stays"  ->  "/ar/private-stays"
+ *   "/"  ->  "/en/", "/ar/", "/es/"            "/private-stays"  ->  "/en/private-stays", "/ar/private-stays", ...
+ *
+ * Every locale is prefixed since job 21 (owner, 2026-10-21, decision #13); a bare "/" is answered by the Worker, which
+ * sends the visitor to the language in the almar-locale cookie (else /en/), and every old unprefixed page URL answers
+ * 301 to its /en/ address (public/_redirects).
  *
  * The trailing slash on a locale home and its absence on a page are BOTH required. Measured 2026-10-02
  * against Cloudflare static assets with html_handling = "auto-trailing-slash": individual files are served
@@ -50,11 +54,13 @@ function assertPlainPath(path: string): void {
 export function localePath(locale: Locale, path: string): string {
   if (!isLocale(locale)) throw new Error(`unknown locale: ${JSON.stringify(locale)}`);
   assertPlainPath(path);
-  if (locale === "en") return path;
   return path === "/" ? `/${locale}/` : `/${locale}${path}`;
 }
 
-/** Inverse of localePath. Lenient about a trailing slash. "/arabic" is not "/ar" + "bic". */
+/**
+ * Inverse of localePath. Lenient about a trailing slash. "/arabic" is not "/ar" + "bic". An unprefixed path (an old
+ * address, before job 21) reads as English.
+ */
 export function stripLocale(pathname: string): { locale: Locale; path: string } {
   let locale: Locale = "en";
   let rest = pathname;
@@ -94,6 +100,18 @@ export const PUBLIC_PAGES = [
   "/experiences",
 ] as const;
 
+/**
+ * The guest pages the public Worker renders itself (lib/server-routes.ts): prefixed like every page since job 21, but
+ * never static, never in the sitemap and without hreflang (noindex). Phase 4 pages under /bookings live at
+ * /<locale>/bookings/… (app/[locale]/bookings/…).
+ */
+export const GUEST_PAGES = ["/login", "/account", "/bookings"] as const;
+
+/** True for a guest page or a page under /bookings (Phase 4), English path without a query. */
+export function isGuestPage(path: string): boolean {
+  return (GUEST_PAGES as readonly string[]).includes(path) || path.startsWith("/bookings/");
+}
+
 const PARAM = /^[a-z0-9-]+$/;
 
 export function matchPublicPage(path: string): (typeof PUBLIC_PAGES)[number] | null {
@@ -114,15 +132,15 @@ export function matchPublicPage(path: string): (typeof PUBLIC_PAGES)[number] | n
 }
 
 /**
- * Link target for an internal page. Only pages that exist in every locale are localised; an English-only
- * page keeps its English URL, so an Arabic page links to /about, never to the dead /ar/about.
- * A trailing "?query" or "#hash" is kept and does not take part in the match.
+ * Link target for an internal page. Only pages that exist in every locale (PUBLIC_PAGES and the guest pages) are
+ * localised; anything else keeps its path as given. A trailing "?query" or "#hash" is kept and does not take part in
+ * the match.
  */
 export function siteHref(locale: Locale, path: string): string {
   const cut = path.search(/[?#]/);
   const bare = cut === -1 ? path : path.slice(0, cut);
   const suffix = cut === -1 ? "" : path.slice(cut);
-  if (matchPublicPage(bare) === null) return path;
+  if (matchPublicPage(bare) === null && !isGuestPage(bare)) return path;
   return localePath(locale, bare) + suffix;
 }
 

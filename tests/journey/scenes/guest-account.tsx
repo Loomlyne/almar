@@ -1,5 +1,5 @@
-import { AccountScreen } from "../../../app/account/account-screen";
-import { BookingsScreen } from "../../../app/bookings/bookings-screen";
+import { AccountScreen } from "../../../app/[locale]/account/account-screen";
+import { BookingsScreen } from "../../../app/[locale]/bookings/bookings-screen";
 import type { SessionProfile } from "../../../lib/supabase/clients";
 import type { Scenes } from "../scene-types";
 

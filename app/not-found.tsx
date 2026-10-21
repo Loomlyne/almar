@@ -5,6 +5,7 @@ import { DocumentLocale } from "../components/document-locale";
 import { GUEST_COPY } from "../lib/copy/guest";
 import { NOT_FOUND_TITLE } from "../lib/not-found-document";
 import { requestLocale } from "../lib/request-locale";
+import { localePath } from "../lib/locale-path";
 
 export const metadata: Metadata = {
   title: NOT_FOUND_TITLE,
@@ -18,7 +19,7 @@ export default async function NotFound() {
     <>
       <DocumentLocale locale={locale} />
       <StatusFrame title={copy.title}>
-        <Link href="/">{copy.returnHome}</Link>
+        <Link href={localePath(locale, "/")}>{copy.returnHome}</Link>
       </StatusFrame>
     </>
   );

@@ -5,6 +5,7 @@ import { DropdownMenu } from "radix-ui";
 import { cn } from "../../lib/cn";
 import { ChevronIcon } from "../icons/icons";
 import { opsHandoffOpen } from "../../lib/host";
+import { localePath, type Locale } from "../../lib/locale-path";
 
 export type NavAccount = {
   /** Her name, or her email while the name is empty (board 6e). */
@@ -31,8 +32,11 @@ export function AccountMenu({
   labels,
   tone = "default",
   onNavigate,
+  locale = "en",
 }: {
   account: NavAccount;
+  /** The page's language: Bookings and Account open at /<locale>/… (job 21). */
+  locale?: Locale;
   labels: AccountMenuLabels;
   tone?: "default" | "on-image";
   onNavigate?: () => void;
@@ -61,17 +65,17 @@ export function AccountMenu({
             <bdi className="text-caption text-muted">{account.email}</bdi>
           </div>
           <DropdownMenu.Item asChild className={ITEM}>
-            <a href="/bookings" onClick={onNavigate}>
+            <a href={localePath(locale, "/bookings")} onClick={onNavigate}>
               {labels.bookings}
             </a>
           </DropdownMenu.Item>
           <DropdownMenu.Item asChild className={ITEM}>
-            <a href="/account#profile" onClick={onNavigate}>
+            <a href={`${localePath(locale, "/account")}#profile`} onClick={onNavigate}>
               {labels.profile}
             </a>
           </DropdownMenu.Item>
           <DropdownMenu.Item asChild className={ITEM}>
-            <a href="/account#preferences" onClick={onNavigate}>
+            <a href={`${localePath(locale, "/account")}#preferences`} onClick={onNavigate}>
               {labels.preferences}
             </a>
           </DropdownMenu.Item>

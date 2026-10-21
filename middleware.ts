@@ -6,6 +6,7 @@ import { OPS_PATH_HEADER } from "./lib/ops-routes";
 import { sessionCookieOptions } from "./lib/supabase/cookie-options";
 import { maintenanceResponse } from "./lib/maintenance-gate";
 import { needsSignedInHint, SIGNED_IN_HINT_COOKIE, signedInHintOptions } from "./lib/account-preferences";
+import { legacyLocaleTarget, ROOT_REDIRECT_HEADERS, rootLocaleTarget } from "./lib/locale-redirect";
 
 // Plan 02-02: keep her Supabase session fresh. Requests without a Supabase auth cookie never
 // wait on Supabase, so the static public pages stay fast.
@@ -42,6 +43,26 @@ export async function middleware(request: NextRequest) {
   const nodeEnv = process.env.NODE_ENV;
   const override = allowHostOverride(nodeEnv) ? request.headers.get(HOST_OVERRIDE_HEADER) : null;
   const host = override || request.headers.get("host");
+
+  // Job 21, public host only: "/" goes to the chosen language (cookie, else /en/) and an old unprefixed page answers
+  // 301 to /en/…, query kept. On Cloudflare the Worker (worker/handle.mjs) and public/_redirects answer these before
+  // Next; this is the same rule for the dev server.
+  if (!isOpsHost(host)) {
+    const path = request.nextUrl.pathname;
+    if (path === "/" && (request.method === "GET" || request.method === "HEAD")) {
+      const target = request.nextUrl.clone();
+      target.pathname = rootLocaleTarget(request.headers.get("cookie"));
+      const response = NextResponse.redirect(target, 302);
+      for (const [name, value] of Object.entries(ROOT_REDIRECT_HEADERS)) response.headers.set(name, value);
+      return response;
+    }
+    const legacy = legacyLocaleTarget(path);
+    if (legacy) {
+      const target = request.nextUrl.clone();
+      target.pathname = legacy;
+      return NextResponse.redirect(target, 301);
+    }
+  }
 
   // Plan 02-06: with maintenance saved on, the public Worker's own pages (/login, /account, /bookings) show the closed
   // page before anything else runs. The ops host is never closed.

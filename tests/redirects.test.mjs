@@ -1,6 +1,7 @@
-// The /services redirect contract (plan 03.3-12, design 5.2): public/_redirects holds exactly 9 rules, each
-// well formed, 301, same-origin, one hop. Cloudflare runs redirects before asset matching, so a rule that
-// shadows a live page would silently hide it: that is checked here too.
+// The redirect contract (plan 03.3-12, design 5.2; job 21): public/_redirects holds the old unprefixed English
+// addresses (301 to /en/…, owner 2026-10-21 decision #13) and the /services rules, each well formed, 301, same-origin,
+// one hop. Cloudflare runs redirects before asset matching, so a rule that shadows a live page would silently hide it:
+// that is checked here too.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -13,34 +14,62 @@ import {
   matchRedirect,
   parseRedirects,
   readRedirects,
+  redirectTarget,
   resolveInOut,
   sitePages,
 } from "./helpers/site-links.mjs";
+import { LEGACY_SECTIONS, legacyLocaleTarget } from "../lib/locale-redirect.ts";
+
+const LEGACY = ["/about", "/blog", "/contact", "/destinations", "/experiences", "/private-stays", "/login", "/account", "/bookings"];
 
 const EXPECTED = [
-  ["/services", "/experiences?type=service", 301],
-  ["/services/", "/experiences?type=service", 301],
-  ["/services/24-7-private-concierge", "/experiences?type=service&item=24-7-private-concierge", 301],
-  ["/services/24-7-private-concierge/", "/experiences?type=service&item=24-7-private-concierge", 301],
-  ["/services/luxury-ground-transport", "/experiences?type=service&item=luxury-ground-transport", 301],
-  ["/services/luxury-ground-transport/", "/experiences?type=service&item=luxury-ground-transport", 301],
-  ["/services/vip-airport-meet-greet", "/experiences?type=service&item=vip-airport-meet-greet", 301],
-  ["/services/vip-airport-meet-greet/", "/experiences?type=service&item=vip-airport-meet-greet", 301],
-  ["/services/*", "/experiences?type=service", 301],
+  ...LEGACY.flatMap((p) => [
+    [p, `/en${p}`, 301],
+    [`${p}/`, `/en${p}`, 301],
+  ]),
+  ["/services", "/en/experiences?type=service", 301],
+  ["/services/", "/en/experiences?type=service", 301],
+  ["/services/24-7-private-concierge", "/en/experiences?type=service&item=24-7-private-concierge", 301],
+  ["/services/24-7-private-concierge/", "/en/experiences?type=service&item=24-7-private-concierge", 301],
+  ["/services/luxury-ground-transport", "/en/experiences?type=service&item=luxury-ground-transport", 301],
+  ["/services/luxury-ground-transport/", "/en/experiences?type=service&item=luxury-ground-transport", 301],
+  ["/services/vip-airport-meet-greet", "/en/experiences?type=service&item=vip-airport-meet-greet", 301],
+  ["/services/vip-airport-meet-greet/", "/en/experiences?type=service&item=vip-airport-meet-greet", 301],
+  ["/services/*", "/en/experiences?type=service", 301],
+  ["/blog/*", "/en/blog/:splat", 301],
+  ["/private-stays/*", "/en/private-stays/:splat", 301],
+  ["/bookings/*", "/en/bookings/:splat", 301],
 ];
 
 const { rules, errors } = readRedirects();
 const catalog = JSON.parse(readFileSync("lib/data/fixtures/catalog.json", "utf8"));
 const serviceSlugs = catalog.filter((r) => r.kind === "service").map((r) => r.slug);
 const pathOf = (to) => new URL(to, SITE).pathname;
+const serviceRules = rules.filter((r) => r.from.startsWith("/services"));
+/** The guest pages are Worker pages (never static), so they are not in sitePages(). */
+const GUEST = new Set(["/en/login", "/en/account", "/en/bookings"]);
 
-test("public/_redirects: no errors and exactly the 9 rules of design 5.2, in order", () => {
+test("public/_redirects: no errors and exactly the expected rules, in order", () => {
   assert.deepEqual(errors, []);
   assert.deepEqual(rules.map((r) => [r.from, r.to, r.status]), EXPECTED);
-  assert.deepEqual(rules.filter((r) => r.splat).map((r) => r.from), ["/services/*"]);
-  assert.equal(rules.at(-1).splat, true, "the splat rule is last");
+  assert.deepEqual(rules.filter((r) => r.splat).map((r) => r.from), ["/services/*", "/blog/*", "/private-stays/*", "/bookings/*"]);
+  assert.equal(rules.findIndex((r) => r.splat), rules.length - 4, "the splat rules are last");
   assert.equal(new Set(rules.map((r) => r.from)).size, rules.length, "no source repeats");
   assert.equal(rules.every((r) => r.status === 301), true);
+});
+
+test("job 21: the legacy rules and lib/locale-redirect.ts agree", () => {
+  assert.deepEqual([...LEGACY_SECTIONS], LEGACY);
+  for (const p of LEGACY) {
+    assert.equal(redirectTarget(matchRedirect(rules, p), p), legacyLocaleTarget(p), p);
+    assert.equal(redirectTarget(matchRedirect(rules, `${p}/`), `${p}/`), legacyLocaleTarget(`${p}/`), `${p}/`);
+  }
+  for (const p of ["/blog/why-medellin-is-redefining-luxury-travel", "/private-stays/casa-jardin-san-diego", "/bookings/abc"]) {
+    assert.equal(redirectTarget(matchRedirect(rules, p), p), legacyLocaleTarget(p), p);
+  }
+  for (const p of ["/", "/en/about", "/ar/login", "/api/health", "/auth/confirm", "/newsletter", "/aboutx"]) {
+    assert.equal(legacyLocaleTarget(p), null, p);
+  }
 });
 
 test("public/_redirects: LF only, trailing newline, no BOM", () => {
@@ -48,7 +77,7 @@ test("public/_redirects: LF only, trailing newline, no BOM", () => {
   assert.equal(text.endsWith("\n"), true);
   assert.equal(text.includes("\r"), false);
   assert.equal(text.charCodeAt(0) === 0xfeff, false);
-  assert.equal(text.endsWith("/services/* /experiences?type=service 301\n"), true);
+  assert.equal(text.endsWith("/bookings/* /en/bookings/:splat 301\n"), true);
 });
 
 test("parseRedirects: form errors name their line", () => {
@@ -77,11 +106,19 @@ test("parseRedirects: form errors name their line", () => {
   assert.match(lined.errors[0], /line 4/);
   assert.deepEqual(parseRedirects("# only a comment\n\n/a /b 301\n").errors, []);
   assert.deepEqual(parseRedirects("/a/* /b 301\n").rules[0].splat, true);
+  assert.deepEqual(parseRedirects("/a/* /b/:splat 301\n").errors, []);
+  assert.deepEqual(parseRedirects("/a/* /b/:x 301\n").errors.length, 1);
 });
 
-test("destinations: same origin, a real page, only type and item, item is a service row", () => {
+test("destinations: same origin, a real page (or a guest page), only type and item, item is a service row", () => {
   const pages = sitePages();
   for (const r of rules) {
+    const dest = pathOf(redirectTarget(r, r.from.replace(/\*$/, "x")));
+    assert.equal(new URL(r.to, SITE).origin, SITE, r.to);
+    if (r.splat && !r.from.startsWith("/services")) continue;
+    assert.ok(pages.has(dest) || GUEST.has(dest), `${dest} is not a page`);
+  }
+  for (const r of serviceRules) {
     const url = new URL(r.to, SITE);
     assert.equal(url.origin, SITE, r.to);
     assert.equal(pages.has(url.pathname), true, `${url.pathname} is not a page`);
@@ -97,10 +134,11 @@ test("destinations: same origin, a real page, only type and item, item is a serv
 
 test("one hop: no destination matches a rule, no loop", () => {
   for (const r of rules) {
-    assert.equal(matchRedirect(rules, pathOf(r.to)), null, r.to);
-    const first = matchRedirect(rules, r.from.replace(/\*$/, "x"));
+    const probe = r.from.replace(/\*$/, "x");
+    assert.equal(matchRedirect(rules, pathOf(redirectTarget(r, probe))), null, r.to);
+    const first = matchRedirect(rules, probe);
     assert.ok(first);
-    assert.equal(matchRedirect(rules, pathOf(first.to)), null);
+    assert.equal(matchRedirect(rules, pathOf(redirectTarget(first, probe))), null);
   }
 });
 
@@ -127,12 +165,12 @@ test("coverage: every service slug lands on /experiences; locale prefixes and ot
   for (const slug of ["helicopter-transfers", ...serviceSlugs]) {
     const r = matchRedirect(rules, `/services/${slug}`);
     assert.ok(r, slug);
-    assert.equal(pathOf(r.to), "/experiences");
+    assert.equal(pathOf(r.to), "/en/experiences");
   }
-  for (const p of ["/ar/services", "/es/services", "/experiences", "/services-x", "/"]) {
+  for (const p of ["/ar/services", "/es/services", "/en/services", "/en/experiences", "/services-x", "/"]) {
     assert.equal(matchRedirect(rules, p), null, p);
   }
-  assert.equal(matchRedirect(rules, "/services/"), rules[1], "the exact rule wins before the splat");
+  assert.equal(matchRedirect(rules, "/services/"), rules.find((r) => r.from === "/services/"), "the exact rule wins before the splat");
 });
 
 test("resolveInOut: rule, rule-broken, and the old answers without a rules file", () => {

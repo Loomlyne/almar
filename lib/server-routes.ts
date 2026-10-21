@@ -16,7 +16,7 @@
 
 /**
  * Sections that answer 404 on both hosts until their own phase ships, whatever app/ holds. Next compiles every
- * route in app/, so this list, not the absence of a file, is what keeps them closed. A locale prefix (/ar, /es)
+ * route in app/, so this list, not the absence of a file, is what keeps them closed. A locale prefix (/en, /ar, /es)
  * does not change that. The last entry is the test harness page: a deny entry, not a link. /fx and /embed have had no
  * file since Phase 3.3 close removed the Framer bridge; they stay here so a new file there cannot open them by accident.
  */
@@ -31,22 +31,31 @@ export const HELD_PATHS = [
 export const OPS_API_PREFIX = "/api/ops/";
 
 /**
- * Exact server paths outside /api. Phase 2's sign-in (plan 02-23 task 3): the same six as JOB02_SERVER_PATHS in
+ * Exact server paths outside /api. Phase 2's sign-in (plan 02-23 task 3): the same paths as JOB02_SERVER_PATHS in
  * lib/auth/server-paths.ts (tests/server-runtime.test.mjs asserts they are equal), then slice 3 plan 27's
  * `/newsletter` (the footer's POST handler, app/newsletter/route.ts; it left HELD_PATHS in the same commit). Only the
  * exact path is served: `/ar/newsletter`, `/newsletter/x` and a GET page are not (a GET is Next's 405).
+ * Job 21 (owner, 2026-10-21): the sign-in, account and bookings pages live at /en/…, /ar/… and /es/… (app/[locale]/…);
+ * the old unprefixed addresses are 301s in public/_redirects. `/auth/*` and `/newsletter` stay unprefixed. "/" itself
+ * is answered by worker/handle.mjs (the language redirect) and is in run_worker_first, not in this list.
  */
 export const SERVER_PATHS_OUTSIDE_API: readonly string[] = [
-  "/login",
+  "/en/login",
+  "/ar/login",
+  "/es/login",
   "/auth/confirm",
   "/auth/sign-out",
   "/auth/handoff/start",
-  "/account",
-  "/bookings",
+  "/en/account",
+  "/ar/account",
+  "/es/account",
+  "/en/bookings",
+  "/ar/bookings",
+  "/es/bookings",
   "/newsletter",
 ];
 
-const LOCALE_PREFIXES = ["/ar", "/es"];
+const LOCALE_PREFIXES = ["/en", "/ar", "/es"];
 
 function withoutLocale(path: string): string {
   for (const prefix of LOCALE_PREFIXES) {

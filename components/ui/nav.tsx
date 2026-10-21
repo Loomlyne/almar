@@ -298,6 +298,7 @@ export function SiteNav({
             {account ? (
               <AccountMenu
                 account={account}
+                locale={locale}
                 tone={tools}
                 onNavigate={closeMenuIfOpen}
                 labels={{

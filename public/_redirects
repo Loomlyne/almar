@@ -1,10 +1,35 @@
+# Job 21 (owner, 2026-10-21, decision #13): every page lives at /en/…, /ar/… or /es/…. The old unprefixed English
+# addresses answer 301 to /en/… here, in the static asset layer: no Worker call, no CPU (lib/locale-redirect.ts
+# LEGACY_SECTIONS holds the same list; tests/locale-redirect.test.mjs checks both agree). "/" itself is not here: it
+# depends on the language cookie, so worker/handle.mjs answers it.
+/about /en/about 301
+/about/ /en/about 301
+/blog /en/blog 301
+/blog/ /en/blog 301
+/contact /en/contact 301
+/contact/ /en/contact 301
+/destinations /en/destinations 301
+/destinations/ /en/destinations 301
+/experiences /en/experiences 301
+/experiences/ /en/experiences 301
+/private-stays /en/private-stays 301
+/private-stays/ /en/private-stays 301
+/login /en/login 301
+/login/ /en/login 301
+/account /en/account 301
+/account/ /en/account 301
+/bookings /en/bookings 301
+/bookings/ /en/bookings 301
 # /services and its detail pages were folded into /experiences (D-64, D-67; owner, 2026-10-03)
-/services /experiences?type=service 301
-/services/ /experiences?type=service 301
-/services/24-7-private-concierge /experiences?type=service&item=24-7-private-concierge 301
-/services/24-7-private-concierge/ /experiences?type=service&item=24-7-private-concierge 301
-/services/luxury-ground-transport /experiences?type=service&item=luxury-ground-transport 301
-/services/luxury-ground-transport/ /experiences?type=service&item=luxury-ground-transport 301
-/services/vip-airport-meet-greet /experiences?type=service&item=vip-airport-meet-greet 301
-/services/vip-airport-meet-greet/ /experiences?type=service&item=vip-airport-meet-greet 301
-/services/* /experiences?type=service 301
+/services /en/experiences?type=service 301
+/services/ /en/experiences?type=service 301
+/services/24-7-private-concierge /en/experiences?type=service&item=24-7-private-concierge 301
+/services/24-7-private-concierge/ /en/experiences?type=service&item=24-7-private-concierge 301
+/services/luxury-ground-transport /en/experiences?type=service&item=luxury-ground-transport 301
+/services/luxury-ground-transport/ /en/experiences?type=service&item=luxury-ground-transport 301
+/services/vip-airport-meet-greet /en/experiences?type=service&item=vip-airport-meet-greet 301
+/services/vip-airport-meet-greet/ /en/experiences?type=service&item=vip-airport-meet-greet 301
+/services/* /en/experiences?type=service 301
+/blog/* /en/blog/:splat 301
+/private-stays/* /en/private-stays/:splat 301
+/bookings/* /en/bookings/:splat 301

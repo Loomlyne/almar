@@ -13,7 +13,7 @@ type NotFoundCopy = {
 };
 
 export const NOT_FOUND_COPY: Record<Locale, NotFoundCopy> = {
-  en: { title: "Page not found | ALMAR", heading: "Page not found", linkLabel: "Return home", href: "/", status: "published" },
+  en: { title: "Page not found | ALMAR", heading: "Page not found", linkLabel: "Return home", href: "/en/", status: "published" },
   ar: {
     title: "الصفحة غير موجودة | ALMAR",
     heading: "الصفحة غير موجودة",
