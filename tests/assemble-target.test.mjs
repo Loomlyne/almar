@@ -108,7 +108,3 @@ test("the order in the source: target, public check, media check, then the build
   assert.ok(at("writeTargetFiles({") < at("assertTargetFiles(outDir, target"));
   assert.equal(SOURCE.includes("headersFile:"), false, "_headers is written by writeTargetFiles, never copied by the assembler");
 });
-
-test("OpenNext builds Next 15 past its support window until the Next 16 upgrade (owner, 2026-10-21; delete with that upgrade)", () => {
-  assert.match(SOURCE, /"--dangerouslyUseUnsupportedNextVersion"/);
-});
