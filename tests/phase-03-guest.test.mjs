@@ -139,3 +139,20 @@ test("nav takes its logos from brand/ and uses LocaleSelect, not NavDrop or Fram
   assert.match(footer, /"inquiries@almarprivatejourney\.com"/);
   assert.match(footer, /\+971 56 388 3302/);
 });
+
+test("sign-in option A (owner, 2026-10-19): kicker per host, gold rule, full-width field, link note in en, ar, es", async () => {
+  const { GUEST_COPY: copy } = await import("../lib/copy/guest.ts");
+  for (const locale of ["en", "ar", "es"]) {
+    for (const key of ["kickerPublic", "kickerOps", "linkNote"]) {
+      assert.equal(typeof copy[locale].auth[key], "string", `${locale}.auth.${key}`);
+      assert.ok(copy[locale].auth[key].trim().length > 0, `${locale}.auth.${key}`);
+    }
+  }
+  assert.equal(copy.en.auth.linkNote, "The link works once, for one hour.");
+  const screen = readFileSync(SIGN_IN_SCREEN, "utf8");
+  assert.match(screen, /variant === "ops" \? copy\.auth\.kickerOps : copy\.auth\.kickerPublic/);
+  assert.match(screen, /<span className="block w-10 border-t border-gold" aria-hidden="true" \/>/);
+  assert.match(screen, /error=\{emailError\}\s+className="max-w-none"/);
+  assert.match(screen, /\{copy\.auth\.linkNote\}/);
+  assert.equal(/bg-gold|text-gold|fill-gold/.test(screen), false, "gold is a line only");
+});
