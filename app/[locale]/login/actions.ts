@@ -19,11 +19,12 @@ export async function requestSignIn(_previous: SignInState, form: FormData): Pro
   const locale = readLocale(form.get("locale"));
   const store = await cookies();
   store.set(returnCookieName(), safeReturnPath(form.get("returnTo")), returnCookieOptions());
-  // Job 21 (PR #33 review): the sign-in page's language becomes the remembered one, so the link's Continue page, an
-  // expired link and "/" all answer in it, even for a reader who never touched the language select.
-  store.set(LOCALE_COOKIE, locale, { path: "/", maxAge: 31536000, sameSite: "lax" });
 
   const result = await sendLinkFromRequest({ email, locale });
+  // Job 21 (PR #33 review): once the email has passed the check, the sign-in page's language becomes the remembered
+  // one, so the link's Continue page, an expired link and "/" all answer in it, even for a reader who never touched
+  // the language select. An invalid email remembers nothing.
+  if (result.status !== "invalid") store.set(LOCALE_COOKIE, locale, { path: "/", maxAge: 31536000, sameSite: "lax" });
   switch (result.status) {
     case "sent":
       return { status: "sent", email };

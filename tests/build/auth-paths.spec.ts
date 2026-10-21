@@ -73,11 +73,31 @@ test.describe("sign-in paths on the built Worker, no secrets bound", () => {
     expect(res.headers()["cache-control"]).toContain("no-store");
   });
 
-  test("POST /auth/sign-out: redirect home, no 500, noindex", async ({ request }) => {
+  test("POST /auth/sign-out: redirect to the English home without a language, no 500, noindex", async ({ request }) => {
     const res = await request.post("/auth/sign-out", { maxRedirects: 0 });
     expect([302, 303, 307, 308]).toContain(res.status());
-    expect(new URL(res.headers()["location"], "http://x").pathname).toBe("/");
+    expect(new URL(res.headers()["location"], "http://x").pathname).toBe("/en/");
     expect(res.headers()["x-robots-tag"]).toBe("noindex");
+  });
+
+  test("POST /auth/sign-out (job 21): the form's locale, else the almar-locale cookie, else /en/; a bad value is ignored", async ({ request }) => {
+    const cases: { name: string; form?: Record<string, string>; cookie?: string; want: string }[] = [
+      { name: "form locale=ar", form: { locale: "ar" }, want: "/ar/" },
+      { name: "cookie es", cookie: "almar-locale=es", want: "/es/" },
+      { name: "bad form value", form: { locale: "//evil.com" }, want: "/en/" },
+      { name: "bad cookie value", cookie: "almar-locale=//evil.com", want: "/en/" },
+    ];
+    for (const c of cases) {
+      const res = await request.post("/auth/sign-out", {
+        maxRedirects: 0,
+        ...(c.form ? { form: c.form } : {}),
+        ...(c.cookie ? { headers: { cookie: c.cookie } } : {}),
+      });
+      expect([302, 303, 307, 308], c.name).toContain(res.status());
+      const location = new URL(res.headers()["location"], "http://x");
+      expect(location.pathname, c.name).toBe(c.want);
+      expect(location.host === "x" || !location.host.includes("evil"), c.name).toBe(true);
+    }
   });
 
   test("the server action behind /en/login answers 'unavailable' with no 500 (browser submit)", async ({ page }) => {
