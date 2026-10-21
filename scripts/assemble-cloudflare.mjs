@@ -230,7 +230,7 @@ export function nextBuildEnv(env, source) {
 }
 
 /**
- * Next 15 stores the result of every `fetch` of a build in <root>/.next/cache/fetch-cache with revalidate 31536000 (a
+ * Next (15 and 16; job 20 read 16.4.2's file-system-cache.js: <distDir>/server/../cache/fetch-cache) stores the result of every `fetch` of a build in <root>/.next/cache/fetch-cache with revalidate 31536000 (a
  * year). The data layer reads the api_* views through supabase-js, which uses fetch, so a later build in the same checkout
  * finds those entries and rebuilds the OLD catalogue: a title changed in the database kept its old text (proved on the
  * local stack by tests/rebuild-fresh.test.mjs). Deleted before every build; only this folder, the webpack cache beside it
@@ -326,7 +326,7 @@ export async function readPublishSequence({ url, anonKey, fetchImpl = globalThis
 }
 
 /**
- * 03.2-02b (Grok 4.7 review of PR #10): the 11 catalogue views are read one after another, and Next 15.5 caches every
+ * 03.2-02b (Grok 4.7 review of PR #10): the 11 catalogue views are read one after another, and Next (15.5 and 16) caches every
  * fetch of a static build (implicit build-time cache, shared between export workers), so a second read INSIDE the build
  * would only be a cache hit. The check therefore lives here, around the whole build: for preview and production, the
  * sequence is read before `build()` starts and again after it ends; a different number throws and the live site stays as
@@ -564,10 +564,8 @@ async function main(argv = process.argv.slice(2)) {
   await guardPublishSequence({
     target,
     source,
-    // OpenNext 1.20.6 refuses Next 15 from 2026-10-21 (two years after its release). The flag lets the build run until
-    // the Next 16 upgrade lands (owner, 2026-10-21); remove it with that upgrade.
     build: () =>
-      execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config, "--dangerouslyUseUnsupportedNextVersion"], {
+      execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
         cwd: root,
         stdio: "inherit",
         env: nextBuildEnv(process.env, source),
