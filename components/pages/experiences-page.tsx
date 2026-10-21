@@ -52,6 +52,7 @@ export async function ExperiencesPage({ locale }: { locale: Locale }) {
       duration_label: item.duration_label,
       destination_slugs: item.destination_slugs,
       stay_slugs: item.stay_slugs,
+      price_aed: item.price_aed,
       image: { src: item.image.url, alt: item.image.alt },
     };
   });

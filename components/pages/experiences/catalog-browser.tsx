@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ExperiencesPageCopy } from "../../../lib/copy/experiences-page";
-import { filterCatalog, parseCatalogQuery } from "../../../lib/data/catalog-filter";
+import { filterCatalog, parseCatalogQuery, sortByPrice } from "../../../lib/data/catalog-filter";
 import type { CatalogItem } from "../../../lib/data/types";
 import { fill, formatPlural } from "../../../lib/journey-format";
 import { Button } from "../../ui/button";
@@ -29,7 +29,7 @@ import { ItemOverlay } from "./item-overlay";
 /** What the page needs of a catalogue item. Plain and small: the server page sends this, not the whole record. */
 export type BrowserItem = Pick<
   CatalogItem,
-  "slug" | "kind" | "name" | "summary" | "duration_label" | "destination_slugs" | "stay_slugs"
+  "slug" | "kind" | "name" | "summary" | "duration_label" | "destination_slugs" | "stay_slugs" | "price_aed"
 > & {
   /** The picture, already resolved for this language. */
   image: { src: string; alt: string };
@@ -80,7 +80,7 @@ export function CatalogBrowser({
   const [ready, setReady] = useState(false);
   const headingId = useId();
 
-  const results = useMemo(() => filterCatalog(items, toCatalogFilter(state)), [items, state]);
+  const results = useMemo(() => sortByPrice(filterCatalog(items, toCatalogFilter(state)), state.sort), [items, state]);
   const groups = useMemo(() => splitGroups(results), [results]);
   const stayChoices = useMemo(() => stayOptions(stays, state.destinations), [stays, state.destinations]);
   const names = useMemo(
@@ -208,6 +208,7 @@ export function CatalogBrowser({
         onKind={(kind) => change({ ...state, kind })}
         onDestinations={(next) => change(setDestinations(state, next, stays))}
         onStays={(next) => change(setStays(state, next))}
+        onSort={(sort) => change({ ...state, sort })}
         onClear={clear}
       />
       <div className="grid min-w-0 flex-1 gap-8">

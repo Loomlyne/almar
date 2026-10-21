@@ -28,7 +28,10 @@ export type StayDetailCopy = {
     bedrooms: string;
     beds: string;
     neighborhood: string;
+    pets: string;
   };
+  /** STAY-05: the pets rule as the facts row shows it. `{amount}` is the fee in AED, Western numerals. */
+  pets: { allowed: string; notAllowed: string; fee: string };
   inclusionsLabel: string;
   requestInquiry: string;
   /** DRAFTED UI COPY (AR/ES): the slideshow's names. `{title}` the stay, `{n}` and `{total}` slide numbers. */
@@ -80,7 +83,9 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
       bedrooms: "Bedrooms",
       beds: "Beds",
       neighborhood: "Neighborhood",
+      pets: "Pets",
     },
+    pets: { allowed: "Allowed", notAllowed: "Not allowed", fee: "Allowed, AED {amount} fee" },
     inclusionsLabel: "Included with the stay:",
     requestInquiry: "Request Inquiry",
     gallery: {
@@ -122,7 +127,9 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
       bedrooms: "غرف النوم",
       beds: "الأسرّة",
       neighborhood: "الحي",
+      pets: "الحيوانات الأليفة",
     },
+    pets: { allowed: "مسموح", notAllowed: "غير مسموح", fee: "مسموح مقابل رسوم {amount} درهم" },
     inclusionsLabel: "مشمول مع الإقامة:",
     requestInquiry: "أرسلوا استفساراً",
     gallery: {
@@ -164,7 +171,9 @@ export const STAY_DETAIL_COPY: Record<StayDetailLocale, StayDetailCopy> = {
       bedrooms: "Habitaciones",
       beds: "Camas",
       neighborhood: "Barrio",
+      pets: "Mascotas",
     },
+    pets: { allowed: "Se admiten", notAllowed: "No se admiten", fee: "Se admiten, con tarifa de AED {amount}" },
     inclusionsLabel: "Incluido en la estancia:",
     requestInquiry: "Solicitar información",
     gallery: {

@@ -32,6 +32,7 @@ function rowsOf(locale: Locale3): CatalogRow[] {
     name: numbered(locale, "item", n),
     kind,
     unit,
+    price: priced ? n : null,
     priceText: priced ? `AED ${words(locale).price}` : null,
     destinationIds: dests,
     stayIds: stays,
@@ -86,7 +87,7 @@ function CatalogItemsScene({ ctx, variant }: { ctx: SceneContext; variant: Varia
   const [form, setForm] = useState<CatalogItemForm>(() => formOf(variant, locale));
   const noop = () => undefined;
   const filtered = variant === "list-filtered";
-  const filter: CatalogFilter = filtered ? { kind: "service", destinationId: "d1", stayId: "", query: "" } : { kind: "", destinationId: "", stayId: "", query: "" };
+  const filter: CatalogFilter = filtered ? { kind: "service", destinationId: "d1", stayId: "", query: "", sort: "position" } : { kind: "", destinationId: "", stayId: "", query: "", sort: "position" };
   const warnings: PublishWarningCode[] = variant === "published-no-price" ? ["no_price"] : [];
 
   const panel: CatalogPanel | null = filtered

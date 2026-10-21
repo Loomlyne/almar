@@ -38,7 +38,7 @@ const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MAX_LIST = 20;
 
 /** The /experiences address state. Search text is never in the URL. */
-export type CatalogQuery = { kind?: CatalogKind; destinations: string[]; stays: string[]; item?: string };
+export type CatalogQuery = { kind?: CatalogKind; destinations: string[]; stays: string[]; item?: string; sort?: PriceSort };
 
 function list(raw: string | null, allow?: readonly string[]): string[] {
   if (!raw) return [];
@@ -66,6 +66,8 @@ export function parseCatalogQuery(
     stays: list(params.get("stay"), opts?.stays),
   };
   if (kind) q.kind = kind;
+  const sort = parsePriceSort(params.get("sort"));
+  if (sort !== "position") q.sort = sort;
   if (item) q.item = item;
   return q;
 }
@@ -78,6 +80,32 @@ export function toCatalogQuery(q: CatalogQuery): string {
   if (d.length) parts.push(`destination=${d.join(",")}`);
   const s = q.stays.filter((v) => SLUG.test(v));
   if (s.length) parts.push(`stay=${s.join(",")}`);
+  if (q.sort === "price_asc" || q.sort === "price_desc") parts.push(`sort=${q.sort}`);
   if (q.item && SLUG.test(q.item)) parts.push(`item=${q.item}`);
   return parts.length ? `?${parts.join("&")}` : "";
+}
+
+/** The price sort (CMS-02). "position" keeps the owner's order. */
+export type PriceSort = "position" | "price_asc" | "price_desc";
+
+export function parsePriceSort(raw: string | null | undefined): PriceSort {
+  return raw === "price_asc" || raw === "price_desc" ? raw : "position";
+}
+
+/**
+ * Stable price sort. An item with no rate sorts last in both directions: its rate is never guessed. Ties and the unpriced
+ * keep their incoming order, so "position" order is the tie-break.
+ */
+export function sortByPrice<T extends { price_aed: number | null }>(items: readonly T[], sort: PriceSort): T[] {
+  if (sort === "position") return [...items];
+  const dir = sort === "price_asc" ? 1 : -1;
+  return items
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => {
+      const pa = a.item.price_aed;
+      const pb = b.item.price_aed;
+      if (pa === null || pb === null) return pa === pb ? a.index - b.index : pa === null ? 1 : -1;
+      return (pa - pb) * dir || a.index - b.index;
+    })
+    .map(({ item }) => item);
 }
