@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { petsText } from "../../../lib/stay-pets";
 import { getCatalogForStay } from "../../../lib/data/experiences";
 import { MEDIA_BASE_URL } from "../../../lib/data/media";
 import { getBlockedDates, getRelatedStays, getStay } from "../../../lib/data/stays";
@@ -459,6 +460,8 @@ for (const slug of FOCUS) {
             [c.copy.facts.bedrooms, c.stay.bedrooms === null ? null : String(c.stay.bedrooms)],
             [c.copy.facts.beds, c.stay.beds_label],
             [c.copy.facts.neighborhood, c.stay.neighborhood],
+            // STAY-05: the pets rule, last in the row; none until the owner sets one.
+            [c.copy.facts.pets, petsText(c.stay, c.copy.pets)],
           ].filter(([, value]) => value !== null && value !== "") as string[][];
 
           const list = page.locator("main dl").first();

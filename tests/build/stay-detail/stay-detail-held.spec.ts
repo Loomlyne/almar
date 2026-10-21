@@ -204,7 +204,8 @@ for (const slug of FOCUS) {
         // the bytes the server sent, payload included
         const raw = await (await page.request.get(stayUrl(locale, slug))).text();
         for (const field of ["nightly_rate_aed", "min_nights", "price_aed"]) expect(raw.includes(field), field).toBe(false);
-        expect(/\b(?:AED|USD|EUR|COP)\b/.test(raw), "a currency code in the served bytes").toBe(false);
+        // STAY-05: the pets fee fact ("AED 150.00") is the one place a code may appear.
+        expect(/\b(?:AED|USD|EUR|COP)\b/.test(raw.replace(/\bAED \d[\d,]*\.\d{2}\b/g, "")), "a currency code in the served bytes").toBe(false);
         for (const host of ["framerusercontent", "files.catbox.moe", "videos.pexels.com"]) expect(raw.includes(host), host).toBe(false);
         expect(MINIMUM.test(raw), "minimum-stay wording in the served bytes").toBe(false);
 

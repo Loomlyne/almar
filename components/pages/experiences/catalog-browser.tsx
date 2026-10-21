@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ExperiencesPageCopy } from "../../../lib/copy/experiences-page";
-import { filterCatalog, parseCatalogQuery } from "../../../lib/data/catalog-filter";
+import { filterCatalog, canSortByPrice, parseCatalogQuery, sortByPrice } from "../../../lib/data/catalog-filter";
 import type { CatalogItem } from "../../../lib/data/types";
 import { fill, formatPlural } from "../../../lib/journey-format";
 import { Button } from "../../ui/button";
@@ -31,6 +31,9 @@ export type BrowserItem = Pick<
   CatalogItem,
   "slug" | "kind" | "name" | "summary" | "duration_label" | "destination_slugs" | "stay_slugs"
 > & {
+  /** The price order, from priceRanks on the server: 0 is the cheapest; null when the item has no price. Never an amount. */
+  sort_rank: number | null;
+} & {
   /** The picture, already resolved for this language. */
   image: { src: string; alt: string };
 };
@@ -80,7 +83,13 @@ export function CatalogBrowser({
   const [ready, setReady] = useState(false);
   const headingId = useId();
 
-  const results = useMemo(() => filterCatalog(items, toCatalogFilter(state)), [items, state]);
+  const matching = useMemo(() => filterCatalog(items, toCatalogFilter(state)), [items, state]);
+  // The sort is offered, and applied, only while it can reorder something in the current view: two priced items.
+  const showSort = canSortByPrice(matching);
+  const results = useMemo(
+    () => (showSort ? sortByPrice(matching, state.sort, (entry) => entry.sort_rank) : matching),
+    [matching, showSort, state.sort],
+  );
   const groups = useMemo(() => splitGroups(results), [results]);
   const stayChoices = useMemo(() => stayOptions(stays, state.destinations), [stays, state.destinations]);
   const names = useMemo(
@@ -202,12 +211,14 @@ export function CatalogBrowser({
         state={state}
         count={results.length}
         filtered={filtered}
+        showSort={showSort}
         destinations={destinations}
         stays={stayChoices}
         onQuery={(query) => change({ ...state, query }, false)}
         onKind={(kind) => change({ ...state, kind })}
         onDestinations={(next) => change(setDestinations(state, next, stays))}
         onStays={(next) => change(setStays(state, next))}
+        onSort={(sort) => change({ ...state, sort })}
         onClear={clear}
       />
       <div className="grid min-w-0 flex-1 gap-8">

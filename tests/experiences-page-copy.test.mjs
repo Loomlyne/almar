@@ -48,7 +48,7 @@ test("the key tree is the one the page reads", () => {
   const en = EXPERIENCES_PAGE_COPY.en;
   assert.deepEqual(Object.keys(en).sort(), [
     "badge", "clear", "count", "destination", "empty", "filters", "groups", "heading", "meta", "overlay",
-    "removeFilter", "search", "showResults", "stay", "type",
+    "removeFilter", "search", "showResults", "sort", "stay", "type",
   ]);
   assert.deepEqual(Object.keys(en.overlay).sort(), ["close", "duration", "experience", "requestInquiry", "service", "stays"]);
   assert.deepEqual(Object.keys(en.type).sort(), ["all", "experiences", "label", "services"]);

@@ -87,7 +87,7 @@ async function expectHeldAbsent(page: Page, d: Data, where: string) {
   else await expect(page.locator('footer input[type="email"]'), `the footer email box behind the dialog (${where})`).toHaveCount(1);
   await expect(page.locator(`form${OUTSIDE_FOOTER}`), `a form outside the footer (${where})`).toHaveCount(0);
   await expect(page.locator(`button[type="submit"]${OUTSIDE_FOOTER}, input[type="submit"]${OUTSIDE_FOOTER}`), `a submit outside the footer (${where})`).toHaveCount(0);
-  await expect(page.locator('[aria-label*="pagination" i], select'), `pagination or a sort (${where})`).toHaveCount(0);
+  await expect(page.locator('[aria-label*="pagination" i], select:not([data-catalog-sort] select)'), `pagination or a stray select (${where})`).toHaveCount(0);
   await expect(page.locator('[aria-disabled="true"], button:disabled'), `a dead control (${where})`).toHaveCount(0);
 }
 
@@ -298,11 +298,11 @@ for (const locale of LOCALES) {
         await visit(page, d.path);
         await expectHeldAbsent(page, d, "menu closed");
         if (await openMenuIfCollapsed(page, d)) {
-          await expect(page.getByRole("combobox"), "only the language select").toHaveCount(1);
+          await expect(page.locator('[role="combobox"]:not([data-catalog-sort] [role="combobox"])'), "only the language select").toHaveCount(1);
           await expectHeldAbsent(page, d, "menu open");
           await page.keyboard.press("Escape");
         } else {
-          await expect(page.getByRole("combobox"), "only the language select").toHaveCount(1);
+          await expect(page.locator('[role="combobox"]:not([data-catalog-sort] [role="combobox"])'), "only the language select").toHaveCount(1);
         }
 
         await visit(page, d.path);

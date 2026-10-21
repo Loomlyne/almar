@@ -25,6 +25,9 @@ type StayBase = {
   bathrooms: number | null;
   nightly_rate_aed: number | null;
   min_nights: number | null;
+  /** Absent in older fixtures and before the 20261021 view: read as not set. */
+  pets_rule?: "allowed" | "not_allowed" | "fee" | null;
+  pets_fee_aed?: number | string | null;
   blocked_dates: string[];
   experience_ids: string[];
   service_ids: string[];
@@ -77,6 +80,8 @@ function resolveStay(base: StayBase, locale: Locale): Stay {
   }
   return {
     ...row,
+    pets_rule: base.pets_rule ?? null,
+    pets_fee_aed: base.pets_fee_aed == null ? null : Number(base.pets_fee_aed),
     amenity_icons: en.amenities.map(amenityIcon),
     // Headings only until real policy text exists in the dashboard (owner, 2026-10-04).
     policy_bodies: null,
