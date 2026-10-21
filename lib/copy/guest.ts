@@ -18,6 +18,11 @@ export type GuestCopy = {
   auth: {
     heading: string;
     lead: string;
+    /** Option A (owner, 2026-10-19): the small line above the sign-in heading, per host. */
+    kickerPublic: string;
+    kickerOps: string;
+    /** Under the button. Supabase mailer_otp_exp is 3600 s and the link is single-use. */
+    linkNote: string;
     newHere: string;
     checkEmail: string;
     sentTo: string;
@@ -99,6 +104,9 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
     auth: {
       heading: "Sign in or create an account",
       lead: "We email you a one-time link. No password to remember.",
+      kickerPublic: "Your account",
+      kickerOps: "Owner access",
+      linkNote: "The link works once, for one hour.",
       newHere: "New here? Your account is created the first time you use the link.",
       checkEmail: "Check your email",
       sentTo: "We sent a sign-in link to",
@@ -173,6 +181,9 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
     auth: {
       heading: "سجّل الدخول أو أنشئ حسابًا",
       lead: "نرسل إليك رابطًا لمرة واحدة. لا كلمة مرور لتتذكرها.",
+      kickerPublic: "حسابك",
+      kickerOps: "دخول المالك",
+      linkNote: "يعمل الرابط مرة واحدة، لمدة ساعة.",
       newHere: "جديد هنا؟ يُنشأ حسابك عند أول استخدام للرابط.",
       checkEmail: "تحقق من بريدك",
       sentTo: "أرسلنا رابط تسجيل الدخول إلى",
@@ -247,6 +258,9 @@ export const GUEST_COPY: Record<GuestLocale, GuestCopy> = {
     auth: {
       heading: "Inicia sesión o crea una cuenta",
       lead: "Te enviamos un enlace de un solo uso. Sin contraseña que recordar.",
+      kickerPublic: "Tu cuenta",
+      kickerOps: "Acceso del propietario",
+      linkNote: "El enlace funciona una vez, durante una hora.",
       newHere: "¿Primera vez? Tu cuenta se crea la primera vez que usas el enlace.",
       checkEmail: "Revisa tu correo",
       sentTo: "Enviamos un enlace de acceso a",

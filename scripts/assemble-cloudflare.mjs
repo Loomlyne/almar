@@ -564,8 +564,10 @@ async function main(argv = process.argv.slice(2)) {
   await guardPublishSequence({
     target,
     source,
+    // OpenNext 1.20.6 refuses Next 15 from 2026-10-21 (two years after its release). The flag lets the build run until
+    // the Next 16 upgrade lands (owner, 2026-10-21); remove it with that upgrade.
     build: () =>
-      execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
+      execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config, "--dangerouslyUseUnsupportedNextVersion"], {
         cwd: root,
         stdio: "inherit",
         env: nextBuildEnv(process.env, source),
