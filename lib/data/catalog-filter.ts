@@ -4,7 +4,7 @@
 // /experiences browser, so server and client can never disagree. This, ./stay-filter and ./types are the only
 // lib/data modules a "use client" file may import.
 
-import type { CatalogItem, CatalogKind } from "./types";
+import type { CatalogItem, CatalogKind, CatalogUnit } from "./types";
 import { foldText } from "./stay-filter";
 
 export type CatalogFilter = {
@@ -93,19 +93,43 @@ export function parsePriceSort(raw: string | null | undefined): PriceSort {
 }
 
 /**
- * Stable price sort. An item with no rate sorts last in both directions: its rate is never guessed. Ties and the unpriced
- * keep their incoming order, so "position" order is the tie-break.
+ * Stable sort on a number that may be missing. An item with no value sorts last in both directions: a rate is never
+ * guessed. Ties and the unpriced keep their incoming order, so "position" order is the tie-break.
  */
-export function sortByPrice<T extends { price_aed: number | null }>(items: readonly T[], sort: PriceSort): T[] {
+export function sortByPrice<T>(items: readonly T[], sort: PriceSort, value: (item: T) => number | null): T[] {
   if (sort === "position") return [...items];
   const dir = sort === "price_asc" ? 1 : -1;
   return items
-    .map((item, index) => ({ item, index }))
+    .map((item, index) => ({ item, index, v: value(item) }))
     .sort((a, b) => {
-      const pa = a.item.price_aed;
-      const pb = b.item.price_aed;
-      if (pa === null || pb === null) return pa === pb ? a.index - b.index : pa === null ? 1 : -1;
-      return (pa - pb) * dir || a.index - b.index;
+      if (a.v === null || b.v === null) return a.v === b.v ? a.index - b.index : a.v === null ? 1 : -1;
+      return (a.v - b.v) * dir || a.index - b.index;
     })
     .map(({ item }) => item);
+}
+
+const UNIT_ORDER: Record<CatalogUnit, number> = { person: 0, night: 1, trip: 2 };
+
+/**
+ * The public sort key. The page never carries an amount (no catalogue number in the public HTML): the server turns each
+ * item's price into a rank, 0 for the cheapest, ordered by unit (per person, per night, per trip) and then by amount, and
+ * sends only that. An item with no price has no rank. Equal prices share a rank.
+ */
+export function priceRanks(items: readonly Pick<CatalogItem, "slug" | "unit" | "price_aed">[]): Map<string, number> {
+  const priced = items.filter((i): i is typeof i & { price_aed: number } => i.price_aed !== null);
+  const sorted = [...priced].sort((a, b) => UNIT_ORDER[a.unit] - UNIT_ORDER[b.unit] || a.price_aed - b.price_aed);
+  const ranks = new Map<string, number>();
+  let rank = -1;
+  let last: { unit: CatalogUnit; price: number } | null = null;
+  for (const item of sorted) {
+    if (!last || last.unit !== item.unit || last.price !== item.price_aed) rank += 1;
+    last = { unit: item.unit, price: item.price_aed };
+    ranks.set(item.slug, rank);
+  }
+  return ranks;
+}
+
+/** The price sort is offered only when it can reorder something: at least two of these items have a rank. */
+export function canSortByPrice(items: readonly { sort_rank: number | null }[]): boolean {
+  return items.filter((i) => i.sort_rank !== null).length >= 2;
 }

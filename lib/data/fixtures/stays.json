@@ -71,7 +71,9 @@
       }
     ],
     "is_published": true,
-    "position": 1
+    "position": 1,
+    "pets_rule": null,
+    "pets_fee_aed": null
   },
   {
     "id": "0e62e1e3-77bc-5658-b643-e4407fdc18a3",
@@ -159,7 +161,9 @@
       }
     ],
     "is_published": true,
-    "position": 2
+    "position": 2,
+    "pets_rule": null,
+    "pets_fee_aed": null
   },
   {
     "id": "4bc21ad0-2d92-595a-8a70-ba2f895097ec",
@@ -247,7 +251,9 @@
       }
     ],
     "is_published": true,
-    "position": 3
+    "position": 3,
+    "pets_rule": null,
+    "pets_fee_aed": null
   },
   {
     "id": "d774b123-42b7-57c1-85b4-b73c697155dd",
@@ -335,7 +341,9 @@
       }
     ],
     "is_published": true,
-    "position": 4
+    "position": 4,
+    "pets_rule": null,
+    "pets_fee_aed": null
   },
   {
     "id": "92b9984f-c3d2-5ec2-b3f9-7587ea4b40ba",
@@ -423,7 +431,9 @@
       }
     ],
     "is_published": true,
-    "position": 5
+    "position": 5,
+    "pets_rule": null,
+    "pets_fee_aed": null
   },
   {
     "id": "c5444a7c-d129-5536-bdd5-ee35dff4a096",
@@ -511,7 +521,9 @@
       }
     ],
     "is_published": true,
-    "position": 6
+    "position": 6,
+    "pets_rule": null,
+    "pets_fee_aed": null
   },
   {
     "id": "9a5ae3ce-043f-533f-80c1-6d742dac42c7",
@@ -599,7 +611,9 @@
       }
     ],
     "is_published": true,
-    "position": 7
+    "position": 7,
+    "pets_rule": null,
+    "pets_fee_aed": null
   },
   {
     "id": "b22e8dfd-1f35-541d-85bf-4169d08ed448",
@@ -687,7 +701,9 @@
       }
     ],
     "is_published": true,
-    "position": 8
+    "position": 8,
+    "pets_rule": null,
+    "pets_fee_aed": null
   },
   {
     "id": "4a8e01c7-215d-578f-996a-6121e7b10e69",
@@ -775,7 +791,9 @@
       }
     ],
     "is_published": true,
-    "position": 9
+    "position": 9,
+    "pets_rule": null,
+    "pets_fee_aed": null
   },
   {
     "id": "048f8e2e-aa9e-540c-ad3a-7ac9b9eece3c",
@@ -863,7 +881,9 @@
       }
     ],
     "is_published": true,
-    "position": 10
+    "position": 10,
+    "pets_rule": null,
+    "pets_fee_aed": null
   },
   {
     "id": "dae54186-686b-5701-9198-38818eb3aded",
@@ -951,7 +971,9 @@
       }
     ],
     "is_published": true,
-    "position": 11
+    "position": 11,
+    "pets_rule": null,
+    "pets_fee_aed": null
   },
   {
     "id": "91748919-5a54-5ddb-9a5f-35b33b74c8a3",
@@ -1039,6 +1061,8 @@
       }
     ],
     "is_published": true,
-    "position": 12
+    "position": 12,
+    "pets_rule": null,
+    "pets_fee_aed": null
   }
 ]

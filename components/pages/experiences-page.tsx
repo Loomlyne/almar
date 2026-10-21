@@ -10,6 +10,7 @@ import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
 import { PublicFrame, type PublicFrameLink } from "../site/public-frame";
 import { PageShell } from "../ui/page-shell";
 import { SectionHead } from "../ui/section";
+import { priceRanks } from "../../lib/data/catalog-filter";
 import { CatalogBrowser, type BrowserItem } from "./experiences/catalog-browser";
 
 // /experiences, /ar/experiences and /es/experiences are this one component (plan 03.3-14): experiences and services on one
@@ -42,6 +43,8 @@ export async function ExperiencesPage({ locale }: { locale: Locale }) {
     getStays(locale),
   ]);
 
+  // The browser gets a rank, never an amount (no catalogue number in the public HTML).
+  const ranks = priceRanks(catalog);
   const items: BrowserItem[] = catalog.map((item) => {
     if (!item.image) throw new Error(`experiences: ${item.slug} has no image`);
     return {
@@ -52,7 +55,7 @@ export async function ExperiencesPage({ locale }: { locale: Locale }) {
       duration_label: item.duration_label,
       destination_slugs: item.destination_slugs,
       stay_slugs: item.stay_slugs,
-      price_aed: item.price_aed,
+      sort_rank: ranks.get(item.slug) ?? null,
       image: { src: item.image.url, alt: item.image.alt },
     };
   });

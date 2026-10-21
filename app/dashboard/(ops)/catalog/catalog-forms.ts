@@ -139,7 +139,7 @@ export function filterCatalogRows<T extends CatalogFilterable>(rows: readonly T[
     .filter((row) => needle === "" || foldText(row.name).includes(needle))
     .slice()
     .sort((a, b) => a.position - b.position);
-  return sortByPrice(filtered.map((row) => ({ row, price_aed: row.price })), filter.sort).map((entry) => entry.row);
+  return sortByPrice(filtered, filter.sort, (row) => row.price);
 }
 
 // ---- detail -> form ---------------------------------------------------------------------------------------------

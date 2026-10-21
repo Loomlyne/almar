@@ -33,6 +33,7 @@ import { pickStayJourneyCopy } from "./stay-detail/booking-value";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
 import { fill } from "../../lib/journey-format";
+import { petsText } from "../../lib/stay-pets";
 import { absoluteLocaleUrl, localeAlternates, localePath, siteHref } from "../../lib/locale-path";
 
 // Three cards from md, two below it (Framer shows two at 390): the third card is hidden below md.
@@ -124,16 +125,6 @@ function SplitSection({
   );
 }
 
-/** STAY-05: the stored rule in the page's language; null (no fact) when the owner has set none, or a fee rule has no fee. */
-function petsText(stay: { pets_rule: "allowed" | "not_allowed" | "fee" | null; pets_fee_aed: number | null }, copy: (typeof STAY_DETAIL_COPY)[Locale]): string | null {
-  if (stay.pets_rule === "allowed") return copy.pets.allowed;
-  if (stay.pets_rule === "not_allowed") return copy.pets.notAllowed;
-  if (stay.pets_rule === "fee" && stay.pets_fee_aed !== null) {
-    return fill(copy.pets.fee, { amount: stay.pets_fee_aed.toLocaleString("en-US", { maximumFractionDigits: 2 }) });
-  }
-  return null;
-}
-
 export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: string }) {
   const stay = await getStay(locale, slug);
   if (!stay) notFound();
@@ -162,7 +153,7 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
     { label: copy.facts.bedrooms, value: stay.bedrooms === null ? null : String(stay.bedrooms) },
     { label: copy.facts.beds, value: stay.beds_label },
     { label: copy.facts.neighborhood, value: stay.neighborhood },
-    { label: copy.facts.pets, value: petsText(stay, copy) },
+    { label: copy.facts.pets, value: petsText(stay, copy.pets) },
   ].filter((fact) => fact.value !== null && fact.value !== "");
 
   const services = catalogCards(catalog.services, 2 / 3, false, locale);

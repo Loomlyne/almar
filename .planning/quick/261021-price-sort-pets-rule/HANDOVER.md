@@ -18,3 +18,11 @@ Branch `gsd/price-sort-pets-rule` from `origin/main` 39546d56. No push to main, 
 - `npx tsc --noEmit`: pass. `npm run tokens:check`: pass ("theme up to date"). (node_modules borrowed by symlink from another worktree, removed after.)
 - Everything else: not run (owner: no test). Unrun test added: `tests/catalog-price-sort.test.mjs`. Scene file `tests/journey/scenes/ops-catalog-items.tsx` updated for the new `price` / `sort` fields. Copy tests that pin `stay-detail` / `experiences-page` key sets may need the new keys (`pets`, `sort`).
 - Not verified: rendering, RTL layout of the new Select, the migration against Postgres, job 21 merge (I touched no route folders; `components/pages/experiences-page.tsx` got one line).
+
+## Round 2 (verifier SHIP WITH FIXES, controller message)
+- Public page gets `sort_rank` (`priceRanks`: unit person < night < trip, then amount), never `price_aed`; `sortByPrice` takes a value function; dashboard still sorts by its own amount.
+- Public sort Select (wrapped in `data-catalog-sort`) shows, and applies, only when the current view has two ranked items (`canSortByPrice`); hidden live today (0 of 45 priced).
+- Pets fee has two decimals; `petsText` moved to `lib/stay-pets.ts` with `tests/stay-pets.test.mjs`.
+- Fixtures: `pets_rule: null, pets_fee_aed: null` on every stay. `catalog_access.test.sql`: anon pets guards now `lives_ok` + view column check, plan 121, base rate still denied.
+- Tests updated (unrun): experiences-filter-state, experiences-page-copy (`sort`), build page.spec (sort-aware guards), stay-detail built-documents + held spec (pets fee `AED n.nn` allowed), stay-detail.spec pets fact row, catalog-price-sort (rank tests).
+- tsc pass. Nothing else run (owner: no test).

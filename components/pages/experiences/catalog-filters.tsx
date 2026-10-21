@@ -31,6 +31,7 @@ export function CatalogFilters({
   state,
   count,
   filtered,
+  showSort,
   destinations,
   stays,
   onQuery,
@@ -46,6 +47,8 @@ export function CatalogFilters({
   /** How many items the current filters leave. */
   count: number;
   filtered: boolean;
+  /** At least two items in the current view have a price: the sort can reorder them. */
+  showSort: boolean;
   destinations: readonly { slug: string; name: string }[];
   /** The stays on offer, already narrowed by the checked destinations. */
   stays: readonly { slug: string; title: string }[];
@@ -66,7 +69,8 @@ export function CatalogFilters({
   const destinationOptions = destinations.map((d) => ({ value: d.slug, label: d.name }));
   const stayOptions = stays.map((s) => ({ value: s.slug, label: s.title }));
   const badge = sheetFilterCount(state);
-  const sortControl = (
+  const sortControl = showSort ? (
+    <div data-catalog-sort="">
     <Select
       dir={locale === "ar" ? "rtl" : "ltr"}
       value={state.sort}
@@ -78,7 +82,8 @@ export function CatalogFilters({
       ]}
       onChange={(next) => onSort(parsePriceSort(next))}
     />
-  );
+    </div>
+  ) : null;
 
   const checkboxes = (
     <>
