@@ -192,6 +192,8 @@ async function expectVisibleProperties(page: Page) {
       const right = box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight);
       const e = eye.getBoundingClientRect();
       if (e.left < right && e.right > left) out.push(`eye over text: ${input.id} (${document.documentElement.dir || "ltr"})`);
+      // The eye sits on the PHYSICAL right in every direction, Arabic included (owner standing rule, 2026-10-21).
+      if (e.left + e.width / 2 <= box.left + box.width / 2) out.push(`eye not on the right: ${input.id} (${document.documentElement.dir || "ltr"})`);
     }
     if (document.documentElement.scrollWidth > window.innerWidth + 1) out.push(`page scrolls sideways: ${document.documentElement.scrollWidth} > ${window.innerWidth}`);
     return out;

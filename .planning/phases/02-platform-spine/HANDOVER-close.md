@@ -22,6 +22,10 @@ Work session job 18, 2026-10-21 (times from `date`, +0100). Branch `gsd/phase-02
 - `npm run tokens:check`: theme up to date.
 - Bite: `tests/password-eye.test.mjs` against `origin/main`'s `field.tsx` (copied in, restored by copy, `cmp` equal):
   0 pass, 1 fail. On the fix: 1 pass.
+- `tests/ops-stay-tabs.spec.ts` (`expectVisibleProperties`, next to "eye over text"): new assertion that the eye's
+  centre is right of the input's centre in every direction (AR included). It runs in the access pictures
+  (`STAY_TABS_PICTURES=1`, EN/AR/ES). **Not run: needs the landing lane.** On `origin/main`'s `field.tsx` it would
+  fail in AR (`inset-e-1` puts the eye on the left), so the lane can bite it by swapping that file in.
 - First attempt with `right-1`/`pr-12` failed `tests/design-tokens.test.mjs` (physical utilities); replaced, now green.
 - `npm ci`: not re-run (worktree `node_modules` already present).
 - **Not verified, needs the landing lane** (owner 2026-10-21: no test runs in work sessions): `npm run build`,
@@ -46,8 +50,8 @@ Work session job 18, 2026-10-21 (times from `date`, +0100). Branch `gsd/phase-02
    the page script runs** (`components/site/locale-document.tsx` reads only the route segment; the cookie locale is
    applied client-side). Inner content is RTL on first paint. A fix touches the pre-paint boot script on every page
    and needs a browser run, so it is not a small gap; suggested as its own quick job.
-5. **PENDING on PR #24:** `tests/build/ops-runtime.spec.ts:69` stale `/login` miss (the 2 known failures on main);
-   GET/HEAD-only `/login` 308; sign-in form option A.
+5. **Resolved: PR #24 landed as `3d6caf5a`** (re-checked in code after merging `origin/main` `792659c3`; see
+   `02-VERIFICATION.md` SC3 and gap 6). Score unchanged at 11/15. Not deployed yet.
 6. Low, known since 02-05: Sign out everywhere on the dashboard clears the `almar-signed-in` hint on the dashboard
    host only. It grants nothing (the server checks the session); the public host's hint just causes one 401
    preferences call.
