@@ -68,6 +68,19 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"booking_bank_details": {
+                  Row: {
+                    "account_name": string | null,"bank_address": string | null,"bank_name": string | null,"iban": string | null,"id": number,"note_ar": string | null,"note_en": string | null,"note_es": string | null,"swift": string | null,"transfer_window_minutes": number | null,"updated_at": string,"updated_by": string | null
+                  }
+                  Insert: {
+                    "account_name"?: string | null,"bank_address"?: string | null,"bank_name"?: string | null,"iban"?: string | null,"id"?: number,"note_ar"?: string | null,"note_en"?: string | null,"note_es"?: string | null,"swift"?: string | null,"transfer_window_minutes"?: number | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "account_name"?: string | null,"bank_address"?: string | null,"bank_name"?: string | null,"iban"?: string | null,"id"?: number,"note_ar"?: string | null,"note_en"?: string | null,"note_es"?: string | null,"swift"?: string | null,"transfer_window_minutes"?: number | null,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"booking_disputes": {
                   Row: {
                     "amount_fils": number | null,"booking_id": string,"charge_id": string | null,"created_at": string,"id": number,"payment_id": string | null,"reason": string | null,"status": string | null,"stripe_dispute_id": string,"updated_at": string
@@ -156,6 +169,19 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"booking_money_settings_log": {
+                  Row: {
+                    "actor": string,"at": string,"changed": (string)[],"id": number
+                  }
+                  Insert: {
+                    "actor": string,"at"?: string,"changed": (string)[],"id"?: never
+                  }
+                  Update: {
+                    "actor"?: string,"at"?: string,"changed"?: (string)[],"id"?: never
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"booking_nights": {
                   Row: {
                     "booking_id": string,"expires_at": string | null,"night": string,"stay_id": string
@@ -187,15 +213,34 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"booking_payments": {
+                },"booking_notes": {
                   Row: {
-                    "amount_fils": number,"booking_id": string,"card_brand": string | null,"card_last4": string | null,"charge_id": string | null,"checkout_session_id": string | null,"created_at": string,"currency": string,"id": string,"kind": string,"paid_at": string | null,"payment_intent_id": string | null,"presentment_amount": number | null,"presentment_currency": string | null,"status": string,"wallet": string | null
+                    "actor": string,"at": string,"body": string,"booking_id": string,"id": number
                   }
                   Insert: {
-                    "amount_fils": number,"booking_id": string,"card_brand"?: string | null,"card_last4"?: string | null,"charge_id"?: string | null,"checkout_session_id"?: string | null,"created_at"?: string,"currency"?: string,"id"?: string,"kind": string,"paid_at"?: string | null,"payment_intent_id"?: string | null,"presentment_amount"?: number | null,"presentment_currency"?: string | null,"status"?: string,"wallet"?: string | null
+                    "actor": string,"at"?: string,"body": string,"booking_id": string,"id"?: never
                   }
                   Update: {
-                    "amount_fils"?: number,"booking_id"?: string,"card_brand"?: string | null,"card_last4"?: string | null,"charge_id"?: string | null,"checkout_session_id"?: string | null,"created_at"?: string,"currency"?: string,"id"?: string,"kind"?: string,"paid_at"?: string | null,"payment_intent_id"?: string | null,"presentment_amount"?: number | null,"presentment_currency"?: string | null,"status"?: string,"wallet"?: string | null
+                    "actor"?: string,"at"?: string,"body"?: string,"booking_id"?: string,"id"?: never
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "booking_notes_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "bookings"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"booking_payments": {
+                  Row: {
+                    "amount_fils": number,"bank_reference": string | null,"booking_id": string,"card_brand": string | null,"card_last4": string | null,"charge_id": string | null,"checkout_session_id": string | null,"created_at": string,"currency": string,"id": string,"kind": string,"method": string,"paid_at": string | null,"payment_intent_id": string | null,"presentment_amount": number | null,"presentment_currency": string | null,"received_on": string | null,"recorded_by": string | null,"request_id": string | null,"status": string,"void_reason": string | null,"voided_at": string | null,"voided_by": string | null,"wallet": string | null,"write_off_fils": number,"write_off_reason": string | null
+                  }
+                  Insert: {
+                    "amount_fils": number,"bank_reference"?: string | null,"booking_id": string,"card_brand"?: string | null,"card_last4"?: string | null,"charge_id"?: string | null,"checkout_session_id"?: string | null,"created_at"?: string,"currency"?: string,"id"?: string,"kind": string,"method"?: string,"paid_at"?: string | null,"payment_intent_id"?: string | null,"presentment_amount"?: number | null,"presentment_currency"?: string | null,"received_on"?: string | null,"recorded_by"?: string | null,"request_id"?: string | null,"status"?: string,"void_reason"?: string | null,"voided_at"?: string | null,"voided_by"?: string | null,"wallet"?: string | null,"write_off_fils"?: number,"write_off_reason"?: string | null
+                  }
+                  Update: {
+                    "amount_fils"?: number,"bank_reference"?: string | null,"booking_id"?: string,"card_brand"?: string | null,"card_last4"?: string | null,"charge_id"?: string | null,"checkout_session_id"?: string | null,"created_at"?: string,"currency"?: string,"id"?: string,"kind"?: string,"method"?: string,"paid_at"?: string | null,"payment_intent_id"?: string | null,"presentment_amount"?: number | null,"presentment_currency"?: string | null,"received_on"?: string | null,"recorded_by"?: string | null,"request_id"?: string | null,"status"?: string,"void_reason"?: string | null,"voided_at"?: string | null,"voided_by"?: string | null,"wallet"?: string | null,"write_off_fils"?: number,"write_off_reason"?: string | null
                   }
                   Relationships: [
                     {
@@ -252,13 +297,13 @@ isOneToOne: false
                   ]
                 },"bookings": {
                   Row: {
-                    "addons_fils": number,"adults": number,"airport": string | null,"arrive": string,"balance_due_date": string | null,"balance_due_days": number | null,"balance_fils": number,"children": number,"created_at": string,"created_by": string | null,"currency": string,"deposit_bp": number,"deposit_fils": number,"destination_id": string,"email": string,"emergency_name": string | null,"emergency_phone": string | null,"grand_fils": number,"guest_name": string,"hold_expires_at": string | null,"id": string,"infants": number,"is_test": boolean,"leave": string,"link_version": number,"locale": string,"nationality": string | null,"needs_attention": boolean,"nights_fils": number,"nights_snapshot": NonNullable<Json>,"ops_request_id": string | null,"paid_fils": number,"phone": string,"pickup_address": string | null,"plan": string,"ref": string,"source": string,"special_requests": string | null,"status": string,"stay_id": string,"subtotal_fils": number,"terms_accepted_at": string | null,"terms_version": string | null,"updated_at": string,"vat_bp": number,"vat_fils": number
+                    "addons_fils": number,"adults": number,"airport": string | null,"arrive": string,"attention_reason": string | null,"balance_due_date": string | null,"balance_due_days": number | null,"balance_fils": number,"children": number,"created_at": string,"created_by": string | null,"currency": string,"deposit_bp": number,"deposit_fils": number,"destination_id": string,"email": string,"emergency_name": string | null,"emergency_phone": string | null,"grand_fils": number,"guest_name": string,"hold_expires_at": string | null,"id": string,"infants": number,"is_test": boolean,"lapse_email_attempts": number,"lapse_email_claimed_at": string | null,"lapse_email_sent_at": string | null,"leave": string,"link_version": number,"locale": string,"nationality": string | null,"needs_attention": boolean,"nights_fils": number,"nights_snapshot": NonNullable<Json>,"ops_request_id": string | null,"paid_fils": number,"phone": string,"pickup_address": string | null,"plan": string,"ref": string,"requested_at": string | null,"source": string,"special_requests": string | null,"status": string,"stay_id": string,"subtotal_fils": number,"terms_accepted_at": string | null,"terms_version": string | null,"updated_at": string,"vat_bp": number,"vat_fils": number,"written_off_fils": number
                   }
                   Insert: {
-                    "addons_fils": number,"adults": number,"airport"?: string | null,"arrive": string,"balance_due_date"?: string | null,"balance_due_days"?: number | null,"balance_fils": number,"children"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deposit_bp": number,"deposit_fils": number,"destination_id": string,"email": string,"emergency_name"?: string | null,"emergency_phone"?: string | null,"grand_fils": number,"guest_name": string,"hold_expires_at"?: string | null,"id"?: string,"infants"?: number,"is_test"?: boolean,"leave": string,"link_version"?: number,"locale": string,"nationality"?: string | null,"needs_attention"?: boolean,"nights_fils": number,"nights_snapshot": NonNullable<Json>,"ops_request_id"?: string | null,"paid_fils"?: number,"phone": string,"pickup_address"?: string | null,"plan": string,"ref": string,"source": string,"special_requests"?: string | null,"status": string,"stay_id": string,"subtotal_fils": number,"terms_accepted_at"?: string | null,"terms_version"?: string | null,"updated_at"?: string,"vat_bp": number,"vat_fils": number
+                    "addons_fils": number,"adults": number,"airport"?: string | null,"arrive": string,"attention_reason"?: string | null,"balance_due_date"?: string | null,"balance_due_days"?: number | null,"balance_fils": number,"children"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deposit_bp": number,"deposit_fils": number,"destination_id": string,"email": string,"emergency_name"?: string | null,"emergency_phone"?: string | null,"grand_fils": number,"guest_name": string,"hold_expires_at"?: string | null,"id"?: string,"infants"?: number,"is_test"?: boolean,"lapse_email_attempts"?: number,"lapse_email_claimed_at"?: string | null,"lapse_email_sent_at"?: string | null,"leave": string,"link_version"?: number,"locale": string,"nationality"?: string | null,"needs_attention"?: boolean,"nights_fils": number,"nights_snapshot": NonNullable<Json>,"ops_request_id"?: string | null,"paid_fils"?: number,"phone": string,"pickup_address"?: string | null,"plan": string,"ref": string,"requested_at"?: string | null,"source": string,"special_requests"?: string | null,"status": string,"stay_id": string,"subtotal_fils": number,"terms_accepted_at"?: string | null,"terms_version"?: string | null,"updated_at"?: string,"vat_bp": number,"vat_fils": number,"written_off_fils"?: number
                   }
                   Update: {
-                    "addons_fils"?: number,"adults"?: number,"airport"?: string | null,"arrive"?: string,"balance_due_date"?: string | null,"balance_due_days"?: number | null,"balance_fils"?: number,"children"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deposit_bp"?: number,"deposit_fils"?: number,"destination_id"?: string,"email"?: string,"emergency_name"?: string | null,"emergency_phone"?: string | null,"grand_fils"?: number,"guest_name"?: string,"hold_expires_at"?: string | null,"id"?: string,"infants"?: number,"is_test"?: boolean,"leave"?: string,"link_version"?: number,"locale"?: string,"nationality"?: string | null,"needs_attention"?: boolean,"nights_fils"?: number,"nights_snapshot"?: NonNullable<Json>,"ops_request_id"?: string | null,"paid_fils"?: number,"phone"?: string,"pickup_address"?: string | null,"plan"?: string,"ref"?: string,"source"?: string,"special_requests"?: string | null,"status"?: string,"stay_id"?: string,"subtotal_fils"?: number,"terms_accepted_at"?: string | null,"terms_version"?: string | null,"updated_at"?: string,"vat_bp"?: number,"vat_fils"?: number
+                    "addons_fils"?: number,"adults"?: number,"airport"?: string | null,"arrive"?: string,"attention_reason"?: string | null,"balance_due_date"?: string | null,"balance_due_days"?: number | null,"balance_fils"?: number,"children"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deposit_bp"?: number,"deposit_fils"?: number,"destination_id"?: string,"email"?: string,"emergency_name"?: string | null,"emergency_phone"?: string | null,"grand_fils"?: number,"guest_name"?: string,"hold_expires_at"?: string | null,"id"?: string,"infants"?: number,"is_test"?: boolean,"lapse_email_attempts"?: number,"lapse_email_claimed_at"?: string | null,"lapse_email_sent_at"?: string | null,"leave"?: string,"link_version"?: number,"locale"?: string,"nationality"?: string | null,"needs_attention"?: boolean,"nights_fils"?: number,"nights_snapshot"?: NonNullable<Json>,"ops_request_id"?: string | null,"paid_fils"?: number,"phone"?: string,"pickup_address"?: string | null,"plan"?: string,"ref"?: string,"requested_at"?: string | null,"source"?: string,"special_requests"?: string | null,"status"?: string,"stay_id"?: string,"subtotal_fils"?: number,"terms_accepted_at"?: string | null,"terms_version"?: string | null,"updated_at"?: string,"vat_bp"?: number,"vat_fils"?: number,"written_off_fils"?: number
                   }
                   Relationships: [
                     {
@@ -1019,6 +1064,15 @@ isOneToOne: false
             "attach_checkout_session":
 { Args: { "p_payment": string,"p_session": string }; Returns: undefined
                            },
+"booking_assert_owner":
+{ Args: { "p_actor": string }; Returns: undefined
+                           },
+"booking_bank_complete":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"booking_bic_ok":
+{ Args: { "p": string }; Returns: boolean
+                           },
 "booking_by_ref":
 { Args: { "p_ref": string }; Returns: Json
                            },
@@ -1028,11 +1082,23 @@ isOneToOne: false
 "booking_date":
 { Args: { "p": Json,"p_key": string,"p_path"?: string,"p_required": boolean }; Returns: string
                            },
+"booking_deposit_floor":
+{ Args: { "p_deposit": number,"p_deposit_bp": number,"p_grand": number,"p_plan": string }; Returns: number
+                           },
 "booking_drop_hold":
 { Args: { "p_actor": string,"p_booking": string }; Returns: Json
                            },
 "booking_fail":
 { Args: { "p_code": string,"p_detail"?: Json,"p_field"?: string }; Returns: undefined
+                           },
+"booking_flags":
+{ Args: { "b": Database["public"]["Tables"]["bookings"]["Row"] }; Returns: Json
+                           },
+"booking_gate":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"booking_iban_ok":
+{ Args: { "p": string }; Returns: boolean
                            },
 "booking_int":
 { Args: { "p": Json,"p_key": string,"p_max": number,"p_min": number,"p_path"?: string }; Returns: number
@@ -1043,6 +1109,7 @@ isOneToOne: false
 "adults": number,
 "airport": string | null,
 "arrive": string,
+"attention_reason": string | null,
 "balance_due_date": string | null,
 "balance_due_days": number | null,
 "balance_fils": number,
@@ -1062,6 +1129,9 @@ isOneToOne: false
 "id": string,
 "infants": number,
 "is_test": boolean,
+"lapse_email_attempts": number,
+"lapse_email_claimed_at": string | null,
+"lapse_email_sent_at": string | null,
 "leave": string,
 "link_version": number,
 "locale": string,
@@ -1075,6 +1145,7 @@ isOneToOne: false
 "pickup_address": string | null,
 "plan": string,
 "ref": string,
+"requested_at": string | null,
 "source": string,
 "special_requests": string | null,
 "status": string,
@@ -1084,7 +1155,8 @@ isOneToOne: false
 "terms_version": string | null,
 "updated_at": string,
 "vat_bp": number,
-"vat_fils": number
+"vat_fils": number,
+"written_off_fils": number
             }
                           SetofOptions: {
         from: "*"
@@ -1092,11 +1164,26 @@ isOneToOne: false
         isOneToOne: true
         isSetofReturn: false
       } },
+"booking_next_status":
+{ Args: { "p_deposit": number,"p_grand": number,"p_plan": string,"p_settled": number,"p_status": string }; Returns: string
+                           },
+"booking_transfer_instructions":
+{ Args: { "p_booking": string,"p_locale": string }; Returns: Json
+                           },
 "booking_txt":
 { Args: { "p": Json,"p_key": string,"p_max": number,"p_min": number,"p_path"?: string,"p_required": boolean }; Returns: string
                            },
 "booking_uuid":
 { Args: { "p": Json,"p_key": string,"p_path"?: string,"p_required": boolean }; Returns: string
+                           },
+"booking_view":
+{ Args: { "p_booking": string,"p_expect_test": boolean,"p_locale": string }; Returns: Json
+                           },
+"booking_window_minutes":
+{ Args: { "p_is_test": boolean }; Returns: number
+                           },
+"booking_withdraw_request":
+{ Args: { "p_booking": string,"p_expect_test": boolean }; Returns: Json
                            },
 "booking_write":
 { Args: { "p": Json,"p_created_by": string,"p_hold_expires": string,"p_source": string,"p_status": string }; Returns: Json
@@ -1160,6 +1247,9 @@ isOneToOne: false
 "claim_hold_slot":
 { Args: { "p_email_hash": string,"p_ip_hash": string }; Returns: boolean
                            },
+"claim_lapse_emails":
+{ Args: { "p_limit"?: number }; Returns: Json
+                           },
 "claim_link_slot":
 { Args: { "p_email_hash": string,"p_ip_hash": string }; Returns: boolean
                            },
@@ -1172,8 +1262,14 @@ isOneToOne: false
 "drop_stripe_event":
 { Args: { "p_id": string }; Returns: undefined
                            },
+"finish_lapse_email":
+{ Args: { "p_booking": string,"p_error"?: string,"p_ok": boolean }; Returns: undefined
+                           },
 "finish_stripe_event":
 { Args: { "p_id": string }; Returns: undefined
+                           },
+"guest_bookings":
+{ Args: { "p_email": string,"p_is_test": boolean,"p_locale": string }; Returns: Json
                            },
 "import_catalog":
 { Args: { "p": Json }; Returns: Json
@@ -1196,6 +1292,9 @@ isOneToOne: false
 "ops_add_block":
 { Args: { "p": Json }; Returns: Json
                            },
+"ops_add_booking_note":
+{ Args: { "p_actor": string,"p_body": string,"p_booking": string }; Returns: Json
+                           },
 "ops_create_booking":
 { Args: { "p": Json,"p_actor": string }; Returns: Json
                            },
@@ -1214,11 +1313,23 @@ isOneToOne: false
 "ops_get":
 { Args: { "p_entity": string,"p_id": string }; Returns: Json
                            },
+"ops_get_booking":
+{ Args: { "p_ref": string }; Returns: Json
+                           },
+"ops_get_money_settings":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "ops_lapse_holds":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "ops_list":
 { Args: { "p_entity": string }; Returns: Json
+                           },
+"ops_list_booking_notes":
+{ Args: { "p_booking": string }; Returns: Json
+                           },
+"ops_list_bookings":
+{ Args: { "p_after"?: string,"p_arrive_from"?: string,"p_arrive_to"?: string,"p_destination"?: string,"p_limit"?: number,"p_q"?: string,"p_status"?: string }; Returns: Json
                            },
 "ops_list_media":
 { Args: { "p_after"?: string,"p_limit"?: number,"p_q"?: string }; Returns: Json
@@ -1226,8 +1337,14 @@ isOneToOne: false
 "ops_publish":
 { Args: { "p_entity": string,"p_id": string,"p_published": boolean }; Returns: Json
                            },
+"ops_record_payment":
+{ Args: { "p": Json,"p_actor": string }; Returns: Json
+                           },
 "ops_reorder":
 { Args: { "p_entity": string,"p_ids": (string)[] }; Returns: Json
+                           },
+"ops_resolve_attention":
+{ Args: { "p_actor": string,"p_booking": string,"p_note": string }; Returns: Json
                            },
 "ops_save_catalog_item":
 { Args: { "p": Json }; Returns: Json
@@ -1243,6 +1360,9 @@ isOneToOne: false
                            },
 "ops_save_media":
 { Args: { "p": Json }; Returns: Json
+                           },
+"ops_save_money_settings":
+{ Args: { "p": Json,"p_actor": string }; Returns: Json
                            },
 "ops_save_stay":
 { Args: { "p": Json }; Returns: Json
@@ -1262,6 +1382,9 @@ isOneToOne: false
 "ops_set_booking_status":
 { Args: { "p_actor": string,"p_booking": string,"p_expected_from": string,"p_to": string }; Returns: Json
                            },
+"ops_void_payment":
+{ Args: { "p_actor": string,"p_payment": string,"p_reason": string }; Returns: Json
+                           },
 "place_hold":
 { Args: { "p_booking": string,"p_expires": string,"p_from": string,"p_stay": string,"p_to": string }; Returns: string
                            },
@@ -1278,6 +1401,9 @@ isOneToOne: false
                            },
 "record_refund":
 { Args: { "p_actor": string,"p_amount_fils": number,"p_charge": string,"p_payment_intent": string,"p_refund_id": string,"p_status": string }; Returns: string
+                           },
+"request_web_booking":
+{ Args: { "p_booking": string,"p_expect_test": boolean }; Returns: Json
                            },
 "save_site_settings":
 { Args: { "p_body_face": string,"p_charcoal": string,"p_currency": string,"p_deposit_percent": number,"p_gold": string,"p_ivory": string,"p_locale": string,"p_logo_media_id": string,"p_maintenance": boolean,"p_owner_id": string,"p_teal": string,"p_title_face": string,"p_vat_percent": number,"p_white": string }; Returns: undefined
