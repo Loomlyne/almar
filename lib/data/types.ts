@@ -165,6 +165,10 @@ export type Stay = RowMeta & {
 
   /** NO SOURCE EXISTS. Null means "not set" (STAY-06). */
   min_nights: number | null;
+  /** STAY-05. Null: the owner has not set a rule, and the page shows none. */
+  pets_rule: "allowed" | "not_allowed" | "fee" | null;
+  /** AED, set only with pets_rule "fee" (check stays_pets_fee). */
+  pets_fee_aed: number | null;
   /**
    * D-63: booked or blocked days, set per stay in Dashboard > Catalog > Stays.
    * NO SOURCE EXISTS: the fixture values are sample data, listed in `sample_fields`.

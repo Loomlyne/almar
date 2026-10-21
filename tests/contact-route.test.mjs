@@ -327,7 +327,7 @@ test("source guards: POST, runtime and dynamic only; one send; the key from proc
   assert.equal(limiter.includes("re_"), false);
 });
 
-test("both Worker files bind FORM_LIMITER: 5 posts a minute, the same block", () => {
+test("both Worker files bind FORM_LIMITER: 5 posts a minute, each with its own namespace (production 1001, preview 1002)", () => {
   const block = (file) => {
     const lines = readFileSync(file, "utf8").split("\n");
     const at = lines.indexOf("[[ratelimits]]");
@@ -335,7 +335,7 @@ test("both Worker files bind FORM_LIMITER: 5 posts a minute, the same block", ()
     assert.equal(lines.filter((l) => l === "[[ratelimits]]").length, 1, file);
     return lines.slice(at + 1, at + 4);
   };
-  const want = ['name = "FORM_LIMITER"', 'namespace_id = "1001"', "simple = { limit = 5, period = 60 }"];
-  assert.deepEqual(block("wrangler.toml"), want);
-  assert.deepEqual(block("wrangler.preview.toml"), want);
+  const want = (id) => ['name = "FORM_LIMITER"', `namespace_id = "${id}"`, "simple = { limit = 5, period = 60 }"];
+  assert.deepEqual(block("wrangler.toml"), want("1001"));
+  assert.deepEqual(block("wrangler.preview.toml"), want("1002"));
 });

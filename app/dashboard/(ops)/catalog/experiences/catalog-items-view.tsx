@@ -17,6 +17,7 @@ import { Chip } from "../../../../../components/ui/chip";
 import { ConfirmDialog } from "../../../../../components/ui/confirm-dialog";
 import { Field } from "../../../../../components/ui/field";
 import { Select } from "../../../../../components/ui/select";
+import { parsePriceSort } from "../../../../../lib/data/catalog-filter";
 import { OPS_CATALOG_COPY, fillCatalogCopy } from "../../../../../lib/copy/ops-catalog";
 import { OPS_KIT_COPY, fillCopy } from "../../../../../lib/copy/ops-kit";
 import { formatPlural } from "../../../../../lib/journey-format";
@@ -41,6 +42,8 @@ export type CatalogRow = {
   kind: CatalogKind;
   unit: CatalogUnit;
   priceText: string | null;
+  /** The rate as a number for the price sort; null when none is set. */
+  price: number | null;
   destinationIds: string[];
   stayIds: string[];
   stayCount: number;
@@ -128,7 +131,7 @@ export function CatalogItemsView({
   const dir = loc === "ar" ? "rtl" : "ltr";
 
   const shown = filterCatalogRows(rows, filter);
-  const filtering = filter.kind !== "" || filter.destinationId !== "" || filter.stayId !== "" || filter.query.trim() !== "";
+  const filtering = filter.kind !== "" || filter.destinationId !== "" || filter.stayId !== "" || filter.query.trim() !== "" || filter.sort !== "position";
   const unitWords: Record<CatalogUnit, string> = { person: copy.unitPerson, night: copy.unitNight, trip: copy.unitTrip };
   const kindWords: Record<CatalogKind, string> = { experience: copy.kindExperience, service: copy.kindService };
 
@@ -198,6 +201,17 @@ export function CatalogItemsView({
                 setReading(false);
                 if (ok) setFilter((was) => ({ ...was, stayId }));
               }}
+            />
+            <Select
+              dir={dir}
+              value={filter.sort}
+              label="{name}"
+              options={[
+                { value: "position", label: copy.sortPosition },
+                { value: "price_asc", label: copy.sortLow },
+                { value: "price_desc", label: copy.sortHigh },
+              ]}
+              onChange={(next) => setFilter({ ...filter, sort: parsePriceSort(next) })}
             />
             <Field
               id={searchId}

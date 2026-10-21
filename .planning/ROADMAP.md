@@ -12,11 +12,11 @@ Rebuild the Framer HTML export into a live booking OS. Tokens and components fir
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Design system** - Tokens, core components, RTL states, owner `/design` (completed 2026-09-23)
-- [ ] **Phase 2: Platform spine** - Supabase auth, host gate, locale/currency, no ops leak
+- [x] **Phase 2: Platform spine** - Supabase auth, host gate, locale/currency, no ops leak (complete 2026-10-21: landed and deployed from main 64c3475d; no owner UAT, his word)
 - [x] **Phase 3: Public site and dashboard** - Public site and dashboard screens first; catalogue, connections, and calculations after (13/13 plans built 2026-09-27, landed in `9fd6786` 2026-10-02; catalogue criteria carried by 3.2)
 - [x] **Phase 3.1: Design system and journey bar** (INSERTED) - One token set, CSS per component, journey bar and booking components from the design canvas
-- [ ] **Phase 3.3: Public site in React** (INSERTED, reshaped 2026-10-02) - All 26 public pages in React on one fixture-backed data layer; the Framer bridge comes out
-- [ ] **Phase 3.2: Real catalog and team** (INSERTED, moved after Phase 2) - The data layer swaps fixtures for Supabase; dashboard Catalog and Team built already wired
+- [x] **Phase 3.3: Public site in React** (INSERTED, reshaped 2026-10-02) - All 22 public pages (66 documents) in React on one fixture-backed data layer; the Framer bridge comes out (complete 2026-10-21: landed and deployed from main 64c3475d; no owner UAT, his word)
+- [x] **Phase 3.2: Real catalog and team** (INSERTED, moved after Phase 2) - The data layer swaps fixtures for Supabase; dashboard Catalog and Team built already wired (complete 2026-10-21: landed and deployed from main 64c3475d; no owner UAT, his word)
 - [ ] **Phase 4: Book and request** - Hero → `/booking/trip` → request, bank transfer, owner records the payment
 - [ ] **Phase 5: Ops OS** - `/ops` runs bookings, customers, money, brand publish
 - [ ] **Phase 6: Rest of CMS** - Packages, consult, i18n publish, remaining CMS (the page replacement moved to 3.3)
@@ -63,18 +63,18 @@ Plans:
 
 ### Phase 2: Platform spine
 
-**Goal:** Guest and owner can authenticate; public and ops are isolated; language and currency persist on the same URLs.
+**Goal:** Guest and owner can authenticate; public and ops are isolated; language and currency persist (EN at the root, `/ar/` and `/es/` per I18N-01; the `/en/` prefix is job 21).
 **Mode:** mvp
 **Depends on:** Phase 1
 **Requirements:** AUTH-02, AUTH-05, AUTH-06, AUTH-07, I18N-01, I18N-02, I18N-03, OPS-01, PLAT-01, PLAT-02, PLAT-04
 **Success Criteria** (what must be TRUE):
 
-  1. Guest account stays inactive until branded confirm email, then magic link + optional password (eye)
-  2. Owner `maria@almarprivatejourney.com` signs in with email+password (set in owner terminal); 30-day session; logout-all; logged-out `/ops` is ops sign-in
+  1. Guest account stays inactive until branded confirm email, every sign-in is a magic link (D-07: no guest password)
+  2. Owners (`maria@almarprivatejourney.com` and `koussayzayeni@gmail.com`, PR #20) sign in with a magic link (D-33); logout-all; logged-out dashboard host is the ops sign-in; 30-day session when Supabase is Pro (owner 2026-10-21: later)
   3. Guest hitting `/ops` or ops APIs gets 404 / denied; dashboard host (when gated) does not serve marketing
-  4. Same URLs for EN/AR/ES; header language + currency; AR is `dir=rtl`; dates DD/MM/YYYY, week Monday, Western numerals
+  4. EN at the root and `/ar/`, `/es/` (I18N-01); header language + currency; AR is `dir=rtl`; dates DD/MM/YYYY, week Monday, Western numerals
 
-**Plans:** 8/10 plans executed and landed (02-09, 02-10 superseded); job 10 and job 02 plans 02-20..26 landed. Phase verification and owner UAT of Phase 2 still open (not deployed since 2026-10-05 for 02-05/02-06)
+**Plans:** 10/10 (8 landed, 02-09/02-10 superseded); job 10 and job 02 plans 02-20..26 landed; verified 2026-10-21 (`02-VERIFICATION.md`); no owner UAT (his word)
 
 Plans:
 
@@ -203,14 +203,14 @@ Plans:
 **Goal:** Every public page is React on the 3.1 design system, reading one fixture-backed data layer, with no control that does not work. The Framer bridge is removed.
 **Mode:** mvp
 **Depends on:** Phase 3.1 only (no platform dependency, no database)
-**Requirements:** SITE-01…SITE-13, I18N-04 (confirm at discuss)
+**Requirements:** SITE-11 and SITE-13 (met in code), SITE-12 (partly met: honeypots on the contact form and newsletter), I18N-01; SITE-01…SITE-10 and I18N-04 stay in Phase 6
 **Success Criteria** (what must be TRUE):
 
-  1. All 26 public pages render from React with the Framer look on 3.1 tokens, on the same URLs: `/`, `/private-stays`, the 12 `/private-stays/*`, `/destinations`, `/experiences`, `/about`, `/contact`, services and service detail, `/blog` and posts
+  1. All 22 public pages (66 documents, three languages) render from React with the Framer look on 3.1 tokens, on the same URLs: `/`, `/private-stays`, the 12 `/private-stays/*`, `/destinations`, `/experiences`, `/about`, `/contact`, `/blog` and posts; `/services` and its 3 detail URLs 301 to `/experiences` (D-64, D-67)
   2. Every read comes from `lib/data/<entity>.ts` — async, returning the shape Supabase will return, backed by `lib/data/fixtures/*.json`. No component touches a fixture
   3. No fake controls: every control shown works, including filters, search, overlays, language, currency and the journey bar's Where → When → Who. The only held control is the journey bar's final submit, which is not rendered until Phase 4
   4. Home hero carries the journey bar; contact stays `inquiries@almarprivatejourney.com` / `+971 56 388 3302`
-  4b. **EN / AR / ES are per-locale URLs baked at build time** (owner, 2026-10-02): `/about`, `/ar/about`, `/es/about`. The served HTML carries the right `lang` and `dir` — Arabic is RTL from the first paint, not after a client swap — and AR/ES are indexable and work with JavaScript off. 26 pages become 78 built documents, plus `hreflang`. The language switcher changes URL; the `almar-locale` cookie becomes a preference that redirects, not the source of truth. Currency is rethought against this
+  4b. **EN / AR / ES are per-locale URLs baked at build time** (owner, 2026-10-02): `/about`, `/ar/about`, `/es/about`. The served HTML carries the right `lang` and `dir` — Arabic is RTL from the first paint, not after a client swap — and AR/ES are indexable and work with JavaScript off. 22 pages become 66 built documents, plus `hreflang`. The language switcher changes URL; the `almar-locale` cookie is the visitor's chosen language and `/` sends a returning visitor to it (owner 2026-10-21 item 7, superseding design 03.3-01 §5.3's no-redirect choice; built by job 21). Currency is rethought against this
   5. No Framer `route.ts` page, no Framer CDN script and no `files.catbox.moe` asset is left serving; `robots.txt` and `sitemap.xml` exist
   6. The owner reviews each slice on `preview.almarprivatejourney.com` (Worker `almar-preview`, noindex) before any production deploy; production cuts over on his word
 
@@ -289,7 +289,7 @@ Plans:
 **Goal:** The remaining Active CMS (packages, consult, content) is live and i18n publish works. The page replacement and the Framer bridge removal moved to Phase 3.3 on 2026-10-02.
 **Mode:** mvp
 **Depends on:** Phase 5
-**Requirements:** BOOK-05, BOOK-06, BOOK-07, ADDN-03, I18N-04, SITE-01, SITE-02, SITE-03, SITE-04, SITE-05, SITE-06, SITE-07, SITE-08, SITE-09, SITE-10, SITE-11, SITE-12, SITE-13, OPS-12, CMS-03, CMS-07, CMS-08, CMS-09, PLAT-03
+**Requirements:** BOOK-05, BOOK-06, BOOK-07, ADDN-03, I18N-04, SITE-01, SITE-02, SITE-03, SITE-04, SITE-05, SITE-06, SITE-07, SITE-08, SITE-09, SITE-10, SITE-11 (met in 3.3), SITE-12 (partly met in 3.3: contact form and newsletter honeypots; Plan with us and List with us forms still to build), SITE-13 (met in 3.3), OPS-12, CMS-03, CMS-07, CMS-08, CMS-09, PLAT-03
 **Success Criteria** (what must be TRUE):
 
   1. Framer `route.ts` pages are replaced with React on the same URLs; contact stays `inquiries@almarprivatejourney.com` / `+971 56 388 3302`
@@ -319,11 +319,11 @@ Reshaped by the owner 2026-10-02 13:30-13:35 (frontend before backend): 1 → 3 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Design system | 6/6 | Complete   | 2026-09-23 |
-| 2. Platform spine | 1/10 | In Progress|  |
+| 2. Platform spine | 17/17 | Complete | 2026-10-21 |
 | 3. Public site and dashboard | 13/13 | Executed, not verified | - |
 | 3.1 Design system and journey bar | 29/29 | Complete | 2026-10-01 |
-| 3.2 Real catalog and team | 0/? | Not started | - |
-| 3.3 Booking-path pages | 0/? | Not started | - |
+| 3.2 Real catalog and team | 15/15 (14 not in v1) | Complete | 2026-10-21 |
+| 3.3 Public site in React | 41/41 | Complete | 2026-10-21 |
 | 4. Book and request | 2/8 | Rewritten 2026-10-19 (bank transfer) | - |
 | 5. Ops OS | 0/2 | Not started | - |
 | 6. Site and rest of CMS | 0/2 | Not started | - |

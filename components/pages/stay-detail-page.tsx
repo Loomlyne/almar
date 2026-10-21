@@ -33,6 +33,7 @@ import { pickStayJourneyCopy } from "./stay-detail/booking-value";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
 import { fill } from "../../lib/journey-format";
+import { petsText } from "../../lib/stay-pets";
 import { absoluteLocaleUrl, localeAlternates, localePath, siteHref } from "../../lib/locale-path";
 
 // Three cards from md, two below it (Framer shows two at 390): the third card is hidden below md.
@@ -152,6 +153,7 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
     { label: copy.facts.bedrooms, value: stay.bedrooms === null ? null : String(stay.bedrooms) },
     { label: copy.facts.beds, value: stay.beds_label },
     { label: copy.facts.neighborhood, value: stay.neighborhood },
+    { label: copy.facts.pets, value: petsText(stay, copy.pets) },
   ].filter((fact) => fact.value !== null && fact.value !== "");
 
   const services = catalogCards(catalog.services, 2 / 3, false, locale);
