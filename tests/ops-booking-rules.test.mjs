@@ -533,7 +533,7 @@ test("actorKind: owner:<uuid>, system, guest, anything else system", () => {
   assert.equal(r.actorKind("system"), "system");
   assert.equal(r.actorKind("guest"), "guest");
   assert.equal(r.actorKind("owner"), "system");
-  assert.equal(r.actorKind("stripe"), "system");
+  assert.equal(r.actorKind("webhook"), "system");
   assert.equal(r.actorKind(""), "system");
 });
 
