@@ -100,7 +100,19 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(FOLDER === "out-preview").toBe(IS_PREVIEW);
     expect(existsSync(join(FOLDER, "index.html"))).toBe(true);
     expect(JSON.parse(readFileSync(".open-next/almar-server-routes.json", "utf8"))).toEqual(
-      ["/api/booking/hold", "/api/booking/quote", "/api/booking/release", "/api/contact", "/api/health", "/api/preferences", ...JOB02_SERVER_PATHS, "/newsletter"].sort(),
+      [
+        "/api/booking/hold",
+        "/api/booking/quote",
+        "/api/booking/release",
+        "/api/booking/request",
+        "/api/booking/view",
+        "/api/booking/withdraw",
+        "/api/contact",
+        "/api/health",
+        "/api/preferences",
+        ...JOB02_SERVER_PATHS,
+        "/newsletter",
+      ].sort(),
     );
   });
 
@@ -268,6 +280,18 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(res.headers()["x-robots-tag"]).toBe("noindex");
     const get = await request.get("/api/booking/quote", { maxRedirects: 0 });
     expect(get.status()).toBe(405);
+  });
+
+  test("8b. POST /api/booking/request, /view and /withdraw are served by Next (plan 04-08): an empty body is 400, 403 or 503, never the static 404; GET is 405", async ({ request }) => {
+    for (const path of ["/api/booking/request", "/api/booking/view", "/api/booking/withdraw"]) {
+      const res = await request.post(path, { data: {}, maxRedirects: 0 });
+      expect([400, 403, 503], `POST ${path} answered ${res.status()}`).toContain(res.status());
+      expect(res.headers()["content-type"], path).toMatch(/^application\/json/);
+      expect(res.headers()["cache-control"], path).toContain("no-store");
+      expect(res.headers()["x-robots-tag"], path).toBe("noindex");
+      const get = await request.get(path, { maxRedirects: 0 });
+      expect(get.status(), path).toBe(405);
+    }
   });
 
   test("9. /newsletter is the footer's POST handler (plan 03.3-27): GET and HEAD are 405, never a page; a refused POST is JSON, no-store, noindex", async ({ request, baseURL }) => {

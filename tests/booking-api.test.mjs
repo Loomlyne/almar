@@ -374,7 +374,7 @@ test("access.ts takes its dependencies as arguments (no environment, no database
 process.env.BOOKING_LINK_SECRET = "test-secret-".padEnd(48, "x");
 const server = await loadTs("lib/booking/server.ts");
 const linkModule = await loadTs("lib/booking/link.ts");
-const { quoteBooking, priceQuote, createWebHold, releaseWebHold, snapshotRow, holdStatus, liveGate } = server;
+const { quoteBooking, priceQuote, createWebHold, releaseWebHold, snapshotRow, holdStatus } = server;
 const { signBookingLink } = linkModule;
 
 const NOW = new Date("2026-10-05T10:00:00Z"); // 14:00 in Dubai, so "today" is 2026-10-05
@@ -754,7 +754,7 @@ const guest = (over = {}) => ({
   termsAccepted: true,
   ...over,
 });
-const CTX = { ipHash: "iphash", emailHash: (email) => `h:${email}`, isTest: true, now: NOW };
+const CTX = { ipHash: "iphash", emailHash: (email) => `h:${email}`, isTest: true, transferWindowMinutes: 35, now: NOW };
 const created = { ok: true, booking_id: OWN_ID, ref: OWN_REF, hold_expires_at: "2026-10-05T10:30:00.000Z", link_version: 1 };
 
 test("hold: quote, then limiter, then create_web_booking, in that order; the answer carries a signed link and no booking id", async () => {
@@ -766,6 +766,8 @@ test("hold: quote, then limiter, then create_web_booking, in that order; the ans
   assert.equal(out.response.ref, OWN_REF);
   assert.equal(out.response.holdExpiresAt, "2026-10-05T10:30:00.000Z");
   assert.equal(out.response.breakdown.grandFils, 315000);
+  assert.equal(out.response.transferWindowMinutes, 35, "the window the request will get (04-08)");
+  assert.equal("checkout" in out.response, false, "a hold carries no card session (04-08)");
   assert.equal(await linkModule.verifyBookingLink(OWN_ID, 1, out.response.linkToken), true, "the link token belongs to this booking at its link version");
   assert.equal(await linkModule.verifyBookingLink(OWN_ID, 2, out.response.linkToken), false);
   assert.equal(out.bookingId, OWN_ID, "the booking id is returned for 04-04");
@@ -947,7 +949,7 @@ test("hold: a hold without the link secret is refused rather than answered witho
   }
 });
 
-// ---------------------------------------------------------------- holdStatus, liveGate
+// ---------------------------------------------------------------- holdStatus
 
 test("holdStatus: the HTTP status of a hold answer", () => {
   assert.equal(holdStatus({ ok: true, ref: OWN_REF, holdExpiresAt: "x", linkToken: "y", breakdown: {} }), 200);
@@ -958,14 +960,8 @@ test("holdStatus: the HTTP status of a hold answer", () => {
   assert.equal(holdStatus({ ok: false, reasons: [{ code: "unavailable" }] }), 503);
 });
 
-test("liveGate: Stripe is TEST unless the key says live, and live stays closed while the terms are a placeholder (B-13)", () => {
-  assert.deepEqual(liveGate(undefined, true), { isTest: true, open: true });
-  assert.deepEqual(liveGate("sk_test_abc", true), { isTest: true, open: true });
-  assert.deepEqual(liveGate("rk_live_abc", true), { isTest: true, open: true }, "only sk_live_ is live; anything else is TEST");
-  assert.deepEqual(liveGate("sk_live_abc", true), { isTest: false, open: false });
-  assert.deepEqual(liveGate("sk_live_abc", false), { isTest: false, open: true });
-  assert.deepEqual(liveGate("  sk_live_abc ", true), { isTest: false, open: false }, "a key with spaces is still read as live");
-});
+// 04-02's card-key gate test is gone with its function (plan 04-08, Task 4): the request gate that replaced it, TEST from
+// the Host header, is tested in tests/booking-gate.test.mjs.
 
 // ---------------------------------------------------------------- releaseWebHold
 
@@ -1150,8 +1146,10 @@ test("server.ts is database-agnostic: no environment, no Next, no Supabase impor
   assert.doesNotMatch(source, /process\.env|from "next|@supabase|SERVICE_ROLE/);
 });
 
-test("the three routes: POST only, dynamic, no-store, the origin check, and no logging of the body", () => {
-  for (const name of ["quote", "hold", "release"]) {
+const BOOKING_ROUTES = ["quote", "hold", "release", "request", "view", "withdraw"];
+
+test("the six booking routes: POST only, dynamic, no-store, the origin check, and no logging of the body", () => {
+  for (const name of BOOKING_ROUTES) {
     const source = readFileSync(`app/api/booking/${name}/route.ts`, "utf8");
     assert.match(source, /export const dynamic = "force-dynamic"/, name);
     assert.match(source, /export async function POST/, name);
@@ -1160,5 +1158,26 @@ test("the three routes: POST only, dynamic, no-store, the origin check, and no l
     assert.match(source, /no-store/, name);
     assert.doesNotMatch(source, /console\./, `${name}: nothing is logged`);
     assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY/, name);
+  }
+});
+
+test("no booking route reads the card secret key (04-08: the request gate replaced it)", () => {
+  // The name is built here so the plan's grep for it stays empty.
+  const keyName = "STRIPE_" + "SECRET_KEY";
+  for (const name of BOOKING_ROUTES) {
+    const source = readFileSync(`app/api/booking/${name}/route.ts`, "utf8");
+    assert.equal(source.includes(keyName), false, name);
+  }
+});
+
+test("is_test never comes from the body: no booking route takes isTest or is_test from what it parsed", () => {
+  for (const name of BOOKING_ROUTES) {
+    const source = readFileSync(`app/api/booking/${name}/route.ts`, "utf8");
+    assert.doesNotMatch(source, /(isTest|is_test)\s*:\s*(parsed|body)\b/, name);
+    assert.doesNotMatch(source, /(parsed|body)\.value\.(isTest|is_test)\b/, name);
+    assert.doesNotMatch(source, /(parsed|body)\.value\[/, name);
+    for (const match of source.matchAll(/isTest\s*:\s*([^,}\n]+)/g)) {
+      assert.match(match[1].trim(), /^(gate\.isTest|isTest|isTestHost\(request\.headers\.get\("host"\)\))$/, `${name}: isTest from ${match[1].trim()}`);
+    }
   }
 });
