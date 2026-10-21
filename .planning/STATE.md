@@ -29,6 +29,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 **2026-10-20 08:06 CET:** **almar-ops deployed** as `267d7570` (rollback `fd4a3419`) from `main` `8a869be` on the owner's word (question form). Clean-clone ops build and dry run, reviewer GO, live checks signed out all as expected; signed-in screens not verified (owner UAT). The public `almar` Worker is not deployed.
 
+**2026-10-21 14:10 CET:** **almar-preview deployed** from `main` `95aa6ff8` (Next 16.4.2) on the owner's word: version `ffb63ce9-fce9-4c4d-a598-b4c55a7e8685` (rollback `407dae26-6943-4dfb-b279-4d51ce1dafaf`). Before: PARITY OK on live rows, anon key in 0 output files, deploy dry run 0, 178/178 media URLs 200, Sonnet pre-deploy check GO. Live: home EN/AR/ES 200 with lang/dir, 9 public pages 200 like production, noindex header and disallow-all robots, /api/health ok, /login sign-in form, /account and /bookings 307 to /login, /fx and /embed/* 404 (bridge gone). almar-ops and almar not deployed.
+
 **2026-10-21 14:01 CET:** **Landed** #26, #25, #28 (Next 16), #29 (Phase 2 close), #30 (Phase 3.2 close) on the owner's Ship, no landing test run on his word; `main` `08658357`. Phases 2, 3.2 and 3.3 are closed in code; deploy and owner UAT pending (preview first). Phase 4 starts after the deploys.
 
 **2026-10-21 13:02 CET:** **PR #27 landed** as `29759a81` (OpenNext opt-out flag for Next 15, temporary until the Next 16 upgrade, job 20) and **PR #24 landed** as `3d6caf5a` (sign-in option A), on the owner's Ship; not deployed. Phase close jobs 17 (3.3), 18 (2), 19 (3.2) handed over.
