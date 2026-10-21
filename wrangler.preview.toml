@@ -24,7 +24,9 @@ custom_domain = true
 
 # The public forms' rate limit (plan 03.3-26; lib/form-rate-limit.ts): 5 posts a minute per form and visitor address,
 # keyed "<form>:<CF-Connecting-IP>". POST /api/contact (scope "contact") and POST /newsletter (scope "newsletter", plan 27).
+# Own namespace (production uses "1001"): ids are account-wide and Workers sharing one share counters per location, so a
+# preview test post must not count against a real visitor. No creation step; the id is just a number we choose.
 [[ratelimits]]
 name = "FORM_LIMITER"
-namespace_id = "1001"
+namespace_id = "1002"
 simple = { limit = 5, period = 60 }
