@@ -101,7 +101,14 @@ export function SignInScreen({
           </section>
         ) : (
           <form onSubmit={onSubmit} noValidate className="grid w-full max-w-108 gap-6">
-            <h1 className="m-0 font-display text-heading tracking-display text-teal">{variant === "ops" ? copy.signIn : copy.auth.heading}</h1>
+            {/* Option A (owner, 2026-10-19): kicker, heading, a short gold rule (gold is a line only). */}
+            <div className="grid gap-3">
+              <span className="text-caption uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">
+                {variant === "ops" ? copy.auth.kickerOps : copy.auth.kickerPublic}
+              </span>
+              <h1 className="m-0 font-display text-heading tracking-display text-teal">{variant === "ops" ? copy.signIn : copy.auth.heading}</h1>
+              <span className="block w-10 border-t border-gold" aria-hidden="true" />
+            </div>
             <p className="m-0 text-body text-muted">{copy.auth.lead}</p>
             {expired && state.status === "idle" ? (
               <p className="m-0 text-label text-error" role="status">
@@ -120,10 +127,12 @@ export function SignInScreen({
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               error={emailError}
+              className="max-w-none"
             />
             <Button type="submit" size="lg" busy={pending} className="w-full">
               {copy.accessWithMagicLink}
             </Button>
+            <p className="m-0 text-label text-muted">{copy.auth.linkNote}</p>
             {state.status === "unavailable" ? (
               <p className="m-0 text-label text-error" role="alert">
                 {copy.auth.unavailable}

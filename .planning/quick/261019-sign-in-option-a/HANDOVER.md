@@ -1,0 +1,61 @@
+# Hand-over: sign-in form, option A
+
+Work session `local_0187ed55`, 2026-10-19 12:53 +0100. Branch `claude/sign-in-option-a`, cut from `origin/main` 40b5b65.
+
+## Signed
+On 2026-10-19 the owner picked option A of three pictures drawn in chat ("Go with option A for the sign-in redesign"). Option A has a kicker above the
+heading, a 40px gold rule under it, the email field as wide as the button, and a link note under the button.
+One wording change from the picture: the kicker says "Owner access", not "Owner dashboard", because
+`tests/phase-03-guest.test.mjs` forbids the word "dashboard" in public sign-in sources.
+
+## Changed
+- `app/login/sign-in-screen.tsx`: the form only, on both hosts (the public /login and the dashboard /sign-in).
+  - The kicker (`text-caption`, uppercase, muted) reads "Owner access" on the ops host and "Your account" on the public host.
+  - The heading is unchanged.
+  - A `w-10 border-t border-gold` rule sits under the heading. Gold is a line only.
+  - The Field gets `max-w-none`, so the input is as wide as the button. It was 384px against 432px.
+  - Under the button: "The link works once, for one hour."
+- `lib/copy/guest.ts`: `kickerPublic`, `kickerOps` and `linkNote` in EN, AR and ES. The guest Spanish uses tú, as in the lines around it. The link note matches live Supabase `mailer_otp_exp` = 3600 s and the single-use link.
+- `tests/phase-03-guest.test.mjs`: one new test.
+- The "Check your email" state is unchanged.
+
+## Also on this branch: dashboard /login spec fix (575f6e6, cherry-picked from f729b1f)
+- `tests/build/ops-runtime.spec.ts`: "/login" is out of MISSES. New 4b: GET and HEAD of /login answer 308 to /sign-in with the query kept. New 5b: POST and PUT to /login answer 404 or 405, with no Location.
+- **Behaviour change 1, methods:** `worker/almar-ops.mjs` now redirects /login for GET and HEAD only. POST, PUT and every other method fall through to the static assets like any miss, so no form body is forwarded.
+- **Behaviour change 2, Location:** the Location is relative (`/sign-in?...`, cache-control no-store) instead of absolute.
+- **Live until the next almar-ops deploy:** every method still gets the absolute 308 deployed at 12:42 (version fd4a3419).
+- `tests/ops-runtime.test.mjs` is updated to match. Unit bite: origin/main's worker fails the new /login unit test.
+
+## Checks on the commit
+- `npm ci` exit 0
+- `npx tsc --noEmit` exit 0
+- `node --test tests/*.test.mjs` on 4b74193: 1,973 tests, 1,930 pass, 0 fail, 43 skipped
+- `tokens:check`: up to date
+- NOT run, because they need the controller's go: `npm run build` and Playwright. Snapshot specs of /login and /sign-in, if any, will need new baselines.
+- Not seen in a browser, in any of EN, AR (RTL) or ES.
+- No migration and no new environment names.
+
+## Mac runs (controller's go)
+**Run 1** (1b86a40, 13:11–13:14): rejected.
+- The dev specs passed 66 of 66.
+- The baselines were written at workers=2 under tests/, which made dev recompile mid-capture: `login-en-834` came out blank and `login-ar-834` failed. No PNG from run 1 was committed.
+- 4b failed because Playwright's redirect follow drops the ops Host header. Fixed in daf12c6, which follows the Location by hand.
+
+**Run 2** (daf12c6, 13:48–13:50, exit=0): accepted by the controller. All steps ran at workers=1.
+- p0/p1: 12 login and dashboard pictures captured with main's sign-in code and again with option A, both outside tests/.
+- p1b: option A changed all 12, the dashboard ones included, because the signed-out /dashboard renders the ops sign-in.
+- p3: strict recheck of the 12 on a fresh server, 12 passed.
+- p4: after-mode guard on all 24 pictures, 24 passed.
+- Committed alone as **e05b123**: the 12 PNGs, for example `login-en-834` 356,398 → 360,953 bytes.
+- **Stale baselines, out of scope, left alone:** `booking-trip-{en,ar}-{390,834,1440}` fail strict mode (6), and their baselines date from 9fd6786 (2026-10-02). All 6 account pictures pass.
+- Bites both count:
+  - "/login" back in MISSES, test 4 only: 1 failed, 0 passed.
+  - origin/main's worker on 4b and 5b: 2 failed, 0 passed.
+  - Files restored, matching HEAD.
+- Ops specs: 22 passed, 4 skipped, 1 failed at `ops-runtime.spec.ts:97`. That failure came from run order: the out-ops build was reused after next dev had rewritten `.next/`. Run 1, which built straight before the specs, passed `:97`. The landing lane proves `:97`, 4b and 5b on a clean clone with a fresh build.
+
+## Owner test steps (after deploy)
+1. Open https://dashboard.almarprivatejourney.com/sign-in. Expect "OWNER ACCESS" above "Sign in", then a short gold line. The email box is exactly as wide as the button. Under the button: "The link works once, for one hour."
+2. Switch to Arabic. Expect the same layout mirrored, the kicker not in capitals, and the gold line on the right.
+3. Open https://almarprivatejourney.com/login. Expect "YOUR ACCOUNT" above "Sign in or create an account".
+4. Submit an empty field. Expect the error under the full-width box.
