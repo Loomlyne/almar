@@ -4,6 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { DASHBOARD_COPY } from "../lib/copy/dashboard";
 import { OPS_CONTENT_COPY } from "../lib/copy/ops-content";
 import { isLiveOpsPath } from "../lib/ops-routes";
+import { NOT_LIVE_OPS_PATH } from "./journey/scenes/ops-not-live-path";
 import { VIEWPORTS, sceneStates, settle, type Viewport } from "./journey/matrix";
 
 // Content -> Pages, Blog, Legal and Navigation and footer as Coming soon pages, and the Content rail with its Soon chips
@@ -173,9 +174,9 @@ test.describe("coming soon pages", () => {
   }
 
   test("ops host: a section that is not live (Home) still shows Not ready", async ({ page, baseURL }) => {
-    // Scene ops-host-home (tests/journey/scenes/ops-coming-soon.tsx) passes "/home" to the layout: it needs a section that
-    // is not live. When Home is wired, point the scene and this line at the next section still off.
-    expect(isLiveOpsPath("/home"), "/home is live now: move scene ops-host-home to a section still not live").toBe(false);
+    // Scene ops-host-home passes NOT_LIVE_OPS_PATH to the layout: it needs a section that is not live. When that section
+    // is wired, change the one constant in tests/journey/scenes/ops-not-live-path.ts to the next section still off.
+    expect(isLiveOpsPath(NOT_LIVE_OPS_PATH), `${NOT_LIVE_OPS_PATH} is live now: change NOT_LIVE_OPS_PATH to a section still not live`).toBe(false);
     await answerSiteStatus(page);
     await page.setViewportSize(VIEWPORTS.desktop);
     await page.context().addCookies([{ name: "almar-locale", value: "en", url: baseURL ?? "http://127.0.0.1:3010" }]);
