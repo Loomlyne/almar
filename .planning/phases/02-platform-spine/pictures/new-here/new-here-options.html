@@ -1,0 +1,75 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>New here options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Naskh+Arabic&family=Noto+Sans+Arabic:wght@400;700&display=swap">
+<style>
+/* Values copied from tokens.json (origin/main dc7edae1). Questa (display) is a licensed face: Georgia stands in here. */
+:root{--ivory:#fffaf0;--surface:#ffffff;--teal:#1f3b40;--gold:#d4ba8a;--ink:#262626;--muted:#63615f;--line:rgb(38 38 38 / .16);--error:#8f2d2d;
+--caption:12px;--label:14px;--body:16px;--heading:32px;--kicker:.12em;--display-track:-.02em;--action:56px;--control:44px}
+*{box-sizing:border-box;border-radius:0}
+body{margin:0;background:var(--ivory);color:var(--ink);font:400 var(--body)/1.5 Lato,Arial,sans-serif;padding:32px 16px}
+main{max-width:1500px;margin:0 auto}
+.intro h1{font:400 var(--heading)/1.2 Georgia,serif;color:var(--teal);margin:0 0 8px}
+.intro p{margin:0 0 4px;color:var(--muted);font-size:var(--label)}
+section{margin-top:48px} h2{font:400 20px/1.3 Georgia,serif;color:var(--teal);margin:0 0 4px}
+.why{margin:0 0 16px;color:var(--muted);font-size:var(--label);max-width:900px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);padding:40px 32px;position:relative}
+.tag{position:absolute;top:8px;inset-inline-end:12px;font-size:var(--caption);color:var(--muted)}
+form{display:grid;gap:24px;max-width:432px}
+.head{display:grid;gap:12px}
+.kicker{font-size:var(--caption);text-transform:uppercase;letter-spacing:var(--kicker);color:var(--muted)}
+h1{margin:0;font:400 var(--heading)/1.2 Georgia,serif;letter-spacing:var(--display-track);color:var(--teal)}
+.rule{display:block;width:40px;border-top:1px solid var(--gold)}
+.lead,.note{margin:0;color:var(--muted)} .note{font-size:var(--label)}
+label{display:grid;gap:8px;font-size:var(--label)}
+.input{display:block;min-height:var(--control);border:1px solid var(--ink);background:var(--surface);padding:10px 16px;font-size:var(--body);text-align:left}
+.input.invalid{border-color:var(--error)} .ph{color:var(--muted)}
+.btn{display:flex;align-items:center;justify-content:center;height:var(--action);background:var(--teal);color:#fff;font-weight:700;padding:0 32px}
+.foot{margin:0;border-top:1px solid var(--line);padding-top:24px;font-size:var(--label)}
+.err{margin:-12px 0 0;color:var(--error);font-size:var(--label)}
+.new{outline:1px dashed var(--muted);outline-offset:4px}
+[lang=ar]{font-family:"Noto Sans Arabic",Lato,Arial,sans-serif;line-height:1.7}
+[lang=ar] h1{font-family:"Noto Naskh Arabic",Georgia,serif;line-height:1.4}
+[lang=ar] .kicker{text-transform:none;letter-spacing:normal}
+</style></head><body><main>
+<div class="intro"><h1>“New here?” while sign-ups are off</h1>
+<p>Public /login, sign-in form option A (PR #24). One decision: A, B or C. Dashed outline = new text (draft, AR/ES need the usual review).</p>
+<p>Fact: the server's own link (admin generateLink) creates the account for a new email; Supabase “sign-ups disabled” does not stop it. So the line is true today.</p></div>
+<section><h2>Option A — Keep the line, keep the setting (recommended)</h2><p class="why">Today's /login with PR #24, unchanged. A new email gets an account from the link (the server's own link creates it; the 'sign-ups off' setting only blocks direct API sign-ups that skip our limits and branded email). AUTH-02 / D-01 stay as they are. No code change.</p><div class="row"><div class="card" lang="en" dir="ltr"><div class="tag">A · EN</div>
+<form><div class="head"><span class="kicker">Your account</span><h1>Sign in or create an account</h1><span class="rule"></span></div>
+<p class="lead">We email you a one-time link. No password to remember.</p>
+<label>Email<span class="input" dir="ltr"><span class="ph">name@example.com</span></span></label>
+<span class="btn">Access with magic link</span><p class="note">The link works once, for one hour.</p><p class="foot">New here? Your account is created the first time you use the link.</p></form></div><div class="card" lang="ar" dir="rtl"><div class="tag">A · AR · RTL</div>
+<form><div class="head"><span class="kicker">حسابك</span><h1>سجّل الدخول أو أنشئ حسابًا</h1><span class="rule"></span></div>
+<p class="lead">نرسل إليك رابطًا لمرة واحدة. لا كلمة مرور لتتذكرها.</p>
+<label>البريد الإلكتروني<span class="input" dir="ltr"><span class="ph">name@example.com</span></span></label>
+<span class="btn">الدخول برابط سحري</span><p class="note">يعمل الرابط مرة واحدة، لمدة ساعة.</p><p class="foot">جديد هنا؟ يُنشأ حسابك عند أول استخدام للرابط.</p></form></div><div class="card" lang="es" dir="ltr"><div class="tag">A · ES</div>
+<form><div class="head"><span class="kicker">Tu cuenta</span><h1>Inicia sesión o crea una cuenta</h1><span class="rule"></span></div>
+<p class="lead">Te enviamos un enlace de un solo uso. Sin contraseña que recordar.</p>
+<label>Correo electrónico<span class="input" dir="ltr"><span class="ph">name@example.com</span></span></label>
+<span class="btn">Acceder con enlace mágico</span><p class="note">El enlace funciona una vez, durante una hora.</p><p class="foot">¿Primera vez? Tu cuenta se crea la primera vez que usas el enlace.</p></form></div></div></section><section><h2>Option B — No public sign-ups</h2><p class="why">Heading becomes 'Sign in', the 'New here?' line goes, and an unknown email is refused (state shown). Guests get an account only from a booking (Phase 4). Reverses AUTH-02 and D-01. New refusal text is a DRAFT in all three languages.</p><div class="row"><div class="card" lang="en" dir="ltr"><div class="tag">B · EN</div>
+<form><div class="head"><span class="kicker">Your account</span><h1>Sign in</h1><span class="rule"></span></div>
+<p class="lead">We email you a one-time link. No password to remember.</p>
+<label>Email<span class="input invalid" dir="ltr">new.guest@example.com</span></label><p class="err new">We could not find an account for this email. Your account is made when you book.</p>
+<span class="btn">Access with magic link</span><p class="note">The link works once, for one hour.</p></form></div><div class="card" lang="ar" dir="rtl"><div class="tag">B · AR · RTL</div>
+<form><div class="head"><span class="kicker">حسابك</span><h1>تسجيل الدخول</h1><span class="rule"></span></div>
+<p class="lead">نرسل إليك رابطًا لمرة واحدة. لا كلمة مرور لتتذكرها.</p>
+<label>البريد الإلكتروني<span class="input invalid" dir="ltr">new.guest@example.com</span></label><p class="err new">لا نجد حسابًا بهذا البريد. يُنشأ حسابك عند الحجز.</p>
+<span class="btn">الدخول برابط سحري</span><p class="note">يعمل الرابط مرة واحدة، لمدة ساعة.</p></form></div><div class="card" lang="es" dir="ltr"><div class="tag">B · ES</div>
+<form><div class="head"><span class="kicker">Tu cuenta</span><h1>Iniciar sesión</h1><span class="rule"></span></div>
+<p class="lead">Te enviamos un enlace de un solo uso. Sin contraseña que recordar.</p>
+<label>Correo electrónico<span class="input invalid" dir="ltr">new.guest@example.com</span></label><p class="err new">No encontramos una cuenta con este correo. Tu cuenta se crea al reservar.</p>
+<span class="btn">Acceder con enlace mágico</span><p class="note">El enlace funciona una vez, durante una hora.</p></form></div></div></section><section><h2>Option C — Keep sign-up, say it plainly</h2><p class="why">Same behaviour as A; only the bottom line is reworded. New text is a DRAFT in all three languages.</p><div class="row"><div class="card" lang="en" dir="ltr"><div class="tag">C · EN</div>
+<form><div class="head"><span class="kicker">Your account</span><h1>Sign in or create an account</h1><span class="rule"></span></div>
+<p class="lead">We email you a one-time link. No password to remember.</p>
+<label>Email<span class="input" dir="ltr"><span class="ph">name@example.com</span></span></label>
+<span class="btn">Access with magic link</span><p class="note">The link works once, for one hour.</p><p class="foot new">No account yet? The link creates one.</p></form></div><div class="card" lang="ar" dir="rtl"><div class="tag">C · AR · RTL</div>
+<form><div class="head"><span class="kicker">حسابك</span><h1>سجّل الدخول أو أنشئ حسابًا</h1><span class="rule"></span></div>
+<p class="lead">نرسل إليك رابطًا لمرة واحدة. لا كلمة مرور لتتذكرها.</p>
+<label>البريد الإلكتروني<span class="input" dir="ltr"><span class="ph">name@example.com</span></span></label>
+<span class="btn">الدخول برابط سحري</span><p class="note">يعمل الرابط مرة واحدة، لمدة ساعة.</p><p class="foot new">ليس لديك حساب بعد؟ الرابط ينشئه لك.</p></form></div><div class="card" lang="es" dir="ltr"><div class="tag">C · ES</div>
+<form><div class="head"><span class="kicker">Tu cuenta</span><h1>Inicia sesión o crea una cuenta</h1><span class="rule"></span></div>
+<p class="lead">Te enviamos un enlace de un solo uso. Sin contraseña que recordar.</p>
+<label>Correo electrónico<span class="input" dir="ltr"><span class="ph">name@example.com</span></span></label>
+<span class="btn">Acceder con enlace mágico</span><p class="note">El enlace funciona una vez, durante una hora.</p><p class="foot new">¿Aún no tienes cuenta? El enlace la crea.</p></form></div></div></section>
+</main></body></html>
