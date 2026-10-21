@@ -1,10 +1,12 @@
 // POST /api/booking/quote: the live quote with every reason (plan 04-02). Money comes from the server's own pricing,
-// never from the page. 200 with the answer (also when it says "not bookable": the reasons are content), 400 for a body
-// that is not a quote request, 403 for a foreign origin, 503 when the server cannot answer. Nothing is logged: no body,
-// no email, no phone.
+// never from the page. 200 with the answer (also when it says "not bookable": the reasons are content; while the
+// request gate is closed the answer is ok false with one requests_closed reason and its price kept, plan 04-08), 400 for
+// a body that is not a quote request, 403 for a foreign origin, 503 when the server cannot answer. Nothing is logged:
+// no body, no email, no phone.
 import { readJsonBody } from "../../../../lib/booking/http";
 import { isAllowedPostOrigin } from "../../../../lib/booking/origin";
-import { quoteBooking } from "../../../../lib/booking/server";
+import { currentRequestGate } from "../../../../lib/booking/gate-server";
+import { quoteBooking, withRequestGate } from "../../../../lib/booking/server";
 import { parseQuoteRequest } from "../../../../lib/booking/validate";
 import { createSupabaseAdmin } from "../../../../lib/supabase/clients";
 
@@ -28,7 +30,8 @@ export async function POST(request: Request): Promise<Response> {
   const admin = createSupabaseAdmin();
   if (!admin) return reply(unavailable, 503);
   try {
-    return reply(await quoteBooking(admin, parsed.value), 200);
+    const [quote, gate] = await Promise.all([quoteBooking(admin, parsed.value), currentRequestGate(admin, request.headers.get("host"))]);
+    return reply(withRequestGate(quote, gate), 200);
   } catch {
     return reply(unavailable, 503);
   }

@@ -1,18 +1,44 @@
-// Server side of the booking endpoints (plan 04-02): the live quote with every reason, the hold, the release, and the
-// snake_case payload both SQL create functions read. `db` is anything with `.rpc(name, args)`, so the routes pass the
-// service-role client and the tests pass a fake. No environment, no Next, no Supabase import: the routes own those.
+// Server side of the booking endpoints (plans 04-02 and 04-08): the live quote with every reason, the hold, the release,
+// the snake_case payload both SQL create functions read, the request gate, and the guest's request, view and withdraw
+// with their emails. `db` is anything with `.rpc(name, args)`, so the routes pass the service-role client and the tests
+// pass a fake. No environment, no Next, no Supabase import: the routes own those.
 //
 // Money is never taken from the browser: the quote reads the stay, its night rates, the add-on prices and the owner's
 // settings from `booking_context` and prices them with lib/money (the one engine); the hold re-quotes and stores that
 // snapshot. A value the owner has not set (VAT, deposit, balance days) arrives as null and is a reason, never a default.
 import { mediaUrl } from "../data/media";
-import { priceBooking, type NightRate, type PriceReason, type PriceSnapshot } from "../money/booking-price";
+import { priceBooking, type AddOnUnit, type NightRate, type PriceReason, type PriceSnapshot } from "../money/booking-price";
 import { daysBetween, dubaiToday, isIsoDate } from "../money/dates";
-import { authorizeBookingAccess } from "./access";
+import { authorizeBookingAccess, type BookingAccessDeps } from "./access";
 import { bookingLinkConfigured, signBookingLink, verifyBookingLink } from "./link";
+import { deliverMail, mailKey, type BookingNotifier, type RequestMailJob } from "./notify";
+import { bookingPagePath, originForBooking } from "./origin";
 import { isBookingRef } from "./ref";
-import { BOOKING_TERMS_IS_PLACEHOLDER, BOOKING_TERMS_VERSION } from "./terms";
-import type { AddOnOffering, BookingReason, HoldRequest, HoldResponse, PublicPriceSnapshot, QuoteRequest, QuoteResponse, StayCard } from "./types";
+import { BOOKING_TERMS_VERSION } from "./terms";
+import type {
+  AddOnOffering,
+  Airport,
+  BookingLocale,
+  BookingReason,
+  BookingStatus,
+  BookingView,
+  GuestBookingSummary,
+  HoldRequest,
+  HoldResponse,
+  PaymentMethod,
+  PublicPriceSnapshot,
+  QuoteRequest,
+  QuoteResponse,
+  ReasonCode,
+  RequestRequest,
+  RequestResponse,
+  StayCard,
+  TravellerInput,
+  ViewRequest,
+  ViewResponse,
+  WithdrawRequest,
+  WithdrawResponse,
+} from "./types";
 import { needsPickupAddress } from "./validate";
 
 export type RpcError = { message?: string; details?: string | null } | null;
@@ -328,10 +354,12 @@ export type HoldContext = {
   /** The same keyed hash for the guest's email. */
   emailHash: (email: string) => string;
   isTest: boolean;
+  /** The transfer window the request will get (the open gate's window), sent back in the ok answer. */
+  transferWindowMinutes: number;
   now?: Date;
 };
 
-/** `bookingId` is for 04-04's Checkout Session and is never part of `response`. */
+/** `bookingId` stays on the server and is never part of `response`. */
 export type HoldOutcome = { response: HoldResponse; bookingId: string | null };
 
 const refuse = (reasons: BookingReason[]): HoldOutcome => ({ response: { ok: false, reasons }, bookingId: null });
@@ -429,7 +457,14 @@ export async function createWebHold(db: BookingDb, input: HoldRequest, ctx: Hold
     throw new Error("rpc create_web_booking: unreadable answer");
   }
   return {
-    response: { ok: true, ref, holdExpiresAt: expires, linkToken: await signBookingLink(id, version), breakdown: publicBreakdown(breakdown) },
+    response: {
+      ok: true,
+      ref,
+      holdExpiresAt: expires,
+      linkToken: await signBookingLink(id, version),
+      breakdown: publicBreakdown(breakdown),
+      transferWindowMinutes: ctx.transferWindowMinutes,
+    },
     bookingId: id,
   };
 }
@@ -445,15 +480,6 @@ export function holdStatus(response: HoldResponse): 200 | 400 | 409 | 429 | 503 
   if (codes.includes("unavailable") || codes.includes("requests_closed")) return 503;
   if (codes.includes("invalid")) return 400;
   return 409;
-}
-
-/**
- * TEST unless the Stripe secret key says live (`sk_live_`); a live key stays closed while the booking terms are the
- * placeholder (B-13: the owner's text does not exist yet). 04-04 moves this into lib/stripe/server.ts.
- */
-export function liveGate(stripeSecret: string | undefined, termsArePlaceholder: boolean = BOOKING_TERMS_IS_PLACEHOLDER): { isTest: boolean; open: boolean } {
-  const isTest = !(stripeSecret ?? "").trim().startsWith("sk_live_");
-  return { isTest, open: isTest || !termsArePlaceholder };
 }
 
 // ---------------------------------------------------------------- the request gate (04-08)
@@ -534,12 +560,13 @@ export function withRequestGate(quote: QuoteResponse, gate: RequestGate): QuoteR
 // ---------------------------------------------------------------- the release
 
 export type ReleaseDeps = { readSession?: () => Promise<{ email: string } | null> };
+/** `sessionIds` is what `booking_drop_hold` returns (04-02's card session ids); unused in Phase 4. */
 export type ReleaseResult = { ok: true; dropped: boolean; sessionIds: string[] } | { ok: false };
 
 /**
  * The guest drops their own hold (B-16): the signed link, or, without a token, the signed-in guest whose email is the
- * booking's. Only a `held` booking is touched (the SQL decides): its nights are free at once and its open Checkout
- * Sessions come back for 04-04 to expire at Stripe. Any other status is `ok` with nothing dropped. Refused is `{ ok: false }`.
+ * booking's. Only a `held` booking is touched (the SQL decides): its nights are free at once. Any other status is `ok`
+ * with nothing dropped (a sent request is withdrawn through withdrawBooking, P-19). Refused is `{ ok: false }`.
  */
 export async function releaseWebHold(db: BookingDb, input: { ref: unknown; t?: unknown }, deps: ReleaseDeps = {}): Promise<ReleaseResult> {
   const access = await authorizeBookingAccess(input, {
@@ -557,4 +584,373 @@ export async function releaseWebHold(db: BookingDb, input: { ref: unknown; t?: u
     throw new Error("rpc booking_drop_hold: unreadable answer");
   }
   return { ok: true, dropped: data.dropped, sessionIds: data.closed_sessions.filter((s): s is string => typeof s === "string") };
+}
+
+// ---------------------------------------------------------------- the guest's request, view and withdraw (04-08)
+
+const BOOKING_STATUSES: readonly BookingStatus[] = ["held", "awaiting_payment", "deposit_paid", "paid_in_full", "confirmed", "completed", "cancelled", "expired"];
+const BOOKING_LOCALES: readonly BookingLocale[] = ["en", "ar", "es"];
+const AIRPORTS: readonly Airport[] = ["DXB", "AUH", "SHJ"];
+const TRAVELLER_KINDS: readonly TravellerInput["kind"][] = ["adult", "child", "infant"];
+const ADDON_UNITS: readonly AddOnUnit[] = ["person", "night", "trip"];
+const PAYMENT_METHODS: readonly PaymentMethod[] = ["bank_transfer", "card"];
+const PLANS: readonly ("deposit" | "full")[] = ["deposit", "full"];
+const CURRENCIES: readonly "AED"[] = ["AED"];
+
+type SessionReader = () => Promise<{ email: string } | null>;
+
+/** Readers for one rpc's answer. A wrong shape throws `rpc <name>: unreadable <field>`: the field's name, never a value. */
+type Reader = {
+  obj(v: unknown, what: string): Raw;
+  str(v: unknown, what: string): string;
+  strOrNull(v: unknown, what: string): string | null;
+  int(v: unknown, what: string): number;
+  intOrNull(v: unknown, what: string): number | null;
+  bool(v: unknown, what: string): boolean;
+  list(v: unknown, what: string): unknown[];
+  ref(v: unknown, what: string): string;
+  pick<T extends string>(allowed: readonly T[], v: unknown, what: string): T;
+};
+
+function readerFor(rpc: string): Reader {
+  const fail = (what: string): never => {
+    throw new Error(`rpc ${rpc}: unreadable ${what}`);
+  };
+  const isInt = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v);
+  return {
+    obj: (v, what) => (isObj(v) ? v : fail(what)),
+    str: (v, what) => (typeof v === "string" ? v : fail(what)),
+    strOrNull: (v, what) => (v === null || v === undefined ? null : typeof v === "string" ? v : fail(what)),
+    int: (v, what) => (isInt(v) ? v : fail(what)),
+    intOrNull: (v, what) => (v === null || v === undefined ? null : isInt(v) ? v : fail(what)),
+    bool: (v, what) => (typeof v === "boolean" ? v : fail(what)),
+    list: (v, what) => (Array.isArray(v) ? v : fail(what)),
+    ref: (v, what) => (isBookingRef(v) ? v : fail(what)),
+    pick: <T extends string>(allowed: readonly T[], v: unknown, what: string): T =>
+      typeof v === "string" && (allowed as readonly string[]).includes(v) ? (v as T) : fail(what),
+  };
+}
+
+/** The access check of the three guest calls: the booking behind the reference, its signed link, else the session. */
+function accessDeps(db: BookingDb, readSession: SessionReader): BookingAccessDeps {
+  return {
+    findByRef: async (ref) => {
+      const row = await bookingByRef(db, ref);
+      return row ? { id: row.id, email: row.email, linkVersion: row.linkVersion } : null;
+    },
+    verify: (id, version, token) => verifyBookingLink(id, version, token),
+    readSession,
+  };
+}
+
+const noSession: SessionReader = async () => null;
+
+/** `booking_view` (section B) in camelCase, the image through mediaUrl like the quote's. */
+function readView(data: unknown, r: Reader): BookingView {
+  const v = r.obj(data, "answer");
+  const stay = r.obj(v.stay, "stay");
+  const money = r.obj(v.money, "money");
+  const flags = r.obj(v.flags, "flags");
+  const transfer = v.transfer === null || v.transfer === undefined ? null : r.obj(v.transfer, "transfer");
+  const access = v.access === null || v.access === undefined ? null : r.obj(v.access, "access");
+  return {
+    ref: r.ref(v.ref, "ref"),
+    status: r.pick(BOOKING_STATUSES, v.status, "status"),
+    locale: r.pick(BOOKING_LOCALES, v.locale, "locale"),
+    guest: { name: r.str(v.guest_name, "guest_name"), email: r.str(v.email, "email") },
+    stay: {
+      slug: r.str(stay.slug, "stay.slug"),
+      title: r.str(stay.title, "stay.title"),
+      destinationName: r.str(stay.destination_name, "stay.destination_name"),
+      image: image(r.strOrNull(stay.image_key, "stay.image_key"), r.strOrNull(stay.image_alt, "stay.image_alt")),
+    },
+    arrive: r.str(v.arrive, "arrive"),
+    leave: r.str(v.leave, "leave"),
+    nights: r.int(v.nights, "nights"),
+    adults: r.int(v.adults, "adults"),
+    children: r.int(v.children, "children"),
+    infants: r.int(v.infants, "infants"),
+    travellers: r.list(v.travellers, "travellers").map((row) => {
+      const t = r.obj(row, "travellers");
+      return {
+        kind: r.pick(TRAVELLER_KINDS, t.kind, "travellers.kind"),
+        fullName: r.str(t.full_name, "travellers.full_name"),
+        age: r.intOrNull(t.age, "travellers.age"),
+        isBooker: r.bool(t.is_booker, "travellers.is_booker"),
+        notStaying: r.bool(t.not_staying, "travellers.not_staying"),
+      };
+    }),
+    lines: r.list(v.lines, "lines").map((row) => {
+      const l = r.obj(row, "lines");
+      return {
+        name: r.str(l.name, "lines.name"),
+        unit: r.pick(ADDON_UNITS, l.unit, "lines.unit"),
+        quantity: r.int(l.quantity, "lines.quantity"),
+        unitPriceFils: r.int(l.unit_price_fils, "lines.unit_price_fils"),
+        lineFils: r.int(l.line_fils, "lines.line_fils"),
+      };
+    }),
+    airport: v.airport === null || v.airport === undefined ? null : r.pick(AIRPORTS, v.airport, "airport"),
+    pickupAddress: r.strOrNull(v.pickup_address, "pickup_address"),
+    plan: r.pick(PLANS, v.plan, "plan"),
+    money: {
+      nightsFils: r.int(money.nights_fils, "money.nights_fils"),
+      addonsFils: r.int(money.addons_fils, "money.addons_fils"),
+      subtotalFils: r.int(money.subtotal_fils, "money.subtotal_fils"),
+      vatBp: r.int(money.vat_bp, "money.vat_bp"),
+      vatFils: r.int(money.vat_fils, "money.vat_fils"),
+      grandFils: r.int(money.grand_fils, "money.grand_fils"),
+      depositFils: r.int(money.deposit_fils, "money.deposit_fils"),
+      balanceFils: r.int(money.balance_fils, "money.balance_fils"),
+      paidFils: r.int(money.paid_fils, "money.paid_fils"),
+      dueNowFils: r.int(money.due_now_fils, "money.due_now_fils"),
+      stillDueFils: r.int(money.still_due_fils, "money.still_due_fils"),
+    },
+    holdExpiresAt: r.strOrNull(v.hold_expires_at, "hold_expires_at"),
+    deadline: r.strOrNull(v.deadline, "deadline"),
+    balanceDueDate: r.strOrNull(v.balance_due_date, "balance_due_date"),
+    flags: {
+      partReceived: r.bool(flags.part_received, "flags.part_received"),
+      overpaid: r.bool(flags.overpaid, "flags.overpaid"),
+      writtenOff: r.bool(flags.written_off, "flags.written_off"),
+    },
+    withdrawable: r.bool(v.withdrawable, "withdrawable"),
+    payments: r.list(v.payments, "payments").map((row) => {
+      const p = r.obj(row, "payments");
+      return {
+        receivedOn: r.strOrNull(p.received_on, "payments.received_on"),
+        method: r.pick(PAYMENT_METHODS, p.method, "payments.method"),
+        amountFils: r.int(p.amount_fils, "payments.amount_fils"),
+      };
+    }),
+    transfer: transfer === null ? null : {
+      accountName: r.str(transfer.account_name, "transfer.account_name"),
+      bankName: r.str(transfer.bank_name, "transfer.bank_name"),
+      iban: r.str(transfer.iban, "transfer.iban"),
+      swift: r.str(transfer.swift, "transfer.swift"),
+      bankAddress: r.str(transfer.bank_address, "transfer.bank_address"),
+      note: r.str(transfer.note, "transfer.note"),
+      currency: r.pick(CURRENCIES, transfer.currency, "transfer.currency"),
+      amountFils: r.int(transfer.amount_fils, "transfer.amount_fils"),
+      reference: r.str(transfer.reference, "transfer.reference"),
+      payBy: r.strOrNull(transfer.pay_by, "transfer.pay_by"),
+      dueBy: r.strOrNull(transfer.due_by, "transfer.due_by"),
+    },
+    access: access === null ? null : {
+      address: r.strOrNull(access.address, "access.address"),
+      wifiName: r.strOrNull(access.wifi_name, "access.wifi_name"),
+      wifiPassword: r.strOrNull(access.wifi_password, "access.wifi_password"),
+      doorCode: r.strOrNull(access.door_code, "access.door_code"),
+      notes: r.strOrNull(access.notes, "access.notes"),
+    },
+  };
+}
+
+async function readBookingView(db: BookingDb, bookingId: string, locale: BookingLocale | null, isTest: boolean): Promise<BookingView | null> {
+  const data = await call(db, "booking_view", { p_booking: bookingId, p_locale: locale, p_expect_test: isTest });
+  if (data === null || data === undefined) return null;
+  return readView(data, readerFor("booking_view"));
+}
+
+/**
+ * The guest's booking page by id, for the emails (server only; 04-09 uses it for the payment mails). Null when
+ * `booking_view` answers null (an unknown id, or a TEST flag that is not `isTest`); throws only on an unreadable answer
+ * or a database error. Without a locale the booking's own language.
+ */
+export async function bookingViewById(db: BookingDb, bookingId: string, opts: { locale?: BookingLocale; isTest: boolean }): Promise<BookingView | null> {
+  return readBookingView(db, bookingId, opts.locale ?? null, opts.isTest);
+}
+
+/** The view for a mail. A view that cannot be read sends no mail and never fails the answer it belongs to. */
+async function viewForMail(db: BookingDb, bookingId: string, isTest: boolean): Promise<BookingView | null> {
+  try {
+    return await bookingViewById(db, bookingId, { isTest });
+  } catch {
+    return null;
+  }
+}
+
+export type RequestContext = {
+  /** From the Host header (the request gate's), never from the body. */
+  isTest: boolean;
+  notifier: BookingNotifier;
+  /** The origin of the guest's link: originForBooking(isTest). */
+  origin: string;
+};
+
+/** The request route's status and answer. The booking id is never in `response`. */
+export type RequestOutcome = { status: 200 | 404 | 409 | 429 | 503; response: RequestResponse };
+
+const NOT_FOUND_REQUEST: RequestOutcome = { status: 404, response: { ok: false } };
+
+function requestRefused(status: 409 | 429 | 503, code: ReasonCode): RequestOutcome {
+  return { status, response: { ok: false, reasons: [{ code }] } };
+}
+
+function requestRefusal(reason: unknown): RequestOutcome {
+  switch (reason) {
+    case "not_found":
+      return NOT_FOUND_REQUEST;
+    case "hold_ended":
+      return requestRefused(409, "hold_ended");
+    case "blocked":
+      return requestRefused(409, "blocked");
+    case "sold_out":
+      return requestRefused(409, "sold_out");
+    case "too_many_open":
+      return requestRefused(429, "too_many_open");
+    case "requests_closed":
+      return requestRefused(503, "requests_closed");
+    default:
+      throw new Error("rpc request_web_booking: unreadable reason");
+  }
+}
+
+/** The guest's request mail and the owner's notice, each through deliverMail. True when the guest's mail was sent. */
+async function sendRequestMails(db: BookingDb, bookingId: string, ref: string, token: string, ctx: RequestContext): Promise<boolean> {
+  const view = await viewForMail(db, bookingId, ctx.isTest);
+  if (!view) return false;
+  const job: RequestMailJob = { bookingId, view, isTest: ctx.isTest, bookingUrl: ctx.origin + bookingPagePath(view.locale, ref, token) };
+  const { notifier } = ctx;
+  const guestKey = mailKey("requestReceived", bookingId);
+  const guest = await deliverMail(db, {
+    bookingId,
+    template: "request_received",
+    idempotencyKey: guestKey,
+    ready: notifier.ready,
+    send: () => notifier.requestReceived(job, { idempotencyKey: guestKey }),
+  });
+  const ownerKey = mailKey("ownerRequest", bookingId);
+  await deliverMail(db, {
+    bookingId,
+    template: "request_owner",
+    idempotencyKey: ownerKey,
+    ready: notifier.ready,
+    send: () => notifier.ownerRequest(job, { idempotencyKey: ownerKey }),
+  });
+  return guest === "sent";
+}
+
+/**
+ * The guest sends the request (held -> awaiting_payment, B-23). Link only, like the release: the signed token for this
+ * booking and its link version; the session is never read. One `request_web_booking` with the host's TEST flag (a
+ * mismatch is the same 404 as a wrong token). The first time, the guest's mail and the owner's notice go out through
+ * deliverMail (keys request/<id> and request-owner/<id>); a second request sends nothing. A mail never changes the
+ * status: `emailSent` is true only when the guest's mail was sent. An unreadable answer is thrown (the route: 503).
+ */
+export async function requestBooking(db: BookingDb, input: RequestRequest, ctx: RequestContext): Promise<RequestOutcome> {
+  const access = await authorizeBookingAccess(input, accessDeps(db, noSession));
+  if (!access.ok) return NOT_FOUND_REQUEST;
+
+  const data = await call(db, "request_web_booking", { p_booking: access.bookingId, p_expect_test: ctx.isTest });
+  if (!isObj(data)) throw new Error("rpc request_web_booking: unreadable answer");
+  if (data.ok === false) return requestRefusal(data.reason);
+  if (data.ok !== true) throw new Error("rpc request_web_booking: unreadable answer");
+  const r = readerFor("request_web_booking");
+  const firstTime = r.bool(data.first_time, "first_time");
+  const ref = r.ref(data.ref, "ref");
+  const status = r.pick(BOOKING_STATUSES, data.status, "status");
+  const deadline = r.strOrNull(data.deadline, "deadline");
+
+  const emailSent = firstTime ? await sendRequestMails(db, access.bookingId, ref, input.t, ctx) : false;
+  return { status: 200, response: { ok: true, ref, status, deadline, firstTime, emailSent } };
+}
+
+export type ViewDeps = {
+  /** From the Host header, never from the body. */
+  isTest: boolean;
+  /** The signed-in guest; read only when the body has no token. Without it, no token means refused. */
+  readSession?: SessionReader;
+};
+
+/**
+ * The guest's booking page (BOOK-08). The token is the only door when the body has one, else the signed-in email must
+ * be the booking's. One `booking_view` with the page's language (else the booking's) and the host's TEST flag. A
+ * refused access, an unknown or malformed reference, a wrong token and a TEST mismatch are the identical `{ ok: false }`.
+ */
+export async function viewBooking(db: BookingDb, input: ViewRequest, deps: ViewDeps): Promise<ViewResponse> {
+  const access = await authorizeBookingAccess(input, accessDeps(db, deps.readSession ?? noSession));
+  if (!access.ok) return { ok: false };
+  const booking = await readBookingView(db, access.bookingId, input.locale ?? null, deps.isTest);
+  return booking ? { ok: true, booking } : { ok: false };
+}
+
+export type WithdrawDeps = ViewDeps & { notifier: BookingNotifier };
+
+/** The withdraw route's status and answer (P-19); 503 is the shared unavailable answer, which 04-05 maps to a retry. */
+export type WithdrawOutcome =
+  | { status: 200 | 404 | 409; response: WithdrawResponse }
+  | { status: 503; response: { ok: false; reasons: BookingReason[] } };
+
+const NOT_FOUND_WITHDRAW: WithdrawOutcome = { status: 404, response: { ok: false } };
+
+/**
+ * The guest withdraws an unpaid request (P-19, changed by the owner 2026-10-20): the view's access rule, then one
+ * `booking_withdraw_request` with the host's TEST flag. Withdrawn -> 200; a second withdraw answers firstTime false; a
+ * request with a payment recorded -> 409 part_paid; past its deadline + 2 minutes, lapsed or cancelled -> 409
+ * not_withdrawable; refused or unknown -> the same 404. The first time, the owner gets one notice (key
+ * withdrawn-owner/<id>, a link without a token); the guest gets no mail. A mail never changes the answer. An unreadable
+ * answer is thrown (the route: 503).
+ */
+export async function withdrawBooking(db: BookingDb, input: WithdrawRequest, deps: WithdrawDeps): Promise<WithdrawOutcome> {
+  const access = await authorizeBookingAccess(input, accessDeps(db, deps.readSession ?? noSession));
+  if (!access.ok) return NOT_FOUND_WITHDRAW;
+
+  const data = await call(db, "booking_withdraw_request", { p_booking: access.bookingId, p_expect_test: deps.isTest });
+  if (!isObj(data)) throw new Error("rpc booking_withdraw_request: unreadable answer");
+  if (data.ok === false) {
+    const reason = data.reason;
+    if (reason === "not_found") return NOT_FOUND_WITHDRAW;
+    if (reason === "part_paid") return { status: 409, response: { ok: false, reason: "part_paid" } };
+    if (reason === "not_withdrawable") return { status: 409, response: { ok: false, reason: "not_withdrawable" } };
+    throw new Error("rpc booking_withdraw_request: unreadable reason");
+  }
+  if (data.ok !== true || data.status !== "cancelled") throw new Error("rpc booking_withdraw_request: unreadable answer");
+  const r = readerFor("booking_withdraw_request");
+  const firstTime = r.bool(data.first_time, "first_time");
+  const ref = r.ref(data.ref, "ref");
+
+  if (firstTime) {
+    const bookingId = access.bookingId;
+    const view = await viewForMail(db, bookingId, deps.isTest);
+    if (view) {
+      const job: RequestMailJob = { bookingId, view, isTest: deps.isTest, bookingUrl: originForBooking(deps.isTest) + bookingPagePath(view.locale, ref) };
+      const { notifier } = deps;
+      const key = mailKey("ownerWithdrawn", bookingId);
+      await deliverMail(db, {
+        bookingId,
+        template: "request_withdrawn_owner",
+        idempotencyKey: key,
+        ready: notifier.ready,
+        send: () => notifier.ownerWithdrawn(job, { idempotencyKey: key }),
+      });
+    }
+  }
+  return { status: 200, response: { ok: true, ref, status: "cancelled", firstTime } };
+}
+
+/**
+ * The signed-in guest's list (`guest_bookings`, AUTH-01) for /bookings (04-06): the session's email, the page's
+ * language and the host's TEST flag. `paidFils` is the settled payments, voids excluded. Throws on an unreadable answer.
+ */
+export async function listGuestBookings(db: BookingDb, opts: { email: string; locale: BookingLocale; isTest: boolean }): Promise<GuestBookingSummary[]> {
+  const r = readerFor("guest_bookings");
+  const data = r.obj(await call(db, "guest_bookings", { p_email: opts.email, p_locale: opts.locale, p_is_test: opts.isTest }), "answer");
+  return r.list(data.items, "items").map((row) => {
+    const item = r.obj(row, "items");
+    return {
+      ref: r.ref(item.ref, "items.ref"),
+      status: r.pick(BOOKING_STATUSES, item.status, "items.status"),
+      stayTitle: r.str(item.stay_title, "items.stay_title"),
+      destinationName: r.str(item.destination_name, "items.destination_name"),
+      image: image(r.strOrNull(item.image_key, "items.image_key"), r.strOrNull(item.image_alt, "items.image_alt")),
+      arrive: r.str(item.arrive, "items.arrive"),
+      leave: r.str(item.leave, "items.leave"),
+      plan: r.pick(PLANS, item.plan, "items.plan"),
+      grandFils: r.int(item.grand_fils, "items.grand_fils"),
+      paidFils: r.int(item.paid_fils, "items.paid_fils"),
+      stillDueFils: r.int(item.still_due_fils, "items.still_due_fils"),
+      deadline: r.strOrNull(item.deadline, "items.deadline"),
+    };
+  });
 }

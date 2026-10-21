@@ -139,7 +139,7 @@ export type HoldRequest = QuoteRequest & {
   termsAccepted: true;
 };
 
-/** 04-04 adds `checkout` to a successful hold. */
+/** A successful hold carries `transferWindowMinutes`, the window the request will get (35 on a TEST booking). */
 export type HoldResponse =
   | {
       ok: true;
@@ -147,7 +147,7 @@ export type HoldResponse =
       holdExpiresAt: string;
       linkToken: string;
       breakdown: PublicPriceSnapshot;
-      checkout?: { clientSecret: string; publishableKey: string; sessionId: string };
+      transferWindowMinutes: number;
     }
   | { ok: false; reasons: BookingReason[] };
 
