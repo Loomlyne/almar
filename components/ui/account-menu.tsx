@@ -94,7 +94,9 @@ export function AccountMenu({
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
-      <form ref={signOutForm} method="post" action="/auth/sign-out" hidden />
+      <form ref={signOutForm} method="post" action="/auth/sign-out" hidden>
+        <input type="hidden" name="locale" value={locale} />
+      </form>
     </DropdownMenu.Root>
   );
 }

@@ -51,3 +51,9 @@ Branch `gsd/locale-prefix-urls`, cut from `origin/main` 39546d56. Owner decision
 - `scripts/assemble-cloudflare.mjs`: the old "has no English page" self-check can no longer fire (the new en/ar twin check fires first); left in place, harmless.
 - `tests/locale-switch.spec.ts`: the account-screen pick now navigates; the spec asserts URL, cookie and lang/dir (relies on the branded 404 following the cookie for the harness page; unverified).
 - Merged `origin/main` 565be240 (PRs #31, #32) with no conflicts; `tsc` clean after the merge.
+
+## PR #33 review fixes (controller, 2026-10-21)
+- 3. `requestSignIn` writes `almar-locale` with the sign-in page's language, so the Continue page, an expired link and `/` answer in it. Sign-out redirects to `/<locale>/`: the account menu's and account page's sign-out forms carry a hidden `locale` field; else the cookie; else `/en/`. The ops host still goes to `/`.
+- 4. `/<locale>/account` sends only the changed field (a currency change no longer saves the page's language). `savePreferences` writes only the fields present (an unknown value or an empty form is "failed") and sets the cookie only after a saved language. A failed language save stays on the page and puts the page's language back; only a saved one navigates.
+- 5. `PublicFrame` imports no copy table: the Login and Account words come with the page's nav labels (`HOME_COPY.nav.login` and new `HOME_COPY.nav.account` = "Account" / "الحساب" / "Cuenta", the existing GUEST_COPY words). `tests/public-frame.test.mjs` is strict again (edited, not run).
+- Checks: tsc clean, tokens:check up to date; nothing else run (owner: no test).

@@ -58,21 +58,30 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
   // screen never shows a currency the site is not using (language keeps its 02-05 behaviour). Only the newest
   // successful save writes the browser choice; an overtaken result reaches the screen only when it is that save and the
   // latest click has already failed (saveTracker).
+  // Job 21 (PR #33 review): only the field that changed is sent, so a currency change on /ar/account never saves the
+  // page's language as hers.
   function storePreferences(nextLocale: DocumentLocale, nextCurrency: Currency) {
+    const localeChanged = nextLocale !== locale;
     const ticket = prefSaves.current.begin();
     setLocale(nextLocale);
     setCurrency(nextCurrency);
     const form = new FormData();
-    form.set("locale", nextLocale);
-    form.set("currency", nextCurrency);
+    if (localeChanged) form.set("locale", nextLocale);
+    if (nextCurrency !== currency || !localeChanged) form.set("currency", nextCurrency);
     startPrefs(async () => {
       const result = await savePreferences(form);
-      const { show: shown, store } = prefSaves.current.settle(ticket, result.status === "saved", nextCurrency);
+      const saved = result.status === "saved";
+      const { show: shown, store } = prefSaves.current.settle(ticket, saved, nextCurrency);
       if (store) storeCurrencyChoice(nextCurrency);
-      // Job 21: the page's language is its address (/<locale>/account). Once the save has answered, a new language
-      // opens this page in it; the save's own cookie already holds the pick.
-      if (nextLocale !== profile.locale) {
-        goToLocale(nextLocale);
+      if (localeChanged) {
+        // The page's language is its address (/<locale>/account): a saved language opens this page in it (the save
+        // set the cookie). A failed save stays here, back on the page's own language.
+        if (saved) {
+          goToLocale(nextLocale);
+          return;
+        }
+        setLocale(profile.locale);
+        setPrefState(result);
         return;
       }
       if (shown === null) return;
@@ -177,6 +186,7 @@ export function AccountScreen({ profile, account }: { profile: SessionProfile; a
                 </p>
                 <p className="m-0 text-label text-muted">{hub.oneTimeLink}</p>
                 <form method="post" action="/auth/sign-out">
+                  <input type="hidden" name="locale" value={locale} />
                   <Button type="submit" variant="secondary">{copy.signOut}</Button>
                 </form>
               </section>

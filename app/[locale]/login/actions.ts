@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { sendLinkFromRequest } from "../../../lib/auth/magic-link-server";
-import { normalizeEmail, readLocale, returnCookieName, returnCookieOptions, safeReturnPath } from "../../../lib/auth/rules";
+import { LOCALE_COOKIE, normalizeEmail, readLocale, returnCookieName, returnCookieOptions, safeReturnPath } from "../../../lib/auth/rules";
 
 export type SignInState =
   | { status: "idle" }
@@ -19,6 +19,9 @@ export async function requestSignIn(_previous: SignInState, form: FormData): Pro
   const locale = readLocale(form.get("locale"));
   const store = await cookies();
   store.set(returnCookieName(), safeReturnPath(form.get("returnTo")), returnCookieOptions());
+  // Job 21 (PR #33 review): the sign-in page's language becomes the remembered one, so the link's Continue page, an
+  // expired link and "/" all answer in it, even for a reader who never touched the language select.
+  store.set(LOCALE_COOKIE, locale, { path: "/", maxAge: 31536000, sameSite: "lax" });
 
   const result = await sendLinkFromRequest({ email, locale });
   switch (result.status) {

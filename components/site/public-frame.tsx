@@ -4,8 +4,6 @@ import { useEffect, useState, type ComponentProps, type ReactNode } from "react"
 import { SiteFooter, type FooterCopy } from "../ui/footer";
 import { MotionController } from "./motion-controller";
 import { applyAccountSync, hasSignedInHint } from "./account-sync";
-import { HOME_COPY } from "../../lib/copy/home";
-import { GUEST_COPY } from "../../lib/copy/guest";
 import { SiteNav, type NavLabels } from "../ui/nav";
 import { WhatsApp } from "../ui/whatsapp";
 import type { SelectedCurrency } from "../../lib/fx/rates";
@@ -126,7 +124,8 @@ export function PublicFrame({
 
   const nav: ComponentProps<typeof SiteNav> = {
     locale,
-    labels: { ...labels, login: signedIn ? GUEST_COPY[locale].account : HOME_COPY[locale].nav.login },
+    // The page's own nav labels carry both words (HOME_COPY nav.login / nav.account): no copy table is imported here.
+    labels: { ...labels, login: signedIn ? (labels?.account ?? "Account") : (labels?.login ?? "Login") },
     loginHref: localePath(locale, signedIn ? "/account" : "/login"),
     tone: navTone,
     links,

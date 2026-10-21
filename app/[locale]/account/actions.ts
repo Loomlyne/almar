@@ -2,10 +2,9 @@
 
 import { cookies } from "next/headers";
 import { createSupabaseServer } from "../../../lib/supabase/clients";
+import { parseAccountCurrency, parseAccountLocale } from "../../../lib/account-preferences";
 import {
   LOCALE_COOKIE,
-  readCurrency,
-  readLocale,
   readProfileInput,
   validateProfile,
   type ProfileErrors,
@@ -37,18 +36,33 @@ export async function saveProfile(form: FormData): Promise<SaveState> {
   return error || !updated || updated.length === 0 ? { status: "failed" } : { status: "saved" };
 }
 
-/** Language and currency follow her account (D-21, D-22). */
+/**
+ * Language and currency follow her account (D-21, D-22). Only the fields the form carries are written (PR #33 review:
+ * a currency change on /ar/account must not also save locale=ar); a field that is present but not an allowed value,
+ * or a form with neither, is a failure, never repaired.
+ */
 export async function savePreferences(form: FormData): Promise<SaveState> {
-  const locale = readLocale(form.get("locale"));
-  const currency = readCurrency(form.get("currency"));
-  const store = await cookies();
-  store.set(LOCALE_COOKIE, locale, { path: "/", maxAge: 31536000, sameSite: "lax" });
+  const update: { locale?: "en" | "ar" | "es"; currency?: "AED" | "USD" | "EUR" } = {};
+  if (form.has("locale")) {
+    const locale = parseAccountLocale(form.get("locale"));
+    if (!locale) return { status: "failed" };
+    update.locale = locale;
+  }
+  if (form.has("currency")) {
+    const currency = parseAccountCurrency(form.get("currency"));
+    if (!currency) return { status: "failed" };
+    update.currency = currency;
+  }
+  if (!update.locale && !update.currency) return { status: "failed" };
 
   const supabase = await createSupabaseServer();
   if (!supabase) return { status: "failed" };
   const { data } = await supabase.auth.getUser();
   if (!data.user) return { status: "failed" };
 
-  const { error } = await supabase.from("profiles").update({ locale, currency }).eq("id", data.user.id);
-  return error ? { status: "failed" } : { status: "saved" };
+  const { error } = await supabase.from("profiles").update(update).eq("id", data.user.id);
+  if (error) return { status: "failed" };
+  // A language pick is also this browser's remembered language ("/" reads it), only once it is saved.
+  if (update.locale) (await cookies()).set(LOCALE_COOKIE, update.locale, { path: "/", maxAge: 31536000, sameSite: "lax" });
+  return { status: "saved" };
 }
