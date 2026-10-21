@@ -29,6 +29,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 **2026-10-20 08:06 CET:** **almar-ops deployed** as `267d7570` (rollback `fd4a3419`) from `main` `8a869be` on the owner's word (question form). Clean-clone ops build and dry run, reviewer GO, live checks signed out all as expected; signed-in screens not verified (owner UAT). The public `almar` Worker is not deployed.
 
+**2026-10-21 14:01 CET:** **Landed** #26, #25, #28 (Next 16), #29 (Phase 2 close), #30 (Phase 3.2 close) on the owner's Ship, no landing test run on his word; `main` `08658357`. Phases 2, 3.2 and 3.3 are closed in code; deploy and owner UAT pending (preview first). Phase 4 starts after the deploys.
+
 **2026-10-21 13:02 CET:** **PR #27 landed** as `29759a81` (OpenNext opt-out flag for Next 15, temporary until the Next 16 upgrade, job 20) and **PR #24 landed** as `3d6caf5a` (sign-in option A), on the owner's Ship; not deployed. Phase close jobs 17 (3.3), 18 (2), 19 (3.2) handed over.
 
 **2026-10-20 01:36 CET:** **03.2-15 landed** (stay Rates, Availability and Access cards on the kit editor) as `main` `6dcbabd` on the owner's Ship (question form, 01:29), a squash of `e6a12a6` (tags `archive/phase-3.2-p15`, `backup/main-pre-3.2-15-20261020-0129` = `760c94c`); staged tree `c4105913` = checked tree. Migration `20261019140000_stay_access_notes_i18n` applied live 01:30 after the reviewer agent's GO; version renamed and read back. Lane `p23` (clean clone, mostly on battery on his word): gates 0; dev 3056 passed, 60 timeouts passed solo; shards 992, 948, 945 (15 timeouts passed solo); ops A 19 plus the 2 known /login cases, ops B 10. Not deployed. Worktree, branches, check clone removed; session archived.
