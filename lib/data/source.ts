@@ -136,7 +136,7 @@ function publicSettings(): { url: string; anonKey: string } {
 }
 
 // Why the build clears Next's fetch cache instead of this file asking for fresh reads (plan 03.2-02, Fable's review):
-// supabase-js reads through `fetch`, and Next 15.5 stores every fetch of a build in .next/cache/fetch-cache with
+// supabase-js reads through `fetch`, and Next (15.5 and 16) stores every fetch of a build in .next/cache/fetch-cache with
 // revalidate 31536000, so a second build in the same checkout serves the OLD rows. Fresh reads cannot be asked for from
 // here: `cache: "no-store"` makes the force-static prerenders fail, and `next: { revalidate: 0 }` stops some routes
 // prerendering. scripts/assemble-cloudflare.mjs therefore deletes .next/cache/fetch-cache before every build

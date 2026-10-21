@@ -9,7 +9,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 
 ### Constraints
 
-- **Stack**: Next.js 15.5.26 (bumped 2026-09-26 in 02-08), React 18, TypeScript, Tailwind v4. Cloudflare project name `almar`. Supabase + Stripe + Resend planned; create/paid only when Koss gates.
+- **Stack**: Next.js 16.4.2 (job 20, 2026-10-21; was 15.5.x), React 18, TypeScript, Tailwind v4. Cloudflare project name `almar`. Supabase + Stripe + Resend planned; create/paid only when Koss gates.
 - **Git**: GitHub `Loomlyne/almar`. Since 2026-10-01 only the control session pushes `main`, one commit per job, on the owner's Ship; no PR unless he asks (`decisions/2026-10-01-control-session.md`).
 - **Secrets**: none in repo or chat. Owner commands numbered, then wait.
 - **Contact**: do not replace `inquiries@almarprivatejourney.com` / `+971 56 388 3302`.
@@ -33,7 +33,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - CSS (Tailwind v4) - `app/globals.css`.
 - JSON - `tokens.json` (design tokens, single source for the theme), `.mcp.json`, `.planning/config.json`.
 ## Runtime
-- Node.js >= 22.18 is the effective minimum: `wrangler@4.141.0` and `@supabase/supabase-js@2.117.2` declare `engines.node >= 22`, and the scripts/tests import `.ts` from `.mjs`. Local machine: Node v26.7.0, npm 11.19.0.
+- Node.js >= 22.18 is the effective minimum: `wrangler@4.151.3` and `@supabase/supabase-js@2.117.2` declare `engines.node >= 22`, and the scripts/tests import `.ts` from `.mjs`. Local machine: Node v26.7.0, npm 11.19.0.
 - No `.nvmrc`, no `.node-version`, and no `engines` field in `package.json` (a `"engines": { "node": ">=22.18" }` entry is job 04 item 2, `.planning/prompts/04-repo-tidy.md`).
 - `Dockerfile` uses `node:20-alpine`, copies `package.json` only (no lockfile), runs `npm install`, `npm run build`, `npm start`. It is a Framer-exporter leftover and does not match the Node floor above. Not the deploy path.
 - Deployed runtime: Cloudflare Workers (workerd) serving static assets only. `wrangler.toml` has `compatibility_date = "2026-09-23"` and no `main` entry, so no server code runs in production today.
@@ -41,29 +41,29 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - Lockfile: present (`package-lock.json`, lockfileVersion 3). Install with `npm ci`.
 - Dependency versions are exact pins except `react`, `react-dom`, `@types/react`, `@types/react-dom`, `@types/node`, `typescript` (caret ranges).
 ## Frameworks
-- Next.js 15.5.26 (App Router) - `app/` directory. Mix of route handlers (`route.ts`, Framer pages) and React pages (`page.tsx` + client `*-screen.tsx`). `next.config.ts` sets `reactStrictMode: true` and a custom `webpack()` hook (two SVG files are imported as raw markup via `asset/source`; see below). No `output: "export"`, no `images` config, no redirects/headers config.
-- React 18.3.1 / react-dom 18.3.1 - React 18, not 19. Next 15.5 supports it.
+- Next.js 16.4.2 (App Router) - `app/` directory. Mix of route handlers (`route.ts`, Framer pages) and React pages (`page.tsx` + client `*-screen.tsx`). `next.config.ts` sets `reactStrictMode: true` and a custom `webpack()` hook (two SVG files are imported as raw markup via `asset/source`; see below). Because of that hook, `dev` and `build` run with `--webpack` (Next 16 defaults to Turbopack and refuses a webpack config). `middleware.ts` stays (edge runtime); Next 16 calls the convention deprecated in favour of `proxy.ts`, which is Node-only and only experimental on OpenNext Cloudflare. No `output: "export"`, no `images` config, no redirects/headers config.
+- React 18.3.1 / react-dom 18.3.1 - React 18, not 19. Next 16 still accepts it (deprecated; removed in Next 17); the App Router runs Next's vendored React 19.2.
 - Tailwind CSS 4.3.3 with `@tailwindcss/postcss` 4.3.3 and PostCSS 8.5.28 - config is CSS-first in `app/globals.css` (`@import "tailwindcss"`, `@custom-variant ar`, `@custom-variant dense`, `@theme static`, `@theme inline`). `postcss.config.mjs` registers only `@tailwindcss/postcss`. No `tailwind.config.*`. No CSS modules (owner decision: Tailwind v4 only).
 - Radix UI via the `radix-ui` umbrella package 1.6.7 - primitives in use: `Dialog` (`components/ui/dialog.tsx`, `confirm-dialog.tsx`, `sidebar.tsx`, `components/journey/journey-sheet.tsx`), `Select` (`components/ui/locale-select.tsx`), `Popover` (`components/journey/journey-bar.tsx`). `components/ui/dialog.tsx` and `confirm-dialog.tsx` also import `@radix-ui/react-focus-scope` directly; it resolves to 1.1.16 only as a transitive dependency of `radix-ui` and is not declared in `package.json`.
 - class-variance-authority 0.7.1 (variants in 11 component files) and tailwind-merge 3.7.0 (used by `lib/cn.ts`, the shared `cn()` helper).
 - @internationalized/date 3.12.4 - `CalendarDate` arithmetic for `components/ui/calendar.tsx`, `components/specimens/hero-booker.tsx`, journey panels.
 - Node built-in test runner (`node --test tests/*.test.mjs`) - source-text and pure-function checks (27 `.test.mjs` files).
 - Playwright 1.63.0 (`@playwright/test`, chromium project only) - `tests/*.spec.ts` and `tests/journey/*.spec.ts`. Config `playwright.config.ts`: `testDir: "tests"`, snapshots at `{testDir}/{arg}{ext}`, zero-pixel-diff screenshots, dev server on `127.0.0.1:${PW_PORT ?? 3010}` with `ALMAR_HARNESS=1`, `reuseExistingServer: false`.
-- `next dev` / `next build` / `next start` - `package.json` scripts `dev`, `build`, `start`.
-- Wrangler 4.141.0 - Cloudflare deploys, run by hand with the ALMAR login: `HOME=/Users/koss/.almar-cloudflare CLOUDFLARE_ACCOUNT_ID=f1d9a1fa3abdda98c15161b00b40385c ./node_modules/.bin/wrangler deploy` (preview: add `-c wrangler.preview.toml` after `node scripts/assemble-cloudflare.mjs --target=preview`). No `package.json` script deploys.
-- `@opennextjs/cloudflare` 1.20.6 - installed (peer: Next >=15.5.24 <16, wrangler ^4.125) but NOT configured: no `open-next.config.ts`, no `.open-next/`, no worker `main` in `wrangler.toml`, no script that calls `opennextjs-cloudflare`. The Next server runtime on Cloudflare does not exist yet.
+- `next dev --webpack` / `next build --webpack` / `next start` - `package.json` scripts `dev`, `build`, `start`.
+- Wrangler 4.151.3 - Cloudflare deploys, run by hand with the ALMAR login: `HOME=/Users/koss/.almar-cloudflare CLOUDFLARE_ACCOUNT_ID=f1d9a1fa3abdda98c15161b00b40385c ./node_modules/.bin/wrangler deploy` (preview: add `-c wrangler.preview.toml` after `node scripts/assemble-cloudflare.mjs --target=preview`). No `package.json` script deploys.
+- `@opennextjs/cloudflare` 1.20.12 (peer: Next >=15.5.28 <16 || >=16.4.1, wrangler ^4.148.0) - configured since job 10: `open-next.config.ts`, and `scripts/assemble-cloudflare.mjs` runs `opennextjs-cloudflare build` for Workers `almar`, `almar-preview` and `almar-ops`. It refuses a Next major older than two years (Next 15 from 2026-10-21).
 - esbuild 0.25.4 - hoisted transitive dependency (of `@opennextjs/aws`), not declared. Used only by the dev-only route `app/embed/hero-booker/route.ts`, which shells out to `node_modules/esbuild/bin/esbuild`.
 - `scripts/generate-theme.mjs` - `npm run tokens` writes `tokens.json` into the block between `/* GENERATED:THEME:START */` and `/* GENERATED:THEME:END */` in `app/globals.css`; `npm run tokens:check` fails if it is out of date.
 - `scripts/assemble-cloudflare.mjs` - runs `npm run build`, copies `public/` into `out/`, copies every `.next/server/app/**/*.body` to `out/<route>.html` (`index.html` for the home page), writes `out/404.html` from `renderStaticNotFound()` in `lib/not-found-document.ts`, copies `_headers`, and throws if `index.html` or `404.html` is missing.
 - `scripts/screens-diff.mjs` - before/after screenshot ratios using `playwright-core/lib/coreBundle`; writes `tests/screens/INDEX.md`.
 ## Key Dependencies
-- `next` 15.5.26 - framework; builds the static route-handler output that becomes `out/`.
+- `next` 16.4.2 - framework; builds the static route-handler output that becomes `out/`.
 - `tailwindcss` 4.3.3 + `@tailwindcss/postcss` 4.3.3 - the only styling system. Theme values come from `tokens.json` through `scripts/generate-theme.mjs`; do not hand-edit the generated block in `app/globals.css`.
 - `radix-ui` 1.6.7 - accessible primitives for every overlay and select.
 - `@internationalized/date` 3.12.4 - date logic for the booking calendar and journey bar.
 - `resend` 6.29.0 - the only third-party SDK with an import today: `app/newsletter/route.ts` (`new Resend(apiKey)`, `resend.contacts.create`).
 - `@supabase/supabase-js` 2.117.2 and `@supabase/ssr` 0.12.7 - installed for Phase 2 auth; no file in `app/`, `lib/`, `components/` imports them yet.
-- `@opennextjs/cloudflare` 1.20.6 and `wrangler` 4.141.0 - Cloudflare tooling (see Build/Dev).
+- `@opennextjs/cloudflare` 1.20.12 and `wrangler` 4.151.3 - Cloudflare tooling (see Build/Dev).
 - `stripe` - NOT installed. Stripe (TEST Payment Element) is planned only; no package, no code.
 - Known package alerts (`.planning/CONTROL-BOARD.md`, `npm audit` on the 3.1 lockfile): 2 high (`postcss` bundled inside `next`, fix needs Next 16; `undici` inside `wrangler`, fix `wrangler@4.146.0`), 3 moderate.
 - Questa Regular (`brand/Font/questa-webfont/2-Questa_Regular.woff`, `--font-questa`) and Lato Regular/Italic/Bold (`brand/Font/lato/*.ttf`, `--font-lato`) via `next/font/local`, applied in `app/layout.tsx`.
@@ -320,7 +320,7 @@ A branded booking OS for ALMAR Private Journeys: UAE-based guests book a private
 - **Brand SVG imports:** `next.config.ts` makes `Curves_black.svg` and `Poly_Black.svg` markup strings (`asset/source`); `Stacked_Charcoal.svg`, `Poly_White.svg`, `Curves_White.svg` are static-image objects (use `.src`). Do not pass an imported object through `encodeURIComponent`. Typings are in `svg.d.ts`.
 - **Build needs network:** `lib/fonts.ts` uses `next/font/google` for Noto Naskh/Sans Arabic.
 - **Node >= 22.18:** `scripts/assemble-cloudflare.mjs` and `tests/*.test.mjs` import `.ts` files natively. `package.json` has no `engines` field yet.
-- **`npm run build` kills a running dev server**; restart it after (playwright config uses `reuseExistingServer: false`).
+- **`npm run build` and a running dev server:** with Next 15 a build killed the dev server. Next 16 writes `next dev` output to `.next/dev` and the build to `.next`, with a lock against two of the same command; whether a build still disturbs a running dev server is not yet measured, so keep restarting it after a build (playwright config uses `reuseExistingServer: false`). The machine rule (one build lane at a time) is unchanged.
 - **Square corners, no radios, gold is lines only:** enforced by `tests/design-tokens.test.mjs` and `tests/controls.test.mjs`; the Framer-era hexes `#f9f6f3`, `#183e43`, `#a98e58`, `#0f677d` and fonts Bricolage/Philosopher are banned in code.
 - **`/design` and `/framer` are deleted** (Phase 3.1); `tests/removed-routes.spec.ts` asserts both are 404. The design system now lives in the claude.ai canvas (copy in `.planning/design/2026-10-01-canvas/`); code takes values from `tokens.json` only.
 ## Anti-Patterns
