@@ -65,7 +65,7 @@ test("the plain name lives in lib/auth/rules.ts only; nothing else spells it or 
 });
 
 test("both sign-in actions write the return cookie with the helper name and options", () => {
-  for (const file of ["app/login/actions.ts", "app/dashboard/actions.ts"]) {
+  for (const file of ["app/[locale]/login/actions.ts", "app/dashboard/actions.ts"]) {
     const source = readFileSync(file, "utf8");
     assert.match(source, /\.set\(\s*returnCookieName\(\)\s*,[^;]*returnCookieOptions\(\)/s, file);
     assert.equal(/httpOnly|sameSite|secure:/.test(source), false, `${file}: the flags come from returnCookieOptions only`);
@@ -73,7 +73,7 @@ test("both sign-in actions write the return cookie with the helper name and opti
 });
 
 test("the reader of the return cookie (login page, confirm action) uses the helper name; the confirm action clears it with set(maxAge 0), not delete()", () => {
-  const page = readFileSync("app/login/page.tsx", "utf8");
+  const page = readFileSync("app/[locale]/login/page.tsx", "utf8");
   assert.ok(page.includes("store.get(returnCookieName())"));
   const confirm = readFileSync("app/auth/confirm/actions.ts", "utf8");
   assert.ok(confirm.includes("store.get(returnCookieName())"));

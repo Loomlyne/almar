@@ -6,7 +6,7 @@ import { readdirSync, readFileSync } from "node:fs";
 // tests/build/home/home.spec.ts; these keep the shape from drifting between runs of it.
 
 const read = (file) => readFileSync(file, "utf8");
-const ROUTES = { en: "app/page.tsx", ar: "app/ar/page.tsx", es: "app/es/page.tsx" };
+const ROUTES = { en: "app/en/page.tsx", ar: "app/ar/page.tsx", es: "app/es/page.tsx" };
 const PARTS = readdirSync("components/pages/home").map((name) => `components/pages/home/${name}`);
 const HOME_FILES = [...Object.values(ROUTES), "components/pages/home-page.tsx", ...PARTS];
 

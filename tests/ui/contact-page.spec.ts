@@ -374,7 +374,6 @@ for (const locale of LOCALES) {
       });
 
       test(`7 form after hydration: #inquiry and Start Your Inquiry (${where})`, async ({ page, errors }) => {
-        const nav = HOME_COPY[locale].nav;
         const { copy } = await details(locale);
         await visit(page, locale, viewport);
         await hydrated(page);
@@ -403,7 +402,6 @@ for (const locale of LOCALES) {
         expect(outside).toBe(0);
         await expect(page.locator("main a[href^='mailto:']")).toHaveCount(1);
         await expect(page.getByText(/partnerships/i)).toHaveCount(0);
-        await expect(page.getByRole("link", { name: nav.login })).toHaveCount(0);
         await expect(page.getByRole("link", { name: /cart/i })).toHaveCount(0);
         await expect(page.getByRole("combobox", { name: /^(Currency|العملة|Moneda)/ })).toHaveCount(0);
         await expect(page.getByRole("group", { name: HOME_PAGE_COPY[locale].hero.barLabel })).toHaveCount(0);

@@ -26,14 +26,14 @@ test("phone: optional, digits and one plus; Arabic digits are read as Western", 
 });
 
 test("saveProfile writes only names and phone on her own row, never role or email", () => {
-  const source = readFileSync("app/account/actions.ts", "utf8");
+  const source = readFileSync("app/[locale]/account/actions.ts", "utf8");
   assert.match(source, /\.eq\("id", data\.user\.id\)/);
   assert.equal(/role|email:|createSupabaseAdmin/.test(source.replace(/\/\*\*[^\n]*\*\//g, "").replace(/never role or email/gi, "")), false);
   assert.match(source, /getUser\(\)/);
 });
 
 test("the account page has no password field and no dashboard word", () => {
-  for (const path of ["app/account/page.tsx", "app/account/account-screen.tsx"]) {
+  for (const path of ["app/[locale]/account/page.tsx", "app/[locale]/account/account-screen.tsx"]) {
     const text = readFileSync(path, "utf8");
     assert.equal(text.includes('type="password"'), false, path);
     assert.equal(/dashboard/i.test(text), false, path);

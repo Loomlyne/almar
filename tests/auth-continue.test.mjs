@@ -202,7 +202,7 @@ test("both sign-in actions get the nonce cookie from the shared sender: httpOnly
   assert.match(server, /store\.set\(name, nonce, \{[^}]*httpOnly: true[^}]*sameSite: "lax"[^}]*secure: process\.env\.NODE_ENV === "production"[^}]*path: "\/"[^}]*maxAge: LINK_NONCE_MAX_AGE/s);
   assert.ok(server.includes("isLinkNonce(existing) ? existing : newLinkNonce()"));
   assert.ok(server.includes("linkNonceCookieName()"));
-  for (const file of ["app/login/actions.ts", "app/dashboard/actions.ts"]) {
+  for (const file of ["app/[locale]/login/actions.ts", "app/dashboard/actions.ts"]) {
     assert.ok(readFileSync(file, "utf8").includes("sendLinkFromRequest"), file);
   }
 });

@@ -3,7 +3,7 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 
 // Plan 02-06: maintenance on the BUILT public Worker (local `wrangler dev`, never --remote), against this worktree's
 // local Supabase stack. The static pages close at the publish rebuild (tests/site-settings.test.mjs, applySiteSettings);
-// /login, /account and /bookings are no files in out/: wrangler.toml's run_worker_first sends them to the Worker, whose
+// /<locale>/login, /account and /bookings are no files in out/: wrangler.toml's run_worker_first sends them to the Worker, whose
 // middleware reads the saved flag. This spec saves maintenance on in the local database and proves all three answer
 // with the closed page, while a static page is still served from out/ and the API still answers.
 // Setup and command: tests/build/make-public-stack-config.mjs; a plain build-config run (another PW_WRANGLER_CONFIG)
@@ -54,8 +54,8 @@ test.afterAll(async ({ playwright }) => {
   await request.dispose();
 });
 
-test("/login, /account and /bookings answer 503 with the closed page, in the saved colours", async ({ request }) => {
-  for (const path of ["/login", "/account", "/bookings"]) {
+test("/<locale>/login, /account and /bookings answer 503 with the closed page, in the saved colours", async ({ request }) => {
+  for (const path of ["/en/login", "/ar/account", "/es/bookings", "/en/account", "/ar/bookings", "/es/login"]) {
     for (const headers of [NAV, {}]) {
       const res = await request.get(path, { headers, maxRedirects: 0 });
       expect(res.status(), path).toBe(503);
@@ -71,8 +71,8 @@ test("/login, /account and /bookings answer 503 with the closed page, in the sav
   }
 });
 
-test("the closed page follows the language cookie", async ({ request }) => {
-  const res = await request.get("/login", { headers: { ...NAV, cookie: "almar-locale=es" }, maxRedirects: 0 });
+test("the closed page follows the address's language (job 21), not the language cookie", async ({ request }) => {
+  const res = await request.get("/es/login", { headers: { ...NAV, cookie: "almar-locale=ar" }, maxRedirects: 0 });
   expect(res.status()).toBe(503);
   const html = await res.text();
   expect(html.includes('lang="es"')).toBe(true);
@@ -80,7 +80,7 @@ test("the closed page follows the language cookie", async ({ request }) => {
 });
 
 test("a static page is still the file in out/ (the rebuild closes it); the API still answers", async ({ request }) => {
-  const about = await request.get("/about", { headers: NAV, maxRedirects: 0 });
+  const about = await request.get("/en/about", { headers: NAV, maxRedirects: 0 });
   expect(about.status()).toBe(200);
   expect(about.headers()["x-opennext"]).toBeUndefined();
   expect((await about.text()).includes(LINE)).toBe(false);
@@ -88,9 +88,9 @@ test("a static page is still the file in out/ (the rebuild closes it); the API s
   expect(health.status()).toBe(200);
 });
 
-test("the flag is read on every request (PR #14 review): saved off opens /login at once, saved on closes it at once", async ({ request }) => {
+test("the flag is read on every request (PR #14 review): saved off opens /en/login at once, saved on closes it at once", async ({ request }) => {
   await saveSettings(request, { maintenance: false });
-  expect((await request.get("/login", { headers: NAV, maxRedirects: 0 })).status()).toBe(200);
+  expect((await request.get("/en/login", { headers: NAV, maxRedirects: 0 })).status()).toBe(200);
   await saveSettings(request, { maintenance: true });
-  expect((await request.get("/login", { headers: NAV, maxRedirects: 0 })).status()).toBe(503);
+  expect((await request.get("/en/login", { headers: NAV, maxRedirects: 0 })).status()).toBe(503);
 });

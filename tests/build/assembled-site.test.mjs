@@ -61,9 +61,11 @@ function linkTags(html) {
   return [...html.matchAll(/<link\b[^>]*>/gi)].map((m) => m[0]);
 }
 
-test("out/ has the three 404s and no out/ar.html or out/es.html", () => {
+test("out/ has the three 404s, the three locale homes, and no out/index.html, out/en.html, out/ar.html or out/es.html", () => {
   for (const f of ["404.html", "ar/404.html", "es/404.html"]) assert.ok(files.includes(f), f);
-  for (const f of ["ar.html", "es.html"]) assert.equal(files.includes(f), false, f);
+  for (const f of ["en/index.html", "ar/index.html", "es/index.html"]) assert.ok(files.includes(f), f);
+  // Job 21: "/" is the Worker's language redirect (worker/handle.mjs), never a static page.
+  for (const f of ["index.html", "en.html", "ar.html", "es.html"]) assert.equal(files.includes(f), false, f);
 });
 
 test("every document under out/ar and out/es other than 404.html is a React document", () => {

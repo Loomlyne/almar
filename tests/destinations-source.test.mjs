@@ -7,7 +7,7 @@ import { loadTs } from "./helpers/load-ts.mjs";
 // tests/build/destinations/destinations.spec.ts; these keep the shape from drifting between runs of it.
 
 const read = (file) => readFileSync(file, "utf8");
-const ROUTES = { en: "app/destinations/page.tsx", ar: "app/ar/destinations/page.tsx", es: "app/es/destinations/page.tsx" };
+const ROUTES = { en: "app/en/destinations/page.tsx", ar: "app/ar/destinations/page.tsx", es: "app/es/destinations/page.tsx" };
 const PAGE = "components/pages/destinations-page.tsx";
 /** Strip comments, so a sentence that names a forbidden thing is not mistaken for using it. */
 const code = (source) => source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
@@ -24,7 +24,7 @@ test("each route file binds one locale, is static and re-exports metadata, and n
 });
 
 test("the Framer route is gone", () => {
-  assert.equal(existsSync("app/destinations/route.ts"), false);
+  assert.equal(existsSync("app/en/destinations/route.ts"), false);
 });
 
 test("the page is a server component that reads the hero and the five destinations through the data layer", () => {

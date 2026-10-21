@@ -19,7 +19,7 @@ const { CONTACT_PAGE_COPY } = await loadTs("lib/copy/contact-page.ts");
 const { getContactDetails } = await loadTs("lib/data/contact.ts");
 
 const PATH = "/contact";
-const DOCS = { en: "contact.html", ar: "ar/contact.html", es: "es/contact.html" };
+const DOCS = { en: "en/contact.html", ar: "ar/contact.html", es: "es/contact.html" };
 const read = (file) => readFileSync(join(OUT, file), "utf8");
 const html = Object.fromEntries(Object.entries(DOCS).map(([locale, file]) => [locale, existsSync(join(OUT, file)) ? read(file) : ""]));
 
@@ -38,7 +38,7 @@ const mainOf = (doc) => /<main\b[\s\S]*?<\/main>/.exec(doc)?.[0] ?? "";
 
 test("the three Contact documents exist, and no folder-style index exists", () => {
   for (const file of Object.values(DOCS)) assert.ok(existsSync(join(OUT, file)), file);
-  for (const file of ["contact/index.html", "ar/contact/index.html", "es/contact/index.html"]) {
+  for (const file of ["en/contact/index.html", "ar/contact/index.html", "es/contact/index.html"]) {
     assert.equal(existsSync(join(OUT, file)), false, file);
   }
 });

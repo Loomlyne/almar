@@ -28,9 +28,22 @@ function fixture(files) {
   return { base, paths, out: (rel) => join(paths.outDir, rel) };
 }
 
-const FRAMER = ["index.body", "about.body", "private-stays.body", `${STAY}.body`];
-const NOT_PUBLIC = ["account.html", "dashboard/home.html", "login.html", "booking/trip.html", "_not-found.html"];
+// Job 21: every page is prefixed, English too (app/en/…); English pages that have an ar/es twin are React documents.
+const FRAMER = ["en/about.body", "en/contact.body", "en/blog.body", "en/destinations.body"];
+const NOT_PUBLIC = [
+  "account.html",
+  "dashboard/home.html",
+  "login.html",
+  "en/login.html",
+  "en/account.html",
+  "ar/bookings.html",
+  "booking/trip.html",
+  "_not-found.html",
+];
 const LOCALISED = [
+  "en.html",
+  "en/private-stays.html",
+  `en/${STAY}.html`,
   "ar.html",
   "es.html",
   "ar/private-stays.html",
@@ -39,28 +52,31 @@ const LOCALISED = [
   `es/${STAY}.html`,
 ];
 
-test("fixture A: locale homes, public .html, framer bodies, static, three 404s; dashboard stays out", () => {
+test("fixture A: three locale homes, public .html, framer bodies, static, three 404s; dashboard stays out", () => {
   const f = fixture([...FRAMER, ...NOT_PUBLIC, ...LOCALISED]);
   const report = assembleOut(f.paths);
 
+  assert.equal(readFileSync(f.out("en/index.html"), "utf8"), "source:en.html");
   assert.equal(readFileSync(f.out("ar/index.html"), "utf8"), "source:ar.html");
   assert.equal(readFileSync(f.out("es/index.html"), "utf8"), "source:es.html");
+  assert.equal(existsSync(f.out("index.html")), false, `"/" is the Worker's language redirect, never a static page`);
+  assert.equal(existsSync(f.out("en.html")), false);
   assert.equal(existsSync(f.out("ar.html")), false);
   assert.equal(existsSync(f.out("es.html")), false);
   assert.equal(readFileSync(f.out("ar/private-stays.html"), "utf8"), "source:ar/private-stays.html");
   assert.equal(readFileSync(f.out(`es/${STAY}.html`), "utf8"), `source:es/${STAY}.html`);
 
-  for (const gone of ["account.html", "dashboard", "login.html", "booking", "_not-found.html"]) {
+  for (const gone of ["account.html", "dashboard", "login.html", "en/login.html", "en/account.html", "ar/bookings.html", "booking", "_not-found.html"]) {
     assert.equal(existsSync(f.out(gone)), false, `out/${gone} must not exist`);
   }
-  for (const kept of ["index.html", "about.html", "private-stays.html", `${STAY}.html`]) {
+  for (const kept of ["en/index.html", "en/about.html", "en/private-stays.html", `en/${STAY}.html`]) {
     assert.ok(existsSync(f.out(kept)), `out/${kept}`);
   }
 
   const en = readFileSync(f.out("404.html"), "utf8");
   const ar = readFileSync(f.out("ar/404.html"), "utf8");
   const es = readFileSync(f.out("es/404.html"), "utf8");
-  assert.ok(en.includes('<html lang="en" dir="ltr">') && en.includes('<a href="/">'));
+  assert.ok(en.includes('<html lang="en" dir="ltr">') && en.includes('<a href="/en/">'));
   assert.ok(ar.includes('<html lang="ar" dir="rtl">') && ar.includes('<a href="/ar/">'));
   assert.ok(es.includes('<html lang="es" dir="ltr">') && es.includes('<a href="/es/">'));
 
@@ -69,26 +85,27 @@ test("fixture A: locale homes, public .html, framer bodies, static, three 404s; 
   assert.ok(existsSync(f.out("_headers")));
 
   assert.equal(report.framer.length, 4);
-  assert.deepEqual(report.react.en, []);
+  assert.equal(report.react.en.length, 3);
   assert.equal(report.react.ar.length, 3);
   assert.equal(report.react.es.length, 3);
   assert.deepEqual(report.notFound, ["404.html", "ar/404.html", "es/404.html"]);
-  assert.equal(report.total, 4 + 6 + 3);
+  assert.equal(report.total, 4 + 9 + 3);
 });
 
-test("fixture B: no locale home built, so the AR and ES 404 home links are /", () => {
+test("fixture B: the ops target (pages: false) ships no page, so every 404 home link is /", () => {
   const f = fixture(FRAMER);
-  const report = assembleOut(f.paths);
-  assert.ok(readFileSync(f.out("ar/404.html"), "utf8").includes('<a href="/">'));
-  assert.ok(readFileSync(f.out("es/404.html"), "utf8").includes('<a href="/">'));
-  assert.equal(existsSync(f.out("_next")), false, "no React document, so no /_next/static is copied");
-  assert.equal(report.framer.length, 4);
+  const report = assembleOut({ ...f.paths, pages: false });
+  for (const dest of ["404.html", "ar/404.html", "es/404.html"]) {
+    assert.ok(readFileSync(f.out(dest), "utf8").includes('<a href="/">'), dest);
+  }
+  assert.equal(existsSync(f.out("en/about.html")), false, "no page ships on the ops target");
+  assert.equal(report.framer.length, 0);
   assert.deepEqual(report.react, { en: [], ar: [], es: [] });
   assert.deepEqual(report.notFound.length, 3);
 });
 
 test("fixture C: two sources for one destination throws", () => {
-  const f = fixture(["index.body", "index.html", "about.body"]);
+  const f = fixture(["en.body", "en.html", "en/about.body"]);
   assert.throws(() => assembleOut(f.paths), /two sources/);
 });
 
@@ -98,17 +115,30 @@ test("fixture D: an AR page with no ES twin throws", () => {
 });
 
 test("fixture E: an AR and ES page with no English page throws", () => {
-  const f = fixture(["index.body", "about.body", "ar/private-stays.html", "es/private-stays.html"]);
-  assert.throws(() => assembleOut(f.paths), /no English page/);
+  // Job 21: the en/ar twin check fires before the older "no English page" check, which a page set that passes it can no longer reach.
+  const f = fixture(["en.body", "en/about.body", "ar/private-stays.html", "es/private-stays.html"]);
+  assert.throws(() => assembleOut(f.paths), /ar pages without an en twin/);
 });
 
 test("React documents with no .next/static throw", () => {
-  const f = fixture([...FRAMER, "ar.html", "es.html"]);
+  const f = fixture([...FRAMER, "en.html", "ar.html", "es.html"]);
   f.paths.staticDir = join(f.base, "missing-static");
   assert.throws(() => assembleOut(f.paths), /unstyled/);
 });
 
 test("a missing English home throws", () => {
-  const f = fixture(["about.body"]);
+  const f = fixture(["en/about.body"]);
   assert.throws(() => assembleOut(f.paths), /assemble incomplete/);
+});
+
+test("an unprefixed page throws: every page lives under /en, /ar or /es (job 21)", () => {
+  for (const file of ["index.body", "about.body", "private-stays.html"]) {
+    const f = fixture([...FRAMER, file]);
+    assert.throws(() => assembleOut(f.paths), /would ship unprefixed/, file);
+  }
+});
+
+test("an English react page with no ar/es twin throws (job 21)", () => {
+  const f = fixture([...FRAMER, "en.html", "en/private-stays.html", "ar.html", "es.html"]);
+  assert.throws(() => assembleOut(f.paths), /en pages without an ar twin: \/en\/private-stays/);
 });

@@ -24,8 +24,7 @@ test("only components/site/locale-document.tsx renders <html> or <body>", () => 
 
 function routeFile(locale, pattern) {
   const segments = pattern === "/" ? [] : pattern.split("/").slice(1);
-  const prefix = locale === "en" ? [] : [locale];
-  return join("app", ...prefix, ...segments, "page.tsx");
+  return join("app", locale, ...segments, "page.tsx");
 }
 
 test("each public page has its EN, AR and ES route files together, or none of them", () => {
@@ -39,15 +38,20 @@ test("each public page has its EN, AR and ES route files together, or none of th
   }
 });
 
-test("no app/[locale] or other dynamic first-level segment, and no app/en", () => {
+test("the one dynamic first-level segment is app/[locale], and it holds only the guest pages; app/en, app/ar and app/es are literal", () => {
   const first = readdirSync("app", { withFileTypes: true }).filter((e) => e.isDirectory());
   const dynamic = first.filter((e) => /^\[.*\]$/.test(e.name));
-  assert.deepEqual(dynamic.map((e) => e.name), [], "a dynamic root segment would also match the literal Framer pages");
-  assert.equal(existsSync("app/en"), false, "English stays at the root: there is no app/en");
+  // Job 21: a dynamic root segment would also match the literal public pages, so it may hold nothing but the pages the
+  // Worker renders itself (login, account, bookings); the public pages live in the literal app/en, app/ar, app/es.
+  assert.deepEqual(dynamic.map((e) => e.name), ["[locale]"]);
+  const held = readdirSync("app/[locale]", { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name);
+  assert.deepEqual(held.sort(), ["account", "bookings", "login"]);
+  for (const l of ["en", "ar", "es"]) assert.equal(existsSync(join("app", l, "page.tsx")), true, `app/${l}/page.tsx`);
+  assert.equal(existsSync("app/page.tsx"), false, "English has its prefix too: there is no unprefixed app/page.tsx");
 });
 
-test("no route file under app/ar or app/es is a client component, and none adds an <html> layout", () => {
-  for (const l of ["ar", "es"]) {
+test("no route file under app/en, app/ar or app/es is a client component, and none adds an <html> layout", () => {
+  for (const l of ["en", "ar", "es"]) {
     for (const f of walk(join("app", l))) {
       if (/\/page\.tsx$/.test(f)) {
         const head = readFileSync(f, "utf8").trimStart();

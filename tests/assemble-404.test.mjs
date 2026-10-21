@@ -8,7 +8,7 @@ test("static 404 html matches the contract and the assemble script ignores the c
   const html = renderStaticNotFound();
   assert.match(html, /Page not found/);
   assert.match(html, /Return home/);
-  assert.match(html, /href="\/"/);
+  assert.match(html, /href="\/en\/"/);
   assert.match(html, /Curves_black\.svg/);
   assert.equal(html.includes("Bricolage"), false);
   assert.equal(html.includes("#f9f6f3"), false);

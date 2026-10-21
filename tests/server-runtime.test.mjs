@@ -24,8 +24,9 @@ const TODAY = [
   "/page",
   "/ar/page",
   "/ar/private-stays/[stay]/page",
-  "/login/page",
-  "/account/page",
+  "/en/page",
+  "/[locale]/login/page",
+  "/[locale]/account/page",
   "/dashboard/(ops)/home/page",
   "/__harness/page",
 ];
@@ -36,7 +37,7 @@ test("serverPathsFrom: only the static app/api routes, without the /route suffix
 });
 
 test("serverPathsFrom: pages, Framer routes and held handlers outside /api are ignored", () => {
-  assert.deepEqual(serverPathsFrom(["/newsletter/route", "/fx/route", "/embed/hero-booker/route", "/about/route", "/login/page"], []), []);
+  assert.deepEqual(serverPathsFrom(["/newsletter/route", "/fx/route", "/embed/hero-booker/route", "/en/about/route", "/[locale]/login/page"], []), []);
   assert.deepEqual(serverPathsFrom(["/apiary/route"], []), []);
 });
 
@@ -54,26 +55,34 @@ test("serverPathsFrom: dynamic, catch-all, grouped and parallel segments under /
   }
 });
 
-test("HELD_PATHS is the four sections still held (/booking left it with plan 04-02, /newsletter with 03.3-27); SERVER_PATHS_OUTSIDE_API is job 02's six sign-in paths (02-23 task 3) plus /newsletter", () => {
+test("HELD_PATHS is the four sections still held (/booking left it with plan 04-02, /newsletter with 03.3-27); SERVER_PATHS_OUTSIDE_API is job 02's sign-in paths (02-23 task 3, prefixed since job 21) plus /newsletter", () => {
   assert.deepEqual([...HELD_PATHS], ["/dashboard", "/fx", "/embed", "/__harness"]);
-  assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], ["/login", "/auth/confirm", "/auth/sign-out", "/auth/handoff/start", "/account", "/bookings", "/newsletter"]);
+  assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], [
+    "/en/login", "/ar/login", "/es/login",
+    "/auth/confirm", "/auth/sign-out", "/auth/handoff/start",
+    "/en/account", "/ar/account", "/es/account",
+    "/en/bookings", "/ar/bookings", "/es/bookings",
+    "/newsletter",
+  ]);
 });
 
 test("three places agree: JOB02_SERVER_PATHS + /newsletter, SERVER_PATHS_OUTSIDE_API and run_worker_first in both Worker files; none is held", () => {
-  // Plan 03.3-27: /newsletter (the footer's POST handler) follows job 02's six, in the same order everywhere.
+  // Plan 03.3-27: /newsletter (the footer's POST handler) follows job 02's paths, in the same order everywhere.
+  // Job 21: "/" (the language redirect) runs the Worker first too, so run_worker_first is "/", "/api/*", then the list.
   assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], [...JOB02_SERVER_PATHS, "/newsletter"]);
   for (const file of ["wrangler.toml", "wrangler.preview.toml"]) {
     const line = readFileSync(file, "utf8").split("\n").find((l) => l.startsWith("run_worker_first"));
     const list = JSON.parse(line.replace(/^run_worker_first = /, ""));
-    assert.deepEqual(list.slice(1), [...SERVER_PATHS_OUTSIDE_API], file);
-    assert.equal(list[0], "/api/*", file);
+    assert.deepEqual(list.slice(2), [...SERVER_PATHS_OUTSIDE_API], file);
+    assert.equal(list[0], "/", file);
+    assert.equal(list[1], "/api/*", file);
   }
   for (const path of SERVER_PATHS_OUTSIDE_API) {
     assert.equal(isHeldPath(path), false, path);
-    assert.equal(isHeldPath(`/ar${path}`), false, `/ar${path}`);
+    if (!/^\/(en|ar|es)\//.test(path)) assert.equal(isHeldPath(`/ar${path}`), false, `/ar${path}`);
   }
   // Only the exact path opens: a child, a locale prefix or the ops-host handoff stay out of the list.
-  for (const path of ["/login/x", "/account/x", "/auth/handoff", "/auth/confirm/x", "/ar/login", "/es/account", "/newsletter/x", "/ar/newsletter", "/es/newsletter"]) {
+  for (const path of ["/login", "/account", "/bookings", "/login/x", "/en/login/x", "/en/login/", "/fr/login", "/account/x", "/auth/handoff", "/auth/confirm/x", "/ar/newsletter", "/es/newsletter", "/newsletter/x", "/en/about", "/en/"]) {
     assert.equal(SERVER_PATHS_OUTSIDE_API.includes(path), false, path);
   }
 });
@@ -167,8 +176,8 @@ test("handle: every method on a server path goes to Next (Next answers 405 itsel
 test("handle: anything else goes back to the static assets untouched", async () => {
   const { calls, run } = harness();
   const paths = [
-    "/dashboard", "/dashboard/home", "/booking/trip", "/booking", "/fx", "/newsletter", "/login/x", "/account/x",
-    "/auth/handoff", "/auth/confirm/x", "/embed/hero-booker", "/ar/login", "/es/account", "/nope", "/api/nope", "/api/health/", "/API/health", "/api/health%2F",
+    "/dashboard", "/dashboard/home", "/booking/trip", "/booking", "/fx", "/newsletter", "/login", "/account", "/bookings", "/login/x", "/account/x",
+    "/auth/handoff", "/auth/confirm/x", "/embed/hero-booker", "/ar/login", "/es/account", "/en/", "/en/about", "/nope", "/api/nope", "/api/health/", "/API/health", "/api/health%2F",
     "/api%2Fhealth", "/api/%68ealth", "//api/health", "/_next/image", "/cdn-cgi/image/x",
   ];
   for (const p of paths) {
@@ -190,7 +199,7 @@ test("handle: dot segments are resolved by the URL parser before the decision, s
     ["/api/%2E%2E/dashboard", "/dashboard", false],
     ["/api/.%2e/dashboard", "/dashboard", false],
     ["/api/health/%2e%2e/%2e%2e/dashboard", "/dashboard", false],
-    ["/api/health/../../login", "/login", false],
+    ["/api/health/../../en/login", "/en/login", false],
     ["/api\\..\\dashboard", "/dashboard", false],
     ["/api/health/..", "/api/", false],
     ["/api/..%2fdashboard", "/api/..%2fdashboard", false],
@@ -218,21 +227,24 @@ test("handle: dot segments are resolved by the URL parser before the decision, s
   }
 });
 
-test("handle: with job 02's six sign-in paths on the list, dot segments fold first and only the exact path goes to Next", async () => {
-  // Same rule as above (decide on the pathname the URL parser holds, forward that URL), now that /login, /account and
+test("handle: with job 02's sign-in paths on the list, dot segments fold first and only the exact path goes to Next", async () => {
+  // Same rule as above (decide on the pathname the URL parser holds, forward that URL), now that /en/login, /ar/account and
   // the rest are server paths: a dot segment may land on one of them, never on a held section or a near miss.
   const cases = [
     // [as sent, pathname handle() sees, goes to Next]
-    ["/api/%2e%2e/login", "/login", true],
-    ["/dashboard/../account", "/account", true],
-    ["/api/health/../../bookings", "/bookings", true],
+    ["/api/%2e%2e/en/login", "/en/login", true],
+    ["/dashboard/../ar/account", "/ar/account", true],
+    ["/api/health/../../es/bookings", "/es/bookings", true],
     ["/auth/./confirm", "/auth/confirm", true],
     ["/api/%2e%2e/dashboard", "/dashboard", false],
-    ["/login/../dashboard", "/dashboard", false],
+    ["/en/login/../dashboard", "/en/dashboard", false],
+    ["/en/login/../../dashboard", "/dashboard", false],
+    ["/api/%2e%2e/login", "/login", false],
+    ["/en/../login", "/login", false],
     ["/auth/handoff/start/..", "/auth/handoff/", false],
     ["/auth/confirm/..", "/auth/", false],
-    ["/login/.", "/login/", false],
-    ["/login%2F", "/login%2F", false],
+    ["/en/login/.", "/en/login/", false],
+    ["/en/login%2F", "/en/login%2F", false],
     ["/auth/..%2fconfirm", "/auth/..%2fconfirm", false],
   ];
   for (const [sent, seen, toNext] of cases) {
@@ -359,14 +371,14 @@ function assembleFixture(appFiles) {
 }
 
 test("assembleOut: a held-section HTML source is still skipped silently", () => {
-  const run = assembleFixture(["index.html", "booking.html", "dashboard/home.html", "fx.html"]);
+  const run = assembleFixture(["en.html", "ar.html", "es.html", "en/booking.html", "en/dashboard/home.html", "en/fx.html"]);
   const report = run();
-  assert.deepEqual(report.react.en, ["index.html"]);
+  assert.deepEqual(report.react.en, ["en/index.html"]);
 });
 
 test("assembleOut: a prerendered file under /api or a held section stops the build before out/ is written", () => {
-  for (const f of ["api/x.body", "api/health.body", "fx.body", "dashboard.body", "embed/hero-booker.body", "ar/api/x.body"]) {
-    const base = scratchDir({ [`app/${f}`]: "x", "app/index.html": "home", "static/css/x.css": "body{}" });
+  for (const f of ["en/api/x.body", "en/api/health.body", "en/fx.body", "en/dashboard.body", "en/embed/hero-booker.body", "ar/api/x.body"]) {
+    const base = scratchDir({ [`app/${f}`]: "x", "app/en.html": "home", "static/css/x.css": "body{}" });
     const outDir = join(base, "out");
     assert.throws(
       () => assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir, publicDir: join(base, "public") }),
@@ -378,8 +390,8 @@ test("assembleOut: a prerendered file under /api or a held section stops the bui
 });
 
 test("assembleOut: a public/ file under /api or a held section stops the build before out/ is written", () => {
-  for (const f of ["api/health", "api/x.json", "fx.html", "dashboard/index.html", "es/dashboard.html", "embed/x.js"]) {
-    const base = scratchDir({ [`public/${f}`]: "x", "app/index.html": "home", "static/css/x.css": "body{}" });
+  for (const f of ["api/health", "api/x.json", "fx.html", "dashboard/index.html", "es/dashboard.html", "en/dashboard/index.html", "embed/x.js"]) {
+    const base = scratchDir({ [`public/${f}`]: "x", "app/en.html": "home", "static/css/x.css": "body{}" });
     const outDir = join(base, "out");
     assert.throws(
       () => assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir, publicDir: join(base, "public") }),
@@ -388,7 +400,7 @@ test("assembleOut: a public/ file under /api or a held section stops the build b
     );
     assert.equal(existsSync(outDir), false, f);
   }
-  const ok = scratchDir({ "public/assets/x.webp": "x", "public/apiary.txt": "x", "app/index.html": "home", "static/css/x.css": "body{}" });
+  const ok = scratchDir({ "public/assets/x.webp": "x", "public/apiary.txt": "x", "app/en.html": "home", "static/css/x.css": "body{}" });
   assembleOut({ appDir: join(ok, "app"), staticDir: join(ok, "static"), outDir: join(ok, "out"), publicDir: join(ok, "public") });
 });
 
@@ -459,8 +471,8 @@ test("both Worker files run the same script with the same flags, date and ASSETS
   assert.match(preview, /^directory = "\.\/out-preview"$/m);
 });
 
-test("both Worker files run the script first only for /api/* and the paths served outside /api", () => {
-  const want = JSON.stringify(["/api/*", ...SERVER_PATHS_OUTSIDE_API]);
+test("both Worker files run the script first only for \"/\", /api/* and the paths served outside /api", () => {
+  const want = JSON.stringify(["/", "/api/*", ...SERVER_PATHS_OUTSIDE_API]);
   for (const file of WORKER_FILES) {
     const lines = readFileSync(file, "utf8").split("\n").filter((l) => l.startsWith("run_worker_first"));
     assert.equal(lines.length, 1, file);
