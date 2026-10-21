@@ -2,9 +2,9 @@
 
 **Gathered:** 2026-10-21, job 24 (`gsd/phase-6-plan`), from ROADMAP Phase 6, REQUIREMENTS, the landed 3.2 dashboard
 and kit, 3.3 public pages, Phase 4/5 plans and `decisions/2026-10-21-owner-answers-after-landing.md`.
-**Status:** DRAFT on the recommended options. Twelve owner questions (P6-Q1…Q12) went to the controller on
-2026-10-21; each F-decision below names its question. When an answer differs, the decision and the plans that cite
-it are rewritten before the plan signature.
+**Status:** SIGNED discuss. The owner answered all twelve questions (P6-Q1…Q12) with option A, 2026-10-21: in the
+controller chat ("All 12 recommended (A) for Phase 6.") and confirmed in job 24's own question form ("Yes, all 12 A").
+Record: `decisions/2026-10-21-phase-6-discuss.md`. Each F-decision below names its question.
 
 <domain>
 ## Phase Boundary
@@ -24,7 +24,7 @@ CMS-08 Team CMS (`content/team`), floating WhatsApp in `components/site/public-f
 Contact inquiry form (SITE-03 part), PLAT-03 (no Framer `route.ts` page left: verified again in 06-02).
 
 Not in this phase: anything Phase 5 owns (bookings, customers, settings money); card payments (backlog);
-**OPS-12 promo codes → v1.1 with PAY-05** (F-11, pending P6-Q11).
+**OPS-12 promo codes → v1.1 with PAY-05** (F-11, owner P6-Q11 = A).
 </domain>
 
 <decisions>
@@ -47,11 +47,11 @@ Not in this phase: anything Phase 5 owns (bookings, customers, settings money); 
   decides when they run. `tsc` and `tokens:check` allowed.
 
 ### Packages (CMS-03, BOOK-05, ADDN-03)
-- **F-01 (P6-Q1, rec A):** A package is **requested, then priced by the owner**. Package page → "Request this
+- **F-01 (owner, P6-Q1 = A):** A package is **requested, then priced by the owner**. Package page → "Request this
   journey" (dates, guests, cities, notes, name/email/phone) → saved as a Request (F-10) and emailed to inquiries@. The
   owner answers by email/WhatsApp; turning a request into a booking is the Phase 5 hand-made booking. No money on the
   package page; the card shows the owner's own price line (never computed, 03.2 C-15).
-- **F-02 (P6-Q2, rec A):** Package fields: name, price line, tagline, description, photo, **legs** (destination,
+- **F-02 (owner, P6-Q2 = A):** Package fields: name, price line, tagline, description, photo, **legs** (destination,
   suggested stay optional, nights label), **included add-ons** (from the catalog, shown as included, cannot be
   removed: ADDN-03), show/hide, order; **the owner can add new packages** (slug locks once published, like stays).
   Multi-city only via packages (CMS-03). "Something else? Ask on WhatsApp" link on the package page (ADDN-03).
@@ -59,7 +59,7 @@ Not in this phase: anything Phase 5 owns (bookings, customers, settings money); 
   `/<locale>/journeys/<slug>`. Exact URL word confirmed on pictures.
 
 ### Consultation (SITE-06)
-- **F-04 (P6-Q3, rec A):** Owner sets **weekly hours in Asia/Dubai** and **days off** (Dashboard → Content →
+- **F-04 (owner, P6-Q3 = A):** Owner sets **weekly hours in Asia/Dubai** and **days off** (Dashboard → Content →
   Consultation, or Settings — planner picks, pictures decide). Slots are 30 minutes, shown in the guest's own time
   zone with "Dubai time" beside it; a booked slot is taken atomically (unique slot start, no overlap); minimum notice
   and booking horizon are settings with empty defaults the owner fills (no invented number: until filled, a 24 h
@@ -68,7 +68,7 @@ Not in this phase: anything Phase 5 owns (bookings, customers, settings money); 
   (no self-service in v1).
 
 ### Cookies and analytics (SITE-07, SITE-11)
-- **F-05 (P6-Q4, rec A):** Banner with **Necessary** (always on) and **Analytics** (off until accepted). Analytics =
+- **F-05 (owner, P6-Q4 = A):** Banner with **Necessary** (always on) and **Analytics** (off until accepted). Analytics =
   Cloudflare Web Analytics beacon, injected only after consent; choice stored in a first-party cookie, changeable from
   a footer "Cookie settings" link. Banner copy is CMS (Legal editor). No Marketing switch until a marketing tool exists.
   Enabling Web Analytics on the zone is an owner gate (one numbered step).
@@ -79,44 +79,44 @@ Not in this phase: anything Phase 5 owns (bookings, customers, settings money); 
   with server actions).
 
 ### Legal (SITE-09)
-- **F-07 (P6-Q5, rec A):** Legal editor for **privacy, terms, booking terms, waiver, disclaimer** (rich blocks as in
+- **F-07 (owner, P6-Q5 = A):** Legal editor for **privacy, terms, booking terms, waiver, disclaimer** (rich blocks as in
   F-08). A page with no published text has **no route and no footer link**. Booking terms published flips Phase 4's
   `BOOKING_TERMS_IS_PLACEHOLDER` gate (`lib/booking/terms.ts`) to read the CMS text. Nothing drafted by us.
 
 ### Blog (SITE-10)
-- **F-08 (P6-Q6, rec A):** Posts: title, slug (locks when published), cover photo, date, excerpt, **body blocks**
+- **F-08 (owner, P6-Q6 = A):** Posts: title, slug (locks when published), cover photo, date, excerpt, **body blocks**
   (heading, paragraph, photo with alt, quote), show/hide, order by date. `/blog` gets a search box (client-side,
   current locale, title + text). No comments. Hide-all hides the home Stories section (already true in code). The
   three fixture posts are imported as they are (same text, same AR/ES).
 
 ### Pages (CMS-07, SITE-02)
-- **F-09 (P6-Q7, rec A):** Home, About, Destinations, Experiences, Contact: each section has show/hide and its texts
+- **F-09 (owner, P6-Q7 = A):** Home, About, Destinations, Experiences, Contact: each section has show/hide and its texts
   and photos editable; hero photo or video URL per page (https only, CMS-06). Section order fixed in code. The
   fixture blocks (03.2 C-21) move to tables; the public output is byte-for-byte the same right after import.
 
 ### Requests (SITE-04, SITE-05, F-01, F-04)
-- **F-10 (P6-Q10, rec A):** **Plan with us** (destination, dates, guests, notes, budget, UAE airport; no pay) and
+- **F-10 (owner, P6-Q10 = A):** **Plan with us** (destination, dates, guests, notes, budget, UAE airport; no pay) and
   **List with us** (name, email, phone, property type, city, message; footer link only, no partner login) are saved
   and emailed to inquiries@. Dashboard gets one **Requests** list (Plan, List, Package, Consultation) with filters and
   Handled / Not handled. Where Plan with us lives on the public site is decided on pictures (rec: its own page linked
   from the hero/home "Plan with us" and the Contact page).
 
 ### Navigation (CMS-09, SITE-01)
-- **F-15 (P6-Q8, rec A):** Header and footer links editable: label (EN, AR/ES auto), link (internal page picker or
+- **F-15 (owner, P6-Q8 = A):** Header and footer links editable: label (EN, AR/ES auto), link (internal page picker or
   https URL), show/hide, move up/down. **Login is always last and cannot be hidden**; currency and language stay.
   Header order default = job 21's (Destinations, Experiences, About, Contact, …, Login).
 
 ### Saved stays and share (BOOK-06, BOOK-07)
-- **F-12 (P6-Q9, rec A):** Heart on stay cards and the stay page; signed out it opens sign-in and saves after return;
+- **F-12 (owner, P6-Q9 = A):** Heart on stay cards and the stay page; signed out it opens sign-in and saves after return;
   Account gets "Saved stays". Table keyed by user id with RLS (own rows only).
 - **F-13:** Share on the stay page: native share sheet where `navigator.share` exists, else Copy link + WhatsApp.
   Reuse `components/ui/copy-link.tsx`.
 
 ### Promo codes
-- **F-11 (P6-Q11, rec A):** OPS-12 moves to v1.1 with PAY-05. No code box anywhere in v1.
+- **F-11 (owner, P6-Q11 = A):** OPS-12 moves to v1.1 with PAY-05. No code box anywhere in v1.
 
 ### Translations (I18N-04)
-- **F-14 (P6-Q12, rec A):** A text the owner edits by hand in AR or ES under "Edit translations" is stored as
+- **F-14 (owner, P6-Q12 = A):** A text the owner edits by hand in AR or ES under "Edit translations" is stored as
   **locked** (per field, per language); Save skips locked fields when English changes; "Translate again" beside a
   locked field unlocks and re-fills it. Applies to every editor (catalog, team, packages, pages, blog, legal, nav).
 
@@ -145,6 +145,6 @@ Not in this phase: anything Phase 5 owns (bookings, customers, settings money); 
 
 <deferred>
 ## Deferred
-- OPS-12 promo codes with PAY-05 (v1.1), unless P6-Q11 = B.
+- OPS-12 promo codes with PAY-05 (v1.1) (owner, P6-Q11 = A).
 - Guest self-service consultation cancel; Marketing cookies; package online payment (cards backlog).
 </deferred>
