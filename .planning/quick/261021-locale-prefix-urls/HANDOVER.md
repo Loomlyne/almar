@@ -46,4 +46,8 @@ Branch `gsd/locale-prefix-urls`, cut from `origin/main` 39546d56. Owner decision
 
 ## Follow-ups / notes
 - The Organization JSON-LD `url` stays `https://almarprivatejourney.com/` (a 302 now); left as the brand root.
-- Test files: see the commit list; they were edited, not run.
+- Tests (second commit, edited, **not run**): about 60 files follow the new URLs, plus a new `tests/locale-redirect.test.mjs` (cookie redirect, legacy 301s, `_redirects` agreement, `handle()` with and without `rootRedirect`). "No Login on public pages" checks now drop Login from their held lists; no visibility check for Login was added (it sits in the closed Menu on phones; `a[href="/en/login"]` is the safe locator).
+- `components/site/public-frame.tsx` now value-imports `HOME_COPY` and `GUEST_COPY` (Login/Account labels); `tests/public-frame.test.mjs` allow-lists exactly those two for that file (checker finding 12 kept the frame free of copy tables). The controller may want the bundle cost checked, or the two labels passed in as props instead.
+- `scripts/assemble-cloudflare.mjs`: the old "has no English page" self-check can no longer fire (the new en/ar twin check fires first); left in place, harmless.
+- `tests/locale-switch.spec.ts`: the account-screen pick now navigates; the spec asserts URL, cookie and lang/dir (relies on the branded 404 following the cookie for the harness page; unverified).
+- Merged `origin/main` 565be240 (PRs #31, #32) with no conflicts; `tsc` clean after the merge.
