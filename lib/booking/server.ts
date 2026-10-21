@@ -434,12 +434,15 @@ export async function createWebHold(db: BookingDb, input: HoldRequest, ctx: Hold
   };
 }
 
-/** 200 for a hold, 429 for the limiter, 400 for a refused field, 503 for "not available", else 409 (the nights or the price changed). */
+/**
+ * 200 for a hold, 429 for the limiter or too many open requests, 400 for a refused field, 503 for "not available" or
+ * requests closed (the page shows the closed state), else 409 (the nights or the price changed).
+ */
 export function holdStatus(response: HoldResponse): 200 | 400 | 409 | 429 | 503 {
   if (response.ok) return 200;
   const codes = response.reasons.map((r) => r.code);
-  if (codes.includes("hold_limit")) return 429;
-  if (codes.includes("unavailable")) return 503;
+  if (codes.includes("hold_limit") || codes.includes("too_many_open")) return 429;
+  if (codes.includes("unavailable") || codes.includes("requests_closed")) return 503;
   if (codes.includes("invalid")) return 400;
   return 409;
 }
@@ -451,6 +454,81 @@ export function holdStatus(response: HoldResponse): 200 | 400 | 409 | 429 | 503 
 export function liveGate(stripeSecret: string | undefined, termsArePlaceholder: boolean = BOOKING_TERMS_IS_PLACEHOLDER): { isTest: boolean; open: boolean } {
   const isTest = !(stripeSecret ?? "").trim().startsWith("sk_live_");
   return { isTest, open: isTest || !termsArePlaceholder };
+}
+
+// ---------------------------------------------------------------- the request gate (04-08)
+
+/** The transfer window of a TEST booking (P-06): the 35-minute floor, whatever the owner's window. */
+export const TEST_TRANSFER_WINDOW_MINUTES = 35;
+
+/** The shortest transfer window the owner can set (P-07); the SQL checks the same bound. */
+const MIN_TRANSFER_WINDOW_MINUTES = 35;
+
+/**
+ * Why requests are closed. Never sent to a browser: the guest sees one `requests_closed`. 04-09's readiness block may
+ * list them from `booking_gate()` plus the terms constant.
+ */
+export type GateReason = "terms_not_final" | "link_secret_missing" | "mail_not_ready" | "settings_missing" | "window_not_set" | "bank_incomplete";
+
+/** The gate's database half, as `readBookingGate` reads it from `booking_gate()` (never a bank value). */
+export type BookingGateState = { windowMinutes: number | null; bankComplete: boolean; settingsPresent: boolean };
+
+/** Every input of the gate. The route puts them together (lib/booking/gate-server.ts); this file reads none of them. */
+export type RequestGateInput = BookingGateState & {
+  isTest: boolean;
+  termsArePlaceholder: boolean;
+  linkConfigured: boolean;
+  mailReady: boolean;
+};
+
+/** An open gate always has a window: the owner's for a real booking, TEST_TRANSFER_WINDOW_MINUTES for a TEST one. */
+export type RequestGate =
+  | { isTest: boolean; open: true; windowMinutes: number; reasons: GateReason[] }
+  | { isTest: boolean; open: false; windowMinutes: number | null; reasons: GateReason[] };
+
+/**
+ * Whether a guest may hold and request now. A real booking (the production host) needs the owner's terms (not the
+ * placeholder), the link secret, a ready email sender (P-13), the owner's VAT and deposit settings, a transfer window
+ * of at least 35 minutes and complete bank details (P-08). A TEST booking needs the link secret, the settings and the
+ * bank details; placeholder terms, a sender that is not ready and an unset window are allowed, and its window is
+ * TEST_TRANSFER_WINDOW_MINUTES. Each missing input adds its reason, in a fixed order.
+ */
+export function requestGate(input: RequestGateInput): RequestGate {
+  const real = !input.isTest;
+  const windowSet = input.windowMinutes !== null && Number.isSafeInteger(input.windowMinutes) && input.windowMinutes >= MIN_TRANSFER_WINDOW_MINUTES;
+  const reasons: GateReason[] = [];
+  if (real && input.termsArePlaceholder) reasons.push("terms_not_final");
+  if (!input.linkConfigured) reasons.push("link_secret_missing");
+  if (real && !input.mailReady) reasons.push("mail_not_ready");
+  if (!input.settingsPresent) reasons.push("settings_missing");
+  if (real && !windowSet) reasons.push("window_not_set");
+  if (!input.bankComplete) reasons.push("bank_incomplete");
+  const windowMinutes = input.isTest ? TEST_TRANSFER_WINDOW_MINUTES : input.windowMinutes;
+  if (reasons.length === 0 && windowMinutes !== null) return { isTest: input.isTest, open: true, windowMinutes, reasons };
+  return { isTest: input.isTest, open: false, windowMinutes, reasons };
+}
+
+/** One `booking_gate()` call. Any other shape is thrown (the route answers 503); so is a database error. */
+export async function readBookingGate(db: BookingDb): Promise<BookingGateState> {
+  const data = await call(db, "booking_gate", {});
+  if (!isObj(data)) throw new Error("rpc booking_gate: unreadable answer");
+  const rawWindow = data.window_minutes;
+  const bankComplete = data.bank_complete;
+  const settingsPresent = data.settings_present;
+  const windowMinutes = rawWindow === null ? null : typeof rawWindow === "number" && Number.isSafeInteger(rawWindow) ? rawWindow : undefined;
+  if (windowMinutes === undefined || typeof bankComplete !== "boolean" || typeof settingsPresent !== "boolean") {
+    throw new Error("rpc booking_gate: unreadable answer");
+  }
+  return { windowMinutes, bankComplete, settingsPresent };
+}
+
+/**
+ * The quote as the trip page sees it while requests are closed (P-17): the breakdown and every reason are kept, ok is
+ * false and exactly one `requests_closed` is added. An open gate returns the quote itself, unchanged.
+ */
+export function withRequestGate(quote: QuoteResponse, gate: RequestGate): QuoteResponse {
+  if (gate.open) return quote;
+  return { ...quote, ok: false, reasons: [...quote.reasons, { code: "requests_closed" }] };
 }
 
 // ---------------------------------------------------------------- the release

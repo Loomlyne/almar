@@ -1,4 +1,4 @@
-// Parsers for the three booking endpoints' bodies (plan 04-02). Pure: no Next, no Supabase, no environment. A parser
+// Parsers for the booking endpoints' bodies (plans 04-02 and 04-08). Pure: no Next, no Supabase, no environment. A parser
 // never throws: it returns { ok: true, value } with trimmed text and a lower-cased email, or { ok: false, reasons } with
 // ONE reason, { code: "invalid", field }, naming the first field that failed (a dotted path such as
 // "travellers.1.age"). Unknown keys are refused, so a client cannot smuggle a price or a status into a body. What the
@@ -7,7 +7,7 @@
 import { isEmail } from "../auth/rules";
 import { isIsoDate } from "../money/dates";
 import { isBookingRef } from "./ref";
-import type { Airport, BookingReason, ContactInput, HoldRequest, QuoteRequest, TravellerInput } from "./types";
+import type { Airport, BookingLocale, BookingReason, ContactInput, HoldRequest, QuoteRequest, RequestRequest, TravellerInput, ViewRequest, WithdrawRequest } from "./types";
 
 export type ParseResult<T> = { ok: true; value: T } | { ok: false; reasons: BookingReason[] };
 
@@ -18,6 +18,7 @@ const QUOTE_KEYS = ["stay", "from", "to", "adults", "children", "infants", "addo
 const HOLD_KEYS = [...QUOTE_KEYS, "contact", "travellers", "airport", "pickupAddress", "termsAccepted"] as const;
 const ADDON_KEYS = ["id", "qty"] as const;
 const HOLD_REF_KEYS = ["ref", "t"] as const;
+const VIEW_KEYS = [...HOLD_REF_KEYS, "locale"] as const;
 const CONTACT_KEYS = ["name", "email", "phone", "nationality", "specialRequests", "emergencyName", "emergencyPhone"] as const;
 const TRAVELLER_KEYS = ["kind", "fullName", "age", "isBooker", "notStaying"] as const;
 
@@ -270,6 +271,47 @@ export function parseReleaseRequest(body: unknown): ParseResult<{ ref: string; t
   const t = body.t;
   if (typeof t !== "string" || !LINK_TOKEN.test(t)) return refuse("t");
   return { ok: true, value: { ref, t } };
+}
+
+/** A request (04-08): the held booking's reference and its signed link token, nothing else (the release rules). */
+export function parseRequestRequest(body: unknown): ParseResult<RequestRequest> {
+  return parseReleaseRequest(body);
+}
+
+/**
+ * A booking-page view (04-08): the reference, the token when the page has one (else the signed-in email decides), and
+ * optionally the page's language. A key that is sent must be valid: `t: null` is refused, not read as absent.
+ */
+export function parseViewRequest(body: unknown): ParseResult<ViewRequest> {
+  if (!isRec(body)) return refuse("body");
+  const extra = unknownKey(body, VIEW_KEYS);
+  if (extra !== null) return refuse(extra);
+  const ref = body.ref;
+  if (!isBookingRef(ref)) return refuse("ref");
+  const value: ViewRequest = { ref };
+  if (body.t !== undefined) {
+    const t = body.t;
+    if (typeof t !== "string" || !LINK_TOKEN.test(t)) return refuse("t");
+    value.t = t;
+  }
+  if (body.locale !== undefined) {
+    const locale = body.locale;
+    if (typeof locale !== "string" || !LOCALES.includes(locale)) return refuse("locale");
+    value.locale = locale as BookingLocale;
+  }
+  return { ok: true, value };
+}
+
+/** A withdraw (04-08, P-19): the view's rules without the language. */
+export function parseWithdrawRequest(body: unknown): ParseResult<WithdrawRequest> {
+  if (!isRec(body)) return refuse("body");
+  const extra = unknownKey(body, HOLD_REF_KEYS);
+  if (extra !== null) return refuse(extra);
+  const parsed = parseViewRequest(body);
+  if (!parsed.ok) return parsed;
+  const value: WithdrawRequest = { ref: parsed.value.ref };
+  if (parsed.value.t !== undefined) value.t = parsed.value.t;
+  return { ok: true, value };
 }
 
 /** B-11: the guest's home address is required exactly when a home-pickup line has a quantity (the explicit flag). */

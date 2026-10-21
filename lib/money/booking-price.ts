@@ -279,7 +279,7 @@ export function priceBooking(input: PriceInput): PriceResult {
     reasons.push({ code: "deposit_unavailable", cause: depositBlock ?? "no_due_days" });
   }
 
-  // 8. Stripe's minimum charge on what is due now.
+  // 8. The minimum amount due now (MIN_CHARGE_FILS, 2.00 AED).
   if (dueNowFils < MIN_CHARGE_FILS) reasons.push({ code: "below_minimum_charge" });
 
   const snapshot: PriceSnapshot = {
