@@ -71,6 +71,7 @@ const MISSES = [
   "/fx",
   "/newsletter",
   "/embed/hero-booker",
+  "/embed/font/Lato-Regular.ttf",
   "/services",
   "/services/concierge",
   "/auth/handoff/start",
