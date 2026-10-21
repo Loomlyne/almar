@@ -157,11 +157,14 @@ function PasswordControl({
   invalid: boolean;
 }) {
   const [shown, setShown] = useState(false);
+  // The eye sits on the PHYSICAL right in every language, Arabic included (owner standing rule, 2026-10-21).
+  // Bare inset-e/pe flip it to the left under dir="rtl", and the token rules forbid right-*/pr-*, so each
+  // direction names its own side: ltr end = rtl start = the physical right.
   return (
     <div className="field-control is-password relative">
       <input
         id={id}
-        className={cn(INPUT, "pe-12")}
+        className={cn(INPUT, "ltr:pe-12 rtl:ps-12")}
         aria-invalid={invalid || undefined}
         aria-describedby={describedBy}
         required={required}
@@ -170,7 +173,7 @@ function PasswordControl({
       />
       <button
         type="button"
-        className="absolute inset-e-1 top-1/2 grid size-control -translate-y-1/2 place-items-center border-0 bg-transparent p-0 text-ink"
+        className="absolute top-1/2 ltr:inset-e-1 rtl:inset-s-1 grid size-control -translate-y-1/2 place-items-center border-0 bg-transparent p-0 text-ink"
         aria-label={shown ? "Hide password" : "Show password"}
         onClick={() => setShown((value) => !value)}
       >

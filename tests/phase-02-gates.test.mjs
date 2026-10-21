@@ -36,9 +36,9 @@ test("wrangler.toml does not name the dashboard host", () => {
   assert.equal(wrangler.includes("dashboard.almarprivatejourney.com"), false);
 });
 
-test("next stays 15.5.27", () => {
+test("next stays 16.4.2 (job 20: Next 16 upgrade, 2026-10-21)", () => {
   const pkg = JSON.parse(readFileSync("package.json", "utf8"));
-  assert.equal(pkg.dependencies.next, "15.5.27");
+  assert.equal(pkg.dependencies.next, "16.4.2");
 });
 
 test("app, components, and lib contain no key material", () => {

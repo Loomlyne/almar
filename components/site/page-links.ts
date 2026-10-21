@@ -1,6 +1,6 @@
 import { siteHref, type Locale } from "../../lib/locale-path";
 
-/** The four pages the header and footer link to. Today they are English-only Framer pages (siteHref keeps them so). */
+/** The four pages the header and footer link to. All four exist in EN/AR/ES, so siteHref gives each its locale's address. */
 export const PAGE_LINKS = [
   { key: "destinations", path: "/destinations" },
   { key: "experiences", path: "/experiences" },

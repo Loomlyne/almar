@@ -61,7 +61,7 @@ export function CalendarPanel({
   describedBy?: string;
   /** The day that counts as today (earlier days cannot be picked). Defaults to today on this device; the dashboard passes the Dubai day. */
   now?: CalendarDate;
-  /** Open on the month of `start` when it is today or later (the dashboard's date field). Off by default: the hero booker opens on today. */
+  /** Open on the month of `start` when it is today or later (the dashboard's date field). Off by default: the panel opens on today. */
   openOnStart?: boolean;
 }) {
   const now = nowOverride ?? today(getLocalTimeZone());

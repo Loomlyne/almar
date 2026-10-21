@@ -298,7 +298,26 @@ test.describe("behaviour", () => {
         await button(page, copy.saveAndUpdateSite).click();
         await expect(alerts(page)).toHaveText(copy.editor.translationFailedLive);
         expect((await calls(page)).filter((entry) => entry.startsWith("save:"))).toEqual([]);
+        // Unpublish re-reads the item: with the rename still unsaved it asks first (PR #19 review, kit follow-up).
+        const question = page.getByRole("dialog", { name: copy.discardTitle });
         await button(page, copy.unpublish).click();
+        await expect(question).toBeVisible();
+        await button(page, copy.keepEditing).click();
+        await expect(question).toHaveCount(0);
+        await expectNotCalled(page, "unpublish");
+        await expect(page.locator("#kit-name")).toHaveValue("[Renamed]");
+        await button(page, copy.unpublish).click();
+        await button(page, copy.discard).click();
+        await expect(question).toHaveCount(0);
+        // Discard runs Unpublish once, not twice.
+        await expect.poll(async () => (await calls(page)).filter((entry) => entry === "unpublish").length, { timeout: 10_000 }).toBe(1);
+      });
+
+      test(`Unpublish on a page with nothing unsaved asks nothing (${at})`, async ({ page }) => {
+        await mockTranslate(page, "ok");
+        await openScene(page, "page-published", viewport, locale);
+        await button(page, copy.unpublish).click();
+        await expect(page.getByRole("dialog", { name: copy.discardTitle })).toHaveCount(0);
         await expectCalled(page, "unpublish");
       });
 

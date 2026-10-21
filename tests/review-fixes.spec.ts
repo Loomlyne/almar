@@ -1,20 +1,17 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 // Phase 3.1 code review (03.1-REVIEW.md) W1 to W4: keyboard focus. W5 (the https URL fields on stays and team) is gone:
 // plans 03.2-07 and 03.2-08 replace those fields with the media picker (03.2-09's MediaField), so their URL-typing cases are replaced there.
 
-async function mountHeroBooker(page: Page) {
-  const js = await (await page.request.get("/embed/hero-booker")).text();
-  await page.setContent('<div id="host"></div>');
-  await page.evaluate((code) => {
-    // eslint-disable-next-line no-eval
-    (0, eval)(code);
-  }, js);
-  await page.evaluate(() => {
-    const host = document.getElementById("host") as HTMLElement;
-    (window as unknown as { AlmarMountHeroBooker: (h: HTMLElement) => void }).AlmarMountHeroBooker(host);
-  });
-  await expect(page.getByRole("search", { name: "Find a stay" })).toBeVisible();
+// W3 and W4 ran on the hero booker specimen until Phase 3.3 close removed it with the Framer bridge. The same Stepper
+// now runs in the journey bar's guest panel, and the same CalendarPanel in the dashboard's date field (DateRangeField).
+
+/** A Dubai day as the calendar keys it (not zero padded), `days` from today: DateRangeField counts from the Dubai day. */
+function dubaiDay(days: number): { year: number; month: number; day: number } {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dubai", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const [year, month, day] = today.split("-").map(Number);
+  const at = new Date(Date.UTC(year, month - 1, day + days));
+  return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate() };
 }
 
 test.describe("W1 dashboard phone menu", () => {
@@ -74,10 +71,9 @@ test.describe("W2 site nav phone menu", () => {
 });
 
 test("W3 stepper keeps focus on the button that reached its bound", async ({ page }) => {
-  await mountHeroBooker(page);
-  await page.locator('[data-slot="guests"] > button').click();
-  const add = page.getByRole("button", { name: /add adult/i });
-  const remove = page.getByRole("button", { name: /remove adult/i });
+  await page.goto("/__harness?c=guest-panel&s=default&l=en");
+  const add = page.getByRole("button", { name: "Add adult", exact: true });
+  const remove = page.getByRole("button", { name: "Remove adult", exact: true });
   await add.click();
   await remove.focus();
   // Press until the minimum: the button stays focused and is announced as disabled.
@@ -87,16 +83,30 @@ test("W3 stepper keeps focus on the button that reached its bound", async ({ pag
 });
 
 test("W4 calendar keeps one Tab stop after Next month, and Previous stops at this month", async ({ page }) => {
-  await mountHeroBooker(page);
-  await page.locator('[data-slot="when"] > button').click();
-  const previous = page.getByRole("button", { name: "Previous month" });
-  await expect(previous).toHaveAttribute("aria-disabled", "true");
-
-  const next = page.getByRole("button", { name: "Next month" });
-  await next.click();
+  await page.goto("/__harness?c=ops-kit&s=date-range&l=en");
+  // The one-day field's day is today + 3 (tests/journey/scenes/ops-kit.tsx); the calendar opens on that day's month.
+  await page.locator("#kit-one-day").click();
   const grid = page.getByRole("grid");
+  await expect(grid).toBeVisible();
+  const previous = page.getByRole("button", { name: "Previous month" });
+  // In the last days of a month the field's day is in next month: one step back reaches this month.
+  if ((await previous.getAttribute("aria-disabled")) !== "true") await previous.click();
+  await expect(previous).toHaveAttribute("aria-disabled", "true");
+  const today = dubaiDay(0);
+  await expect(grid.locator(`[data-date="${today.year}-${today.month}-${today.day}"]`)).toHaveCount(1);
+  // aria-disabled, not disabled: it keeps focus, so Enter reaches it (Playwright refuses a mouse click), and nothing moves.
+  await previous.focus();
+  await page.keyboard.press("Enter");
+  await expect(previous).toBeFocused();
+  await expect(grid.locator(`[data-date="${today.year}-${today.month}-${today.day}"]`)).toHaveCount(1);
+
+  await page.getByRole("button", { name: "Next month" }).click();
   await expect(grid.locator('button[tabindex="0"]')).toHaveCount(1);
-  await expect(grid.locator('button[tabindex="0"]')).toHaveAttribute("data-date", /-1$/);
+  // The Tab stop is the field's day when it is in the month shown, otherwise the month's first day.
+  const field = dubaiDay(3);
+  const next = today.month === 12 ? { year: today.year + 1, month: 1 } : { year: today.year, month: today.month + 1 };
+  const stop = field.year === next.year && field.month === next.month ? `${field.year}-${field.month}-${field.day}` : `${next.year}-${next.month}-1`;
+  await expect(grid.locator('button[tabindex="0"]')).toHaveAttribute("data-date", stop);
 
   await page.keyboard.press("Tab");
   await expect(grid.locator('button[tabindex="0"]')).toBeFocused();

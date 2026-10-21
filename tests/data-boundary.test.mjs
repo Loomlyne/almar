@@ -1,8 +1,8 @@
 // The data-layer boundary (plan 03.3-01, design 3.1.2 and 7.12). This is the test that turns Phase 3.2's
 // criterion 5 ("swapping fixtures for Supabase edits only lib/data/*") from a hope into a gate.
 //
-// Rules, over every source file under app/ and components/ (a route.ts holding a Framer `const HTML = "`
-// string and the test harness folder are skipped):
+// Rules, over every source file under app/ and components/ (the test harness folder is skipped; the Framer
+// route.ts pages it once skipped are gone since the Phase 3.3 close, so nothing else is):
 //   1. No import of lib/data/fixtures, lib/data/resolve, lib/data/source or lib/data/media. source.ts (plan 03.2-02)
 //      decides fixtures or Supabase for the whole data layer; it is internal to lib/data and is on no client allow-list.
 //   2. No `*_en` / `*_ar` / `*_es` field suffix and no `translations` identifier, except under the owner API
@@ -88,7 +88,6 @@ function scanTree() {
     for (const file of walk(dir)) {
       const rel = relative(ROOT, file).split(sep).join("/");
       const src = readFileSync(file, "utf8");
-      if (/\/route\.ts$/.test(rel) && src.includes('const HTML = "')) continue;
       scanned++;
       found.push(...analyze(src, rel));
     }

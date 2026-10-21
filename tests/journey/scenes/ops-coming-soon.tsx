@@ -2,6 +2,7 @@ import { OpsShell } from "../../../app/dashboard/(ops)/ops-shell";
 import type { ReactNode } from "react";
 import { ComingSoonScreen } from "../../../app/dashboard/(ops)/content/coming-soon";
 import { isLiveOpsPath } from "../../../lib/ops-routes";
+import { NOT_LIVE_OPS_PATH } from "./ops-not-live-path";
 import type { Scenes } from "../scene-types";
 
 /**
@@ -38,8 +39,8 @@ export const scenes: Scenes = {
   "ops-host-blog": opsHost("/content/blog", <ComingSoonScreen kind="blog" />),
   "ops-host-legal": opsHost("/content/legal", <ComingSoonScreen kind="legal" />),
   "ops-host-navigation": opsHost("/content/navigation", <ComingSoonScreen kind="navigation" />),
-  // Home ("/" in the browser, "/home" after the rewrite) is the one rail section not live yet: the same layout shows
-  // "Not ready." even though a page is passed. Team and Packages went live in 03.2-08; the plan that wires Home moves
-  // this scene to the next section still off (tests/ops-coming-soon.spec.ts asserts isLiveOpsPath is false here).
-  "ops-host-home": opsHost("/home", <ComingSoonScreen kind="legal" />),
+  // A rail section not live yet (Home today; Bookings, Customers and Profile are off too): the same layout shows
+  // "Not ready." even though a page is passed. The path is shared with tests/ops-coming-soon.spec.ts, which asserts
+  // isLiveOpsPath is false for it; when that section is wired, ops-not-live-path.ts moves to the next one still off.
+  "ops-host-home": opsHost(NOT_LIVE_OPS_PATH, <ComingSoonScreen kind="legal" />),
 };

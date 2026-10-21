@@ -73,8 +73,8 @@ export async function HomePage({ locale }: { locale: Locale }) {
   const copy = HOME_PAGE_COPY[locale];
   const nav = HOME_COPY[locale].nav;
 
-  // Pages that exist in every locale go through localePath; the Framer pages that stay English-only in this
-  // slice keep their one address in every language (siteHref returns them unchanged).
+  // Every public page exists in EN/AR/ES; siteHref returns its address in this locale (a path that is not a
+  // public page comes back unchanged).
   const links = [
     { label: nav.destinations, href: siteHref(locale, "/destinations") },
     { label: nav.experiences, href: siteHref(locale, "/experiences") },

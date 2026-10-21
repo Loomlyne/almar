@@ -54,8 +54,11 @@ export type SaveIntent = "save" | "publish";
 
 type Result = { kind: "updated" } | { kind: "failed"; reason: FailReason; live: boolean } | null;
 type Saved = "complete" | "incomplete" | "not-saved";
-/** What the "Discard changes?" question answers for: the back link or Escape, a link elsewhere, the browser's Back. */
-type Leaving = "close" | "link" | "back";
+/**
+ * What the "Discard changes?" question answers for: the back link or Escape, a link elsewhere, the browser's Back, or
+ * Unpublish (the screen re-reads the item after it, which drops unsaved typing).
+ */
+type Leaving = "close" | "link" | "back" | "unpublish";
 
 function failText(copy: OpsKitCopy, reason: FailReason, live: boolean): string {
   if (live) return copy.editor.translationFailedLive;
@@ -274,6 +277,13 @@ export function EditPage({
     if (working) return;
     if (dirty) setAsking("close");
     else onClose();
+  }
+
+  // Unpublish re-reads the item on every screen: with unsaved changes it asks first, as leaving does (PR #19 review).
+  function requestUnpublish() {
+    if (working) return;
+    if (dirty) setAsking("unpublish");
+    else onUnpublish?.();
   }
 
   useEffect(() => {
@@ -540,7 +550,7 @@ export function EditPage({
                 translationAlertId={failed ? alertId : undefined}
                 onSave={() => void save("save")}
                 onPublish={onPublish ? () => void publish() : undefined}
-                onUnpublish={onUnpublish}
+                onUnpublish={onUnpublish ? requestUnpublish : undefined}
               />
             </div>
             {failed ? (
@@ -595,6 +605,7 @@ export function EditPage({
           const why = asking;
           setAsking(null);
           if (why === "close") onClose();
+          else if (why === "unpublish") onUnpublish?.();
           else if (why === "link") {
             // Back off the guard entry first, so it does not stay under the new page; then follow the link.
             const anchor = leavingTo.current;

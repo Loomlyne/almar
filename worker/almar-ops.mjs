@@ -20,7 +20,11 @@ for (const path of opsRoutes) assertOpsPath(path, opsRoutes);
 
 const OPS_PATHS = new Set(opsRoutes);
 
-/** Owner, 2026-10-19: a typed dashboard.almarprivatejourney.com/login lands on the dashboard sign-in (query kept). */
+/**
+ * Owner, 2026-10-19: a typed dashboard.almarprivatejourney.com/login lands on the dashboard sign-in (query kept). GET and HEAD
+ * only, with a relative Location so it stays on the host that asked; POST, PUT and the rest fall through to the static
+ * assets like any other miss (404 or 405), so no form body is ever forwarded.
+ */
 const OPS_LOGIN_ALIAS = "/login";
 
 /**
@@ -44,7 +48,9 @@ export default {
   fetch: (request, env, ctx) => {
     const url = new URL(request.url);
     if (!onOpsHost(request) && url.pathname !== OPS_API_HEALTH) return env.ASSETS.fetch(request);
-    if (url.pathname === OPS_LOGIN_ALIAS) return Response.redirect(new URL(`/sign-in${url.search}`, url.origin).href, 308);
+    if (url.pathname === OPS_LOGIN_ALIAS && (request.method === "GET" || request.method === "HEAD")) {
+      return new Response(null, { status: 308, headers: { location: `/sign-in${url.search}`, "cache-control": "no-store" } });
+    }
     return handle(request, env, ctx, { serverPaths: OPS_PATHS, nextFetch });
   },
 };
