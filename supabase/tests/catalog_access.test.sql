@@ -2,7 +2,7 @@
 -- The seed is written as the postgres owner; the assertions run as anon, then authenticated, then service_role.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(120);
+select plan(121);
 
 -- Seed ----------------------------------------------------------------------------------------------------------
 insert into public.media (id, key, width, height, bytes, sha256, source) values
@@ -108,7 +108,7 @@ reset role;
 select is(
   (select array_agg(a.attname::text order by a.attnum) from pg_attribute a where a.attrelid = 'public.api_stays'::regclass and a.attnum > 0 and not a.attisdropped),
   array['id', 'created_at', 'updated_at', 'is_sample', 'sample_fields', 'slug', 'destination_id', 'max_guests', 'min_guests', 'bedrooms', 'bathrooms',
-        'nightly_rate_aed', 'min_nights', 'blocked_dates', 'experience_ids', 'service_ids', 'hero_image', 'gallery', 'is_published', 'position'],
+        'nightly_rate_aed', 'min_nights', 'blocked_dates', 'experience_ids', 'service_ids', 'hero_image', 'gallery', 'is_published', 'position', 'pets_rule', 'pets_fee_aed'],
   'api_stays columns follow stays.json');
 select is(
   (select array_agg(a.attname::text order by a.attnum) from pg_attribute a where a.attrelid = 'public.api_destinations'::regclass and a.attnum > 0 and not a.attisdropped),
@@ -140,8 +140,9 @@ select throws_ok($$select email from public.team_members$$, '42501', null, 'anon
 select throws_ok($$select reason from public.availability_blocks$$, '42501', null, 'anon cannot read availability_blocks.reason');
 select throws_ok($$select created_by from public.availability_blocks$$, '42501', null, 'anon cannot read availability_blocks.created_by');
 select throws_ok($$select base_nightly_rate_aed from public.stays$$, '42501', null, 'anon cannot read stays.base_nightly_rate_aed');
-select throws_ok($$select pets_fee_aed from public.stays$$, '42501', null, 'anon cannot read stays.pets_fee_aed');
-select throws_ok($$select pets_rule from public.stays$$, '42501', null, 'anon cannot read stays.pets_rule');
+select lives_ok($$select pets_fee_aed from public.stays$$, 'anon can read stays.pets_fee_aed (STAY-05)');
+select lives_ok($$select pets_rule from public.stays$$, 'anon can read stays.pets_rule (STAY-05)');
+select lives_ok($$select pets_rule, pets_fee_aed from public.api_stays$$, 'api_stays returns the pets rule and fee');
 select throws_ok($$select infants_count from public.stays$$, '42501', null, 'anon cannot read stays.infants_count');
 select throws_ok($$select * from public.stays$$, '42501', null, 'anon cannot select every column of stays');
 select throws_ok($$select last_hook_result from public.site_publish$$, '42501', null, 'anon cannot read the publish internals');

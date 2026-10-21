@@ -71,6 +71,10 @@ export type OpsCatalogCopy = {
     filterServices: string;
     allDestinations: string;
     allStays: string;
+    /** The price sort's options (CMS-02). The accessible name is the chosen option. */
+    sortPosition: string;
+    sortLow: string;
+    sortHigh: string;
     colName: string;
     colType: string;
     colUnit: string;
@@ -174,6 +178,9 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       filterServices: "Services",
       allDestinations: "All destinations",
       allStays: "All stays",
+      sortPosition: "Sort: my order",
+      sortLow: "Price: low to high",
+      sortHigh: "Price: high to low",
       colName: "Name",
       colType: "Type",
       colUnit: "Unit",
@@ -262,6 +269,9 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       filterServices: "الخدمات",
       allDestinations: "كل الوجهات",
       allStays: "كل الإقامات",
+      sortPosition: "الترتيب: ترتيبي",
+      sortLow: "السعر: من الأقل إلى الأعلى",
+      sortHigh: "السعر: من الأعلى إلى الأقل",
       colName: "الاسم",
       colType: "النوع",
       colUnit: "الوحدة",
@@ -364,6 +374,9 @@ export const OPS_CATALOG_COPY: Record<OpsCatalogLocale, OpsCatalogCopy> = {
       filterServices: "Servicios",
       allDestinations: "Todos los destinos",
       allStays: "Todas las estancias",
+      sortPosition: "Orden: el mío",
+      sortLow: "Precio: de menor a mayor",
+      sortHigh: "Precio: de mayor a menor",
       colName: "Nombre",
       colType: "Tipo",
       colUnit: "Unidad",

@@ -4,7 +4,7 @@
 // /experiences browser, so server and client can never disagree. This, ./stay-filter and ./types are the only
 // lib/data modules a "use client" file may import.
 
-import type { CatalogItem, CatalogKind } from "./types";
+import type { CatalogItem, CatalogKind, CatalogUnit } from "./types";
 import { foldText } from "./stay-filter";
 
 export type CatalogFilter = {
@@ -38,7 +38,7 @@ const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MAX_LIST = 20;
 
 /** The /experiences address state. Search text is never in the URL. */
-export type CatalogQuery = { kind?: CatalogKind; destinations: string[]; stays: string[]; item?: string };
+export type CatalogQuery = { kind?: CatalogKind; destinations: string[]; stays: string[]; item?: string; sort?: PriceSort };
 
 function list(raw: string | null, allow?: readonly string[]): string[] {
   if (!raw) return [];
@@ -66,6 +66,8 @@ export function parseCatalogQuery(
     stays: list(params.get("stay"), opts?.stays),
   };
   if (kind) q.kind = kind;
+  const sort = parsePriceSort(params.get("sort"));
+  if (sort !== "position") q.sort = sort;
   if (item) q.item = item;
   return q;
 }
@@ -78,6 +80,56 @@ export function toCatalogQuery(q: CatalogQuery): string {
   if (d.length) parts.push(`destination=${d.join(",")}`);
   const s = q.stays.filter((v) => SLUG.test(v));
   if (s.length) parts.push(`stay=${s.join(",")}`);
+  if (q.sort === "price_asc" || q.sort === "price_desc") parts.push(`sort=${q.sort}`);
   if (q.item && SLUG.test(q.item)) parts.push(`item=${q.item}`);
   return parts.length ? `?${parts.join("&")}` : "";
+}
+
+/** The price sort (CMS-02). "position" keeps the owner's order. */
+export type PriceSort = "position" | "price_asc" | "price_desc";
+
+export function parsePriceSort(raw: string | null | undefined): PriceSort {
+  return raw === "price_asc" || raw === "price_desc" ? raw : "position";
+}
+
+/**
+ * Stable sort on a number that may be missing. An item with no value sorts last in both directions: a rate is never
+ * guessed. Ties and the unpriced keep their incoming order, so "position" order is the tie-break.
+ */
+export function sortByPrice<T>(items: readonly T[], sort: PriceSort, value: (item: T) => number | null): T[] {
+  if (sort === "position") return [...items];
+  const dir = sort === "price_asc" ? 1 : -1;
+  return items
+    .map((item, index) => ({ item, index, v: value(item) }))
+    .sort((a, b) => {
+      if (a.v === null || b.v === null) return a.v === b.v ? a.index - b.index : a.v === null ? 1 : -1;
+      return (a.v - b.v) * dir || a.index - b.index;
+    })
+    .map(({ item }) => item);
+}
+
+const UNIT_ORDER: Record<CatalogUnit, number> = { person: 0, night: 1, trip: 2 };
+
+/**
+ * The public sort key. The page never carries an amount (no catalogue number in the public HTML): the server turns each
+ * item's price into a rank, 0 for the cheapest, ordered by unit (per person, per night, per trip) and then by amount, and
+ * sends only that. An item with no price has no rank. Equal prices share a rank.
+ */
+export function priceRanks(items: readonly Pick<CatalogItem, "slug" | "unit" | "price_aed">[]): Map<string, number> {
+  const priced = items.filter((i): i is typeof i & { price_aed: number } => i.price_aed !== null);
+  const sorted = [...priced].sort((a, b) => UNIT_ORDER[a.unit] - UNIT_ORDER[b.unit] || a.price_aed - b.price_aed);
+  const ranks = new Map<string, number>();
+  let rank = -1;
+  let last: { unit: CatalogUnit; price: number } | null = null;
+  for (const item of sorted) {
+    if (!last || last.unit !== item.unit || last.price !== item.price_aed) rank += 1;
+    last = { unit: item.unit, price: item.price_aed };
+    ranks.set(item.slug, rank);
+  }
+  return ranks;
+}
+
+/** The price sort is offered only when it can reorder something: at least two of these items have a rank. */
+export function canSortByPrice(items: readonly { sort_rank: number | null }[]): boolean {
+  return items.filter((i) => i.sort_rank !== null).length >= 2;
 }

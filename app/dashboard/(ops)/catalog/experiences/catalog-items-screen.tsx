@@ -230,6 +230,7 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
       name: row.name_en,
       kind: row.kind,
       unit: row.unit,
+      price: row.price_aed === null ? null : Number(row.price_aed),
       priceText: row.price_aed === null ? null : fillCatalogCopy(copy.aedAmount, { amount: groupAmount(row.price_aed) }),
       destinationIds: row.destination_ids,
       stayIds: Object.keys(stayItems).filter((stay) => stayItems[stay]!.includes(row.id)),

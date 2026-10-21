@@ -91,7 +91,9 @@ for (const { name, root, present } of ROOTS) {
       for (const field of ["nightly_rate_aed", "min_nights", "price_aed"]) {
         assert.equal(text.includes(field), false, `${file} carries ${field}`);
       }
-      assert.equal(/\b(?:AED|USD|EUR|COP)\b/.test(text), false, `${file} carries a currency code`);
+      // STAY-05: the pets fee fact ("AED 150.00", two decimals) is the one place a code may appear.
+      const withoutPetsFee = text.replace(/\bAED \d[\d,]*\.\d{2}\b/g, "");
+      assert.equal(/\b(?:AED|USD|EUR|COP)\b/.test(withoutPetsFee), false, `${file} carries a currency code`);
     }
   });
 

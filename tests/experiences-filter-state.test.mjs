@@ -42,7 +42,7 @@ const itemSlugs = (await getCatalogItems("en")).map((i) => i.slug);
 const ctx = { destinations: DESTINATION_ORDER, stays, items: itemSlugs };
 
 test("EMPTY_STATE maps to the filter {} and is not filtered", () => {
-  assert.deepEqual(EMPTY_STATE, { query: "", kind: "all", destinations: [], stays: [] });
+  assert.deepEqual(EMPTY_STATE, { query: "", kind: "all", destinations: [], stays: [], sort: "position" });
   assert.deepEqual(toCatalogFilter(EMPTY_STATE), {});
   assert.equal(isFiltered(EMPTY_STATE), false);
   assert.equal(sheetFilterCount(EMPTY_STATE), 0);
