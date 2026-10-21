@@ -8,7 +8,7 @@ import { loadTs } from "./helpers/load-ts.mjs";
 const validate = await loadTs("lib/booking/validate.ts");
 const access = await loadTs("lib/booking/access.ts");
 
-const { parseQuoteRequest, parseHoldRequest, parseReleaseRequest, needsPickupAddress } = validate;
+const { parseQuoteRequest, parseHoldRequest, parseReleaseRequest, parseRequestRequest, parseViewRequest, parseWithdrawRequest, needsPickupAddress } = validate;
 const { authorizeBookingAccess } = access;
 
 const ADDON = "3f1c2a3e-1111-4222-8333-444455556666";
@@ -248,6 +248,51 @@ test("parseReleaseRequest: { ref, t } and nothing else", () => {
   refused(parseReleaseRequest({ ref: REF }), "t");
   refused(parseReleaseRequest({ ref: REF, t: TOKEN, extra: 1 }), "extra");
   refused(parseReleaseRequest(null), "body");
+});
+
+// ---------------------------------------------------------------- parseRequestRequest, parseViewRequest, parseWithdrawRequest (04-08)
+
+const HOSTILE = [null, undefined, [], "x", 5, true, Object.create({ ref: REF }), { ref: { toString: () => REF } }, { ref: REF, t: ["x"] }, { __proto__: null, ref: REF, t: TOKEN, locale: 7 }];
+
+test("parseRequestRequest: { ref, t } only, the release rules", () => {
+  const r = parseRequestRequest({ ref: REF, t: TOKEN });
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.value, { ref: REF, t: TOKEN });
+  refused(parseRequestRequest({ ref: "nope", t: TOKEN }), "ref");
+  refused(parseRequestRequest({ ref: REF, t: "short" }), "t");
+  refused(parseRequestRequest({ ref: REF }), "t"); // the request is link-only: no token, no request
+  refused(parseRequestRequest({ ref: REF, t: TOKEN, extra: 1 }), "extra");
+  refused(parseRequestRequest({ ref: REF, t: TOKEN, is_test: false }), "is_test");
+  refused(parseRequestRequest({ ref: REF, t: TOKEN, locale: "en" }), "locale");
+  refused(parseRequestRequest(null), "body");
+  for (const bad of HOSTILE) assert.doesNotThrow(() => parseRequestRequest(bad));
+});
+
+test("parseViewRequest: { ref, t?, locale? } with locale in en, ar, es", () => {
+  assert.deepEqual(parseViewRequest({ ref: REF, t: TOKEN }), { ok: true, value: { ref: REF, t: TOKEN } });
+  assert.deepEqual(parseViewRequest({ ref: REF }), { ok: true, value: { ref: REF } }, "no token: the signed-in email decides");
+  assert.deepEqual(parseViewRequest({ ref: REF, locale: "ar" }), { ok: true, value: { ref: REF, locale: "ar" } });
+  assert.deepEqual(parseViewRequest({ ref: REF, t: TOKEN, locale: "es" }), { ok: true, value: { ref: REF, t: TOKEN, locale: "es" } });
+  refused(parseViewRequest({ ref: "almar-7k3qh9" }), "ref");
+  refused(parseViewRequest({ ref: REF, t: "short" }), "t");
+  refused(parseViewRequest({ ref: REF, t: null }), "t");
+  refused(parseViewRequest({ ref: REF, locale: "fr" }), "locale");
+  refused(parseViewRequest({ ref: REF, locale: "EN" }), "locale");
+  refused(parseViewRequest({ ref: REF, isTest: true }), "isTest");
+  refused(parseViewRequest({ ref: REF, email: "ann@example.com" }), "email");
+  refused(parseViewRequest([]), "body");
+  for (const bad of HOSTILE) assert.doesNotThrow(() => parseViewRequest(bad));
+});
+
+test("parseWithdrawRequest: { ref, t? }, the view rules without locale (P-19)", () => {
+  assert.deepEqual(parseWithdrawRequest({ ref: REF, t: TOKEN }), { ok: true, value: { ref: REF, t: TOKEN } });
+  assert.deepEqual(parseWithdrawRequest({ ref: REF }), { ok: true, value: { ref: REF } });
+  refused(parseWithdrawRequest({ ref: REF, locale: "en" }), "locale");
+  refused(parseWithdrawRequest({ ref: REF, t: TOKEN, reason: "x" }), "reason");
+  refused(parseWithdrawRequest({ ref: "nope" }), "ref");
+  refused(parseWithdrawRequest({ ref: REF, t: 5 }), "t");
+  refused(parseWithdrawRequest("x"), "body");
+  for (const bad of HOSTILE) assert.doesNotThrow(() => parseWithdrawRequest(bad));
 });
 
 // ---------------------------------------------------------------- needsPickupAddress (B-11)
@@ -976,6 +1021,126 @@ test("release: without the link secret nothing verifies, and a lookup error is t
   await assert.rejects(() => releaseWebHold(broken, { ref: OWN_REF, t: token }), /booking_by_ref/);
   const dropBroken = fakeDb({ booking_by_ref: () => heldRow, booking_drop_hold: () => ({ __error: { message: "down" } }) });
   await assert.rejects(() => releaseWebHold(dropBroken, { ref: OWN_REF, t: token }), /booking_drop_hold/);
+});
+
+// ================================================================ 04-08 Task 3: the email seam (lib/booking/notify.ts)
+// No mail is sent here: the fake send records its calls. Booking and payment ids are symbolic test values.
+
+const notify = await loadTs("lib/booking/notify.ts");
+const { getNotifier, NOT_READY_NOTIFIER, deliverMail, mailKey } = notify;
+
+const MAIL_BOOKING = "77777777-7777-4777-8777-777777777777";
+const MAIL_PAYMENT = "88888888-8888-4888-8888-888888888888";
+
+function logDb(mode = "ok") {
+  const events = [];
+  return {
+    events,
+    rpc: async (name, args) => {
+      if (name !== "log_booking_event") throw new Error(`unexpected rpc ${name}`);
+      if (mode === "throws") throw new Error("log down");
+      if (mode === "error") return { data: null, error: { message: "log down" } };
+      events.push(args);
+      return { data: null, error: null };
+    },
+  };
+}
+
+function fakeSend(result) {
+  const calls = [];
+  const send = async () => {
+    calls.push(1);
+    if (result instanceof Error) throw result;
+    return result;
+  };
+  return { calls, send };
+}
+
+const mail = (over = {}) => ({ bookingId: MAIL_BOOKING, template: "request_received", idempotencyKey: `request/${MAIL_BOOKING}`, ready: true, ...over });
+
+test("getNotifier: today the not-ready default; every method answers not_ready", async () => {
+  const n = getNotifier();
+  assert.equal(n, NOT_READY_NOTIFIER);
+  assert.equal(n.ready, false);
+  const job = { bookingId: MAIL_BOOKING };
+  const opts = { idempotencyKey: "k" };
+  for (const method of ["requestReceived", "ownerRequest", "paymentReceipt", "ownerPayment", "requestLapsed", "ownerWithdrawn"]) {
+    assert.equal(typeof n[method], "function", method);
+    assert.deepEqual(await n[method](job, opts), { ok: false, error: "not_ready" }, method);
+  }
+});
+
+test("mailKey: the Resend idempotency key of each mail", () => {
+  assert.equal(mailKey("requestReceived", MAIL_BOOKING), `request/${MAIL_BOOKING}`);
+  assert.equal(mailKey("ownerRequest", MAIL_BOOKING), `request-owner/${MAIL_BOOKING}`);
+  assert.equal(mailKey("paymentReceipt", MAIL_PAYMENT), `receipt/${MAIL_PAYMENT}`);
+  assert.equal(mailKey("ownerPayment", MAIL_PAYMENT), `payment-owner/${MAIL_PAYMENT}`);
+  assert.equal(mailKey("requestLapsed", MAIL_BOOKING), `lapse/${MAIL_BOOKING}`);
+  assert.equal(mailKey("ownerWithdrawn", MAIL_BOOKING), `withdrawn-owner/${MAIL_BOOKING}`);
+});
+
+test("deliverMail: a sender that is not ready is never called; email_pending with the template and the key", async () => {
+  const db = logDb();
+  const { calls, send } = fakeSend({ ok: true });
+  assert.equal(await deliverMail(db, { ...mail({ ready: false }), send }), "pending");
+  assert.equal(calls.length, 0);
+  assert.deepEqual(db.events, [
+    { p_booking: MAIL_BOOKING, p_actor: "system", p_action: "email_pending", p_detail: { template: "request_received", key: `request/${MAIL_BOOKING}` } },
+  ]);
+});
+
+test("deliverMail: ready and sent writes email_sent with the template and the key", async () => {
+  const db = logDb();
+  const { calls, send } = fakeSend({ ok: true });
+  const key = `request-owner/${MAIL_BOOKING}`;
+  assert.equal(await deliverMail(db, { ...mail({ template: "request_owner", idempotencyKey: key }), send }), "sent");
+  assert.equal(calls.length, 1);
+  assert.deepEqual(db.events, [{ p_booking: MAIL_BOOKING, p_actor: "system", p_action: "email_sent", p_detail: { template: "request_owner", key } }]);
+});
+
+test("deliverMail: a refused send writes email_failed with its short error name and the key", async () => {
+  const db = logDb();
+  const { send } = fakeSend({ ok: false, error: "http_429" });
+  assert.equal(await deliverMail(db, { ...mail(), send }), "failed");
+  assert.deepEqual(db.events, [
+    { p_booking: MAIL_BOOKING, p_actor: "system", p_action: "email_failed", p_detail: { template: "request_received", key: `request/${MAIL_BOOKING}`, error: "http_429" } },
+  ]);
+});
+
+test("deliverMail: the stored error is at most 60 characters of [a-z0-9_]; a message, an address or a payload is never stored", async () => {
+  const long = fakeSend({ ok: false, error: "x".repeat(80) });
+  const db1 = logDb();
+  await deliverMail(db1, { ...mail(), send: long.send });
+  assert.equal(db1.events[0].p_detail.error, "x".repeat(60));
+  for (const bad of ["Rate limit hit for ann@example.com", "<b>oops</b>", '{"to":"ann@example.com"}', "", 42, null]) {
+    const db = logDb();
+    await deliverMail(db, { ...mail(), send: fakeSend({ ok: false, error: bad }).send });
+    const stored = db.events[0].p_detail.error;
+    assert.match(stored, /^[a-z0-9_]{1,60}$/, String(bad));
+    assert.doesNotMatch(stored, /ann|example|oops/, String(bad));
+  }
+});
+
+test("deliverMail: a send that throws is failed, email_failed with error threw and the key", async () => {
+  const db = logDb();
+  const { send } = fakeSend(new Error("boom with ann@example.com"));
+  const key = `lapse/${MAIL_BOOKING}`;
+  assert.equal(await deliverMail(db, { ...mail({ template: "request_lapsed", idempotencyKey: key }), send }), "failed");
+  assert.deepEqual(db.events, [{ p_booking: MAIL_BOOKING, p_actor: "system", p_action: "email_failed", p_detail: { template: "request_lapsed", key, error: "threw" } }]);
+});
+
+test("deliverMail: a failing log is swallowed; the delivery still answers", async () => {
+  for (const mode of ["throws", "error"]) {
+    assert.equal(await deliverMail(logDb(mode), { ...mail({ ready: false }), send: fakeSend({ ok: true }).send }), "pending", mode);
+    assert.equal(await deliverMail(logDb(mode), { ...mail(), send: fakeSend({ ok: true }).send }), "sent", mode);
+    assert.equal(await deliverMail(logDb(mode), { ...mail(), send: fakeSend({ ok: false, error: "no_key" }).send }), "failed", mode);
+    assert.equal(await deliverMail(logDb(mode), { ...mail(), send: fakeSend(new Error("x")).send }), "failed", mode);
+  }
+});
+
+test("notify.ts reads no environment and logs nothing to the console", () => {
+  const source = readFileSync("lib/booking/notify.ts", "utf8");
+  assert.doesNotMatch(source, /process\.env|console\./);
 });
 
 // ---------------------------------------------------------------- the files themselves
