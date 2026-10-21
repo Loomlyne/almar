@@ -308,7 +308,9 @@ test.describe("behaviour", () => {
         await expect(page.locator("#kit-name")).toHaveValue("[Renamed]");
         await button(page, copy.unpublish).click();
         await button(page, copy.discard).click();
-        await expectCalled(page, "unpublish");
+        await expect(question).toHaveCount(0);
+        // Discard runs Unpublish once, not twice.
+        await expect.poll(async () => (await calls(page)).filter((entry) => entry === "unpublish").length, { timeout: 10_000 }).toBe(1);
       });
 
       test(`Unpublish on a page with nothing unsaved asks nothing (${at})`, async ({ page }) => {
