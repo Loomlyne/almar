@@ -22,8 +22,8 @@ deployed, no hosted-database read or write.
 | `npx tsc --noEmit` (after `npm ci`) | exit 0 |
 | `node --test tests/ops-kit.test.mjs tests/ops-back-guard.test.mjs tests/catalog-forms.test.mjs tests/ops-team-journeys-forms.test.mjs` | 138 pass, 0 fail |
 | Verifier's own node runs on `dc7edae1` | no-team-names 1/1, data-boundary 5/5, catalog-migration 13/13, ops-stay-forms 17/17, about-page-copy 10/0 |
-| Playwright for the changed specs | **Not run.** Asked the controller for a go (ops-kit, ops-coming-soon, and the five screen specs that click Unpublish: ops-destinations, ops-catalog-items, ops-stays, ops-journeys, ops-team). The five screen specs click Unpublish on a clean page only, so they should not change. Run this in the landing lane |
-| Full node suite, build, pgTAP, ops Worker parts | Not run (landing lane) |
+| Playwright for the changed specs | **Not verified, needs the landing lane** (owner 2026-10-21: no test runs in work sessions). Specs: ops-kit, ops-coming-soon, and the five screen specs that click Unpublish (ops-destinations, ops-catalog-items, ops-stays, ops-journeys, ops-team). Those five click Unpublish on a clean page only, so they should not change |
+| Full node suite, build, pgTAP, ops Worker parts | Not verified, needs the landing lane |
 
 ## Follow-ups from the board
 
@@ -121,7 +121,7 @@ dashboard's header line goes from "Updating since …" to "Up to date · …" if
 
 ## Not verified
 
-- Any Playwright run of the changed specs (waiting on the controller's go).
+- The changed Playwright specs: not verified, needs the landing lane.
 - Anything on the live dashboard signed in (STATE 2026-10-20 08:06: signed-in screens not checked).
 - The item 7 count on live today.
 - Whether the publish rebuild (runbook §3) is set up. That decides whether UAT steps 2, 5, 12, 13, 14 and 15 show
