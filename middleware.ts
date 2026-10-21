@@ -8,7 +8,7 @@ import { maintenanceResponse } from "./lib/maintenance-gate";
 import { needsSignedInHint, SIGNED_IN_HINT_COOKIE, signedInHintOptions } from "./lib/account-preferences";
 
 // Plan 02-02: keep her Supabase session fresh. Requests without a Supabase auth cookie never
-// wait on Supabase, so the static Framer pages stay fast.
+// wait on Supabase, so the static public pages stay fast.
 // Plan 02-04: the Host header picks the shell. The ops host serves app/dashboard without
 // /dashboard in the URL; the marketing host answers 404 for /dashboard and /ops in production.
 function hasAuthCookie(request: NextRequest): boolean {
