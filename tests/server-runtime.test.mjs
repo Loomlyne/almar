@@ -476,13 +476,14 @@ test("neither Worker file binds a variable, store, queue, service or object", ()
   }
 });
 
-test("the one binding besides ASSETS is the forms' rate limiter FORM_LIMITER (plan 03.3-26), the same in both Worker files", () => {
+test("the one binding besides ASSETS is the forms' rate limiter FORM_LIMITER (plan 03.3-26), in both Worker files with its own namespace id", () => {
   for (const file of WORKER_FILES) {
     const text = readFileSync(file, "utf8");
     const tables = [...text.matchAll(/^\[\[?([a-z_]+)\]?\]$/gm)].map((m) => m[1]);
     assert.deepEqual([...new Set(tables)].sort(), ["assets", "ratelimits", "routes"], file);
     assert.equal(tables.filter((t) => t === "ratelimits").length, 1, file);
-    assert.match(text, /^\[\[ratelimits\]\]\nname = "FORM_LIMITER"\nnamespace_id = "1001"\nsimple = \{ limit = 5, period = 60 \}$/m, file);
+    const id = file === "wrangler.preview.toml" ? "1002" : "1001"; // each Worker has its own namespace
+    assert.ok(text.includes(`[[ratelimits]]\nname = "FORM_LIMITER"\nnamespace_id = "${id}"\nsimple = { limit = 5, period = 60 }`), file);
   }
 });
 

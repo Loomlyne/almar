@@ -87,10 +87,10 @@ Requirements for this product. Each maps to roadmap phases.
 ### Auth
 
 - [ ] **AUTH-01**: Guest can check out without an account; email remembers bookings; later signup merges by email
-- [ ] **AUTH-02**: Guest account is inactive until branded confirmation email; then magic link + optional password (right-side eye)
+- [ ] **AUTH-02**: Guest account is inactive until branded confirmation email; then magic link only (D-07: no guest password)
 - [ ] **AUTH-03**: Guest can change email/phone (email re-verify) and can log out; password fields always have a right-side show/hide eye
 - [ ] **AUTH-04**: Guest can delete account (PII stripped, bookings remain for ops)
-- [ ] **AUTH-05**: Owner `maria@almarprivatejourney.com` signs in with email + password only (password set in owner terminal, never from chat); 30-day session; logout-all
+- [ ] **AUTH-05**: Owner `maria@almarprivatejourney.com` and `koussayzayeni@gmail.com` (PR #20) sign in with a magic link only (D-33); logout-all; 30-day session after Supabase Pro (owner 2026-10-21: later)
 - [ ] **AUTH-06**: Guests have zero dashboard access; logged-out dashboard is the ops sign-in, not the marketing homepage
 - [ ] **AUTH-07**: Auth pages are branded and support EN/AR/ES with RTL
 
@@ -267,9 +267,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SITE-08 | Phase 6 | Pending |
 | SITE-09 | Phase 6 | Pending |
 | SITE-10 | Phase 6 | Pending |
-| SITE-11 | Phase 6 | Pending |
-| SITE-12 | Phase 6 | Pending |
-| SITE-13 | Phase 6 | Pending |
+| SITE-11 | Phase 3.3 | Pending |
+| SITE-12 | Phase 3.3 | Pending |
+| SITE-13 | Phase 3.3 | Pending |
 | OPS-01 | Phase 2 | Pending |
 | OPS-02 | Phase 5 | Pending |
 | OPS-03 | Phase 5 | Pending |
