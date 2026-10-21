@@ -260,7 +260,7 @@ export function readPostSlugs(fixturesDir = defaultPaths().fixturesDir, now = ne
 
 /**
  * The out/ path of every public React document, computed from PUBLIC_PAGES (lib/locale-path.ts): for each locale
- * (no prefix for en, "<locale>/" otherwise) and each pattern in order, "/" is `<prefix>index.html`, a static path is
+ * ("<locale>/", English included since job 21) and each pattern in order, "/" is `<prefix>index.html`, a static path is
  * `<prefix><path>.html` and a dynamic pattern gives one document per value of its parameter: `[stay]` per published
  * stay slug (readStaySlugs), `[post]` per live post slug (readPostSlugs). Each enumerator is read only when a
  * pattern needs it. This is the one document list (reconcile S3-11): a new page is a PUBLIC_PAGES entry; a new
@@ -273,7 +273,7 @@ export function publicDocuments(staySlugs, pages = PUBLIC_PAGES, postSlugs) {
   };
   const docs = [];
   for (const locale of LOCALES) {
-    const prefix = locale === "en" ? "" : `${locale}/`;
+    const prefix = `${locale}/`;
     for (const pattern of pages) {
       const params = pattern.match(/\[[^\]]+\]/g) ?? [];
       for (const p of params) if (!(p in enumerators)) throw new Error(`no enumerator for ${p}`);

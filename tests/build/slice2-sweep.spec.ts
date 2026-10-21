@@ -168,7 +168,8 @@ function heldProblems(s: Surface, ctx: HeldCtx, opts: { homeSearch: boolean; sub
   }
   if (s.emailInputs !== 0) say(`${s.emailInputs} email inputs`);
 
-  const held = [journey.addons.add, journey.cart.continue, journey.addons.continue, home.nav.login, home.subscribe];
+  // Login is live since job 21 (owner, 2026-10-21, decision #5), so it is no longer in this list.
+  const held = [journey.addons.add, journey.cart.continue, journey.addons.continue, home.subscribe];
   for (const name of held) if (has(name)) say(`a control named "${name}"`);
   for (const name of ctx.itemNames) {
     const add = fill(journey.addons.addName, { name });

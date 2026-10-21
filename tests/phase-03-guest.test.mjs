@@ -5,12 +5,12 @@ import { existsSync, readFileSync } from "node:fs";
 const GUEST_COPY = "lib/copy/guest.ts";
 const NAV = "components/ui/nav.tsx";
 const TRIP_SCREEN = "app/booking/trip/trip-screen.tsx";
-const LOGIN_PAGE = "app/login/page.tsx";
-const SIGN_IN_SCREEN = "app/login/sign-in-screen.tsx";
-const BOOKINGS_PAGE = "app/bookings/page.tsx";
-const BOOKINGS_SCREEN = "app/bookings/bookings-screen.tsx";
-const ACCOUNT_PAGE = "app/account/page.tsx";
-const ACCOUNT_SCREEN = "app/account/account-screen.tsx";
+const LOGIN_PAGE = "app/[locale]/login/page.tsx";
+const SIGN_IN_SCREEN = "app/[locale]/login/sign-in-screen.tsx";
+const BOOKINGS_PAGE = "app/[locale]/bookings/page.tsx";
+const BOOKINGS_SCREEN = "app/[locale]/bookings/bookings-screen.tsx";
+const ACCOUNT_PAGE = "app/[locale]/account/page.tsx";
+const ACCOUNT_SCREEN = "app/[locale]/account/account-screen.tsx";
 
 const PUBLIC_SOURCE_FILES = [
   NAV,
@@ -79,7 +79,7 @@ test("bookings screen shows the empty line and Start a trip", () => {
   assert.match(text, /GUEST_COPY/);
   assert.match(text, /copy\.noBookingsYet/);
   assert.match(text, /copy\.startATrip/);
-  assert.match(text, /href="\/"/);
+  assert.match(text, /href=\{localePath\(locale, "\/"\)\}/);
 });
 
 test("account hub: Save is wired to saveProfile, preferences save, no password input", () => {
@@ -94,9 +94,9 @@ test("account hub: Save is wired to saveProfile, preferences save, no password i
   assert.equal(/name="email"/.test(text), false, "email is shown as text, not a field");
 });
 
-test("the trip screen points Login at /login; the SiteNav default is unchanged", () => {
+test("the trip screen points Login at /<locale>/login; the SiteNav default is unchanged", () => {
   const trip = readFileSync(TRIP_SCREEN, "utf8");
-  assert.match(trip, /loginHref="\/login"/);
+  assert.match(trip, /loginHref=\{localePath\(locale, "\/login"\)\}/);
   const nav = readFileSync(NAV, "utf8");
   assert.match(nav, /loginHref = "#log-in"/);
 });

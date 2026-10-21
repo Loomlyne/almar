@@ -191,6 +191,8 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
             about: home.nav.about,
             contact: home.nav.contact,
             language: home.nav.language,
+            login: home.nav.login,
+            account: home.nav.account,
             menu: home.nav.menu,
             close: home.nav.close,
           }}

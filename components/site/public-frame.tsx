@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, type ComponentProps, type ReactNode } from "react";
+import { useEffect, useState, type ComponentProps, type ReactNode } from "react";
 import { SiteFooter, type FooterCopy } from "../ui/footer";
 import { MotionController } from "./motion-controller";
-import { applyAccountSync } from "./account-sync";
+import { applyAccountSync, hasSignedInHint } from "./account-sync";
 import { SiteNav, type NavLabels } from "../ui/nav";
 import { WhatsApp } from "../ui/whatsapp";
 import type { SelectedCurrency } from "../../lib/fx/rates";
@@ -24,8 +24,9 @@ import {
 
 // and supply their own <main id="content"> (the skip link in the root document points at it).
 
-// Every held control is off here, so a page cannot show one by accident: no Login, no cart, no "List with us"
-// column. Currency is off unless a page passes the state its own amounts use.
+// Every held control is off here, so a page cannot show one by accident: no cart, no "List with us" column. Login is
+// on since job 21 (owner, 2026-10-21, decision #5): the last item of the header, /<locale>/login, or Account
+// (/<locale>/account) once this browser carries the sign-in hint. Currency is off unless a page passes the state its own amounts use.
 // The newsletter is ON (plan 03.3-27, design 11.2 and 12.1 row 8): the end column of job 11's light footer, posting
 // to /newsletter through lib/newsletter.ts, with the strings of footerCopy.newsletter (SITE_FOOTER_COPY[locale]).
 
@@ -92,7 +93,7 @@ export function PublicFrame({
   footerCopy: FooterCopy;
   /** The page in each language. Defaults to localeHrefs(currentPath) when currentPath is a public page. */
   localeHrefs?: Record<Locale, string>;
-  /** The logo link. Defaults to this locale's home ("/", "/ar/", "/es/"), never the page's own address. */
+  /** The logo link. Defaults to this locale's home ("/en/", "/ar/", "/es/"), never the page's own address. */
   homeHref?: string;
   labels?: Partial<NavLabels>;
   navTone?: NavTone;
@@ -109,8 +110,13 @@ export function PublicFrame({
 }) {
   // Plan 02-05: right after sign-in, her saved currency becomes this browser's choice. This child effect runs before
   // the page's CurrencyChoiceProvider reads localStorage in its own effect.
+  // Job 21: the pages are static, so the signed-in state is read in the browser from the readable sign-in hint
+  // (lib/account-preferences.ts SIGNED_IN_HINT_COOKIE, "1", nothing secret). A stale hint (session expired) shows
+  // Account, whose page sends her on to sign in.
+  const [signedIn, setSignedIn] = useState(false);
   useEffect(() => {
     applyAccountSync();
+    setSignedIn(hasSignedInHint());
   }, []);
 
   const hrefs = localeHrefs ?? (matchPublicPage(currentPath) ? localeHrefsOf(currentPath) : undefined);
@@ -118,13 +124,14 @@ export function PublicFrame({
 
   const nav: ComponentProps<typeof SiteNav> = {
     locale,
-    labels,
+    // The page's own nav labels carry both words (HOME_COPY nav.login / nav.account): no copy table is imported here.
+    labels: { ...labels, login: signedIn ? (labels?.account ?? "Account") : (labels?.login ?? "Login") },
+    loginHref: localePath(locale, signedIn ? "/account" : "/login"),
     tone: navTone,
     links,
     homeHref: home,
     localeHrefs: hrefs,
     currentPath,
-    login: false,
     currency: currency === false ? false : currency.selected,
     reveal: true,
   };

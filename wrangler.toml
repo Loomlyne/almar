@@ -14,7 +14,9 @@ preview_urls = false
 [assets]
 directory = "./out"
 binding = "ASSETS"
-run_worker_first = ["/api/*", "/login", "/auth/confirm", "/auth/sign-out", "/auth/handoff/start", "/account", "/bookings", "/newsletter"]
+# Job 21: "/" runs the Worker (the language redirect in worker/handle.mjs: cookie almar-locale, else /en/); the old
+# unprefixed pages are 301s in public/_redirects (asset layer, no Worker call).
+run_worker_first = ["/", "/api/*", "/en/login", "/ar/login", "/es/login", "/auth/confirm", "/auth/sign-out", "/auth/handoff/start", "/en/account", "/ar/account", "/es/account", "/en/bookings", "/ar/bookings", "/es/bookings", "/newsletter"]
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
 

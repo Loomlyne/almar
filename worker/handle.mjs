@@ -6,8 +6,13 @@
 //
 // Deny by default: a request goes to Next only when its exact, raw pathname (never decoded, query ignored) is a
 // server path; anything else goes back to the static assets, which answer today's branded 404 (or 405 for a
-// method other than GET or HEAD), headers and all. Pure and import-free, so tests/server-runtime.test.mjs runs it
-// with a fake env.
+// method other than GET or HEAD), headers and all. Pure apart from one leaf module (lib/locale-redirect.ts, no
+// imports), so tests/server-runtime.test.mjs runs it with a fake env.
+//
+// Job 21: with `rootRedirect` (Worker `almar` and `almar-preview` only, never almar-ops), a GET or HEAD of "/" answers
+// 302 to the language in the almar-locale cookie (else /en/), query kept, without Next. "/" is in run_worker_first.
+
+import { ROOT_REDIRECT_HEADERS, legacyLocaleTarget, rootLocaleTarget } from "../lib/locale-redirect.ts";
 
 /**
  * Review fix (PR #16 round 1): the byte caps of the two public form handlers, the same numbers as
@@ -34,11 +39,19 @@ function declaredTooLarge(request, pathname) {
  * @param {Request} request
  * @param {{ ASSETS: { fetch: (request: Request) => Promise<Response> } }} env
  * @param {unknown} ctx
- * @param {{ serverPaths: Set<string>, nextFetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> }} options
+ * @param {{ serverPaths: Set<string>, nextFetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response>, rootRedirect?: boolean }} options
  * @returns {Promise<Response>}
  */
-export async function handle(request, env, ctx, { serverPaths, nextFetch }) {
-  const { pathname } = new URL(request.url);
+export async function handle(request, env, ctx, { serverPaths, nextFetch, rootRedirect = false }) {
+  const { pathname, search } = new URL(request.url);
+  if (rootRedirect && pathname === "/" && (request.method === "GET" || request.method === "HEAD")) {
+    const location = `${rootLocaleTarget(request.headers.get("cookie"))}${search}`;
+    return new Response(null, { status: 302, headers: { location, ...ROOT_REDIRECT_HEADERS } });
+  }
+  // The old unprefixed pages are 301s in public/_redirects (asset layer). Should one reach the Worker anyway (a path
+  // added to run_worker_first, or the asset layer not keeping a query), it gets the same 301 here, query kept.
+  const legacy = rootRedirect && (request.method === "GET" || request.method === "HEAD") ? legacyLocaleTarget(pathname) : null;
+  if (legacy) return new Response(null, { status: 301, headers: { location: `${legacy}${search}` } });
   if (!serverPaths.has(pathname)) return env.ASSETS.fetch(request);
   if (declaredTooLarge(request, pathname)) {
     return Response.json({ ok: false }, { status: 413, headers: { "cache-control": "no-store", "x-robots-tag": "noindex" } });

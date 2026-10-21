@@ -332,7 +332,7 @@ test("RED: a manifest that differs from the computed one by one byte fails --che
 
 /** assembleOut's input layout for an out/ document: a locale home is <locale>.html, every other page keeps its path. */
 function assemblerInput(doc) {
-  return doc.replace(/^(ar|es)\/index\.html$/, "$1.html");
+  return doc.replace(/^(en|ar|es)\/index\.html$/, "$1.html");
 }
 
 test("the guarded documents (reactDocuments) are exactly the React documents assembleOut ships, About and Contact included once public", () => {
@@ -360,8 +360,8 @@ test("the guarded documents (reactDocuments) are exactly the React documents ass
   });
   const shipped = [...report.react.en, ...report.react.ar, ...report.react.es].sort();
   assert.deepEqual(shipped, [...reactDocuments(slugs, readPostSlugs())].sort());
-  assert.equal(shipped.includes("about.html"), matchPublicPage("/about") !== null, "about.html ships iff /about is in PUBLIC_PAGES");
-  assert.equal(shipped.includes("contact.html"), matchPublicPage("/contact") !== null);
+  assert.equal(shipped.includes("en/about.html"), matchPublicPage("/about") !== null, "en/about.html ships iff /about is in PUBLIC_PAGES");
+  assert.equal(shipped.includes("en/contact.html"), matchPublicPage("/contact") !== null);
   assert.ok(!shipped.includes("dashboard.html"));
 });
 
@@ -372,7 +372,7 @@ test("adding /about and /contact to PUBLIC_PAGES grows the guarded list by exact
   const after = reactDocuments(slugs, posts, [...PUBLIC_PAGES.filter((p) => p !== "/about" && p !== "/contact"), "/about", "/contact"]);
   assert.equal(after.length, before.length + 6);
   const added = after.filter((d) => !before.includes(d)).sort();
-  assert.deepEqual(added, ["about.html", "ar/about.html", "ar/contact.html", "contact.html", "es/about.html", "es/contact.html"]);
+  assert.deepEqual(added, ["ar/about.html", "ar/contact.html", "en/about.html", "en/contact.html", "es/about.html", "es/contact.html"]);
   assert.deepEqual(slice3Documents(["/about", "/contact"]).sort(), added);
 });
 

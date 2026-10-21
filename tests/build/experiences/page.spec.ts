@@ -61,8 +61,7 @@ function heldNames(d: Data): string[] {
     boardWord("experiences", "k38", d.locale), // Add
     boardWord("overlay", "k13", d.locale), // Add to cart
     boardWord("experiences", "k26", d.locale), // Cart
-    boardWord("experiences", "k27", d.locale), // Login
-    home.nav.login,
+    // Login is live since job 21 (owner, 2026-10-21, decision #5): no longer held.
     boardWord("experiences", "k76", d.locale), // Continue
     boardWord("experiences", "k83", d.locale), // List with us
     boardWord("experiences", "k84", d.locale), // Newsletter

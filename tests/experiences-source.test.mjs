@@ -8,7 +8,7 @@ import { KNOWN_DEAD } from "./helpers/site-links.mjs";
 // tests/build/experiences/*.spec.ts; these keep the shape from drifting between runs of it.
 
 const read = (file) => readFileSync(file, "utf8");
-const ROUTES = { en: "app/experiences/page.tsx", ar: "app/ar/experiences/page.tsx", es: "app/es/experiences/page.tsx" };
+const ROUTES = { en: "app/en/experiences/page.tsx", ar: "app/ar/experiences/page.tsx", es: "app/es/experiences/page.tsx" };
 const PAGE = "components/pages/experiences-page.tsx";
 const PARTS = "components/pages/experiences";
 /** Strip comments, so a sentence that names a forbidden thing is not mistaken for using it. */
@@ -35,7 +35,7 @@ test("each route file binds one locale, is static and re-exports metadata, and n
 });
 
 test("the Framer route is gone and nothing imports it", () => {
-  assert.equal(existsSync("app/experiences/route.ts"), false);
+  assert.equal(existsSync("app/en/experiences/route.ts"), false);
   for (const dir of ["app", "components", "lib", "scripts"]) {
     for (const file of files(dir)) {
       if (!/\.(ts|tsx|mjs)$/.test(file)) continue;

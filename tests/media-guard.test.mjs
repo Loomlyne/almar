@@ -221,8 +221,8 @@ test("publicDocuments is computed from PUBLIC_PAGES: 3 locales x (static pages +
   assert.equal(docs.length, 3 * perLocale);
   assert.equal(new Set(docs).size, docs.length);
   assert.deepEqual(reactDocuments(), docs, "reactDocuments is an alias of publicDocuments: one list");
-  for (const slug of readPostSlugs()) assert.ok(docs.includes(`blog/${slug}.html`) && docs.includes(`ar/blog/${slug}.html`), slug);
-  for (const d of ["blog.html", "ar/blog.html", "es/blog.html", "destinations.html", "ar/destinations.html", "es/destinations.html", "experiences.html", "ar/experiences.html", "es/experiences.html"]) {
+  for (const slug of readPostSlugs()) assert.ok(docs.includes(`en/blog/${slug}.html`) && docs.includes(`ar/blog/${slug}.html`), slug);
+  for (const d of ["en/blog.html", "ar/blog.html", "es/blog.html", "en/destinations.html", "ar/destinations.html", "es/destinations.html", "en/experiences.html", "ar/experiences.html", "es/experiences.html"]) {
     assert.ok(docs.includes(d), `${d} is in the list`);
   }
   assert.ok(!docs.some((d) => d.includes("services")), "services have no page of their own");
@@ -321,7 +321,7 @@ test(outTitle("out/ coverage: /destinations carries the 5 published card heroes 
   const heroes = fixture("destinations-page.json").hero.map((h) => h.media_key);
   assert.equal(cards.length, 5);
   assert.deepEqual(heroes, ["home/gallery/03.webp", "destinations/page/hero-2.webp", "destinations/page/hero-3.webp"]);
-  for (const doc of ["destinations.html", "ar/destinations.html", "es/destinations.html"]) {
+  for (const doc of ["en/destinations.html", "ar/destinations.html", "es/destinations.html"]) {
     const html = outHtml(doc);
     const keys = referencedKeys(html, base);
     for (const k of [...cards, ...heroes]) assert.ok(keys.has(k), `${doc} does not reference ${k}`);
@@ -335,7 +335,7 @@ test(outTitle("out/ coverage: /experiences carries every published catalogue ima
   const rows = fixture("catalog.json").filter((c) => c.is_published);
   const keys = rows.map((c) => c.image.media_key);
   assert.ok(keys.length > 0 && new Set(keys).size === keys.length, "one distinct image per published catalogue row");
-  for (const doc of ["experiences.html", "ar/experiences.html", "es/experiences.html"]) {
+  for (const doc of ["en/experiences.html", "ar/experiences.html", "es/experiences.html"]) {
     const got = referencedKeys(outHtml(doc), base);
     assert.deepEqual(keys.filter((k) => !got.has(k)), [], `${doc} lacks catalogue image keys`);
   }
@@ -399,20 +399,20 @@ test("scanOut allows the same-origin nav wordmarks under /_next/static/media/, a
   const BRAND = "/_next/static/media/Poly_White.3f2a9c1d.svg";
   const CHARCOAL = "/_next/static/media/Stacked_Charcoal.7b41e0aa.svg";
   // the nav wordmark is one <img src> on every document, as the build writes it
-  writeDocs(root, GOOD_BASE, { mutate: (doc, html) => html.replace("<img ", `<img alt="ALMAR" src="${doc === "index.html" ? CHARCOAL : BRAND}"><img `) });
+  writeDocs(root, GOOD_BASE, { mutate: (doc, html) => html.replace("<img ", `<img alt="ALMAR" src="${doc === "en/index.html" ? CHARCOAL : BRAND}"><img `) });
   const ok = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
   assert.deepEqual(ok.violations, []);
   assert.equal(ok.images, docs.length * 5, "the wordmark is counted and checked, not skipped");
 
   // every other same-origin or foreign shape keeps failing
   const bad = {
-    "index.html": "/assets/img/hero.webp",
+    "en/index.html": "/assets/img/hero.webp",
     "ar/index.html": "/_next/static/media/../../secret.svg",
     "es/index.html": "//cdn.example.test/_next/static/media/x.svg",
-    "private-stays.html": "/_next/static/media/deeper/x.svg",
+    "en/private-stays.html": "/_next/static/media/deeper/x.svg",
     "ar/private-stays.html": "/_next/static/media/x.svg?v=1",
     "es/private-stays.html": "/_next/static/media/..",
-    "private-stays/casa-jardin-san-diego.html": "https://cdn.example.test/_next/static/media/x.svg",
+    "en/private-stays/casa-jardin-san-diego.html": "https://cdn.example.test/_next/static/media/x.svg",
     "ar/private-stays/casa-jardin-san-diego.html": "_next/static/media/x.svg",
   };
   writeDocs(root, GOOD_BASE, { mutate: (doc, html) => (bad[doc] ? html.replace("<img ", `<img alt="" src="${bad[doc]}"><img `) : html) });
@@ -424,12 +424,12 @@ test("scanOut allows the same-origin nav wordmarks under /_next/static/media/, a
   // an og:image or a srcset candidate: og:image must be on the media host; a srcset candidate may be the wordmark
   writeDocs(root, GOOD_BASE, {
     mutate: (doc, html) =>
-      doc === "index.html"
+      doc === "en/index.html"
         ? html.replace(`content="${GOOD_BASE}/home/hero/poster.webp"`, `content="${BRAND}"`).replace("srcset=", `srcset="${BRAND} 1x" data-x=`)
         : html,
   });
   const og = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs }).violations.map((v) => `${v.document}: ${v.problem}`);
-  assert.deepEqual(og, [`index.html: og:image ${JSON.stringify(BRAND)} does not start with ${GOOD_BASE}/`]);
+  assert.deepEqual(og, [`en/index.html: og:image ${JSON.stringify(BRAND)} does not start with ${GOOD_BASE}/`]);
 });
 
 // The light footer's wordmark is not a file: components/ui/footer.tsx writes the brand SVG markup into the <img src> as
@@ -446,7 +446,7 @@ test("scanOut allows the inline brand SVG of the light footer on an <img src>, c
   const reportOf = (src, { as = "img" } = {}) => {
     writeDocs(root, GOOD_BASE, {
       mutate: (doc, html) => {
-        if (doc !== "index.html") return html;
+        if (doc !== "en/index.html") return html;
         if (as === "og") return html.replace(`content="${GOOD_BASE}/home/hero/poster.webp"`, `content="${reactAttr(src)}"`);
         if (as === "srcset") return html.replace("srcset=", `srcset="${reactAttr(src)}" data-x=`);
         return html.replace("<img ", `<img alt="ALMAR" src="${reactAttr(src)}"><img `);
@@ -464,9 +464,9 @@ test("scanOut allows the inline brand SVG of the light footer on an <img src>, c
 
   // an inline SVG that pulls an image off the network is a violation, whatever host it names
   const catbox = reportOf(inlineSvgSrc('<svg xmlns="http://www.w3.org/2000/svg"><image href="https://files.catbox.moe/x.png"/></svg>'));
-  assert.match(catbox.text, /^index\.html: img src "data:image\/svg\+xml;charset=utf-8,.*" is an inline SVG that /m, catbox.text);
-  assert.match(catbox.text, /^index\.html: contains files\.catbox\.moe$/m, "the host scan still sees it");
-  assert.equal(catbox.violations.filter((v) => v.document !== "index.html").length, 0);
+  assert.match(catbox.text, /^en\/index\.html: img src "data:image\/svg\+xml;charset=utf-8,.*" is an inline SVG that /m, catbox.text);
+  assert.match(catbox.text, /^en\/index\.html: contains files\.catbox\.moe$/m, "the host scan still sees it");
+  assert.equal(catbox.violations.filter((v) => v.document !== "en/index.html").length, 0);
 
   // every other way out of the document is a violation, each with its own reason
   const bad = {
@@ -485,17 +485,17 @@ test("scanOut allows the inline brand SVG of the light footer on an <img src>, c
   for (const [label, body] of Object.entries(bad)) {
     const src = body.startsWith("data:") ? body : inlineSvgSrc(body);
     const r = reportOf(src);
-    assert.match(r.text, /^index\.html: img src "data:image\/svg\+xml.*" is an inline SVG that /m, `${label} must be reported:\n${r.text}`);
-    assert.equal(r.violations.filter((v) => v.document !== "index.html").length, 0, label);
+    assert.match(r.text, /^en\/index\.html: img src "data:image\/svg\+xml.*" is an inline SVG that /m, `${label} must be reported:\n${r.text}`);
+    assert.equal(r.violations.filter((v) => v.document !== "en/index.html").length, 0, label);
   }
 
   // the exception is for <img src> only, and only SVG
   const png = reportOf("data:image/png;base64,iVBORw0KGgo=");
-  assert.match(png.text, /^index\.html: img src "data:image\/png;base64,iVBORw0KGgo=" does not start with /m, png.text);
+  assert.match(png.text, /^en\/index\.html: img src "data:image\/png;base64,iVBORw0KGgo=" does not start with /m, png.text);
   const og = reportOf(inlineSvgSrc(WORDMARK_SVG), { as: "og" });
-  assert.match(og.text, /^index\.html: og:image "data:image\/svg\+xml;charset=utf-8,.*" does not start with /m, og.text);
+  assert.match(og.text, /^en\/index\.html: og:image "data:image\/svg\+xml;charset=utf-8,.*" does not start with /m, og.text);
   const set = reportOf(inlineSvgSrc(WORDMARK_SVG), { as: "srcset" });
-  assert.match(set.text, /^index\.html: srcset "data:image\/svg\+xml;charset=utf-8" does not start with /m, set.text);
+  assert.match(set.text, /^en\/index\.html: srcset "data:image\/svg\+xml;charset=utf-8" does not start with /m, set.text);
   assert.ok(!set.text.includes("img src"), "a srcset candidate of that form is its own violation, not an img src");
 });
 
@@ -516,22 +516,22 @@ test("RED: a document with a framerusercontent src, a placeholder host, a foreig
   const docs = docsOf(root);
   writeDocs(root, GOOD_BASE, {
     mutate: (doc, html) => {
-      if (doc === "index.html") return html.replace(`src="${GOOD_BASE}/stays/a/hero.webp"`, 'src="https://framerusercontent.com/images/x.jpg"');
+      if (doc === "en/index.html") return html.replace(`src="${GOOD_BASE}/stays/a/hero.webp"`, 'src="https://framerusercontent.com/images/x.jpg"');
       if (doc === "ar/index.html") return html.replace(GOOD_BASE, `https://${PLACEHOLDER}`);
       if (doc === "es/index.html") return html.replace(`${GOOD_BASE}/stays/a/gallery-1.webp 2x`, "https://cdn.example.test/g.webp 2x");
-      if (doc === "private-stays.html") return html.replace(`content="${GOOD_BASE}/home/hero/poster.webp"`, 'content="https://files.catbox.moe/p.webp"');
+      if (doc === "en/private-stays.html") return html.replace(`content="${GOOD_BASE}/home/hero/poster.webp"`, 'content="https://files.catbox.moe/p.webp"');
       return html;
     },
   });
   fs.rmSync(path.join(root, "out", "es", "private-stays.html"));
   const { violations } = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
   const text = violations.map((v) => `${v.document}: ${v.problem}`).join("\n");
-  assert.match(text, /^index\.html: contains framerusercontent\.com$/m);
-  assert.match(text, /^index\.html: img src "https:\/\/framerusercontent\.com\/images\/x\.jpg" does not start with/m);
+  assert.match(text, /^en\/index\.html: contains framerusercontent\.com$/m);
+  assert.match(text, /^en\/index\.html: img src "https:\/\/framerusercontent\.com\/images\/x\.jpg" does not start with/m);
   assert.match(text, new RegExp(`^ar/index\\.html: contains the placeholder host ${PLACEHOLDER.replace(".", "\\.")}$`, "m"));
   assert.match(text, /^es\/index\.html: srcset "https:\/\/cdn\.example\.test\/g\.webp" does not start with/m);
-  assert.match(text, /^private-stays\.html: contains files\.catbox\.moe$/m);
-  assert.match(text, /^private-stays\.html: og:image "https:\/\/files\.catbox\.moe\/p\.webp" does not start with/m);
+  assert.match(text, /^en\/private-stays\.html: contains files\.catbox\.moe$/m);
+  assert.match(text, /^en\/private-stays\.html: og:image "https:\/\/files\.catbox\.moe\/p\.webp" does not start with/m);
   assert.match(text, /^es\/private-stays\.html: document is missing$/m);
 });
 
@@ -540,32 +540,32 @@ test("RED: About and Contact documents with a third-party host, a framer img or 
   const pages = PUBLIC_PAGES;
   const fixtures = path.join(root, "lib", "data", "fixtures");
   const docs = reactDocuments(readStaySlugs(fixtures), readPostSlugs(fixtures), pages);
-  const six = ["about.html", "ar/about.html", "es/about.html", "contact.html", "ar/contact.html", "es/contact.html"];
+  const six = ["en/about.html", "ar/about.html", "es/about.html", "en/contact.html", "ar/contact.html", "es/contact.html"];
   for (const d of six) assert.ok(docs.includes(d), `${d} is guarded once /about and /contact are public`);
   // writeDocs follows the real PUBLIC_PAGES, so write every document of this list here
   for (const doc of docs) {
     const file = path.join(root, "out", ...doc.split("/"));
     fs.mkdirSync(path.dirname(file), { recursive: true });
     let html = `<!doctype html><html><head><meta content="${GOOD_BASE}/home/hero/poster.webp" property="og:image"/></head><body><img alt="" src="${GOOD_BASE}/about/hero.webp"></body></html>`;
-    if (doc === "about.html") html = html.replace("<img", '<video src="https://videos.pexels.com/v.mp4"></video><img');
+    if (doc === "en/about.html") html = html.replace("<img", '<video src="https://videos.pexels.com/v.mp4"></video><img');
     if (doc === "ar/about.html") html = html.replace("<img", '<a href="https://files.catbox.moe/h.mp4">v</a><img');
     if (doc === "es/contact.html") html = html.replace(`src="${GOOD_BASE}/about/hero.webp"`, 'src="https://framerusercontent.com/images/c.jpg"');
     fs.writeFileSync(file, html);
   }
-  fs.rmSync(path.join(root, "out", "contact.html"));
+  fs.rmSync(path.join(root, "out", "en/contact.html"));
   const { violations } = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs });
   const text = violations.map((v) => `${v.document}: ${v.problem}`);
   assert.deepEqual(text.sort(), [
-    "about.html: contains videos.pexels.com",
+    "en/about.html: contains videos.pexels.com",
     "ar/about.html: contains files.catbox.moe",
-    "contact.html: document is missing",
+    "en/contact.html: document is missing",
     'es/contact.html: contains framerusercontent.com',
     'es/contact.html: img src "https://framerusercontent.com/images/c.jpg" does not start with ' + GOOD_BASE + "/",
   ].sort());
 });
 
 test("slice3Documents follows PUBLIC_PAGES: nothing until /about and /contact are public, exactly six after", () => {
-  const six = ["about.html", "contact.html", "ar/about.html", "ar/contact.html", "es/about.html", "es/contact.html"];
+  const six = ["en/about.html", "en/contact.html", "ar/about.html", "ar/contact.html", "es/about.html", "es/contact.html"];
   assert.deepEqual(slice3Documents(["/", "/private-stays", "/private-stays/[stay]"]), []);
   assert.deepEqual(slice3Documents(PUBLIC_PAGES), six);
   assert.equal(slice3Documents(["/about"]).length, 3);
@@ -592,10 +592,10 @@ test("main --deploy: exit 0 and the OK line for a good scratch root; exit 1 for 
   logs.length = 0;
   assert.equal(guardMain(["--deploy", "--root", root, "--out", "out-preview"], { log }), 0);
   // a bad document
-  fs.appendFileSync(path.join(root, "out", "index.html"), '<img src="https://framerusercontent.com/images/y.png">');
+  fs.appendFileSync(path.join(root, "out", "en/index.html"), '<img src="https://framerusercontent.com/images/y.png">');
   logs.length = 0;
   assert.equal(guardMain(["--deploy", "--root", root], { log }), 1);
-  assert.ok(logs.some((l) => l.startsWith("media-guard: index.html: ")));
+  assert.ok(logs.some((l) => l.startsWith("media-guard: en/index.html: ")));
   // no out/
   fs.rmSync(path.join(root, "out"), { recursive: true });
   logs.length = 0;
@@ -627,12 +627,12 @@ test("RED: a reference under the base to a key the manifest does not hold is `<k
   const manifestKeys = new Set(SCRATCH_KEYS);
   writeDocs(root, GOOD_BASE, {
     mutate: (doc, html) =>
-      doc === "index.html"
+      doc === "en/index.html"
         ? html.replace("<img ", `<img alt="" src="/_next/static/media/Poly_White.3f2a9c1d.svg"><img alt="" src="${GOOD_BASE}/catalog/not-in-manifest.webp"><img `)
         : html,
   });
   const r = scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs, manifestKeys });
-  assert.deepEqual(r.violations.map((v) => `${v.document}: ${v.problem}`), ["index.html: img src key catalog/not-in-manifest.webp is not in lib/data/media-manifest.json"]);
+  assert.deepEqual(r.violations.map((v) => `${v.document}: ${v.problem}`), ["en/index.html: img src key catalog/not-in-manifest.webp is not in lib/data/media-manifest.json"]);
   // without manifestKeys the same tree is clean (the option is what turns the check on)
   assert.deepEqual(scanOut(path.join(root, "out"), GOOD_BASE, { documents: docs }).violations, []);
 });
@@ -662,11 +662,11 @@ test("RED: placeholderBase ignores exactly the base's own host; any other .inval
   const off = scanOut(path.join(root, "out"), PBASE, { documents: docs, manifestKeys, placeholderBase: false });
   assert.equal(off.violations.length, docs.length, "every document names the placeholder host when the flag is off");
   assert.ok(off.violations.every((v) => v.problem === `contains the placeholder host ${PLACEHOLDER}`));
-  writeDocs(root, PBASE, { mutate: (doc, html) => (doc === "index.html" ? html.replace("</body>", '<img alt="" src="https://other.invalid/x.webp"></body>') : html) });
+  writeDocs(root, PBASE, { mutate: (doc, html) => (doc === "en/index.html" ? html.replace("</body>", '<img alt="" src="https://other.invalid/x.webp"></body>') : html) });
   const other = scanOut(path.join(root, "out"), PBASE, { documents: docs, manifestKeys, placeholderBase: true }).violations.map((v) => `${v.document}: ${v.problem}`);
-  assert.ok(other.includes("index.html: contains the placeholder host other.invalid"), other.join("\n"));
-  assert.ok(other.includes('index.html: img src "https://other.invalid/x.webp" does not start with https://media-pending.invalid/'), other.join("\n"));
-  assert.equal(other.filter((l) => !l.startsWith("index.html: ")).length, 0);
+  assert.ok(other.includes("en/index.html: contains the placeholder host other.invalid"), other.join("\n"));
+  assert.ok(other.includes('en/index.html: img src "https://other.invalid/x.webp" does not start with https://media-pending.invalid/'), other.join("\n"));
+  assert.equal(other.filter((l) => !l.startsWith("en/index.html: ")).length, 0);
 });
 
 test("`node scripts/media-guard.mjs --deploy` exits 1 and names runbook step C9 while the flag is true", () => {

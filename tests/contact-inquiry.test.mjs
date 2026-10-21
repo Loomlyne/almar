@@ -223,7 +223,7 @@ test("composeInquiryEmail: from and to ALMAR, reply-to the visitor, a clean subj
   );
   const noPhone = m.composeInquiryEmail(m.validateInquiry({ ...VALID, phone: "", locale: "en" }).inquiry);
   assert.ok(noPhone.text.includes("\nPhone / WhatsApp: -\n"));
-  assert.ok(noPhone.text.includes("\nPage: https://almarprivatejourney.com/contact\n"));
+  assert.ok(noPhone.text.includes("\nPage: https://almarprivatejourney.com/en/contact\n"));
 });
 
 test("the module is a leaf: its imports are ./email-address (the shared address rule) and ./locale-path", () => {

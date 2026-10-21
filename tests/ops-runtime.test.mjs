@@ -473,13 +473,13 @@ function filesUnder(dir, base = dir, found = []) {
 /** A build output with pages, Framer bodies, the dashboard, public/ and static, as `next build` leaves it. */
 function fixture() {
   return scratchDir({
-    "app/index.html": "home",
+    "app/en.html": "home",
     "app/ar.html": "home ar",
     "app/es.html": "home es",
-    "app/private-stays.html": "stays",
+    "app/en/private-stays.html": "stays",
     "app/ar/private-stays.html": "stays ar",
     "app/es/private-stays.html": "stays es",
-    "app/about.body": "framer about",
+    "app/en/about.body": "framer about",
     "app/dashboard.html": "dashboard",
     "app/dashboard/home.html": "dashboard home",
     "static/css/x.css": "body{}",
@@ -514,30 +514,31 @@ test("assembleOut({ pages: false }): public/ without its marketing _redirects, _
 });
 
 test("assembleOut({ pages: false }): _next/static is copied unconditionally, and a missing static folder stops the build", () => {
-  const base = scratchDir({ "app/index.html": "home", "public/a.txt": "x" });
+  const base = scratchDir({ "app/en.html": "home", "public/a.txt": "x" });
   const outDir = join(base, "out-ops");
   assert.throws(() => assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir, publicDir: join(base, "public"), pages: false }), /static/);
 });
 
 test("assembleOut({ pages: false }): public/ may still hold nothing under /api or a held section", () => {
-  const base = scratchDir({ "app/index.html": "home", "static/css/x.css": "b", "public/api/x.json": "{}" });
+  const base = scratchDir({ "app/en.html": "home", "static/css/x.css": "b", "public/api/x.json": "{}" });
   assert.throws(
     () => assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir: join(base, "out-ops"), publicDir: join(base, "public"), pages: false }),
     /only the Worker may answer/,
   );
 });
 
-test("assembleOut: with pages omitted it behaves exactly as before (the pages, the home link and index.html are required)", () => {
+test("assembleOut: with pages omitted it behaves exactly as before (the pages, the home link and en/index.html are required)", () => {
   const base = fixture();
   const outDir = join(base, "out");
   const report = assembleOut({ appDir: join(base, "app"), staticDir: join(base, "static"), outDir, publicDir: join(base, "public") });
-  assert.ok(existsSync(join(outDir, "index.html")));
-  assert.ok(existsSync(join(outDir, "private-stays.html")));
+  assert.ok(existsSync(join(outDir, "en/index.html")));
+  assert.equal(existsSync(join(outDir, "index.html")), false, `"/" is the Worker's language redirect (job 21)`);
+  assert.ok(existsSync(join(outDir, "en/private-stays.html")));
   assert.ok(existsSync(join(outDir, "_redirects")), "the public folder keeps its redirects");
   assert.equal(existsSync(join(outDir, "dashboard.html")), false, "the dashboard never reaches the public folder");
-  assert.deepEqual(report.framer, ["about.html"]);
-  const none = scratchDir({ "static/css/x.css": "b", "app/private-stays.html": "x" });
-  assert.throws(() => assembleOut({ appDir: join(none, "app"), staticDir: join(none, "static"), outDir: join(none, "out"), publicDir: join(none, "public") }), /index\.html|English home/);
+  assert.deepEqual(report.framer, ["en/about.html"]);
+  const none = scratchDir({ "static/css/x.css": "b", "app/en/about.body": "x" });
+  assert.throws(() => assembleOut({ appDir: join(none, "app"), staticDir: join(none, "static"), outDir: join(none, "out"), publicDir: join(none, "public") }), /en\/index\.html|English home/);
 });
 
 test("writeOpsPaths: writes opsPathsFrom's list next to the OpenNext worker as almar-ops-routes.json; refuses without the worker", () => {

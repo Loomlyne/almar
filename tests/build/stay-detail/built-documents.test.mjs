@@ -16,7 +16,7 @@ import { HIDDEN } from "../../helpers/site-links.mjs";
 const { getStaySlugs } = await loadTs("lib/data/stays.ts");
 const { MEDIA_BASE_URL } = await loadTs("lib/data/media.ts");
 const SLUGS = await getStaySlugs();
-const PREFIXES = ["", "ar/", "es/"];
+const PREFIXES = ["en/", "ar/", "es/"];
 const HIDDEN_SLUGS = HIDDEN.filter((p) => p.startsWith("/private-stays/")).map((p) => p.split("/").pop());
 
 const BUILT = ".next/server/app";
@@ -44,7 +44,7 @@ const SENTENCE = "From cozy beachfront rooms";
 
 const ROOTS = [
   { name: ".next/server/app", root: BUILT, present: () => haveBuild },
-  { name: "out/", root: OUT, present: () => existsSync(join(OUT, "index.html")) },
+  { name: "out/", root: OUT, present: () => existsSync(join(OUT, "en/index.html")) },
 ];
 
 test("the build exists (run npm run build first)", () => {
@@ -61,7 +61,7 @@ for (const { name, root, present } of ROOTS) {
         .filter((f) => f.endsWith(".html"))
         .map((f) => f.slice(0, -5))
         .sort();
-      assert.deepEqual(found, [...SLUGS].sort(), `${prefix || "en/"}private-stays holds the 12 published stays and nothing else`);
+      assert.deepEqual(found, [...SLUGS].sort(), `${prefix}private-stays holds the 12 published stays and nothing else`);
       for (const hidden of HIDDEN_SLUGS) assert.equal(found.includes(hidden), false, hidden);
     }
     assert.equal(stayDocuments(root).filter((d) => existsSync(d.file)).length, 36);
@@ -104,7 +104,7 @@ for (const { name, root, present } of ROOTS) {
     const { absoluteLocaleUrl } = await loadTs("lib/locale-path.ts");
     const { getStay } = await loadTs("lib/data/stays.ts");
     for (const { prefix, slug, file } of stayDocuments(root)) {
-      const locale = prefix === "" ? "en" : prefix.slice(0, -1);
+      const locale = prefix.slice(0, -1);
       const stay = await getStay(locale, slug);
       const href = stayRequestHref(
         buildStayRequestMessage(
@@ -170,7 +170,7 @@ for (const { name, root, present } of ROOTS) {
     const { localePath } = await loadTs("lib/locale-path.ts");
     const decode = (text) => text.replace(/&amp;/g, "&");
     for (const { prefix, slug, file } of stayDocuments(root)) {
-      const locale = prefix === "" ? "en" : prefix.slice(0, -1);
+      const locale = prefix.slice(0, -1);
       const catalog = await getCatalogForStay(locale, slug);
       // The page shows the first three items with a picture in each section.
       const shown = [...catalog.services, ...catalog.experiences].length === 0 ? [] : [

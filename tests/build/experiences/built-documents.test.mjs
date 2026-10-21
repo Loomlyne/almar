@@ -12,12 +12,12 @@ import { absoluteLocaleUrl, localeAlternates, localeDir, localePath } from "../.
 //   node scripts/assemble-cloudflare.mjs --target=local && node --test tests/build/experiences/built-documents.test.mjs
 
 const OUT = "out";
-if (!existsSync(join(OUT, "experiences.html"))) {
-  throw new Error("out/experiences.html is missing: run node scripts/assemble-cloudflare.mjs first");
+if (!existsSync(join(OUT, "en/experiences.html"))) {
+  throw new Error("out/en/experiences.html is missing: run node scripts/assemble-cloudflare.mjs first");
 }
 
 const PATH = "/experiences";
-const DOCS = { en: "experiences.html", ar: "ar/experiences.html", es: "es/experiences.html" };
+const DOCS = { en: "en/experiences.html", ar: "ar/experiences.html", es: "es/experiences.html" };
 const html = Object.fromEntries(Object.entries(DOCS).map(([locale, file]) => [locale, readFileSync(join(OUT, file), "utf8")]));
 
 const decode = (text) =>
@@ -81,6 +81,7 @@ for (const [locale, doc] of Object.entries(html)) {
     const shown = visible(doc);
     for (const needle of [
       'href="/experiences/',
+      'href="/en/experiences/',
       'href="/ar/experiences/',
       'href="/es/experiences/',
       'href="/services',
@@ -120,7 +121,8 @@ for (const [locale, doc] of Object.entries(html)) {
     const current = [...doc.matchAll(/<a\b[^>]*aria-current="page"[^>]*>/g)].map((m) => m[0]);
     assert.ok(current.length >= 1, "no aria-current link");
     for (const tag of current) assert.equal(attr(tag, "href"), localePath(locale, PATH), tag);
-    const names = [HOME_COPY[locale].nav.login, HOME_COPY[locale].listTitle, HOME_COPY[locale].subscribe, HOME_COPY[locale].newsletter];
+    // Login is live since job 21 (owner, 2026-10-21, decision #5), so it is not in this list.
+    const names = [HOME_COPY[locale].listTitle, HOME_COPY[locale].subscribe, HOME_COPY[locale].newsletter];
     const controls = [...doc.matchAll(/<(?:a|button)\b[^>]*>([^<]*)</g)].map((m) => decode(m[1]).trim());
     for (const name of names) assert.equal(controls.includes(name), false, `a control named ${name}`);
   });

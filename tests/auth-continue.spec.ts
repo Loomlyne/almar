@@ -36,7 +36,7 @@ for (const width of [390, 834, 1440]) {
         const button = form.getByRole("button", { name: BUTTON[locale] });
         await expect(button).toBeVisible();
         await expect(button).toHaveAttribute("type", "submit");
-        await expect(form.getByRole("link").last()).toHaveAttribute("href", "/login");
+        await expect(form.getByRole("link").last()).toHaveAttribute("href", "/en/login");
       });
 
       test("no-email: the plain line and no email", async ({ page }) => {
@@ -68,7 +68,7 @@ for (const width of [390, 834, 1440]) {
         await expect(field).toHaveValue("");
         await expect(page.getByText(WRONG[locale])).toHaveCount(0);
         await expect(page.locator("main form").getByRole("button", { name: BUTTON[locale] })).toBeVisible();
-        await expect(page.locator("main form").getByRole("link").last()).toHaveAttribute("href", "/login");
+        await expect(page.locator("main form").getByRole("link").last()).toHaveAttribute("href", "/en/login");
         await expect(page.locator('main form input[type=hidden][name=token_hash]')).toHaveValue("harness-token");
       });
 
@@ -107,7 +107,7 @@ test.describe("no JavaScript", () => {
     expect(response.url()).toContain("/auth/confirm");
     expect(response.status()).toBeLessThan(500);
     // No Supabase here: the action fails closed to the expired sign-in.
-    await expect(page).toHaveURL(/\/login\?expired=1$/);
+    await expect(page).toHaveURL(/\/en\/login\?expired=1$/);
   });
 });
 
@@ -119,5 +119,5 @@ test("the real /auth/confirm page with JavaScript posts Continue and fails close
   await form.getByRole("button", { name: BUTTON.en }).click();
   const response = await posted;
   expect(response.status()).toBeLessThan(500);
-  await expect(page).toHaveURL(/\/login\?expired=1$/);
+  await expect(page).toHaveURL(/\/en\/login\?expired=1$/);
 });

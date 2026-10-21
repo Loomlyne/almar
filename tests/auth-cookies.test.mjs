@@ -152,7 +152,7 @@ const clientsMod = await load("lib/supabase/clients.ts");
 for (const [env, secure] of [["production", true], ["development", false]]) {
   test(`middleware refresh (${env}): every session Set-Cookie is HttpOnly, SameSite=lax, Path=/${secure ? ", Secure" : ", not Secure"}`, async () => {
     await withEnv(env, async () => {
-      const request = new middlewareMod.NextRequest("https://almarprivatejourney.com/", {
+      const request = new middlewareMod.NextRequest("https://almarprivatejourney.com/en/", {
         headers: { cookie: `${COOKIE}=${expiredCookieValue()}` },
       });
       const response = await middlewareMod.middleware(request);
@@ -207,7 +207,7 @@ for (const [env, secure] of [["production", true], ["development", false]]) {
 const HINT = "almar-signed-in";
 const hintOf = (response) => response.headers.getSetCookie().filter((line) => line.startsWith(`${HINT}=`));
 
-async function middlewareRun({ path = "/", method = "GET", host = "almarprivatejourney.com", cookies = [`${COOKIE}=${expiredCookieValue()}`], env = "production" } = {}) {
+async function middlewareRun({ path = "/en/", method = "GET", host = "almarprivatejourney.com", cookies = [`${COOKIE}=${expiredCookieValue()}`], env = "production" } = {}) {
   return withEnv(env, async () => {
     const request = new middlewareMod.NextRequest(`https://${host}${path}`, { method, headers: { host, cookie: cookies.join("; ") } });
     return middlewareMod.middleware(request);
@@ -249,4 +249,20 @@ test("hint: a stale value is replaced, and the rule is the pure needsSignedInHin
   assert.equal(needsSignedInHint({ ...base, opsHost: true }), false);
   assert.equal(needsSignedInHint({ ...base, path: "/auth/callback" }), false);
   assert.equal(needsSignedInHint({ ...base, method: "POST" }), false);
+});
+
+// Job 21: "/" and the old unprefixed pages are answered before anything else runs (dev server twin of worker/handle.mjs
+// and public/_redirects), so no session refresh is attempted for them. The ops host is untouched.
+test("job 21: '/' on the public host is the language redirect and an old page is a 301; neither refreshes the session", async () => {
+  const root = await middlewareRun({ path: "/", cookies: [`${COOKIE}=${expiredCookieValue()}`, "almar-locale=ar"] });
+  assert.equal(root.status, 302);
+  assert.equal(new URL(root.headers.get("location")).pathname, "/ar/");
+  assert.equal(root.headers.get("cache-control"), "private, no-store");
+  assert.equal(calls.some((call) => call.startsWith("POST /auth/v1/token")), false, "no refresh for the redirect");
+  const old = await middlewareRun({ path: "/about?x=1" });
+  assert.equal(old.status, 301);
+  const target = new URL(old.headers.get("location"));
+  assert.equal(target.pathname + target.search, "/en/about?x=1");
+  const ops = await middlewareRun({ path: "/", host: "dashboard.almarprivatejourney.com" });
+  assert.notEqual(ops.status, 302, "the ops host is not redirected to /en/");
 });

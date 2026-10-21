@@ -57,7 +57,7 @@ test("ops sign-in entry is titled Sign in and renders the ops variant of board 6
   assert.match(text, /variant="ops"/);
   assert.match(text, /action=\{opsSignIn\}/);
   assert.match(text, /if \(!opsHost && process\.env\.NODE_ENV === "production"\) notFound\(\);/);
-  const screen = readFileSync("app/login/sign-in-screen.tsx", "utf8");
+  const screen = readFileSync("app/[locale]/login/sign-in-screen.tsx", "utf8");
   assert.equal(/>[^<{]*dashboard/i.test(screen), false, "no visible dashboard text");
   assert.match(screen, /variant === "ops" \? copy\.signIn : copy\.auth\.heading/);
   assert.match(screen, /variant === "public" \? <WhatsApp \/> : null/);

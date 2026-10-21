@@ -56,13 +56,15 @@ test("wrangler.preview.toml: the compatibility date and the account are wrangler
 });
 
 test("wrangler.preview.toml: [assets] is wrangler.toml's, except that it serves out-preview/", () => {
-  const previewAssets = block(preview, "[assets]");
-  const liveAssets = block(live, "[assets]");
-  // The 8 entries: /api/* plus the six paths job 02 opens (JOB02_SERVER_PATHS) and plan 03.3-27's /newsletter, in
-  // lib/server-routes.ts SERVER_PATHS_OUTSIDE_API order.
-  const workerFirst = `run_worker_first = ${JSON.stringify(["/api/*", ...JOB02_SERVER_PATHS, "/newsletter"])}`.replace(/,/g, ", ");
+  // Comment lines (job 21's note on "/" and the 301s) are not settings.
+  const previewAssets = block(preview, "[assets]").filter((l) => !l.startsWith("#"));
+  const liveAssets = block(live, "[assets]").filter((l) => !l.startsWith("#"));
+  // The 15 entries: "/" (the language redirect, job 21), /api/*, the twelve paths job 02 opens (JOB02_SERVER_PATHS:
+  // /<locale>/login, account and bookings plus /auth/*) and plan 03.3-27's /newsletter, in lib/server-routes.ts
+  // SERVER_PATHS_OUTSIDE_API order.
+  const workerFirst = `run_worker_first = ${JSON.stringify(["/", "/api/*", ...JOB02_SERVER_PATHS, "/newsletter"])}`.replace(/,/g, ", ");
   assert.deepEqual([...SERVER_PATHS_OUTSIDE_API], [...JOB02_SERVER_PATHS, "/newsletter"]);
-  assert.equal(SERVER_PATHS_OUTSIDE_API.length + 1, 8);
+  assert.equal(SERVER_PATHS_OUTSIDE_API.length + 2, 15);
   assert.deepEqual(liveAssets, ['directory = "./out"', 'binding = "ASSETS"', workerFirst, 'html_handling = "auto-trailing-slash"', 'not_found_handling = "404-page"']);
   assert.deepEqual(previewAssets, ['directory = "./out-preview"', ...liveAssets.slice(1)]);
 });

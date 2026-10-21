@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { CONTACT_PAGE_COPY } from "../lib/copy/contact-page";
 
-test("unknown path is the branded 404 and /contact is the React page", async ({ page }) => {
+test("unknown path is the branded 404 and /en/contact is the React page", async ({ page }) => {
   const missing = await page.goto("/this-route-does-not-exist");
   expect(missing?.status()).toBe(404);
 
@@ -12,10 +12,10 @@ test("unknown path is the branded 404 and /contact is the React page", async ({ 
   expect(body).not.toContain("#f9f6f3");
   expect(body).not.toContain('name="generator" content="Framer');
 
-  const home = page.locator('a[href="/"]', { hasText: "Return home" });
+  const home = page.locator('a[href="/en/"]', { hasText: "Return home" });
   await expect(home).toHaveCount(1);
 
-  const contact = await page.goto("/contact");
+  const contact = await page.goto("/en/contact");
   expect(contact?.status()).toBe(200);
   const html = await page.content();
   expect(html).not.toContain('name="generator" content="Framer');
