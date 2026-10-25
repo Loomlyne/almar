@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAR 04-09 pictures: dashboard bookings and money settings</title>
+<style>
+:root{
+  --color-ivory:#fffaf0;--color-surface:#ffffff;--color-teal:#1f3b40;--color-teal-hover:#1b3438;--color-teal-press:#182d31;
+  --color-teal-tint:#d1dfe0;--color-gold:#d4ba8a;--color-ink:#262626;--color-muted:#63615f;--color-line:rgb(38 38 38 / 0.16);
+  --color-error:#8f2d2d;--color-success:#1e6b45;--color-warning:#8a3b12;
+  --space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;--space-2xl:48px;--space-3xl:64px;
+  --control:44px;--chip:40px;--chip-dense:24px;--row:56px;--dock:88px;--search:200px;
+  --container-dialog:480px;--container-column:1240px;--container-calendar:760px;
+  --radius-control:0;--radius-overlay:0;
+  --shadow-lg:0 28px 56px -16px rgb(10 9 7 / 0.28),0 10px 20px -10px rgb(10 9 7 / 0.12);
+  --shadow-selected:inset 0 0 0 2px var(--color-teal);
+  --face-display:Georgia,"Times New Roman",serif;
+  --face-body:"Lato",-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --tracking-kicker:0.12em;
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;background:#ece8df;color:var(--color-ink);font-family:var(--face-body);font-size:14px}
+/* ---------- page chrome (review page only, not product UI) ---------- */
+#top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;padding:10px 20px;background:var(--color-teal);color:var(--color-ivory)}
+#top h1{font:400 18px var(--face-display);margin:0;margin-inline-end:auto}
+#top .grp{display:flex;align-items:center;gap:6px}
+#top .grp span.l{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-inline-end:4px}
+#top button{font:inherit;font-size:13px;padding:6px 12px;border:1px solid rgba(255,250,240,.5);background:transparent;color:var(--color-ivory);cursor:pointer}
+#top button[aria-pressed=true]{background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)}
+#wrap{display:flex;align-items:flex-start}
+#index{position:sticky;top:52px;align-self:flex-start;width:268px;flex:none;height:calc(100vh - 52px);overflow:auto;background:var(--color-ivory);border-inline-end:1px solid var(--color-line);padding:14px 14px 40px;font-size:13px}
+#index h2{font:400 12px var(--face-body);letter-spacing:.12em;text-transform:uppercase;color:var(--color-muted);margin:16px 0 4px}
+#index a{display:block;color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:3px;padding:2px 0}
+#index a.st{margin-inline-start:12px;text-decoration:none;color:var(--color-ink)}
+#index a.st:hover{text-decoration:underline;text-decoration-color:var(--color-gold)}
+#main{flex:1;min-width:0;padding:20px 24px 80px}
+.banner{background:var(--color-ivory);border:1px solid var(--color-gold);padding:10px 14px;margin-bottom:20px;font-size:13px;line-height:1.5}
+.grpbox{margin:0 0 44px}
+.grpbox>h2{font:400 22px var(--face-display);color:var(--color-teal);margin:0 0 4px}
+.grpbox>.q{margin:0 0 4px;font-size:14px;line-height:1.5;max-width:900px}
+.grpbox>.tag{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-teal);color:var(--color-teal);padding:2px 8px;margin-bottom:8px}
+.fr{margin:14px 0 26px}
+.cap{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin-bottom:6px}
+.cap code{font:600 13px ui-monospace,Menlo,monospace;background:#fff;border:1px solid var(--color-line);padding:2px 6px}
+.cap .opt{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-teal)}
+.cap .opt.rec{font-weight:700}
+.cap .rules{font-size:12px;color:var(--color-muted)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.fw{position:relative;overflow:hidden;border:1px solid var(--color-line);background:var(--color-ivory)}
+.stub{border:1px dashed var(--color-muted);padding:10px 14px;font-size:13px;background:#fff}
+.stub a{color:var(--color-teal)}
+/* ---------- product frame ---------- */
+.frame{container-type:inline-size;position:relative;transform-origin:top left;background:var(--color-ivory);color:var(--color-ink);font-family:var(--face-body);font-size:14px;line-height:1.43}
+.inner{--px:16px;--py:24px;padding:var(--py) var(--px) calc(var(--py) + 16px)}
+.frame[dir=rtl]{font-family:"Noto Sans Arabic","Noto Sans",var(--face-body);line-height:1.63;text-align:start}
+.frame[dir=rtl] .disp{font-family:"Noto Naskh Arabic","Noto Sans Arabic",var(--face-display);line-height:1.5}
+.disp{font-family:var(--face-display);font-weight:400;color:var(--color-teal);margin:0}
+.h1{font-size:32px;line-height:1.2}.h2{font-size:20px;line-height:1.3}
+.cap12{font-size:12px;line-height:1.5}
+.muted{color:var(--color-muted)}
+.kick{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--color-muted)}
+.frame[dir=rtl] .kick,.frame[dir=rtl] .btn-up{text-transform:none;letter-spacing:0}
+.stack{display:flex;flex-direction:column}.g1{gap:4px}.g2{gap:8px}.g4{gap:16px}.g6{gap:24px}
+.row{display:flex;flex-wrap:wrap;align-items:center}.gx2{gap:8px}.gx4{gap:16px}
+.sec{border-top:1px solid var(--color-line);padding-top:16px;margin-top:24px;display:flex;flex-direction:column;gap:8px}
+.sec>.disp.h2{margin-bottom:4px}
+/* buttons (components/ui/button.tsx) */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:100%;height:var(--control);padding:0 24px;border:1px solid transparent;font:inherit;font-size:14px;cursor:pointer;background:transparent}
+.btn-up{text-transform:uppercase;letter-spacing:.12em}
+.btn-primary{background:var(--color-teal);color:var(--color-ivory);border-color:var(--color-teal)}
+.btn-secondary{background:transparent;color:var(--color-teal);border-color:var(--color-teal)}
+.btn-ghost{background:transparent;color:var(--color-teal);border-color:transparent;text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;text-decoration-thickness:1px}
+.btn-danger{background:transparent;color:var(--color-ink);border-color:var(--color-error)}
+.btn:disabled{background:var(--color-ivory);border-color:var(--color-line);color:var(--color-muted);cursor:default;text-decoration:none}
+.btn.sm{padding:0 16px}
+.link{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;text-decoration-thickness:1px;background:none;border:0;padding:0;font:inherit;cursor:pointer;min-height:var(--control);display:inline-flex;align-items:center;gap:8px}
+/* chips */
+.chip{display:inline-flex;align-items:center;height:var(--chip);padding:0 16px;border:1px solid var(--color-muted);color:var(--color-ink);background:transparent;white-space:nowrap}
+.chip.dense{height:var(--chip-dense);padding:0 8px;font-size:12px}
+.chip.on{background:var(--color-teal);border-color:var(--color-teal);color:var(--color-ivory)}
+/* fields */
+.field{display:grid;gap:8px;max-width:384px;width:100%}
+.field.wide{max-width:none}
+.field>label,.field>.lb{font-size:14px;color:var(--color-ink)}
+.inp{display:block;width:100%;min-height:var(--control);border:1px solid var(--color-ink);background:var(--color-surface);padding:8px 16px;font:inherit;font-size:14px;color:var(--color-ink);text-align:start}
+.inp.ta{min-height:96px}
+.inp.bad{border-color:var(--color-error)}
+.inp.ph{color:var(--color-muted)}
+.inp.dis{background:var(--color-ivory);color:var(--color-muted);border-color:var(--color-line)}
+.hint{margin:0;font-size:14px;color:var(--color-ink)}
+.hint.m{color:var(--color-muted);font-size:12px}
+.err{margin:0;display:flex;align-items:center;gap:4px;font-size:14px;color:var(--color-error)}
+.sel{display:inline-flex;align-items:center;justify-content:space-between;gap:12px;height:var(--control);min-width:96px;padding:0 16px;border:1px solid var(--color-muted);background:var(--color-surface);font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--color-ink)}
+.frame[dir=rtl] .sel{text-transform:none;letter-spacing:0}
+.chk{display:flex;align-items:center;gap:12px;min-height:var(--control)}
+.chk i{width:20px;height:20px;border:1px solid var(--color-ink);background:var(--color-surface);display:inline-flex;align-items:center;justify-content:center;color:var(--color-teal)}
+.chk i.on{background:var(--color-teal);border-color:var(--color-teal);color:var(--color-ivory)}
+/* blocks */
+.block{border:1px solid var(--color-line);background:var(--color-surface);padding:16px}
+.attn{border:1px solid var(--color-error);border-inline-start-width:4px;background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px}
+.attn .t{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--color-error)}
+.attn p{margin:0}
+.dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:6px 16px;margin:0}
+.dl dt{color:var(--color-muted)}.dl dd{margin:0;overflow-wrap:anywhere}
+.dl .tot{font-weight:700}
+.mrow{display:flex;justify-content:space-between;gap:16px;padding:6px 0;border-bottom:1px solid var(--color-line)}
+.mrow.b{font-weight:700}
+.cols2{display:grid;grid-template-columns:1fr;gap:16px}
+@container (min-width:768px){.cols2{grid-template-columns:1fr 1fr}.tbl{display:table!important}.cards{display:none!important}.inner{--px:32px;--py:32px}}
+.tbl{display:none;width:100%;border-collapse:collapse}
+.tbl th{height:var(--row);padding:0 8px;text-align:start;font-size:12px;font-weight:400;text-transform:uppercase;letter-spacing:.12em;color:var(--color-muted);border-bottom:1px solid var(--color-line)}
+.frame[dir=rtl] .tbl th{text-transform:none;letter-spacing:0}
+.tbl td{padding:10px 8px;vertical-align:top;border-bottom:1px solid var(--color-line)}
+.cards{display:flex;flex-direction:column;gap:8px;list-style:none;margin:0;padding:0}
+.cards li{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:6px}
+.strike{text-decoration:line-through;color:var(--color-muted)}
+.flags{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--color-ink);margin-top:4px}
+.flags span{border-inline-start:2px solid var(--color-ink);padding-inline-start:6px}
+.flags span.e{border-color:var(--color-error);color:var(--color-error)}
+.ev{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ev li{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:8px 0;border-bottom:1px solid var(--color-line)}
+.ev time{color:var(--color-muted);white-space:nowrap}
+.tabs{display:flex;gap:8px;border-bottom:1px solid var(--color-line);padding-bottom:8px;margin-top:24px}
+.tabs .btn[aria-pressed=true]{text-decoration-thickness:3px}
+.filters{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin:16px 0 24px}
+.miss{background:#fde8e8;border:2px solid #c00000;color:#8b0000;font:600 12px ui-monospace,Menlo,monospace;padding:8px 10px;margin:8px 0;direction:ltr;text-align:left}
+.empty{border:1px solid var(--color-line);background:var(--color-surface);padding:32px 16px;text-align:center;color:var(--color-muted)}
+/* dialogs (components/ui/dialog.tsx) */
+.dlgwrap{position:relative;overflow:hidden;min-height:520px;margin:calc(-1*var(--py)) calc(-1*var(--px)) calc(-1*var(--py) - 16px)}
+.dlgwrap .behind{position:absolute;inset:0;overflow:hidden;padding:var(--py) var(--px)}
+.dlgwrap .scrim{position:absolute;inset:0;background:rgb(38 38 38 / .4)}
+.dlgpos{position:relative;padding:32px 16px 40px}
+.dlg{width:100%;max-width:var(--container-dialog);margin-inline:auto;background:var(--color-surface);padding:24px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:16px}
+.dlg.wide{max-width:var(--container-column)}
+.dlg .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.dlg .hd .xb{width:var(--control);height:var(--control);display:inline-flex;align-items:center;justify-content:center;color:var(--color-teal);flex:none}
+.dlg .ft{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end}
+.dlg p.s{margin:0;font-size:16px;line-height:1.5}
+.frame[dir=rtl] .dlg p.s{line-height:1.7}
+.dlg ul.sent{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.dlg ul.sent li{font-size:16px;border-inline-start:2px solid var(--color-gold);padding-inline-start:12px}
+svg.i{width:16px;height:16px;flex:none}
+.ltr{direction:ltr;unicode-bidi:isolate}
+.two{display:grid;grid-template-columns:1fr;gap:16px}
+@container (min-width:768px){.two{grid-template-columns:1fr 1fr}}
+.tr-box{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:16px}
+.savebar{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:8px}
+.ok{color:var(--color-success)}
+
+</style></head><body>
+<header id="top"><h1>ALMAR 04-09 &middot; bookings and money pictures</h1>
+<div class="grp"><span class="l">Language</span><button data-loc="en">EN</button><button data-loc="ar">AR</button><button data-loc="es">ES</button></div>
+<div class="grp"><span class="l">Width</span><button data-w="390">390</button><button data-w="834">834</button><button data-w="1440">1440</button></div>
+<div class="grp"><button id="cmp" aria-pressed="false">Compare</button></div></header>
+<div id="wrap"><nav id="index" aria-label="States"></nav><main id="main"></main></div>
+<script>
+const COPY = {"b": {"en": {"list": {"title": "Bookings", "search": "Search", "searchHint": "Reference, guest name or email", "allStatuses": "All statuses", "allDestinations": "All destinations", "arriveFrom": "Arrival from", "arriveTo": "Arrival to", "showMore": "Show more", "loading": "Loading bookings…", "empty": "No bookings yet", "noMatch": "No booking matches these filters.", "columns": {"ref": "Ref", "guestDates": "Guest and dates", "stay": "Stay", "status": "Status", "paid": "Paid", "total": "Total"}, "guests": "{count} guests"}, "statuses": {"held": "Held", "awaiting_payment": "Awaiting payment", "deposit_paid": "Deposit paid", "paid_in_full": "Paid in full", "confirmed": "Confirmed", "completed": "Completed", "cancelled": "Cancelled", "expired": "Expired"}, "filters": {"attention": "Needs attention"}, "flags": {"test": "TEST", "needsAttention": "Needs attention", "partReceived": "Part received", "overpaid": "Overpaid", "writtenOff": "Written off {amount}", "balanceOverdue": "Balance overdue", "deadlinePassed": "Deadline passed", "deadlinePassedPartPaid": "Pay-by date passed, part paid", "reasons": {"paid_after_expiry": "Money arrived after the request expired. The nights were not taken back: re-book or refund from your bank.", "paid_after_cancel": "Money arrived after the booking was cancelled. The nights were not taken back: re-book or refund from your bank.", "overpaid": "More money than the total was received. Check it with the guest; refunds are made from your bank.", "deadline_passed_part_paid": "Pay-by date passed, part paid. The nights stay held until you act: record the rest, cancel the booking, or resolve this."}}, "detail": {"back": "All bookings", "overview": "Overview", "payments": "Payments", "history": "History", "notes": "Notes", "latestNotes": "Latest notes", "stayDates": "Stay and dates", "arrive": "Arrive", "leave": "Leave", "nights": "Nights", "guest": "Guest", "email": "Email", "phone": "Phone", "nationality": "Nationality", "specialRequests": "Special requests", "emergencyContact": "Emergency contact", "guests": "Guests", "travellers": "Travellers", "booker": "Booker", "notStaying": "Not staying", "age": "Age", "airport": "Airport", "airports": {"DXB": "Dubai (DXB)", "AUH": "Abu Dhabi (AUH)", "SHJ": "Sharjah (SHJ)", "none": "Not chosen"}, "pickupAddress": "Pickup address", "addOns": "Add-ons", "noAddOns": "No add-ons", "subtotal": "Subtotal", "vat": "VAT {rate}%", "total": "Total", "deposit": "Deposit", "paid": "Paid", "writtenOff": "Written off", "dueNow": "Due now", "stillDue": "Still due", "payBy": "Pay by {date}", "balanceDueBy": "Balance due by", "madeOnSite": "Made on the website", "madeInDashboard": "Made in the dashboard", "guestSees": "What the guest sees", "uaeTime": " UAE time"}, "payments": {"transactions": "Transactions", "date": "Date", "method": "Method", "bankTransfer": "Bank transfer", "card": "Card", "reference": "Reference", "amount": "Amount", "recordedBy": "Recorded by", "voided": "Voided: {reason}", "writtenOff": "Written off {amount}: {reason}", "none": "No payment recorded yet.", "receipt": {"sent": "Receipt sent", "pending": "Receipt not sent yet: the email sender is not set up", "failed": "Receipt not sent: the email failed", "none": "Receipt not sent"}, "requestMail": {"sent": "Request email sent", "pending": "Request email not sent yet: the email sender is not set up", "failed": "Request email not sent: the email failed", "none": "Request email not sent"}, "resendReceipt": "Resend receipt", "resendRequest": "Resend request email", "resent": {"sent": "Sent again.", "pending": "Not sent yet: the email sender is not set up.", "failed": "Not sent: the email failed. Try again."}}, "actions": {"recordPayment": "Record payment", "void": "Void", "confirm": "Confirm", "complete": "Mark completed", "cancel": "Cancel booking", "resolve": "Resolve", "addNote": "Add note", "keep": "Keep booking", "back": "Back"}, "record": {"title": "Record payment", "amount": "Amount received (AED)", "amountHint": "As it arrived in your bank, like 1050 or 1,050.50.", "receivedOn": "Date received", "bankReference": "Bank reference", "acceptShort": "Accept as paid", "acceptReason": "Reason", "review": "Review", "back": "Back", "record": "Record", "line": "Record {amount} received on {date}, bank reference {reference}.", "becomes": "The booking becomes {status}.", "stays": "The status stays {status}.", "partReceived": "Part received: {due} still due by {deadline}.", "writeOff": "{gap} short is written off: {reason}.", "overpaid": "{extra} more than the total is kept and flagged Overpaid.", "deadBooking": "This booking is {status}: the money is recorded and flagged for you. The nights are not taken back.", "nightsKept": "Its nights are kept for good.", "partPaidHeld": "Part paid: the nights stay held until you act, even after the pay-by date.", "clearsFlag": "This clears the flag Pay-by date passed, part paid.", "receipt": "The guest is emailed a receipt.", "recorded": "Payment recorded."}, "void": {"title": "Void this payment?", "reason": "Reason", "line": "The payment stays in the list, struck through, with your reason. Nothing is deleted.", "becomes": "The booking becomes {status}.", "stays": "The status stays {status}.", "fresh": "It is back to Awaiting payment with a new pay-by date: the transfer window from now.", "kept": "The nights stay held.", "untilDeadline": "The nights are held until then.", "laterOf": "No payment is left: it is an unpaid request again. Its pay-by date becomes the later of {deadline} and the transfer window from now.", "unchanged": "The pay-by date {deadline} stays.", "cleared": "The Needs attention flag is cleared.", "voided": "Payment voided."}, "status": {"confirm": {"title": "Confirm this booking?", "body": "The guest's booking page will show the exact address and stay access. No email is sent."}, "complete": {"title": "Mark this booking completed?", "body": "The booking is marked as done and no action is left on it. No email is sent."}, "cancel": {"title": "Cancel this booking?", "body": "The request ends and the nights are freed. No email is sent: tell the guest yourself."}, "cancelPaid": {"title": "Cancel this booking?", "body": "The booking ends and the nights are freed. {paid} already received stays recorded. Refunds are made from your bank. No email is sent: tell the guest yourself."}}, "notes": {"label": "Internal note", "placeholder": "[Internal note]", "add": "Add note", "empty": "No notes yet.", "added": "Note added."}, "attention": {"title": "Resolve Needs attention", "body": "Say what you did. Your note is kept with the booking and the flag is cleared.", "note": "Note", "resolve": "Resolve", "resolved": "Needs attention resolved."}, "history": {"actors": {"owner": "Owner", "system": "System", "guest": "Guest"}, "by": "{action}, by {who}", "created": "Booking created", "status": "Status changed to {status}", "hold_expired": "Expired: the time to pay ran out and the nights were freed", "request_sent": "Request sent by the guest", "payment_recorded": "Payment recorded: {amount}", "payment_voided": "Payment voided: {amount}", "note_added": "Internal note added", "needs_attention": "Flagged: needs attention", "attention_resolved": "Needs attention resolved", "resend_requested": "Resend asked: {template}", "request_withdrawn": "Withdrawn by the guest", "email_sent": "{template} sent", "email_pending": "{template} not sent yet", "email_failed": "{template} not sent: the email failed", "fallback": "Change recorded"}, "templates": {"request_received": "Request email", "request_owner": "Owner notice", "payment_receipt": "Receipt", "payment_owner": "Owner payment notice", "request_lapsed": "Lapse email", "request_withdrawn_owner": "Owner withdrawal notice"}, "errors": {"amount": "Type the amount received in AED, like 1050 or 1,050.50.", "date": "Use a date from {first} to today.", "reference": "Type the bank reference (up to 100 characters).", "reason": "Type a reason of 3 to 300 characters.", "note": "Type a note of up to 2,000 characters.", "attentionNote": "Type a note of 3 to 500 characters.", "changed": "This booking changed. It has been reloaded: check it and try again.", "not_found": "No booking has this reference.", "not_allowed": "This step is not possible from the booking's current status. It has been reloaded.", "not_requested": "The guest has not sent this request yet, so no payment can be recorded.", "not_applicable": "Accept as paid does not apply to a booking with this status.", "nothing_to_write_off": "Nothing is short: the amount covers what is due, so there is nothing to write off.", "not_voidable": "This payment cannot be voided: only a recorded bank transfer can.", "cancel_first": "Cancel the booking first: a confirmed booking cannot drop below its deposit.", "window_missing": "Set the transfer window in Settings first.", "nights_lost": "The nights could not be kept. Nothing was recorded.", "loadFailed": "The booking could not be loaded. Reload the page.", "listFailed": "The bookings could not be loaded. Reload the page.", "saveFailed": "This was not saved. Try again."}}, "ar": {"list": {"title": "الحجوزات", "search": "بحث", "searchHint": "المرجع أو اسم الضيف أو البريد الإلكتروني", "allStatuses": "كل الحالات", "allDestinations": "كل الوجهات", "arriveFrom": "الوصول من", "arriveTo": "الوصول حتى", "showMore": "عرض المزيد", "loading": "جارٍ تحميل الحجوزات…", "empty": "لا حجوزات بعد", "noMatch": "لا يطابق أي حجز عوامل التصفية هذه.", "columns": {"ref": "المرجع", "guestDates": "الضيف والتواريخ", "stay": "الإقامة", "status": "الحالة", "paid": "المدفوع", "total": "الإجمالي"}, "guests": "{count} ضيوف"}, "statuses": {"held": "محجوز مؤقتًا", "awaiting_payment": "بانتظار الدفع", "deposit_paid": "تم دفع المقدّم", "paid_in_full": "مدفوع بالكامل", "confirmed": "مؤكد", "completed": "مكتمل", "cancelled": "ملغى", "expired": "منتهي"}, "filters": {"attention": "يحتاج إلى متابعة"}, "flags": {"test": "TEST", "needsAttention": "يحتاج إلى متابعة", "partReceived": "استُلم جزء", "overpaid": "مدفوع بزيادة", "writtenOff": "مشطوب {amount}", "balanceOverdue": "الرصيد متأخر", "deadlinePassed": "انقضى الموعد", "deadlinePassedPartPaid": "انقضى موعد الدفع، ودُفع جزء", "reasons": {"paid_after_expiry": "وصل المبلغ بعد انتهاء الطلب. لم تُستعد الليالي: أعد الحجز أو ردّ المبلغ من مصرفك.", "paid_after_cancel": "وصل المبلغ بعد إلغاء الحجز. لم تُستعد الليالي: أعد الحجز أو ردّ المبلغ من مصرفك.", "overpaid": "استُلم مبلغ أكبر من الإجمالي. راجع الأمر مع الضيف؛ تُردّ المبالغ من مصرفك.", "deadline_passed_part_paid": "انقضى موعد الدفع، ودُفع جزء. تبقى الليالي محجوزة حتى تتخذ إجراءً: سجّل الباقي، أو ألغِ الحجز، أو عالج هذا التنبيه."}}, "detail": {"back": "كل الحجوزات", "overview": "نظرة عامة", "payments": "المدفوعات", "history": "السجل", "notes": "الملاحظات", "latestNotes": "آخر الملاحظات", "stayDates": "الإقامة والتواريخ", "arrive": "وصول", "leave": "مغادرة", "nights": "الليالي", "guest": "الضيف", "email": "البريد الإلكتروني", "phone": "الهاتف", "nationality": "الجنسية", "specialRequests": "طلبات خاصة", "emergencyContact": "جهة الاتصال في الطوارئ", "guests": "الضيوف", "travellers": "المسافرون", "booker": "صاحب الحجز", "notStaying": "لا يقيم", "age": "العمر", "airport": "المطار", "airports": {"DXB": "دبي (DXB)", "AUH": "أبوظبي (AUH)", "SHJ": "الشارقة (SHJ)", "none": "لم يُختر"}, "pickupAddress": "عنوان الاستقبال", "addOns": "الإضافات", "noAddOns": "لا إضافات", "subtotal": "المجموع الفرعي", "vat": "ضريبة القيمة المضافة {rate}٪", "total": "الإجمالي", "deposit": "الدفعة المقدّمة", "paid": "المدفوع", "writtenOff": "المشطوب", "dueNow": "المستحق الآن", "stillDue": "المتبقي", "payBy": "الدفع قبل {date}", "balanceDueBy": "الرصيد مستحق قبل", "madeOnSite": "أُجري على الموقع", "madeInDashboard": "أُجري من لوحة التحكم", "guestSees": "ما يراه الضيف", "uaeTime": " بتوقيت الإمارات"}, "payments": {"transactions": "المعاملات", "date": "التاريخ", "method": "الطريقة", "bankTransfer": "تحويل مصرفي", "card": "بطاقة", "reference": "المرجع", "amount": "المبلغ", "recordedBy": "سجّلها", "voided": "أُلغيت: {reason}", "writtenOff": "مشطوب {amount}: {reason}", "none": "لم تُسجَّل أي دفعة بعد.", "receipt": {"sent": "أُرسل الإيصال", "pending": "لم يُرسل الإيصال بعد: مُرسِل البريد غير مُعدّ", "failed": "لم يُرسل الإيصال: فشل البريد", "none": "لم يُرسل الإيصال"}, "requestMail": {"sent": "أُرسل بريد الطلب", "pending": "لم يُرسل بريد الطلب بعد: مُرسِل البريد غير مُعدّ", "failed": "لم يُرسل بريد الطلب: فشل البريد", "none": "لم يُرسل بريد الطلب"}, "resendReceipt": "إعادة إرسال الإيصال", "resendRequest": "إعادة إرسال بريد الطلب", "resent": {"sent": "أُرسل مرة أخرى.", "pending": "لم يُرسل بعد: مُرسِل البريد غير مُعدّ.", "failed": "لم يُرسل: فشل البريد. حاول مرة أخرى."}}, "actions": {"recordPayment": "تسجيل دفعة", "void": "إلغاء الدفعة", "confirm": "تأكيد", "complete": "وضع علامة مكتمل", "cancel": "إلغاء الحجز", "resolve": "معالجة", "addNote": "إضافة ملاحظة", "keep": "الإبقاء على الحجز", "back": "رجوع"}, "record": {"title": "تسجيل دفعة", "amount": "المبلغ المستلم (درهم)", "amountHint": "كما وصل إلى مصرفك، مثل 1050 أو 1,050.50.", "receivedOn": "تاريخ الاستلام", "bankReference": "مرجع التحويل", "acceptShort": "قبول كمدفوع", "acceptReason": "السبب", "review": "مراجعة", "back": "رجوع", "record": "تسجيل", "line": "تسجيل {amount} مستلم في {date}، مرجع التحويل {reference}.", "becomes": "يصبح الحجز {status}.", "stays": "تبقى الحالة {status}.", "partReceived": "استُلم جزء: يبقى {due} مستحقًا قبل {deadline}.", "writeOff": "يُشطب النقص {gap}: {reason}.", "overpaid": "يُحتفظ بمبلغ {extra} الزائد عن الإجمالي ويُعلَّم مدفوعًا بزيادة.", "deadBooking": "هذا الحجز {status}: يُسجَّل المبلغ ويُعلَّم لك. لا تُستعاد الليالي.", "nightsKept": "تبقى لياليه محجوزة نهائيًا.", "partPaidHeld": "دُفع جزء: تبقى الليالي محجوزة حتى تتخذ إجراءً، حتى بعد موعد الدفع.", "clearsFlag": "يزيل هذا تنبيه: انقضى موعد الدفع، ودُفع جزء.", "receipt": "يُرسل إلى الضيف إيصال بالبريد.", "recorded": "سُجّلت الدفعة."}, "void": {"title": "إلغاء هذه الدفعة؟", "reason": "السبب", "line": "تبقى الدفعة في القائمة مشطوبة مع سببك. لا يُحذف شيء.", "becomes": "يصبح الحجز {status}.", "stays": "تبقى الحالة {status}.", "fresh": "يعود إلى بانتظار الدفع بموعد دفع جديد: مهلة التحويل من الآن.", "kept": "تبقى الليالي محجوزة.", "untilDeadline": "تبقى الليالي محجوزة حتى ذلك الموعد.", "laterOf": "لم تبقَ أي دفعة: عاد طلبًا غير مدفوع. يصبح موعد الدفع الأبعد بين {deadline} ومهلة التحويل من الآن.", "unchanged": "يبقى موعد الدفع {deadline}.", "cleared": "أُزيل تنبيه يحتاج إلى متابعة.", "voided": "أُلغيت الدفعة."}, "status": {"confirm": {"title": "تأكيد هذا الحجز؟", "body": "ستعرض صفحة حجز الضيف العنوان الدقيق وطريقة الوصول إلى الإقامة. لا يُرسل أي بريد."}, "complete": {"title": "وضع علامة مكتمل على هذا الحجز؟", "body": "يُعلَّم الحجز منتهيًا ولا يبقى عليه أي إجراء. لا يُرسل أي بريد."}, "cancel": {"title": "إلغاء هذا الحجز؟", "body": "ينتهي الطلب وتُحرَّر الليالي. لا يُرسل أي بريد: أبلغ الضيف بنفسك."}, "cancelPaid": {"title": "إلغاء هذا الحجز؟", "body": "ينتهي الحجز وتُحرَّر الليالي. يبقى {paid} المستلم مسجلًا. تُردّ المبالغ من مصرفك. لا يُرسل أي بريد: أبلغ الضيف بنفسك."}}, "notes": {"label": "ملاحظة داخلية", "placeholder": "[ملاحظة داخلية]", "add": "إضافة ملاحظة", "empty": "لا ملاحظات بعد.", "added": "أُضيفت الملاحظة."}, "attention": {"title": "معالجة تنبيه يحتاج إلى متابعة", "body": "اذكر ما فعلته. تُحفظ ملاحظتك مع الحجز ويُزال التنبيه.", "note": "ملاحظة", "resolve": "معالجة", "resolved": "عولج التنبيه."}, "history": {"actors": {"owner": "المالك", "system": "النظام", "guest": "الضيف"}, "by": "{action}، بواسطة {who}", "created": "أُنشئ الحجز", "status": "تغيّرت الحالة إلى {status}", "hold_expired": "انتهى: انقضى وقت الدفع وحُرّرت الليالي", "request_sent": "أرسل الضيف الطلب", "payment_recorded": "سُجّلت دفعة: {amount}", "payment_voided": "أُلغيت دفعة: {amount}", "note_added": "أُضيفت ملاحظة داخلية", "needs_attention": "عُلّم: يحتاج إلى متابعة", "attention_resolved": "عولج تنبيه المتابعة", "resend_requested": "طُلبت إعادة الإرسال: {template}", "request_withdrawn": "سحبه الضيف", "email_sent": "أُرسل {template}", "email_pending": "لم يُرسل {template} بعد", "email_failed": "لم يُرسل {template}: فشل البريد", "fallback": "سُجّل تغيير"}, "templates": {"request_received": "بريد الطلب", "request_owner": "إشعار المالك", "payment_receipt": "الإيصال", "payment_owner": "إشعار الدفع للمالك", "request_lapsed": "بريد انتهاء الطلب", "request_withdrawn_owner": "إشعار السحب للمالك"}, "errors": {"amount": "اكتب المبلغ المستلم بالدرهم، مثل 1050 أو 1,050.50.", "date": "استخدم تاريخًا من {first} حتى اليوم.", "reference": "اكتب مرجع التحويل (حتى 100 حرف).", "reason": "اكتب سببًا من 3 إلى 300 حرف.", "note": "اكتب ملاحظة حتى 2,000 حرف.", "attentionNote": "اكتب ملاحظة من 3 إلى 500 حرف.", "changed": "تغيّر هذا الحجز. أُعيد تحميله: راجعه وحاول مرة أخرى.", "not_found": "لا يوجد حجز بهذا المرجع.", "not_allowed": "لا يمكن تنفيذ هذه الخطوة من حالة الحجز الحالية. أُعيد تحميله.", "not_requested": "لم يُرسل الضيف هذا الطلب بعد، لذا لا يمكن تسجيل دفعة.", "not_applicable": "لا ينطبق القبول كمدفوع على حجز بهذه الحالة.", "nothing_to_write_off": "لا نقص: المبلغ يغطي المستحق، فلا شيء يُشطب.", "not_voidable": "لا يمكن إلغاء هذه الدفعة: يمكن إلغاء التحويل المصرفي المسجل فقط.", "cancel_first": "ألغِ الحجز أولًا: لا يمكن أن ينزل حجز مؤكد عن دفعته المقدّمة.", "window_missing": "حدّد مهلة التحويل في الإعدادات أولًا.", "nights_lost": "تعذّر الإبقاء على الليالي. لم يُسجَّل شيء.", "loadFailed": "تعذّر تحميل الحجز. أعد تحميل الصفحة.", "listFailed": "تعذّر تحميل الحجوزات. أعد تحميل الصفحة.", "saveFailed": "لم يُحفظ هذا. حاول مرة أخرى."}}, "es": {"list": {"title": "Reservas", "search": "Buscar", "searchHint": "Referencia, nombre del huésped o correo", "allStatuses": "Todos los estados", "allDestinations": "Todos los destinos", "arriveFrom": "Llegada desde", "arriveTo": "Llegada hasta", "showMore": "Mostrar más", "loading": "Cargando reservas…", "empty": "Aún no hay reservas", "noMatch": "Ninguna reserva coincide con estos filtros.", "columns": {"ref": "Ref.", "guestDates": "Huésped y fechas", "stay": "Estancia", "status": "Estado", "paid": "Pagado", "total": "Total"}, "guests": "{count} huéspedes"}, "statuses": {"held": "Retenido", "awaiting_payment": "Pendiente de pago", "deposit_paid": "Depósito pagado", "paid_in_full": "Pagado en su totalidad", "confirmed": "Confirmado", "completed": "Completado", "cancelled": "Cancelado", "expired": "Vencido"}, "filters": {"attention": "Requiere atención"}, "flags": {"test": "TEST", "needsAttention": "Requiere atención", "partReceived": "Pago parcial recibido", "overpaid": "Pago en exceso", "writtenOff": "Condonado {amount}", "balanceOverdue": "Saldo vencido", "deadlinePassed": "Plazo vencido", "deadlinePassedPartPaid": "Fecha límite de pago vencida, pago parcial", "reasons": {"paid_after_expiry": "El dinero llegó después de que la solicitud venciera. Las noches no se recuperaron: vuelva a reservar o reembolse desde su banco.", "paid_after_cancel": "El dinero llegó después de cancelar la reserva. Las noches no se recuperaron: vuelva a reservar o reembolse desde su banco.", "overpaid": "Se recibió más dinero que el total. Revíselo con el huésped; los reembolsos se hacen desde su banco.", "deadline_passed_part_paid": "Fecha límite de pago vencida, pago parcial. Las noches siguen retenidas hasta que usted actúe: registre el resto, cancele la reserva o resuelva este aviso."}}, "detail": {"back": "Todas las reservas", "overview": "Resumen", "payments": "Pagos", "history": "Historial", "notes": "Notas", "latestNotes": "Últimas notas", "stayDates": "Estancia y fechas", "arrive": "Llegada", "leave": "Salida", "nights": "Noches", "guest": "Huésped", "email": "Correo", "phone": "Teléfono", "nationality": "Nacionalidad", "specialRequests": "Peticiones especiales", "emergencyContact": "Contacto de emergencia", "guests": "Huéspedes", "travellers": "Viajeros", "booker": "Titular de la reserva", "notStaying": "No se aloja", "age": "Edad", "airport": "Aeropuerto", "airports": {"DXB": "Dubái (DXB)", "AUH": "Abu Dabi (AUH)", "SHJ": "Sharjah (SHJ)", "none": "Sin elegir"}, "pickupAddress": "Dirección de recogida", "addOns": "Extras", "noAddOns": "Sin extras", "subtotal": "Subtotal", "vat": "IVA {rate} %", "total": "Total", "deposit": "Depósito", "paid": "Pagado", "writtenOff": "Condonado", "dueNow": "A pagar ahora", "stillDue": "Pendiente", "payBy": "Pagar antes del {date}", "balanceDueBy": "Saldo pendiente antes del", "madeOnSite": "Hecha en el sitio web", "madeInDashboard": "Hecha en el panel", "guestSees": "Lo que ve el huésped", "uaeTime": " hora de los EAU"}, "payments": {"transactions": "Transacciones", "date": "Fecha", "method": "Método", "bankTransfer": "Transferencia", "card": "Tarjeta", "reference": "Referencia", "amount": "Importe", "recordedBy": "Registrado por", "voided": "Anulado: {reason}", "writtenOff": "Condonado {amount}: {reason}", "none": "Aún no hay pagos registrados.", "receipt": {"sent": "Recibo enviado", "pending": "Recibo aún no enviado: el envío de correo no está configurado", "failed": "Recibo no enviado: el correo falló", "none": "Recibo no enviado"}, "requestMail": {"sent": "Correo de la solicitud enviado", "pending": "Correo de la solicitud aún no enviado: el envío de correo no está configurado", "failed": "Correo de la solicitud no enviado: el correo falló", "none": "Correo de la solicitud no enviado"}, "resendReceipt": "Reenviar recibo", "resendRequest": "Reenviar correo de la solicitud", "resent": {"sent": "Enviado de nuevo.", "pending": "Aún no enviado: el envío de correo no está configurado.", "failed": "No enviado: el correo falló. Inténtelo de nuevo."}}, "actions": {"recordPayment": "Registrar pago", "void": "Anular", "confirm": "Confirmar", "complete": "Marcar como completada", "cancel": "Cancelar reserva", "resolve": "Resolver", "addNote": "Añadir nota", "keep": "Mantener reserva", "back": "Volver"}, "record": {"title": "Registrar pago", "amount": "Importe recibido (AED)", "amountHint": "Tal como llegó a su banco, por ejemplo 1050 o 1,050.50.", "receivedOn": "Fecha de recepción", "bankReference": "Referencia bancaria", "acceptShort": "Aceptar como pagado", "acceptReason": "Motivo", "review": "Revisar", "back": "Volver", "record": "Registrar", "line": "Registrar {amount} recibido el {date}, referencia bancaria {reference}.", "becomes": "La reserva pasa a {status}.", "stays": "El estado sigue en {status}.", "partReceived": "Pago parcial recibido: quedan {due} por pagar antes del {deadline}.", "writeOff": "Se condona la diferencia de {gap}: {reason}.", "overpaid": "Se conservan {extra} por encima del total y se marca Pago en exceso.", "deadBooking": "El estado de esta reserva es {status}: el dinero se registra y se marca para usted. Las noches no se recuperan.", "nightsKept": "Sus noches quedan reservadas de forma definitiva.", "partPaidHeld": "Pago parcial: las noches siguen retenidas hasta que usted actúe, incluso después de la fecha límite de pago.", "clearsFlag": "Esto quita el aviso Fecha límite de pago vencida, pago parcial.", "receipt": "Se envía un recibo al huésped por correo.", "recorded": "Pago registrado."}, "void": {"title": "¿Anular este pago?", "reason": "Motivo", "line": "El pago sigue en la lista, tachado, con su motivo. No se elimina nada.", "becomes": "La reserva pasa a {status}.", "stays": "El estado sigue en {status}.", "fresh": "Vuelve a Pendiente de pago con una nueva fecha límite de pago: el plazo de transferencia desde ahora.", "kept": "Las noches siguen retenidas.", "untilDeadline": "Las noches quedan retenidas hasta entonces.", "laterOf": "No queda ningún pago: vuelve a ser una solicitud sin pagar. Su fecha límite de pago pasa a ser la más tardía entre {deadline} y el plazo de transferencia desde ahora.", "unchanged": "La fecha límite de pago {deadline} se mantiene.", "cleared": "Se quita el aviso Requiere atención.", "voided": "Pago anulado."}, "status": {"confirm": {"title": "¿Confirmar esta reserva?", "body": "La página de la reserva del huésped mostrará la dirección exacta y el acceso a la estancia. No se envía ningún correo."}, "complete": {"title": "¿Marcar esta reserva como completada?", "body": "La reserva queda marcada como terminada y no queda ninguna acción pendiente. No se envía ningún correo."}, "cancel": {"title": "¿Cancelar esta reserva?", "body": "La solicitud termina y las noches quedan libres. No se envía ningún correo: avise usted al huésped."}, "cancelPaid": {"title": "¿Cancelar esta reserva?", "body": "La reserva termina y las noches quedan libres. Los {paid} ya recibidos siguen registrados. Los reembolsos se hacen desde su banco. No se envía ningún correo: avise usted al huésped."}}, "notes": {"label": "Nota interna", "placeholder": "[Nota interna]", "add": "Añadir nota", "empty": "Aún no hay notas.", "added": "Nota añadida."}, "attention": {"title": "Resolver Requiere atención", "body": "Indique qué hizo. Su nota se guarda con la reserva y se quita el aviso.", "note": "Nota", "resolve": "Resolver", "resolved": "Aviso resuelto."}, "history": {"actors": {"owner": "Propietario", "system": "Sistema", "guest": "Huésped"}, "by": "{action}, por {who}", "created": "Reserva creada", "status": "Estado cambiado a {status}", "hold_expired": "Vencida: terminó el tiempo para pagar y las noches quedaron libres", "request_sent": "Solicitud enviada por el huésped", "payment_recorded": "Pago registrado: {amount}", "payment_voided": "Pago anulado: {amount}", "note_added": "Nota interna añadida", "needs_attention": "Marcada: requiere atención", "attention_resolved": "Aviso resuelto", "resend_requested": "Reenvío solicitado: {template}", "request_withdrawn": "Retirada por el huésped", "email_sent": "{template} enviado", "email_pending": "{template} aún no enviado", "email_failed": "{template} no enviado: el correo falló", "fallback": "Cambio registrado"}, "templates": {"request_received": "Correo de la solicitud", "request_owner": "Aviso al propietario", "payment_receipt": "Recibo", "payment_owner": "Aviso de pago al propietario", "request_lapsed": "Correo de vencimiento", "request_withdrawn_owner": "Aviso de retirada al propietario"}, "errors": {"amount": "Escriba el importe recibido en AED, por ejemplo 1050 o 1,050.50.", "date": "Use una fecha entre el {first} y hoy.", "reference": "Escriba la referencia bancaria (hasta 100 caracteres).", "reason": "Escriba un motivo de 3 a 300 caracteres.", "note": "Escriba una nota de hasta 2.000 caracteres.", "attentionNote": "Escriba una nota de 3 a 500 caracteres.", "changed": "Esta reserva cambió. Se ha vuelto a cargar: revísela e inténtelo de nuevo.", "not_found": "Ninguna reserva tiene esta referencia.", "not_allowed": "Este paso no es posible desde el estado actual de la reserva. Se ha vuelto a cargar.", "not_requested": "El huésped aún no ha enviado esta solicitud, así que no se puede registrar ningún pago.", "not_applicable": "Aceptar como pagado no se aplica a una reserva con este estado.", "nothing_to_write_off": "No falta nada: el importe cubre lo pendiente, así que no hay nada que condonar.", "not_voidable": "Este pago no se puede anular: solo se puede anular una transferencia registrada.", "cancel_first": "Cancele primero la reserva: una reserva confirmada no puede quedar por debajo de su depósito.", "window_missing": "Defina primero el plazo de transferencia en Ajustes.", "nights_lost": "No se pudieron conservar las noches. No se registró nada.", "loadFailed": "No se pudo cargar la reserva. Vuelva a cargar la página.", "listFailed": "No se pudieron cargar las reservas. Vuelva a cargar la página.", "saveFailed": "No se guardó. Inténtelo de nuevo."}}}, "m": {"en": {"title": "Bank transfer", "balanceDue": "Balance due", "balanceDaysAfter": "days before arrival", "balanceHint": "Empty: guests can only pay in full.", "window": "Transfer window", "units": {"minutes": "Minutes", "hours": "Hours", "days": "Days"}, "windowUnit": "Unit", "windowHint": "How long a guest has to pay after a request. Empty: requests stay closed. From 35 minutes to 30 days. TEST requests on the preview site use 35 minutes.", "windowHours": "Transfer window (hours)", "windowHoursHint": "How long a guest has to pay after a request, in whole hours. Empty: requests stay closed. From 1 to 720 hours (30 days). TEST requests on the preview site use 35 minutes.", "accountName": "Account name", "bankName": "Bank", "iban": "IBAN", "swift": "SWIFT / BIC", "bankAddress": "Bank address", "note": "Note line", "noteHint": "Shown to guests with the bank details. Type it in English; Arabic and Spanish are filled when you save.", "editTranslations": "Edit translations", "hideTranslations": "Hide translations", "arabic": "Arabic", "spanish": "Spanish", "errors": {"windowRange": "Use 35 minutes to 30 days.", "windowHoursRange": "Use 1 to 720 hours.", "whole": "Use a whole number.", "daysRange": "Use 0 to 365 days.", "checksum": "This IBAN does not check out. Look for a typing error.", "shape": "A SWIFT / BIC has 8 or 11 letters and digits.", "long": "This is too long: up to {max} characters.", "required": "Fill in every bank field, or empty them all."}, "readiness": {"title": "Guests can send requests once these are set:", "window": "Transfer window", "bank": "Bank details", "terms": "Booking terms text (send it to be added)", "set": "Set", "notSet": "Not set"}, "confirm": {"title": "Guests are sent these bank details", "body": "Check the account name and IBAN before you save: {name}, {iban}.", "save": "Save details", "back": "Check again"}, "save": "Save bank transfer", "saving": "Saving…", "saved": "Bank transfer saved.", "saveFailed": "Bank transfer was not saved. Try again.", "loadFailed": "The bank transfer settings could not be loaded. Reload the page.", "translations": {"working": "Adding Arabic and Spanish…", "updated": "Arabic and Spanish updated.", "notUpdated": "Arabic and Spanish not updated: guests see English until you save again.", "limit": "Arabic and Spanish not updated: today's translation limit is reached. Guests see English until you save again.", "busy": "Arabic and Spanish not updated: the translation service is busy. Guests see English until you save again."}, "lastChanged": "Last changed {time} UAE time"}, "ar": {"title": "التحويل المصرفي", "balanceDue": "موعد الرصيد", "balanceDaysAfter": "أيام قبل الوصول", "balanceHint": "فارغ: لا يمكن للضيوف إلا الدفع بالكامل.", "window": "مهلة التحويل", "units": {"minutes": "دقائق", "hours": "ساعات", "days": "أيام"}, "windowUnit": "الوحدة", "windowHint": "المدة المتاحة للضيف ليدفع بعد الطلب. فارغ: تبقى الطلبات مغلقة. من 35 دقيقة إلى 30 يومًا. طلبات TEST على موقع المعاينة تستخدم 35 دقيقة.", "windowHours": "مهلة التحويل (ساعات)", "windowHoursHint": "المدة المتاحة للضيف ليدفع بعد الطلب، بساعات كاملة. فارغ: تبقى الطلبات مغلقة. من 1 إلى 720 ساعة (30 يومًا). طلبات TEST على موقع المعاينة تستخدم 35 دقيقة.", "accountName": "اسم الحساب", "bankName": "المصرف", "iban": "IBAN", "swift": "SWIFT / BIC", "bankAddress": "عنوان المصرف", "note": "سطر الملاحظة", "noteHint": "يُعرض للضيوف مع بيانات المصرف. اكتبه بالإنجليزية؛ تُملأ العربية والإسبانية عند الحفظ.", "editTranslations": "تعديل الترجمات", "hideTranslations": "إخفاء الترجمات", "arabic": "العربية", "spanish": "الإسبانية", "errors": {"windowRange": "استخدم من 35 دقيقة إلى 30 يومًا.", "windowHoursRange": "استخدم من 1 إلى 720 ساعة.", "whole": "استخدم عددًا صحيحًا.", "daysRange": "استخدم من 0 إلى 365 يومًا.", "checksum": "رقم IBAN هذا غير صحيح. ابحث عن خطأ في الكتابة.", "shape": "رمز SWIFT / BIC يتكوّن من 8 أو 11 حرفًا ورقمًا.", "long": "هذا طويل جدًا: حتى {max} حرف.", "required": "املأ كل حقول المصرف، أو أفرغها كلها."}, "readiness": {"title": "يمكن للضيوف إرسال الطلبات بعد ضبط ما يلي:", "window": "مهلة التحويل", "bank": "بيانات المصرف", "terms": "نص شروط الحجز (أرسله ليُضاف)", "set": "مضبوط", "notSet": "غير مضبوط"}, "confirm": {"title": "تُرسل بيانات المصرف هذه إلى الضيوف", "body": "راجع اسم الحساب ورقم IBAN قبل الحفظ: {name}، {iban}.", "save": "حفظ البيانات", "back": "المراجعة مرة أخرى"}, "save": "حفظ التحويل المصرفي", "saving": "جارٍ الحفظ…", "saved": "حُفظ التحويل المصرفي.", "saveFailed": "لم يُحفظ التحويل المصرفي. حاول مرة أخرى.", "loadFailed": "تعذّر تحميل إعدادات التحويل المصرفي. أعد تحميل الصفحة.", "translations": {"working": "جارٍ إضافة العربية والإسبانية…", "updated": "تم تحديث العربية والإسبانية.", "notUpdated": "لم تُحدَّث العربية والإسبانية: يرى الضيوف الإنجليزية حتى تحفظ مرة أخرى.", "limit": "لم تُحدَّث العربية والإسبانية: بلغ حد الترجمة اليومي. يرى الضيوف الإنجليزية حتى تحفظ مرة أخرى.", "busy": "لم تُحدَّث العربية والإسبانية: خدمة الترجمة مشغولة. يرى الضيوف الإنجليزية حتى تحفظ مرة أخرى."}, "lastChanged": "آخر تغيير {time} بتوقيت الإمارات"}, "es": {"title": "Transferencia bancaria", "balanceDue": "Saldo pendiente", "balanceDaysAfter": "días antes de la llegada", "balanceHint": "Vacío: los huéspedes solo pueden pagar el total.", "window": "Plazo de transferencia", "units": {"minutes": "Minutos", "hours": "Horas", "days": "Días"}, "windowUnit": "Unidad", "windowHint": "Cuánto tiempo tiene un huésped para pagar tras una solicitud. Vacío: las solicitudes siguen cerradas. De 35 minutos a 30 días. Las solicitudes TEST del sitio de vista previa usan 35 minutos.", "windowHours": "Plazo de transferencia (horas)", "windowHoursHint": "Cuánto tiempo tiene un huésped para pagar tras una solicitud, en horas enteras. Vacío: las solicitudes siguen cerradas. De 1 a 720 horas (30 días). Las solicitudes TEST del sitio de vista previa usan 35 minutos.", "accountName": "Titular de la cuenta", "bankName": "Banco", "iban": "IBAN", "swift": "SWIFT / BIC", "bankAddress": "Dirección del banco", "note": "Línea de nota", "noteHint": "Se muestra a los huéspedes con los datos bancarios. Escríbala en inglés; el árabe y el español se completan al guardar.", "editTranslations": "Editar traducciones", "hideTranslations": "Ocultar traducciones", "arabic": "Árabe", "spanish": "Español", "errors": {"windowRange": "Use de 35 minutos a 30 días.", "windowHoursRange": "Use de 1 a 720 horas.", "whole": "Use un número entero.", "daysRange": "Use de 0 a 365 días.", "checksum": "Este IBAN no es válido. Revise si hay un error de escritura.", "shape": "Un SWIFT / BIC tiene 8 u 11 letras y cifras.", "long": "Es demasiado largo: hasta {max} caracteres.", "required": "Complete todos los campos bancarios o déjelos todos vacíos."}, "readiness": {"title": "Los huéspedes pueden enviar solicitudes cuando esto esté definido:", "window": "Plazo de transferencia", "bank": "Datos bancarios", "terms": "Texto de las condiciones de reserva (envíelo para añadirlo)", "set": "Definido", "notSet": "Sin definir"}, "confirm": {"title": "Se envían estos datos bancarios a los huéspedes", "body": "Revise el titular de la cuenta y el IBAN antes de guardar: {name}, {iban}.", "save": "Guardar datos", "back": "Revisar de nuevo"}, "save": "Guardar transferencia bancaria", "saving": "Guardando…", "saved": "Transferencia bancaria guardada.", "saveFailed": "La transferencia bancaria no se guardó. Inténtelo de nuevo.", "loadFailed": "No se pudieron cargar los ajustes de transferencia bancaria. Vuelva a cargar la página.", "translations": {"working": "Añadiendo árabe y español…", "updated": "Árabe y español actualizados.", "notUpdated": "Árabe y español no actualizados: los huéspedes ven el inglés hasta que vuelva a guardar.", "limit": "Árabe y español no actualizados: se alcanzó el límite diario de traducción. Los huéspedes ven el inglés hasta que vuelva a guardar.", "busy": "Árabe y español no actualizados: el servicio de traducción está ocupado. Los huéspedes ven el inglés hasta que vuelva a guardar."}, "lastChanged": "Último cambio {time} hora de los EAU"}}, "s": {"en": {"money": "VAT and deposit", "vat": "VAT percent", "deposit": "Deposit percent", "fx": "FX rate", "fxHint": "Updated daily. Not editable.", "saved": "Settings saved.", "save": "Save"}, "ar": {"money": "الضريبة والعربون", "vat": "نسبة ضريبة القيمة المضافة", "deposit": "نسبة العربون", "fx": "سعر الصرف", "fxHint": "يُحدَّث يومياً. غير قابل للتعديل.", "saved": "تم حفظ الإعدادات.", "save": "حفظ"}, "es": {"money": "IVA y depósito", "vat": "Porcentaje de IVA", "deposit": "Porcentaje de depósito", "fx": "Tipo de cambio", "fxHint": "Se actualiza a diario. No se puede editar.", "saved": "Ajustes guardados.", "save": "Guardar"}}};
+/* ALMAR 04-09 pictures. Strings come from COPY (a verbatim dump of lib/copy/ops-bookings.ts, ops-money.ts and the
+   vat / deposit / fx / money keys of ops-settings.ts + the bottom Save of dashboard.ts). Rules are ported from
+   lib/ops/booking-rules.ts (statusActions, canRecordPayment, canAcceptShort, canVoid, canResendReceipt,
+   canResendRequest, nextStatus, settlePreview, voidPreview). All amounts are example figures. */
+const LOCS = ["en", "ar", "es"];
+let LOC = "en", WIDTH = 1440, CMP = false;
+const B = () => COPY.b[LOC], M = () => COPY.m[LOC], S = () => COPY.s[LOC];
+
+/* ---------- helpers ---------- */
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fill = (s, o) => s.replace(/\{(\w+)\}/g, (m, k) => (k in o ? o[k] : m));
+const grp = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+const aedT = (f) => grp(Math.floor(f / 100)) + "." + String(f % 100).padStart(2, "0");
+const aed = (f) => `<bdi dir="ltr">AED ${aedT(f)}</bdi>`;
+const dd = (d) => { const [y, m, x] = d.split("-"); return `<bdi dir="ltr">${x}/${m}/${y}</bdi>`; };
+const dtmBare = (s) => { const [d, t] = s.split(" "); const [y, m, x] = d.split("-"); return `<bdi dir="ltr">${x}/${m}/${y} ${t}</bdi>`; };
+const dtm = (s) => { const [d, t] = s.split(" "); const [y, m, x] = d.split("-"); return `<bdi dir="ltr">${x}/${m}/${y} ${t}</bdi>${esc(B().detail.uaeTime)}`; };
+const WORD = {
+  en: { guest: "[Guest name]", stay: "[Stay name]", dest: "[Destination]", ref: "[Bank reference]", reason: "[Reason]", addon: "[Add-on name]", pick: "[Pickup address]", email: "[guest@example.com]", phone: "[Phone]", nat: "[Nationality]", req: "[Special requests]", emer: "[Emergency contact]", owner: "[Owner email]", other: "[Traveller name]", acct: "[Account name]", bank: "[Bank name]", baddr: "[Bank address]", note: "[Note line]", pct: "[00]", fx: "[0.00]" },
+  ar: { guest: "[اسم الضيف]", stay: "[اسم الإقامة]", dest: "[الوجهة]", ref: "[مرجع المصرف]", reason: "[السبب]", addon: "[اسم الإضافة]", pick: "[عنوان الاستلام]", email: "[guest@example.com]", phone: "[الهاتف]", nat: "[الجنسية]", req: "[طلبات خاصة]", emer: "[جهة الطوارئ]", owner: "[owner@example.com]", other: "[اسم المسافر]", acct: "[اسم الحساب]", bank: "[اسم المصرف]", baddr: "[عنوان المصرف]", note: "[سطر الملاحظة]", pct: "[00]", fx: "[0.00]" },
+  es: { guest: "[Nombre del huésped]", stay: "[Nombre de la estancia]", dest: "[Destino]", ref: "[Referencia bancaria]", reason: "[Motivo]", addon: "[Nombre del extra]", pick: "[Dirección de recogida]", email: "[guest@example.com]", phone: "[Teléfono]", nat: "[Nacionalidad]", req: "[Peticiones especiales]", emer: "[Contacto de emergencia]", owner: "[owner@example.com]", other: "[Nombre del viajero]", acct: "[Titular de la cuenta]", bank: "[Nombre del banco]", baddr: "[Dirección del banco]", note: "[Línea de nota]", pct: "[00]", fx: "[0.00]" },
+};
+const W = () => WORD[LOC];
+const IBAN = "AE07 0331 2345 6789 0123 456", IBAN_RAW = "AE070331234567890123456", BIC = "TESTAEAAXXX";
+const ICON = {
+  warn: '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 17.5v.5"/></svg>',
+  check: '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg>',
+  cross: '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>',
+  chev: (r) => `<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="transform:rotate(${r}deg)" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`,
+  x: '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>',
+  down: '<svg class="i" style="width:12px;height:12px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg>',
+};
+const missing = (...keys) => `<div class="miss">MISSING COPY: ${keys.map(esc).join(", ")}</div>`;
+const chip = (t, o = {}) => `<span class="chip${o.on ? " on" : ""}${o.dense ? " dense" : ""}">${t}</span>`;
+const btn = (kind, label, o = {}) => `<button type="button" class="btn btn-${kind}${kind === "primary" || kind === "secondary" ? " btn-up" : ""}${o.sm ? " sm" : ""}"${o.dis ? " disabled" : ""}${o.pressed != null ? ` aria-pressed="${o.pressed}"` : ""}>${label}</button>`;
+const errLine = (t) => `<p class="err">${ICON.warn}<span>${t}</span></p>`;
+const field = (label, value, o = {}) => `<div class="field${o.wide ? " wide" : ""}"${o.style ? ` style="${o.style}"` : ""}><label>${label}</label><div class="inp${o.ta ? " ta" : ""}${o.err ? " bad" : ""}${o.ph ? " ph" : ""}${o.dis ? " dis" : ""}"${o.dir ? ` dir="${o.dir}"` : ""}>${value === "" ? "&nbsp;" : value}</div>${o.err ? errLine(o.err) : o.hint ? `<p class="${o.hm ? "hint m" : "hint"}">${o.hint}</p>` : ""}</div>`;
+const selT = (label, value) => `<div class="field" style="max-width:240px"><span class="lb">${label}</span><div class="sel"><span>${value}</span>${ICON.down}</div></div>`;
+const isRtl = () => LOC === "ar";
+
+/* ---------- rules (ported) ---------- */
+const ACTIONS = { held: [], awaiting_payment: ["cancel"], deposit_paid: ["confirm", "cancel"], paid_in_full: ["confirm", "cancel"], confirmed: ["complete", "cancel"], completed: [], cancelled: [], expired: [] };
+const statusActions = (s) => [...ACTIONS[s]];
+const canRecordPayment = (s) => s !== "held";
+const canAcceptShort = (s) => ["awaiting_payment", "deposit_paid", "confirmed", "completed"].includes(s);
+const canVoid = (p) => p.status === "succeeded" && p.method === "bank_transfer";
+const canResendReceipt = (p) => p.status === "succeeded";
+const canResendRequest = (s, f) => s === "awaiting_payment" && (!f.deadline_passed || f.part_received);
+const nextStatus = (st, plan, grand, dep, settled) => {
+  if (!["awaiting_payment", "deposit_paid", "paid_in_full"].includes(st)) return st;
+  if (settled >= grand) return "paid_in_full";
+  if (plan === "deposit" && settled >= dep) return "deposit_paid";
+  return "awaiting_payment";
+};
+const LIVE = ["awaiting_payment", "deposit_paid", "paid_in_full", "confirmed", "completed"];
+const stillDue = (st, grand, settled) => (LIVE.includes(st) ? Math.max(0, grand - settled) : 0);
+function settlePreview(i) {
+  const settledBefore = i.paid + i.wo;
+  const un = { refusal: null, statusAfter: i.status, writeOff: 0, gap: 0, partReceived: i.status === "awaiting_payment" && i.paid > 0, overpaid: 0, nightsKept: false, stillDue: stillDue(i.status, i.grand, settledBefore), attentionCleared: false };
+  if (i.status === "held") return { ...un, refusal: "not_requested" };
+  if (i.accept && !canAcceptShort(i.status)) return { ...un, refusal: "not_applicable" };
+  const target = i.status === "awaiting_payment" && i.plan === "deposit" ? i.dep : i.grand;
+  const gap = canAcceptShort(i.status) ? target - (settledBefore + i.amount) : 0;
+  if (i.accept && gap <= 0) return { ...un, refusal: "nothing_to_write_off" };
+  const writeOff = i.accept ? gap : 0, paidAfter = i.paid + i.amount, settledAfter = settledBefore + i.amount + writeOff;
+  const statusAfter = i.status === "awaiting_payment" || i.status === "deposit_paid" ? nextStatus(i.status, i.plan, i.grand, i.dep, settledAfter) : i.status;
+  return { refusal: null, statusAfter, writeOff, gap: Math.max(0, gap), partReceived: statusAfter === "awaiting_payment" && paidAfter > 0, overpaid: paidAfter > i.grand ? paidAfter - i.grand : 0, nightsKept: statusAfter !== "expired" && statusAfter !== "cancelled", stillDue: stillDue(statusAfter, i.grand, settledAfter), attentionCleared: i.reason === "deadline_passed_part_paid" && statusAfter !== "awaiting_payment" };
+}
+const pctFloor = 500000; /* example floor figure: the deposit a full-plan booking would have had */
+function voidPreview(i) {
+  const paidAfter = i.paid - i.pay.amount, settledAfter = i.paid + i.wo - i.pay.amount - i.pay.wo;
+  const floor = i.plan === "deposit" ? i.dep : pctFloor;
+  if ((i.status === "confirmed" || i.status === "completed") && settledAfter < floor) return { refusal: "cancel_first", statusAfter: i.status };
+  const statusAfter = i.status === "deposit_paid" || i.status === "paid_in_full" ? nextStatus(i.status, i.plan, i.grand, i.dep, settledAfter) : i.status;
+  let deadline, nights;
+  if ((i.status === "deposit_paid" || i.status === "paid_in_full") && statusAfter === "awaiting_payment") { deadline = "fresh"; nights = paidAfter > 0 ? "kept" : "until_deadline"; }
+  else if (i.status === "awaiting_payment") { deadline = paidAfter > 0 ? "unchanged" : "later_of"; nights = paidAfter > 0 ? "kept" : "until_deadline"; }
+  else if (i.status === "expired" || i.status === "cancelled") { deadline = null; nights = "none"; }
+  else { deadline = null; nights = "kept"; }
+  return { refusal: null, statusAfter, deadline, nights, attentionCleared: (i.reason === "overpaid" && paidAfter <= i.grand) || (["deadline_passed_part_paid", "paid_after_expiry", "paid_after_cancel"].includes(i.reason) && paidAfter === 0) };
+}
+
+/* ---------- fixtures (bracket text, example AED figures, today = 2026-10-19 10:30 Dubai) ---------- */
+const TODAY = "2026-10-19";
+const GRAND = 1100000, DEP = 500000;
+function booking(o) {
+  const b = Object.assign({
+    ref: "ALMAR-ABC234", status: "awaiting_payment", source: "web", test: false, plan: "deposit", deadline: "2026-10-21 17:30", arrive: "2026-11-12", leave: "2026-11-15", nights: 3, adults: 2, children: 1, infants: 0, airport: "DXB",
+    nightsF: 900000, addonsF: 100000, vatF: 100000, grand: GRAND, dep: DEP, paid: 0, wo: 0, balanceDate: "2026-10-29", balanceOverdue: false,
+    flags: { needs_attention: false, part_received: false, overpaid: false, written_off: false, deadline_passed: false }, reason: null,
+    payments: [], notes: [], events: [], createdOn: "2026-10-17 12:10",
+  }, o);
+  b.flags = Object.assign({ needs_attention: false, part_received: false, overpaid: false, written_off: false, deadline_passed: false }, o.flags || {});
+  b.dueNow = o.dueNow != null ? o.dueNow : (b.status === "awaiting_payment" ? Math.max(0, (b.plan === "deposit" ? b.dep : b.grand) - b.paid) : 0);
+  b.still = stillDue(b.status, b.grand, b.paid + b.wo);
+  return b;
+}
+const pay = (id, amount, o = {}) => Object.assign({ id, amount, status: "succeeded", method: "bank_transfer", on: "2026-10-18", ref: true, by: true, wo: 0, woReason: null, voidReason: null, mail: "sent" }, o);
+const E = (at, who, action, o = {}) => Object.assign({ at, who, action }, o);
+const created = E("2026-10-17 12:10", "guest", "created");
+const reqSent = [E("2026-10-17 12:12", "guest", "request_sent"), E("2026-10-17 12:12", "system", "email_sent", { tpl: "request_received" }), E("2026-10-17 12:12", "system", "email_sent", { tpl: "request_owner" })];
+const BK = {
+  held: () => booking({ status: "held", deadline: null, hold: "2026-10-19 11:00", events: [created], dueNow: 0 }),
+  awaiting: () => booking({ events: [created, ...reqSent] }),
+  "awaiting-part": () => booking({ paid: 200000, flags: { part_received: true }, payments: [pay("p1", 200000)], events: [created, ...reqSent, E("2026-10-18 14:05", "owner", "payment_recorded", { amount: 200000 }), E("2026-10-18 14:05", "system", "email_sent", { tpl: "payment_receipt" })] }),
+  "deposit-paid": () => booking({ status: "deposit_paid", deadline: null, paid: 500000, payments: [pay("p1", 500000)], events: [created, ...reqSent, E("2026-10-18 14:05", "owner", "payment_recorded", { amount: 500000 }), E("2026-10-18 14:05", "system", "status", { st: "deposit_paid" }), E("2026-10-18 14:05", "system", "email_sent", { tpl: "payment_receipt" })] }),
+  "paid-in-full": () => booking({ status: "paid_in_full", plan: "full", deadline: null, paid: GRAND, payments: [pay("p1", GRAND)], events: [created, ...reqSent, E("2026-10-18 14:05", "owner", "payment_recorded", { amount: GRAND }), E("2026-10-18 14:05", "system", "status", { st: "paid_in_full" }), E("2026-10-18 14:05", "system", "email_sent", { tpl: "payment_receipt" })] }),
+  confirmed: () => booking({ status: "confirmed", plan: "full", deadline: null, paid: GRAND, payments: [pay("p1", GRAND)], events: [created, ...reqSent, E("2026-10-18 14:05", "owner", "payment_recorded", { amount: GRAND }), E("2026-10-18 14:06", "owner", "status", { st: "confirmed" })] }),
+  completed: () => booking({ status: "completed", plan: "full", deadline: null, arrive: "2026-09-10", leave: "2026-09-13", paid: GRAND, payments: [pay("p1", GRAND, { on: "2026-08-20" })], events: [created, E("2026-08-20 09:00", "owner", "payment_recorded", { amount: GRAND }), E("2026-08-21 09:00", "owner", "status", { st: "confirmed" }), E("2026-09-14 09:00", "owner", "status", { st: "completed" })] }),
+  cancelled: () => booking({ status: "cancelled", deadline: null, events: [created, ...reqSent, E("2026-10-18 16:00", "owner", "status", { st: "cancelled" })] }),
+  withdrawn: () => booking({ status: "cancelled", deadline: null, events: [created, E("2026-10-17 12:12", "guest", "request_sent"), E("2026-10-17 13:40", "guest", "request_withdrawn", { st: "cancelled" }), E("2026-10-17 13:40", "system", "email_sent", { tpl: "request_withdrawn_owner" })] }),
+  expired: () => booking({ status: "expired", deadline: null, events: [created, ...reqSent, E("2026-10-19 09:00", "system", "hold_expired"), E("2026-10-19 09:00", "system", "email_sent", { tpl: "request_lapsed" })] }),
+  "deadline-passed-part-paid": () => booking({ deadline: "2026-10-18 17:30", paid: 200000, flags: { needs_attention: true, part_received: true, deadline_passed: true }, reason: "deadline_passed_part_paid", payments: [pay("p1", 200000, { on: "2026-10-17" })], events: [created, ...reqSent, E("2026-10-17 15:00", "owner", "payment_recorded", { amount: 200000 }), E("2026-10-17 15:00", "system", "email_sent", { tpl: "payment_receipt" }), E("2026-10-19 09:00", "system", "needs_attention")] }),
+  "paid-after-expiry": () => booking({ status: "expired", deadline: null, paid: 500000, flags: { needs_attention: true }, reason: "paid_after_expiry", payments: [pay("p1", 500000, { on: "2026-10-19" })], events: [created, ...reqSent, E("2026-10-19 09:00", "system", "hold_expired"), E("2026-10-19 10:05", "owner", "payment_recorded", { amount: 500000 }), E("2026-10-19 10:05", "system", "needs_attention")] }),
+  "paid-after-cancel": () => booking({ status: "cancelled", deadline: null, paid: 500000, flags: { needs_attention: true }, reason: "paid_after_cancel", payments: [pay("p1", 500000, { on: "2026-10-19" })], events: [created, ...reqSent, E("2026-10-18 16:00", "owner", "status", { st: "cancelled" }), E("2026-10-19 10:05", "owner", "payment_recorded", { amount: 500000 }), E("2026-10-19 10:05", "system", "needs_attention")] }),
+  overpaid: () => booking({ status: "paid_in_full", plan: "full", deadline: null, paid: 1200000, flags: { needs_attention: true, overpaid: true }, reason: "overpaid", payments: [pay("p1", 1200000)], events: [created, ...reqSent, E("2026-10-18 14:05", "owner", "payment_recorded", { amount: 1200000 }), E("2026-10-18 14:05", "system", "needs_attention")] }),
+  "written-off": () => booking({ status: "paid_in_full", plan: "full", deadline: null, paid: 1050000, wo: 50000, flags: { written_off: true }, payments: [pay("p1", 1050000, { wo: 50000, woReason: "reason" })], events: [created, ...reqSent, E("2026-10-18 14:05", "owner", "payment_recorded", { amount: 1050000 }), E("2026-10-18 14:05", "system", "email_sent", { tpl: "payment_receipt" })] }),
+  "email-failed": () => booking({ status: "deposit_paid", deadline: null, paid: 500000, payments: [pay("p1", 300000, { mail: "failed", on: "2026-10-17" }), pay("p2", 200000, { mail: "pending" })], events: [created, ...reqSent, E("2026-10-17 15:00", "owner", "payment_recorded", { amount: 300000 }), E("2026-10-17 15:00", "system", "email_failed", { tpl: "payment_receipt" }), E("2026-10-18 14:05", "owner", "payment_recorded", { amount: 200000 }), E("2026-10-18 14:05", "system", "status", { st: "deposit_paid" }), E("2026-10-18 14:05", "system", "email_pending", { tpl: "payment_receipt" })] }),
+};
+const NOTES = () => [{ at: "2026-10-18 16:20", body: B().notes.placeholder }, { at: "2026-10-18 11:02", body: B().notes.placeholder }];
+
+/* ---------- booking detail ---------- */
+function evText(e) {
+  const h = B().history, T = B().templates, st = B().statuses;
+  let a;
+  switch (e.action) {
+    case "status": a = fill(h.status, { status: st[e.st] }); break;
+    case "payment_recorded": case "payment_voided": a = fill(h[e.action], { amount: aed(e.amount) }); break;
+    case "email_sent": case "email_pending": case "email_failed": a = fill(h[e.action], { template: T[e.tpl] }); break;
+    case "resend_requested": a = fill(h.resend_requested, { template: T[e.tpl] }); break;
+    default: a = h[e.action] || h.fallback;
+  }
+  if (e.action === "request_withdrawn" || e.action === "created") return e.action === "created" ? fill(h.by, { action: a, who: h.actors[e.who] }) : fill(h.by, { action: a, who: h.actors.guest });
+  return fill(h.by, { action: a, who: h.actors[e.who] });
+}
+function attentionBlock(b, o) {
+  if (!b.flags.needs_attention) return "";
+  const f = B().flags;
+  const head = b.reason === "deadline_passed_part_paid" ? f.deadlinePassedPartPaid : f.needsAttention;
+  return `<div class="attn"><div class="t">${ICON.warn}<strong>${esc(head)}</strong></div><p>${esc(f.reasons[b.reason])}</p><div>${btn("secondary", esc(B().actions.resolve))}</div></div>`;
+}
+function actionBar(b, o) {
+  const A = B().actions, P = B().payments, bs = [];
+  for (const a of statusActions(b.status)) bs.push(a === "cancel" ? btn("danger", esc(A.cancel)) : btn("primary", esc(a === "confirm" ? A.confirm : A.complete)));
+  if (canRecordPayment(b.status)) bs.unshift(btn("primary", esc(A.recordPayment)));
+  if (canResendRequest(b.status, b.flags) && o.resendRequest !== false) bs.push(btn("secondary", esc(P.resendRequest)));
+  return bs.length ? `<div class="row gx2">${bs.join("")}</div>` : "";
+}
+function rulesLine(b, o) {
+  const sa = statusActions(b.status), crr = canResendRequest(b.status, b.flags) && o.resendRequest !== false;
+  return `statusActions=[${sa.join(", ") || "none"}] · canRecordPayment=${canRecordPayment(b.status)} · canResendRequest=${crr}${o.resendRequest === false ? " (option B hides it)" : ""}`;
+}
+function guestSees(b) {
+  const D = B().detail, st = B().statuses;
+  const lines = [`<li><strong>${esc(st[b.status])}</strong></li>`];
+  if (b.status === "awaiting_payment") lines.push(`<li>${esc(D.dueNow)}: ${aed(b.dueNow)}</li>`, `<li>${fill(esc(D.payBy), { date: dtm(b.deadline) })}${b.flags.deadline_passed ? ` · ${esc(B().flags.deadlinePassed)}` : ""}</li>`);
+  else if (["deposit_paid"].includes(b.status)) lines.push(`<li>${esc(D.stillDue)}: ${aed(b.still)}</li>`, `<li>${esc(D.balanceDueBy)} ${dd(b.balanceDate)}</li>`);
+  else if (b.status === "held" && b.hold) lines.push(`<li>${dtm(b.hold)}</li>`);
+  return `<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">${lines.join("")}</ul>`;
+}
+function overviewSection(b, o) {
+  const D = B().detail, w = W(), N = B().notes;
+  const guests = b.adults + b.children + b.infants;
+  const rows = (arr) => arr.map(([k, v, c]) => `<dt>${k}</dt><dd${c ? ` class="${c}"` : ""}>${v}</dd>`).join("");
+  const money = [
+    [esc(D.nights), aed(b.nightsF)], [esc(D.addOns), aed(b.addonsF)], [esc(D.subtotal), aed(b.nightsF + b.addonsF)],
+    [fill(esc(D.vat), { rate: w.pct }), aed(b.vatF)], [esc(D.total), aed(b.grand), "tot"],
+    [esc(D.deposit), aed(b.dep)], [esc(D.paid), aed(b.paid)],
+  ];
+  if (b.wo) money.push([esc(D.writtenOff), aed(b.wo)]);
+  money.push([esc(D.dueNow), aed(b.dueNow)], [esc(D.stillDue), aed(b.still)]);
+  if (b.status === "awaiting_payment") money.push([fill(esc(D.payBy), { date: dtm(b.deadline) }), ""]);
+  else if (["deposit_paid"].includes(b.status)) money.push([esc(D.balanceDueBy), dd(b.balanceDate)]);
+  if (b.balanceOverdue) money.push([esc(B().flags.balanceOverdue), ""]);
+  const trav = `<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px"><li>${w.guest} · ${esc(D.booker)} · ${esc(D.age)} <bdi dir="ltr">34</bdi></li><li>${w.other} · ${esc(D.age)} <bdi dir="ltr">8</bdi></li><li>${w.other} · ${esc(D.notStaying)}</li></ul>`;
+  const notesList = (b.notes.length ? b.notes : []).map((n) => `<li style="border-bottom:1px solid var(--color-line);padding:6px 0"><span class="muted">${dtm(n.at)} · ${esc(w.owner)}</span><br>${esc(n.body)}</li>`).join("");
+  return `<section class="sec" aria-label="${esc(D.overview)}"><h2 class="disp h2">${esc(D.overview)}</h2>
+  <div class="cols2">
+   <div class="block stack g2"><h3 class="disp h2" style="font-size:16px">${esc(D.stayDates)}</h3><dl class="dl">${rows([[esc(D.arrive), dd(b.arrive)], [esc(D.leave), dd(b.leave)], [esc(D.nights), `<bdi dir="ltr">${b.nights}</bdi>`], [esc(D.guests), `<bdi dir="ltr">${guests}</bdi>`], [esc(D.airport), esc(D.airports[b.airport || "none"])], [esc(D.pickupAddress), esc(w.pick)]])}</dl>${missing("detail.adults", "detail.children", "detail.infants")}</div>
+   <div class="block stack g2"><h3 class="disp h2" style="font-size:16px">${esc(D.guest)}</h3><dl class="dl">${rows([[esc(D.guest), esc(w.guest)], [esc(D.email), `<bdi dir="ltr">${esc(w.email)}</bdi>`], [esc(D.phone), esc(w.phone)], [esc(D.nationality), esc(w.nat)], [esc(D.specialRequests), esc(w.req)], [esc(D.emergencyContact), esc(w.emer)]])}</dl>${missing("detail.language")}</div>
+   <div class="block stack g2"><h3 class="disp h2" style="font-size:16px">${esc(D.travellers)}</h3>${trav}${missing("detail.travellerKinds")}</div>
+   <div class="block stack g2"><h3 class="disp h2" style="font-size:16px">${esc(D.addOns)}</h3><div class="mrow"><span>${esc(w.addon)} × <bdi dir="ltr">2</bdi></span>${aed(b.addonsF)}</div>${missing("detail.lineUnit", "detail.quantity")}</div>
+   <div class="block stack g2"><h3 class="disp h2" style="font-size:16px">${esc(D.total)}</h3><dl class="dl">${rows(money)}</dl></div>
+   <div class="block stack g2"><h3 class="disp h2" style="font-size:16px">${esc(D.guestSees)}</h3>${guestSees(b)}</div>
+  </div>
+  <div class="block stack g2"><h3 class="disp h2" style="font-size:16px">${esc(D.latestNotes)}</h3>${notesList ? `<ul style="margin:0;padding:0;list-style:none">${notesList}</ul>` : `<p class="muted" style="margin:0">${esc(N.empty)}</p>`}
+   ${field(esc(N.label), o.noteDraft ? esc(o.noteDraft) : esc(N.placeholder), { ta: true, ph: !o.noteDraft, wide: true })}<div>${btn("secondary", esc(N.add), { dis: !o.noteDraft })}</div>${o.noteAdded ? `<p class="hint ok" role="status">${esc(N.added)}</p>` : ""}</div></section>`;
+}
+function paymentsSection(b) {
+  const P = B().payments, D = B().detail, w = W();
+  if (!b.payments.length) return `<section class="sec"><h2 class="disp h2">${esc(D.payments)}</h2><p class="muted" style="margin:0">${esc(P.none)}</p></section>`;
+  const mailLine = (p) => esc(P.receipt[p.mail]);
+  const extra = (p) => {
+    let x = "";
+    if (p.wo) x += `<div class="cap12">${fill(esc(P.writtenOff), { amount: aed(p.wo), reason: esc(w.reason) })}</div>`;
+    if (p.voidReason) x += `<div class="cap12">${fill(esc(P.voided), { reason: esc(w.reason) })} · ${dtm("2026-10-19 10:10")} · ${esc(w.owner)}</div>`;
+    return x;
+  };
+  const acts = (p) => [canVoid(p) ? btn("danger", esc(B().actions.void), { sm: true }) : "", canResendReceipt(p) ? btn("ghost", esc(P.resendReceipt), { sm: true }) : ""].join("");
+  const rowsT = b.payments.map((p) => `<tr><td>${dd(p.on)}</td><td>${esc(P.bankTransfer)}</td><td>${esc(w.ref)}</td><td class="${p.voidReason ? "strike" : ""}">${aed(p.amount)}${extra(p)}</td><td>${esc(w.owner)}</td><td><div class="cap12 muted">${mailLine(p)}</div><div class="row gx2">${acts(p)}</div></td></tr>`).join("");
+  const cards = b.payments.map((p) => `<li><div class="row" style="justify-content:space-between"><span>${dd(p.on)} · ${esc(P.bankTransfer)}</span><span class="${p.voidReason ? "strike" : ""}">${aed(p.amount)}</span></div><div class="cap12 muted">${esc(P.reference)}: ${esc(w.ref)}</div><div class="cap12 muted">${esc(P.recordedBy)}: ${esc(w.owner)}</div>${extra(p)}<div class="cap12 muted">${mailLine(p)}</div><div class="row gx2">${acts(p)}</div></li>`).join("");
+  return `<section class="sec"><h2 class="disp h2">${esc(D.payments)}</h2><h3 class="kick" style="font-weight:400;margin:0">${esc(P.transactions)}</h3>
+   <table class="tbl"><thead><tr><th>${esc(P.date)}</th><th>${esc(P.method)}</th><th>${esc(P.reference)}</th><th>${esc(P.amount)}</th><th>${esc(P.recordedBy)}</th><th></th></tr></thead><tbody>${rowsT}</tbody></table><ul class="cards">${cards}</ul></section>`;
+}
+function historySection(b) {
+  const evs = [...b.events].reverse().map((e) => `<li><time>${dtm(e.at)}</time><span>${evText(e)}</span></li>`).join("");
+  return `<section class="sec"><h2 class="disp h2">${esc(B().detail.history)}</h2><ul class="ev">${evs}</ul></section>`;
+}
+function detailHTML(b, o = {}) {
+  const D = B().detail, w = W(), st = B().statuses;
+  const head = `<div class="stack g2"><a class="link" style="min-height:32px">${ICON.chev(isRtl() ? 0 : 180)}${esc(D.back)}</a>
+   <div class="row gx4"><h1 class="disp h1" dir="ltr">${b.ref}</h1>${b.test ? chip(esc(B().flags.test), { dense: true }) : ""}${chip(esc(st[b.status]), { on: !["cancelled", "expired", "held"].includes(b.status) })}</div>
+   <div>${esc(w.stay)} · ${esc(w.dest)}</div><div class="muted">${dd(b.arrive)} – ${dd(b.leave)} · ${esc(w.guest)} · ${esc(b.source === "web" ? D.madeOnSite : D.madeInDashboard)}</div></div>`;
+  const err = o.error ? errLine(esc(o.error)) : "";
+  const sections = o.layout === "tabs"
+    ? `<div class="tabs" role="group">${btn("ghost", esc(D.overview), { pressed: true })}${btn("ghost", esc(D.payments), { pressed: false })}${btn("ghost", esc(D.history), { pressed: false })}</div>${overviewSection(b, o)}`
+    : overviewSection(b, o) + paymentsSection(b) + historySection(b);
+  return `<div class="stack g4" data-booking-detail>${head}${err}${attentionBlock(b, o)}${actionBar(b, o)}${sections}</div>`;
+}
+
+/* ---------- dialogs ---------- */
+const dlgHead = (title) => `<div class="hd"><h2 class="disp h2">${esc(title)}</h2><span class="xb">${ICON.x}</span></div>`;
+function dlgFrame(behind, dlg) {
+  return `<div class="dlgwrap"><div class="behind">${behind}</div><div class="scrim"></div><div class="dlgpos">${dlg}</div></div>`;
+}
+function recordDialog(b, v, step) {
+  const R = B().record, E_ = B().errors, D = B().detail, w = W();
+  const amt = v.amount ? Math.round(parseFloat(v.amount.replace(/,/g, "")) * 100) : null;
+  const errs = v.errors || {};
+  let body;
+  if (step === "form") {
+    const showAccept = canAcceptShort(b.status) && amt != null && (b.status === "awaiting_payment" && b.plan === "deposit" ? b.dep : b.grand) - (b.paid + b.wo + amt) > 0;
+    body = `<div class="two">${field(esc(R.amount), v.amount ? `<bdi dir="ltr">${esc(v.amount)}</bdi>` : "", { err: errs.amount ? esc(E_.amount) : null, hint: `${esc(R.amountHint)} ${esc(D.dueNow)}: ${aed(b.dueNow)}`, hm: true, bad: true })}
+      ${field(esc(R.receivedOn), dd(v.date), { err: errs.date ? fill(esc(E_.date), { first: dd("2026-10-17") }) : null })}
+      ${field(esc(R.bankReference), v.ref ? esc(v.ref) : "", { err: errs.ref ? esc(E_.reference) : null })}</div>
+      ${showAccept ? `<div class="chk"><i class="${v.accept ? "on" : ""}">${v.accept ? ICON.check : ""}</i><span>${esc(R.acceptShort)}</span></div>${v.accept ? field(esc(R.acceptReason), v.reason ? esc(v.reason) : "", { err: errs.reason ? esc(E_.reason) : null, wide: true }) : ""}` : ""}`;
+    const invalid = !v.amount || errs.amount || errs.date || !v.ref || errs.ref || (v.accept && (!v.reason || errs.reason));
+    return dlgFrame(detailHTML(b), `<div class="dlg wide" role="dialog">${dlgHead(R.title)}${body}<div class="ft">${btn("secondary", esc(R.back))}${btn("primary", esc(R.review), { dis: !!invalid })}</div></div>`);
+  }
+  const p = settlePreview({ status: b.status, plan: b.plan, grand: b.grand, dep: b.dep, paid: b.paid, wo: b.wo, reason: b.reason, amount: amt, accept: !!v.accept });
+  const stT = B().statuses;
+  const s = [fill(esc(R.line), { amount: aed(amt), date: dd(v.date), reference: esc(v.ref) })];
+  if (p.statusAfter !== b.status) s.push(fill(esc(R.becomes), { status: `<strong>${esc(stT[p.statusAfter])}</strong>` }));
+  else s.push(fill(esc(R.stays), { status: `<strong>${esc(stT[p.statusAfter])}</strong>` }));
+  if (p.partReceived) s.push(fill(esc(R.partReceived), { due: aed(p.stillDue), deadline: dtm(b.deadline) }), esc(R.partPaidHeld));
+  if (p.writeOff) s.push(fill(esc(R.writeOff), { gap: aed(p.writeOff), reason: esc(v.reason) }));
+  if (p.overpaid) s.push(fill(esc(R.overpaid), { extra: aed(p.overpaid) }));
+  if (b.status === "expired" || b.status === "cancelled") s.push(fill(esc(R.deadBooking), { status: esc(stT[b.status]) }));
+  if (p.nightsKept && b.status === "awaiting_payment" && !p.partReceived) s.push(esc(R.nightsKept));
+  if (p.attentionCleared) s.push(esc(R.clearsFlag));
+  s.push(esc(R.receipt));
+  return dlgFrame(detailHTML(b), `<div class="dlg wide" role="dialog">${dlgHead(R.title)}<ul class="sent">${s.map((x) => `<li>${x}</li>`).join("")}</ul><div class="ft">${btn("secondary", esc(R.back))}${btn("primary", esc(R.record))}</div></div>`);
+}
+function voidDialog(b, payment, reason) {
+  const V = B().void, E_ = B().errors, stT = B().statuses, w = W();
+  const p = voidPreview({ status: b.status, plan: b.plan, grand: b.grand, dep: b.dep, paid: b.paid, wo: b.wo, reason: b.reason, pay: { amount: payment.amount, wo: payment.wo } });
+  const s = [esc(V.line)];
+  if (!p.refusal) {
+    if (p.statusAfter !== b.status) s.push(fill(esc(V.becomes), { status: `<strong>${esc(stT[p.statusAfter])}</strong>` }));
+    else if (p.deadline !== "later_of") s.push(fill(esc(V.stays), { status: `<strong>${esc(stT[p.statusAfter])}</strong>` }));
+    if (p.deadline === "fresh") s.push(esc(V.fresh));
+    if (p.deadline === "later_of") s.push(fill(esc(V.laterOf), { deadline: dtm(b.deadline) }));
+    if (p.deadline === "unchanged") s.push(fill(esc(V.unchanged), { deadline: dtm(b.deadline) }));
+    if (p.nights === "kept") s.push(esc(V.kept)); else if (p.nights === "until_deadline") s.push(esc(V.untilDeadline));
+    if (p.attentionCleared) s.push(esc(V.cleared));
+  }
+  const dlg = `<div class="dlg" role="dialog">${dlgHead(V.title)}<div class="mrow"><span>${dd(payment.on)} · ${esc(w.ref)}</span>${aed(payment.amount)}</div>${field(esc(V.reason), reason ? esc(reason) : "", { wide: true })}${p.refusal ? errLine(esc(E_.cancel_first)) : `<ul class="sent">${s.slice(1).map((x) => `<li>${x}</li>`).join("")}</ul>`}<p class="s" style="font-size:14px">${s[0]}</p><div class="ft">${btn("secondary", esc(B().actions.back))}${btn("danger", esc(B().actions.void), { dis: !!p.refusal || !reason })}</div></div>`;
+  return dlgFrame(detailHTML(b), dlg);
+}
+function statusDialog(b, action) {
+  const S_ = B().status, A = B().actions;
+  let spec, ok;
+  if (action === "confirm") { spec = S_.confirm; ok = btn("primary", esc(A.confirm)); }
+  else if (action === "complete") { spec = S_.complete; ok = btn("primary", esc(A.complete)); }
+  else { spec = b.paid > 0 ? S_.cancelPaid : S_.cancel; ok = btn("danger", esc(A.cancel)); }
+  const body = fill(esc(spec.body), { paid: aed(b.paid) });
+  return dlgFrame(detailHTML(b), `<div class="dlg" role="dialog">${dlgHead(spec.title)}<p class="s">${body}</p><div class="ft">${btn("secondary", esc(action === "cancel" ? A.keep : A.back))}${ok}</div></div>`);
+}
+function resolveDialog(b) {
+  const T = B().attention;
+  return dlgFrame(detailHTML(b), `<div class="dlg" role="dialog">${dlgHead(T.title)}<p class="s">${esc(T.body)}</p>${field(esc(T.note), esc(W().reason), { wide: true, ta: true, ph: true })}<div class="ft">${btn("secondary", esc(B().actions.back))}${btn("primary", esc(T.resolve))}</div></div>`);
+}
+
+/* ---------- list ---------- */
+function mkItem(i, o) {
+  return Object.assign({ ref: refOf(i), status: "awaiting_payment", test: false, arrive: `2026-${11 + (i % 2)}-${String(3 + (i % 20)).padStart(2, "0")}`, leave: `2026-${11 + (i % 2)}-${String(6 + (i % 20)).padStart(2, "0")}`, guests: 1 + (i % 4), grand: GRAND, paid: 0, wo: 0, deadline: null, flags: {}, reason: null }, o);
+}
+function refOf(i) { const al = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let x = (i * 7919 + 104729) >>> 0, s = ""; for (let k = 0; k < 6; k++) { s += al[x % al.length]; x = Math.imul(x, 1103515245) + 12345 >>> 0; x = x >>> 3; } return "ALMAR-" + s; }
+function listFlags(it) {
+  const f = B().flags, out = [], F = it.flags || {};
+  if (F.needs_attention) out.push(`<span class="e">${esc(it.reason === "deadline_passed_part_paid" ? f.deadlinePassedPartPaid : f.needsAttention)}</span>`);
+  if (F.part_received) out.push(`<span>${esc(f.partReceived)}</span>`);
+  if (F.overpaid) out.push(`<span>${esc(f.overpaid)}</span>`);
+  if (it.wo) out.push(`<span>${fill(esc(f.writtenOff), { amount: aed(it.wo) })}</span>`);
+  if (F.balance_overdue) out.push(`<span class="e">${esc(f.balanceOverdue)}</span>`);
+  if (F.deadline_passed && it.reason !== "deadline_passed_part_paid") out.push(`<span>${esc(f.deadlinePassed)} · ${dtm(it.deadline)}</span>`);
+  return out.length ? `<div class="flags">${out.join("")}</div>` : "";
+}
+function listHTML(items, o = {}) {
+  const L = B().list, c = L.columns, st = B().statuses, w = W();
+  const q = o.q || {};
+  const filters = `<div class="filters">${field(esc(L.search), q.search ? esc(q.search) : esc(L.searchHint), { ph: !q.search, style: "max-width:260px" })}${selT(esc(L.columns.status), esc(q.status || L.allStatuses))}${selT(esc(L.columns.stay), esc(q.dest || L.allDestinations))}${field(esc(L.arriveFrom), q.from ? dd(q.from) : "", { style: "max-width:170px" })}${field(esc(L.arriveTo), q.to ? dd(q.to) : "", { style: "max-width:170px" })}</div>`;
+  let body;
+  if (!items.length) body = `<div class="empty">${esc(o.noMatch ? L.noMatch : L.empty)}</div>`;
+  else {
+    const cell = (it) => `<td dir="ltr" style="text-align:start">${it.ref}${it.test ? " " + chip(esc(B().flags.test), { dense: true }) : ""}</td><td>${esc(w.guest)}<div class="cap12 muted">${dd(it.arrive)} – ${dd(it.leave)} · ${fill(esc(L.guests), { count: it.guests })}</div>${listFlags(it)}</td><td>${esc(w.stay)}</td><td>${chip(esc(st[it.status]), { dense: true, on: !["cancelled", "expired", "held"].includes(it.status) })}</td><td>${aed(it.paid)}</td><td>${aed(it.grand)}</td>`;
+    const rows = items.map((it) => `<tr>${cell(it)}</tr>`).join("");
+    const cards = items.map((it) => `<li><div class="row" style="justify-content:space-between"><span class="link" dir="ltr">${it.ref}</span>${chip(esc(st[it.status]), { dense: true, on: !["cancelled", "expired", "held"].includes(it.status) })}</div>${it.test ? `<div>${chip(esc(B().flags.test), { dense: true })}</div>` : ""}<div>${esc(w.guest)}</div><div class="cap12 muted">${dd(it.arrive)} – ${dd(it.leave)} · ${fill(esc(L.guests), { count: it.guests })}</div><div class="cap12">${esc(L.columns.paid)}: ${aed(it.paid)} · ${esc(L.columns.total)}: ${aed(it.grand)}</div>${listFlags(it)}</li>`).join("");
+    body = `<table class="tbl"><caption style="display:none">${esc(L.title)}</caption><thead><tr><th>${esc(c.ref)}</th><th>${esc(c.guestDates)}</th><th>${esc(c.stay)}</th><th>${esc(c.status)}</th><th>${esc(c.paid)}</th><th>${esc(c.total)}</th></tr></thead><tbody>${rows}</tbody></table><ul class="cards">${cards}</ul>${o.more ? `<div style="margin-top:16px">${btn("secondary", esc(L.showMore))}</div>` : ""}`;
+  }
+  return `<div class="stack g4" data-bookings-list><h1 class="disp h1">${esc(L.title)}</h1>${filters}${body}</div>`;
+}
+function manyItems() {
+  const items = [];
+  const D = (n) => `2026-10-${String(n).padStart(2, "0")} 17:30`;
+  items.push(mkItem(1, { reason: "deadline_passed_part_paid", status: "awaiting_payment", paid: 200000, deadline: D(18), flags: { needs_attention: true, part_received: true, deadline_passed: true } }));
+  items.push(mkItem(2, { reason: "paid_after_expiry", status: "expired", paid: 500000, flags: { needs_attention: true } }));
+  const order = ["awaiting_payment", "awaiting_payment", "awaiting_payment", "deposit_paid", "paid_in_full", "confirmed", "completed", "cancelled", "expired", "held"];
+  for (let i = 3; i <= 30; i++) {
+    const s = order[(i - 3) % order.length];
+    const paid = s === "deposit_paid" ? 500000 : ["paid_in_full", "confirmed", "completed"].includes(s) ? GRAND : 0;
+    items.push(mkItem(i, { status: s, paid, deadline: s === "awaiting_payment" ? D(19 + ((i - 3) % 3) + 1) : null, test: i % 9 === 0 }));
+  }
+  return items;
+}
+function flagsItems() {
+  const D = (n) => `2026-10-${String(n).padStart(2, "0")} 17:30`;
+  return [
+    mkItem(11, { reason: "deadline_passed_part_paid", paid: 200000, deadline: D(18), flags: { needs_attention: true, part_received: true, deadline_passed: true } }),
+    mkItem(12, { status: "expired", reason: "paid_after_expiry", paid: 500000, flags: { needs_attention: true } }),
+    mkItem(13, { status: "cancelled", reason: "paid_after_cancel", paid: 500000, flags: { needs_attention: true } }),
+    mkItem(14, { status: "paid_in_full", reason: "overpaid", paid: 1200000, flags: { needs_attention: true, overpaid: true } }),
+    mkItem(15, { paid: 200000, deadline: D(21), flags: { part_received: true } }),
+    mkItem(16, { status: "paid_in_full", paid: 1050000, wo: 50000 }),
+    mkItem(17, { status: "deposit_paid", paid: 500000, flags: { balance_overdue: true } }),
+    mkItem(18, { deadline: D(18), flags: { deadline_passed: true } }),
+    mkItem(19, { status: "confirmed", paid: GRAND, test: true }),
+    mkItem(20, { status: "awaiting_payment", deadline: D(21), test: true, paid: 200000, flags: { part_received: true } }),
+  ];
+}
+
+/* ---------- money section ---------- */
+const MONEY = {
+  empty: () => ({ balance: "", win: "", unit: "days", acct: "", bank: "", iban: "", bic: "", baddr: "", note: "", ready: [0, 0, 0] }),
+  filled: () => ({ balance: "14", win: "2", unit: "days", acct: 1, bank: 1, iban: IBAN_RAW, ibanHint: IBAN, bic: BIC, baddr: 1, note: 1, ready: [1, 1, 0], last: "2026-10-18 14:05" }),
+};
+function moneySection(v, o = {}) {
+  const m = M(), w = W(), L = m.units;
+  const val = (k, wk) => (v[k] === 1 ? esc(w[wk]) : v[k] || "");
+  const winField = o.hours
+    ? field(esc(m.windowHours), v.win ? `<bdi dir="ltr">${esc(v.win)}</bdi>` : "", { hint: esc(m.windowHoursHint), hm: true, err: v.errs && v.errs.win ? esc(m.errors.windowHoursRange) : null })
+    : `<div class="stack g2"><div class="row gx4" style="align-items:flex-start">${field(esc(m.window), v.win ? `<bdi dir="ltr">${esc(v.win)}</bdi>` : "", { style: "max-width:160px", err: v.errs && v.errs.win ? esc(m.errors.windowRange) : null })}${selT(esc(m.windowUnit), esc(L[v.unit]))}</div>${!(v.errs && v.errs.win) ? `<p class="hint m">${esc(m.windowHint)}</p>` : ""}</div>`;
+  const ibanVal = v.iban === "bad" ? (LOC === "en" ? "[IBAN with a typing error]" : LOC === "ar" ? "[IBAN به خطأ كتابي]" : "[IBAN con un error de escritura]") : v.iban ? `<bdi dir="ltr">${esc(v.iban)}</bdi>` : "";
+  const bank = [
+    field(esc(m.accountName), val("acct", "acct")),
+    field(esc(m.bankName), val("bank", "bank")),
+    field(esc(m.iban), ibanVal, { err: v.errs && v.errs.iban ? esc(m.errors.checksum) : null, hint: v.ibanHint ? `<bdi dir="ltr">${esc(v.ibanHint)}</bdi>` : null, hm: true }),
+    field(esc(m.swift), v.bic ? `<bdi dir="ltr">${esc(v.bic)}</bdi>` : "", { err: v.errs && v.errs.bic ? esc(m.errors.shape) : null }),
+    field(esc(m.bankAddress), val("baddr", "baddr")),
+    field(esc(m.note), val("note", "note"), { hint: esc(m.noteHint), hm: true }),
+  ].join("");
+  const trans = `<div class="stack g4" style="align-items:flex-start"><button type="button" class="link" aria-expanded="${!!v.tr}">${ICON.chev(v.tr ? -90 : 90)}${esc(v.tr ? m.hideTranslations : m.editTranslations)}</button>${v.tr ? `<div class="two" style="width:100%"><div class="tr-box" lang="ar" dir="rtl">${field(esc(m.arabic), "[ملاحظة]", { wide: true, dir: "rtl" })}</div><div class="tr-box" lang="es" dir="ltr">${field(esc(m.spanish), "[Nota]", { wide: true })}</div></div>` : ""}</div>`;
+  const ready = o.noReadiness ? "" : `<div class="block stack g2"><strong>${esc(m.readiness.title)}</strong><ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px">${[["window", v.ready[0]], ["bank", v.ready[1]], ["terms", v.ready[2]]].map(([k, on]) => `<li class="row gx2">${on ? ICON.check : ICON.cross}<span>${esc(m.readiness[k])}: <strong>${esc(on ? m.readiness.set : m.readiness.notSet)}</strong></span></li>`).join("")}</ul></div>`;
+  const status = v.saved ? `<p class="hint ok" role="status" style="margin:0">${esc(m.saved)}</p>` : `<span role="status"></span>`;
+  const tline = v.tline ? `<p class="hint m" role="status" style="margin:0">${esc(m.translations[v.tline])}</p>` : "";
+  return `<section class="sec" data-money><h2 class="disp h2">${esc(m.title)}</h2>
+   ${field(esc(m.balanceDue), v.balance ? `<bdi dir="ltr">${esc(v.balance)}</bdi> ${esc(m.balanceDaysAfter)}` : `<span class="muted">[00] ${esc(m.balanceDaysAfter)}</span>`, { hint: v.errs && v.errs.bal ? null : esc(m.balanceHint), hm: true, err: v.errs && v.errs.bal ? esc(m.errors.daysRange) : null })}
+   ${winField}<div class="two">${bank}</div>${trans}${ready}
+   ${v.last ? `<p class="hint m" style="margin:0">${fill(esc(m.lastChanged), { time: dtmBare(v.last) })}</p>` : ""}
+   <div class="savebar">${btn("primary", esc(m.save))}${status}</div>${tline}</section>`;
+}
+function moneyPageTop() {
+  const s = S(), w = W();
+  return `<section class="sec" style="border-top:0;margin-top:0"><h2 class="disp h2">${esc(s.money)}</h2><div class="two">${field(esc(s.vat), `<bdi dir="ltr">${w.pct}</bdi>`)}${field(esc(s.deposit), `<bdi dir="ltr">${w.pct}</bdi>`)}</div><div class="stack g1"><span>${esc(s.fx)}</span><p class="ltr" style="margin:0;font-size:16px">USD/AED ${w.fx} &nbsp; USD/EUR ${w.fx}</p><span class="cap12 muted">${esc(s.fxHint)}</span></div></section>`;
+}
+function moneyScreen(v, o = {}) {
+  const bottom = `<div class="savebar">${btn("primary", esc(S().save))}</div>`;
+  return `<div class="stack g4">${o.page ? moneyPageTop() : ""}${moneySection(v, o)}${o.page ? bottom : ""}</div>`;
+}
+function moneyConfirm(v) {
+  const m = M(), w = W();
+  const dlg = `<div class="dlg" role="dialog">${dlgHead(m.confirm.title)}<p class="s">${fill(esc(m.confirm.body), { name: esc(w.acct), iban: `<bdi dir="ltr">${IBAN}</bdi>` })}</p><div class="block stack g1"><span class="muted">${esc(m.accountName)}</span><strong>${esc(w.acct)}</strong><span class="muted">${esc(m.iban)}</span><strong class="ltr" style="letter-spacing:.05em">${IBAN}</strong></div>${missing("money.confirm.noEmailNote (Q-16: says no notice email is sent on a bank change)")}<div class="ft">${btn("secondary", esc(m.confirm.back))}${btn("primary", esc(m.confirm.save))}</div></div>`;
+  return dlgFrame(moneyScreen(v), dlg);
+}
+
+/* ---------- state registry (49 ids) ---------- */
+const detail = (id, o) => () => detailHTML(BK[id](), o || {});
+const STATES = {};
+const add = (id, fn, rules) => { STATES[id] = { id, fn, rules }; };
+add("list-empty", () => listHTML([], {}));
+add("list-many", () => listHTML(manyItems(), { more: true }));
+add("list-filtered", () => listHTML(manyItems().filter((x) => x.status === "awaiting_payment").slice(0, 5), { q: { search: WORD[LOC].guest, status: B().statuses.awaiting_payment, dest: WORD[LOC].dest, from: "2026-11-01", to: "2026-11-30" } }));
+add("list-flags", () => listHTML(flagsItems()));
+add("list-no-match", () => listHTML([], { noMatch: true, q: { search: WORD[LOC].guest, status: B().statuses.cancelled } }));
+for (const id of ["held", "awaiting", "awaiting-part", "deposit-paid", "paid-in-full", "confirmed", "completed", "cancelled", "withdrawn", "expired", "deadline-passed-part-paid", "paid-after-expiry", "paid-after-cancel", "overpaid", "written-off", "email-failed"]) {
+  add(id, (id === "awaiting-part" || id === "awaiting") ? detail(id, id === "awaiting" ? {} : {}) : id === "held" ? detail("held") : detail(id), () => rulesLine(BK[id](), {}));
+}
+add("awaiting-tabs", () => detailHTML(BK.awaiting(), { layout: "tabs" }), () => "layout=tabs · " + rulesLine(BK.awaiting(), {}));
+add("awaiting-no-resend", () => detailHTML(BK.awaiting(), { resendRequest: false }), () => rulesLine(BK.awaiting(), { resendRequest: false }));
+const ctx = () => ({ date: TODAY, ref: WORD[LOC].ref });
+add("record-form", () => recordDialog(BK.awaiting(), { amount: "", date: TODAY, ref: "", errors: {} }, "form"), () => "Review off while a field is invalid; amount starts empty");
+add("record-errors", () => recordDialog(BK.awaiting(), { amount: "12x", date: "2026-10-12", ref: "", accept: false, errors: { amount: 1, date: 1, ref: 1 } }, "form"), () => "Review off");
+add("record-review", () => recordDialog(BK["deadline-passed-part-paid"](), { amount: "3,000.00", date: TODAY, ref: WORD[LOC].ref }, "review"), () => "settlePreview: Awaiting payment -> Deposit paid, attentionCleared, nightsKept");
+add("record-review-part", () => recordDialog(BK.awaiting(), { amount: "2,000.00", date: TODAY, ref: WORD[LOC].ref }, "review"), () => "settlePreview: stays Awaiting payment, partReceived (the number shown is the rule's stillDueFils)");
+add("record-accept-short", () => recordDialog(BK.awaiting(), { amount: "4,800.00", date: TODAY, ref: WORD[LOC].ref, accept: true, reason: WORD[LOC].reason }, "review"), () => "settlePreview with Accept as paid: gap 200.00 written off");
+add("void", () => voidDialog(BK["email-failed"](), BK["email-failed"]().payments[1], WORD[LOC].reason), () => "voidPreview: deposit_paid -> awaiting_payment, deadline fresh, nights kept");
+add("void-to-unpaid", () => voidDialog(BK["awaiting-part"](), BK["awaiting-part"]().payments[0], WORD[LOC].reason), () => "voidPreview: awaiting_payment, paid after 0 -> later_of, until_deadline");
+add("void-cancel-first", () => voidDialog(BK.confirmed(), BK.confirmed().payments[0], ""), () => "voidPreview: confirmed below the deposit floor -> cancel_first, confirm off");
+add("cancel", () => statusDialog(BK.awaiting(), "cancel"), () => "ConfirmDialog (danger), cancelLabel = Keep booking");
+add("cancel-paid", () => statusDialog(BK["deposit-paid"](), "cancel"), () => "money already received stays recorded");
+add("confirm", () => statusDialog(BK["deposit-paid"](), "confirm"), () => "primary button");
+add("complete", () => statusDialog(BK.confirmed(), "complete"), () => "primary button");
+add("notes", () => detailHTML(Object.assign(BK.awaiting(), { notes: NOTES() }), { noteDraft: "", noteAdded: true }), () => "after Add note: the list reloads, newest first");
+add("resolve", () => resolveDialog(BK["deadline-passed-part-paid"]()), () => "required note 3-500; Resolve off while empty");
+add("changed", () => detailHTML(BK.awaiting(), { error: B().errors.changed }), () => "refusal line after a 409; booking reloaded");
+const MV = {
+  page: () => Object.assign(MONEY.filled(), {}),
+  errors: () => Object.assign(MONEY.filled(), { balance: "400", win: "30", unit: "minutes", iban: "bad", ibanHint: null, bic: "TESTAEA", errs: { bal: 1, win: 1, iban: 1, bic: 1 }, ready: [0, 0, 0], last: null }),
+};
+add("money-page", () => moneyScreen(MONEY.filled(), { page: true }), () => "Money group above, Bank transfer under it, bottom Save is the only button named exactly Save");
+add("money-empty", () => moneyScreen(MONEY.empty()), () => "nothing set: readiness all Not set");
+add("money-filled", () => moneyScreen(MONEY.filled()), () => "unit window + readiness line (option A of Q-06 and Q-13)");
+add("money-errors", () => moneyScreen(MV.errors()), () => "window 30 minutes, balance due 400, IBAN with a typing error, BIC TESTAEA");
+add("money-translations", () => moneyScreen(Object.assign(MONEY.filled(), { tr: true })), () => "Edit translations open");
+add("money-translate-failed", () => moneyScreen(Object.assign(MONEY.filled(), { tline: "notUpdated", saved: true })), () => "AI translation failed: the save went through");
+add("money-confirm", () => moneyConfirm(Object.assign(MONEY.filled(), { last: "2026-10-18 14:05" })), () => "Q-07 option A: confirm before saving changed bank fields");
+add("money-saved", () => moneyScreen(Object.assign(MONEY.filled(), { saved: true, tline: "updated", last: "2026-10-19 10:30" })), () => "after the confirm");
+add("money-window-hours", () => moneyScreen(Object.assign(MONEY.filled(), { win: "48" }), { hours: true }), () => "Q-06 option B: whole hours 1 to 720");
+add("money-saved-direct", () => moneyScreen(Object.assign(MONEY.filled(), { saved: true, last: "2026-10-19 10:30" })), () => "Q-07 option B: saved at once, no dialog");
+add("money-no-readiness", () => moneyScreen(MONEY.filled(), { noReadiness: true }), () => "Q-13 option B: no readiness line");
+
+/* ---------- groups (Task 4 owner questions) ---------- */
+const GROUPS = [
+  { id: "q05", h: "Q-05 · Detail layout", sig: "choice", q: "Should the booking page show Overview, Payments and History one under the other, or as three tabs?", opts: [["awaiting", "A (recommended): stacked"], ["awaiting-tabs", "B: tabs"]] },
+  { id: "q09", h: "Q-09 · Resend request email", sig: "choice", q: "Should an Awaiting payment booking offer a button to send the bank details again? Resend receipt on each payment stays in both options.", opts: [["awaiting", "A (recommended): with Resend request email"], ["awaiting-no-resend", "B: without"]] },
+  { id: "q06", h: "Q-06 · Transfer window", sig: "choice", q: "Should the window be a number plus a unit (minutes, hours, days) or whole hours only?", opts: [["money-filled", "A (recommended): number + unit"], ["money-window-hours", "B: whole hours only"]] },
+  { id: "q07", h: "Q-07 · Changing bank details", sig: "choice", q: "Should saving changed bank fields first show a confirm with the account name and IBAN, or save at once?", opts: [["money-confirm", "A (recommended): with the confirm"], ["money-saved-direct", "B: saved at once"]] },
+  { id: "q13", h: "Q-13 · Readiness line", sig: "choice", q: "Should the section list what is still missing before guests can send requests (window, bank details, terms text)?", opts: [["money-filled", "A (recommended): with the readiness list"], ["money-no-readiness", "B: without"]] },
+  { id: "q04", h: "Q-04 · Held booking", sig: "approve", q: "A guest's 30-minute hold shows no owner action; Cancel starts at Awaiting payment. Approve or change?", ids: ["held"] },
+  { id: "q08", h: "Q-08 · Confirm, complete, cancel", sig: "approve", q: "These actions send no email to the guest, and each dialog says what the guest sees. Approve or change?", ids: ["confirm", "complete", "cancel", "cancel-paid"] },
+  { id: "q16", h: "Q-16 · Bank-details change sends no email", sig: "approve", q: "A bank-details change sends no notice email; the audit row is the record. Approve or change?", ids: ["money-confirm"] },
+  { id: "i09", h: "Item 9 · The Bookings list", sig: "approve", q: "Requests needing attention first, then by deadline; TEST rows marked; flags written as words; no New booking button. Approve or change?", ids: ["list-many", "list-flags", "list-filtered", "list-empty", "list-no-match"] },
+  { id: "i10", h: "Item 10 · Record payment", sig: "approve", q: "The confirm sentence says the new status and what is still due; a part payment says the nights stay held; Accept as paid shows the write-off and reason. Approve or change?", ids: ["record-form", "record-errors", "record-review", "record-review-part", "record-accept-short"] },
+  { id: "i11", h: "Item 11 · Money that arrives late", sig: "approve", q: "Money after the request expired: the attention line says nights were not taken back; Resolve asks for a note (B-34). Approve or change?", ids: ["paid-after-expiry"] },
+  { id: "q18", h: "Q-18 · Part paid after the pay-by date (item 12)", sig: "approve", q: "Owner answer YES: Resend request email is shown here. Still Awaiting payment, nights held, Needs attention in words, Record payment, Cancel booking, Resolve and Resend request email offered; no refund control.", ids: ["deadline-passed-part-paid", "resolve"] },
+  { id: "i13", h: "Item 13 · Void a payment", sig: "approve", q: "A reason is required; the voided row stays struck through; the new status and pay-by date are spelled out; a confirmed booking cannot drop below its deposit. Approve or change?", ids: ["void", "void-to-unpaid", "void-cancel-first"] },
+  { id: "i14", h: "Item 14 · Withdrawn by the guest", sig: "approve", q: "Cancelled; History says Withdrawn by the guest and that the owner notice was sent; the dashboard itself sends nothing. Approve or change?", ids: ["withdrawn"] },
+  { id: "i15", h: "Item 15 · Receipt state (E-31: every payment its own receipt)", sig: "approve", q: "Each payment row says whether its receipt was sent, with its own Resend receipt. Approve or change?", ids: ["email-failed"] },
+  { id: "i16", h: "Item 16 · Settings, Bank transfer", sig: "approve", q: "Bank transfer sits under VAT and deposit with its own Save bank transfer; IBAN and BIC errors in words; Arabic and Spanish note lines under Edit translations. Approve or change?", ids: ["money-page", "money-errors", "money-translations"] },
+  { id: "oth", h: "Other states (no owner question of their own)", sig: "info", q: "The remaining statuses, notes, the refusal line and the other Settings states.", ids: ["awaiting-part", "deposit-paid", "paid-in-full", "confirmed", "completed", "cancelled", "expired", "paid-after-cancel", "overpaid", "written-off", "notes", "changed", "money-empty", "money-translate-failed", "money-saved"] },
+];
+
+/* ---------- render ---------- */
+const rendered = new Set();
+function frameHTML(id, tag) {
+  const s = STATES[id];
+  const anchor = rendered.has(id) ? "" : ` id="s-${id}"`;
+  rendered.add(id);
+  const rules = s.rules ? `<span class="rules">${esc(s.rules())}</span>` : "";
+  return `<div class="fr"${anchor}><div class="cap"><code>${id}</code>${tag ? `<span class="opt${tag.startsWith("A") ? " rec" : ""}">${esc(tag)}</span>` : ""}${rules}</div><div class="fw" data-w="${WIDTH}"><div class="frame" style="width:${WIDTH}px" lang="${LOC}" dir="${LOC === "ar" ? "rtl" : "ltr"}"><div class="inner">${s.fn()}</div></div></div></div>`;
+}
+function render() {
+  rendered.clear();
+  let html = `<div class="banner"><strong>04-09 pictures for signature.</strong> Every visible product string is copied verbatim from lib/copy/ops-bookings.ts, ops-money.ts and the VAT / deposit / FX / Save keys of the settings copy, in EN, AR (RTL) and ES (usted). All amounts are example figures in AED, not prices, rates or percentages ("[00]" stands for a rate). Names and banks are bracket placeholders. The only IBAN is the documentation example. Red boxes marked MISSING COPY show a string the plan needs that is not in the copy files yet. Nothing here is wired.</div>`;
+  for (const g of GROUPS) {
+    let inner = "";
+    if (g.sig === "choice") {
+      if (CMP) inner = `<div class="cmp">${g.opts.map(([id, tag]) => frameHTML(id, tag)).join("")}</div>`;
+      else inner = g.opts.map(([id, tag]) => (rendered.has(id) ? `<div class="stub"><code>${id}</code> (${esc(tag)}) is the same picture as above: <a href="#s-${id}">jump to it</a>. Turn Compare on to see both options side by side.</div>` : frameHTML(id, tag))).join("");
+    } else {
+      inner = g.ids.map((id) => (rendered.has(id) ? `<div class="stub"><code>${id}</code> already drawn: <a href="#s-${id}">jump to it</a>.</div>` : frameHTML(id))).join("");
+    }
+    html += `<section class="grpbox" id="g-${g.id}"><h2>${esc(g.h)}</h2>${g.sig === "choice" ? '<span class="tag">Owner signature: choose</span>' : g.sig === "approve" ? '<span class="tag">Owner signature: approve or change</span>' : ""}<p class="q">${esc(g.q)}</p>${inner}</section>`;
+  }
+  document.getElementById("main").innerHTML = html;
+  fit();
+}
+function fit() {
+  const mainW = document.getElementById("main").clientWidth - 48;
+  document.querySelectorAll(".fw").forEach((fw) => {
+    const f = fw.firstElementChild, cmp = fw.closest(".cmp");
+    const avail = cmp ? (mainW - 20) / 2 : mainW;
+    const sc = Math.min(1, avail / WIDTH);
+    fw.style.width = Math.round(WIDTH * sc) + 2 + "px";
+    f.style.transform = `scale(${sc})`;
+    fw.style.height = Math.ceil(f.offsetHeight * sc) + 2 + "px";
+  });
+}
+function buildIndex() {
+  let h = "";
+  for (const g of GROUPS) {
+    h += `<h2>${esc(g.h.split(" · ")[0])}</h2><a href="#g-${g.id}">${esc(g.h.split(" · ").slice(1).join(" · ") || g.h)}</a>`;
+    const ids = g.sig === "choice" ? g.opts.map((o) => o[0]) : g.ids;
+    h += ids.map((id) => `<a class="st" href="#s-${id}">${id}</a>`).join("");
+  }
+  document.getElementById("index").innerHTML = h;
+}
+function setPressed() {
+  document.querySelectorAll("#top [data-loc]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.loc === LOC));
+  document.querySelectorAll("#top [data-w]").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.w === WIDTH));
+  document.getElementById("cmp").setAttribute("aria-pressed", CMP);
+}
+document.querySelectorAll("#top [data-loc]").forEach((b) => b.addEventListener("click", () => { LOC = b.dataset.loc; setPressed(); render(); }));
+document.querySelectorAll("#top [data-w]").forEach((b) => b.addEventListener("click", () => { WIDTH = +b.dataset.w; setPressed(); render(); }));
+document.getElementById("cmp").addEventListener("click", () => { CMP = !CMP; setPressed(); render(); });
+window.addEventListener("resize", fit);
+window.addEventListener("load", () => { fit(); setTimeout(fit, 400); });
+buildIndex(); setPressed(); render();
+
+</script></body></html>
