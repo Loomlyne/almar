@@ -43,7 +43,7 @@ export type OpsMoneyCopy = {
     required: string;
   };
   readiness: { title: string; window: string; bank: string; terms: string; set: string; notSet: string };
-  confirm: { title: string; body: string; save: string; back: string };
+  confirm: { title: string; body: string; noEmailNote: string; save: string; back: string };
   save: string;
   saving: string;
   saved: string;
@@ -99,6 +99,7 @@ export const OPS_MONEY_COPY: Record<OpsMoneyLocale, OpsMoneyCopy> = {
     confirm: {
       title: "Guests are sent these bank details",
       body: "Check the account name and IBAN before you save: {name}, {iban}.",
+      noEmailNote: "Changing the bank details sends no email to anyone.",
       save: "Save details",
       back: "Check again",
     },
@@ -162,6 +163,7 @@ export const OPS_MONEY_COPY: Record<OpsMoneyLocale, OpsMoneyCopy> = {
     confirm: {
       title: "تُرسل بيانات المصرف هذه إلى الضيوف",
       body: "راجع اسم الحساب ورقم IBAN قبل الحفظ: {name}، {iban}.",
+      noEmailNote: "تغيير بيانات المصرف لا يرسل بريدًا إلكترونيًا إلى أحد.",
       save: "حفظ البيانات",
       back: "المراجعة مرة أخرى",
     },
@@ -225,6 +227,7 @@ export const OPS_MONEY_COPY: Record<OpsMoneyLocale, OpsMoneyCopy> = {
     confirm: {
       title: "Se envían estos datos bancarios a los huéspedes",
       body: "Revise el titular de la cuenta y el IBAN antes de guardar: {name}, {iban}.",
+      noEmailNote: "Cambiar los datos bancarios no envía ningún correo a nadie.",
       save: "Guardar datos",
       back: "Revisar de nuevo",
     },

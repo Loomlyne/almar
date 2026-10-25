@@ -33,6 +33,7 @@ export type OpsBookingsCopy = {
     allDestinations: string;
     arriveFrom: string;
     arriveTo: string;
+    arrival: string;
     showMore: string;
     loading: string;
     empty: string;
@@ -75,6 +76,13 @@ export type OpsBookingsCopy = {
     nationality: string;
     specialRequests: string;
     emergencyContact: string;
+    adults: string;
+    children: string;
+    infants: string;
+    language: string;
+    travellerKinds: { adult: string; child: string; infant: string };
+    lineUnit: { person: string; night: string; trip: string };
+    quantity: string;
     guests: string;
     travellers: string;
     booker: string;
@@ -235,6 +243,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       allDestinations: "All destinations", // CANVAS
       arriveFrom: "Arrival from",
       arriveTo: "Arrival to",
+      arrival: "Arrival dates",
       showMore: "Show more",
       loading: "Loading bookings…",
       empty: "No bookings yet", // CANVAS
@@ -296,6 +305,13 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       nationality: "Nationality",
       specialRequests: "Special requests",
       emergencyContact: "Emergency contact",
+      adults: "Adults",
+      children: "Children",
+      infants: "Infants",
+      language: "Language",
+      travellerKinds: { adult: "Adult", child: "Child", infant: "Infant" },
+      lineUnit: { person: "per person", night: "per night", trip: "per trip" },
+      quantity: "Quantity",
       guests: "Guests", // CANVAS
       travellers: "Travellers",
       booker: "Booker",
@@ -494,6 +510,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       allDestinations: "كل الوجهات",
       arriveFrom: "الوصول من",
       arriveTo: "الوصول حتى",
+      arrival: "تواريخ الوصول",
       showMore: "عرض المزيد",
       loading: "جارٍ تحميل الحجوزات…",
       empty: "لا حجوزات بعد",
@@ -553,6 +570,13 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       nationality: "الجنسية",
       specialRequests: "طلبات خاصة",
       emergencyContact: "جهة الاتصال في الطوارئ",
+      adults: "البالغون",
+      children: "الأطفال",
+      infants: "الرضّع",
+      language: "اللغة",
+      travellerKinds: { adult: "بالغ", child: "طفل", infant: "رضيع" },
+      lineUnit: { person: "للشخص", night: "لليلة", trip: "للرحلة" },
+      quantity: "الكمية",
       guests: "الضيوف",
       travellers: "المسافرون",
       booker: "صاحب الحجز",
@@ -750,6 +774,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       allDestinations: "Todos los destinos",
       arriveFrom: "Llegada desde",
       arriveTo: "Llegada hasta",
+      arrival: "Fechas de llegada",
       showMore: "Mostrar más",
       loading: "Cargando reservas…",
       empty: "Aún no hay reservas",
@@ -811,6 +836,13 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       nationality: "Nacionalidad",
       specialRequests: "Peticiones especiales",
       emergencyContact: "Contacto de emergencia",
+      adults: "Adultos",
+      children: "Niños",
+      infants: "Bebés",
+      language: "Idioma",
+      travellerKinds: { adult: "Adulto", child: "Niño", infant: "Bebé" },
+      lineUnit: { person: "por persona", night: "por noche", trip: "por trayecto" },
+      quantity: "Cantidad",
       guests: "Huéspedes",
       travellers: "Viajeros",
       booker: "Titular de la reserva",

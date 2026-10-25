@@ -350,6 +350,7 @@ type SettleResult = {
   attention: "paid_after_expiry" | "paid_after_cancel" | "overpaid" | null;
   nightsKept: boolean;
   stillDueFils: number;
+  depositLeftFils: number;
   attentionCleared: boolean;
 };
 
@@ -363,6 +364,8 @@ type SettleResult = {
  * - attention, the flag this record raises: paid_after_expiry on expired, paid_after_cancel on cancelled, else overpaid.
  * - nightsKept: the booking keeps its nights for good (the first record on a request makes them permanent, P-09 as
  *   changed 2026-10-20); false on expired and cancelled, whose nights are never taken back (B-34).
+ * - depositLeftFils: what is left of the amount due by the pay-by date (the deposit on a deposit plan, else the total) while
+ *   the request stays awaiting_payment, else 0 (owner signature 2026-10-25: the record review's still-due line).
  * - attentionCleared: deadline_passed_part_paid ends once the record moves the booking out of awaiting_payment.
  * The inline lapse of an unpaid request past its deadline (P-10) needs the clock: the server answers `changed` then.
  */
@@ -380,6 +383,7 @@ export function settlePreview(input: SettleInput): SettleResult {
     attention: null,
     nightsKept: false,
     stillDueFils: stillDue(status, grandFils, settledBefore),
+    depositLeftFils: status === "awaiting_payment" ? Math.max(0, (plan === "deposit" ? depositFils : grandFils) - settledBefore) : 0,
     attentionCleared: false,
   };
   if (status === "held") return { ...unchanged, refusal: "not_requested" };
@@ -410,6 +414,7 @@ export function settlePreview(input: SettleInput): SettleResult {
     attention,
     nightsKept: statusAfter !== "expired" && statusAfter !== "cancelled",
     stillDueFils: stillDue(statusAfter, grandFils, settledAfterFils),
+    depositLeftFils: statusAfter === "awaiting_payment" ? Math.max(0, target - settledAfterFils) : 0,
     attentionCleared: attentionReason === "deadline_passed_part_paid" && statusAfter !== "awaiting_payment",
   };
 }
