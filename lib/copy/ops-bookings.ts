@@ -180,6 +180,7 @@ export type OpsBookingsCopy = {
     complete: { title: string; body: string };
     cancel: { title: string; body: string };
     cancelPaid: { title: string; body: string };
+    changed: string;
   };
   notes: { label: string; placeholder: string; add: string; empty: string; added: string };
   attention: { title: string; body: string; note: string; resolve: string; resolved: string };
@@ -436,6 +437,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
         title: "Cancel this booking?",
         body: "The booking ends and the nights are freed. {paid} already received stays recorded. Refunds are made from your bank. No email is sent: tell the guest yourself.",
       },
+      changed: "Status changed.",
     },
     notes: {
       label: "Internal note",
@@ -700,6 +702,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
         title: "إلغاء هذا الحجز؟",
         body: "ينتهي الحجز وتُحرَّر الليالي. يبقى {paid} المستلم مسجلًا. تُردّ المبالغ من مصرفك. لا يُرسل أي بريد: أبلغ الضيف بنفسك.",
       },
+      changed: "تم تغيير الحالة.",
     },
     notes: {
       label: "ملاحظة داخلية",
@@ -967,6 +970,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
         title: "¿Cancelar esta reserva?",
         body: "La reserva termina y las noches quedan libres. Los {paid} ya recibidos siguen registrados. Los reembolsos se hacen desde su banco. No se envía ningún correo: avise usted al huésped.",
       },
+      changed: "Estado cambiado.",
     },
     notes: {
       label: "Nota interna",
