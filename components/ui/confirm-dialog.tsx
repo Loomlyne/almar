@@ -22,6 +22,7 @@ export function ConfirmDialog({
   description,
   confirmLabel,
   cancelLabel = "Stay signed in",
+  busy,
   onConfirm,
 }: {
   open: boolean;
@@ -30,6 +31,8 @@ export function ConfirmDialog({
   description?: ReactNode;
   confirmLabel: string;
   cancelLabel?: string;
+  /** Optional: while true the confirm shows the Button's spinner and both buttons are off. Absent = as before. */
+  busy?: boolean;
   onConfirm: () => void;
 }) {
   return (
@@ -53,11 +56,13 @@ export function ConfirmDialog({
                 </Dialog.Description>
               ) : null}
               <div className="flex flex-wrap gap-2">
-                <Button variant="danger" onClick={onConfirm}>
+                <Button variant="danger" busy={busy} onClick={onConfirm}>
                   {confirmLabel}
                 </Button>
                 <Dialog.Close asChild>
-                  <Button variant="secondary">{cancelLabel}</Button>
+                  <Button variant="secondary" disabled={busy}>
+                    {cancelLabel}
+                  </Button>
                 </Dialog.Close>
               </div>
             </div>

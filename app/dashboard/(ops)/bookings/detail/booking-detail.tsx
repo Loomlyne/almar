@@ -323,7 +323,7 @@ export function BookingDetail({
                     "-"
                   ),
                 ],
-                [D.language, <Bdi key="lang">{b.guest.locale.toUpperCase()}</Bdi>],
+                [D.language, <bdi key="lang">{D.languages[b.guest.locale]}</bdi>],
               ]}
             />
           </Block>
@@ -446,11 +446,14 @@ export function BookingDetail({
               <table className="w-full border-collapse font-body">
                 <thead>
                   <tr className="border-b border-line">
-                    {[P.date, P.method, P.reference, P.amount, P.recordedBy, ""].map((label, at) => (
+                    {[P.date, P.method, P.reference, P.amount, P.recordedBy].map((label, at) => (
                       <th key={at} scope="col" className="px-2 py-2 text-start text-caption font-normal uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">
                         {label}
                       </th>
                     ))}
+                    <th scope="col" className="px-2 py-2">
+                      <span className="sr-only">{P.actionsColumn}</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

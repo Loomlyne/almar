@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { DestinationSummary, ListReply } from "../../../../components/ops/api-types";
+import type { DestinationDetail, DestinationSummary, DetailReply, ListReply } from "../../../../components/ops/api-types";
 import { opsFetch } from "../../../../components/ops/ops-client";
 import { useDashboardLocale } from "../../../../components/ops/use-dashboard-locale";
 import { OPS_BOOKINGS_COPY } from "../../../../lib/copy/ops-bookings";
@@ -36,6 +36,9 @@ export function BookingsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [destinations, setDestinations] = useState<BookingsDestination[]>([]);
+  // Each destination's Arabic and Spanish name, read from its detail the first time the page is not in English.
+  const [localNames, setLocalNames] = useState<Record<string, { ar: string | null; es: string | null }>>({});
+  const namesAsked = useRef(false);
   const latest = useRef(0);
   // The sentences are read at answer time, so a language change after mount does not fetch the list again.
   const words = useRef({ copy, kit });
@@ -56,7 +59,7 @@ export function BookingsScreen() {
     return () => window.clearTimeout(timer);
   }, [query, applied]);
 
-  // Destinations for the filter, by their English names.
+  // Destinations for the filter. The list endpoint carries the English name only.
   useEffect(() => {
     let live = true;
     void opsFetch<ListReply<DestinationSummary>>("/api/ops/destinations").then((reply) => {
@@ -66,6 +69,27 @@ export function BookingsScreen() {
       live = false;
     };
   }, []);
+
+  // In Arabic or Spanish, each destination's own name comes from its detail (a handful of rows, read once, and only
+  // when the page is not in English). A failed read or a missing translation keeps the English name.
+  useEffect(() => {
+    if (locale === "en" || destinations.length === 0 || namesAsked.current) return;
+    namesAsked.current = true;
+    void Promise.all(
+      destinations.map((one) => opsFetch<DetailReply<DestinationDetail>>("/api/ops/destinations", { id: one.id })),
+    ).then((replies) => {
+      const found: Record<string, { ar: string | null; es: string | null }> = {};
+      for (const reply of replies) {
+        if (!reply.ok || !reply.item?.translations) continue;
+        const t = reply.item.translations;
+        found[reply.item.id] = { ar: t.ar?.name || null, es: t.es?.name || null };
+      }
+      setLocalNames(found);
+    });
+  }, [locale, destinations]);
+
+  const shownDestinations: BookingsDestination[] =
+    locale === "en" ? destinations : destinations.map((one) => ({ id: one.id, name: localNames[one.id]?.[locale] ?? one.name }));
 
   // The first page for the applied controls; the URL follows.
   useEffect(() => {
@@ -114,7 +138,7 @@ export function BookingsScreen() {
       items={items}
       next={next}
       query={query ?? EMPTY}
-      destinations={destinations}
+      destinations={shownDestinations}
       loading={loading}
       error={error}
       onQuery={setQuery}

@@ -25,8 +25,9 @@ import { RecordPaymentDialog, ResolveAttentionDialog, StatusDialog, VoidPaymentD
 
 // Plan 04-09 Task 7: one booking for the owner. This file owns the data and the writes: the reference (read once from
 // the URL, the only value ever in it), the detail from /api/ops/booking, the dialogs' values, one request_id per Record
-// or Resend (made when the dialog opens or the button is clicked, kept across retries of that dialog), and the six
-// POSTs. After any 2xx write the detail is read again. BookingDetail and the dialogs draw; nothing here draws a field.
+// (made when the dialog opens, kept across retries of that dialog) and per Resend (made on the first click for that mail,
+// kept across retries until a 2xx, then dropped so the next click is a new send), and the six POSTs. After any 2xx write
+// the detail is read again. BookingDetail and the dialogs draw; nothing here draws a field.
 
 type Dialog =
   | { kind: "record" }
@@ -69,6 +70,9 @@ export function BookingDetailScreen() {
 
   const inFlight = useRef(false);
   const requestId = useRef("");
+  // One request_id per Resend target ("request" or "receipt:<payment id>"), reused by a retry after a failed or timed-out
+  // call so the server's mail key (resend/<booking_id>/<request_id>) sends it once; dropped after a 2xx.
+  const resendIds = useRef(new Map<string, string>());
   const latest = useRef(0);
   const words = useRef({ copy, kit });
   words.current = { copy, kit };
@@ -224,17 +228,26 @@ export function BookingDetailScreen() {
     if (reply) setNotice(copy.attention.resolved);
   }
 
+  // The note endpoint and ops_add_booking_note take no request_id, so a retry after a timeout can add the note twice.
+  // The screen guards what it can: one call in flight (write), Add note off while busy, the draft kept until a 2xx, and
+  // the booking read again after a failure so a note that did land shows in the list before the owner tries again.
   async function addNote() {
+    if (inFlight.current) return;
     const reply = await write("/api/ops/booking/note", { booking_id: b.id, body: noteDraft.trim() }, false);
     if (reply) {
       setNoteDraft("");
       setNotice(copy.notes.added);
-    }
+    } else setReload((n) => n + 1);
   }
 
   async function resend(body: { kind: "receipt"; payment_id: string } | { kind: "request" }) {
-    const reply = await write<{ mail?: MailAnswer }>("/api/ops/booking/resend", { ref: b.ref, ...body, request_id: crypto.randomUUID() }, false);
+    if (inFlight.current) return;
+    const key = body.kind === "receipt" ? `receipt:${body.payment_id}` : "request";
+    const id = resendIds.current.get(key) ?? crypto.randomUUID();
+    resendIds.current.set(key, id);
+    const reply = await write<{ mail?: MailAnswer }>("/api/ops/booking/resend", { ref: b.ref, ...body, request_id: id }, false);
     if (reply) {
+      resendIds.current.delete(key);
       const state: MailCopyKey = reply.mail === "sent" || reply.mail === "pending" ? reply.mail : "failed";
       setNotice(copy.payments.resent[state]);
     }

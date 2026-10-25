@@ -195,7 +195,7 @@ export function BookingsList({
             value={query.status}
             options={statusOptions}
             dir={dir}
-            label={`${copy.list.columns.status}: {name}`}
+            label={copy.list.statusPicked}
             onChange={(value) => {
               const status = (value === ALL || value === "attention" || (BOOKING_STATUSES as readonly string[]).includes(value) ? value : ALL) as StatusFilter;
               onQuery({ ...query, status });
@@ -203,12 +203,12 @@ export function BookingsList({
           />
         </div>
         <div className="grid gap-2">
-          <span className="text-label text-ink">{copy.list.columns.stay}</span>
+          <span className="text-label text-ink">{copy.list.destination}</span>
           <Select
             value={query.destination ?? ALL}
             options={destinationOptions}
             dir={dir}
-            label={`${copy.list.columns.stay}: {name}`}
+            label={copy.list.destinationPicked}
             onChange={(value) => onQuery({ ...query, destination: value === ALL ? null : value })}
           />
         </div>

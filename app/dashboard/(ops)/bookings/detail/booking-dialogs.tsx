@@ -150,7 +150,7 @@ export function RecordPaymentDialog({
             required
             className="max-w-none"
             value={values.amount}
-            hint={`${R.amountHint} ${D.dueNow}: ${aedIn(b.flags.due_now_fils)}`}
+            hint={fillCopy(R.amountDueHint, { hint: R.amountHint, label: D.dueNow, amount: aedIn(b.flags.due_now_fils) })}
             error={amountBad ? E.amount : undefined}
             onChange={(event) => onChange({ amount: event.target.value })}
           />
@@ -416,6 +416,7 @@ export function StatusDialog({
         }
         confirmLabel={A.cancel}
         cancelLabel={A.keep}
+        busy={busy}
         onConfirm={() => {
           if (!busy) onConfirm();
         }}

@@ -31,6 +31,10 @@ export type OpsBookingsCopy = {
     searchHint: string;
     allStatuses: string;
     allDestinations: string;
+    destination: string;
+    /** The Select's spoken name, {name} = the chosen option. */
+    statusPicked: string;
+    destinationPicked: string;
     arriveFrom: string;
     arriveTo: string;
     arrival: string;
@@ -80,6 +84,7 @@ export type OpsBookingsCopy = {
     children: string;
     infants: string;
     language: string;
+    languages: { en: string; ar: string; es: string };
     travellerKinds: { adult: string; child: string; infant: string };
     lineUnit: { person: string; night: string; trip: string };
     quantity: string;
@@ -117,6 +122,7 @@ export type OpsBookingsCopy = {
     reference: string;
     amount: string;
     recordedBy: string;
+    actionsColumn: string;
     voided: string;
     writtenOff: string;
     none: string;
@@ -141,6 +147,7 @@ export type OpsBookingsCopy = {
     title: string;
     amount: string;
     amountHint: string;
+    amountDueHint: string;
     receivedOn: string;
     bankReference: string;
     acceptShort: string;
@@ -242,6 +249,9 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       searchHint: "Reference, guest name or email",
       allStatuses: "All statuses", // CANVAS
       allDestinations: "All destinations", // CANVAS
+      destination: "Destination",
+      statusPicked: "Status: {name}",
+      destinationPicked: "Destination: {name}",
       arriveFrom: "Arrival from",
       arriveTo: "Arrival to",
       arrival: "Arrival dates",
@@ -310,6 +320,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       children: "Children",
       infants: "Infants",
       language: "Language",
+      languages: { en: "English", ar: "العربية", es: "Español" }, // each language in its own name, the same in every locale
       travellerKinds: { adult: "Adult", child: "Child", infant: "Infant" },
       lineUnit: { person: "per person", night: "per night", trip: "per trip" },
       quantity: "Quantity",
@@ -347,6 +358,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       reference: "Reference", // CANVAS
       amount: "Amount", // CANVAS
       recordedBy: "Recorded by",
+      actionsColumn: "Actions", // the payments table's last column, read by screen readers only
       voided: "Voided: {reason}",
       writtenOff: "Written off {amount}: {reason}",
       none: "No payment recorded yet.",
@@ -385,6 +397,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       title: "Record payment", // CANVAS
       amount: "Amount received (AED)",
       amountHint: "As it arrived in your bank, like 1050 or 1,050.50.",
+      amountDueHint: "{hint} {label}: {amount}",
       receivedOn: "Date received",
       bankReference: "Bank reference",
       acceptShort: "Accept as paid",
@@ -510,6 +523,9 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       searchHint: "المرجع أو اسم الضيف أو البريد الإلكتروني",
       allStatuses: "كل الحالات",
       allDestinations: "كل الوجهات",
+      destination: "الوجهة",
+      statusPicked: "الحالة: {name}",
+      destinationPicked: "الوجهة: {name}",
       arriveFrom: "الوصول من",
       arriveTo: "الوصول حتى",
       arrival: "تواريخ الوصول",
@@ -576,6 +592,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       children: "الأطفال",
       infants: "الرضّع",
       language: "اللغة",
+      languages: { en: "English", ar: "العربية", es: "Español" }, // each language in its own name, the same in every locale
       travellerKinds: { adult: "بالغ", child: "طفل", infant: "رضيع" },
       lineUnit: { person: "للشخص", night: "لليلة", trip: "للرحلة" },
       quantity: "الكمية",
@@ -613,6 +630,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       reference: "المرجع",
       amount: "المبلغ",
       recordedBy: "سجّلها",
+      actionsColumn: "الإجراءات", // the payments table's last column, read by screen readers only
       voided: "أُلغيت: {reason}",
       writtenOff: "مشطوب {amount}: {reason}",
       none: "لم تُسجَّل أي دفعة بعد.",
@@ -651,6 +669,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       title: "تسجيل دفعة",
       amount: "المبلغ المستلم (درهم)",
       amountHint: "كما وصل إلى مصرفك، مثل 1050 أو 1,050.50.",
+      amountDueHint: "{hint} {label}: {amount}",
       receivedOn: "تاريخ الاستلام",
       bankReference: "مرجع التحويل",
       acceptShort: "قبول كمدفوع",
@@ -775,6 +794,9 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       searchHint: "Referencia, nombre del huésped o correo",
       allStatuses: "Todos los estados",
       allDestinations: "Todos los destinos",
+      destination: "Destino",
+      statusPicked: "Estado: {name}",
+      destinationPicked: "Destino: {name}",
       arriveFrom: "Llegada desde",
       arriveTo: "Llegada hasta",
       arrival: "Fechas de llegada",
@@ -843,6 +865,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       children: "Niños",
       infants: "Bebés",
       language: "Idioma",
+      languages: { en: "English", ar: "العربية", es: "Español" }, // each language in its own name, the same in every locale
       travellerKinds: { adult: "Adulto", child: "Niño", infant: "Bebé" },
       lineUnit: { person: "por persona", night: "por noche", trip: "por trayecto" },
       quantity: "Cantidad",
@@ -880,6 +903,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       reference: "Referencia",
       amount: "Importe",
       recordedBy: "Registrado por",
+      actionsColumn: "Acciones", // the payments table's last column, read by screen readers only
       voided: "Anulado: {reason}",
       writtenOff: "Condonado {amount}: {reason}",
       none: "Aún no hay pagos registrados.",
@@ -918,6 +942,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       title: "Registrar pago",
       amount: "Importe recibido (AED)",
       amountHint: "Tal como llegó a su banco, por ejemplo 1050 o 1,050.50.",
+      amountDueHint: "{hint} {label}: {amount}",
       receivedOn: "Fecha de recepción",
       bankReference: "Referencia bancaria",
       acceptShort: "Aceptar como pagado",
