@@ -7,6 +7,7 @@ import { Link } from "../../../components/ui/link";
 import { WhatsApp } from "../../../components/ui/whatsapp";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
+import { localePath } from "../../../lib/locale-path";
 
 const DESTINATIONS = ["Cartagena", "Medellín", "Bogotá", "San Andrés", "Cocora Valley"] as const;
 
@@ -84,7 +85,7 @@ export function TripScreen() {
         onLocale={setLocale}
         labels={HOME_COPY[locale].nav}
         markCurrent={false}
-        loginHref="/login"
+        loginHref={localePath(locale, "/login")}
       />
       <main
         id="content"

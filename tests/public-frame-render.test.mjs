@@ -32,7 +32,7 @@ const props = (over = {}) => ({
 const logoHref = (html) => /<a href="([^"]*)" aria-label="ALMAR Private Journeys home"/.exec(html)?.[1];
 
 test("the default logo link is the locale home, not the page's own address (slash rule for locale roots)", () => {
-  for (const [locale, home] of [["en", "/"], ["ar", "/ar/"], ["es", "/es/"]]) {
+  for (const [locale, home] of [["en", "/en/"], ["ar", "/ar/"], ["es", "/es/"]]) {
     for (const currentPath of ["/", "/private-stays", "/private-stays/getsemani-colonial-house"]) {
       assert.equal(logoHref(render(props({ locale, currentPath }))), home, `${locale} ${currentPath}`);
     }
@@ -45,7 +45,7 @@ test("an explicit homeHref still wins", () => {
 
 test("the language links still go to this page in each language", () => {
   const html = render(props({ locale: "ar", currentPath: "/private-stays" }));
-  for (const href of ["/private-stays", "/ar/private-stays", "/es/private-stays"]) {
+  for (const href of ["/en/private-stays", "/ar/private-stays", "/es/private-stays"]) {
     assert.ok(html.includes(`href="${href}"`), href);
   }
 });

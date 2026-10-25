@@ -23,5 +23,5 @@ for (const path of serverPaths) {
 const SERVER_PATHS = new Set(serverPaths);
 
 export default {
-  fetch: (request, env, ctx) => handle(request, env, ctx, { serverPaths: SERVER_PATHS, nextFetch: openNext.fetch.bind(openNext) }),
+  fetch: (request, env, ctx) => handle(request, env, ctx, { serverPaths: SERVER_PATHS, nextFetch: openNext.fetch.bind(openNext), rootRedirect: true }),
 };

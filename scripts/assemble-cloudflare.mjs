@@ -41,7 +41,8 @@ function copyFile(src, dest) {
  *  - `.body` files (the Framer route handlers) are copied as before.
  *  - `.html` files (React pages) are copied only for public pages (matchPublicPage), so account, dashboard,
  *    login, booking, bookings and _not-found never reach out/.
- *  - A locale home is written to out/<locale>/index.html, never to out/<locale>.html.
+ *  - A locale home is written to out/<locale>/index.html, never to out/<locale>.html. Since job 21 English is a locale
+ *    like the others (out/en/…); nothing ships as out/index.html: "/" is the Worker's language redirect.
  *  - .next/static goes to out/_next/static when any React document ships, so it is styled and hydrates.
  *  - Three branded 404s are rendered by renderStaticNotFound, never templated here.
  *  - `pages: false` (the ops target, plan 03.2-03) ships no page at all: no .body, no .html, no index.html. Only
@@ -63,15 +64,19 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile,
     const isHtml = file.endsWith(".html");
     if (!isBody && !isHtml) continue;
     const rel = file.replace(/\.(body|html)$/, "");
-    const urlPath = rel === "index" ? "/" : isLocale(rel) && rel !== "en" ? `/${rel}/` : `/${rel}`;
+    const urlPath = rel === "index" ? "/" : isLocale(rel) ? `/${rel}/` : `/${rel}`;
     const { locale, path: pagePath } = stripLocale(urlPath);
     if (isHtml && matchPublicPage(pagePath) === null) continue;
+    // Job 21: every page is prefixed; an unprefixed page (app/<page> outside app/en) would shadow a 301 in _redirects.
+    if (!LOCALES.some((l) => urlPath === `/${l}/` || urlPath.startsWith(`/${l}/`))) {
+      throw new Error(`${file} would ship unprefixed at ${urlPath}: every page lives under /en, /ar or /es (job 21)`);
+    }
     // Job 10: nothing under /api or a held section may ship as a static file. A route that lost
     // `force-dynamic` would be prerendered here and served before the Worker could hold it.
     if (pagePath === "/api" || pagePath.startsWith("/api/") || isHeldPath(pagePath)) {
       throw new Error(`${file} would ship as a static file under ${pagePath}: it must be force-dynamic (lib/server-routes.ts)`);
     }
-    const dest = rel === "index" ? "index.html" : isLocale(rel) && rel !== "en" ? `${rel}/index.html` : `${rel}.html`;
+    const dest = isLocale(rel) ? `${rel}/index.html` : `${rel}.html`;
     if (taken.has(dest)) {
       throw new Error(`two sources for out/${dest}: ${taken.get(dest)} and ${file}`);
     }
@@ -95,7 +100,7 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile,
   const react = { en: [], ar: [], es: [] };
   for (const item of plan) if (item.kind === "react") react[item.locale].push(item);
   const pagesOf = (locale) => new Set(react[locale].map((item) => item.pagePath));
-  for (const [a, b] of [["ar", "es"], ["es", "ar"]]) {
+  for (const [a, b] of [["ar", "es"], ["es", "ar"], ["en", "ar"], ["ar", "en"]]) {
     const missing = [...pagesOf(a)].filter((p) => !pagesOf(b).has(p));
     if (missing.length > 0) {
       throw new Error(`${a} pages without an ${b} twin: ${missing.map((p) => localePath(a, p)).join(", ")}`);
@@ -104,7 +109,7 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile,
   const planned = new Set(plan.map((item) => item.dest));
   for (const locale of ["ar", "es"]) {
     for (const item of react[locale]) {
-      const english = item.pagePath === "/" ? "index.html" : `${item.pagePath.slice(1)}.html`;
+      const english = item.pagePath === "/" ? "en/index.html" : `en${item.pagePath}.html`;
       if (!planned.has(english)) {
         throw new Error(`${item.dest} has no English page (expected out/${english})`);
       }
@@ -135,7 +140,7 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile,
 
   const notFound = [];
   for (const locale of LOCALES) {
-    const homeDest = locale === "en" ? "index.html" : `${locale}/index.html`;
+    const homeDest = `${locale}/index.html`;
     const homeHref = planned.has(homeDest) ? localePath(locale, "/") : "/";
     const dest = locale === "en" ? "404.html" : `${locale}/404.html`;
     fs.mkdirSync(path.dirname(path.join(outDir, dest)), { recursive: true });
@@ -148,10 +153,13 @@ export function assembleOut({ appDir, staticDir, outDir, publicDir, headersFile,
   }
 
   // 4. Self-checks on what is on disk.
-  const must = pages ? ["index.html", ...notFound] : [...notFound];
+  const must = pages ? ["en/index.html", "ar/index.html", "es/index.html", ...notFound] : [...notFound];
   const absent = must.filter((f) => !fs.existsSync(path.join(outDir, f)));
   if (absent.length > 0) throw new Error(`assemble incomplete: missing ${absent.join(", ")}`);
-  for (const l of ["ar", "es"]) {
+  if (fs.existsSync(path.join(outDir, "index.html"))) {
+    throw new Error(`out/index.html exists: "/" is the Worker's language redirect (job 21), never a static page`);
+  }
+  for (const l of LOCALES) {
     if (fs.existsSync(path.join(outDir, `${l}.html`))) {
       throw new Error(`out/${l}.html exists: a locale home must be out/${l}/index.html only`);
     }

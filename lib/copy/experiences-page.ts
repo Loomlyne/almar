@@ -33,6 +33,8 @@ export type ExperiencesPageCopy = {
   type: { label: string; all: string; experiences: string; services: string };
   destination: { label: string };
   stay: { label: string };
+  /** The price sort (CMS-02). {name} in `label` is the chosen option. */
+  sort: { label: string; position: string; low: string; high: string };
   clear: string;
   /** Group heads: the same words as type.experiences and type.services (board 5e k64, k65). */
   groups: { experiences: string; services: string };
@@ -67,6 +69,7 @@ export const EXPERIENCES_PAGE_COPY: Record<ExperiencesPageLocale, ExperiencesPag
     type: { label: "Type", all: "All", experiences: "Experiences", services: "Services" },
     destination: { label: "Destination" },
     stay: { label: "Private stay" },
+    sort: { label: "Sort: {name}", position: "Our order", low: "Price: low to high", high: "Price: high to low" },
     clear: "Clear filters",
     groups: { experiences: "Experiences", services: "Services" },
     count: { one: "# option", other: "# options" },
@@ -94,6 +97,7 @@ export const EXPERIENCES_PAGE_COPY: Record<ExperiencesPageLocale, ExperiencesPag
     type: { label: "النوع", all: "الكل", experiences: "التجارب", services: "الخدمات" },
     destination: { label: "الوجهة" },
     stay: { label: "إقامة خاصة" },
+    sort: { label: "الترتيب: {name}", position: "ترتيبنا", low: "السعر: من الأقل إلى الأعلى", high: "السعر: من الأعلى إلى الأقل" },
     clear: "مسح التصفية",
     groups: { experiences: "التجارب", services: "الخدمات" },
     count: {
@@ -142,6 +146,7 @@ export const EXPERIENCES_PAGE_COPY: Record<ExperiencesPageLocale, ExperiencesPag
     type: { label: "Tipo", all: "Todo", experiences: "Experiencias", services: "Servicios" },
     destination: { label: "Destino" },
     stay: { label: "Estancia privada" },
+    sort: { label: "Orden: {name}", position: "Nuestro orden", low: "Precio: de menor a mayor", high: "Precio: de mayor a menor" },
     clear: "Borrar filtros",
     groups: { experiences: "Experiencias", services: "Servicios" },
     count: { one: "# opción", other: "# opciones" },

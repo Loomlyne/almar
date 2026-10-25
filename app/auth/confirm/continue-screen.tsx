@@ -6,7 +6,7 @@ import { Button } from "../../../components/ui/button";
 import { Field } from "../../../components/ui/field";
 import { GUEST_COPY } from "../../../lib/copy/guest";
 import { setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
-import { AuthFrame } from "../../login/auth-frame";
+import { AuthFrame } from "../../[locale]/login/auth-frame";
 import { confirmSignIn, type ConfirmState } from "./actions";
 
 function ContinueButton({ children }: { children: string }) {
@@ -29,7 +29,7 @@ export function ContinueScreen({
   maskedEmail,
   tokenHash,
   type,
-  signInHref = "/login",
+  signInHref = "/en/login",
   askEmail = false,
   browserProof,
   emailProof,

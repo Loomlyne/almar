@@ -17,6 +17,7 @@ import type {
 } from "../../../../components/ops/api-types";
 import type { Fields, LiveFields, Target } from "../../../../components/ops/auto-translate";
 import type { MissingItem } from "../../../../components/ops/publish-check";
+import { sortByPrice, type PriceSort } from "../../../../lib/data/catalog-filter";
 import { foldText } from "../../../../lib/data/stay-filter";
 
 export const FORM_LOCALES: readonly Locale3[] = ["en", "ar", "es"];
@@ -115,27 +116,30 @@ export function groupAmount(price: string): string {
   return m[2] === undefined ? whole : `${whole}.${m[2].padEnd(2, "0")}`;
 }
 
-export type CatalogFilter = { kind: "" | CatalogKind; destinationId: string; stayId: string; query: string };
-export const NO_CATALOG_FILTER: CatalogFilter = { kind: "", destinationId: "", stayId: "", query: "" };
+export type CatalogFilter = { kind: "" | CatalogKind; destinationId: string; stayId: string; query: string; sort: PriceSort };
+export const NO_CATALOG_FILTER: CatalogFilter = { kind: "", destinationId: "", stayId: "", query: "", sort: "position" };
 
 export type CatalogFilterable = {
   position: number;
+  /** The rate as a number, or null when none is set. */
+  price: number | null;
   kind: CatalogKind;
   name: string;
   destinationIds: string[];
   stayIds: string[];
 };
 
-/** Type, destination, stay and search together; accents folded; position order. */
+/** Type, destination, stay and search together; accents folded; position order, or by price (unpriced last). */
 export function filterCatalogRows<T extends CatalogFilterable>(rows: readonly T[], filter: CatalogFilter): T[] {
   const needle = foldText(filter.query.trim());
-  return rows
+  const filtered = rows
     .filter((row) => (filter.kind === "" || row.kind === filter.kind))
     .filter((row) => filter.destinationId === "" || row.destinationIds.includes(filter.destinationId))
     .filter((row) => filter.stayId === "" || row.stayIds.includes(filter.stayId))
     .filter((row) => needle === "" || foldText(row.name).includes(needle))
     .slice()
     .sort((a, b) => a.position - b.position);
+  return sortByPrice(filtered, filter.sort, (row) => row.price);
 }
 
 // ---- detail -> form ---------------------------------------------------------------------------------------------

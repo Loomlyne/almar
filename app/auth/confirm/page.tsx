@@ -6,6 +6,7 @@ import { ContinueScreen } from "./continue-screen";
 import { continueMode, isConfirmType, linkNonceCookieName, verifyContinue } from "../../../lib/auth/continue";
 import { SHELL_HEADER } from "../../../lib/host";
 import { requestLocale } from "../../../lib/request-locale";
+import { localePath } from "../../../lib/locale-path";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,10 @@ export default async function ConfirmPage({ searchParams }: { searchParams: Prom
   const tokenHash = one(query.token_hash);
   const type = one(query.type);
   const ops = (await headers()).get(SHELL_HEADER) === "ops";
-  if (!tokenHash || !isConfirmType(type)) redirect(ops ? "/sign-in?expired=1" : "/login?expired=1");
+  // Job 21: /auth/confirm stays unprefixed; its sign-in links go to the sign-in page in the chosen language (cookie).
+  const locale = await requestLocale();
+  const signIn = ops ? "/sign-in" : localePath(locale, "/login");
+  if (!tokenHash || !isConfirmType(type)) redirect(`${signIn}?expired=1`);
 
   const masked = one(query.m) ?? "";
   const key = authSigningKey("continue");
@@ -40,14 +44,14 @@ export default async function ConfirmPage({ searchParams }: { searchParams: Prom
 
   return (
     <ContinueScreen
-      initialLocale={await requestLocale()}
+      initialLocale={locale}
       maskedEmail={proven ? masked : undefined}
       tokenHash={tokenHash}
       type={type}
       askEmail={mode === "email"}
       browserProof={b}
       emailProof={one(query.e)}
-      signInHref={ops ? "/sign-in" : "/login"}
+      signInHref={signIn}
     />
   );
 }

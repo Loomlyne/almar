@@ -6,7 +6,7 @@ import { localePath, type Locale } from "../../../lib/locale-path";
 import { routeMedia } from "../../helpers/media-route";
 
 // 3.3 integration fixes, item d: what the shared PublicFrame does in a browser on the assembled site.
-//  1. the logo goes to this language's home ("/", "/ar/", "/es/"), never to the page's own address
+//  1. the logo goes to this language's home ("/en/", "/ar/", "/es/"), never to the page's own address
 //  2. the footer prints the phone as designed and dials the digits
 //  3. the currency select is controlled by the page's own saved choice (the home), and absent where a page has no amount
 //  4. the WhatsApp float is not drawn on a stay page (plan 45: the request button is the one WhatsApp control) and sits at the corner elsewhere
@@ -19,7 +19,7 @@ const SIZES = [
   { width: 1440, height: 900 },
 ] as const;
 const STAY = "/private-stays/getsemani-colonial-house";
-const HOMES: Record<Locale, string> = { en: "/", ar: "/ar/", es: "/es/" };
+const HOMES: Record<Locale, string> = { en: "/en/", ar: "/ar/", es: "/es/" };
 
 const logo = (page: Page) => page.getByRole("link", { name: "ALMAR Private Journeys home" });
 const nameOfCurrency = (locale: Locale, value: string) => JOURNEY_COPY[locale].locale.currency.replace("{code}", value);

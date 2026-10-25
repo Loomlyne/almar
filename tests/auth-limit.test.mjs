@@ -124,7 +124,7 @@ test("TOUCHWORD is hidden in production and /auth/handoff/start redirects home b
 });
 
 test("saveProfile treats zero updated rows as failed", () => {
-  const source = code("app/account/actions.ts");
+  const source = code("app/[locale]/account/actions.ts");
   const save = source.slice(source.indexOf("export async function saveProfile"), source.indexOf("export async function savePreferences"));
   assert.match(save, /\.select\("id"\)/);
   assert.match(save, /updated\.length === 0 \? \{ status: "failed" \}/);

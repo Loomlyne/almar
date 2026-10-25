@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ExperiencesPageCopy } from "../../../lib/copy/experiences-page";
 import { formatPlural } from "../../../lib/journey-format";
+import { parsePriceSort, type PriceSort } from "../../../lib/data/catalog-filter";
 import type { CatalogKind } from "../../../lib/data/types";
 import { Button } from "../../ui/button";
 import { CheckboxGroup } from "../../ui/checkbox-group";
@@ -10,6 +11,7 @@ import { ChipGroup } from "../../ui/chip-group";
 import { CountBadge } from "../../ui/count-badge";
 import { Dialog } from "../../ui/dialog";
 import { Field } from "../../ui/field";
+import { Select } from "../../ui/select";
 import { sheetFilterCount, type CatalogState } from "./filter-state";
 
 /** The search fields' ids (the rail's and the toolbar's). Clear moves focus to whichever is showing. */
@@ -29,12 +31,14 @@ export function CatalogFilters({
   state,
   count,
   filtered,
+  showSort,
   destinations,
   stays,
   onQuery,
   onKind,
   onDestinations,
   onStays,
+  onSort,
   onClear,
 }: {
   copy: ExperiencesPageCopy;
@@ -43,6 +47,8 @@ export function CatalogFilters({
   /** How many items the current filters leave. */
   count: number;
   filtered: boolean;
+  /** At least two items in the current view have a price: the sort can reorder them. */
+  showSort: boolean;
   destinations: readonly { slug: string; name: string }[];
   /** The stays on offer, already narrowed by the checked destinations. */
   stays: readonly { slug: string; title: string }[];
@@ -50,6 +56,7 @@ export function CatalogFilters({
   onKind: (kind: "all" | CatalogKind) => void;
   onDestinations: (next: string[]) => void;
   onStays: (next: string[]) => void;
+  onSort: (next: PriceSort) => void;
   onClear: () => void;
 }) {
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -62,6 +69,21 @@ export function CatalogFilters({
   const destinationOptions = destinations.map((d) => ({ value: d.slug, label: d.name }));
   const stayOptions = stays.map((s) => ({ value: s.slug, label: s.title }));
   const badge = sheetFilterCount(state);
+  const sortControl = showSort ? (
+    <div data-catalog-sort="">
+    <Select
+      dir={locale === "ar" ? "rtl" : "ltr"}
+      value={state.sort}
+      label={copy.sort.label}
+      options={[
+        { value: "position", label: copy.sort.position },
+        { value: "price_asc", label: copy.sort.low },
+        { value: "price_desc", label: copy.sort.high },
+      ]}
+      onChange={(next) => onSort(parsePriceSort(next))}
+    />
+    </div>
+  ) : null;
 
   const checkboxes = (
     <>
@@ -98,6 +120,7 @@ export function CatalogFilters({
           value={state.kind}
           onChange={(next) => onKind(next as "all" | CatalogKind)}
         />
+        {sortControl}
         {checkboxes}
         {filtered && count > 0 ? (
           <Button variant="ghost" onClick={onClear}>
@@ -130,6 +153,7 @@ export function CatalogFilters({
             value={state.kind}
             onChange={(next) => onKind(next as "all" | CatalogKind)}
           />
+          {sortControl}
         </div>
       </div>
 

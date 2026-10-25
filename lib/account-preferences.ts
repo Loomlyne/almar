@@ -4,7 +4,7 @@
 // tests all load it. Every value read from a cookie, a body or a row is untrusted: anything that is not exactly one
 // of the allowed values is null, never repaired.
 
-import { localePath, matchPublicPage, stripLocale, type Locale } from "./locale-path";
+import { isGuestPage, localePath, matchPublicPage, stripLocale, type Locale } from "./locale-path";
 
 export type AccountCurrency = "AED" | "USD" | "EUR";
 export type PreferenceFields = { locale?: Locale; currency?: AccountCurrency };
@@ -126,18 +126,18 @@ export function parsePreferenceBody(value: unknown): PreferenceFields | null {
 
 /**
  * Where to send her after sign-in, in her language. `back` has already passed safeReturnPath (a site path). A public
- * page that exists in every locale gets her locale's URL; anything else (`/account`, `/bookings`) is unchanged.
- * A query or hash is kept.
+ * page or a guest page (job 21: /<locale>/account, /<locale>/bookings…) gets her locale's URL; anything else is
+ * unchanged. A query or hash is kept.
  *
- *   ("/private-stays", "ar") -> "/ar/private-stays"      ("/es/about?x=1", "en") -> "/about?x=1"
- *   ("/account", "ar")       -> "/account"               ("/", "es")            -> "/es/"
+ *   ("/private-stays", "ar") -> "/ar/private-stays"      ("/es/about?x=1", "en") -> "/en/about?x=1"
+ *   ("/en/account", "ar")    -> "/ar/account"            ("/", "es")            -> "/es/"
  */
 export function localizedReturnPath(back: string, locale: Locale): string {
   const cut = back.search(/[?#]/);
   const bare = cut === -1 ? back : back.slice(0, cut);
   const suffix = cut === -1 ? "" : back.slice(cut);
   const { path } = stripLocale(bare);
-  if (matchPublicPage(path) === null) return back;
+  if (matchPublicPage(path) === null && !isGuestPage(path)) return back;
   try {
     return localePath(locale, path) + suffix;
   } catch {

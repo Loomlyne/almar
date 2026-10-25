@@ -125,7 +125,8 @@ test("the server hashes the email and IP with the derived limiter key, fails clo
 
 test("return paths stay on this site", () => {
   assert.equal(safeReturnPath("/account"), "/account");
-  for (const bad of ["/login", "/login?expired=1", "/auth/confirm", "/LOGIN", "//evil.com", "/\\evil.com", "https://evil.com", "account", "", null, "/a\nb"]) {
+  assert.equal(safeReturnPath("/en/account"), "/en/account");
+  for (const bad of ["/login", "/login?expired=1", "/en/login", "/ar/login?expired=1", "/es/login/", "/EN/LOGIN", "/auth/confirm", "/LOGIN", "//evil.com", "/\\evil.com", "https://evil.com", "account", "", null, "/a\nb"]) {
     assert.equal(safeReturnPath(bad), "/", String(bad));
   }
 });
@@ -152,7 +153,7 @@ test("the public email has the button, no password, no dashboard, and escapes th
 });
 
 test("sign-in screen: one email field, no password, no create tab", () => {
-  const screen = code("app/login/sign-in-screen.tsx");
+  const screen = code("app/[locale]/login/sign-in-screen.tsx");
   assert.equal(screen.includes('type="password"'), false);
   assert.equal(/role="tab"|Create account/.test(screen), false);
   assert.match(screen, /requestSignIn/);
@@ -166,7 +167,7 @@ test("confirm action verifies the token and reads no redirect from the form", ()
 });
 
 test("login page reads the return key from a fixed list only", () => {
-  const page = code("app/login/page.tsx");
+  const page = code("app/[locale]/login/page.tsx");
   assert.match(page, /Object\.hasOwn\(RETURN_KEYS/);
 });
 
@@ -179,6 +180,7 @@ test("every path job 02 opens runs through the middleware, so the shell-header s
   const pattern = new RegExp(`^${JSON.parse(`"${matcher[1]}"`)}$`);
   for (const path of JOB02_SERVER_PATHS) {
     assert.ok(pattern.test(path), `${path} is skipped by the middleware matcher`);
+    if (/^\/(en|ar|es)\//.test(path)) continue; // job 21: the guest pages carry their prefix in the path itself
     assert.ok(pattern.test(`/ar${path}`) && pattern.test(`/es${path}`), `/ar|/es${path} is skipped`);
   }
   assert.equal(pattern.test("/assets/x.png"), false, "the matcher still skips static assets");

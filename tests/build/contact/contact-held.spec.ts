@@ -34,7 +34,6 @@ const PACKAGES = /packages|paquetes|الباقات|باقات/i;
 const LIST_WITH_US = /list with us/i;
 
 async function assertHeld(page: Page, locale: Locale, where: string) {
-  const nav = HOME_COPY[locale].nav;
   const heldSelectors = HELD_SELECTORS.map((s) => (s === "main select" ? "main select:not(#inquiry select)" : s));
   for (const selector of heldSelectors) await expect(page.locator(selector), `${where}: ${selector}`).toHaveCount(0);
   const strays = await page.locator("select").evaluateAll((els) => els.filter((el) => !el.closest("header") && !el.closest("#inquiry")).length);
@@ -51,7 +50,8 @@ async function assertHeld(page: Page, locale: Locale, where: string) {
   expect(outside, `${where}: a form control outside #inquiry`).toEqual([]);
   await expect(page.getByRole("group", { name: HOME_PAGE_COPY[locale].hero.barLabel }), where).toHaveCount(0);
   await expect(page.getByRole("button", { name: JOURNEY_COPY[locale].bar.search }), where).toHaveCount(0);
-  for (const name of [nav.login, HOME_COPY[locale].subscribe, HOME_COPY[locale].listTitle]) {
+  // Job 21 (owner, 2026-10-21, decision #5): Login is live (the header's last item), so it is no longer asserted absent.
+  for (const name of [HOME_COPY[locale].subscribe, HOME_COPY[locale].listTitle]) {
     await expect(page.getByRole("link", { name, exact: true }), `${where}: ${name}`).toHaveCount(0);
     await expect(page.getByRole("button", { name, exact: true }), `${where}: ${name}`).toHaveCount(0);
   }

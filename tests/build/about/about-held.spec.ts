@@ -33,13 +33,13 @@ const CART = /\bcart\b|carrito|عربة|سلة/i;
 const PACKAGES = /packages|paquetes|الباقات|باقات/i;
 
 async function assertHeld(page: Page, locale: Locale, where: string) {
-  const nav = HOME_COPY[locale].nav;
   for (const selector of HELD_SELECTORS) await expect(page.locator(selector), `${where}: ${selector}`).toHaveCount(0);
   const strays = await page.locator("select").evaluateAll((els) => els.filter((el) => !el.closest("header")).length);
   expect(strays, `${where}: select outside the header`).toBe(0);
   await expect(page.getByRole("group", { name: HOME_PAGE_COPY[locale].hero.barLabel }), where).toHaveCount(0);
   await expect(page.getByRole("button", { name: JOURNEY_COPY[locale].bar.search }), where).toHaveCount(0);
-  for (const name of [nav.login, HOME_COPY[locale].subscribe, HOME_COPY[locale].listTitle]) {
+  // Job 21 (owner, 2026-10-21, decision #5): Login is live (the header's last item), so it is no longer asserted absent.
+  for (const name of [HOME_COPY[locale].subscribe, HOME_COPY[locale].listTitle]) {
     await expect(page.getByRole("link", { name, exact: true }), `${where}: ${name}`).toHaveCount(0);
     await expect(page.getByRole("button", { name, exact: true }), `${where}: ${name}`).toHaveCount(0);
   }

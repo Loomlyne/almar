@@ -571,8 +571,7 @@ for (const locale of LOCALES) {
         await page.waitForURL((u) => bare(u.pathname) === bare(localePath(locale, "/")));
       });
 
-      test(`11 held: no form, field, submit, search, video, Login or cart in the page body (${where})`, async ({ page }) => {
-        const nav = HOME_COPY[locale].nav;
+      test(`11 held: no form, field, submit, search, video or cart in the page body (${where})`, async ({ page }) => {
         await visit(page, locale, viewport);
         for (const selector of [
           "main form",
@@ -588,7 +587,6 @@ for (const locale of LOCALES) {
         }
         await expect(page.locator("main").getByText(JOURNEY_COPY[locale].bar.search, { exact: true })).toHaveCount(0);
         await expect(page.locator("main").getByRole("button", { name: JOURNEY_COPY[locale].bar.search })).toHaveCount(0);
-        await expect(page.locator("header").getByRole("link", { name: nav.login })).toHaveCount(0);
         await expect(page.locator("header").getByRole("link", { name: /cart/i })).toHaveCount(0);
         await expect(page.getByRole("combobox", { name: /^(Currency|العملة|Moneda)/ })).toHaveCount(0);
       });

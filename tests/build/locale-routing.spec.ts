@@ -157,16 +157,14 @@ for (const viewport of VIEWPORTS) {
             expect(await bare.evaluate(() => getComputedStyle(document.body).direction)).toBe(dir);
           });
 
-          // Cloudflare's canonical forms: a locale home keeps its slash, a page has none.
-          if (locale !== "en") {
-            const noSlash = await request.get(`/${locale}`, { maxRedirects: 0 });
-            expect(noSlash.status()).toBe(307);
-            expect(new URL(noSlash.headers()["location"], "http://x").pathname).toBe(`/${locale}/`);
-            if (path !== "/") {
-              const slashed = await request.get(`${url}/`, { maxRedirects: 0 });
-              expect(slashed.status()).toBe(307);
-              expect(new URL(slashed.headers()["location"], "http://x").pathname).toBe(url);
-            }
+          // Cloudflare's canonical forms: a locale home keeps its slash, a page has none (English too since job 21).
+          const noSlash = await request.get(`/${locale}`, { maxRedirects: 0 });
+          expect(noSlash.status()).toBe(307);
+          expect(new URL(noSlash.headers()["location"], "http://x").pathname).toBe(`/${locale}/`);
+          if (path !== "/") {
+            const slashed = await request.get(`${url}/`, { maxRedirects: 0 });
+            expect(slashed.status()).toBe(307);
+            expect(new URL(slashed.headers()["location"], "http://x").pathname).toBe(url);
           }
           expect(media.missing, "image keys the manifest does not know").toEqual([]);
         });

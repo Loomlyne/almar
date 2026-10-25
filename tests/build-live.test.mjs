@@ -159,7 +159,7 @@ test("_headers: /site-version.json is served no-store on production and preview"
   for (const target of ["production", "preview"]) {
     const outDir = join(root, outDirNameFor(target));
     mkdirSync(outDir, { recursive: true });
-    writeTargetFiles({ outDir, target, root, htmlFiles: ["index.html"] });
+    writeTargetFiles({ outDir, target, root, htmlFiles: ["en/index.html"] });
     assertTargetFiles(outDir, target, { root });
     assert.match(readFileSync(join(outDir, "_headers"), "utf8"), /\/site-version\.json\n {2}Cache-Control: no-store/, target);
   }

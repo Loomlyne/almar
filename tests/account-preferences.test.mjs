@@ -44,15 +44,17 @@ test("isNewAccount: a row made within the window before now; bad or old times ar
   for (const bad of [null, undefined, "", "yesterday", 1760000000000]) assert.equal(p.isNewAccount(bad, now), false);
 });
 
-test("localizedReturnPath: public pages get her language, other paths are unchanged", () => {
+test("localizedReturnPath: public and guest pages get her language, other paths are unchanged", () => {
   assert.equal(p.localizedReturnPath("/", "ar"), "/ar/");
-  assert.equal(p.localizedReturnPath("/", "en"), "/");
+  assert.equal(p.localizedReturnPath("/", "en"), "/en/");
   assert.equal(p.localizedReturnPath("/private-stays", "ar"), "/ar/private-stays");
-  assert.equal(p.localizedReturnPath("/es/about", "en"), "/about");
+  assert.equal(p.localizedReturnPath("/es/about", "en"), "/en/about");
+  assert.equal(p.localizedReturnPath("/es/about?x=1", "en"), "/en/about?x=1");
   assert.equal(p.localizedReturnPath("/ar/", "es"), "/es/");
   assert.equal(p.localizedReturnPath("/private-stays/casa-1?from=x#top", "es"), "/es/private-stays/casa-1?from=x#top");
-  assert.equal(p.localizedReturnPath("/account", "ar"), "/account");
-  assert.equal(p.localizedReturnPath("/bookings?id=1", "ar"), "/bookings?id=1");
+  assert.equal(p.localizedReturnPath("/account", "ar"), "/ar/account");
+  assert.equal(p.localizedReturnPath("/en/account", "ar"), "/ar/account");
+  assert.equal(p.localizedReturnPath("/bookings?id=1", "ar"), "/ar/bookings?id=1");
   assert.equal(p.localizedReturnPath("/dashboard", "es"), "/dashboard");
 });
 
@@ -135,7 +137,7 @@ test("saveTracker: an older success while the latest click is pending stays off 
 
 test("/account wires the tracker: an overtaken result returns before touching the screen", async () => {
   const { readFileSync } = await import("node:fs");
-  const screen = readFileSync("app/account/account-screen.tsx", "utf8");
+  const screen = readFileSync("app/[locale]/account/account-screen.tsx", "utf8");
   assert.match(screen, /const ticket = prefSaves\.current\.begin\(\);/);
   assert.match(screen, /const \{ show: shown, store \} = prefSaves\.current\.settle\(ticket, result\.status === "saved", nextCurrency\);\s*if \(store\) storeCurrencyChoice\(nextCurrency\);\s*if \(shown === null\) return;\s*setPrefState\(result\);\s*setCurrency\(shown\);/);
   assert.match(screen, /prefSaves\.current\.adopt\(shown\);/);

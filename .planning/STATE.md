@@ -29,6 +29,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 **2026-10-20 08:06 CET:** **almar-ops deployed** as `267d7570` (rollback `fd4a3419`) from `main` `8a869be` on the owner's word (question form). Clean-clone ops build and dry run, reviewer GO, live checks signed out all as expected; signed-in screens not verified (owner UAT). The public `almar` Worker is not deployed.
 
+**2026-10-21 16:19 CET:** **Landed** #31 `2a5db8ef` (planning drift, preview FORM_LIMITER 1002, HERMES.md) and #32 `565be240` (price sort CMS-02 with ranks only and hidden under 2 priced items; pets rule STAY-05) on the owner's Ship; no tests (owner). Not deployed. Before the next almar build: apply `20261021120000_stay_pets_rule_public.sql` live. Someone ran `next dev` on port 3000 in the main checkout at 16:10 (`.claude/launch.json`, `AGENTS.md`, type pins in package.json): pins reverted, the two untracked files left for the owner.
+
 **2026-10-21 16:04 CET:** **Item 7 migration `20261019130000` live** on the owner's go (24/45 published items still without a destination): applied verbatim through the Management API, version renamed to `20261019130000`, both function bodies md5-equal to the file, grants unchanged (postgres, service_role); Sonnet check GO first. Owner answers recorded (`decisions/2026-10-21-owner-answers-after-landing.md`); jobs 21 (locale prefixes + cookie + Login link), 22 (price sort + pets rule), 23 (cleanup), 24 (Phase 6 plan) started, no tests.
 
 **2026-10-21 14:52 CET:** **almar deployed** from `main` `64c3475d` as `ccf1fffb-9eee-45c7-90a8-a9bbbcd4052e` (rollback `f19819c1-9957-400a-9d1f-3ff5034d772c`, then `4cf66ade`); RESEND_API_KEY set by the owner first; Sonnet check GO. Live checks pass. All three Workers now run Next 16.4.2 from the same code.

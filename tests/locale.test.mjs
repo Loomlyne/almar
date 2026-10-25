@@ -40,10 +40,15 @@ test("TOUCHWORD is one untranslated literal in capitals, in the account menu onl
   }
 });
 
-test("pages read the language from the cookie through one allowlist", () => {
+test("pages read the language from the cookie through one allowlist; the guest pages read it from the address", () => {
   const helper = readFileSync("lib/request-locale.ts", "utf8");
   assert.match(helper, /value === "en" \|\| value === "ar" \|\| value === "es"/);
-  for (const path of ["app/login/page.tsx", "app/account/page.tsx", "app/bookings/page.tsx", "app/not-found.tsx"]) {
-    assert.match(readFileSync(path, "utf8"), /requestLocale\(/, path);
+  assert.match(readFileSync("app/not-found.tsx", "utf8"), /requestLocale\(/, "app/not-found.tsx");
+  // Job 21: /<locale>/login, /account and /bookings take the language from the address (params), 404 for any other.
+  for (const path of ["app/[locale]/login/page.tsx", "app/[locale]/account/page.tsx", "app/[locale]/bookings/page.tsx"]) {
+    const text = readFileSync(path, "utf8");
+    assert.match(text, /const \{ locale \} = await params/, path);
+    assert.match(text, /if \(!isLocale\(locale\)\) notFound\(\)/, path);
+    assert.equal(/requestLocale\(/.test(text), false, `${path} no longer reads the cookie`);
   }
 });

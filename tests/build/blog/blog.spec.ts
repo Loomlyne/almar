@@ -367,7 +367,7 @@ test.describe("blog routing and 404", () => {
   });
 
   test("a trailing slash costs one 307 to the form without it", async ({ request }) => {
-    const slashed = ["/blog/", "/ar/blog/", "/es/blog/", ...POST_SLUGS.flatMap((s) => [`/blog/${s}/`, `/ar/blog/${s}/`, `/es/blog/${s}/`])];
+    const slashed = ["/en/blog/", "/ar/blog/", "/es/blog/", ...POST_SLUGS.flatMap((s) => [`/en/blog/${s}/`, `/ar/blog/${s}/`, `/es/blog/${s}/`])];
     for (const url of slashed) {
       const response = await request.get(url, { maxRedirects: 0 });
       expect(response.status(), url).toBe(307);
@@ -376,7 +376,7 @@ test.describe("blog routing and 404", () => {
   });
 
   for (const locale of LOCALE_LIST) {
-    test(`an unknown post under ${locale === "en" ? "/blog" : `/${locale}/blog`} serves that language's 404`, async ({ page }) => {
+    test(`an unknown post under /${locale}/blog serves that language's 404`, async ({ page }) => {
       const url = `${localePath(locale, "/blog")}/nope`;
       const response = await page.goto(url);
       expect(response?.status()).toBe(404);

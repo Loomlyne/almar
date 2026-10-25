@@ -6,7 +6,7 @@
 // ?type / ?destination / ?stay / ?item to the controls and back.
 
 import type { CatalogKind } from "../../../lib/data/types";
-import { toCatalogQuery, type CatalogFilter, type CatalogQuery } from "../../../lib/data/catalog-filter";
+import { toCatalogQuery, type CatalogFilter, type CatalogQuery, type PriceSort } from "../../../lib/data/catalog-filter";
 
 /** What the controls hold. "all" is every type; empty lists are no constraint. */
 export type CatalogState = {
@@ -14,9 +14,11 @@ export type CatalogState = {
   kind: "all" | CatalogKind;
   destinations: string[];
   stays: string[];
+  /** The price sort. "position" is the owner's order. */
+  sort: PriceSort;
 };
 
-export const EMPTY_STATE: CatalogState = { query: "", kind: "all", destinations: [], stays: [] };
+export const EMPTY_STATE: CatalogState = { query: "", kind: "all", destinations: [], stays: [], sort: "position" };
 
 /** A stay as the page offers it: its slug and the destination it stands in. */
 export type StayRef = { slug: string; destination_slug: string };
@@ -38,7 +40,8 @@ export function isFiltered(state: CatalogState): boolean {
     state.query.trim() !== "" ||
     state.kind !== "all" ||
     state.destinations.length > 0 ||
-    state.stays.length > 0
+    state.stays.length > 0 ||
+    state.sort !== "position"
   );
 }
 
@@ -112,7 +115,7 @@ export function stateFromQuery(
   });
   const kind = parsed.kind === "experience" || parsed.kind === "service" ? parsed.kind : "all";
   const item = parsed.item && ctx.items.includes(parsed.item) ? parsed.item : null;
-  return { state: { query: "", kind, destinations, stays }, item };
+  return { state: { query: "", kind, destinations, stays, sort: parsed.sort ?? "position" }, item };
 }
 
 /** "" or "?type=…&destination=…&stay=…&item=…": what the page writes back with history.replaceState. */
@@ -121,6 +124,7 @@ export function urlQuery(state: CatalogState, item: string | null): string {
     kind: state.kind === "all" ? undefined : state.kind,
     destinations: state.destinations,
     stays: state.stays,
+    sort: state.sort,
     item: item ?? undefined,
   });
 }

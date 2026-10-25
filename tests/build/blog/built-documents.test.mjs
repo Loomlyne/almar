@@ -12,8 +12,8 @@ import { loadTs } from "../../helpers/load-ts.mjs";
 //   node scripts/assemble-cloudflare.mjs && node --test tests/build/blog/built-documents.test.mjs
 
 const OUT = "out";
-if (!existsSync(join(OUT, "index.html"))) {
-  throw new Error("out/index.html is missing: run node scripts/assemble-cloudflare.mjs first");
+if (!existsSync(join(OUT, "en/index.html"))) {
+  throw new Error("out/en/index.html is missing: run node scripts/assemble-cloudflare.mjs first");
 }
 
 const posts = await loadTs("lib/data/posts.ts");

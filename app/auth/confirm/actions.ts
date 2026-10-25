@@ -3,7 +3,8 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { authSigningKey, createSupabaseAdmin, createSupabaseServer } from "../../../lib/supabase/clients";
-import { returnCookieName, returnCookieOptions, safeReturnPath } from "../../../lib/auth/rules";
+import { LOCALE_COOKIE, readLocale, returnCookieName, returnCookieOptions, safeReturnPath } from "../../../lib/auth/rules";
+import { localePath } from "../../../lib/locale-path";
 import { SIGNED_IN_HINT_COOKIE, isFirstSignIn, localizedReturnPath, signedInHintOptions } from "../../../lib/account-preferences";
 import { followAccount } from "../../../lib/account-follow";
 import { checkContinue, isConfirmType, linkNonceCookieName } from "../../../lib/auth/continue";
@@ -24,10 +25,14 @@ export async function confirmSignIn(_previous: ConfirmState, form: FormData): Pr
   const tokenHash = form.get("token_hash");
   const type = form.get("type");
   const list = await headers();
-  const expired = list.get(SHELL_HEADER) === "ops" ? "/sign-in?expired=1" : "/login?expired=1";
+  const store = await cookies();
+  // Job 21: the public sign-in page is /<locale>/login, in the language chosen in this browser (cookie), else English.
+  const expired =
+    list.get(SHELL_HEADER) === "ops"
+      ? "/sign-in?expired=1"
+      : `${localePath(readLocale(store.get(LOCALE_COOKIE)?.value), "/login")}?expired=1`;
   if (!isTokenHashShape(tokenHash) || !isConfirmType(type)) redirect(expired);
 
-  const store = await cookies();
   const back = safeReturnPath(store.get(returnCookieName())?.value);
 
   const limitKey = authSigningKey("limit");

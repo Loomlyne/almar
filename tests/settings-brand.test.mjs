@@ -65,7 +65,7 @@ test("gate (PR #14 review): saved on closes on the next request; an error after 
   const env = { url: "https://x.supabase.co", anonKey: "k" };
   const row = (maintenance) => async () => ({ ok: true, status: 200, json: async () => [{ ...ROW, maintenance }] });
   const broken = async () => { throw new Error("offline"); };
-  const ask = (now, fetcher) => g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: undefined, env, now, fetcher });
+  const ask = (now, fetcher) => g.maintenanceResponse({ path: "/en/login", opsHost: false, cookieLocale: undefined, env, now, fetcher });
 
   g.__testing.reset();
   assert.equal(await ask(1, row(false)), null, "open while maintenance is off");
@@ -138,12 +138,12 @@ test("closed page from the public Worker: a saved logo comes from the image host
   const env = { url: "https://x.supabase.co", anonKey: "k" };
   const on = async () => ({ ok: true, status: 200, json: async () => [{ ...SAVED, maintenance: true }] });
   g.__testing.reset();
-  const html = await (await g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: "en", env, now: 1, fetcher: on })).text();
+  const html = await (await g.maintenanceResponse({ path: "/en/login", opsHost: false, cookieLocale: "en", env, now: 1, fetcher: on })).text();
   assert.ok(html.includes(`<img src="${LOGO_URL}"`));
   assert.ok(html.includes("--color-teal:#7a1f3b"));
   const plainOn = async () => ({ ok: true, status: 200, json: async () => [{ ...ROW, maintenance: true }] });
   g.__testing.reset();
-  const plain = await (await g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: "en", env, now: 1, fetcher: plainOn })).text();
+  const plain = await (await g.maintenanceResponse({ path: "/en/login", opsHost: false, cookieLocale: "en", env, now: 1, fetcher: plainOn })).text();
   assert.ok(plain.includes('<img src="/brand/wordmark.svg"'));
 });
 

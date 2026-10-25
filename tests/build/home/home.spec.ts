@@ -650,8 +650,8 @@ for (const vp of VIEWPORTS) {
 
       test(`9 the held controls are absent; Search is the one submit (${where})`, async ({ page }) => {
         const { media } = await visit(page, locale);
+        // Login is live since job 21 (owner, 2026-10-21, decision #5): no longer in this list.
         const names = [
-          HOME_COPY[locale].nav.login,
           HOME_COPY[locale].subscribe,
           HOME_COPY[locale].listTitle,
           JOURNEY_COPY[locale].addons.add,
