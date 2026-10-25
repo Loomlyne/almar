@@ -182,7 +182,18 @@ test("settlePreview: below the deposit stays awaiting_payment, part received, ni
   assert.equal(p.attention, null);
   assert.equal(p.settledAfterFils, 10000);
   assert.equal(p.stillDueFils, GRAND - 10000);
+  assert.equal(p.depositLeftFils, DEPOSIT - 10000);
   assert.equal(p.attentionCleared, false);
+});
+
+test("settlePreview: depositLeftFils is what is left of the amount due by the pay-by date, 0 once the request moves on", () => {
+  assert.equal(settle({ amountFils: 10000 }).depositLeftFils, DEPOSIT - 10000);
+  assert.equal(settle({ paidFils: 10000, amountFils: 5000 }).depositLeftFils, DEPOSIT - 15000);
+  assert.equal(settle({ amountFils: DEPOSIT }).depositLeftFils, 0);
+  assert.equal(settle({ amountFils: GRAND }).depositLeftFils, 0);
+  assert.equal(settle({ plan: "full", depositFils: 0, amountFils: 10000 }).depositLeftFils, GRAND - 10000);
+  assert.equal(settle({ status: "expired", amountFils: 10000 }).depositLeftFils, 0);
+  assert.equal(settle({ status: "confirmed", paidFils: GRAND, amountFils: 100 }).depositLeftFils, 0);
 });
 
 test("settlePreview: exactly the deposit is deposit_paid; the total or more is paid_in_full", () => {
