@@ -22,6 +22,28 @@ const VIEW = {
 
 async function open(page: Page, locale: Locale, view: Record<string, unknown> = VIEW, onPost?: (body: unknown, route: Route) => Promise<void>) {
   await page.context().addCookies([{ name: "almar-locale", value: locale, url: page.url() === "about:blank" ? "http://127.0.0.1" : page.url() }]);
+  // The page also loads the Bank transfer section and the site status line: both answered, so no 403 sends it to sign-in.
+  await page.route(/\/api\/ops\/money$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        money: {
+          transfer_window_minutes: null,
+          balance_due_days: null,
+          bank: { account_name: null, bank_name: null, iban: null, swift: null, bank_address: null, note_en: null, note_ar: null, note_es: null },
+          bank_complete: false,
+          updated_at: null,
+          updated_by: null,
+        },
+        terms_final: false,
+      }),
+    }),
+  );
+  await page.route("**/api/ops/site-status", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, site: { state: "up_to_date", requested_seq: 5, live_seq: 5, requested_at: "2026-10-13T10:02:00.000Z", built_at: "2026-10-13T10:05:00.000Z", last_hook_at: "2026-10-13T10:02:00.000Z", last_hook_result: "ok" } }) }),
+  );
   await page.route(/\/api\/ops\/settings$/, async (route) => {
     if (route.request().method() === "GET") {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, settings: view }) });
@@ -68,7 +90,7 @@ test("Save: disabled until a change; contrast and decimals block it; saved line 
     posted = body as Record<string, unknown>;
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, affects_site: true }) });
   });
-  const save = page.getByRole("button", { name: "Save" });
+  const save = page.getByRole("button", { name: "Save", exact: true });
   await expect(save).toBeDisabled();
 
   await page.getByLabel(copy.colors.teal).fill("#9fb8bb");
@@ -85,7 +107,7 @@ test("Save: disabled until a change; contrast and decimals block it; saved line 
   await page.getByRole("checkbox", { name: copy.maintenanceOn }).check();
   await expect(save).toBeEnabled();
   await save.click();
-  await expect(page.getByRole("status")).toHaveText(copy.saved);
+  await expect(save.locator("..").getByRole("status")).toHaveText(copy.saved);
   await expect(save).toBeDisabled();
   expect(posted).toMatchObject({ maintenance: true, vat_percent: "5", deposit_percent: "25.00", title_face: "Questa", body_face: "Lato" });
   await expect(page.getByLabel(copy.vat)).toHaveValue("5.00");
@@ -104,7 +126,7 @@ test("a refused save keeps the form and says so; a refused logo shows its line",
     });
   });
   await page.getByRole("checkbox", { name: copy.maintenanceOn }).check();
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText(copy.saveFailed)).toBeVisible();
   await expect(page.getByText(copy.logoRefused)).toBeVisible();
   await expect(page.getByRole("checkbox", { name: copy.maintenanceOn })).toBeChecked();
@@ -117,7 +139,7 @@ test("a saved logo: Remove logo empties the well and Save waits for a replacemen
   await open(page, "en", { ...VIEW, logo });
   await page.getByRole("button", { name: copy.removeLogo }).click();
   await expect(page.getByRole("button", { name: copy.removeLogo })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Save" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
 });
 
 test("leaving with unsaved changes asks: Stay keeps the page, Leave goes", async ({ page }) => {
@@ -133,4 +155,11 @@ test("leaving with unsaved changes asks: Stay keeps the page, Leave goes", async
   await page.getByRole("link", { name: "Profile" }).click();
   await page.getByRole("dialog").getByRole("button", { name: copy.leave }).click();
   await expect(page).toHaveURL(/\/dashboard\/profile$/);
+});
+
+// B12: the Bank transfer section has its own button, so the page's bottom Save is the only button named exactly "Save".
+test("exactly one button is named Save; the Bank transfer section's own button is named differently", async ({ page }) => {
+  await open(page, "en");
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Save bank transfer", exact: true })).toHaveCount(1);
 });
