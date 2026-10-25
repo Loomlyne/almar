@@ -21,14 +21,11 @@ test("bookings and customers pages have no page gate (02-04 owner gate in the la
   assert.match(customersPage, /from ["']\.\/customers-screen["']/);
 });
 
-test("bookings screen has the locked columns, empty line, and New booking action", () => {
+test("bookings screen delegates to BookingsList, fetches /api/ops/bookings through opsFetch, renders no New booking control and no Sidebar", () => {
   const text = readFileSync(BOOKINGS_SCREEN, "utf8");
-  for (const column of ["Guest", "Destination", "Dates", "Status"]) {
-    assert.equal(text.includes(column), true, `missing column: ${column}`);
-  }
-  assert.match(text, /copy\.noBookingsYet/);
-  assert.match(text, /copy\.newBooking/);
-  assert.match(text, /<tbody\s*\/>/, "bookings tbody must not render a sample row");
+  assert.match(text, /<BookingsList\b/);
+  assert.match(text, /opsFetch<[^>]*>\(\s*"\/api\/ops\/bookings"/);
+  assert.doesNotMatch(text, /Sidebar|newBooking|New booking|<tbody/);
 });
 
 test("customers screen has the locked columns, empty line, and New customer action", () => {
