@@ -295,14 +295,19 @@ export async function mockBookingsApi(page: Page, bookings: OwnerDetail[] = [mak
       return ok({ status: { from, to: b.status } });
     }),
   );
+  const noteRequests = new Map<string, { id: string; at: string }>();
   await page.route(/\/api\/ops\/booking\/note$/, (route) =>
     handle(route, (call) => {
-      const body = call.body as { booking_id: string; body: string };
+      const body = call.body as { booking_id: string; body: string; request_id: string };
       const b = byId(body.booking_id);
       if (!b) return refusal(404, "not_found");
+      // The server's replay rule: the same request_id answers the stored note, first_time false.
+      const seen = noteRequests.get(body.request_id);
+      if (seen) return ok({ first_time: false, note: seen });
       const note = { id: `00000000-0000-4000-8000-00000000${String(b.notes.length + 10).padStart(4, "0")}`, at: "2026-10-25T09:00:00.000Z", actor: "owner", actor_email: "owner@example.test", body: body.body };
       b.notes.unshift(note);
-      return ok({ note: { id: note.id, at: note.at } });
+      noteRequests.set(body.request_id, { id: note.id, at: note.at });
+      return ok({ first_time: true, note: { id: note.id, at: note.at } });
     }),
   );
   await page.route(/\/api\/ops\/booking\/attention$/, (route) =>

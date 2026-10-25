@@ -215,13 +215,13 @@ isOneToOne: false
                   ]
                 },"booking_notes": {
                   Row: {
-                    "actor": string,"at": string,"body": string,"booking_id": string,"id": number
+                    "actor": string,"at": string,"body": string,"booking_id": string,"id": number,"request_id": string | null
                   }
                   Insert: {
-                    "actor": string,"at"?: string,"body": string,"booking_id": string,"id"?: never
+                    "actor": string,"at"?: string,"body": string,"booking_id": string,"id"?: never,"request_id"?: string | null
                   }
                   Update: {
-                    "actor"?: string,"at"?: string,"body"?: string,"booking_id"?: string,"id"?: never
+                    "actor"?: string,"at"?: string,"body"?: string,"booking_id"?: string,"id"?: never,"request_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -1293,7 +1293,7 @@ isOneToOne: false
 { Args: { "p": Json }; Returns: Json
                            },
 "ops_add_booking_note":
-{ Args: { "p_actor": string,"p_body": string,"p_booking": string }; Returns: Json
+{ Args: { "p_actor": string,"p_body": string,"p_booking": string,"p_request_id": string }; Returns: Json
                            },
 "ops_create_booking":
 { Args: { "p": Json,"p_actor": string }; Returns: Json

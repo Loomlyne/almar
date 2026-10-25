@@ -436,8 +436,18 @@ test("record on expired: flagged paid_after_expiry, no night taken back; resolve
   assert.equal(out.body.payment.flags.attention_reason, "paid_after_expiry");
   assert.equal((await nightsOf(s, b.id)).length, 0, "no night row (B-34)");
 
-  const note = await post(s.owner, api.parseNote, api.addNote, { booking_id: b.id, body: "[called the guest]" });
+  const noteId = randomUUID();
+  const note = await post(s.owner, api.parseNote, api.addNote, { booking_id: b.id, body: "[called the guest]", request_id: noteId });
   assert.equal(note.status, 200, JSON.stringify(note.body));
+  assert.equal(note.body.first_time, true);
+  // A retry with the same request_id: the same note, first_time false, no second row.
+  const again = await post(s.owner, api.parseNote, api.addNote, { booking_id: b.id, body: "[called the guest]", request_id: noteId });
+  assert.equal(again.status, 200, JSON.stringify(again.body));
+  assert.equal(again.body.first_time, false);
+  assert.deepEqual(again.body.note, note.body.note, "the replay answers the stored note");
+  const changed = await post(s.owner, api.parseNote, api.addNote, { booking_id: b.id, body: "[another text]", request_id: noteId });
+  assert.equal(changed.status, 409);
+  assert.equal(changed.body.error.code, "changed");
   const resolved = await post(s.owner, api.parseAttention, api.resolveAttention, { booking_id: b.id, note: "[refund from the bank]" });
   assert.equal(resolved.status, 200);
   assert.equal(resolved.body.resolved.first_time, true);
@@ -618,7 +628,7 @@ test("a guest profile as p_actor is 403 not_owner on record, void, note, resolve
   const checks = [
     ["record", await post(s.guest, api.parsePayment, api.recordPayment, recordBody(b, 1000))],
     ["void", await post(s.guest, api.parseVoid, api.voidPayment, { payment_id: paid.body.payment.payment_id, reason: "[not mine]" })],
-    ["note", await post(s.guest, api.parseNote, api.addNote, { booking_id: b.id, body: "[note]" })],
+    ["note", await post(s.guest, api.parseNote, api.addNote, { booking_id: b.id, body: "[note]", request_id: randomUUID() })],
     ["resolve", await post(s.guest, api.parseAttention, api.resolveAttention, { booking_id: b.id, note: "[resolve]" })],
     ["money", await post(s.guest, money.parseMoneySave, (ctx) => money.postMoneyRoute(ctx), { balance_due_days: DAYS })],
   ];

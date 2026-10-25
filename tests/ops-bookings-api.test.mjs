@@ -380,10 +380,13 @@ test("parseVoid, parseStatus, parseNote, parseAttention: shapes and limits", () 
   invalidField(() => api.parseStatus({ booking_id: BOOKING, action: "expire", expected_status: "deposit_paid" }), "action");
   invalidField(() => api.parseStatus({ booking_id: BOOKING, action: "cancel", expected_status: "x" }), "expected_status");
 
-  assert.deepEqual(api.parseNote({ booking_id: BOOKING, body: " [note] " }), { booking_id: BOOKING, body: "[note]" });
-  invalidField(() => api.parseNote({ booking_id: BOOKING, body: "  " }), "body");
-  invalidField(() => api.parseNote({ booking_id: BOOKING, body: "x".repeat(2001) }), "body");
-  assert.equal(api.parseNote({ booking_id: BOOKING, body: "ب".repeat(2000) }).body.length, 2000, "Arabic counted in characters");
+  assert.deepEqual(api.parseNote({ booking_id: BOOKING, body: " [note] ", request_id: REQUEST }), { booking_id: BOOKING, body: "[note]", request_id: REQUEST });
+  invalidField(() => api.parseNote({ booking_id: BOOKING, body: "  ", request_id: REQUEST }), "body");
+  invalidField(() => api.parseNote({ booking_id: BOOKING, body: "x".repeat(2001), request_id: REQUEST }), "body");
+  assert.equal(api.parseNote({ booking_id: BOOKING, body: "ب".repeat(2000), request_id: REQUEST }).body.length, 2000, "Arabic counted in characters");
+  invalidField(() => api.parseNote({ booking_id: BOOKING, body: "[note]" }), "request_id");
+  invalidField(() => api.parseNote({ booking_id: BOOKING, body: "[note]", request_id: "not-a-uuid" }), "request_id");
+  invalidField(() => api.parseNote({ booking_id: BOOKING, body: "[note]", request_id: REQUEST, extra: 1 }), "extra");
 
   assert.deepEqual(api.parseAttention({ booking_id: BOOKING, note: " [checked] " }), { booking_id: BOOKING, note: "[checked]" });
   invalidField(() => api.parseAttention({ booking_id: BOOKING, note: "ok" }), "note");
@@ -556,10 +559,17 @@ test("setStatus: changed answers 409 with the status found; a lapse error stops 
 });
 
 test("addNote and resolveAttention: one RPC each with p_actor", async () => {
-  const notes = fakeDb({ ops_add_booking_note: { data: { id: 7, at: "2026-10-21T08:00:00.000Z" }, error: null } });
-  const note = await api.addNote({ owner: owner(notes), body: api.parseNote({ booking_id: BOOKING, body: "[note]" }) });
-  assert.deepEqual(notes.calls, [{ name: "ops_add_booking_note", args: { p_booking: BOOKING, p_body: "[note]", p_actor: OWNER_ID } }]);
-  assert.deepEqual(note, { body: { ok: true, note: { id: 7, at: "2026-10-21T08:00:00.000Z" } } });
+  const notes = fakeDb({ ops_add_booking_note: { data: { first_time: true, id: 7, at: "2026-10-21T08:00:00.000Z" }, error: null } });
+  const note = await api.addNote({ owner: owner(notes), body: api.parseNote({ booking_id: BOOKING, body: "[note]", request_id: REQUEST }) });
+  assert.deepEqual(notes.calls, [{ name: "ops_add_booking_note", args: { p_booking: BOOKING, p_body: "[note]", p_actor: OWNER_ID, p_request_id: REQUEST } }]);
+  assert.deepEqual(note, { body: { ok: true, first_time: true, note: { id: 7, at: "2026-10-21T08:00:00.000Z" } } });
+
+  // A replay of the same request_id: the stored note, first_time false.
+  const replayDb = fakeDb({ ops_add_booking_note: { data: { first_time: false, id: 7, at: "2026-10-21T08:00:00.000Z" }, error: null } });
+  const replay = await api.addNote({ owner: owner(replayDb), body: api.parseNote({ booking_id: BOOKING, body: "[note]", request_id: REQUEST }) });
+  assert.deepEqual(replay, { body: { ok: true, first_time: false, note: { id: 7, at: "2026-10-21T08:00:00.000Z" } } });
+  const changedDb = fakeDb({ ops_add_booking_note: refusal("changed") });
+  assert.equal((await api.addNote({ owner: owner(changedDb), body: api.parseNote({ booking_id: BOOKING, body: "[other]", request_id: REQUEST }) })).status, 409);
 
   const flagsDb = fakeDb({ ops_resolve_attention: { data: { first_time: true, booking_id: BOOKING, note_id: 8 }, error: null } });
   const resolved = await api.resolveAttention({ owner: owner(flagsDb), body: api.parseAttention({ booking_id: BOOKING, note: "[checked]" }) });
@@ -567,7 +577,7 @@ test("addNote and resolveAttention: one RPC each with p_actor", async () => {
   assert.deepEqual(resolved, { body: { ok: true, resolved: { first_time: true, note_id: 8 } } });
 
   const missing = fakeDb({ ops_add_booking_note: refusal("not_found") });
-  assert.equal((await api.addNote({ owner: owner(missing), body: api.parseNote({ booking_id: BOOKING, body: "[note]" }) })).status, 404);
+  assert.equal((await api.addNote({ owner: owner(missing), body: api.parseNote({ booking_id: BOOKING, body: "[note]", request_id: REQUEST }) })).status, 404);
 });
 
 // ---- resend ----------------------------------------------------------------------------------------------------------

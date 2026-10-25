@@ -259,6 +259,7 @@ test("Add note posts the body and reloads; Resolve needs a note", async ({ page 
   await page.getByRole("button", { name: copy.actions.addNote }).click();
   await expect(page.getByText("[Internal note]").first()).toBeVisible();
   expect(api.to("/api/ops/booking/note", "POST")[0].body).toMatchObject({ body: "[Internal note]" });
+  expect(String((api.to("/api/ops/booking/note", "POST")[0].body as { request_id?: unknown }).request_id)).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   await page.getByRole("button", { name: copy.actions.resolve }).click();
   const dialog = page.getByRole("dialog");
   const confirm = dialog.getByRole("button", { name: copy.attention.resolve });

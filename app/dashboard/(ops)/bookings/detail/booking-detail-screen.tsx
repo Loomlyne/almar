@@ -73,6 +73,10 @@ export function BookingDetailScreen() {
   // One request_id per Resend target ("request" or "receipt:<payment id>"), reused by a retry after a failed or timed-out
   // call so the server's mail key (resend/<booking_id>/<request_id>) sends it once; dropped after a 2xx.
   const resendIds = useRef(new Map<string, string>());
+  // The note composer's request_id and the text it was sent with: a retry of the same text reuses it (the server answers
+  // the stored note, first_time false, instead of a second row); a 2xx drops it, so the next note is a new one. A text
+  // edited after a failure is a new note and gets a new id (one id is never sent with two texts: that would be changed).
+  const noteRequest = useRef<{ id: string; body: string } | null>(null);
   const latest = useRef(0);
   const words = useRef({ copy, kit });
   words.current = { copy, kit };
@@ -228,13 +232,18 @@ export function BookingDetailScreen() {
     if (reply) setNotice(copy.attention.resolved);
   }
 
-  // The note endpoint and ops_add_booking_note take no request_id, so a retry after a timeout can add the note twice.
-  // The screen guards what it can: one call in flight (write), Add note off while busy, the draft kept until a 2xx, and
-  // the booking read again after a failure so a note that did land shows in the list before the owner tries again.
+  // One request_id per open note composer (noteRequest), reused by a retry after a failed or timed-out call, so a note
+  // that did land is answered again rather than added twice. Also: one call in flight (write), Add note off while busy,
+  // the draft kept until a 2xx, and the booking read again after a failure so a note that landed shows in the list.
   async function addNote() {
     if (inFlight.current) return;
-    const reply = await write("/api/ops/booking/note", { booking_id: b.id, body: noteDraft.trim() }, false);
+    const body = noteDraft.trim();
+    const kept = noteRequest.current;
+    const request = kept && kept.body === body ? kept : { id: crypto.randomUUID(), body };
+    noteRequest.current = request;
+    const reply = await write("/api/ops/booking/note", { booking_id: b.id, body, request_id: request.id }, false);
     if (reply) {
+      noteRequest.current = null;
       setNoteDraft("");
       setNotice(copy.notes.added);
     } else setReload((n) => n + 1);

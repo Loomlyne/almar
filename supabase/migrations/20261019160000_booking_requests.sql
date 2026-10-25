@@ -149,13 +149,17 @@ create table public.booking_money_settings_log (
   changed text[] not null
 );
 
--- The owner's notes on a booking. Append-only; the guest never sees them.
+-- The owner's notes on a booking. Append-only; the guest never sees them. request_id is the id the note composer makes
+-- (ops_add_booking_note): the same id twice is one row. The attention note (ops_resolve_attention) has none; nulls never
+-- collide.
 create table public.booking_notes (
   id bigint generated always as identity primary key,
   booking_id uuid not null references public.bookings (id) on delete cascade,
   at timestamptz not null default now(),
   actor text not null,
-  body text not null check (char_length(body) between 1 and 2000 and btrim(body) <> '')
+  body text not null check (char_length(body) between 1 and 2000 and btrim(body) <> ''),
+  request_id uuid,
+  constraint booking_notes_request_id_key unique (request_id)
 );
 
 create index booking_notes_booking_idx on public.booking_notes (booking_id, at);
@@ -1557,7 +1561,10 @@ revoke execute on function public.ops_resolve_attention(uuid, text, uuid) from p
 grant execute on function public.ops_resolve_attention(uuid, text, uuid) to service_role;
 
 -- One owner note (1..2000 characters, not blank). The note_added event carries the note id only, never the text.
-create or replace function public.ops_add_booking_note(p_booking uuid, p_body text, p_actor uuid)
+-- Idempotent on p_request_id (the composer makes it, and keeps it for a retry): the same id answers the stored note with
+-- first_time false and writes nothing; the same id with another booking or another text is almar:changed. The insert
+-- is `on conflict do nothing`, so two calls at once with one id still make one row.
+create or replace function public.ops_add_booking_note(p_booking uuid, p_body text, p_actor uuid, p_request_id uuid)
 returns jsonb
 language plpgsql
 security definer
@@ -1566,6 +1573,7 @@ as $$
 declare
   v_id bigint;
   v_at timestamptz;
+  v_old public.booking_notes;
 begin
   perform public.booking_assert_owner(p_actor);
   if p_booking is null or not exists (select 1 from public.bookings b where b.id = p_booking) then
@@ -1574,17 +1582,29 @@ begin
   if p_body is null or char_length(p_body) < 1 or char_length(p_body) > 2000 or btrim(p_body) = '' then
     perform public.booking_fail('invalid', 'body');
   end if;
-  insert into public.booking_notes (booking_id, actor, body)
-  values (p_booking, 'owner:' || p_actor::text, p_body)
+  if p_request_id is null then
+    perform public.booking_fail('invalid', 'request_id');
+  end if;
+  insert into public.booking_notes (booking_id, actor, body, request_id)
+  values (p_booking, 'owner:' || p_actor::text, p_body, p_request_id)
+  on conflict (request_id) do nothing
   returning id, at into v_id, v_at;
+  if v_id is null then
+    select n.* into v_old from public.booking_notes n where n.request_id = p_request_id;
+    if v_old.id is null or v_old.booking_id <> p_booking or v_old.body <> p_body then
+      perform public.booking_fail('changed');
+    end if;
+    return jsonb_build_object('first_time', false, 'id', v_old.id,
+      'at', to_char(v_old.at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
+  end if;
   insert into public.booking_events (booking_id, actor, action, from_status, to_status, detail)
   values (p_booking, 'owner:' || p_actor::text, 'note_added', null, null, jsonb_build_object('note_id', v_id));
-  return jsonb_build_object('id', v_id, 'at', to_char(v_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
+  return jsonb_build_object('first_time', true, 'id', v_id, 'at', to_char(v_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
 end;
 $$;
 
-revoke execute on function public.ops_add_booking_note(uuid, text, uuid) from public, anon, authenticated;
-grant execute on function public.ops_add_booking_note(uuid, text, uuid) to service_role;
+revoke execute on function public.ops_add_booking_note(uuid, text, uuid, uuid) from public, anon, authenticated;
+grant execute on function public.ops_add_booking_note(uuid, text, uuid, uuid) to service_role;
 
 -- A booking's notes, newest first, with the owner's email when the actor is 'owner:<uuid>'.
 create or replace function public.ops_list_booking_notes(p_booking uuid)

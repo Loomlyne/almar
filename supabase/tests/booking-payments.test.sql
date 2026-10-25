@@ -8,7 +8,7 @@
 -- Run: node tests/helpers/local-supabase.mjs test supabase/tests/booking-payments.test.sql
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(237);
+select plan(242);
 
 -- Helpers (temporary, gone with the transaction; the first six are bookings-and-ops.test.sql:9-71) -----------------
 create function pg_temp.d(n int) returns date language sql as $$ select ((now() at time zone 'Asia/Dubai')::date + n) $$;
@@ -262,7 +262,7 @@ select ok(to_regprocedure('public.ops_record_payment(jsonb, uuid)') is not null
       and to_regprocedure('public.booking_deposit_floor(text, bigint, bigint, int)') is not null
       and to_regprocedure('public.ops_void_payment(uuid, text, uuid)') is not null
       and to_regprocedure('public.ops_resolve_attention(uuid, text, uuid)') is not null
-      and to_regprocedure('public.ops_add_booking_note(uuid, text, uuid)') is not null
+      and to_regprocedure('public.ops_add_booking_note(uuid, text, uuid, uuid)') is not null
       and to_regprocedure('public.ops_list_booking_notes(uuid)') is not null
       and to_regprocedure('public.ops_list_bookings(text, text, uuid, date, date, text, int)') is not null
       and to_regprocedure('public.ops_get_booking(text)') is not null
@@ -301,7 +301,7 @@ select throws_ok($$select public.ops_record_payment('{}'::jsonb, null)$$, '42501
 select throws_ok($$select public.booking_deposit_floor('deposit', 1, 1, 1)$$, '42501', null, 'anon cannot call booking_deposit_floor');
 select throws_ok($$select public.ops_void_payment(gen_random_uuid(), 'reason', null)$$, '42501', null, 'anon cannot call ops_void_payment');
 select throws_ok($$select public.ops_resolve_attention(gen_random_uuid(), 'note', null)$$, '42501', null, 'anon cannot call ops_resolve_attention');
-select throws_ok($$select public.ops_add_booking_note(gen_random_uuid(), 'note', null)$$, '42501', null, 'anon cannot call ops_add_booking_note');
+select throws_ok($$select public.ops_add_booking_note(gen_random_uuid(), 'note', null, gen_random_uuid())$$, '42501', null, 'anon cannot call ops_add_booking_note');
 select throws_ok($$select public.ops_list_booking_notes(gen_random_uuid())$$, '42501', null, 'anon cannot call ops_list_booking_notes');
 select throws_ok($$select public.ops_list_bookings()$$, '42501', null, 'anon cannot call ops_list_bookings');
 select throws_ok($$select public.ops_get_booking('ALMAR-AAAAAA')$$, '42501', null, 'anon cannot call ops_get_booking');
@@ -313,7 +313,7 @@ select throws_ok($$select public.ops_record_payment('{}'::jsonb, null)$$, '42501
 select throws_ok($$select public.booking_deposit_floor('deposit', 1, 1, 1)$$, '42501', null, 'authenticated cannot call booking_deposit_floor');
 select throws_ok($$select public.ops_void_payment(gen_random_uuid(), 'reason', null)$$, '42501', null, 'authenticated cannot call ops_void_payment');
 select throws_ok($$select public.ops_resolve_attention(gen_random_uuid(), 'note', null)$$, '42501', null, 'authenticated cannot call ops_resolve_attention');
-select throws_ok($$select public.ops_add_booking_note(gen_random_uuid(), 'note', null)$$, '42501', null, 'authenticated cannot call ops_add_booking_note');
+select throws_ok($$select public.ops_add_booking_note(gen_random_uuid(), 'note', null, gen_random_uuid())$$, '42501', null, 'authenticated cannot call ops_add_booking_note');
 select throws_ok($$select public.ops_list_booking_notes(gen_random_uuid())$$, '42501', null, 'authenticated cannot call ops_list_booking_notes');
 select throws_ok($$select public.ops_list_bookings()$$, '42501', null, 'authenticated cannot call ops_list_bookings');
 select throws_ok($$select public.ops_get_booking('ALMAR-AAAAAA')$$, '42501', null, 'authenticated cannot call ops_get_booking');
@@ -670,17 +670,32 @@ select is(public.ops_resolve_attention(pg_temp.bid('a5'), 'Again', pg_temp.owner
           jsonb_build_object('first_time', false, 'booking_id', pg_temp.bid('a5'), 'note_id', null), 'resolve: a booking that is not flagged answers first_time false');
 
 -- G. Notes ------------------------------------------------------------------------------------------------------------
-select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, 'Called the guest', %L)$$, pg_temp.bid('a1'), pg_temp.guest())), 'almar:not_owner',
+select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, 'Called the guest', %L, %L)$$, pg_temp.bid('a1'), pg_temp.guest(), gen_random_uuid())), 'almar:not_owner',
           'notes: a guest actor is not the owner');
-select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, '', %L)$$, pg_temp.bid('a1'), pg_temp.owner_id())), 'almar:invalid:body', 'notes: an empty note is invalid');
-select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, '   ', %L)$$, pg_temp.bid('a1'), pg_temp.owner_id())), 'almar:invalid:body', 'notes: a blank note is invalid');
-select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, repeat('n', 2001), %L)$$, pg_temp.bid('a1'), pg_temp.owner_id())), 'almar:invalid:body',
+select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, '', %L, %L)$$, pg_temp.bid('a1'), pg_temp.owner_id(), gen_random_uuid())), 'almar:invalid:body', 'notes: an empty note is invalid');
+select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, '   ', %L, %L)$$, pg_temp.bid('a1'), pg_temp.owner_id(), gen_random_uuid())), 'almar:invalid:body', 'notes: a blank note is invalid');
+select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, repeat('n', 2001), %L, %L)$$, pg_temp.bid('a1'), pg_temp.owner_id(), gen_random_uuid())), 'almar:invalid:body',
           'notes: 2001 characters are invalid');
-select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, 'Called', %L)$$, gen_random_uuid(), pg_temp.owner_id())), 'almar:not_found', 'notes: an unknown booking is not_found');
-insert into t_res values ('n1', public.ops_add_booking_note(pg_temp.bid('a1'), 'Called the guest about the transfer', pg_temp.owner_id()));
-insert into t_res values ('n2', public.ops_add_booking_note(pg_temp.bid('a1'), repeat('n', 2000), pg_temp.owner_id()));
-select ok(pg_temp.r('n1', 'id') is not null and pg_temp.r('n1', 'at') = pg_temp.iso(now()) and pg_temp.r('n2', 'id') is not null,
-          'notes: a note (2000 characters too) answers its id and time');
+select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, 'Called', %L, %L)$$, gen_random_uuid(), pg_temp.owner_id(), gen_random_uuid())), 'almar:not_found', 'notes: an unknown booking is not_found');
+select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, 'Called', %L, null)$$, pg_temp.bid('a1'), pg_temp.owner_id())), 'almar:invalid:request_id',
+          'notes: a note without a request_id is invalid');
+insert into t_res values ('n1', public.ops_add_booking_note(pg_temp.bid('a1'), 'Called the guest about the transfer', pg_temp.owner_id(),
+  '00000000-0000-4000-8000-0000000a0001'));
+insert into t_res values ('n2', public.ops_add_booking_note(pg_temp.bid('a1'), repeat('n', 2000), pg_temp.owner_id(),
+  '00000000-0000-4000-8000-0000000a0002'));
+select ok(pg_temp.r('n1', 'id') is not null and pg_temp.r('n1', 'at') = pg_temp.iso(now()) and pg_temp.r('n2', 'id') is not null
+            and pg_temp.r('n1', 'first_time') = 'true' and pg_temp.r('n2', 'first_time') = 'true',
+          'notes: a note (2000 characters too) answers first_time true, its id and time');
+insert into t_res values ('n1r', public.ops_add_booking_note(pg_temp.bid('a1'), 'Called the guest about the transfer', pg_temp.owner_id(),
+  '00000000-0000-4000-8000-0000000a0001'));
+select ok(pg_temp.r('n1r', 'first_time') = 'false' and pg_temp.r('n1r', 'id') = pg_temp.r('n1', 'id') and pg_temp.r('n1r', 'at') = pg_temp.r('n1', 'at'),
+          'notes: the same request_id again answers the stored note, first_time false');
+select is((select count(*)::int from public.booking_notes n where n.request_id = '00000000-0000-4000-8000-0000000a0001'), 1,
+          'notes: a replay writes no second row');
+select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, 'Another text', %L, '00000000-0000-4000-8000-0000000a0001')$$, pg_temp.bid('a1'), pg_temp.owner_id())),
+          'almar:changed', 'notes: the same request_id with another text is changed');
+select is(pg_temp.err(format($$select public.ops_add_booking_note(%L, 'Called the guest about the transfer', %L, '00000000-0000-4000-8000-0000000a0001')$$, pg_temp.bid('a2'), pg_temp.owner_id())),
+          'almar:changed', 'notes: the same request_id on another booking is changed');
 select is((select array_agg(e.detail order by e.id) from public.booking_events e where e.booking_id = pg_temp.bid('a1') and e.action = 'note_added'),
           array[jsonb_build_object('note_id', (pg_temp.r('n1', 'id'))::bigint), jsonb_build_object('note_id', (pg_temp.r('n2', 'id'))::bigint)],
           'notes: each note_added event carries the note id only, never the text');

@@ -224,13 +224,20 @@ export function parseStatus(body: unknown): StatusBody {
   return { booking_id, action: b.action as StatusAction, expected_status: status(b.expected_status, "expected_status") };
 }
 
-export type NoteBody = { booking_id: string; body: string };
+export type NoteBody = { booking_id: string; body: string; request_id: string };
 
-/** One internal note, trimmed, 1..2000 characters. */
+/**
+ * One internal note, trimmed, 1..2000 characters. request_id (required) is the uuid the note composer makes and keeps
+ * for a retry: the same id again answers the stored note (first_time false) instead of adding a second one.
+ */
 export function parseNote(body: unknown): NoteBody {
   const b = record(body, "body");
-  onlyKeys(b, ["booking_id", "body"]);
-  return { booking_id: uuid(b.booking_id, "booking_id"), body: requiredText(b.body, "body", { max: 2000 }) };
+  onlyKeys(b, ["booking_id", "body", "request_id"]);
+  return {
+    booking_id: uuid(b.booking_id, "booking_id"),
+    body: requiredText(b.body, "body", { max: 2000 }),
+    request_id: uuid(b.request_id, "request_id"),
+  };
 }
 
 export type AttentionBody = { booking_id: string; note: string };
@@ -458,16 +465,17 @@ export async function setStatus({ owner, body }: PostCtx<StatusBody>): Promise<O
   return ok({ status: { from: data.from, to: data.to } });
 }
 
-/** POST /api/ops/booking/note: one ops_add_booking_note. */
+/** POST /api/ops/booking/note: one ops_add_booking_note, idempotent on request_id (a replay answers first_time false). */
 export async function addNote({ owner, body }: PostCtx<NoteBody>): Promise<OpsOutcome> {
   const { data, error } = await owner.admin.rpc("ops_add_booking_note", {
     p_booking: body.booking_id,
     p_body: body.body,
     p_actor: owner.profile.id,
+    p_request_id: body.request_id,
   });
   if (error) return mapBookingRefusal(error);
   if (!isRow(data)) return UNREADABLE;
-  return ok({ note: { id: data.id, at: data.at } });
+  return ok({ first_time: data.first_time === true, note: { id: data.id, at: data.at } });
 }
 
 /** POST /api/ops/booking/attention: one ops_resolve_attention (the note is kept, the flag cleared). */
