@@ -162,6 +162,9 @@ test("local stack: the owner API end to end on the imported catalogue", { timeou
     assert.equal(cart.stay_count, stays.filter((s) => s.destination_id === CARTAGENA.id).length);
     assert.equal(cart.published_stay_count, cart.stay_count);
     assert.equal(cart.name_en, "Cartagena");
+    const cartNames = runSql(`select locale, name from public.destination_translations where destination_id = '${CARTAGENA.id}' and locale in ('ar', 'es')`).rows;
+    assert.equal(cart.name_ar, cartNames.find((n) => n.locale === "ar")?.name ?? null, "the list carries the Arabic name");
+    assert.equal(cart.name_es, cartNames.find((n) => n.locale === "es")?.name ?? null, "the list carries the Spanish name");
     assert.match(cart.hero.url, /^https:\/\/media\.almarprivatejourney\.com\//);
     assert.deepEqual(Object.keys(cart.translation_state), ["en", "ar", "es"]);
 
@@ -178,6 +181,9 @@ test("local stack: the owner API end to end on the imported catalogue", { timeou
 
     const filled = await D.post({ action: "save", item: { id, hero_media_id: HERO, translations: { ar: { name: "وجهة تجريبية" }, es: { name: "Destino de prueba" } } } });
     assert.equal(filled.status, 200, JSON.stringify(filled.body));
+    const named = (await D.get()).body.items.find((d) => d.id === id);
+    assert.equal(named.name_ar, "وجهة تجريبية");
+    assert.equal(named.name_es, "Destino de prueba");
     const published = await publish("destination", id, true);
     assert.equal(published.status, 200, JSON.stringify(published.body));
     assert.deepEqual(published.body, { ok: true, id, is_published: true, affects_site: true, warnings: [] });

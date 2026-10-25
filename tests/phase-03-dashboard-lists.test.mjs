@@ -26,6 +26,10 @@ test("bookings screen delegates to BookingsList, fetches /api/ops/bookings throu
   assert.match(text, /<BookingsList\b/);
   assert.match(text, /opsFetch<[^>]*>\(\s*"\/api\/ops\/bookings"/);
   assert.doesNotMatch(text, /Sidebar|newBooking|New booking|<tbody/);
+  // 04-09: the destination names come from the list (name_ar / name_es), never one detail read per destination.
+  assert.doesNotMatch(text, /"\/api\/ops\/destinations",\s*\{\s*id/);
+  assert.match(text, /name_ar/);
+  assert.match(text, /name_es/);
 });
 
 test("customers screen has the locked columns, empty line, and New customer action", () => {

@@ -100,6 +100,8 @@ function destinationSummary(d: DestinationDetail): DestinationSummary {
     id: d.id,
     slug: d.slug,
     name_en: d.translations.en?.name ?? "",
+    name_ar: d.translations.ar?.name || null,
+    name_es: d.translations.es?.name || null,
     is_published: d.is_published,
     position: d.position,
     stay_count: stayCount(d.id),

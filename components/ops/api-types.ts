@@ -40,6 +40,9 @@ export type DestinationSummary = {
   id: string;
   slug: string;
   name_en: string;
+  /** The Arabic and Spanish names (04-09: the dashboard draws the destination in its own language); null when unnamed. */
+  name_ar: string | null;
+  name_es: string | null;
   is_published: boolean;
   position: number;
   stay_count: number;

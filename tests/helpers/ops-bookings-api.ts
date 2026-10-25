@@ -236,7 +236,7 @@ export async function mockBookingsApi(page: Page, bookings: OwnerDetail[] = [mak
   await page.route("**/api/ops/site-status", (route) => handle(route, () => ok({ site: SITE_STATUS })));
   await page.route(/\/api\/ops\/destinations(\?.*)?$/, (route) =>
     handle(route, () =>
-      ok({ items: [{ id: DESTINATION_ID, slug: "destination-one", name_en: "[Destination one]", is_published: true, position: 1 }], next: null }),
+      ok({ items: [{ id: DESTINATION_ID, slug: "destination-one", name_en: "[Destination one]", name_ar: "[Destination one AR]", name_es: "[Destination one ES]", is_published: true, position: 1 }], next: null }),
     ),
   );
   await page.route(/\/api\/ops\/bookings(\?.*)?$/, (route) =>

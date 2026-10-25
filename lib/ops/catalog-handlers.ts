@@ -104,8 +104,24 @@ async function exists(owner: OpsOwner, table: "stays" | "destinations", id: stri
 
 // ---- 5.1 destinations ------------------------------------------------------------------------------------------------
 
-export function getDestinations({ owner, url }: GetCtx): Promise<OpsOutcome> {
-  return listOrDetail(owner, "destination", parseIdQuery(url.searchParams), shape.destinationSummary, shape.destinationDetail);
+export async function getDestinations({ owner, url }: GetCtx): Promise<OpsOutcome> {
+  const id = parseIdQuery(url.searchParams);
+  if (id) return listOrDetail(owner, "destination", id, shape.destinationSummary, shape.destinationDetail);
+  // 04-09: the list also carries each destination's Arabic and Spanish name. ops_list (a live migration) gives the
+  // English one only, so the other two come from the same table it reads, in one plain service-role select.
+  const list = await owner.admin.rpc("ops_list", { p_entity: "destination" });
+  if (list.error) return { dbError: list.error };
+  const names = await owner.admin.from("destination_translations").select("destination_id, locale, name").in("locale", ["ar", "es"]);
+  if (names.error) return { dbError: names.error };
+  const byId = new Map<string, Row>();
+  for (const n of rows(names.data)) {
+    if (typeof n.destination_id !== "string") continue;
+    const one = byId.get(n.destination_id) ?? {};
+    if (n.locale === "ar") one.name_ar = n.name;
+    if (n.locale === "es") one.name_es = n.name;
+    byId.set(n.destination_id, one);
+  }
+  return ok({ items: rows(list.data).map((r) => shape.destinationSummary({ ...r, ...(byId.get(String(r.id)) ?? {}) })) });
 }
 
 export function postDestinations({ owner, body }: PostCtx<EntityAction>): Promise<OpsOutcome> {
