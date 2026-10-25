@@ -134,7 +134,24 @@ test("matchPublicPage matches the five patterns and one [a-z0-9-] segment", () =
     "/blog/[post]",
     "/destinations",
     "/experiences",
+    "/booking/trip",
   ]);
+});
+
+test("/booking/trip is a public page in every locale (plan 04-03, Q-06); /booking and a deeper path are not", () => {
+  assert.equal(matchPublicPage("/booking/trip"), "/booking/trip");
+  assert.equal(matchPublicPage("/booking"), null);
+  assert.equal(matchPublicPage("/booking/trip/x"), null);
+  assert.equal(siteHref("ar", "/booking/trip?stay=x"), "/ar/booking/trip?stay=x");
+  assert.equal(siteHref("en", "/booking/trip?stay=x"), "/en/booking/trip?stay=x");
+  assert.deepEqual(localeHrefs("/booking/trip"), {
+    en: "/en/booking/trip",
+    ar: "/ar/booking/trip",
+    es: "/es/booking/trip",
+  });
+  const o = "https://almarprivatejourney.com";
+  assert.equal(localeAlternates("es", "/booking/trip").canonical, `${o}/es/booking/trip`);
+  assert.equal(localeAlternates("ar", "/booking/trip").languages["x-default"], `${o}/en/booking/trip`);
 });
 
 test("/destinations is a public page in every locale; a destination slug under it is not", () => {

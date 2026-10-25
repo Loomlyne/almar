@@ -37,7 +37,8 @@ const NOT_PUBLIC = [
   "en/login.html",
   "en/account.html",
   "ar/bookings.html",
-  "booking/trip.html",
+  // Plan 04-03: booking/trip is a public page now (PUBLIC_PAGES); another page under /booking still never ships.
+  "booking/other.html",
   "_not-found.html",
 ];
 const LOCALISED = [
@@ -50,6 +51,9 @@ const LOCALISED = [
   "es/private-stays.html",
   `ar/${STAY}.html`,
   `es/${STAY}.html`,
+  "en/booking/trip.html",
+  "ar/booking/trip.html",
+  "es/booking/trip.html",
 ];
 
 test("fixture A: three locale homes, public .html, framer bodies, static, three 404s; dashboard stays out", () => {
@@ -66,10 +70,10 @@ test("fixture A: three locale homes, public .html, framer bodies, static, three 
   assert.equal(readFileSync(f.out("ar/private-stays.html"), "utf8"), "source:ar/private-stays.html");
   assert.equal(readFileSync(f.out(`es/${STAY}.html`), "utf8"), `source:es/${STAY}.html`);
 
-  for (const gone of ["account.html", "dashboard", "login.html", "en/login.html", "en/account.html", "ar/bookings.html", "booking", "_not-found.html"]) {
+  for (const gone of ["account.html", "dashboard", "login.html", "en/login.html", "en/account.html", "ar/bookings.html", "booking/other.html", "_not-found.html"]) {
     assert.equal(existsSync(f.out(gone)), false, `out/${gone} must not exist`);
   }
-  for (const kept of ["en/index.html", "en/about.html", "en/private-stays.html", `en/${STAY}.html`]) {
+  for (const kept of ["en/index.html", "en/about.html", "en/private-stays.html", `en/${STAY}.html`, "en/booking/trip.html", "ar/booking/trip.html", "es/booking/trip.html"]) {
     assert.ok(existsSync(f.out(kept)), `out/${kept}`);
   }
 
@@ -85,11 +89,13 @@ test("fixture A: three locale homes, public .html, framer bodies, static, three 
   assert.ok(existsSync(f.out("_headers")));
 
   assert.equal(report.framer.length, 4);
-  assert.equal(report.react.en.length, 3);
-  assert.equal(report.react.ar.length, 3);
-  assert.equal(report.react.es.length, 3);
+  assert.equal(readFileSync(f.out("ar/booking/trip.html"), "utf8"), "source:ar/booking/trip.html");
+
+  assert.equal(report.react.en.length, 4);
+  assert.equal(report.react.ar.length, 4);
+  assert.equal(report.react.es.length, 4);
   assert.deepEqual(report.notFound, ["404.html", "ar/404.html", "es/404.html"]);
-  assert.equal(report.total, 4 + 9 + 3);
+  assert.equal(report.total, 4 + 12 + 3);
 });
 
 test("fixture B: the ops target (pages: false) ships no page, so every 404 home link is /", () => {
@@ -132,7 +138,7 @@ test("a missing English home throws", () => {
 });
 
 test("an unprefixed page throws: every page lives under /en, /ar or /es (job 21)", () => {
-  for (const file of ["index.body", "about.body", "private-stays.html"]) {
+  for (const file of ["index.body", "about.body", "private-stays.html", "booking/trip.html"]) {
     const f = fixture([...FRAMER, file]);
     assert.throws(() => assembleOut(f.paths), /would ship unprefixed/, file);
   }
