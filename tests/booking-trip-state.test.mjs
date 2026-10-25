@@ -96,26 +96,48 @@ test("bookingStatus copy pin", () => {
   }
 });
 
+const TRIP_PAGES = ["app/en/booking/trip/page.tsx", "app/ar/booking/trip/page.tsx", "app/es/booking/trip/page.tsx"];
+
 test("source rules: PAY-07 words and re_", () => {
   const banned =
     /stripe|gift ?cards?|tarjetas? de regalo|بطاقة هدية|bnpl|buy now|pay later|paga después|ادفع لاحقا|tabby|tamara|klarna|afterpay|card number|cvc|cvv|apple pay|checkout/i;
-  // Task 3 adds this plan's pure trip modules and the metadata file; the rest of app/booking/trip/ joins (readdirSync)
-  // in the commit that rewrites the page (today's placeholder trip-screen.tsx still has the legacy check-out field).
+  // Task 3: every file of app/booking/trip/ (readdirSync: trip-meta.ts, trip-screen.tsx and any later file) and the three
+  // locale pages join the rule in the commit that rewrites the page.
   const files = [
     "lib/copy/journey.ts",
     "lib/booking/trip-format.ts",
     "lib/booking/trip-link.ts",
     "lib/booking/trip-state.ts",
     "lib/booking/client.ts",
-    "app/booking/trip/trip-meta.ts",
+    ...TRIP_PAGES,
   ];
-  for (const dir of ["components/journey", "components/pages/stay-detail"]) {
+  for (const dir of ["components/journey", "components/pages/stay-detail", "app/booking/trip"]) {
     for (const f of readdirSync(dir)) files.push(`${dir}/${f}`);
   }
   for (const f of files) {
     const text = readFileSync(f, "utf8");
     assert.doesNotMatch(text, banned, f);
     assert.ok(!text.includes("re_"), `${f} contains re_`);
+  }
+});
+
+test("source rules: no money arithmetic", () => {
+  // D-52: the trip's new files format the server's fils and never compute an amount. journey-bar.tsx and
+  // date-range-panel.tsx keep their night-count Math.round and are not in this list.
+  const files = [
+    "components/journey/trip-layout.tsx",
+    "components/journey/stay-summary-step.tsx",
+    "components/journey/booking-reasons.tsx",
+    "components/journey/travellers-step.tsx",
+    "components/journey/request-step.tsx",
+    "components/journey/hold-timer.tsx",
+    "components/pages/stay-detail/book-link.tsx",
+    ...TRIP_PAGES,
+  ];
+  for (const f of readdirSync("app/booking/trip")) files.push(`app/booking/trip/${f}`);
+  for (const f of files) {
+    const text = readFileSync(f, "utf8");
+    assert.doesNotMatch(text, /\* ?100|\/ ?100|toFixed|Math\.round|parseFloat/, f);
   }
 });
 
@@ -813,11 +835,27 @@ test("tripMetadata: localised title, noindex, same-origin referrer, self canonic
 });
 
 test("source rules: the trip modules keep the token out of URLs and the request call for 04-06", () => {
-  const files = ["lib/booking/trip-link.ts", "lib/booking/trip-state.ts", "lib/booking/client.ts", "app/booking/trip/trip-meta.ts"];
+  const files = ["lib/booking/trip-link.ts", "lib/booking/trip-state.ts", "lib/booking/client.ts", ...TRIP_PAGES];
+  for (const f of readdirSync("app/booking/trip")) files.push(`app/booking/trip/${f}`);
   for (const f of files) {
     const text = readFileSync(f, "utf8");
     assert.equal(text.includes("process.env"), false, `${f}: process.env`);
     assert.equal(text.includes("localStorage"), false, `${f}: localStorage`);
+  }
+  // The screen: the request call is 04-06's (the seam is an empty callback), no legacy query key is read, the
+  // currency control stays off (Q-03) and the frame is the public one.
+  const screen = readFileSync("app/booking/trip/trip-screen.tsx", "utf8");
+  assert.equal(screen.includes("api/booking/request"), false);
+  assert.equal(screen.split("\n").filter((line) => line.includes("onRequest={requestTrip}")).length, 1);
+  assert.equal(screen.includes("currency="), false, "Q-03");
+  assert.equal(screen.includes("notStaying: true"), false, "Q-05");
+  // The components never see the link token and build no URL with it (cross-plan decision 8).
+  for (const dir of ["components/journey", "components/pages/stay-detail"]) {
+    for (const f of readdirSync(dir)) {
+      const text = readFileSync(`${dir}/${f}`, "utf8");
+      assert.equal(/linkToken|[?&]t=/.test(text), false, `${dir}/${f}: token`);
+      assert.equal(/fetch\(|sessionStorage\.|localStorage\./.test(text) && /^(?:trip-layout|stay-summary-step|booking-reasons|travellers-step|request-step|hold-timer|book-link)\.tsx$/.test(f), false, `${dir}/${f}: no fetch or storage in a presentational component`);
+    }
   }
   const state = readFileSync("lib/booking/trip-state.ts", "utf8");
   assert.equal(state.includes("notStaying: true"), false, "Q-05");

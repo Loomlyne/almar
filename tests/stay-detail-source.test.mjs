@@ -106,10 +106,22 @@ test("the template and its parts never name a rate, a minimum stay or a price fi
 });
 
 test("the template and its parts hold no submit, no form and no Add or Continue control", () => {
+  // B-01 (plan 04-03) opens booking in Phase 4: the one action is now the pair Book + Request on WhatsApp
+  // (`action={<StayActions …/>}`), and Book is a `<Button>` (it asks for dates) only in book-link.tsx. A form, a
+  // submit, Search and every other action stay refused.
   for (const file of TEMPLATE_FILES) {
     const text = readFileSync(file, "utf8");
-    assert.equal(/<form\b|type="submit"|onSearch=|action=\{(?!\s*<(?:StayRequestLink|LinkButton)\b)|<Button\b/.test(text), false, `${file} has a held control`);
+    assert.equal(/<form\b|type="submit"|onSearch=|action=\{(?!\s*<(?:StayRequestLink|LinkButton|StayActions)\b)/.test(text), false, `${file} has a held control`);
+    if (!file.endsWith("/book-link.tsx")) assert.equal(/<Button\b/.test(text), false, `${file} has a <Button>`);
   }
+  const book = readFileSync("components/pages/stay-detail/book-link.tsx", "utf8");
+  assert.match(book, /<Button\b[^>]*type="button"/);
+  assert.equal(/\btarget=/.test(book), false, "Book opens the trip in the same tab");
+  const booking = readFileSync("components/pages/stay-detail/booking.tsx", "utf8");
+  assert.match(booking, /action=\{<StayActions size="bar" \/>\}/);
+  assert.match(booking, /finalAction=\{<StayActions size="sheet" \/>\}/);
+  assert.match(booking, /action=\{<StayActions size="dock" \/>\}/);
+  assert.match(booking, /<StayRequestLink size=\{size\} variant="secondary" \/>/);
 });
 
 test("the template reads nothing from a fixture and no image host but the data layer's", () => {
