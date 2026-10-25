@@ -4,7 +4,9 @@
 // Origin check, the 64 KiB JSON read and the parse.
 //
 // Every write is ONE service-role RPC of 04-08's migration (20261019160000_booking_requests.sql) or 04-02's
-// (ops_set_booking_status): never a table write from here. The RPCs check the owner again in SQL (p_actor). Their
+// (ops_set_booking_status): never a table write from here. The write RPCs of 04-08 check the owner again in SQL
+// (booking_assert_owner on p_actor); ops_set_booking_status and the reads (list, get, lapse, money get) do not, so the
+// owner gate for those is requireOwner() plus the service-role-only grant. Their
 // refusals (P0001 `almar:<code>`) are mapped here, in this file (F-08: route-core's mapDbError does not know them);
 // anything else goes back as `{ dbError }` and route-core answers 503 unavailable with nothing from the database in it.
 // Nothing here logs, and no reply ever sets affects_site (a booking never changes the public site).

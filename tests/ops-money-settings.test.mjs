@@ -143,6 +143,7 @@ test("postMoneyRoute: the SQL's bank fields come back as bank.<name>; not_owner 
 });
 
 test("through runOps: a bad IBAN is 400 bank.iban before any rpc; a save answers 200 no-store with no site update", async () => {
+  let siteCalls = 0;
   const post = async (body, db) => {
     const res = await runOps({
       method: "POST",
@@ -150,6 +151,7 @@ test("through runOps: a bad IBAN is 400 bank.iban before any rpc; a save answers
       decide: async () => ({ ok: true, owner: owner(db) }),
       parse: m.parseMoneySave,
       handler: m.postMoneyRoute,
+      afterWrite: async () => { siteCalls += 1; return {}; },
       nodeEnv: "production",
     });
     return { status: res.status, body: await res.json(), headers: res.headers };
@@ -165,6 +167,7 @@ test("through runOps: a bad IBAN is 400 bank.iban before any rpc; a save answers
   assert.equal(good.status, 200);
   assert.equal(good.headers.get("cache-control"), "no-store");
   assert.equal("site" in good.body, false);
+  assert.equal(siteCalls, 0, "a money save never asks for a site update (affects_site is never set)");
 });
 
 // ---- source rules ----------------------------------------------------------------------------------------------------

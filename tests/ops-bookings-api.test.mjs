@@ -732,6 +732,7 @@ function postRequest(body, headers = {}) {
   });
 }
 
+let paymentSiteCalls = 0;
 async function postPayment(request, db) {
   const res = await runOps({
     method: "POST",
@@ -739,6 +740,7 @@ async function postPayment(request, db) {
     decide: async () => ({ ok: true, owner: owner(db) }),
     parse: api.parsePayment,
     handler: (ctx) => api.recordPayment(ctx, fakeDeps().deps),
+    afterWrite: async () => { paymentSiteCalls += 1; return {}; },
     nodeEnv: "production",
   });
   return { status: res.status, body: await res.json(), headers: res.headers };
@@ -768,6 +770,7 @@ test("through runOps: a recording answers 200 JSON no-store with the payment and
   assert.equal(out.body.ok, true);
   assert.deepEqual(out.body.mail, { receipt: "sent", owner: "sent" });
   assert.equal("site" in out.body, false, "no site update: affects_site is never set");
+  assert.equal(paymentSiteCalls, 0, "afterWrite is wired and never called");
 });
 
 test("through runOps: GET detail with a bad ref is 400 field ref", async () => {
