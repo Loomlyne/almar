@@ -687,8 +687,8 @@ export function receiptMail(detail: Pick<OwnerDetail, "id" | "events">, paymentI
 
 /**
  * The request email (the bank details): keys request/<booking_id> and resend/<booking_id>/<request_id> for each
- * resend_requested event whose template is request_received. The owner withdrawal notice (withdrawn-owner/<booking_id>)
- * is another key and changes nothing here.
+ * resend_requested event whose template is request_received. The owner's withdrawal notice has a key of its own (04-08)
+ * and changes nothing here.
  */
 export function requestMail(detail: Pick<OwnerDetail, "id" | "events">): MailState {
   const keys = new Set([`request/${detail.id}`]);
