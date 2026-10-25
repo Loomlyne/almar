@@ -30,7 +30,7 @@ Each plan opens with pictures (real tokens, 390/834/1440, EN/AR/ES), then the ow
 - `tsc`, `tokens:check`, node, build, Playwright: not run (owner: no test; and no code changed).
 
 ## The controller needs to do
-1. **Migration number** for 06-01's single migration `<NUMBER>_site_cms.sql`. It now also carries
+1. **Migration number: reserved** `20261025120000_site_cms.sql` (controller, 2026-10-25; runs after Phase 4's 20261019160000 and 20261019170000). It now also carries
    `stay_is_published` and `booking_terms_current`, plus the slot names for the Experiences and Contact heroes.
 2. **Shared-file slots**, listed per plan in each `files_modified`. The main collisions are `public-frame.tsx`,
    `footer.tsx`, the public page components and `ops-shell.tsx`. Waves 2, 3 and 4 order them.
