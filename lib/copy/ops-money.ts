@@ -19,8 +19,6 @@ export type OpsMoneyCopy = {
   units: { minutes: string; hours: string; days: string };
   windowUnit: string;
   windowHint: string;
-  windowHours: string;
-  windowHoursHint: string;
   accountName: string;
   bankName: string;
   iban: string;
@@ -34,7 +32,6 @@ export type OpsMoneyCopy = {
   spanish: string;
   errors: {
     windowRange: string;
-    windowHoursRange: string;
     whole: string;
     daysRange: string;
     checksum: string;
@@ -64,9 +61,6 @@ export const OPS_MONEY_COPY: Record<OpsMoneyLocale, OpsMoneyCopy> = {
     windowUnit: "Unit",
     windowHint:
       "How long a guest has to pay after a request. Empty: requests stay closed. From 35 minutes to 30 days. TEST requests on the preview site use 35 minutes.",
-    windowHours: "Transfer window (hours)",
-    windowHoursHint:
-      "How long a guest has to pay after a request, in whole hours. Empty: requests stay closed. From 1 to 720 hours (30 days). TEST requests on the preview site use 35 minutes.",
     accountName: "Account name",
     bankName: "Bank",
     iban: "IBAN",
@@ -80,7 +74,6 @@ export const OPS_MONEY_COPY: Record<OpsMoneyLocale, OpsMoneyCopy> = {
     spanish: "Spanish",
     errors: {
       windowRange: "Use 35 minutes to 30 days.",
-      windowHoursRange: "Use 1 to 720 hours.",
       whole: "Use a whole number.",
       daysRange: "Use 0 to 365 days.",
       checksum: "This IBAN does not check out. Look for a typing error.",
@@ -128,9 +121,6 @@ export const OPS_MONEY_COPY: Record<OpsMoneyLocale, OpsMoneyCopy> = {
     windowUnit: "الوحدة",
     windowHint:
       "المدة المتاحة للضيف ليدفع بعد الطلب. فارغ: تبقى الطلبات مغلقة. من 35 دقيقة إلى 30 يومًا. طلبات TEST على موقع المعاينة تستخدم 35 دقيقة.",
-    windowHours: "مهلة التحويل (ساعات)",
-    windowHoursHint:
-      "المدة المتاحة للضيف ليدفع بعد الطلب، بساعات كاملة. فارغ: تبقى الطلبات مغلقة. من 1 إلى 720 ساعة (30 يومًا). طلبات TEST على موقع المعاينة تستخدم 35 دقيقة.",
     accountName: "اسم الحساب",
     bankName: "المصرف",
     iban: "IBAN",
@@ -144,7 +134,6 @@ export const OPS_MONEY_COPY: Record<OpsMoneyLocale, OpsMoneyCopy> = {
     spanish: "الإسبانية",
     errors: {
       windowRange: "استخدم من 35 دقيقة إلى 30 يومًا.",
-      windowHoursRange: "استخدم من 1 إلى 720 ساعة.",
       whole: "استخدم عددًا صحيحًا.",
       daysRange: "استخدم من 0 إلى 365 يومًا.",
       checksum: "رقم IBAN هذا غير صحيح. ابحث عن خطأ في الكتابة.",
@@ -192,9 +181,6 @@ export const OPS_MONEY_COPY: Record<OpsMoneyLocale, OpsMoneyCopy> = {
     windowUnit: "Unidad",
     windowHint:
       "Cuánto tiempo tiene un huésped para pagar tras una solicitud. Vacío: las solicitudes siguen cerradas. De 35 minutos a 30 días. Las solicitudes TEST del sitio de vista previa usan 35 minutos.",
-    windowHours: "Plazo de transferencia (horas)",
-    windowHoursHint:
-      "Cuánto tiempo tiene un huésped para pagar tras una solicitud, en horas enteras. Vacío: las solicitudes siguen cerradas. De 1 a 720 horas (30 días). Las solicitudes TEST del sitio de vista previa usan 35 minutos.",
     accountName: "Titular de la cuenta",
     bankName: "Banco",
     iban: "IBAN",
@@ -208,7 +194,6 @@ export const OPS_MONEY_COPY: Record<OpsMoneyLocale, OpsMoneyCopy> = {
     spanish: "Español",
     errors: {
       windowRange: "Use de 35 minutos a 30 días.",
-      windowHoursRange: "Use de 1 a 720 horas.",
       whole: "Use un número entero.",
       daysRange: "Use de 0 a 365 días.",
       checksum: "Este IBAN no es válido. Revise si hay un error de escritura.",

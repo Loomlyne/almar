@@ -15,6 +15,7 @@ import { useMediaLibrary } from "../../../../components/ops/use-media-library";
 import { opsFetch, opsSend } from "../../../../components/ops/ops-client";
 import { useDashboardLocale } from "../../../../components/ops/use-dashboard-locale";
 import { DASHBOARD_COPY } from "../../../../lib/copy/dashboard";
+import { MoneySettings } from "./money-settings";
 import { OPS_SETTINGS_COPY } from "../../../../lib/copy/ops-settings";
 import { setDocumentLocale } from "../../../../lib/set-document-locale";
 import type { BrandKey } from "../../../../lib/settings/contrast";
@@ -96,6 +97,7 @@ export function SettingsScreen() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
   const [leaveTo, setLeaveTo] = useState<string | null>(null);
+  const [moneyDirty, setMoneyDirty] = useState(false);
   const dirtyRef = useRef(false);
 
   const { library } = useMediaLibrary({ enabled: pickerOpen, locale, onUploaded: (item) => setPicked([item.id]) });
@@ -127,7 +129,7 @@ export function SettingsScreen() {
   }, []);
 
   const dirty = form !== null && saved !== null && isDirty(form, saved);
-  dirtyRef.current = dirty;
+  dirtyRef.current = dirty || moneyDirty;
 
   // Unsaved changes: a link click asks first (Leave settings / Stay on settings); closing the tab gets the browser's own prompt.
   useEffect(() => {
@@ -315,6 +317,7 @@ export function SettingsScreen() {
           <span className="text-caption text-muted">{copy.fxHint}</span>
         </div>
       </section>
+      <MoneySettings locale={locale} onDirtyChange={setMoneyDirty} />
 
       <section className="flex flex-col gap-2 border-t border-line pt-4" aria-labelledby={`${uid}-maintenance`}>
         <GroupTitle id={`${uid}-maintenance`}>{copy.maintenance}</GroupTitle>
