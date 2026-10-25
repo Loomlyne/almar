@@ -6,7 +6,7 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 
 // Plan 03.2-04: the owner API (/api/ops/*) on the BUILT ops Worker (almar-ops) through local `wrangler dev` (workerd).
 //
-// Part A, every ops run: the twenty-two routes (03.2-09 media, 02-06 settings, 03.2-05 site-status and site-update, 04-09 bookings) exist on the ops host and fail closed without the owner (403 not_owner JSON,
+// Part A, every ops run: the twenty-three routes (03.2-09 media, 02-06 settings, 03.2-05 site-status and site-update, 04-09 bookings and money) exist on the ops host and fail closed without the owner (403 not_owner JSON,
 // no-store, noindex), the Origin and body rules hold before anything else for a non-owner too, and no other host reaches
 // them. Run with the plain test copy (no Supabase settings), as ops-runtime.spec.ts:
 //   node scripts/assemble-cloudflare.mjs --target=ops && node tests/build/make-ops-test-config.mjs
@@ -29,7 +29,7 @@ test.skip(!OPS_RUN, "runs only with an ops test config (PW_WRANGLER_CONFIG=.tmp/
 const OPS_HOST = "dashboard.almarprivatejourney.com";
 const OPS_ORIGIN = `https://${OPS_HOST}`;
 const OWNER_EMAIL = "maria@almarprivatejourney.com";
-// Sorted as A1 sorts the built list. 04-09 Task 5 adds the eight owner booking routes.
+// Sorted as A1 sorts the built list. 04-09 Task 5 adds the eight owner booking routes, Task 6 money (GET and POST).
 const ROUTES = [
   "blocks",
   "booking",
@@ -44,6 +44,7 @@ const ROUTES = [
   "destinations",
   "journeys",
   "media",
+  "money",
   "publish",
   "settings",
   "site-status",
@@ -78,7 +79,7 @@ async function expectRefusal(res: Awaited<ReturnType<APIRequestContext["get"]>>,
 }
 
 test.describe("owner API on the built ops Worker: no owner session", () => {
-  test("A1. the route list holds the twenty-two /api/ops paths and nothing else under /api/ops", () => {
+  test("A1. the route list holds the twenty-three /api/ops paths and nothing else under /api/ops", () => {
     const paths: string[] = JSON.parse(readFileSync(".open-next/almar-ops-routes.json", "utf8"));
     expect(paths.filter((p) => p.startsWith("/api/ops/")).sort()).toEqual(ROUTES.map((r) => `/api/ops/${r}`));
   });

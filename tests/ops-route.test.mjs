@@ -501,7 +501,7 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-// 04-09 Task 5: the eight owner booking routes (bookings, booking, booking/<action>).
+// 04-09 Task 5: the eight owner booking routes (bookings, booking, booking/<action>); Task 6: money.
 const EXPECTED_ROUTES = [
   "blocks",
   "booking",
@@ -515,6 +515,7 @@ const EXPECTED_ROUTES = [
   "catalog",
   "destinations",
   "journeys",
+  "money",
   "publish",
   "site-status",
   "site-update",
@@ -525,7 +526,7 @@ const EXPECTED_ROUTES = [
   "translate",
 ];
 
-test("source guard: every file under app/api/ops is a route.ts built with the wrapper; twenty routes; no dynamic segment", () => {
+test("source guard: every file under app/api/ops is a route.ts built with the wrapper; twenty-one routes; no dynamic segment", () => {
   const files = walk(join("app", "api", "ops")).sort();
   const names = files.map((f) => f.split("/").slice(3, -1).join("/"));
   for (const name of EXPECTED_ROUTES) assert.ok(names.includes(name), `app/api/ops/${name}/route.ts`);
