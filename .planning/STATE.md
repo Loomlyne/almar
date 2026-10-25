@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-25 22:35 CET:** **#33 landed** as `0f8f6091` (job 21: /en /ar /es on every page, `almar-locale` cookie for /, header Login link; two review rounds, Sonnet; tests not run, owner) on the owner's Ship. Migration `20261021120000_stay_pets_rule_public` applied live (Sonnet GO; anon reads pets_rule/pets_fee_aed, base rate still hidden; view columns read back). **almar-preview deployed** `a1c81ba0` (rollback `ffb63ce9`) from `0f8f6091`: PARITY OK, media 170/170 200, key in 0 files. Live: / 302 by cookie (ar/es/en, bad → /en/, query kept), /en /ar /es pages 200 with lang/dir, old URLs 301 to /en/… with query kept, /en/account and /es/bookings 307 to their login, sign-out → /ar/ (bad locale → /en/), noindex + disallow-all; Worker tail: static pages never invoke it, / and /api/* do. almar and almar-ops not deployed. Job 24 (Phase 6 plans) and job 25 (04-09) stopped 2026-10-21 on the weekly usage limit (reset 2026-10-25 05:00 Tunis).
+
 **2026-10-20 08:33 CET:** PR #26 (Dependabot #43 sharp 0.35.5, #42 source-map-js 1.2.2) opened and reviewed SHIP; lane `p26` queued after PR #24's lane. PR #25 reviewed SHIP, lane after #24 lands. Nothing landed or deployed.
 
 **2026-10-20 08:06 CET:** **almar-ops deployed** as `267d7570` (rollback `fd4a3419`) from `main` `8a869be` on the owner's word (question form). Clean-clone ops build and dry run, reviewer GO, live checks signed out all as expected; signed-in screens not verified (owner UAT). The public `almar` Worker is not deployed.
