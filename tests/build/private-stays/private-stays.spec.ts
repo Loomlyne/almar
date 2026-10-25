@@ -635,11 +635,7 @@ for (const locale of LOCALES) {
           for (const role of ["link", "button"] as const) {
             await expect(named(role, boardWord("k26", locale)), `#2 cart ${role} (${where})`).toHaveCount(0);
           }
-          // #3 nav Login
-          for (const role of ["link", "button"] as const) {
-            await expect(named(role, boardWord("k27", locale)), `#3 Login ${role} (${where})`).toHaveCount(0);
-            await expect(named(role, d.nav.login), `#3 Login ${role} by the nav string (${where})`).toHaveCount(0);
-          }
+          // #3 nav Login: live since job 21 (owner, 2026-10-21, decision #5), no longer asserted absent.
           // #4 footer newsletter. design 11.2: the newsletter is live in the footer: exactly one form, box and submit
           // there (named in this language), none outside it; the held "Subscribe" names below stay absent.
           await expectFooterNewsletter(page, locale, `#4 (${where})`);

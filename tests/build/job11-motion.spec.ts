@@ -143,7 +143,7 @@ test.describe("reduced motion", () => {
   test("reduced motion: a stay card image does not zoom on hover (home, en)", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await routeMedia(page);
-    await page.goto("/");
+    await page.goto("/en/");
     await motionReady(page);
     const card = page.locator("#stays li a").first();
     await card.scrollIntoViewIfNeeded();
@@ -162,7 +162,7 @@ test.describe("motion on (en home at 1440)", () => {
   });
 
   test("motion on: below-the-fold blocks reveal once, with the signed easing and durations", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/en/");
     await motionReady(page);
     expect(await page.evaluate(() => document.documentElement.getAttribute("data-motion"))).toBe("on");
     const head = page.locator('#stories [data-reveal="heading"]').first();
@@ -197,7 +197,7 @@ test.describe("motion on (en home at 1440)", () => {
   });
 
   test("hero on load: photo, headline and bar delay 0.2 s, 0.6 s, 1 s; nav 0.5 s; all reach opacity 1", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/en/");
     await motionReady(page);
     const expected = [
       { kind: "photo", delay: "0.2s", duration: "1.6s" },
@@ -258,7 +258,7 @@ test.describe("motion on (en home at 1440)", () => {
   });
 
   test("A10 hero fades with the scroll", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/en/");
     await motionReady(page);
     const layer = page.locator('[data-scroll="fade"]').first();
     const height = await layer.evaluate((el) => (el as HTMLElement).offsetHeight);
@@ -275,7 +275,7 @@ test.describe("motion on (en home at 1440)", () => {
   });
 
   test("A12 hover zoom: a stay card photo 1.05, a story card photo 1.02", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/en/");
     await motionReady(page);
     for (const [selector, scale] of [
       ["#stays li a", 1.05],

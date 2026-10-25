@@ -13,12 +13,12 @@ import { loadTs } from "../../helpers/load-ts.mjs";
 //   node scripts/assemble-cloudflare.mjs --target=local && node --test tests/build/destinations/built-documents.test.mjs
 
 const OUT = "out";
-if (!existsSync(join(OUT, "destinations.html"))) {
-  throw new Error("out/destinations.html is missing: run node scripts/assemble-cloudflare.mjs first");
+if (!existsSync(join(OUT, "en/destinations.html"))) {
+  throw new Error("out/en/destinations.html is missing: run node scripts/assemble-cloudflare.mjs first");
 }
 
 const PATH = "/destinations";
-const DOCS = { en: "destinations.html", ar: "ar/destinations.html", es: "es/destinations.html" };
+const DOCS = { en: "en/destinations.html", ar: "ar/destinations.html", es: "es/destinations.html" };
 const html = Object.fromEntries(Object.entries(DOCS).map(([locale, file]) => [locale, readFileSync(join(OUT, file), "utf8")]));
 const data = await loadTs("lib/data/destinations.ts");
 
@@ -120,6 +120,7 @@ for (const [locale, doc] of Object.entries(html)) {
     for (const tag of current) assert.equal(attr(tag, "href"), localePath(locale, PATH), tag);
     for (const needle of [
       'href="/destinations/',
+      'href="/en/destinations/',
       'href="/ar/destinations/',
       'href="/es/destinations/',
       "Eje Cafetero",
@@ -129,7 +130,8 @@ for (const [locale, doc] of Object.entries(html)) {
       'type="email"',
     ])
       assert.equal(doc.includes(needle), false, needle);
-    const names = [HOME_COPY[locale].nav.login, HOME_COPY[locale].listTitle, HOME_COPY[locale].subscribe, HOME_COPY[locale].newsletter];
+    // Login is live since job 21 (owner, 2026-10-21, decision #5), so it is not in this list.
+    const names = [HOME_COPY[locale].listTitle, HOME_COPY[locale].subscribe, HOME_COPY[locale].newsletter];
     const controls = [...doc.matchAll(/<(?:a|button)\b[^>]*>([^<]*)</g)].map((m) => decode(m[1]).trim());
     for (const name of names) assert.equal(controls.includes(name), false, `a control named ${name}`);
   });

@@ -35,18 +35,18 @@ test("the data layer publishes the 12 stays this template covers", () => {
 
 test("the 12 Framer detail routes are gone: no literal folder shadows [stay]", () => {
   for (const slug of SLUGS) {
-    assert.equal(existsSync(join("app", "private-stays", slug)), false, `app/private-stays/${slug} must not exist`);
+    assert.equal(existsSync(join("app", "en", "private-stays", slug)), false, `app/private-stays/${slug} must not exist`);
     for (const locale of ["ar", "es"]) {
       assert.equal(existsSync(join("app", locale, "private-stays", slug)), false, `app/${locale}/private-stays/${slug}`);
     }
   }
-  assert.ok(existsSync("app/private-stays/page.tsx"), "the React list page (plan 05) is still one level up");
-  assert.equal(existsSync("app/private-stays/route.ts"), false, "plan 05 replaced the Framer list route");
+  assert.ok(existsSync("app/en/private-stays/page.tsx"), "the React list page (plan 05) is still one level up");
+  assert.equal(existsSync("app/en/private-stays/route.ts"), false, "plan 05 replaced the Framer list route");
 });
 
 test("the three [stay] routes bind a locale to the one template and build only the published slugs", () => {
   const routes = {
-    en: "app/private-stays/[stay]/page.tsx",
+    en: "app/en/private-stays/[stay]/page.tsx",
     ar: "app/ar/private-stays/[stay]/page.tsx",
     es: "app/es/private-stays/[stay]/page.tsx",
   };
@@ -91,7 +91,7 @@ test("job 05's two Framer-only guards are gone, replaced by the React-page guard
 const TEMPLATE_FILES = [
   "components/pages/stay-detail-page.tsx",
   ...readdirSync("components/pages/stay-detail").map((name) => `components/pages/stay-detail/${name}`),
-  "app/private-stays/[stay]/page.tsx",
+  "app/en/private-stays/[stay]/page.tsx",
   "app/ar/private-stays/[stay]/page.tsx",
   "app/es/private-stays/[stay]/page.tsx",
 ];

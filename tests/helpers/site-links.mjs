@@ -89,7 +89,7 @@ export function reactPublicRoutes() {
     const params = segments.filter((s) => /^\[.+\]$/.test(s));
     for (const p of params) if (p !== "[stay]" && p !== "[post]") throw new Error(`no enumerator for ${p}`);
     if (params.length === 0) {
-      urls.push(shape === "/ar" || shape === "/es" ? `${shape}/` : shape);
+      urls.push(shape === "/en" || shape === "/ar" || shape === "/es" ? `${shape}/` : shape);
     } else {
       const rows = params[0] === "[post]" ? postRows() : stayRows();
       for (const row of rows) urls.push(shape.replace(params[0], row.slug));
@@ -106,7 +106,7 @@ export function resolveInOut(outDir, pathname) {
   const rules = outRules(outDir);
   const rule = matchRedirect(rules, pathname);
   if (rule) {
-    const dest = new URL(rule.to, SITE).pathname;
+    const dest = new URL(redirectTarget(rule, pathname), SITE).pathname;
     return matchRedirect(rules, dest) === null && resolveDocument(outDir, dest) === "ok" ? "rule" : "rule-broken";
   }
   return resolveDocument(outDir, pathname);
@@ -147,8 +147,11 @@ export function parseRedirects(text) {
     const star = from.indexOf("*");
     if (star !== -1 && !(from.endsWith("/*") && star === from.length - 1)) return fail("* is only allowed as a final /*");
     if (!to.startsWith("/") || to.startsWith("//")) return fail("destination must be one same-origin path starting with a single /");
-    if (/[*:]/.test(to)) return fail("destination must not hold * or :");
-    rules.push({ line, from, to, status, splat: star !== -1 });
+    // Job 21: a splat rule may end its destination in /:splat (the old /blog/* -> /en/blog/:splat); nothing else.
+    const splatTo = star !== -1 && to.endsWith("/:splat");
+    const bareTo = splatTo ? to.slice(0, -":splat".length) : to;
+    if (/[*:]/.test(bareTo)) return fail("destination must not hold * or : (except a final /:splat on a /* rule)");
+    rules.push({ line, from, to, status, splat: star !== -1, splatTo });
   });
   return { rules, errors };
 }
@@ -157,6 +160,12 @@ export function parseRedirects(text) {
 export function readRedirects(file = REDIRECTS_FILE) {
   if (!existsSync(file)) return { rules: [], errors: [] };
   return parseRedirects(readFileSync(file, "utf8"));
+}
+
+/** Where `rule` sends `pathname`: its destination, with the matched remainder in place of a final :splat. */
+export function redirectTarget(rule, pathname) {
+  if (!rule.splatTo) return rule.to;
+  return rule.to.slice(0, -":splat".length) + pathname.slice(rule.from.length - 1);
 }
 
 /** The FIRST rule whose source equals the path, or whose `/*` source is a strict prefix of it. */
@@ -189,9 +198,11 @@ export function sitePages() {
  */
 export function hasRoute(path, { pages = sitePages(), rules = readRedirects().rules, publicDir = "public" } = {}) {
   const direct = (p) => pages.has(p) || (existsSync(join(publicDir, p)) && statSync(join(publicDir, p)).isFile());
+  // Job 21: "/" is the Worker's language redirect (worker/handle.mjs), to /en/ without a language cookie.
+  if (path === "/") return pages.has("/en");
   const rule = matchRedirect(rules, path);
   if (rule) {
-    const dest = trimSlash(new URL(rule.to, SITE).pathname);
+    const dest = trimSlash(new URL(redirectTarget(rule, path), SITE).pathname);
     return direct(dest) && matchRedirect(rules, dest) === null;
   }
   return direct(path);

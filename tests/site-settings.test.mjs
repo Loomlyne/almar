@@ -65,37 +65,45 @@ test("closed page: locked line per language, real tel and mailto, no form, butto
     assert.doesNotMatch(html, /<form|<button|<script|wa\.me|whatsapp|dashboard|login|sign in/i);
     assert.match(html, /<a class="skip" href="#content">/);
     assert.match(html, /href="\/ar\/" lang="ar"/);
+    assert.match(html, /href="\/en\/"/);
   }
   assert.equal(m.MAINTENANCE_COPY.en.line, "ALMAR Private Journey is closed for a short time.");
   assert.throws(() => m.renderMaintenancePage("en", { logoSrc: "https://evil.example/x.png" }));
   assert.throws(() => m.renderMaintenancePage("en", { logoSrc: "/brand/wordmark.svg", brandStyle: "<script>x</script>" }));
 });
 
-test("gate: closes only /login, /account, /bookings on the public host while maintenance is on; fails open", async () => {
+test("gate: closes only /<locale>/login, /account, /bookings on the public host while maintenance is on, in the address's language; fails open", async () => {
   const env = { url: "https://x.supabase.co", anonKey: "k" };
   const on = async () => ({ ok: true, status: 200, json: async () => [{ ...ROW, maintenance: true }] });
   const off = async () => ({ ok: true, status: 200, json: async () => [ROW] });
   const broken = async () => { throw new Error("offline"); };
 
   g.__testing.reset();
-  const closed = await g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: "es", env, now: 1, fetcher: on });
+  const closed = await g.maintenanceResponse({ path: "/es/login", opsHost: false, cookieLocale: undefined, env, now: 1, fetcher: on });
   assert.equal(closed.status, 503);
   assert.equal(closed.headers.get("cache-control"), "no-store");
   assert.match(await closed.text(), /está cerrado por un momento/);
-  for (const p of ["/account", "/bookings/", "/login"]) {
+  // Job 21: the closed page speaks the address's language; the cookie no longer decides.
+  const arabic = await g.maintenanceResponse({ path: "/ar/login", opsHost: false, cookieLocale: "es", env, now: 1, fetcher: on });
+  assert.match(await arabic.text(), /dir="rtl"/);
+  for (const p of ["/en/account", "/ar/bookings/", "/es/login", "/en/bookings/abc"]) {
     assert.ok(await g.maintenanceResponse({ path: p, opsHost: false, cookieLocale: undefined, env, now: 2, fetcher: on }), p);
   }
-  assert.equal(await g.maintenanceResponse({ path: "/login", opsHost: true, cookieLocale: undefined, env, now: 3, fetcher: on }), null);
+  // The old unprefixed addresses are 301s before any page runs; the gate itself does not close them.
+  for (const p of ["/login", "/account", "/bookings", "/en/about", "/en/"]) {
+    assert.equal(await g.maintenanceResponse({ path: p, opsHost: false, cookieLocale: undefined, env, now: 2, fetcher: on }), null, p);
+  }
+  assert.equal(await g.maintenanceResponse({ path: "/en/login", opsHost: true, cookieLocale: undefined, env, now: 3, fetcher: on }), null);
   assert.equal(await g.maintenanceResponse({ path: "/api/booking/quote", opsHost: false, cookieLocale: undefined, env, now: 3, fetcher: on }), null);
   assert.equal(await g.maintenanceResponse({ path: "/auth/confirm", opsHost: false, cookieLocale: undefined, env, now: 3, fetcher: on }), null);
 
   // Read on every request (PR #14 review): saved off opens on the next request, no 30 s wait.
-  assert.equal(await g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: undefined, env, now: 4, fetcher: off }), null);
+  assert.equal(await g.maintenanceResponse({ path: "/en/login", opsHost: false, cookieLocale: undefined, env, now: 4, fetcher: off }), null);
 
   g.__testing.reset();
-  assert.equal(await g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: undefined, env, now: 1, fetcher: broken }), null);
+  assert.equal(await g.maintenanceResponse({ path: "/en/login", opsHost: false, cookieLocale: undefined, env, now: 1, fetcher: broken }), null);
   g.__testing.reset();
-  assert.equal(await g.maintenanceResponse({ path: "/login", opsHost: false, cookieLocale: undefined, env: {}, now: 1, fetcher: on }), null);
+  assert.equal(await g.maintenanceResponse({ path: "/en/login", opsHost: false, cookieLocale: undefined, env: {}, now: 1, fetcher: on }), null);
 });
 
 function tmpOut(pages) {
@@ -108,14 +116,14 @@ function tmpOut(pages) {
 }
 
 const PAGE = '<html><head><title>x</title></head><body><img src="/_next/static/media/Stacked_Charcoal.a16ac07e.svg"><img src="/_next/static/media/Poly_White.646c5553.svg"></body></html>';
-const PAGES = [{ dest: "index.html", locale: "en" }, { dest: "ar/index.html", locale: "ar" }, { dest: "es/about.html", locale: "es" }];
+const PAGES = [{ dest: "en/index.html", locale: "en" }, { dest: "ar/index.html", locale: "ar" }, { dest: "es/about.html", locale: "es" }];
 
 test("applySiteSettings: maintenance writes the closed page over every public page in its language", () => {
   const out = tmpOut(PAGES.map((p) => ({ ...p, html: PAGE })));
   const settings = { ...s.DEFAULT_SITE_SETTINGS, maintenance: true };
   const report = assemble.applySiteSettings({ outDir: out, pages: PAGES, settings, logo: null });
   assert.deepEqual(report, { maintenance: true, pages: 3, styled: 0 });
-  assert.match(fs.readFileSync(path.join(out, "index.html"), "utf8"), /is closed for a short time/);
+  assert.match(fs.readFileSync(path.join(out, "en/index.html"), "utf8"), /is closed for a short time/);
   assert.match(fs.readFileSync(path.join(out, "ar/index.html"), "utf8"), /dir="rtl"[\s\S]*مغلقة لوقت قصير/);
   assert.match(fs.readFileSync(path.join(out, "es/about.html"), "utf8"), /cerrado por un momento/);
   for (const f of ["brand/wordmark.svg", "brand/questa.woff", "brand/lato.ttf"]) assert.ok(fs.existsSync(path.join(out, f)), f);
@@ -124,7 +132,7 @@ test("applySiteSettings: maintenance writes the closed page over every public pa
 test("applySiteSettings: saved colours and logo reach every page; defaults leave pages untouched", () => {
   const untouched = tmpOut(PAGES.map((p) => ({ ...p, html: PAGE })));
   assert.equal(assemble.applySiteSettings({ outDir: untouched, pages: PAGES, settings: s.DEFAULT_SITE_SETTINGS, logo: null }).styled, 0);
-  assert.equal(fs.readFileSync(path.join(untouched, "index.html"), "utf8"), PAGE);
+  assert.equal(fs.readFileSync(path.join(untouched, "en/index.html"), "utf8"), PAGE);
 
   const out = tmpOut(PAGES.map((p) => ({ ...p, html: PAGE })));
   const settings = { ...s.DEFAULT_SITE_SETTINGS, colors: { ...s.DEFAULT_SITE_SETTINGS.colors, teal: "#123456" }, logoKey: "brand/logo-1.png" };

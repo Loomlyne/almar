@@ -142,8 +142,8 @@ export const searchButton = (page: Page, locale: Locale, vp: Viewport) =>
 /** Names of every control the slice holds back, in this language, for the absent-by-name assertions. */
 export function heldNames(locale: Locale): string[] {
   const copy = JOURNEY_COPY[locale];
+  // Login is not held any more: it is live since job 21 (owner, 2026-10-21, decision #5).
   return [
-    HOME_COPY[locale].nav.login,
     HOME_COPY[locale].subscribe,
     HOME_COPY[locale].listTitle,
     HOME_COPY[locale].newsletter,
@@ -154,6 +154,5 @@ export function heldNames(locale: Locale): string[] {
     "Cart",
     "السلة",
     "Carrito",
-    "Login",
   ].filter((name): name is string => typeof name === "string" && name.length > 0);
 }

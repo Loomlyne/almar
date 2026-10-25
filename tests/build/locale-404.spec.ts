@@ -12,7 +12,8 @@ const VIEWPORTS = [
   { width: 834, height: 1194 },
   { width: 1440, height: 900 },
 ];
-const PREFIX: Record<Locale, string> = { en: "", ar: "/ar", es: "/es" };
+// Job 21: English has its prefix too; /en/nope has no out/en/404.html, so it answers the root English 404.
+const PREFIX: Record<Locale, string> = { en: "/en", ar: "/ar", es: "/es" };
 const MISSING = ["/nope", "/deep/nope"];
 
 for (const viewport of VIEWPORTS) {
@@ -49,7 +50,7 @@ for (const viewport of VIEWPORTS) {
       }
 
       test(`404 home link: ${locale} at ${viewport.width}`, async ({ page }) => {
-        const homeBuilt = locale === "en" || existsSync(`out/${locale}/index.html`);
+        const homeBuilt = existsSync(`out/${locale}/index.html`);
         test.skip(!homeBuilt, `out/${locale}/index.html is not assembled yet, so the 404 link points at "/"`);
         await page.goto(`${PREFIX[locale]}/nope`);
         const link = page.getByRole("link", { name: NOT_FOUND_COPY[locale].linkLabel });
@@ -74,10 +75,17 @@ for (const viewport of VIEWPORTS) {
   });
 }
 
-test("server rules: /about/ costs one 307 to /about, and /about is 200", async ({ request }) => {
-  const slash = await request.get("/about/", { maxRedirects: 0 });
+test("an unprefixed missing path answers the root English 404, whose home link is /en/", async ({ page }) => {
+  const response = await page.goto("/nope");
+  expect(response?.status()).toBe(404);
+  expect((await response?.text()) ?? "").toContain(`<html lang="en" dir="ltr">`);
+  expect(await page.getByRole("link", { name: NOT_FOUND_COPY.en.linkLabel }).getAttribute("href")).toBe("/en/");
+});
+
+test("server rules: /en/about/ costs one 307 to /en/about, and /en/about is 200", async ({ request }) => {
+  const slash = await request.get("/en/about/", { maxRedirects: 0 });
   expect(slash.status()).toBe(307);
-  expect(new URL(slash.headers()["location"], "http://x").pathname).toBe("/about");
-  const page = await request.get("/about", { maxRedirects: 0 });
+  expect(new URL(slash.headers()["location"], "http://x").pathname).toBe("/en/about");
+  const page = await request.get("/en/about", { maxRedirects: 0 });
   expect(page.status()).toBe(200);
 });

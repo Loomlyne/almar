@@ -11,6 +11,8 @@ export type HomeCopy = {
     currency: string;
     language: string;
     login: string;
+    /** The header's Login slot once this browser is signed in (job 21); the same words as GUEST_COPY.account. */
+    account: string;
     menu: string;
     close: string;
   };
@@ -85,6 +87,7 @@ export const HOME_COPY: Record<HomeLocale, HomeCopy> = {
       currency: "Currency",
       language: "Language",
       login: "Login",
+      account: "Account",
       menu: "Menu",
       close: "Close menu",
     },
@@ -195,6 +198,7 @@ export const HOME_COPY: Record<HomeLocale, HomeCopy> = {
       currency: "العملة",
       language: "اللغة",
       login: "دخول",
+      account: "الحساب",
       menu: "القائمة",
       close: "إغلاق القائمة",
     },
@@ -305,6 +309,7 @@ export const HOME_COPY: Record<HomeLocale, HomeCopy> = {
       currency: "Moneda",
       language: "Idioma",
       login: "Entrar",
+      account: "Cuenta",
       menu: "Menú",
       close: "Cerrar menú",
     },

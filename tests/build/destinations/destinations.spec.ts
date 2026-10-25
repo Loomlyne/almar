@@ -414,8 +414,7 @@ for (const locale of LOCALES) {
           const named = (role: "button" | "link", name: string) => page.getByRole(role, { name, exact: true });
           for (const role of ["link", "button"] as const) {
             await expect(named(role, boardWordByEn("Cart", locale)), `cart ${role} (${where})`).toHaveCount(0);
-            await expect(named(role, boardWordByEn("Login", locale)), `Login ${role} (${where})`).toHaveCount(0);
-            await expect(named(role, d.nav.login), `Login by nav string ${role} (${where})`).toHaveCount(0);
+            // Login is live since job 21 (owner, 2026-10-21, decision #5): no longer asserted absent.
           }
           // design 11.2: the newsletter is live in the footer; none of these outside it.
           await expectFooterNewsletter(page, locale, where);

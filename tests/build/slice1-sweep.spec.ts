@@ -128,8 +128,7 @@ function heldNames(locale: Locale, kind: Kind): string[] {
   const names = [
     ...(kind === "home" ? [] : [JOURNEY_COPY[locale].bar.search]), // 1 Search: live on the home (job 11), held on list and stay
     boardWord("k26", locale), //                   2  cart
-    HOME_COPY[locale].nav.login, //                3  Login
-    boardWord("k27", locale),
+    // 3  Login is live since job 21 (owner, 2026-10-21, decision #5): the header's last item, /<locale>/login.
     HOME_COPY[locale].subscribe, //                4  Subscribe (footer newsletter)
     boardWord("k54", locale),
     HOME_COPY[locale].listTitle, //                5  List with us

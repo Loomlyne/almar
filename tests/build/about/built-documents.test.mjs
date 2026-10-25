@@ -19,7 +19,7 @@ const { ABOUT_PAGE_COPY } = await loadTs("lib/copy/about-page.ts");
 const { getAboutBlocks } = await loadTs("lib/data/about.ts");
 
 const PATH = "/about";
-const DOCS = { en: "about.html", ar: "ar/about.html", es: "es/about.html" };
+const DOCS = { en: "en/about.html", ar: "ar/about.html", es: "es/about.html" };
 const read = (file) => readFileSync(join(OUT, file), "utf8");
 const html = Object.fromEntries(Object.entries(DOCS).map(([locale, file]) => [locale, existsSync(join(OUT, file)) ? read(file) : ""]));
 
@@ -38,7 +38,7 @@ const mainOf = (doc) => /<main\b[\s\S]*?<\/main>/.exec(doc)?.[0] ?? "";
 
 test("the three About documents exist, and no folder-style index exists", () => {
   for (const file of Object.values(DOCS)) assert.ok(existsSync(join(OUT, file)), file);
-  for (const file of ["about/index.html", "ar/about/index.html", "es/about/index.html"]) {
+  for (const file of ["en/about/index.html", "ar/about/index.html", "es/about/index.html"]) {
     assert.equal(existsSync(join(OUT, file)), false, file);
   }
 });

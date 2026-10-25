@@ -46,20 +46,20 @@ function outFolder(root, target) {
 const SLUGS = readStaySlugs();
 const SLICE1 = publicDocuments(SLUGS, SLICE1_PAGES);
 const EN_ONLY = [
-  "about.html",
-  "blog.html",
-  "blog/a-story.html",
-  "blog/another-story.html",
-  "contact.html",
-  "destinations.html",
-  "experiences.html",
-  "services/concierge.html",
-  "services/ground-transport.html",
-  "services/airport.html",
-  "services.html",
-  "team.html",
+  "en/about.html",
+  "en/blog.html",
+  "en/blog/a-story.html",
+  "en/blog/another-story.html",
+  "en/contact.html",
+  "en/destinations.html",
+  "en/experiences.html",
+  "en/services/concierge.html",
+  "en/services/ground-transport.html",
+  "en/services/airport.html",
+  "en/services.html",
+  "en/team.html",
 ];
-const EXCLUDED = ["404.html", "ar/404.html", "es/404.html", "_not-found.html", "dashboard.html", "__harness.html", "ar/login.html", "account/x.html"];
+const EXCLUDED = ["404.html", "ar/404.html", "es/404.html", "_not-found.html", "dashboard.html", "__harness.html", "ar/login.html", "en/account/x.html"];
 const ALL_FILES = [...EXCLUDED, ...SLICE1, ...EN_ONLY];
 
 function written(target, htmlFiles = ALL_FILES) {
@@ -273,8 +273,9 @@ test("LOCALES equals the locale list of lib/locale-path.ts", () => {
   assert.deepEqual([...LOCALES], [...LOCALE_PATH_LOCALES]);
 });
 
-test("htmlFileToPath: the English home, a locale home keeps its slash, a page has none", () => {
-  assert.equal(htmlFileToPath("index.html"), "/");
+test("htmlFileToPath: every locale home keeps its slash (English too, job 21), a page has none", () => {
+  assert.equal(htmlFileToPath("en/index.html"), "/en/");
+  assert.equal(htmlFileToPath("en/private-stays.html"), "/en/private-stays");
   assert.equal(htmlFileToPath("ar/index.html"), "/ar/");
   assert.equal(htmlFileToPath("es/index.html"), "/es/");
   assert.equal(htmlFileToPath("private-stays.html"), "/private-stays");
@@ -289,8 +290,9 @@ test("isSitemapExcluded: 404s at any depth, _-prefixed names, and the non-public
     assert.equal(isSitemapExcluded(`${section}.html`), true, section);
     assert.equal(isSitemapExcluded(`${section}/x.html`), true, `${section}/x`);
     assert.equal(isSitemapExcluded(`ar/${section}.html`), true, `ar/${section}`);
+    assert.equal(isSitemapExcluded(`en/${section}.html`), true, `en/${section}`);
   }
-  for (const rel of ["index.html", "ar/index.html", "about.html", "private-stays/x.html", "es/private-stays.html", "blog/a-story.html"]) {
+  for (const rel of ["en/index.html", "ar/index.html", "en/about.html", "en/private-stays/x.html", "es/private-stays.html", "en/blog/a-story.html"]) {
     assert.equal(isSitemapExcluded(rel), false, rel);
   }
 });
@@ -355,16 +357,18 @@ test("sitemap: the English-only pages have one <url> and no alternates", () => {
   }
 });
 
-test("sitemap: /ar/ and /es/ keep their slash, no page has one", () => {
+test("sitemap: /en/, /ar/ and /es/ keep their slash, no page has one, and there is no bare /", () => {
   const locs = urlBlocks(buildSitemap(ALL_FILES)).map(locOf);
-  assert.ok(locs.includes(`${SITE_ORIGIN}/`));
+  assert.equal(locs.includes(`${SITE_ORIGIN}/`), false, "/ is the Worker's language redirect, not a page");
+  assert.ok(locs.includes(`${SITE_ORIGIN}/en/`));
   assert.ok(locs.includes(`${SITE_ORIGIN}/ar/`));
   assert.ok(locs.includes(`${SITE_ORIGIN}/es/`));
+  assert.equal(locs.includes(`${SITE_ORIGIN}/en`), false);
   assert.equal(locs.includes(`${SITE_ORIGIN}/ar`), false);
   assert.equal(locs.includes(`${SITE_ORIGIN}/es`), false);
   for (const loc of locs) {
     const path = loc.slice(SITE_ORIGIN.length);
-    if (path !== "/" && path !== "/ar/" && path !== "/es/") assert.equal(path.endsWith("/"), false, loc);
+    if (path !== "/en/" && path !== "/ar/" && path !== "/es/") assert.equal(path.endsWith("/"), false, loc);
   }
 });
 
@@ -373,6 +377,7 @@ test("sitemap: dropping one es document throws, naming it (a half-translated pag
   assert.ok(ALL_FILES.includes(dropped));
   assert.throws(() => buildSitemap(ALL_FILES.filter((f) => f !== dropped)), new RegExp(SLUGS[0]));
   assert.throws(() => buildSitemap(ALL_FILES.filter((f) => f !== "ar/index.html")), /\/ar\/|ar/);
+  assert.throws(() => buildSitemap(ALL_FILES.filter((f) => f !== "en/index.html")), /\/en\//);
 });
 
 test("sitemap: the same input gives the same output, in any input order, sorted by page then en, ar, es", () => {
@@ -380,17 +385,17 @@ test("sitemap: the same input gives the same output, in any input order, sorted 
   assert.equal(buildSitemap(ALL_FILES), first);
   assert.equal(buildSitemap([...ALL_FILES].reverse()), first);
   const locs = urlBlocks(first).map(locOf);
-  const pageOrder = [...new Set(locs.map((loc) => loc.slice(SITE_ORIGIN.length).replace(/^\/(ar|es)(\/|$)/, "/")))];
+  const pageOrder = [...new Set(locs.map((loc) => loc.slice(SITE_ORIGIN.length).replace(/^\/(en|ar|es)(\/|$)/, "/")))];
   assert.deepEqual(pageOrder, [...pageOrder].sort());
   const home = locs.slice(0, 3);
-  assert.deepEqual(home, [`${SITE_ORIGIN}/`, `${SITE_ORIGIN}/ar/`, `${SITE_ORIGIN}/es/`]);
+  assert.deepEqual(home, [`${SITE_ORIGIN}/en/`, `${SITE_ORIGIN}/ar/`, `${SITE_ORIGIN}/es/`]);
 });
 
 test("sitemap: a path is XML-escaped", () => {
-  const xml = buildSitemap(["a&b.html"]);
-  assert.match(xml, /<loc>https:\/\/almarprivatejourney\.com\/a&amp;b<\/loc>/);
+  const xml = buildSitemap(["en/a&b.html"]);
+  assert.match(xml, /<loc>https:\/\/almarprivatejourney\.com\/en\/a&amp;b<\/loc>/);
 });
 
 test("sitemap: two files for one address throw", () => {
-  assert.throws(() => buildSitemap(["ar.html", "ar/index.html", "index.html", "es/index.html"]), /ar/);
+  assert.throws(() => buildSitemap(["en.html", "en/index.html", "ar/index.html", "es/index.html"]), /en/);
 });

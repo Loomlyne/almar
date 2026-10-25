@@ -12,8 +12,10 @@ test("the frame composes nav, footer and WhatsApp once", () => {
   assert.equal((src.match(/<WhatsApp\s*\/>/g) ?? []).length, 1);
 });
 
-test("no login, no cart, no List with us, no form in the frame; the newsletter is on through PUBLIC_NEWSLETTER with subscribeToNewsletter", () => {
-  assert.match(src, /login: false/);
+test("login is on (job 21): /<locale>/login, or /<locale>/account once the sign-in hint is there; no cart, no List with us, no form in the frame; the newsletter is on through PUBLIC_NEWSLETTER with subscribeToNewsletter", () => {
+  assert.match(src, /loginHref: localePath\(locale, signedIn \? "\/account" : "\/login"\)/);
+  assert.match(src, /setSignedIn\(hasSignedInHint\(\)\)/);
+  assert.equal(/login: false/.test(src), false);
   assert.equal(/cart:\s*true|login:\s*true|listWithUs/.test(src), false);
   assert.equal(src.includes("<form"), false);
   // Plan 03.3-27: on for every page that wears the frame, through one constant; the request is lib/newsletter.ts's.
@@ -76,6 +78,7 @@ test("plan 03.3-27 (checker finding 12): the client frame, the footer and the su
   for (const file of ["components/site/public-frame.tsx", "components/ui/footer.tsx", "lib/newsletter.ts"]) {
     const text = readFileSync(file, "utf8");
     const valueImports = [...text.matchAll(/^import (?!type\b)[^;]*from "([^"]+)";/gm)].map((m) => m[1]);
+    // Job 21: the Login and Account labels come in with the page's nav labels (HOME_COPY nav.login / nav.account).
     for (const from of valueImports) assert.equal(/lib\/copy\//.test(from), false, `${file} imports ${from}`);
   }
 });

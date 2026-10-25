@@ -90,11 +90,9 @@ async function assertHeld(page: Page, s: Setup, where: string, { modal = false }
     /^https:\/\/wa\.me\/971563883302\?text=/,
   );
 
-  // 4.3 rows 2-3 and 4.1 row 6: no cart, no Login, no currency; the one combobox is the language
+  // 4.3 rows 2-3 and 4.1 row 6: no cart, no currency; the one combobox is the language (Login is live since job 21)
   await expect(page.getByRole("button", { name: CART }), say("no cart button")).toHaveCount(0);
   await expect(page.getByRole("link", { name: CART }), say("no cart link")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: s.home.nav.login, exact: true }), say("no Login link")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: s.home.nav.login, exact: true }), say("no Login button")).toHaveCount(0);
   const combos = page.locator('[role="combobox"]');
   await expect(combos, say("exactly one select in the header")).toHaveCount(1);
   await expect(combos.first(), say("and it is the language")).toHaveAttribute("aria-label", new RegExp(`^${s.journey.locale.language.split("{")[0]}`));

@@ -6,7 +6,7 @@ import { sendLinkFromRequest } from "../../lib/auth/magic-link-server";
 import { normalizeEmail, readLocale, returnCookieName, returnCookieOptions } from "../../lib/auth/rules";
 import { createSupabaseServer } from "../../lib/supabase/clients";
 import { SIGNED_IN_HINT_COOKIE, signedInHintOptions } from "../../lib/account-preferences";
-import type { SignInState } from "../login/actions";
+import type { SignInState } from "../[locale]/login/actions";
 
 /**
  * Plan 02-04 ops sign-in. Only the owner email gets a link; any other email is refused before

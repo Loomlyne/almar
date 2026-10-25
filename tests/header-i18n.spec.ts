@@ -22,7 +22,7 @@ test("signed out (no hint): a language pick sends no request and logs no error",
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
   const posts: string[] = [];
   page.on("request", (r) => r.url().includes("/api/preferences") && posts.push(r.method()));
-  await open(page, "/");
+  await open(page, "/en/");
   await page.getByRole("combobox", { name: /^Language:/ }).first().click();
   await page.getByRole("option", { name: "Español" }).click();
   await page.waitForURL((url) => url.pathname === "/es/" || url.pathname === "/es");
@@ -42,9 +42,9 @@ test("sign-out clears the hint (Max-Age=0), whatever the session state", async (
   expect(cleared[0].value).not.toMatch(/HttpOnly/i);
 });
 
-test("signed in (hint set): picking العربية on / goes to /ar/ with dir=rtl, sets almar-locale and offers the pick to the account", async ({ page, context }) => {
+test("signed in (hint set): picking العربية on /en/ goes to /ar/ with dir=rtl, sets almar-locale and offers the pick to the account", async ({ page, context }) => {
   await context.addCookies([HINT]);
-  await open(page, "/");
+  await open(page, "/en/");
   const posted = page.waitForRequest((r) => r.url().endsWith("/api/preferences") && r.method() === "POST");
   await page.getByRole("combobox", { name: /^Language:/ }).first().click();
   await page.getByRole("option", { name: "العربية" }).click();
@@ -64,7 +64,7 @@ test("signed in (hint set): picking العربية on / goes to /ar/ with dir=rt
 
 test("the language pick still navigates when the preferences request fails (offline)", async ({ page, context }) => {
   await context.addCookies([HINT]);
-  await open(page, "/");
+  await open(page, "/en/");
   await page.route("**/api/preferences", (route) => route.abort("internetdisconnected"));
   await page.getByRole("combobox", { name: /^Language:/ }).first().click();
   await page.getByRole("option", { name: "Español" }).click();
@@ -93,7 +93,7 @@ test("a currency pick keeps the URL and almar-locale, and is offered to the acco
 
 test("the sign-in handoff cookie puts her saved currency in the browser choice once, then is cleared", async ({ page, context }) => {
   await context.addCookies([{ name: "almar-prefs-sync", value: "EUR", url: "http://127.0.0.1" }]);
-  await open(page, "/private-stays");
+  await open(page, "/en/private-stays");
   await expect.poll(() => page.evaluate(() => window.localStorage.getItem("almar-currency"))).toBe("EUR");
   const cookies = await context.cookies();
   expect(cookies.find((c) => c.name === "almar-prefs-sync")).toBeUndefined();
@@ -101,7 +101,7 @@ test("the sign-in handoff cookie puts her saved currency in the browser choice o
 
 test("a tampered handoff cookie is ignored and cleared", async ({ page, context }) => {
   await context.addCookies([{ name: "almar-prefs-sync", value: "GBP", url: "http://127.0.0.1" }]);
-  await open(page, "/about");
+  await open(page, "/en/about");
   await expect.poll(async () => (await context.cookies()).some((c) => c.name === "almar-prefs-sync")).toBe(false);
   expect(await page.evaluate(() => window.localStorage.getItem("almar-currency"))).toBeNull();
 });
@@ -112,7 +112,7 @@ const footerLanguages = (page: Page) => page.getByRole("contentinfo").getByRole(
 
 test("footer, signed in (hint set): the Español link offers the pick to the account and still navigates", async ({ page, context }) => {
   await context.addCookies([HINT]);
-  await open(page, "/about");
+  await open(page, "/en/about");
   const posted = page.waitForRequest((r) => r.url().endsWith("/api/preferences") && r.method() === "POST");
   await footerLanguages(page).getByRole("link", { name: "Español" }).click();
   const request = await posted;
@@ -125,7 +125,7 @@ test("footer, signed in (hint set): the Español link offers the pick to the acc
 test("footer, signed out (no hint): the العربية link sends no request and still navigates", async ({ page }) => {
   const posts: string[] = [];
   page.on("request", (r) => r.url().includes("/api/preferences") && posts.push(r.method()));
-  await open(page, "/about");
+  await open(page, "/en/about");
   await footerLanguages(page).getByRole("link", { name: "العربية" }).click();
   await page.waitForURL((url) => /^\/ar\/about\/?$/.test(url.pathname));
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
@@ -134,7 +134,7 @@ test("footer, signed out (no hint): the العربية link sends no request and
 
 test("footer, signed in: the current language's link is no change and sends nothing", async ({ page, context }) => {
   await context.addCookies([HINT]);
-  await open(page, "/about");
+  await open(page, "/en/about");
   const posts: string[] = [];
   page.on("request", (r) => r.url().includes("/api/preferences") && posts.push(r.method()));
   const english = footerLanguages(page).getByRole("link", { name: "English" });

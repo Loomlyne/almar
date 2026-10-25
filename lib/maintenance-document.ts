@@ -42,7 +42,7 @@ export const MAINTENANCE_PHONE = { label: "+971 56 388 3302", href: "tel:+971563
 export const MAINTENANCE_EMAIL = { label: "inquiries@almarprivatejourney.com", href: "mailto:inquiries@almarprivatejourney.com" } as const;
 
 const LANGUAGES: { locale: MaintenanceLocale; name: string; href: string }[] = [
-  { locale: "en", name: "English", href: "/" },
+  { locale: "en", name: "English", href: "/en/" },
   { locale: "ar", name: "العربية", href: "/ar/" },
   { locale: "es", name: "Español", href: "/es/" },
 ];

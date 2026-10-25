@@ -11,19 +11,31 @@ import { brandStyle, WORDMARK_PATH, type fetchSiteSettings } from "./site-settin
 import { logoMediaUrl, readSiteSettings, __testing as readTesting } from "./site-settings-read";
 import { renderMaintenancePage, type MaintenanceLocale } from "./maintenance-document";
 
-/** The HTML pages of the public Worker that maintenance closes (lib/server-routes.ts SERVER_PATHS_OUTSIDE_API). */
+/**
+ * The HTML pages of the public Worker that maintenance closes (lib/server-routes.ts SERVER_PATHS_OUTSIDE_API), each at
+ * /en/…, /ar/… and /es/… since job 21. Anything below /<locale>/bookings (Phase 4 pages) closes too.
+ */
 export const MAINTENANCE_SERVER_PATHS: readonly string[] = ["/login", "/account", "/bookings"];
 
-export function closesOnMaintenance(path: string): boolean {
+const PREFIX = /^\/(en|ar|es)(\/.*)$/;
+
+/** The page's language when `path` is a guest page that maintenance closes, else null. */
+function closedPageLocale(path: string): MaintenanceLocale | null {
   const bare = path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
-  return MAINTENANCE_SERVER_PATHS.includes(bare);
+  const match = PREFIX.exec(bare);
+  if (!match) return null;
+  const rest = match[2];
+  const closes = MAINTENANCE_SERVER_PATHS.includes(rest) || rest.startsWith("/bookings/");
+  return closes ? (match[1] as MaintenanceLocale) : null;
+}
+
+export function closesOnMaintenance(path: string): boolean {
+  return closedPageLocale(path) !== null;
 }
 
 type FetchLike = Parameters<typeof fetchSiteSettings>[2];
 
-function pageLocale(cookieLocale: string | undefined): MaintenanceLocale {
-  return cookieLocale === "ar" || cookieLocale === "es" ? cookieLocale : "en";
-}
+
 
 /** The closed page as a 503 (Retry-After an hour, never cached), or null when this request stays open. */
 export async function maintenanceResponse({
@@ -46,7 +58,9 @@ export async function maintenanceResponse({
   if (!settings?.maintenance) return null;
   // The saved logo straight from R2: a /brand/ copy exists only after the next publish rebuild.
   const logoSrc = logoMediaUrl(settings.logoKey) ?? WORDMARK_PATH;
-  const html = renderMaintenancePage(pageLocale(cookieLocale), { logoSrc, brandStyle: brandStyle(settings) });
+  // Job 21: the closed page speaks the address's language; the cookie is no longer read (kept in the signature for callers).
+  void cookieLocale;
+  const html = renderMaintenancePage(closedPageLocale(path) ?? "en", { logoSrc, brandStyle: brandStyle(settings) });
   return new Response(html, {
     status: 503,
     headers: {

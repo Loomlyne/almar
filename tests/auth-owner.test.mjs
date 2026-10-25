@@ -44,12 +44,12 @@ test("the owner list is Maria and Koss, and the newest migration gives both the 
 test("the host comes from the middleware shell header, never from the caller", () => {
   const server = code("lib/auth/magic-link-server.ts");
   assert.match(server, /const host = \(await headers\(\)\)\.get\(SHELL_HEADER\) === "ops" \? "ops" : "public";/);
-  for (const path of ["app/dashboard/actions.ts", "app/login/actions.ts"]) {
+  for (const path of ["app/dashboard/actions.ts", "app/[locale]/login/actions.ts"]) {
     const actions = code(path);
     assert.equal(/host:/.test(actions), false, path);
     assert.match(actions, /case "refused":\s*(\/\/[^\n]*\s*)?return \{ status: "refused", email \}/, path);
   }
-  const screen = code("app/login/sign-in-screen.tsx");
+  const screen = code("app/[locale]/login/sign-in-screen.tsx");
   assert.match(screen, /state\.status === "refused"[\s\S]{0,80}copy\.auth\.cannotUseEmail/);
 });
 

@@ -13,11 +13,11 @@ import { localeAlternates, localeDir, localePath } from "../../../lib/locale-pat
 //   node scripts/assemble-cloudflare.mjs && node --test tests/build/home/built-documents.test.mjs
 
 const OUT = "out";
-if (!existsSync(join(OUT, "index.html"))) {
-  throw new Error("out/index.html is missing: run node scripts/assemble-cloudflare.mjs first");
+if (!existsSync(join(OUT, "en/index.html"))) {
+  throw new Error("out/en/index.html is missing: run node scripts/assemble-cloudflare.mjs first");
 }
 
-const DOCS = { en: "index.html", ar: "ar/index.html", es: "es/index.html" };
+const DOCS = { en: "en/index.html", ar: "ar/index.html", es: "es/index.html" };
 const html = Object.fromEntries(Object.entries(DOCS).map(([locale, file]) => [locale, readFileSync(join(OUT, file), "utf8")]));
 
 const decode = (text) =>
@@ -37,9 +37,9 @@ const attr = (tag, name) => {
 const LIVE_JSON_LD =
   '{"@context":"https://schema.org","@type":["Organization","TravelAgency"],"@id":"https://almarprivatejourney.com/#organization","name":"ALMAR Private Journeys","url":"https://almarprivatejourney.com/","description":"Private journeys in Colombia.","areaServed":{"@type":"Country","name":"Colombia"}}';
 
-test("the three home documents exist and no flat out/ar.html or out/es.html does", () => {
+test("the three home documents exist; no flat out/en.html, out/ar.html or out/es.html, and no out/index.html (\"/\" is the Worker's redirect)", () => {
   for (const file of Object.values(DOCS)) assert.ok(existsSync(join(OUT, file)), file);
-  for (const file of ["ar.html", "es.html"]) assert.equal(existsSync(join(OUT, file)), false, file);
+  for (const file of ["en.html", "ar.html", "es.html", "index.html"]) assert.equal(existsSync(join(OUT, file)), false, file);
 });
 
 for (const [locale, doc] of Object.entries(html)) {
@@ -133,8 +133,9 @@ for (const [locale, doc] of Object.entries(html)) {
   });
 
   test(`${locale}: the held controls are not in the markup`, () => {
-    // Login, cart, newsletter email, Subscribe, List with us: asserted by name in the page's own language.
-    const names = [HOME_COPY[locale].nav.login, HOME_COPY[locale].listTitle, HOME_COPY[locale].subscribe, HOME_COPY[locale].newsletter];
+    // Cart, newsletter email, Subscribe, List with us: asserted by name in the page's own language.
+    // Login is live since job 21 (owner, 2026-10-21, decision #5), so it is not in this list.
+    const names = [HOME_COPY[locale].listTitle, HOME_COPY[locale].subscribe, HOME_COPY[locale].newsletter];
     for (const name of names) {
       const links = [...doc.matchAll(/<(?:a|button)\b[^>]*>([^<]*)</g)].map((m) => decode(m[1]).trim());
       assert.equal(links.includes(name), false, `${locale}: a control named ${name}`);

@@ -26,7 +26,7 @@ test("the copy module does not contain next-intl", () => {
 // The two FRAMER_SOURCE_COPY tests above stay as they were.
 test("app/route.ts is gone and no home file imports copy/framer-source", () => {
   assert.equal(existsSync("app/route.ts"), false);
-  const files = ["app/page.tsx", "app/ar/page.tsx", "app/es/page.tsx", "components/pages/home-page.tsx"];
+  const files = ["app/en/page.tsx", "app/ar/page.tsx", "app/es/page.tsx", "components/pages/home-page.tsx"];
   for (const dir of ["components/pages/home"]) {
     for (const name of readdirSync(dir)) files.push(`${dir}/${name}`);
   }

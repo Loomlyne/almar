@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { SignInScreen } from "../login/sign-in-screen";
+import { SignInScreen } from "../[locale]/login/sign-in-screen";
 import { opsSignIn } from "./actions";
 import { SHELL_HEADER } from "../../lib/host";
 import { isOwnerProfile } from "../../lib/auth/rules";

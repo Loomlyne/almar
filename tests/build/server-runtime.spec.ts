@@ -17,9 +17,10 @@ const CONFIG_TEXT = readFileSync(CONFIG, "utf8");
 const FOLDER = /^directory = "\.\/([^"]+)"$/m.exec(CONFIG_TEXT)?.[1] ?? "";
 const IS_PREVIEW = /^name = "almar-preview"$/m.test(CONFIG_TEXT);
 
-// The four sections still held (the prompt's nine minus /login, /account and /bookings, opened by plan 02-23 task 3,
+// The four sections still held (the prompt's nine minus /login, /account and /bookings, opened by plan 02-23 task 3
+// and moved under /en, /ar and /es by job 21,
 // /booking, opened by plan 04-02, and /newsletter, opened by plan 03.3-27), pinned here on purpose: changing HELD_PATHS
-// breaks this spec until the spec is changed in the same commit (lib/server-routes.ts, step 3 of its how-to). The six
+// breaks this spec until the spec is changed in the same commit (lib/server-routes.ts, step 3 of its how-to). The
 // opened sign-in paths are proven in tests/build/auth-paths.spec.ts; /newsletter in test 9 below.
 const PINNED_HELD = ["/dashboard", "/fx", "/embed", "/__harness"];
 
@@ -37,7 +38,7 @@ const HELD_PROBES = [
   "/ar/dashboard",
 ];
 // Not held sections, but never served by Next either: they get the static 404 too.
-// Also the near misses of the six opened sign-in paths: a locale prefix, a child path, the ops-host handoff.
+// Also the near misses of the opened sign-in paths: an unknown language, a child path, the ops-host handoff.
 const OTHER_MISSES = [
   // /booking left the held list with plan 04-02 but has no page until 04-03: the same static 404 (no page is in PUBLIC_PAGES).
   "/booking",
@@ -47,12 +48,13 @@ const OTHER_MISSES = [
   "/api/nope",
   "/_next/image?url=%2Fx.png&w=64&q=75",
   "/API/health",
-  "/ar/login",
-  "/es/account",
-  "/ar/bookings",
+  "/fr/login",
+  "/en/login/x",
+  "/es/account/x",
+  "/ar/bookings/x",
+  "/en/bookings/x",
   "/login/x",
   "/account/x",
-  "/bookings/x",
   "/auth/handoff",
   "/auth/confirm/x",
   "/auth/sign-out/x",
@@ -84,7 +86,6 @@ function htmlFiles(dir: string): string[] {
 }
 
 function addressOf(rel: string): string {
-  if (rel === "index.html") return "/";
   if (rel.endsWith("/index.html")) return `/${rel.slice(0, -"index.html".length)}`;
   return `/${rel.slice(0, -".html".length)}`;
 }
@@ -98,7 +99,8 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
   test("the config serves an assembled folder with the OpenNext bundle beside it", () => {
     expect(["out", "out-preview"]).toContain(FOLDER);
     expect(FOLDER === "out-preview").toBe(IS_PREVIEW);
-    expect(existsSync(join(FOLDER, "index.html"))).toBe(true);
+    expect(existsSync(join(FOLDER, "en/index.html"))).toBe(true);
+    expect(existsSync(join(FOLDER, "index.html")), `"/" is the Worker's language redirect, never a file`).toBe(false);
     expect(JSON.parse(readFileSync(".open-next/almar-server-routes.json", "utf8"))).toEqual(
       [
         "/api/booking/hold",
@@ -215,7 +217,7 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     const health = await request.get("/api/health", { headers: nav, maxRedirects: 0 });
     expect(health.status()).toBe(200);
     expect(await health.text()).toBe('{"ok":true}');
-    for (const path of ["/ar/login", "/dashboard", "/es/account", "/ar/newsletter", "/api/nope", "/wp-login.php"]) {
+    for (const path of ["/fr/login", "/dashboard", "/es/account/x", "/ar/newsletter", "/api/nope", "/wp-login.php"]) {
       const res = await request.get(path, { headers: nav, maxRedirects: 0 });
       expect(res.status(), path).toBe(404);
       expect(Buffer.compare(await res.body(), nearest404(path)), path).toBe(0);
@@ -223,7 +225,7 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
   });
 
   test("5. pages, caching and crawl files are the static host's, per config", async ({ request }) => {
-    for (const path of ["/", "/about", "/ar/", "/es/"]) {
+    for (const path of ["/en/", "/en/about", "/ar/", "/es/"]) {
       const res = await request.get(path, { maxRedirects: 0 });
       expect(res.status(), path).toBe(200);
       if (IS_PREVIEW) expect(res.headers()["x-robots-tag"], path).toBe("noindex, nofollow");
@@ -247,12 +249,33 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     }
   });
 
+  test("5b. \"/\" is the Worker's language redirect: 302 to the almar-locale cookie's language, else /en/; private, no-store, noindex", async ({ request }) => {
+    const want: Array<[string | undefined, string]> = [
+      [undefined, "/en/"],
+      ["almar-locale=ar", "/ar/"],
+      ["almar-locale=es", "/es/"],
+      ["almar-locale=fr", "/en/"],
+      ["theme=dark; almar-locale=ar", "/ar/"],
+    ];
+    for (const [cookie, to] of want) {
+      const res = await request.get("/", { headers: cookie ? { cookie } : {}, maxRedirects: 0 });
+      expect(res.status(), String(cookie)).toBe(302);
+      expect(res.headers()["location"], String(cookie)).toBe(to);
+      expect(res.headers()["cache-control"], String(cookie)).toBe("private, no-store");
+      expect(res.headers()["vary"], String(cookie)).toBe("Cookie");
+      expect(res.headers()["x-robots-tag"], String(cookie)).toBe("noindex");
+    }
+    const withQuery = await request.get("/?utm_source=x", { headers: { cookie: "almar-locale=es" }, maxRedirects: 0 });
+    expect(withQuery.headers()["location"]).toBe("/es/?utm_source=x");
+  });
+
   test("6. slash and index redirects are unchanged", async ({ request }) => {
     const cases: Array<[string, string]> = [
+      ["/en", "/en/"],
       ["/ar", "/ar/"],
       ["/es", "/es/"],
-      ["/about/", "/about"],
-      ["/index.html", "/"],
+      ["/en/about/", "/en/about"],
+      ["/en/index.html", "/en/"],
       // The static layer turns any percent-encoded character into a redirect to the plain path before the Worker
       // runs; the target then meets the same exact-match rule (measured 2026-10-04).
       ["/api%2Fhealth", "/api/health"],
@@ -267,9 +290,9 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
   });
 
   test("7. a client-router (RSC) request for a page gets the same static file", async ({ request }) => {
-    const res = await request.get("/about?_rsc=x", { headers: { RSC: "1" }, maxRedirects: 0 });
+    const res = await request.get("/en/about?_rsc=x", { headers: { RSC: "1" }, maxRedirects: 0 });
     expect(res.status()).toBe(200);
-    expect(Buffer.compare(await res.body(), readFileSync(join(FOLDER, "about.html")))).toBe(0);
+    expect(Buffer.compare(await res.body(), readFileSync(join(FOLDER, "en/about.html")))).toBe(0);
   });
 
   test("8. POST /api/booking/quote is served by Next (plan 04-02): an empty body is 400, 403 or 503, never the static 404", async ({ request }) => {

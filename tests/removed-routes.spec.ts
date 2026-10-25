@@ -8,8 +8,8 @@ test("/framer is removed", async ({ request }) => {
   expect((await request.get("/framer")).status()).toBe(404);
 });
 
-test("live / still serves", async ({ request }) => {
-  expect((await request.get("/")).status()).toBe(200);
+test("live /en/ still serves", async ({ request }) => {
+  expect((await request.get("/en/")).status()).toBe(200);
 });
 
 // Phase 3.3 close: the Framer bridge (the hero booker bundle, its Lato font route and the dev-only /fx rates page) is
