@@ -19,6 +19,10 @@
 - The record POST awaits the mail with no timeout; matters once 04-05's real notifier is in.
 - `ops_set_booking_status` (04-02) has no `booking_assert_owner`; the gate is requireOwner + service-role grant. A later migration may add it.
 
+## NEEDS OWNER (04-09)
+
+- `app/dashboard/(ops)/bookings/detail/booking-detail.tsx:235` "Still due" on the detail shows the total left (example AED 9,000) while the record review shows the deposit left by the pay-by date (AED 3,000, signed 2026-10-25). Should the detail match the review, or show both? The controller asks him with a picture at the phase landing (Opus review nit 1).
+
 ## Proposed for the controller
 
 - STATE / CONTROL-BOARD: 04-09 written and pushed, checks not run (owner: no test), tsc clean, Sonnet review of 5–6 no blocker.
