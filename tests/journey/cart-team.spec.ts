@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { JOURNEY_COPY } from "../../lib/copy/journey";
 
 const url = (c: string, s: string, l = "en") => `/__harness?c=${c}&s=${s}&l=${l}`;
 
@@ -30,7 +31,7 @@ test.describe("JourneyCart rail", () => {
     await expect(aside).toContainText("Subtotal");
     await expect(aside).toContainText("VAT [RATE]%");
     await expect(aside).toContainText("Total");
-    await expect(aside).toContainText("Nothing is charged before Pay");
+    await expect(aside).toContainText(JOURNEY_COPY.en.cart.note);
     await expect(aside).not.toContainText(/AED \d/);
   });
 
@@ -118,7 +119,7 @@ test.describe("JourneyCart phone", () => {
     await expect
       .poll(async () => dialog.boundingBox())
       .toMatchObject({ x: 0, y: 0, width: 390, height: 800 });
-    await expect(dialog).toContainText("Nothing is charged before Pay");
+    await expect(dialog).toContainText(JOURNEY_COPY.en.cart.note);
     await expect(dialog.getByRole("button", { name: "Remove Home pickup" })).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Continue" })).toBeVisible();
     await dialog.getByRole("button", { name: "Close" }).click();
