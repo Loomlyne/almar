@@ -501,9 +501,31 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-const EXPECTED_ROUTES = ["blocks", "catalog", "destinations", "journeys", "publish", "site-status", "site-update", "stay-access", "stay-rates", "stays", "team", "translate"];
+// 04-09 Task 5: the eight owner booking routes (bookings, booking, booking/<action>).
+const EXPECTED_ROUTES = [
+  "blocks",
+  "booking",
+  "booking/attention",
+  "booking/note",
+  "booking/payment",
+  "booking/resend",
+  "booking/status",
+  "booking/void",
+  "bookings",
+  "catalog",
+  "destinations",
+  "journeys",
+  "publish",
+  "site-status",
+  "site-update",
+  "stay-access",
+  "stay-rates",
+  "stays",
+  "team",
+  "translate",
+];
 
-test("source guard: every file under app/api/ops is a route.ts built with the wrapper; twelve routes; no dynamic segment", () => {
+test("source guard: every file under app/api/ops is a route.ts built with the wrapper; twenty routes; no dynamic segment", () => {
   const files = walk(join("app", "api", "ops")).sort();
   const names = files.map((f) => f.split("/").slice(3, -1).join("/"));
   for (const name of EXPECTED_ROUTES) assert.ok(names.includes(name), `app/api/ops/${name}/route.ts`);
@@ -542,7 +564,7 @@ test("source guard: lib/ops/route.ts binds requireOwner; route-core imports no N
   const route = readFileSync("lib/ops/route.ts", "utf8");
   assert.match(route, /import \{ requireOwner[^}]*\} from "\.\.\/auth\/require-owner"/);
   assert.match(route, /decide: requireOwner/);
-  for (const file of ["lib/ops/route-core.ts", "lib/ops/catalog-handlers.ts", "lib/ops/validate.ts", "lib/ops/validate-catalog.ts", "lib/ops/shape.ts", "lib/ops/journey-price.ts"]) {
+  for (const file of ["lib/ops/route-core.ts", "lib/ops/catalog-handlers.ts", "lib/ops/bookings-api.ts", "lib/ops/validate.ts", "lib/ops/validate-catalog.ts", "lib/ops/shape.ts", "lib/ops/journey-price.ts"]) {
     const src = readFileSync(file, "utf8");
     assert.equal(/from "next|from "react/.test(src), false, `${file}: no Next import`);
     assert.equal(/SUPABASE_SERVICE_ROLE_KEY|createSupabaseAdmin|process\.env/.test(src), false, `${file}: no key, no admin client, no env`);
@@ -552,4 +574,9 @@ test("source guard: lib/ops/route.ts binds requireOwner; route-core imports no N
   assert.equal(/console\./.test(handlers), false, "handlers never log");
   assert.equal(/\.(insert|update|upsert|delete)\(/.test(handlers), false, "writes are RPCs only, never table writes");
   assert.match(handlers, /rpc\("ops_/);
+  // 04-09 Task 5: the booking handlers are held to the same rule.
+  const bookings = readFileSync("lib/ops/bookings-api.ts", "utf8");
+  assert.equal(/console\./.test(bookings), false, "booking handlers never log");
+  assert.equal(/\.(from|insert|update|upsert|delete)\(/.test(bookings), false, "booking writes are RPCs only, never table writes");
+  assert.match(bookings, /rpc\("ops_record_payment"/);
 });
