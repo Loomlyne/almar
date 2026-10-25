@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAR 04-03 pictures: guest booking trip</title>
+<style>
+:root{
+  --color-ivory:#fffaf0;--color-surface:#ffffff;--color-teal:#1f3b40;--color-teal-hover:#1b3438;--color-teal-press:#182d31;
+  --color-teal-tint:#d1dfe0;--color-gold:#d4ba8a;--color-ink:#262626;--color-muted:#63615f;--color-line:rgb(38 38 38 / 0.16);
+  --color-error:#8f2d2d;--color-success:#1e6b45;--color-warning:#8a3b12;
+  --space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;--space-2xl:48px;--space-3xl:64px;
+  --control:44px;--chip:40px;--chip-dense:24px;--row:56px;--dock:88px;--search:200px;
+  --container-dialog:480px;--container-column:1240px;--container-calendar:760px;
+  --radius-control:0;--radius-overlay:0;
+  --shadow-lg:0 28px 56px -16px rgb(10 9 7 / 0.28),0 10px 20px -10px rgb(10 9 7 / 0.12);
+  --shadow-selected:inset 0 0 0 2px var(--color-teal);
+  --face-display:Georgia,"Times New Roman",serif;
+  --face-body:"Lato",-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --tracking-kicker:0.12em;
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;background:#ece8df;color:var(--color-ink);font-family:var(--face-body);font-size:14px}
+/* ---------- page chrome (review page only, not product UI) ---------- */
+#top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;padding:10px 20px;background:var(--color-teal);color:var(--color-ivory)}
+#top h1{font:400 18px var(--face-display);margin:0;margin-inline-end:auto}
+#top .grp{display:flex;align-items:center;gap:6px}
+#top .grp span.l{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-inline-end:4px}
+#top button{font:inherit;font-size:13px;padding:6px 12px;border:1px solid rgba(255,250,240,.5);background:transparent;color:var(--color-ivory);cursor:pointer}
+#top button[aria-pressed=true]{background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)}
+#wrap{display:flex;align-items:flex-start}
+#index{position:sticky;top:52px;align-self:flex-start;width:268px;flex:none;height:calc(100vh - 52px);overflow:auto;background:var(--color-ivory);border-inline-end:1px solid var(--color-line);padding:14px 14px 40px;font-size:13px}
+#index h2{font:400 12px var(--face-body);letter-spacing:.12em;text-transform:uppercase;color:var(--color-muted);margin:16px 0 4px}
+#index a{display:block;color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:3px;padding:2px 0}
+#index a.st{margin-inline-start:12px;text-decoration:none;color:var(--color-ink)}
+#index a.st:hover{text-decoration:underline;text-decoration-color:var(--color-gold)}
+#main{flex:1;min-width:0;padding:20px 24px 80px}
+.banner{background:var(--color-ivory);border:1px solid var(--color-gold);padding:10px 14px;margin-bottom:20px;font-size:13px;line-height:1.5}
+.grpbox{margin:0 0 44px}
+.grpbox>h2{font:400 22px var(--face-display);color:var(--color-teal);margin:0 0 4px}
+.grpbox>.q{margin:0 0 4px;font-size:14px;line-height:1.5;max-width:900px}
+.grpbox>.tag{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-teal);color:var(--color-teal);padding:2px 8px;margin-bottom:8px}
+.fr{margin:14px 0 26px}
+.cap{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin-bottom:6px}
+.cap code{font:600 13px ui-monospace,Menlo,monospace;background:#fff;border:1px solid var(--color-line);padding:2px 6px}
+.cap .opt{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-teal)}
+.cap .opt.rec{font-weight:700}
+.cap .rules{font-size:12px;color:var(--color-muted)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.fw{position:relative;overflow:hidden;border:1px solid var(--color-line);background:var(--color-ivory)}
+.stub{border:1px dashed var(--color-muted);padding:10px 14px;font-size:13px;background:#fff}
+.stub a{color:var(--color-teal)}
+/* ---------- product frame ---------- */
+.frame{container-type:inline-size;position:relative;transform-origin:top left;background:var(--color-ivory);color:var(--color-ink);font-family:var(--face-body);font-size:14px;line-height:1.43}
+.inner{--px:16px;--py:24px;padding:var(--py) var(--px) calc(var(--py) + 16px)}
+.frame[dir=rtl]{font-family:"Noto Sans Arabic","Noto Sans",var(--face-body);line-height:1.63;text-align:start}
+.frame[dir=rtl] .disp{font-family:"Noto Naskh Arabic","Noto Sans Arabic",var(--face-display);line-height:1.5}
+.disp{font-family:var(--face-display);font-weight:400;color:var(--color-teal);margin:0}
+.h1{font-size:32px;line-height:1.2}.h2{font-size:20px;line-height:1.3}
+.cap12{font-size:12px;line-height:1.5}
+.muted{color:var(--color-muted)}
+.kick{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--color-muted)}
+.frame[dir=rtl] .kick,.frame[dir=rtl] .btn-up{text-transform:none;letter-spacing:0}
+.stack{display:flex;flex-direction:column}.g1{gap:4px}.g2{gap:8px}.g4{gap:16px}.g6{gap:24px}
+.row{display:flex;flex-wrap:wrap;align-items:center}.gx2{gap:8px}.gx4{gap:16px}
+.sec{border-top:1px solid var(--color-line);padding-top:16px;margin-top:24px;display:flex;flex-direction:column;gap:8px}
+.sec>.disp.h2{margin-bottom:4px}
+/* buttons (components/ui/button.tsx) */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:100%;height:var(--control);padding:0 24px;border:1px solid transparent;font:inherit;font-size:14px;cursor:pointer;background:transparent}
+.btn-up{text-transform:uppercase;letter-spacing:.12em}
+.btn-primary{background:var(--color-teal);color:var(--color-ivory);border-color:var(--color-teal)}
+.btn-secondary{background:transparent;color:var(--color-teal);border-color:var(--color-teal)}
+.btn-ghost{background:transparent;color:var(--color-teal);border-color:transparent;text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;text-decoration-thickness:1px}
+.btn-danger{background:transparent;color:var(--color-ink);border-color:var(--color-error)}
+.btn:disabled{background:var(--color-ivory);border-color:var(--color-line);color:var(--color-muted);cursor:default;text-decoration:none}
+.btn.sm{padding:0 16px}
+.link{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;text-decoration-thickness:1px;background:none;border:0;padding:0;font:inherit;cursor:pointer;min-height:var(--control);display:inline-flex;align-items:center;gap:8px}
+/* chips */
+.chip{display:inline-flex;align-items:center;height:var(--chip);padding:0 16px;border:1px solid var(--color-muted);color:var(--color-ink);background:transparent;white-space:nowrap}
+.chip.dense{height:var(--chip-dense);padding:0 8px;font-size:12px}
+.chip.on{background:var(--color-teal);border-color:var(--color-teal);color:var(--color-ivory)}
+/* fields */
+.field{display:grid;gap:8px;max-width:384px;width:100%}
+.field.wide{max-width:none}
+.field>label,.field>.lb{font-size:14px;color:var(--color-ink)}
+.inp{display:block;width:100%;min-height:var(--control);border:1px solid var(--color-ink);background:var(--color-surface);padding:8px 16px;font:inherit;font-size:14px;color:var(--color-ink);text-align:start}
+.inp.ta{min-height:96px}
+.inp.bad{border-color:var(--color-error)}
+.inp.ph{color:var(--color-muted)}
+.inp.dis{background:var(--color-ivory);color:var(--color-muted);border-color:var(--color-line)}
+.hint{margin:0;font-size:14px;color:var(--color-ink)}
+.hint.m{color:var(--color-muted);font-size:12px}
+.err{margin:0;display:flex;align-items:center;gap:4px;font-size:14px;color:var(--color-error)}
+.sel{display:inline-flex;align-items:center;justify-content:space-between;gap:12px;height:var(--control);min-width:96px;padding:0 16px;border:1px solid var(--color-muted);background:var(--color-surface);font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--color-ink)}
+.frame[dir=rtl] .sel{text-transform:none;letter-spacing:0}
+.chk{display:flex;align-items:center;gap:12px;min-height:var(--control)}
+.chk i{width:20px;height:20px;border:1px solid var(--color-ink);background:var(--color-surface);display:inline-flex;align-items:center;justify-content:center;color:var(--color-teal)}
+.chk i.on{background:var(--color-teal);border-color:var(--color-teal);color:var(--color-ivory)}
+/* blocks */
+.block{border:1px solid var(--color-line);background:var(--color-surface);padding:16px}
+.attn{border:1px solid var(--color-error);border-inline-start-width:4px;background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:8px}
+.attn .t{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--color-error)}
+.attn p{margin:0}
+.dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:6px 16px;margin:0}
+.dl dt{color:var(--color-muted)}.dl dd{margin:0;overflow-wrap:anywhere}
+.dl .tot{font-weight:700}
+.mrow{display:flex;justify-content:space-between;gap:16px;padding:6px 0;border-bottom:1px solid var(--color-line)}
+.mrow.b{font-weight:700}
+.cols2{display:grid;grid-template-columns:1fr;gap:16px}
+@container (min-width:768px){.cols2{grid-template-columns:1fr 1fr}.tbl{display:table!important}.cards{display:none!important}.inner{--px:32px;--py:32px}}
+.tbl{display:none;width:100%;border-collapse:collapse}
+.tbl th{height:var(--row);padding:0 8px;text-align:start;font-size:12px;font-weight:400;text-transform:uppercase;letter-spacing:.12em;color:var(--color-muted);border-bottom:1px solid var(--color-line)}
+.frame[dir=rtl] .tbl th{text-transform:none;letter-spacing:0}
+.tbl td{padding:10px 8px;vertical-align:top;border-bottom:1px solid var(--color-line)}
+.cards{display:flex;flex-direction:column;gap:8px;list-style:none;margin:0;padding:0}
+.cards li{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:6px}
+.strike{text-decoration:line-through;color:var(--color-muted)}
+.flags{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--color-ink);margin-top:4px}
+.flags span{border-inline-start:2px solid var(--color-ink);padding-inline-start:6px}
+.flags span.e{border-color:var(--color-error);color:var(--color-error)}
+.ev{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ev li{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:8px 0;border-bottom:1px solid var(--color-line)}
+.ev time{color:var(--color-muted);white-space:nowrap}
+.tabs{display:flex;gap:8px;border-bottom:1px solid var(--color-line);padding-bottom:8px;margin-top:24px}
+.tabs .btn[aria-pressed=true]{text-decoration-thickness:3px}
+.filters{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin:16px 0 24px}
+.miss{background:#fde8e8;border:2px solid #c00000;color:#8b0000;font:600 12px ui-monospace,Menlo,monospace;padding:8px 10px;margin:8px 0;direction:ltr;text-align:left}
+.empty{border:1px solid var(--color-line);background:var(--color-surface);padding:32px 16px;text-align:center;color:var(--color-muted)}
+/* dialogs (components/ui/dialog.tsx) */
+.dlgwrap{position:relative;overflow:hidden;min-height:520px;margin:calc(-1*var(--py)) calc(-1*var(--px)) calc(-1*var(--py) - 16px)}
+.dlgwrap .behind{position:absolute;inset:0;overflow:hidden;padding:var(--py) var(--px)}
+.dlgwrap .scrim{position:absolute;inset:0;background:rgb(38 38 38 / .4)}
+.dlgpos{position:relative;padding:32px 16px 40px}
+.dlg{width:100%;max-width:var(--container-dialog);margin-inline:auto;background:var(--color-surface);padding:24px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:16px}
+.dlg.wide{max-width:var(--container-column)}
+.dlg .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.dlg .hd .xb{width:var(--control);height:var(--control);display:inline-flex;align-items:center;justify-content:center;color:var(--color-teal);flex:none}
+.dlg .ft{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end}
+.dlg p.s{margin:0;font-size:16px;line-height:1.5}
+.frame[dir=rtl] .dlg p.s{line-height:1.7}
+.dlg ul.sent{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.dlg ul.sent li{font-size:16px;border-inline-start:2px solid var(--color-gold);padding-inline-start:12px}
+svg.i{width:16px;height:16px;flex:none}
+.ltr{direction:ltr;unicode-bidi:isolate}
+.two{display:grid;grid-template-columns:1fr;gap:16px}
+@container (min-width:768px){.two{grid-template-columns:1fr 1fr}}
+.tr-box{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:16px}
+.savebar{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:8px}
+.ok{color:var(--color-success)}
+
+/* ---------- 04-03 additions ---------- */
+:root{--action:56px;--bar:72px;--entry:64px;--mark:28px;--rail:400px}
+.frame{--px:16px}
+.page{max-width:var(--container-column);margin:0 auto}
+.page>h1{margin-bottom:16px}
+.b16{font-size:16px;line-height:1.5}
+.frame[dir=rtl] .b16{line-height:1.7}
+.d20{font-size:20px;line-height:1.3}.frame[dir=rtl] .d20{line-height:1.5}
+.d32{font-size:32px;line-height:1.2}.frame[dir=rtl] .d32{line-height:1.4}
+.d48{font-size:48px;line-height:1.1;letter-spacing:-0.02em}.frame[dir=rtl] .d48{line-height:1.3;letter-spacing:0}
+.tnum{font-variant-numeric:tabular-nums}
+.btn.wrap{height:auto;min-height:var(--control);padding-block:8px;text-align:center;white-space:normal}
+.btn.lg{height:auto;min-height:var(--action);padding-inline:32px;padding-block:8px;text-align:center;white-space:normal}
+.btn.wide{width:100%}
+.btn.nopad{padding-inline:12px}
+.btn:disabled.btn-primary,.btn:disabled.btn-secondary{background:var(--color-ivory);border-color:var(--color-line);color:var(--color-muted)}
+.sp{width:14px;height:14px;border:1.5px solid currentColor;flex:none}
+.ic{width:20px;height:20px;flex:none}.ic16{width:16px;height:16px;flex:none}
+.frame[dir=rtl] .flip{transform:scaleX(-1)}
+/* rail + layout */
+.trip{display:grid;grid-template-columns:minmax(0,1fr);gap:32px;margin-top:24px}
+.railw .r-rail{display:none}
+.railw .r-phone{display:block}
+.r-phone ol{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.r-phone li{height:3px;background:var(--color-line)}.r-phone li.on{background:var(--color-teal)}
+.r-phone p{margin:8px 0 0;font-size:12px;color:var(--color-muted)}
+.r-rail ol{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--color-line)}
+.r-rail li{padding-bottom:16px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:14px}
+.r-rail li.done{color:var(--color-teal)}.r-rail li.cur{color:var(--color-teal);box-shadow:inset 0 -3px 0 var(--color-teal)}.r-rail li.up{color:var(--color-muted)}
+.mk{width:var(--mark);height:var(--mark);display:inline-flex;align-items:center;justify-content:center;flex:none;font-size:12px}
+.done .mk{background:var(--color-teal);color:var(--color-ivory)}.cur .mk{border:1px solid var(--color-teal);color:var(--color-teal)}.up .mk{border:1px solid var(--color-muted);color:var(--color-muted)}
+.r-rail .btn-ghost{height:var(--control);padding:0 8px}
+.cartrail{width:100%;background:var(--color-surface);border:1px solid var(--color-line);padding:24px;display:flex;flex-direction:column;gap:16px}
+.side.hidephone{display:none}
+.phonedock{display:flex;align-items:center;gap:16px;height:var(--dock);padding:0 16px;border-top:1px solid var(--color-line);background:var(--color-ivory);margin:32px calc(-1*var(--px)) calc(-1*(var(--py) + 16px))}
+.phonedock .sum{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.phonedock .sum>span{display:flex;flex-direction:column}
+.frame[dir=rtl] .phonedock .sum .chv{transform:rotate(90deg)}
+.phonedock .chv{transform:rotate(-90deg);color:var(--color-teal)}
+.hide-phone{display:none}
+@container (min-width:768px){
+  .trip{grid-template-columns:minmax(0,1fr) var(--rail);align-items:start}
+  .railw .r-rail{display:block}.railw .r-phone{display:none}
+  .side.hidephone{display:block}
+  .side .cartrail{position:sticky;top:24px}
+  .phonedock{display:none}
+  .hide-phone{display:inline-flex}
+  .rowP,.incl-compact{display:none!important}.rowL,.incl-panel{display:flex!important}
+  .staycard{grid-template-columns:280px 1fr!important}
+}
+.rowL,.incl-panel{display:none}
+.cartrail .kick{margin:0}
+.cartrail h3{margin:0}
+.cartrail .hr{display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:1px solid var(--color-line);font-size:14px}
+.cl{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.cl.rm{align-items:center;gap:12px}.cl.rm .nm{flex:1;min-width:0}
+.rmb{width:var(--control);height:var(--control);display:inline-flex;align-items:center;justify-content:center;color:var(--color-muted);border:0;background:transparent}
+.tot{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-top:12px;border-top:1px solid var(--color-line);font-size:14px;font-variant-numeric:tabular-nums}
+.tot.strong{border-top-color:var(--color-ink);font-size:20px;font-weight:700}
+.img169{width:100%;aspect-ratio:16/9;background:var(--color-ivory);outline:1px solid rgb(38 38 38 / .1);outline-offset:-1px}
+.sk{height:16px;background:var(--color-ivory)}
+/* steps */
+.step{display:flex;flex-direction:column;gap:24px}
+.step>h2{margin:0}
+.staycard{display:grid;grid-template-columns:1fr;gap:16px;align-items:start}
+.staycard .img169{aspect-ratio:4/3}
+.acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.oneline{display:flex;flex-wrap:wrap;gap:0 8px;align-items:center;margin:0}
+/* reasons */
+.reasons{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.reasons li{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--color-error);border-inline-start-width:4px;background:var(--color-surface);padding:12px 16px}
+.reasons li .ic{color:var(--color-error);margin-top:2px}
+.reasons li .tx{display:flex;flex-direction:column;align-items:flex-start;gap:0;flex:1;min-width:0}
+.reasons .link{min-height:32px}
+.rcode{font:600 11px ui-monospace,Menlo,monospace;background:#fff;border:1px solid var(--color-line);padding:1px 5px;direction:ltr;unicode-bidi:isolate;color:var(--color-ink);margin-bottom:2px}
+/* add-ons */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip.btnlike{cursor:default}
+.alist{display:flex;flex-direction:column;gap:12px}
+.rowL,.rowP{background:var(--color-surface);box-shadow:inset 0 0 0 1px var(--color-line)}
+.rowL.added,.rowP.added{box-shadow:var(--shadow-selected)}
+.rowL{align-items:center;gap:24px;padding:12px;padding-inline-end:24px}
+.rowL .im{width:136px;aspect-ratio:4/3;flex:none;background:var(--color-ivory)}
+.rowL .im.pic,.rowP .im.pic{outline:1px solid rgb(38 38 38 / .1);outline-offset:-1px}
+.rowL .nm{flex:1;min-width:0;display:flex;flex-direction:column}
+.rowL .pr{width:152px;text-align:end;display:flex;flex-direction:column}
+.rowL .ctl{width:136px;display:flex;justify-content:flex-end;flex:none}
+.rowP{flex-wrap:wrap;align-items:center;gap:12px;padding:8px}
+.rowP{display:flex}
+.rowP .im{width:84px;height:84px;flex:none;background:var(--color-ivory)}
+.rowP .nm{flex:1;min-width:0;display:flex;flex-direction:column}
+.rowP .full{flex-basis:100%;display:flex;justify-content:flex-end}
+.tg{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--color-teal);height:var(--control);width:100%;background:var(--color-surface);color:var(--color-teal);font-size:14px;text-transform:uppercase;letter-spacing:.12em}
+.frame[dir=rtl] .tg{text-transform:none;letter-spacing:0}
+.tg.on{background:var(--color-teal);color:var(--color-ivory)}
+.tg.sq{width:var(--control);font-size:20px;letter-spacing:0;line-height:1}
+.stp{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stp b{width:28px;text-align:center;font-size:16px}
+.stp i{width:var(--control);height:var(--control);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-teal);color:var(--color-teal);background:var(--color-surface);font-style:normal;font-size:16px}
+.stp i.off{border-color:var(--color-line);color:var(--color-muted)}
+.incl-panel{background:var(--color-teal-tint);padding:24px;flex-direction:column;gap:16px}
+.incl-panel .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px}
+.incl-panel ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:12px 24px;color:var(--color-teal)}
+.incl-panel li{display:flex;gap:8px;align-items:center}
+.incl-compact{background:var(--color-teal-tint);padding:12px 16px;display:flex;flex-direction:column;gap:4px;color:var(--color-teal)}
+.incl-compact h2{margin:0;font:400 12px var(--face-body);text-transform:uppercase;letter-spacing:.12em}
+.frame[dir=rtl] .incl-compact h2{text-transform:none;letter-spacing:0}
+/* travellers + request */
+.fgrid{display:grid;grid-template-columns:1fr;gap:16px}
+.field{max-width:none}
+.gline{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;display:grid;grid-template-columns:1fr;gap:16px}
+.gline h4{margin:0;font:700 14px var(--face-body)}
+.frame[dir=rtl] .gline h4{font-family:inherit}
+@container (min-width:560px){.fgrid{grid-template-columns:1fr 1fr}.gline{grid-template-columns:auto 1fr 1fr;align-items:start}.gline h4{padding-top:12px}.gline.one{grid-template-columns:auto 1fr}}
+.chk i.sq{border-radius:0}
+.tcards{display:grid;gap:12px}
+.tc{position:relative;display:flex;align-items:flex-start;gap:12px;min-height:var(--control);padding:16px;background:var(--color-surface);border:1px solid var(--color-muted);text-align:start;width:100%}
+.tc.on{box-shadow:var(--shadow-selected);border-color:var(--color-teal)}
+.tc.off{color:var(--color-muted);border-color:var(--color-line);background:var(--color-ivory)}
+.tc .g{display:grid;gap:4px;flex:1}
+.tc .t{font-family:var(--face-display);font-size:20px;line-height:1.3;color:var(--color-teal)}
+.frame[dir=rtl] .tc .t{font-family:"Noto Naskh Arabic","Noto Sans Arabic",var(--face-display);line-height:1.5}
+.tc.off .t{color:var(--color-muted)}
+.tc .d{font-size:14px;color:var(--color-muted)}
+.tc .ck{color:var(--color-teal)}
+.grouphd{margin:0 0 8px;font-size:16px;font-weight:700}
+.heldbox{background:var(--color-teal-tint);color:var(--color-teal);padding:16px 24px;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px}
+.heldbox .tm{font-family:var(--face-display);font-size:32px;line-height:1.2}
+.chosen{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:12px}
+.chosen .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chosen dl{margin:0;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.chosen dt{color:var(--color-muted);font-size:12px}
+.chosen dd{margin:0}
+@container (min-width:560px){.chosen dl{grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:12px 16px}.chosen dt{font-size:14px}}
+.nextol{margin:0;padding:0;list-style:none;counter-reset:n;display:flex;flex-direction:column;gap:12px}
+.nextol li{counter-increment:n;border-inline-start:2px solid var(--color-gold);padding-inline-start:12px;font-size:16px}
+.nextol li::before{content:counter(n) ". ";font-weight:700;font-variant-numeric:tabular-nums}
+.endbox{border:1px solid var(--color-error);border-inline-start-width:4px;background:var(--color-surface);padding:16px;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.holding{display:flex;align-items:center;gap:12px;margin:0;padding:16px;background:var(--color-teal-tint);color:var(--color-teal)}
+.ovl{position:relative}
+.ovl .scrim{position:absolute;inset:0;background:rgb(38 38 38 / .4)}
+.ovl .dpos{position:absolute;inset-inline:0;top:0;display:flex;justify-content:center;padding:200px 16px 0}
+.cdlg{width:100%;max-width:var(--container-dialog);background:var(--color-surface);padding:24px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:16px}
+.cdlg h2{margin:0;font-weight:400}
+.cdlg p{margin:0}
+/* book (stay page) */
+.phonemock{width:min(390px,100%);margin:0 auto;border:1px solid var(--color-line);background:var(--color-ivory);position:relative;display:flex;flex-direction:column}
+.stayhero{height:220px;background:var(--color-surface);border:1px solid var(--color-line)}
+.jbar{height:var(--bar);background:var(--color-ivory);border-top:2px solid var(--color-gold);box-shadow:0 18px 40px -10px rgb(10 9 7 / .3),0 4px 10px -4px rgb(10 9 7 / .1);display:flex;align-items:stretch;margin-top:-36px;position:relative;margin-inline:16px}
+.jbar .seg{min-width:0;padding:0 24px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.jbar .seg .l{font-size:12px;color:var(--color-muted);white-space:nowrap}
+.jbar .seg .v{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:8px}
+.jbar .seg .v.ph{color:var(--color-muted)}
+.jbar .dv{width:1px;height:36px;align-self:center;background:var(--color-line);flex:none}
+.jbar .act{display:flex;flex:none}
+.jbar .btn{height:var(--bar);padding-inline:32px}
+.jalert{display:inline-flex;align-items:center;gap:12px;margin:12px 16px 0;background:var(--color-surface);box-shadow:var(--shadow-lg);padding:12px 16px;font-size:14px;font-weight:700;color:var(--color-error)}
+.entry{display:flex;align-items:center;gap:16px;height:var(--entry);padding-inline-start:16px;padding-inline-end:8px;background:var(--color-ivory);border-top:2px solid var(--color-gold);box-shadow:0 18px 40px -10px rgb(10 9 7 / .3)}
+.entry .tt{flex:1;min-width:0;display:flex;flex-direction:column}
+.entry .tt span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry .go{width:var(--control);height:var(--control);background:var(--color-teal);color:var(--color-ivory);display:flex;align-items:center;justify-content:center;flex:none}
+.sheet{min-height:780px;display:flex;flex-direction:column}
+.sheet .sh{height:60px;padding:0 8px;display:flex;align-items:center;justify-content:space-between}
+.sheet .sh .ib{width:var(--control);height:var(--control);display:inline-flex;align-items:center;justify-content:center;color:var(--color-teal)}
+.sheet .pb{padding:0 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.sheet .pb span{height:3px;background:var(--color-teal)}
+.sheet .sb{flex:1;padding:32px 16px 0;display:flex;flex-direction:column;gap:24px}
+.sheet .gr{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;border-bottom:1px solid var(--color-line)}
+.sheet .ft{border-top:1px solid var(--color-line);padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.sheet .ft .sm{display:flex;flex-direction:column}
+.dockmock{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:16px;height:var(--dock);padding:0 16px;border-top:1px solid var(--color-line);background:var(--color-ivory)}
+.dockmock .sm{flex:1;min-width:0;display:flex;flex-direction:column}
+.dockmock .sm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stub2{border:1px dashed var(--color-muted);padding:8px 12px;font-size:12px;background:#fff;color:var(--color-muted);margin:8px 0}
+.cmpcol{display:flex;flex-direction:column;gap:0;min-width:0}
+
+a.btn{text-decoration:none}
+#misslist{flex-basis:100%;font:600 12px ui-monospace,Menlo,monospace;color:#ffb4b4}
+#misslist:empty{display:none}
+</style></head><body>
+<header id="top"><h1>ALMAR 04-03 &middot; booking trip pictures</h1>
+<div class="grp"><span class="l">Language</span><button data-loc="en">EN</button><button data-loc="ar">AR</button><button data-loc="es">ES</button></div>
+<div class="grp"><span class="l">Width</span><button data-w="390">390</button><button data-w="834">834</button><button data-w="1440">1440</button></div>
+<div class="grp"><button id="cmp" aria-pressed="false">Compare</button></div><div id="misslist"></div></header>
+<div id="wrap"><nav id="index" aria-label="States"></nav><main id="main"></main></div>
+<script>
+const COPY = {"en": {"bar": {"label": "Plan a journey", "destination": {"label": "Destination", "empty": "Where to?"}, "dates": {"label": "Dates", "empty": "Add dates", "partial": "{start} – Add date"}, "guests": {"label": "Guests"}, "search": "Search", "editSearch": "Edit search", "error": {"both": "Choose a destination and dates to search.", "destination": "Choose a destination to search.", "dates": "Choose arrival and departure to search.", "phoneDestination": "Choose a destination.", "phoneDates": "Choose arrival and departure."}}, "dates": {"label": "Choose dates", "prevMonth": "Previous month", "nextMonth": "Next month", "line": {"none": "Choose your arrival date.", "start": "Arrive {start}. Now choose your departure date.", "range": "Arrive {start} · Leave {end} · {nights}"}, "nights": {"one": "# night", "other": "# nights"}, "day": {"arrival": "arrival", "departure": "departure", "inRange": "in your stay", "unavailable": "unavailable", "today": "today"}, "clear": "Clear dates"}, "guests": {"label": "Guests", "adults": "Adults", "adultsHint": "13+", "children": "Children", "childrenHint": "3–12", "infants": "Infants", "infantsHint": "0–2", "floor": "At least 1 adult", "add": "Add {group}", "remove": "Remove {group}", "group": {"adult": "adult", "child": "child", "infant": "infant"}, "summary": {"adults": {"one": "# adult", "other": "# adults"}, "children": {"one": "# child", "other": "# children"}, "infants": {"one": "# infant", "other": "# infants"}}}, "entry": {"title": "Plan your journey", "hint": "Where · When · Who"}, "sheet": {"label": "Plan your journey", "progress": "{n} of 3", "back": "Back", "close": "Close", "where": "Where to?", "when": "When?", "who": "Who's coming?", "summary": {"where": "Choose one destination", "whereHint": "Tap a place to continue", "whenHint": "Pick arrival, then departure", "whenStart": "Arrive {start} · pick departure"}, "warn": {"where": "Choose a destination.", "when": "Choose arrival and departure."}, "next": "Next"}, "steps": {"label": "Booking steps", "stay": "Stay", "addons": "Add-ons", "travelers": "Travelers", "pay": "Request", "change": "Change", "phone": "Step {n} of 4 · {name}"}, "addons": {"title": "Shape your journey", "intro": "Add as many as you like.", "section": "Experiences and services in {destination}", "count": "{shown} options · {added} added", "listLabel": "Experiences and services, scrolls", "filter": {"label": "Filter", "all": "All", "experiences": "Experiences", "services": "Services"}, "kind": {"experience": "Experience", "service": "Service", "serviceUae": "Service · UAE"}, "unit": {"person": "per person", "night": "per night", "trip": "per trip"}, "add": "Add", "added": "Added", "addName": "Add {name}", "addOne": "Add one {name}", "removeOne": "Remove one {name}", "max": {"person": "One per guest", "night": "One per night"}, "empty": {"all": "No experiences or services here yet.", "experiences": "No experiences here yet.", "services": "No services here yet."}, "back": "Back to stay", "continue": "Continue to travelers"}, "inclusions": {"title": "Included in your journey", "note": "No extra charge"}, "cart": {"label": "Your journey", "kicker": "Your journey · {destination}", "stay": {"one": "Stay · # night", "other": "Stay · # nights"}, "addons": {"one": "# add-on", "other": "# add-ons"}, "empty": "Nothing added yet.", "remove": "Remove {name}", "inclusions": {"one": "# inclusion", "other": "# inclusions"}, "included": "Included", "subtotal": "Subtotal", "vat": "VAT [RATE]%", "total": "Total", "note": "Nothing is charged on this site. At step 4 you choose a deposit or the full amount and send your request; you pay by bank transfer.", "vatRate": "VAT {rate}%", "payFirst": "Due first (deposit)", "balanceBy": "Balance by {date}", "payFull": "Due (full amount)", "phoneTotal": {"one": "Total · stay + # add-on", "other": "Total · stay + # add-ons"}, "continue": "Continue"}, "pay": {"choice": {"error": "Choose deposit or full payment to continue."}, "airport": {"error": "Choose your UAE airport to continue."}, "terms": {"error": "Accept the booking terms to continue."}}, "book": {"label": "Book", "needDates": "Choose arrival and departure to book."}, "trip": {"title": "Your trip", "stepTitle": {"stay": "Your stay", "addons": "Add-ons", "travellers": "Travellers", "request": "Request"}, "loading": "Loading your trip…", "badLink": "This booking link is not complete.", "badLinkAction": "See private stays"}, "summary": {"changeOnStay": "Change on the stay page", "oneDestination": "One destination per booking.", "secondCity": "Another destination too? Ask us on WhatsApp", "message": {"greeting": "Hello ALMAR, I am booking {title} in {destination}.", "dates": "Dates: {from} to {to}", "ref": "My reference: {ref}", "ask": "I would also like to visit another destination."}, "continue": "Continue to add-ons"}, "travellers": {"heading": "Who is travelling", "booker": "Who is booking", "name": "Your name", "email": "Email", "phone": "Phone, with country code", "nationality": "Nationality", "specialRequests": "Special requests", "emergencyName": "Emergency contact name", "emergencyPhone": "Emergency contact phone", "optional": "Optional", "notStaying": "I am not staying on this trip", "guestsHeading": "Guests", "adultLine": "Adult {n}", "childLine": "Child {n}", "infantLine": "Infant {n}", "fullName": "Full name", "age": "Age", "childAgeHint": "Age 3–12", "infantAgeHint": "Age 0–2", "pickupHeading": "Pickup address in the UAE", "pickupHint": "We use it for your return too. A different return address? Add it to special requests.", "errors": {"required": "This field is required.", "email": "Enter a valid email address.", "phone": "Enter a valid phone number.", "tooLong": "This is too long.", "age": "Enter a valid age."}, "back": "Back", "continue": "Continue to request"}, "request": {"paymentHeading": "Payment", "deposit": "Deposit", "depositDetail": "Pay {now} first · {balance} by {date}", "full": "Full payment", "fullDetail": "Pay {now} in one transfer", "depositUnavailable": {"too_close_to_arrival": "Your arrival is close, so this booking needs full payment.", "no_due_days": "A deposit isn't available for this booking.", "zero_deposit": "A deposit isn't available for this booking.", "balance_below_minimum": "A deposit isn't available for this booking."}, "airportHeading": "UAE airport", "airports": {"DXB": "Dubai · DXB", "AUH": "Abu Dhabi · AUH", "SHJ": "Sharjah · SHJ"}, "returnSame": "Your return leaves from the same airport.", "terms": "I accept the [Booking terms]", "hold": "Hold my dates for 30 minutes", "holding": "Holding your dates…", "heldTitle": "Your dates are held", "heldFor": "Held for {time}", "announce": "{n} minutes left on your hold", "announceEnd": "Your hold has ended", "change": "Change", "changeTitle": "Change your choices?", "changeBody": "Changing releases your hold. Your dates may be taken by someone else.", "changeConfirm": "Release and change", "changeCancel": "Keep my hold", "nextHeading": "What happens next", "nextSend": "Send your request. Nothing is charged on this site.", "nextEmail": "We email you the bank details at once; they are on your booking page too.", "nextTransfer": "Transfer {amount} in AED within {window}, with {ref} as the payment reference. All transfer fees are paid by you, the sender.", "nextReceipt": "Reply to that email with your bank receipt. We confirm your booking when the money arrives.", "nextWithdraw": "Until a payment is recorded, you can withdraw your request on your booking page. To change it, message us on WhatsApp.", "window": {"minute": {"one": "# minute", "other": "# minutes"}, "hour": {"one": "# hour", "other": "# hours"}, "day": {"one": "# day", "other": "# days"}}, "send": "Send request", "sending": "Sending…", "ended": "Your 30-minute hold has ended.", "startAgain": "Start again from the stay"}, "reasons": {"stay_unavailable": "This stay isn't available right now.", "dates_invalid": "Check your dates and try again.", "below_min_nights": {"one": "This stay needs at least # night.", "other": "This stay needs at least # nights."}, "over_max_guests": {"one": "This stay takes up to # guest.", "other": "This stay takes up to # guests."}, "blocked": "Not available on {nights}.", "sold_out": "Already booked on {nights}.", "taken": "These dates were just taken.", "no_rate": "This stay has no price for these dates yet.", "addon_unavailable": "{name} isn't available for these dates.", "addon_quantity": "Check the quantity for {name}.", "settings_missing": "Booking isn't open yet.", "settings_changed": "Prices were just updated. Check the new total.", "deposit_unavailable": "A deposit isn't available for this booking.", "below_minimum_charge": "This booking is below the minimum amount. Message us on WhatsApp and we will help.", "hold_limit": "Too many attempts. Try again in an hour or message us on WhatsApp.", "hold_ending": "Your hold is about to end.", "hold_ended": "Your 30-minute hold has ended.", "not_payable": "This booking can't be paid on this site. Message us on WhatsApp.", "nothing_due": "Nothing is due on this booking.", "terms_required": "Accept the booking terms to continue.", "unavailable": "Something went wrong on our side. Try again, or message us on WhatsApp.", "invalid": "Check the details you entered and try again.", "requests_closed": "Requests are closed for now. Message us on WhatsApp and we will book it with you.", "too_many_open": "You already have open requests waiting for payment. Finish one first, or message us on WhatsApp.", "actions": {"backToStay": "Back to the stay", "whatsapp": "Message us on WhatsApp", "startAgain": "Start again from the stay"}}}, "ar": {"bar": {"label": "خطّط لرحلتك", "destination": {"label": "الوجهة", "empty": "إلى أين؟"}, "dates": {"label": "التواريخ", "empty": "أضف التواريخ", "partial": "{start} – أضف تاريخاً"}, "guests": {"label": "الضيوف"}, "search": "بحث", "editSearch": "تعديل البحث", "error": {"both": "اختر وجهة وتواريخ للبحث.", "destination": "اختر وجهة للبحث.", "dates": "اختر تاريخ الوصول والمغادرة للبحث.", "phoneDestination": "اختر وجهة.", "phoneDates": "اختر تاريخ الوصول والمغادرة."}}, "dates": {"label": "اختر التواريخ", "prevMonth": "الشهر السابق", "nextMonth": "الشهر التالي", "line": {"none": "اختر تاريخ وصولك.", "start": "الوصول {start}. اختر الآن تاريخ المغادرة.", "range": "الوصول {start} · المغادرة {end} · {nights}"}, "nights": {"zero": "# ليلة", "one": "ليلة واحدة", "two": "ليلتان", "few": "# ليالٍ", "many": "# ليلة", "other": "# ليلة"}, "day": {"arrival": "الوصول", "departure": "المغادرة", "inRange": "ضمن إقامتك", "unavailable": "غير متاح", "today": "اليوم"}, "clear": "مسح التواريخ"}, "guests": {"label": "الضيوف", "adults": "البالغون", "adultsHint": "13 سنة فأكثر", "children": "الأطفال", "childrenHint": "3–12", "infants": "الرضّع", "infantsHint": "0–2", "floor": "بالغ واحد على الأقل", "add": "إضافة {group}", "remove": "إزالة {group}", "group": {"adult": "بالغ", "child": "طفل", "infant": "رضيع"}, "summary": {"adults": {"zero": "# بالغ", "one": "بالغ واحد", "two": "بالغان", "few": "# بالغين", "many": "# بالغًا", "other": "# بالغ"}, "children": {"zero": "# طفل", "one": "طفل واحد", "two": "طفلان", "few": "# أطفال", "many": "# طفلًا", "other": "# طفل"}, "infants": {"zero": "# رضيع", "one": "رضيع واحد", "two": "رضيعان", "few": "# رضّع", "many": "# رضيعًا", "other": "# رضيع"}}}, "entry": {"title": "خطّط لرحلتك", "hint": "أين · متى · مع من"}, "sheet": {"label": "خطّط لرحلتك", "progress": "{n} من 3", "back": "رجوع", "close": "إغلاق", "where": "إلى أين؟", "when": "متى؟", "who": "من سيأتي؟", "summary": {"where": "اختر وجهة واحدة", "whereHint": "اضغط على مكان للمتابعة", "whenHint": "اختر الوصول ثم المغادرة", "whenStart": "الوصول {start} · اختر المغادرة"}, "warn": {"where": "اختر وجهة.", "when": "اختر تاريخ الوصول والمغادرة."}, "next": "التالي"}, "steps": {"label": "خطوات الحجز", "stay": "الإقامة", "addons": "الإضافات", "travelers": "المسافرون", "pay": "الطلب", "change": "تغيير", "phone": "الخطوة {n} من 4 · {name}"}, "addons": {"title": "صمّم رحلتك", "intro": "أضف ما تشاء.", "section": "التجارب والخدمات في {destination}", "count": "الخيارات: {shown} · المضافة: {added}", "listLabel": "التجارب والخدمات، قائمة قابلة للتمرير", "filter": {"label": "تصفية", "all": "الكل", "experiences": "التجارب", "services": "الخدمات"}, "kind": {"experience": "تجربة", "service": "خدمة", "serviceUae": "خدمة · الإمارات"}, "unit": {"person": "للشخص", "night": "لليلة", "trip": "للرحلة"}, "add": "أضف", "added": "أُضيف", "addName": "أضف {name}", "addOne": "أضف واحدًا من {name}", "removeOne": "أزل واحدًا من {name}", "max": {"person": "واحد لكل ضيف", "night": "واحد لكل ليلة"}, "empty": {"all": "لا توجد تجارب أو خدمات هنا بعد.", "experiences": "لا توجد تجارب هنا بعد.", "services": "لا توجد خدمات هنا بعد."}, "back": "العودة إلى الإقامة", "continue": "المتابعة إلى المسافرين"}, "inclusions": {"title": "مشمول في رحلتك", "note": "دون رسوم إضافية"}, "cart": {"label": "رحلتك", "kicker": "رحلتك · {destination}", "stay": {"zero": "الإقامة · # ليلة", "one": "الإقامة · ليلة واحدة", "two": "الإقامة · ليلتان", "few": "الإقامة · # ليالٍ", "many": "الإقامة · # ليلة", "other": "الإقامة · # ليلة"}, "addons": {"zero": "# إضافة", "one": "إضافة واحدة", "two": "إضافتان", "few": "# إضافات", "many": "# إضافة", "other": "# إضافة"}, "empty": "لم تتم إضافة شيء بعد.", "remove": "إزالة {name}", "inclusions": {"zero": "# ميزة مشمولة", "one": "ميزة مشمولة واحدة", "two": "ميزتان مشمولتان", "few": "# مزايا مشمولة", "many": "# ميزة مشمولة", "other": "# ميزة مشمولة"}, "included": "مشمول", "subtotal": "المجموع الفرعي", "vat": "ضريبة القيمة المضافة [RATE]%", "total": "الإجمالي", "note": "لا يُخصم أي مبلغ على هذا الموقع. في الخطوة 4 تختار العربون أو المبلغ كاملًا وترسل طلبك، ثم تدفع بحوالة بنكية.", "vatRate": "ضريبة القيمة المضافة {rate}%", "payFirst": "المستحق أولًا (العربون)", "balanceBy": "الرصيد بحلول {date}", "payFull": "المستحق (المبلغ كاملًا)", "phoneTotal": {"zero": "الإجمالي · الإقامة + # إضافة", "one": "الإجمالي · الإقامة + إضافة واحدة", "two": "الإجمالي · الإقامة + إضافتان", "few": "الإجمالي · الإقامة + # إضافات", "many": "الإجمالي · الإقامة + # إضافة", "other": "الإجمالي · الإقامة + # إضافة"}, "continue": "متابعة"}, "pay": {"choice": {"error": "اختر دفع عربون أو الدفع الكامل للمتابعة."}, "airport": {"error": "اختر مطارك في الإمارات للمتابعة."}, "terms": {"error": "وافق على شروط الحجز للمتابعة."}}, "book": {"label": "احجز", "needDates": "اختر تاريخ الوصول والمغادرة للحجز."}, "trip": {"title": "رحلتك", "stepTitle": {"stay": "إقامتك", "addons": "الإضافات", "travellers": "المسافرون", "request": "الطلب"}, "loading": "جارٍ تحميل رحلتك…", "badLink": "رابط الحجز هذا غير مكتمل.", "badLinkAction": "عرض الإقامات الخاصة"}, "summary": {"changeOnStay": "التغيير من صفحة الإقامة", "oneDestination": "وجهة واحدة لكل حجز.", "secondCity": "وجهة أخرى أيضًا؟ اسألنا عبر واتساب", "message": {"greeting": "مرحبًا ALMAR، أرغب في حجز {title} في {destination}.", "dates": "التواريخ: من {from} إلى {to}", "ref": "مرجعي: {ref}", "ask": "أودّ أيضًا زيارة وجهة أخرى."}, "continue": "متابعة إلى الإضافات"}, "travellers": {"heading": "من سيسافر", "booker": "من يقوم بالحجز", "name": "اسمك", "email": "البريد الإلكتروني", "phone": "الهاتف مع رمز الدولة", "nationality": "الجنسية", "specialRequests": "طلبات خاصة", "emergencyName": "اسم جهة الاتصال في حالات الطوارئ", "emergencyPhone": "هاتف جهة الاتصال في حالات الطوارئ", "optional": "اختياري", "notStaying": "لن أقيم في هذه الرحلة", "guestsHeading": "الضيوف", "adultLine": "بالغ {n}", "childLine": "طفل {n}", "infantLine": "رضيع {n}", "fullName": "الاسم الكامل", "age": "العمر", "childAgeHint": "العمر من 3 إلى 12", "infantAgeHint": "العمر من 0 إلى 2", "pickupHeading": "عنوان الاستقبال في الإمارات", "pickupHint": "نستخدمه للعودة أيضًا. هل لديك عنوان عودة مختلف؟ أضفه إلى الطلبات الخاصة.", "errors": {"required": "هذا الحقل مطلوب.", "email": "أدخل عنوان بريد إلكتروني صحيحًا.", "phone": "أدخل رقم هاتف صحيحًا.", "tooLong": "النص أطول من المسموح.", "age": "أدخل عمرًا صحيحًا."}, "back": "رجوع", "continue": "متابعة إلى الطلب"}, "request": {"paymentHeading": "الدفع", "deposit": "عربون", "depositDetail": "ادفع {now} أولًا · والرصيد {balance} بحلول {date}", "full": "الدفع الكامل", "fullDetail": "ادفع {now} في حوالة واحدة", "depositUnavailable": {"too_close_to_arrival": "موعد وصولك قريب، لذلك يتطلب هذا الحجز الدفع الكامل.", "no_due_days": "العربون غير متاح لهذا الحجز.", "zero_deposit": "العربون غير متاح لهذا الحجز.", "balance_below_minimum": "العربون غير متاح لهذا الحجز."}, "airportHeading": "مطار الإمارات", "airports": {"DXB": "دبي · DXB", "AUH": "أبوظبي · AUH", "SHJ": "الشارقة · SHJ"}, "returnSame": "رحلة عودتك تغادر من المطار نفسه.", "terms": "أوافق على [Booking terms]", "hold": "احجز تواريخي لمدة 30 دقيقة", "holding": "جارٍ حجز تواريخك…", "heldTitle": "تواريخك محجوزة", "heldFor": "محجوزة لمدة {time}", "announce": "تبقّى {n} دقائق على انتهاء الحجز المؤقت", "announceEnd": "انتهى الحجز المؤقت", "change": "تغيير", "changeTitle": "هل تريد تغيير اختياراتك؟", "changeBody": "التغيير يُلغي الحجز المؤقت، وقد يحجز شخص آخر تواريخك.", "changeConfirm": "إلغاء الحجز المؤقت والتغيير", "changeCancel": "الإبقاء على الحجز المؤقت", "nextHeading": "ما الذي سيحدث بعد ذلك", "nextSend": "أرسل طلبك. لا يُخصم أي مبلغ على هذا الموقع.", "nextEmail": "نرسل إليك بيانات الحساب البنكي بالبريد فورًا، وتجدها أيضًا في صفحة حجزك.", "nextTransfer": "حوّل {amount} بالدرهم الإماراتي خلال {window}، واكتب {ref} مرجعًا للحوالة. يتحمّل المرسل، أي أنت، جميع رسوم التحويل.", "nextReceipt": "ردّ على ذلك البريد وأرفق إيصال التحويل البنكي. نؤكد حجزك عند وصول المبلغ.", "nextWithdraw": "ما دام لم يُسجَّل أي دفع، يمكنك سحب طلبك من صفحة حجزك. لتعديله، راسلنا عبر واتساب.", "window": {"minute": {"zero": "# دقيقة", "one": "دقيقة واحدة", "two": "دقيقتين", "few": "# دقائق", "many": "# دقيقة", "other": "# دقيقة"}, "hour": {"zero": "# ساعة", "one": "ساعة واحدة", "two": "ساعتين", "few": "# ساعات", "many": "# ساعة", "other": "# ساعة"}, "day": {"zero": "# يوم", "one": "يوم واحد", "two": "يومين", "few": "# أيام", "many": "# يومًا", "other": "# يوم"}}, "send": "إرسال الطلب", "sending": "جارٍ الإرسال…", "ended": "انتهى حجزك المؤقت البالغ 30 دقيقة.", "startAgain": "ابدأ من جديد من صفحة الإقامة"}, "reasons": {"stay_unavailable": "هذه الإقامة غير متاحة حاليًا.", "dates_invalid": "تحقق من التواريخ وحاول مرة أخرى.", "below_min_nights": {"zero": "تتطلب هذه الإقامة # ليلة على الأقل.", "one": "تتطلب هذه الإقامة ليلة واحدة على الأقل.", "two": "تتطلب هذه الإقامة ليلتين على الأقل.", "few": "تتطلب هذه الإقامة # ليالٍ على الأقل.", "many": "تتطلب هذه الإقامة # ليلة على الأقل.", "other": "تتطلب هذه الإقامة # ليلة على الأقل."}, "over_max_guests": {"zero": "تستوعب هذه الإقامة حتى # ضيف.", "one": "تستوعب هذه الإقامة حتى ضيف واحد.", "two": "تستوعب هذه الإقامة حتى ضيفين.", "few": "تستوعب هذه الإقامة حتى # ضيوف.", "many": "تستوعب هذه الإقامة حتى # ضيفًا.", "other": "تستوعب هذه الإقامة حتى # ضيف."}, "blocked": "غير متاحة في {nights}.", "sold_out": "محجوزة مسبقًا في {nights}.", "taken": "تم حجز هذه التواريخ للتو.", "no_rate": "لا يوجد سعر لهذه الإقامة في هذه التواريخ بعد.", "addon_unavailable": "{name} غير متاح في هذه التواريخ.", "addon_quantity": "تحقق من الكمية لـ {name}.", "settings_missing": "الحجز غير مفتوح بعد.", "settings_changed": "تم تحديث الأسعار للتو. راجع الإجمالي الجديد.", "deposit_unavailable": "العربون غير متاح لهذا الحجز.", "below_minimum_charge": "قيمة هذا الحجز أقل من الحد الأدنى. راسلنا عبر واتساب وسنساعدك.", "hold_limit": "محاولات كثيرة. حاول بعد ساعة أو راسلنا عبر واتساب.", "hold_ending": "الحجز المؤقت على وشك الانتهاء.", "hold_ended": "انتهى حجزك المؤقت البالغ 30 دقيقة.", "not_payable": "لا يمكن دفع هذا الحجز عبر هذا الموقع. راسلنا عبر واتساب.", "nothing_due": "لا يوجد مبلغ مستحق على هذا الحجز.", "terms_required": "وافق على شروط الحجز للمتابعة.", "unavailable": "حدث خطأ من جانبنا. حاول مرة أخرى أو راسلنا عبر واتساب.", "invalid": "تحقق من البيانات التي أدخلتها وحاول مرة أخرى.", "requests_closed": "الطلبات مغلقة حاليًا. راسلنا عبر واتساب وسنتولى الحجز معك.", "too_many_open": "لديك طلبات مفتوحة بانتظار الدفع. أنهِ أحدها أولًا أو راسلنا عبر واتساب.", "actions": {"backToStay": "العودة إلى الإقامة", "whatsapp": "راسلنا عبر واتساب", "startAgain": "ابدأ من جديد من صفحة الإقامة"}}}, "es": {"bar": {"label": "Planea un viaje", "destination": {"label": "Destino", "empty": "¿A dónde?"}, "dates": {"label": "Fechas", "empty": "Agrega fechas", "partial": "{start} – Agrega fecha"}, "guests": {"label": "Huéspedes"}, "search": "Buscar", "editSearch": "Editar búsqueda", "error": {"both": "Elige un destino y fechas para buscar.", "destination": "Elige un destino para buscar.", "dates": "Elige llegada y salida para buscar.", "phoneDestination": "Elige un destino.", "phoneDates": "Elige llegada y salida."}}, "dates": {"label": "Elige las fechas", "prevMonth": "Mes anterior", "nextMonth": "Mes siguiente", "line": {"none": "Elige tu fecha de llegada.", "start": "Llegada {start}. Ahora elige tu fecha de salida.", "range": "Llegada {start} · Salida {end} · {nights}"}, "nights": {"one": "# noche", "other": "# noches"}, "day": {"arrival": "llegada", "departure": "salida", "inRange": "en tu estancia", "unavailable": "no disponible", "today": "hoy"}, "clear": "Borrar fechas"}, "guests": {"label": "Huéspedes", "adults": "Adultos", "adultsHint": "13 o más", "children": "Niños", "childrenHint": "3–12", "infants": "Bebés", "infantsHint": "0–2", "floor": "Al menos 1 adulto", "add": "Agregar {group}", "remove": "Quitar {group}", "group": {"adult": "adulto", "child": "niño", "infant": "bebé"}, "summary": {"adults": {"one": "# adulto", "other": "# adultos"}, "children": {"one": "# niño", "other": "# niños"}, "infants": {"one": "# bebé", "other": "# bebés"}}}, "entry": {"title": "Planea tu viaje", "hint": "Dónde · Cuándo · Quién"}, "sheet": {"label": "Planea tu viaje", "progress": "{n} de 3", "back": "Atrás", "close": "Cerrar", "where": "¿A dónde?", "when": "¿Cuándo?", "who": "¿Quién viene?", "summary": {"where": "Elige un destino", "whereHint": "Toca un lugar para continuar", "whenHint": "Elige la llegada y luego la salida", "whenStart": "Llegada {start} · elige la salida"}, "warn": {"where": "Elige un destino.", "when": "Elige llegada y salida."}, "next": "Siguiente"}, "steps": {"label": "Pasos de la reserva", "stay": "Estancia", "addons": "Extras", "travelers": "Viajeros", "pay": "Solicitud", "change": "Cambiar", "phone": "Paso {n} de 4 · {name}"}, "addons": {"title": "Da forma a tu viaje", "intro": "Agrega todos los que quieras.", "section": "Experiencias y servicios en {destination}", "count": "Opciones: {shown} · Agregadas: {added}", "listLabel": "Experiencias y servicios, con desplazamiento", "filter": {"label": "Filtrar", "all": "Todos", "experiences": "Experiencias", "services": "Servicios"}, "kind": {"experience": "Experiencia", "service": "Servicio", "serviceUae": "Servicio · EAU"}, "unit": {"person": "por persona", "night": "por noche", "trip": "por viaje"}, "add": "Agregar", "added": "Agregado", "addName": "Agregar {name}", "addOne": "Agregar uno de {name}", "removeOne": "Quitar uno de {name}", "max": {"person": "Uno por huésped", "night": "Uno por noche"}, "empty": {"all": "Aún no hay experiencias ni servicios aquí.", "experiences": "Aún no hay experiencias aquí.", "services": "Aún no hay servicios aquí."}, "back": "Volver a la estancia", "continue": "Continuar a viajeros"}, "inclusions": {"title": "Incluido en tu viaje", "note": "Sin costo adicional"}, "cart": {"label": "Tu viaje", "kicker": "Tu viaje · {destination}", "stay": {"one": "Estancia · # noche", "other": "Estancia · # noches"}, "addons": {"one": "# extra", "other": "# extras"}, "empty": "Aún no has agregado nada.", "remove": "Quitar {name}", "inclusions": {"one": "# inclusión", "other": "# inclusiones"}, "included": "Incluido", "subtotal": "Subtotal", "vat": "IVA [RATE]%", "total": "Total", "note": "No se cobra nada en este sitio. En el paso 4 eliges un depósito o el monto total y envías tu solicitud; pagas por transferencia bancaria.", "vatRate": "IVA {rate}%", "payFirst": "A pagar primero (depósito)", "balanceBy": "Saldo antes del {date}", "payFull": "A pagar (monto total)", "phoneTotal": {"one": "Total · estancia + # extra", "other": "Total · estancia + # extras"}, "continue": "Continuar"}, "pay": {"choice": {"error": "Elige depósito o pago total para continuar."}, "airport": {"error": "Elige tu aeropuerto de EAU para continuar."}, "terms": {"error": "Acepta las condiciones de reserva para continuar."}}, "book": {"label": "Reservar", "needDates": "Elige llegada y salida para reservar."}, "trip": {"title": "Tu viaje", "stepTitle": {"stay": "Tu estancia", "addons": "Extras", "travellers": "Viajeros", "request": "Solicitud"}, "loading": "Cargando tu viaje…", "badLink": "Este enlace de reserva está incompleto.", "badLinkAction": "Ver estancias privadas"}, "summary": {"changeOnStay": "Cambiar en la página de la estancia", "oneDestination": "Un destino por reserva.", "secondCity": "¿Otro destino también? Pregúntanos por WhatsApp", "message": {"greeting": "Hola ALMAR, quiero reservar {title} en {destination}.", "dates": "Fechas: del {from} al {to}", "ref": "Mi referencia: {ref}", "ask": "También me gustaría visitar otro destino."}, "continue": "Continuar a los extras"}, "travellers": {"heading": "Quién viaja", "booker": "Quién reserva", "name": "Tu nombre", "email": "Correo electrónico", "phone": "Teléfono, con código de país", "nationality": "Nacionalidad", "specialRequests": "Peticiones especiales", "emergencyName": "Nombre del contacto de emergencia", "emergencyPhone": "Teléfono del contacto de emergencia", "optional": "Opcional", "notStaying": "No me alojaré en este viaje", "guestsHeading": "Huéspedes", "adultLine": "Adulto {n}", "childLine": "Niño {n}", "infantLine": "Bebé {n}", "fullName": "Nombre completo", "age": "Edad", "childAgeHint": "Edad: 3–12", "infantAgeHint": "Edad: 0–2", "pickupHeading": "Dirección de recogida en los EAU", "pickupHint": "También la usamos para tu regreso. ¿Otra dirección de regreso? Agrégala en las peticiones especiales.", "errors": {"required": "Este campo es obligatorio.", "email": "Ingresa un correo electrónico válido.", "phone": "Ingresa un número de teléfono válido.", "tooLong": "El texto es demasiado largo.", "age": "Ingresa una edad válida."}, "back": "Atrás", "continue": "Continuar a la solicitud"}, "request": {"paymentHeading": "Pago", "deposit": "Depósito", "depositDetail": "Paga {now} primero · {balance} antes del {date}", "full": "Pago total", "fullDetail": "Paga {now} en una sola transferencia", "depositUnavailable": {"too_close_to_arrival": "Tu llegada está cerca, por eso esta reserva requiere el pago total.", "no_due_days": "El depósito no está disponible para esta reserva.", "zero_deposit": "El depósito no está disponible para esta reserva.", "balance_below_minimum": "El depósito no está disponible para esta reserva."}, "airportHeading": "Aeropuerto de los EAU", "airports": {"DXB": "Dubái · DXB", "AUH": "Abu Dabi · AUH", "SHJ": "Sharjah · SHJ"}, "returnSame": "Tu regreso sale del mismo aeropuerto.", "terms": "Acepto los [Booking terms]", "hold": "Reservar mis fechas por 30 minutos", "holding": "Reservando tus fechas…", "heldTitle": "Tus fechas están reservadas", "heldFor": "Reservadas por {time}", "announce": "Quedan {n} minutos de tu reserva temporal", "announceEnd": "Tu reserva temporal terminó", "change": "Cambiar", "changeTitle": "¿Cambiar tus elecciones?", "changeBody": "Al cambiar se libera tu reserva temporal. Otra persona podría tomar tus fechas.", "changeConfirm": "Liberar y cambiar", "changeCancel": "Mantener mi reserva temporal", "nextHeading": "Qué sigue", "nextSend": "Envía tu solicitud. No se cobra nada en este sitio.", "nextEmail": "Te enviamos los datos bancarios por correo de inmediato; también están en la página de tu reserva.", "nextTransfer": "Transfiere {amount} en AED dentro de {window}, con {ref} como referencia del pago. Todas las comisiones de la transferencia las paga quien envía, es decir, tú.", "nextReceipt": "Responde a ese correo con tu comprobante bancario. Confirmamos tu reserva cuando llegue el dinero.", "nextWithdraw": "Mientras no se registre un pago, puedes retirar tu solicitud en la página de tu reserva. Para cambiarla, escríbenos por WhatsApp.", "window": {"minute": {"one": "# minuto", "other": "# minutos"}, "hour": {"one": "# hora", "other": "# horas"}, "day": {"one": "# día", "other": "# días"}}, "send": "Enviar solicitud", "sending": "Enviando…", "ended": "Tu reserva temporal de 30 minutos terminó.", "startAgain": "Empezar de nuevo desde la estancia"}, "reasons": {"stay_unavailable": "Esta estancia no está disponible por ahora.", "dates_invalid": "Revisa tus fechas e inténtalo de nuevo.", "below_min_nights": {"one": "Esta estancia requiere al menos # noche.", "other": "Esta estancia requiere al menos # noches."}, "over_max_guests": {"one": "Esta estancia admite hasta # huésped.", "other": "Esta estancia admite hasta # huéspedes."}, "blocked": "No disponible en {nights}.", "sold_out": "Ya reservada en {nights}.", "taken": "Estas fechas acaban de ser tomadas.", "no_rate": "Esta estancia aún no tiene precio para estas fechas.", "addon_unavailable": "{name} no está disponible en estas fechas.", "addon_quantity": "Revisa la cantidad de {name}.", "settings_missing": "La reserva aún no está abierta.", "settings_changed": "Los precios se acaban de actualizar. Revisa el nuevo total.", "deposit_unavailable": "El depósito no está disponible para esta reserva.", "below_minimum_charge": "Esta reserva está por debajo del monto mínimo. Escríbenos por WhatsApp y te ayudamos.", "hold_limit": "Demasiados intentos. Inténtalo de nuevo en una hora o escríbenos por WhatsApp.", "hold_ending": "Tu reserva temporal está por terminar.", "hold_ended": "Tu reserva temporal de 30 minutos terminó.", "not_payable": "Esta reserva no se puede pagar en este sitio. Escríbenos por WhatsApp.", "nothing_due": "No hay nada pendiente de pago en esta reserva.", "terms_required": "Acepta las condiciones de reserva para continuar.", "unavailable": "Algo salió mal de nuestro lado. Inténtalo de nuevo o escríbenos por WhatsApp.", "invalid": "Revisa los datos que ingresaste e inténtalo de nuevo.", "requests_closed": "Las solicitudes están cerradas por ahora. Escríbenos por WhatsApp y hacemos la reserva contigo.", "too_many_open": "Ya tienes solicitudes abiertas a la espera de pago. Termina una primero o escríbenos por WhatsApp.", "actions": {"backToStay": "Volver a la estancia", "whatsapp": "Escríbenos por WhatsApp", "startAgain": "Empezar de nuevo desde la estancia"}}}};
+/* ALMAR 04-03 pictures. Every visible product string is read from COPY, a verbatim dump of the EN, AR and ES objects of
+   lib/copy/journey.ts (plus the three "Request on WhatsApp" words of lib/copy/stay-detail.ts). A key that is not there
+   draws a red MISSING COPY box. Amounts are example AED figures, the VAT rate is "[00]", the window is "[N]". */
+const LOCS = ["en", "ar", "es"];
+let LOC = "en", WIDTH = 1440, CMP = false;
+const C = () => COPY[LOC];
+const NUML = { en: "en", ar: "ar-AE-u-nu-latn", es: "es" };
+const MISSING_KEYS = new Set();
+
+/* ---------- helpers ---------- */
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fill = (s, o) => s.replace(/\{(\w+)\}/g, (m, k) => (k in o ? o[k] : m));
+const plural = (forms, n) => { const cat = new Intl.PluralRules(NUML[LOC]).select(n); return (forms[cat] ?? forms.other).replace(/#/g, String(n)); };
+const get = (path) => path.split(".").reduce((o, k) => (o == null ? undefined : o[k]), C());
+const miss = (key) => { MISSING_KEYS.add(key); return `<div class="miss">MISSING COPY: ${esc(key)}</div>`; };
+/* t(key): escaped string for a key, or the red box. tv(key, values): same with {slots} filled (values already HTML-safe). */
+const t = (key) => { const v = get(key); return typeof v === "string" ? esc(v) : miss(key); };
+const tv = (key, o) => { const v = get(key); return typeof v === "string" ? fill(esc(v), o) : miss(key); };
+const tp = (key, n) => { const v = get(key); return v && typeof v === "object" ? esc(plural(v, n)) : miss(key); };
+const ltr = (x) => `<bdi dir="ltr">${x}</bdi>`;
+const grp = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+const aed = (f) => ltr(`AED ${grp(Math.floor(f / 100))}.${String(f % 100).padStart(2, "0")}`);
+const WORD = {
+  en: { guest: "[Guest name]", stay: "[Stay name]", dest: "[Destination]", pickup: "[Home pickup]", a2: "[Add-on name 2]", a3: "[Add-on name 3]", a4: "[Add-on name 4]", addr: "[Pickup address]", email: "[guest@example.com]", phone: "[Phone]", nat: "[Nationality]", req: "[Special requests]", emer: "[Emergency contact]", incl: "[Inclusion]" },
+  ar: { guest: "[اسم الضيف]", stay: "[اسم الإقامة]", dest: "[الوجهة]", pickup: "[الاستقبال من المنزل]", a2: "[اسم الإضافة 2]", a3: "[اسم الإضافة 3]", a4: "[اسم الإضافة 4]", addr: "[عنوان الاستقبال]", email: "[guest@example.com]", phone: "[الهاتف]", nat: "[الجنسية]", req: "[طلبات خاصة]", emer: "[جهة الطوارئ]", incl: "[ميزة مشمولة]" },
+  es: { guest: "[Nombre del huésped]", stay: "[Nombre de la estancia]", dest: "[Destino]", pickup: "[Recogida en casa]", a2: "[Nombre del extra 2]", a3: "[Nombre del extra 3]", a4: "[Nombre del extra 4]", addr: "[Dirección de recogida]", email: "[guest@example.com]", phone: "[Teléfono]", nat: "[Nacionalidad]", req: "[Peticiones especiales]", emer: "[Contacto de emergencia]", incl: "[Inclusión]" },
+};
+const W = () => WORD[LOC];
+const REF = "ALMAR-XXXXXX";
+const D_IN = "12/12/2026", D_OUT = "17/12/2026", NIGHTS = 5, D_BAL = "12/11/2026";
+const SEP = () => (LOC === "ar" ? "، " : ", ");
+const dates = () => `${ltr(D_IN)} – ${ltr(D_OUT)}`;
+const guestSummary = (a, c, i) => {
+  const parts = [];
+  if (a) parts.push(plural(C().guests.summary.adults, a));
+  if (c) parts.push(plural(C().guests.summary.children, c));
+  if (i) parts.push(plural(C().guests.summary.infants, i));
+  return esc(new Intl.ListFormat(NUML[LOC], { style: "long", type: "conjunction" }).format(parts));
+};
+const guests4 = () => guestSummary(2, 1, 1);
+const WA = { en: "Request on WhatsApp", ar: "اطلبوا عبر واتساب", es: "Solicitar por WhatsApp" };
+
+const IC = {
+  check: '<path d="M4 12.5l5 5L20 6.5"/>', x: '<path d="M5 5l14 14M19 5L5 19"/>',
+  alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16v.5"/>',
+  lock: '<rect x="5" y="11" width="14" height="9"/><path d="M8 11V8a4 4 0 018 0v3"/>',
+  search: '<circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/>', arrow: '<path d="M4 12h16M14 6l6 6-6 6"/>',
+  chev: '<path d="M9 5l7 7-7 7"/>', wa: '<path d="M4 20l1.3-4.2A8 8 0 1112 20a8 8 0 01-3.8-1z"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
+};
+const ic = (n, s = 20, cls = "") => `<svg class="${s === 16 ? "ic16" : "ic"} ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">${IC[n]}</svg>`;
+const btn = (kind, label, o = {}) => `<button type="button" class="btn btn-${kind}${kind === "primary" || kind === "secondary" ? " btn-up" : ""}${o.lg ? " lg" : " wrap"}${o.wide ? " wide" : ""}${o.cls ? " " + o.cls : ""}"${o.dis ? " disabled" : ""}${o.aria ? ` aria-label="${esc(o.aria)}"` : ""}>${o.busy ? '<span class="sp"></span>' : ""}${o.icon ? ic(o.icon) : ""}${label}</button>`;
+const lnk = (label) => `<a class="link">${label}</a>`;
+const errLine = (txt) => `<p class="err" role="alert">${ic("alert")}<span>${txt}</span></p>`;
+const field = (label, val, o = {}) => `<div class="field"><label>${label}${o.req ? ' <span aria-hidden="true">*</span>' : ""}</label><div class="inp${o.ta ? " ta" : ""}${o.err ? " bad" : ""}${o.ph || val === "" ? " ph" : ""}${o.dis ? " dis" : ""}">${val === "" ? "&nbsp;" : val}</div>${o.err ? errLine(o.err) : o.hint ? `<p class="hint m">${o.hint}</p>` : ""}</div>`;
+const checkbox = (label, on, o = {}) => `<div><div class="chk"><i class="sq${on ? " on" : ""}">${on ? ic("check", 16) : ""}</i><span>${label}</span></div>${o.err ? errLine(o.err) : ""}</div>`;
+const tcard = (title, o = {}) => `<div class="tc${o.on ? " on" : ""}${o.off ? " off" : ""}"><span class="g"><span class="t">${title}</span>${o.detail ? `<span class="d">${o.detail}</span>` : ""}</span>${o.on ? `<span class="ck">${ic("check")}</span>` : ""}</div>`;
+const optLabel = (key) => `${t(key)} (${t("travellers.optional")})`;
+
+/* ---------- reasons (BookingReasons) ---------- */
+const CODES = ["stay_unavailable", "dates_invalid", "below_min_nights", "over_max_guests", "blocked", "sold_out", "no_rate", "addon_unavailable", "addon_quantity", "settings_missing", "settings_changed", "deposit_unavailable", "below_minimum_charge", "hold_limit", "hold_ending", "hold_ended", "not_payable", "nothing_due", "terms_required", "unavailable", "invalid", "requests_closed", "too_many_open"];
+const CAUSES = ["too_close_to_arrival", "no_due_days", "zero_deposit", "balance_below_minimum"];
+/* drawing assumption: which way out each reason gets (not in the plan; the owner confirms) */
+const ACTION = { stay_unavailable: "backToStay", dates_invalid: "backToStay", below_min_nights: "backToStay", over_max_guests: "backToStay", blocked: "backToStay", sold_out: "backToStay", no_rate: "whatsapp", settings_missing: "whatsapp", below_minimum_charge: "whatsapp", hold_limit: "whatsapp", hold_ended: "startAgain", not_payable: "whatsapp", unavailable: "whatsapp", requests_closed: "whatsapp", too_many_open: "whatsapp" };
+function reasonLine(r, at, o = {}) {
+  let text;
+  const nights = [ltr("12/12/2026"), ltr("13/12/2026")].join(SEP());
+  if (at === "hold" && (r.code === "sold_out" || r.code === "blocked")) text = t("reasons.taken");
+  else if (r.code === "deposit_unavailable" && r.cause) text = t("request.depositUnavailable." + r.cause);
+  else if (r.code === "below_min_nights") text = tp("reasons.below_min_nights", r.min);
+  else if (r.code === "over_max_guests") text = tp("reasons.over_max_guests", r.max);
+  else if (r.code === "blocked" || r.code === "sold_out") text = tv("reasons." + r.code, { nights });
+  else if (r.code === "addon_unavailable" || r.code === "addon_quantity") text = tv("reasons." + r.code, { name: esc(W().a2) });
+  else text = t("reasons." + r.code);
+  let action = ACTION[r.code];
+  if (at === "hold" && (r.code === "sold_out" || r.code === "blocked")) action = "startAgain";
+  const link = action ? lnk(t("reasons.actions." + action)) : "";
+  return `<li${o.live ? ` role="${o.live}"` : ""}>${ic("alert")}<span class="tx">${o.code ? `<span class="rcode">${esc(o.code)}</span>` : ""}<span>${text}</span>${link}</span></li>`;
+}
+const reasons = (list, at, o = {}) => (list.length ? `<ul class="reasons" aria-live="polite">${list.map((r) => reasonLine(r, at, o)).join("")}</ul>` : "");
+
+/* ---------- cart (JourneyCart rail, variant phone dock) ---------- */
+const FIG = {
+  stay: { stay: 400000, sub: 400000, vat: 24000, total: 424000 },
+  full: { stay: 400000, sub: 460000, vat: 27600, total: 487600, now: 487600 },
+  dep: { now: 150000, bal: 337600 },
+};
+function addOnLines() { return [{ n: W().pickup, q: 1, a: 20000 }, { n: W().a3, q: 2, a: 40000 }]; }
+function cart(o = {}) {
+  const c = C().cart, loaded = o.figs !== "none";
+  const f = o.figs === "stay" ? FIG.stay : FIG.full;
+  const lines = o.lines || [];
+  let planRows = "";
+  if (loaded && o.plan === "deposit") planRows = `<div class="tot"><span>${t("cart.payFirst")}</span><span>${aed(FIG.dep.now)}</span></div><div class="tot"><span>${tv("cart.balanceBy", { date: ltr(D_BAL) })}</span><span>${aed(FIG.dep.bal)}</span></div>`;
+  if (loaded && o.plan === "full") planRows = `<div class="tot"><span>${t("cart.payFull")}</span><span>${aed(f.total)}</span></div>`;
+  const dash = ltr("—");
+  const body = `<aside class="cartrail" aria-label="${esc(c.label)}">
+    <div class="img169"></div>
+    <div class="stack g1"><p class="kick">${tv("cart.kicker", { destination: esc(W().dest) })}</p><h3 class="disp d20">${esc(W().stay)}</h3><p class="muted" style="margin:0">${dates()} · ${guests4()}</p></div>
+    <div class="hr tnum">
+      ${loaded ? `<div class="cl"><span>${tp("cart.stay", NIGHTS)}</span><span>${aed(f.stay)}</span></div>` : `<div class="cl"><span>${tp("cart.stay", NIGHTS)}</span><span>${dash}</span></div>`}
+      <p class="kick" style="margin:0;padding-top:8px" tabindex="-1">${tp("cart.addons", lines.length)}</p>
+      ${o.loading ? '<div class="stack g2"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>' : lines.length === 0 ? `<p class="muted" style="margin:0">${t("cart.empty")}</p>` : lines.map((l) => `<div class="cl rm"><span class="nm">${esc(l.n)}${l.q > 1 ? ` <span class="muted">× ${l.q}</span>` : ""}</span><span>${aed(l.a)}</span>${o.locked ? "" : `<button type="button" class="rmb" aria-label="${esc(fill(C().cart.remove, { name: l.n }))}">${ic("x")}</button>`}</div>`).join("")}
+      ${o.incl ? `<div class="cl muted"><span>${tp("cart.inclusions", 4)}</span><span>${t("cart.included")}</span></div>` : ""}
+    </div>
+    <div class="stack g4">
+      <div class="tot"><span>${t("cart.subtotal")}</span><span>${loaded ? aed(f.sub) : dash}</span></div>
+      <div class="tot"><span>${tv("cart.vatRate", { rate: "[00]" })}</span><span>${loaded ? aed(f.vat) : dash}</span></div>
+      <div class="tot strong"><span>${t("cart.total")}</span><span>${loaded ? aed(f.total) : dash}</span></div>
+      ${planRows}
+    </div>
+    <p class="cap12 muted" style="margin:0">${t("cart.note")}</p>
+  </aside>`;
+  return body;
+}
+function phoneDock(o = {}) {
+  const f = o.figs === "stay" ? FIG.stay : FIG.full;
+  const n = (o.lines || []).length;
+  return `<div class="phonedock"><div class="sum"><span><span class="cap12 muted">${tp("cart.phoneTotal", n)}</span><b class="b16 tnum">${o.figs === "none" ? ltr("—") : aed(f.total)}</b></span>${ic("chev", 20, "chv")}</div>${btn("primary", t("cart.continue"), { lg: true })}</div>`;
+}
+
+/* ---------- step rail + layout ---------- */
+function stepRail(cur) {
+  const names = [t("steps.stay"), t("steps.addons"), t("steps.travelers"), t("steps.pay")];
+  const rail = names.map((nm, i) => {
+    const n = i + 1, st = n < cur ? "done" : n === cur ? "cur" : "up";
+    const chg = st === "done" ? btn("ghost", t("steps.change"), { cls: "sm", aria: `${C().steps.change} ${names[i].replace(/<[^>]+>/g, "")}` }) : "";
+    return `<li class="${st}"${st === "cur" ? ' aria-current="step"' : ""}><span class="mk" aria-hidden="true">${st === "done" ? ic("check", 16) : n}</span><span>${nm}</span>${chg}</li>`;
+  }).join("");
+  const phone = `<ol aria-label="${esc(C().steps.label)}">${[1, 2, 3, 4].map((n) => `<li class="${n <= cur ? "on" : ""}"></li>`).join("")}</ol><p>${tv("steps.phone", { n: cur, name: names[cur - 1] })}</p>`;
+  return `<div class="railw"><div class="r-rail"><ol aria-label="${esc(C().steps.label)}">${rail}</ol></div><div class="r-phone">${phone}</div></div>`;
+}
+function layout(step, main, cartOpts) {
+  const dock = step < 4 ? phoneDock(cartOpts) : "";
+  return `<div class="page"><h1 class="disp d32">${t("trip.title")}</h1>${stepRail(step)}<div class="trip"><div class="main">${main}</div><div class="side${step < 4 ? " hidephone" : ""}">${cart(cartOpts)}</div></div></div>${dock}`;
+}
+
+/* ---------- step 1: stay ---------- */
+function stepStay(o = {}) {
+  const list = o.reasons || [];
+  return `<section class="step"><h2 class="disp d20">${t("trip.stepTitle.stay")}</h2>
+    <div class="staycard"><div class="img169"></div><div class="stack g2"><p class="kick" style="margin:0">${esc(W().dest)}</p><h3 class="disp d20" style="margin:0">${esc(W().stay)}</h3><p style="margin:0">${dates()} · ${guests4()}</p><p class="muted" style="margin:0">${tp("cart.stay", NIGHTS)}</p>${lnk(t("summary.changeOnStay"))}</div></div>
+    ${reasons(list, "quote", { live: "alert" })}
+    <p class="oneline"><span>${t("summary.oneDestination")}</span>${lnk(t("summary.secondCity"))}</p>
+    <div class="acts">${btn("primary", t("summary.continue"), { dis: o.disabled })}</div></section>`;
+}
+
+/* ---------- step 2: add-ons ---------- */
+function addOnRow(it, size) {
+  const a = C().addons, added = it.q > 0;
+  const kind = it.kind === "experience" ? t("addons.kind.experience") : it.uae ? t("addons.kind.serviceUae") : t("addons.kind.service");
+  const price = `${aed(20000)}`;
+  const unit = t("addons.unit." + it.unit);
+  let ctl;
+  if (it.unit === "trip") ctl = size === "phone" ? `<span class="tg sq${added ? " on" : ""}">${added ? ic("check") : "+"}</span>` : `<span class="tg${added ? " on" : ""}">${added ? ic("check", 16) : ""}${added ? t("addons.added") : t("addons.add")}</span>`;
+  else ctl = `<span class="stp"><i class="${it.q <= 0 ? "off" : ""}">−</i><b>${it.q}</b><i>+</i></span>`;
+  const im = `<div class="im${it.img ? " pic" : ""}"></div>`;
+  if (size === "phone") return `<article class="rowP${added ? " added" : ""}">${im}<div class="nm"><span class="cap12 muted kick">${kind}</span><h3 class="disp d20" style="margin:0">${esc(it.name)}</h3><span class="tnum">${price} <span class="cap12 muted">${unit}</span></span></div>${it.unit === "trip" ? ctl : `<div class="full">${ctl}</div>`}</article>`;
+  return `<article class="rowL${added ? " added" : ""}">${im}<div class="nm"><span class="cap12 muted kick">${kind}</span><h3 class="disp d20" style="margin:0">${esc(it.name)}</h3></div><div class="pr"><span class="b16 tnum">${price}</span><span class="cap12 muted">${unit}</span></div><div class="ctl">${ctl}</div></article>`;
+}
+function stepAddons() {
+  const items = [
+    { name: W().pickup, kind: "service", uae: true, unit: "trip", q: 1, img: true },
+    { name: W().a2, kind: "service", uae: true, unit: "trip", q: 0, img: true },
+    { name: W().a3, kind: "experience", unit: "person", q: 2, img: true },
+    { name: W().a4, kind: "service", unit: "night", q: 0, img: false },
+  ];
+  const chips = ["all", "experiences", "services"].map((k, i) => `<span class="chip${i === 0 ? " on" : ""}">${t("addons.filter." + k)}</span>`).join("");
+  const incl = [1, 2, 3, 4].map((n) => `${esc(W().incl)} ${n}`);
+  return `<section class="step"><div class="stack g1"><h2 class="disp d20" style="margin:0">${t("addons.title")}</h2><p class="muted" style="margin:0">${t("addons.intro")}</p></div>
+    <div class="stack g4">
+      <div class="row" style="justify-content:space-between;align-items:flex-end;gap:16px"><div class="stack"><h2 class="disp d20" style="margin:0">${tv("addons.section", { destination: esc(W().dest) })}</h2><p class="cap12 muted" style="margin:0" aria-live="polite">${tv("addons.count", { shown: 4, added: 2 })}</p></div><div role="group" aria-label="${esc(C().addons.filter.label)}" class="chips">${chips}</div></div>
+      <div class="alist" role="region" aria-label="${esc(C().addons.listLabel)}">${items.map((it) => addOnRow(it, "row") + addOnRow(it, "phone")).join("")}</div>
+    </div>
+    <section class="incl-panel" aria-labelledby="inclh"><div class="hd"><h2 id="inclh" class="disp d20" style="margin:0">${t("inclusions.title")}</h2><span style="font-size:14px">${t("inclusions.note")}</span></div><ul>${incl.map((l) => `<li>${ic("check", 16)}<span>${l}</span></li>`).join("")}</ul></section>
+    <section class="incl-compact"><h2>${t("inclusions.title")}</h2><p style="margin:0;font-size:14px">${esc(new Intl.ListFormat(NUML[LOC], { style: "short", type: "unit" }).format(incl))}</p></section>
+    <div class="acts">${btn("ghost", t("addons.back"))}${btn("primary", t("addons.continue"), { cls: "hide-phone" })}</div></section>`;
+}
+
+/* ---------- step 3: travellers ---------- */
+const FIELD_ERR = { name: "required", email: "email", phone: "phone", nat: "tooLong", req: "tooLong", emerName: "tooLong", emerPhone: "phone", n0: "required", n1: "required", n2: "required", n3: "required", a2: "age", a3: "age", pickup: "required" };
+function stepTravellers(o = {}) {
+  const e = o.errors ? (k) => t("travellers.errors." + FIELD_ERR[k]) : () => null;
+  const err = (k) => (o.errors ? { err: e(k) } : {});
+  const fv = (k, v) => (o.errors ? "" : v);
+  const booker = `<div class="stack g4"><h3 class="disp d20" style="margin:0">${t("travellers.booker")}</h3><div class="fgrid">
+    ${field(t("travellers.name"), "", { req: true, ...err("name") })}
+    ${field(t("travellers.email"), "", { req: true, ...err("email") })}
+    ${field(t("travellers.phone"), "", { req: true, ...err("phone") })}
+    ${field(optLabel("travellers.nationality"), fv("nat", ""), err("nat"))}</div>
+    ${field(optLabel("travellers.specialRequests"), "", { ta: true, ...err("req") })}
+    <div class="fgrid">${field(optLabel("travellers.emergencyName"), "", err("emerName"))}${field(optLabel("travellers.emergencyPhone"), "", err("emerPhone"))}</div></div>`;
+  const stays = !o.notStaying;
+  const kinds = [["adultLine", 1, null], ["adultLine", 2, null], ["childLine", 1, "childAgeHint"], ["infantLine", 1, "infantAgeHint"]];
+  const lines = kinds.map(([k, n, hint], i) => {
+    const nameField = field(t("travellers.fullName"), "", { dis: i === 0 && stays, req: true, ...(i === 0 && stays ? {} : err("n" + i)) });
+    const age = hint ? field(t("travellers.age"), "", { hint: o.errors ? null : t("travellers." + hint), ...(o.errors ? { err: e("a" + i) } : {}) }) : "";
+    return `<div class="gline${hint ? "" : " one"}"><h4>${tv("travellers." + k, { n })}</h4>${nameField}${age}</div>`;
+  }).join("");
+  const pickup = o.pickup ? `<div class="stack g2"><h3 class="disp d20" style="margin:0">${t("travellers.pickupHeading")}</h3>${field(t("travellers.pickupHeading"), "", { req: true, hint: o.errors ? null : t("travellers.pickupHint"), ...(o.errors ? { err: e("pickup") } : {}) })}</div>` : "";
+  const summary = o.errors ? `<p class="err" role="alert">${ic("alert")}<span>${(() => { const v = get("travellers.errors.summary"); return typeof v === "string" ? esc(v) : miss("travellers.errors.summary"); })()}</span></p>` : "";
+  return `<section class="step"><h2 class="disp d20">${t("trip.stepTitle.travellers")}</h2>
+    ${booker}
+    ${checkbox(t("travellers.notStaying"), !!o.notStaying)}
+    <div class="stack g4"><h3 class="disp d20" style="margin:0">${t("travellers.guestsHeading")}</h3>${lines}</div>
+    ${pickup}
+    ${o.choices || ""}
+    ${summary}
+    <div class="acts">${btn("ghost", t("travellers.back"))}${btn("primary", t("travellers.continue"), { cls: "hide-phone" })}</div></section>`;
+}
+
+/* ---------- step 4: request ---------- */
+function choices(o = {}) {
+  const eP = o.errors ? errLine(t("pay.choice.error")) : "", eA = o.errors ? errLine(t("pay.airport.error")) : "", eT = o.errors ? t("pay.terms.error") : null;
+  const dep = o.depositBlock
+    ? tcard(t("request.deposit"), { off: true, detail: t("request.depositUnavailable." + o.depositBlock) })
+    : tcard(t("request.deposit"), { on: o.plan === "deposit", detail: tv("request.depositDetail", { now: aed(FIG.dep.now), balance: aed(FIG.dep.bal), date: ltr(D_BAL) }) });
+  const full = tcard(t("request.full"), { on: o.plan === "full", detail: tv("request.fullDetail", { now: aed(FIG.full.total) }) });
+  const ap = ["DXB", "AUH", "SHJ"].map((k) => tcard(t("request.airports." + k), { on: o.airport === k })).join("");
+  return `<div class="stack g6">
+    <div><h3 class="grouphd" id="payh">${t("request.paymentHeading")}</h3><div role="group" aria-labelledby="payh" class="tcards">${dep}${full}</div>${eP}</div>
+    <div><h3 class="grouphd" id="aph">${t("request.airportHeading")}</h3><div role="group" aria-labelledby="aph" class="tcards">${ap}</div>${eA}<p class="muted" style="margin:8px 0 0">${t("request.returnSame")}</p></div>
+    ${checkbox(`${t("request.terms").replace(/\[([^\]]+)\]/, '<span style="text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px">[$1]</span>')}`, !!o.terms, { err: eT })}</div>`;
+}
+function requestPre(o = {}) {
+  const hold = btn("primary", o.holding ? t("request.holding") : t("request.hold"), { dis: o.holdDisabled || o.holding, busy: o.holding });
+  const body = o.choicesAt === "travellers"
+    ? `<p class="holding" role="status">${'<span class="sp"></span>'}<span>${t("request.holding")}</span></p>`
+    : `${choices(o)}${reasons(o.reasons || [], "hold", { live: "alert" })}<div class="acts">${hold}</div>`;
+  return `<section class="step"><h2 class="disp d20">${t("trip.stepTitle.request")}</h2>${body}${o.choicesAt === "travellers" ? reasons(o.reasons || [], "hold") : ""}</section>`;
+}
+function requestHeld(o = {}) {
+  const dep = o.plan === "deposit";
+  const planTxt = dep ? `<span class="t">${t("request.deposit")}</span><br><span class="muted">${tv("request.depositDetail", { now: aed(FIG.dep.now), balance: aed(FIG.dep.bal), date: ltr(D_BAL) })}</span>` : `<span class="t">${t("request.full")}</span><br><span class="muted">${tv("request.fullDetail", { now: aed(FIG.full.total) })}</span>`;
+  const win = esc(get("request.window.hour").other.replace(/#/g, "[N]"));
+  const amount = aed(dep ? FIG.dep.now : FIG.full.total);
+  const nextKeys = [["nextSend", {}], ["nextEmail", {}], ["nextTransfer", { amount, window: win, ref: ltr(REF) }], ["nextReceipt", {}], ["nextWithdraw", {}]];
+  return `<section class="step"><h2 class="disp d20">${t("trip.stepTitle.request")}</h2>
+    <div class="heldbox"><div class="stack g1"><h3 class="disp d20" style="margin:0">${t("request.heldTitle")}</h3></div><span class="tm" role="timer">${tv("request.heldFor", { time: ltr("29:41") })}</span></div>
+    <div class="chosen"><div class="top"><span></span>${btn("ghost", t("request.change"), { cls: "sm" })}</div>
+      <dl><dt>${t("request.paymentHeading")}</dt><dd>${planTxt}</dd><dt>${t("request.airportHeading")}</dt><dd>${t("request.airports.DXB")}<br><span class="muted">${t("request.returnSame")}</span></dd><dt></dt><dd>${checkbox(t("request.terms").replace(/\[([^\]]+)\]/, '<span style="text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px">[$1]</span>'), true)}</dd></dl></div>
+    <div class="stack g4"><h3 class="disp d20" style="margin:0">${t("request.nextHeading")}</h3><ol class="nextol">${nextKeys.map(([k, v]) => `<li>${tv("request." + k, v)}</li>`).join("")}</ol></div>
+    <div class="stack g2">${btn("primary", o.sending ? t("request.sending") : t("request.send"), { busy: o.sending, dis: o.sending })}${o.tooMany ? `<ul class="reasons" aria-live="polite">${reasonLine({ code: "too_many_open" }, "quote", { live: "alert" })}</ul>` : ""}</div>
+    <p class="oneline">${lnk(t("summary.secondCity"))}</p></section>`;
+}
+function requestEnded() {
+  return `<section class="step"><h2 class="disp d20">${t("trip.stepTitle.request")}</h2><div class="endbox" role="alert"><p class="b16" style="margin:0">${t("request.ended")}</p><a class="btn btn-primary btn-up wrap">${t("request.startAgain")}</a></div></section>`;
+}
+function dialogOver(page) {
+  return `<div class="ovl">${page}<div class="scrim"></div><div class="dpos"><div class="cdlg" role="alertdialog"><h2 class="disp d32">${t("request.changeTitle")}</h2><p class="b16">${t("request.changeBody")}</p><div class="acts">${btn("danger", t("request.changeConfirm"))}${btn("secondary", t("request.changeCancel"))}</div></div></div></div>`;
+}
+
+/* ---------- Book on the stay page ---------- */
+const WAbtn = (o = {}) => `<a class="btn btn-secondary${o.icon ? " nopad" : " btn-up"}${o.cls ? " " + o.cls : ""}" ${o.icon ? `aria-label="${esc(WA[LOC])}"` : ""}>${ic("wa")}${o.icon ? "" : `<span>${esc(WA[LOC])}</span>`}</a>`;
+function jbar(hasDates) {
+  const dv = hasDates ? dates() : `<span>${t("bar.dates.empty")}</span>`;
+  const book = `<button type="button" class="btn btn-primary btn-up">${t("book.label")}</button>`;
+  return `<div class="stayhero" role="img"></div>
+    <div class="jbar" role="group" aria-label="${esc(C().bar.label)}">
+      <div class="seg" style="flex:10"><span class="l">${t("bar.destination.label")}</span><span class="v">${ic("lock", 16)}<span>${esc(W().dest)}</span></span></div><span class="dv"></span>
+      <div class="seg" style="flex:13"><span class="l">${t("steps.stay")}</span><span class="v">${ic("lock", 16)}<span>${esc(W().stay)}</span></span></div><span class="dv"></span>
+      <div class="seg" style="flex:13"><span class="l">${t("bar.dates.label")}</span><span class="v${hasDates ? "" : " ph"}">${dv}</span></div><span class="dv"></span>
+      <div class="seg" style="flex:10"><span class="l">${t("bar.guests.label")}</span><span class="v">${guests4()}</span></div>
+      <div class="act">${book}${WAbtn()}</div></div>
+    ${hasDates ? "" : `<p class="jalert" role="alert">${ic("alert")}${t("book.needDates")}</p>`}`;
+}
+function entryRow() {
+  return `<div class="stayhero" role="img"></div><div class="entry" style="margin:-32px 0 0">${ic("search")}<span class="tt"><span class="b16">${esc(W().dest)}${SEP()}${esc(W().stay)}</span><span class="cap12 muted">${dates()} · ${guests4()}</span></span><span class="go">${ic("arrow", 20, "flip")}</span></div>`;
+}
+function bookBar(hasDates) {
+  return `<div class="page">${WIDTH >= 768 ? jbar(hasDates) : `${entryRow()}<p class="stub2">Below 768 the bar is this entry row; Book sits in the dock (see book-dock).</p>`}</div>`;
+}
+function bookSheet() {
+  const row = (label, hint, v, min) => `<div class="gr"><div class="stack"><span>${label}</span><span class="cap12 muted"><bdi>${hint}</bdi></span></div><span class="stp"><i class="${v <= min ? "off" : ""}">−</i><b>${v}</b><i>+</i></span></div>`;
+  return `<div class="phonemock sheet"><div class="sh"><span class="ib">${ic("back", 20, "flip")}</span><span class="cap12 muted tnum">${tv("sheet.progress", { n: 3 })}</span><span class="ib">${ic("x")}</span></div>
+    <div class="pb"><span></span><span></span><span></span></div>
+    <div class="sb"><h2 class="disp d48" style="margin:0">${t("sheet.who")}</h2>
+      <div role="group" aria-label="${esc(C().guests.label)}">${row(t("guests.adults"), esc(C().guests.adultsHint), 2, 1)}${row(t("guests.children"), esc(C().guests.childrenHint), 1, 0)}${row(t("guests.infants"), esc(C().guests.infantsHint), 1, 0)}<p class="cap12 muted" style="margin:16px 0 0">${t("guests.floor")}</p></div></div>
+    <div class="ft"><div class="sm"><span class="muted" style="font-size:14px;color:var(--color-ink)">${guests4()}</span><span class="cap12 muted">${esc(W().dest)} · ${dates()}</span></div>
+      ${btn("primary", t("book.label"), { lg: true, wide: true })}<a class="btn btn-secondary btn-up lg wide">${ic("wa")}<span>${esc(WA[LOC])}</span></a></div></div>`;
+}
+function bookDock() {
+  return `<div class="phonemock" style="min-height:640px"><div class="stayhero" role="img" style="border:0;border-bottom:1px solid var(--color-line)"></div>
+    <div style="padding:24px 16px" class="stack g2"><p class="kick" style="margin:0">${esc(W().dest)}</p><h1 class="disp d32" style="margin:0">${esc(W().stay)}</h1></div>
+    <div class="dockmock"><div class="sm"><span class="b16">${esc(W().dest)}${SEP()}${esc(W().stay)}</span><span class="muted" style="font-size:14px">${dates()} · ${guests4()}</span></div>
+      <div class="row gx2" style="flex-wrap:nowrap">${btn("primary", t("book.label"))}${WAbtn({ icon: true })}</div></div></div>`;
+}
+
+/* ---------- reasons-all ---------- */
+function reasonsAll() {
+  const rows = [];
+  for (const code of CODES) {
+    if (code === "deposit_unavailable") { for (const cause of CAUSES) rows.push(reasonLine({ code, cause }, "quote", { code: `${code} · ${cause}` })); continue; }
+    const r = { code, min: 3, max: 6 };
+    rows.push(reasonLine(r, "quote", { code }));
+    if (code === "sold_out" || code === "blocked") rows.push(reasonLine(r, "hold", { code: `${code} · at hold` }));
+  }
+  return `<div class="page" style="max-width:720px"><ul class="reasons">${rows.join("")}</ul></div>`;
+}
+
+/* ---------- state registry ---------- */
+const STATES = {};
+const add = (id, fn, note, o = {}) => { STATES[id] = { id, fn, note, ...o }; };
+const L1 = { figs: "stay", lines: [] };
+const LB = { figs: "full", lines: addOnLines(), incl: true };
+const stayState = (rs, o = {}) => () => layout(1, stepStay({ reasons: rs, disabled: o.disabled }), { ...L1, plan: null, ...(o.cart || {}) });
+add("stay", stayState([]), "Step 1: the stay, dates, guests, one-destination line");
+add("stay-taken", stayState([{ code: "sold_out" }, { code: "blocked" }], { disabled: true, cart: { figs: "none", loading: true } }), "sold_out and blocked, with the nights; Continue off; no quote, so no amounts");
+add("stay-rules", stayState([{ code: "below_min_nights", min: 3 }, { code: "over_max_guests", max: 6 }], { disabled: true, cart: { figs: "none", loading: true } }), "below_min_nights and over_max_guests with their numbers");
+add("stay-setup", stayState([{ code: "no_rate" }, { code: "settings_missing" }], { disabled: true, cart: { figs: "none", loading: true } }), "no_rate and settings_missing");
+add("stay-closed", stayState([{ code: "requests_closed" }], { disabled: true }), "requests_closed: the closed line and WhatsApp, Continue disabled, breakdown kept");
+add("addons", () => layout(2, stepAddons(), LB), "Step 2: home pickup added, a second UAE service not added, one add-on without an image, inclusions, cart");
+add("travellers", () => layout(3, stepTravellers({ pickup: false }), LB), "Step 3: 2 adults, 1 child, 1 infant, empty");
+add("travellers-errors", () => layout(3, stepTravellers({ errors: true, pickup: true }), LB), "Step 3: every field error at once");
+add("travellers-not-staying", () => layout(3, stepTravellers({ notStaying: true }), LB), "Step 3: I am not staying ticked; line 1 is no longer the booker");
+add("travellers-pickup", () => layout(3, stepTravellers({ pickup: true }), LB), "Step 3: home pickup in the cart, so one pickup address");
+add("request-choose", () => layout(4, requestPre({ plan: "deposit", airport: "DXB", terms: true }), { ...LB, plan: "deposit" }), "Option A: choices made, terms ticked, ready to press Hold");
+add("request-errors", () => layout(4, requestPre({ errors: true }), { ...LB, plan: null }), "Option A: Hold pressed with nothing chosen");
+add("request-deposit-close", () => layout(4, requestPre({ depositBlock: "too_close_to_arrival" }), { ...LB, plan: null }), "Deposit off: too_close_to_arrival");
+add("request-deposit-unset", () => layout(4, requestPre({ depositBlock: "no_due_days" }), { ...LB, plan: null }), "Deposit off: no_due_days");
+add("request-held", () => layout(4, requestHeld({ plan: "full" }), { ...LB, plan: "full", locked: true }), "Held, full payment, 29:41 left, choices and cart read-only");
+add("request-held-deposit", () => layout(4, requestHeld({ plan: "deposit" }), { ...LB, plan: "deposit", locked: true }), "Held, deposit: due first and balance by date in the cart and the text");
+add("request-sending", () => layout(4, requestHeld({ plan: "full", sending: true }), { ...LB, plan: "full", locked: true }), "Send request pressed: busy");
+add("request-taken", () => layout(4, requestPre({ plan: "full", airport: "DXB", terms: true, reasons: [{ code: "sold_out" }] }), { ...LB, plan: "full" }), "Hold refused: sold_out read as “These dates were just taken”");
+add("request-closed", () => layout(4, requestPre({ plan: "full", airport: "DXB", terms: true, holdDisabled: true, reasons: [{ code: "requests_closed" }] }), { ...LB, plan: "full" }), "Hold refused: requests_closed; Hold disabled");
+add("request-too-many", () => layout(4, requestHeld({ plan: "full", tooMany: true }), { ...LB, plan: "full", locked: true }), "Held; too_many_open under Send request, button stays live");
+add("request-change", () => dialogOver(layout(4, requestHeld({ plan: "full" }), { ...LB, plan: "full", locked: true })), "Change pressed: asks before releasing the hold");
+add("q01-b-travellers", () => layout(3, stepTravellers({ pickup: false, choices: `<div class="sec" style="margin-top:0">${choices({})}</div>` }), { ...LB, plan: null }), "Option B: choices at the end of Travellers, nothing chosen, Continue to request");
+add("q01-b-request-holding", () => layout(4, requestPre({ choicesAt: "travellers", holding: true }), { ...LB, plan: "full" }), "Option B: the Request step opens and places the hold");
+add("hold-ended", () => layout(4, requestEnded(), { ...LB, plan: null }), "Timer reached 00:00: inputs kept, Start again");
+add("reasons-all", reasonsAll, "BookingReasons with every ReasonCode and every deposit cause (code tags are review chrome)", { bare: true });
+add("book-bar", () => bookBar(true), "Stay page, from 768: Book (teal) beside Request on WhatsApp (outline)", { bare: true });
+add("book-bar-no-dates", () => bookBar(false), "Stay page, no dates yet: Book asks for dates in the alert line", { bare: true });
+add("book-sheet", bookSheet, "Phone: the sheet's last step, Book above Request on WhatsApp (drawn at 390)", { bare: true });
+add("book-dock", bookDock, "Phone: the dock, Book plus the WhatsApp icon (drawn at 390)", { bare: true });
+
+/* ---------- groups: Task 2's owner questions ---------- */
+const GROUPS = [
+  { id: "q10", h: "Q-10 · What happens next", sig: "approve", q: "After Hold, the guest reads five lines: nothing is charged here, the bank details arrive by email, transfer the amount in AED within the window with the reference, reply with the receipt, and withdraw on the booking page until money is recorded. Approve or change?", ids: ["request-held"] },
+  { id: "q01", h: "Q-01 · When the 30-minute hold starts", sig: "choice", q: "Should the guest press “Hold my dates for 30 minutes” on the Request step (A), or should the choices sit at the end of Travellers and the hold start by itself as Request opens (B)? A is recommended: the hold is a deliberate act, and B places a hold on every entry into Request (5 per email per hour).", opts: [{ tag: "A (recommended): the guest presses Hold", ids: ["request-choose", "request-held"] }, { tag: "B: the hold starts as Request opens", ids: ["q01-b-travellers", "q01-b-request-holding", "request-held"] }] },
+  { id: "q02", h: "Q-02 · Book on the stay page", sig: "approve", q: "Book is the teal button; Request on WhatsApp becomes the outline button beside it in the bar, the sheet's last step and the dock (phone dock: Book plus the WhatsApp icon). Approve or change?", ids: ["book-bar", "book-bar-no-dates", "book-sheet", "book-dock"] },
+  { id: "dep", h: "Deposit unavailable (no question)", sig: "info", q: "When arrival is close (or no balance day is set) the Deposit card is greyed with its sentence; Full payment and the airports are square cards, no radios.", ids: ["request-deposit-close", "request-deposit-unset"] },
+  { id: "q04", h: "Q-04 · Travellers and the pickup address", sig: "approve", q: "One pickup address, used for the return too; a different return address goes in Special requests. Optional fields say Optional; one line per guest, children and infants with age. Approve or change?", ids: ["travellers-pickup", "travellers-not-staying"] },
+  { id: "q12", h: "Q-12 · Reasons and requests closed", sig: "approve", q: "Every reason is one sentence with its way out; when requests are closed the guest stops at step 1 with the closed line and WhatsApp, and the Hold button is off on Request. Approve or change?", ids: ["stay-closed", "reasons-all", "request-closed"] },
+  { id: "q03", h: "Q-03 · Amounts in AED only", sig: "approve", q: "No currency control and no “about USD or EUR” line: every amount is AED, the transfer currency. Approve or change?", ids: ["addons", "request-held-deposit"] },
+  { id: "q08", h: "Q-08 · After the hold, Change asks first", sig: "approve", q: "Once held, plan, airport, terms and the cart are read-only. Change asks “Changing releases your hold”, then releases it and reopens the step. Approve or change?", ids: ["request-change", "request-held"] },
+  { id: "oth", h: "Other states (no owner question of their own)", sig: "info", q: "Step 1 with its reasons, Travellers, the Hold and Send outcomes, and the end of the hold.", ids: ["stay", "stay-taken", "stay-rules", "stay-setup", "travellers", "travellers-errors", "request-errors", "request-sending", "request-taken", "request-too-many", "hold-ended"] },
+];
+
+/* ---------- render ---------- */
+const rendered = new Set();
+function frameHTML(id, tag) {
+  const s = STATES[id];
+  const anchor = rendered.has(id) ? "" : ` id="s-${id}"`;
+  rendered.add(id);
+  const phoneOnly = id === "book-sheet" || id === "book-dock";
+  const body = s.bare ? `<div class="inner">${s.fn()}</div>` : `<div class="inner">${s.fn()}</div>`;
+  return `<div class="fr"${anchor}><div class="cap"><code>${id}</code>${tag ? `<span class="opt${tag.startsWith("A") ? " rec" : ""}">${esc(tag)}</span>` : ""}<span class="rules">${esc(s.note)}${phoneOnly ? "" : ""}</span></div><div class="fw" data-w="${WIDTH}"><div class="frame" style="width:${WIDTH}px" lang="${LOC}" dir="${LOC === "ar" ? "rtl" : "ltr"}">${body}</div></div></div>`;
+}
+const stub = (id, why) => `<div class="stub"><code>${id}</code> ${why}: <a href="#s-${id}">jump to it</a>.</div>`;
+function render() {
+  rendered.clear(); MISSING_KEYS.clear();
+  let html = `<div class="banner"><strong>04-03 pictures for signature (no shoot).</strong> Look and layout follow components/journey/*, components/ui/*, components/pages/stay-detail/booking.tsx and tokens.json; every visible string is read from lib/copy/journey.ts (EN, AR right-to-left, ES) and the three "Request on WhatsApp" words of lib/copy/stay-detail.ts. A string that does not exist shows a red MISSING COPY box. Amounts are example AED figures, not prices; the VAT rate is "[00]", the window "[N]", the terms "[Booking terms]", names "[Guest name]". Images are empty frames. The site navigation and footer (PublicFrame) are not drawn. Below 768 the cart is a dock at the bottom (steps 1–3) or sits in the page (step 4); in the dock the step's own Continue button is hidden. AR and ES texts are drafts for review at UAT.</div>`;
+  for (const g of GROUPS) {
+    let inner = "";
+    if (g.sig === "choice") {
+      if (CMP) {
+        /* Compare: A and B side by side; the shared held picture is drawn once, in A */
+        inner = `<div class="cmp">${g.opts.map((o, oi) => `<div class="cmpcol"><div class="cap"><span class="opt${oi === 0 ? " rec" : ""}">${esc(o.tag)}</span></div>${o.ids.map((id) => (rendered.has(id) ? stub(id, "same picture as in A") : frameHTML(id))).join("")}</div>`).join("")}</div>`;
+      } else {
+        inner = g.opts.map((o, oi) => `<div class="cap" style="margin-top:12px"><span class="opt${oi === 0 ? " rec" : ""}">${esc(o.tag)}</span></div>${o.ids.map((id) => (rendered.has(id) ? stub(id, "same picture as above") : frameHTML(id))).join("")}`).join("");
+      }
+    } else {
+      inner = g.ids.map((id) => (rendered.has(id) ? stub(id, "already drawn") : frameHTML(id))).join("");
+    }
+    html += `<section class="grpbox" id="g-${g.id}"><h2>${esc(g.h)}</h2>${g.sig === "choice" ? '<span class="tag">Owner signature: choose</span>' : g.sig === "approve" ? '<span class="tag">Owner signature: approve or change</span>' : ""}<p class="q">${esc(g.q)}</p>${inner}</section>`;
+  }
+  document.getElementById("main").innerHTML = html;
+  const mk = [...MISSING_KEYS];
+  document.getElementById("misslist").textContent = mk.length ? "Missing copy in " + LOC.toUpperCase() + ": " + mk.join(", ") : "";
+  fit();
+}
+function fit() {
+  const mainW = document.getElementById("main").clientWidth - 48;
+  document.querySelectorAll(".fw").forEach((fw) => {
+    const f = fw.firstElementChild, cmp = fw.closest(".cmp");
+    const avail = cmp ? (mainW - 20) / 2 : mainW;
+    const sc = Math.min(1, avail / WIDTH);
+    fw.style.width = Math.round(WIDTH * sc) + 2 + "px";
+    f.style.transform = `scale(${sc})`;
+    fw.style.height = Math.ceil(f.offsetHeight * sc) + 2 + "px";
+  });
+}
+function buildIndex() {
+  let h = "";
+  for (const g of GROUPS) {
+    h += `<h2>${esc(g.h.split(" · ")[0])}</h2><a href="#g-${g.id}">${esc(g.h.split(" · ").slice(1).join(" · ") || g.h)}</a>`;
+    const ids = g.sig === "choice" ? [...new Set(g.opts.flatMap((o) => o.ids))] : g.ids;
+    h += ids.map((id) => `<a class="st" href="#s-${id}">${id}</a>`).join("");
+  }
+  document.getElementById("index").innerHTML = h;
+}
+function setPressed() {
+  document.querySelectorAll("#top [data-loc]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.loc === LOC));
+  document.querySelectorAll("#top [data-w]").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.w === WIDTH));
+  document.getElementById("cmp").setAttribute("aria-pressed", CMP);
+}
+document.querySelectorAll("#top [data-loc]").forEach((b) => b.addEventListener("click", () => { LOC = b.dataset.loc; setPressed(); render(); }));
+document.querySelectorAll("#top [data-w]").forEach((b) => b.addEventListener("click", () => { WIDTH = +b.dataset.w; setPressed(); render(); }));
+document.getElementById("cmp").addEventListener("click", () => { CMP = !CMP; setPressed(); render(); });
+window.addEventListener("resize", fit);
+window.addEventListener("load", () => { fit(); setTimeout(fit, 400); });
+buildIndex(); setPressed(); render();
+
+</script></body></html>
