@@ -98,6 +98,8 @@ export const PUBLIC_PAGES = [
   "/blog/[post]",
   "/destinations",
   "/experiences",
+  // Plan 04-03 (Q-06): the trip page, in every locale, noindex and out of the sitemap (scripts/crawl-files.mjs NOT_PUBLIC).
+  "/booking/trip",
 ] as const;
 
 /**
