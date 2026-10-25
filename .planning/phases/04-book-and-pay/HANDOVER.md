@@ -1,3 +1,30 @@
+# HANDOVER: job 25, Phase 4 plan 04-09 (2026-10-25)
+
+- **Branch:** `phase-04-book-and-request` (pushed). **Final commit:** the one that adds this entry (`docs(04-09): SUMMARY and HANDOVER (owner: no test)`); code tip before it `fbca17bb`.
+- **Base:** origin/main `0f8f6091` (#33, /en /ar /es) merged in `15584a24`, no conflicts.
+- **Checks:** `npx tsc --noEmit` exit 0, `npm run tokens:check` up to date. Everything else **not run (owner: no test)**. Full table in `04-09-SUMMARY.md`.
+- **Signature:** all A, record on closed bookings, deposit-left line, missing copy added (plan section "Owner signature, 2026-10-25").
+- **Hosted database, secrets, Cloudflare, DNS, main:** not touched. No stack, dev server or build started.
+
+## Not verified, in plain words (04-09)
+
+1. No screen was ever rendered: list, detail, dialogs and the Bank transfer section are type-checked only. Playwright selectors written blind may need tweaks (date input fill, ListTable row click, the Select in Bank transfer).
+2. No handler ran against SQL; part B of 04-08's migration has still never compiled (04-08 item 1), and these routes call it.
+3. The parity grids (nextStatus vs booking_next_status 288, depositFloor vs booking_deposit_floor 80) are written, not run.
+
+## Reviewer nits accepted (Sonnet, Tasks 5–6)
+
+- A resend replayed with the same request_id writes a second `resend_requested` / `email_sent` event (the mail itself dedupes by key).
+- A null view after a record gives both mails "skipped" with no event; the owner uses Resend receipt (signed decision 5).
+- The record POST awaits the mail with no timeout; matters once 04-05's real notifier is in.
+- `ops_set_booking_status` (04-02) has no `booking_assert_owner`; the gate is requireOwner + service-role grant. A later migration may add it.
+
+## Proposed for the controller
+
+- STATE / CONTROL-BOARD: 04-09 written and pushed, checks not run (owner: no test), tsc clean, Sonnet review of 5–6 no blocker.
+- A UI review of Tasks 2–3, 7–8 by Opus (Sonnet wrote them) if wanted before the PR.
+- Live: `BOOKING_LINK_SECRET` on `almar-ops`.
+
 # HANDOVER: job 16, Phase 4 plan 04-08 (restart, 2026-10-21)
 
 - **Branch:** `phase-04-book-and-request` (pushed). **Final commit:** the commit that adds this file (subject
