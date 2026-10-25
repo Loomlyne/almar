@@ -9,7 +9,8 @@ import { fill, formatPlural } from "../../lib/journey-format";
 import type { CartLine, ImageRef, JourneyCopy, Locale } from "./types";
 
 export type CartStay = {
-  image: ImageRef;
+  // Null draws no picture.
+  image: ImageRef | null;
   name: string;
   // Display string, for example "12/10/2026 – 17/10/2026".
   dates: string;
@@ -29,6 +30,10 @@ export type JourneyCartProps = {
   subtotal: string;
   vat: string;
   total: string;
+  // Optional (plan 04-03): replaces the VAT label, extra rows after Total, and no remove buttons.
+  vatLabel?: string;
+  planRows?: { label: string; amount: string }[];
+  locked?: boolean;
   onRemove: (id: string) => void;
   onContinue: () => void;
   variant?: "rail" | "phone";
@@ -74,6 +79,9 @@ function CartBody({
   subtotal,
   vat,
   total,
+  vatLabel,
+  planRows,
+  locked,
   onRemove,
   loading,
   copy,
@@ -101,11 +109,13 @@ function CartBody({
 
   return (
     <div ref={root} className="flex flex-col gap-4">
-      <img
-        src={stay.image.src}
-        alt={stay.image.alt}
-        className="w-full aspect-video object-cover outline outline-1 -outline-offset-1 outline-ink/10"
-      />
+      {stay.image ? (
+        <img
+          src={stay.image.src}
+          alt={stay.image.alt}
+          className="w-full aspect-video object-cover outline outline-1 -outline-offset-1 outline-ink/10"
+        />
+      ) : null}
       <div className="flex flex-col gap-1">
         <p className={cn("m-0", KICKER)}>{fill(c.kicker, { destination: destinationName })}</p>
         <h3 className="m-0 font-display text-title text-teal">{stay.name}</h3>
@@ -136,15 +146,17 @@ function CartBody({
                     {line.quantity > 1 ? <span className="text-muted"> × {line.quantity}</span> : null}
                   </span>
                   <span>{line.amount}</span>
-                  <button
-                    type="button"
-                    data-remove-id={line.id}
-                    aria-label={fill(c.remove, { name: line.name })}
-                    className="inline-flex size-control shrink-0 items-center justify-center border-0 bg-transparent text-muted hover:text-ink cursor-pointer"
-                    onClick={() => remove(i)}
-                  >
-                    <CloseIcon size={20} />
-                  </button>
+                  {locked ? null : (
+                    <button
+                      type="button"
+                      data-remove-id={line.id}
+                      aria-label={fill(c.remove, { name: line.name })}
+                      className="inline-flex size-control shrink-0 items-center justify-center border-0 bg-transparent text-muted hover:text-ink cursor-pointer"
+                      onClick={() => remove(i)}
+                    >
+                      <CloseIcon size={20} />
+                    </button>
+                  )}
                 </div>
               ))
             )}
@@ -160,8 +172,11 @@ function CartBody({
 
       <div className="flex flex-col gap-3">
         <Row label={c.subtotal} value={subtotal} />
-        <Row label={c.vat} value={vat} />
+        <Row label={vatLabel ?? c.vat} value={vat} />
         <Row label={c.total} value={total} strong />
+        {planRows?.map((r) => (
+          <Row key={r.label} label={r.label} value={r.amount} />
+        ))}
       </div>
       <p className="m-0 text-caption text-muted">{c.note}</p>
     </div>

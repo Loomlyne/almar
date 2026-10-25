@@ -182,11 +182,18 @@ export function StayBooking({
  * "bar" sits at the end of the four-segment bar, "sheet" at the end of the phone sheet's last step, "dock" in the
  * pinned dock (the icon alone below md; the accessible name is the same).
  */
-export function StayRequestLink({ size }: { size: "bar" | "sheet" | "dock" }) {
+export function StayRequestLink({
+  size,
+  variant = "primary",
+}: {
+  size: "bar" | "sheet" | "dock";
+  variant?: "primary" | "secondary";
+}) {
   const s = useStay();
   return (
     <LinkButton
       href={s.requestHref}
+      variant={variant}
       target="_blank"
       rel="noopener noreferrer"
       size={size === "bar" ? "bar-auto" : size === "sheet" ? "lg" : "md"}

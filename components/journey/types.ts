@@ -30,7 +30,8 @@ export type AddOnItem = {
   kind: "experience" | "service";
   region?: "uae";
   name: string;
-  image: ImageRef;
+  /** Null draws an empty frame: no invented picture. */
+  image: ImageRef | null;
   unit: AddOnUnit;
   /** Bracket placeholder until real rates exist, for example "AED [PRICE]". */
   price: string;
