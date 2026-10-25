@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { ChevronIcon } from "../../../../../components/icons/icons";
 import { Button } from "../../../../../components/ui/button";
 import { Chip } from "../../../../../components/ui/chip";
@@ -38,6 +38,14 @@ const BLOCK_TITLE = "m-0 font-display text-body font-normal text-teal";
 
 function Bdi({ children }: { children: ReactNode }) {
   return <bdi dir="ltr">{children}</bdi>;
+}
+
+/** A copy line with nodes in its {slots} ("Due now: {amount}"): the colon and the order stay in the copy, per language. */
+function fillNodes(template: string, slots: Record<string, ReactNode>): ReactNode {
+  return template.split(/(\{\w+\})/g).map((part, i) => {
+    const m = /^\{(\w+)\}$/.exec(part);
+    return <Fragment key={i}>{m && m[1] in slots ? slots[m[1]] : part}</Fragment>;
+  });
 }
 
 function Amount({ fils }: { fils: number }) {
@@ -374,7 +382,7 @@ export function BookingDetail({
               {awaiting ? (
                 <>
                   <li>
-                    {D.dueNow}: <Amount fils={flags.due_now_fils} />
+                    {fillNodes(D.dueNowLine, { amount: <Amount fils={flags.due_now_fils} /> })}
                   </li>
                   {b.deadline ? (
                     <li>
@@ -387,7 +395,7 @@ export function BookingDetail({
               {b.status === "deposit_paid" ? (
                 <>
                   <li>
-                    {D.stillDue}: <Amount fils={flags.still_due_fils} />
+                    {fillNodes(D.stillDueLine, { amount: <Amount fils={flags.still_due_fils} /> })}
                   </li>
                   {m.balance_due_date ? (
                     <li>
@@ -485,12 +493,12 @@ export function BookingDetail({
                   </div>
                   {payment.bank_reference ? (
                     <span className="text-caption text-muted">
-                      {P.reference}: {payment.bank_reference}
+                      {fillNodes(P.referenceLine, { reference: <Bdi>{payment.bank_reference}</Bdi> })}
                     </span>
                   ) : null}
                   {payment.recorded_by_email ? (
                     <span className="text-caption text-muted">
-                      {P.recordedBy}: <Bdi>{payment.recorded_by_email}</Bdi>
+                      {fillNodes(P.recordedByLine, { email: <Bdi>{payment.recorded_by_email}</Bdi> })}
                     </span>
                   ) : null}
                   <PaymentActions booking={b} payment={payment} copy={copy} busy={busy} onVoid={onVoid} onResendReceipt={onResendReceipt} />

@@ -106,6 +106,9 @@ export type OpsBookingsCopy = {
     writtenOff: string;
     dueNow: string;
     stillDue: string;
+    /** "What the guest sees" lines: {amount} is the amount node. */
+    dueNowLine: string;
+    stillDueLine: string;
     payBy: string;
     balanceDueBy: string;
     madeOnSite: string;
@@ -122,6 +125,9 @@ export type OpsBookingsCopy = {
     reference: string;
     amount: string;
     recordedBy: string;
+    /** The phone payment card's lines: {reference} is the bank reference, {email} the owner's email. */
+    referenceLine: string;
+    recordedByLine: string;
     actionsColumn: string;
     voided: string;
     writtenOff: string;
@@ -342,6 +348,8 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       writtenOff: "Written off",
       dueNow: "Due now",
       stillDue: "Still due",
+      dueNowLine: "Due now: {amount}",
+      stillDueLine: "Still due: {amount}",
       payBy: "Pay by {date}",
       balanceDueBy: "Balance due by", // CANVAS
       madeOnSite: "Made on the website",
@@ -358,6 +366,8 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       reference: "Reference", // CANVAS
       amount: "Amount", // CANVAS
       recordedBy: "Recorded by",
+      referenceLine: "Reference: {reference}",
+      recordedByLine: "Recorded by: {email}",
       actionsColumn: "Actions", // the payments table's last column, read by screen readers only
       voided: "Voided: {reason}",
       writtenOff: "Written off {amount}: {reason}",
@@ -614,6 +624,8 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       writtenOff: "المشطوب",
       dueNow: "المستحق الآن",
       stillDue: "المتبقي",
+      dueNowLine: "المستحق الآن: {amount}",
+      stillDueLine: "المتبقي: {amount}",
       payBy: "الدفع قبل {date}",
       balanceDueBy: "الرصيد مستحق قبل",
       madeOnSite: "أُجري على الموقع",
@@ -630,6 +642,8 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       reference: "المرجع",
       amount: "المبلغ",
       recordedBy: "سجّلها",
+      referenceLine: "المرجع: {reference}",
+      recordedByLine: "سجّلها: {email}",
       actionsColumn: "الإجراءات", // the payments table's last column, read by screen readers only
       voided: "أُلغيت: {reason}",
       writtenOff: "مشطوب {amount}: {reason}",
@@ -887,6 +901,8 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       writtenOff: "Condonado",
       dueNow: "A pagar ahora",
       stillDue: "Pendiente",
+      dueNowLine: "A pagar ahora: {amount}",
+      stillDueLine: "Pendiente: {amount}",
       payBy: "Pagar antes del {date}",
       balanceDueBy: "Saldo pendiente antes del",
       madeOnSite: "Hecha en el sitio web",
@@ -903,6 +919,8 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       reference: "Referencia",
       amount: "Importe",
       recordedBy: "Registrado por",
+      referenceLine: "Referencia: {reference}",
+      recordedByLine: "Registrado por: {email}",
       actionsColumn: "Acciones", // the payments table's last column, read by screen readers only
       voided: "Anulado: {reason}",
       writtenOff: "Condonado {amount}: {reason}",

@@ -64,3 +64,20 @@ test("sidebar.tsx keeps its close control and docks to the end side", () => {
   assert.match(text, /\bend-0\b/);
   assert.equal(text.includes("dockEnd"), false);
 });
+
+test("04-09: no copy word followed by a hard-coded colon in the bookings screens (the colon lives in the copy)", () => {
+  const files = [
+    "app/dashboard/(ops)/bookings/bookings-list.tsx",
+    "app/dashboard/(ops)/bookings/bookings-screen.tsx",
+    "app/dashboard/(ops)/bookings/bookings-text.ts",
+    "app/dashboard/(ops)/bookings/bookings-errors.ts",
+    "app/dashboard/(ops)/bookings/detail/booking-detail.tsx",
+    "app/dashboard/(ops)/bookings/detail/booking-detail-screen.tsx",
+    "app/dashboard/(ops)/bookings/detail/booking-dialogs.tsx",
+  ];
+  for (const path of files) {
+    const text = readFileSync(path, "utf8");
+    assert.doesNotMatch(text, /\{(?:[A-Z]|copy)(?:\.\w+)+\}\s*:/, `${path}: a {copy word}: in JSX`);
+    assert.doesNotMatch(text, /\$\{(?:[A-Z]|copy)(?:\.\w+)+\}: /, `${path}: a \${copy word}: in a template`);
+  }
+});
