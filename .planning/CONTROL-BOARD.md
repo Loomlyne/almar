@@ -187,6 +187,7 @@ the day it lands; `.claude/worktrees/repo-tidy` stays until job 04 lands.
 | 03.2-15 stay access notes in Arabic and Spanish | `20261019140000_stay_access_notes_i18n.sql` (renumbered 2026-10-19 from `20261015120000`, so it runs after live `20261019120000_owner_emails`; renamed on the branch as `1da8e4f`), first given by the controller 2026-10-15 02:58 (owner chose AI-translated Access Notes at 02:56); applied live by the controller at landing after a second-model check **Live 2026-10-20 01:30 CET** (landed `6dcbabd`). |
 | Follow-ups item 7 (server publish rules on save of a published row) | `20261019130000_ops_save_publish_rules.sql` (renumbered 2026-10-19 from `20261017120000`, so it runs after live `20261019120000_owner_emails`; it lands before 03.2-15), first given by the controller 2026-10-17 13:51 CET to the follow-ups session (`fix/phase-1-3-followups`) |
 | Phase 4 book and request (plans on `phase-04-book-and-request`, session `local_4bdab007`) | `20261019160000_<name>.sql` and `20261019170000_<name>.sql`, reserved 2026-10-19 16:3x CET; a third only from the controller |
+| Phase 6 site and rest of CMS (06-01, branch `gsd/phase-6-plan`, job 24) | `20261025120000_site_cms.sql`, reserved 2026-10-25 by the controller; runs after Phase 4's `20261019160000` and `20261019170000` |
 | Next | The controller hands them out and records them here at ship |
 
 ## Known, not fixed
