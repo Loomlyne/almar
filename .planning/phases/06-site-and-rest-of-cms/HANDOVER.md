@@ -39,7 +39,7 @@ Each plan opens with pictures (real tokens, 390/834/1440, EN/AR/ES), then the ow
      `lib/analytics-config.ts`.
    - 06-05 and 06-06: `SUPABASE_SERVICE_ROLE_KEY` on Worker `almar`, only if it is missing. Pipe it, never print it,
      and have a different model check the step first.
-   - Live migration apply.
+   - Live migration apply: only after the wave 2-4 pictures are signed; any schema change from those signatures folds into `20261025120000_site_cms.sql` before it goes live (no second migration).
 
 ## Proposed planning changes (controller applies)
 - **ROADMAP Phase 6:**
