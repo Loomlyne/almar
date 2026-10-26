@@ -1,8 +1,8 @@
 // The email seam (plan 04-08, section F). Every booking mail goes through a BookingNotifier, and every delivery is
-// written to the booking's events by deliverMail. Today getNotifier() returns NOT_READY_NOTIFIER: nothing is sent,
-// each delivery is logged `email_pending`, and production requests stay closed (the request gate needs a ready
-// sender, P-13). 04-05 changes only the body of getNotifier() to return its own notifier, which decides `ready`
-// itself from its key; this file reads no environment and logs nothing to the console.
+// written to the booking's events by deliverMail. Since 04-05 getNotifier() returns the live notifier when the Worker
+// has its mail key, else NOT_READY_NOTIFIER: nothing is sent, each delivery is logged `email_pending`, and production
+// requests stay closed (the request gate needs a ready sender, P-13). The live notifier decides `ready` itself from its
+// key; this file reads no environment and logs nothing to the console.
 //
 // A mail outcome never changes an answer: a sender that is not ready, refuses or throws is an event, never an error.
 // The error stored is a short name (`not_ready`, `no_key`, `http_429`, `threw`), never a message, an address or a
