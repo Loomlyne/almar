@@ -63,6 +63,8 @@ test("legacyLocaleTarget: an old unprefixed page, or anything below it, goes to 
   assert.equal(legacyLocaleTarget("/account"), "/en/account");
   assert.equal(legacyLocaleTarget("/bookings"), "/en/bookings");
   assert.equal(legacyLocaleTarget("/bookings/abc"), "/en/bookings/abc");
+  assert.equal(legacyLocaleTarget("/booking/trip"), "/en/booking/trip");
+  assert.equal(legacyLocaleTarget("/booking/trip/"), "/en/booking/trip");
 });
 
 test("legacyLocaleTarget: a trailing slash is dropped", () => {

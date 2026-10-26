@@ -9,10 +9,10 @@
 ## Task 5 build specs (`b8f477e1`, not run)
 
 - server-runtime: 200 probes for `/en|ar|es/booking/trip` (bytes, noindex, same-origin referrer, lang/dir) and a browser check of the page's own quote POST.
-- slice1-sweep: the sitemap counts leave out the noindex trip pages. slice2-sweep: `isBookingFlow` filter; also fixed `isBlog` / `isSlice3` to accept the `en` prefix (since #33 `/en/blog` etc. slipped through; the sweep-list test was failing on main). Revert those two regexes if this belongs in a separate fix.
+- slice1-sweep: the sitemap counts leave out the noindex trip pages. slice2-sweep: `isBookingFlow` filter; also fixed `isBlog` / `isSlice3` to accept the `en` prefix (since #33 `/en/blog` etc. slipped through; the sweep-list test was failing on main). Kept (controller, 2026-10-26): a fix to a test already failing on main since #33.
 - stay-detail and stay-detail-held: Book button before dates, Book link to `tripHref(...)` after; the dock holds Book + the request link.
-- **Decision for the controller:** unprefixed `/booking/trip` now answers the static 404 (no file, no redirect). Pin it as a 404 miss, or add a 301 to `/en/booking/trip` in `_redirects`.
-- Plan text stale: Task 5 step 4 gate list says `out/booking/trip.html` and `! grep -q "booking" out/sitemap.xml`; the pages are `out/en|ar|es/booking/trip.html`.
+- Plain `/booking/trip` (and `/booking/trip/`): 301 to `/en/booking/trip`, query kept by the asset layer, in public/_redirects and LEGACY_SECTIONS (controller, 2026-10-26, owner decision 13); tests/locale-redirect.test.mjs gains two lines (not run).
+- Plan Task 5 gate list updated to `out/en|ar|es/booking/trip.html` and `! grep -q "booking/trip" out/sitemap.xml`.
 - Not done: step-rail / journey-cart baselines, the gate chain (no test, no shoot).
 
 ## Not verified, in plain words (04-03)

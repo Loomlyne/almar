@@ -41,6 +41,7 @@ export const LEGACY_SECTIONS = [
   "/login",
   "/account",
   "/bookings",
+  "/booking/trip", // 04-03 (controller, 2026-10-26): the guest trip pages are /en|ar|es/booking/trip
 ] as const;
 
 /**
