@@ -1,5 +1,7 @@
 // Plan 04-03 (Task 1a): the trip, request, reasons and bookingStatus groups, the cart additions and the
 // Pay -> Request wording are model-translated DRAFTS in AR and ES, flagged for the owner's check; EN is the plan's text.
+// Plan 04-06 (Task 1a): the afterRequest group; EN is the plan's text, AR (Gulf-friendly MSA) and ES (neutral Latin
+// American) are model-written DRAFTS for the owner's check at the 04-06 picture signature.
 // Exception: bookingStatus.confirmed is the canvas word verbatim (GuestBookings k57). Brackets such as [Booking terms] stay until real values exist.
 // AR and ES reviewed and corrected 2026-10-05 (controller-delegated review): .planning/phases/03.3-public-site-in-react/I18N-REVIEW-2026-10-05.md
 // Journey copy catalogue (plan 03.1-10, D-08, D-33, D-52, D-58).
@@ -298,6 +300,26 @@ const EN = {
     cancelled: "Cancelled",
     expired: "Request lapsed",
     payBy: "Pay by {date}, {time} UAE time",
+  },
+  afterRequest: {
+    heading: "Request sent",
+    lead: "Nothing was charged on the site. Your stay is held while you pay by bank transfer.",
+    referenceLabel: "Your reference",
+    referenceHint: "Put it on your bank transfer.",
+    planDeposit: "Deposit",
+    planFull: "Full payment",
+    dueNow: "Due now",
+    amountOnPage: "The amount due is on your booking page.",
+    emailSent: "We emailed you the bank details.",
+    emailPage: "The bank details are on your booking page.",
+    lapse: "If no payment has reached us by then, the request lapses and the nights are released.",
+    open: "Open your booking page",
+    help: "You can withdraw this request on your booking page until a payment is recorded. To change it, message us on WhatsApp.",
+    retryNote: "Sending again is safe: you will not be booked twice.",
+    checking: "Checking your booking…",
+    checkAgain: "Check again",
+    elsewhereTitle: "This request has moved on",
+    elsewhere: "Your booking page shows where it stands.",
   },
 };
 
@@ -685,6 +707,26 @@ const AR: JourneyCopy = {
     expired: "انتهت مهلة الطلب",
     payBy: "ادفع في موعد أقصاه {date}، {time} بتوقيت الإمارات",
   },
+  afterRequest: {
+    heading: "تم إرسال الطلب",
+    lead: "لم يُخصم أي مبلغ على الموقع. إقامتك محجوزة لك ريثما تدفع عبر حوالة بنكية.",
+    referenceLabel: "رقمك المرجعي",
+    referenceHint: "اكتبه في حوالتك البنكية.",
+    planDeposit: "عربون",
+    planFull: "الدفع الكامل",
+    dueNow: "المستحق الآن",
+    amountOnPage: "تجد المبلغ المستحق في صفحة حجزك.",
+    emailSent: "أرسلنا إليك بيانات الحساب البنكي بالبريد الإلكتروني.",
+    emailPage: "تجد بيانات الحساب البنكي في صفحة حجزك.",
+    lapse: "إذا لم يصلنا أي دفع بحلول ذلك الموعد، تنتهي مهلة الطلب وتُتاح الليالي من جديد.",
+    open: "افتح صفحة حجزك",
+    help: "يمكنك سحب هذا الطلب من صفحة حجزك ما دام لم يُسجَّل أي دفع. لتعديله، راسلنا عبر واتساب.",
+    retryNote: "الإرسال مرة أخرى آمن: لن يُحجز لك مرتين.",
+    checking: "جارٍ التحقق من حجزك…",
+    checkAgain: "تحقّق مرة أخرى",
+    elsewhereTitle: "انتقل هذا الطلب إلى مرحلة أخرى",
+    elsewhere: "توضّح صفحة حجزك أين وصل الطلب.",
+  },
 };
 
 const ES: JourneyCopy = {
@@ -978,6 +1020,26 @@ const ES: JourneyCopy = {
     cancelled: "Cancelado",
     expired: "Solicitud vencida",
     payBy: "Paga a más tardar el {date}, {time}, hora de los EAU",
+  },
+  afterRequest: {
+    heading: "Solicitud enviada",
+    lead: "No se cobró nada en el sitio. Tu estancia queda reservada mientras pagas por transferencia bancaria.",
+    referenceLabel: "Tu referencia",
+    referenceHint: "Escríbela en tu transferencia bancaria.",
+    planDeposit: "Depósito",
+    planFull: "Pago total",
+    dueNow: "A pagar ahora",
+    amountOnPage: "El monto a pagar está en la página de tu reserva.",
+    emailSent: "Te enviamos los datos bancarios por correo.",
+    emailPage: "Los datos bancarios están en la página de tu reserva.",
+    lapse: "Si no recibimos ningún pago para entonces, la solicitud vence y las noches se liberan.",
+    open: "Abrir la página de tu reserva",
+    help: "Puedes retirar esta solicitud en la página de tu reserva mientras no se registre un pago. Para cambiarla, escríbenos por WhatsApp.",
+    retryNote: "Enviar de nuevo es seguro: tu reserva no se duplicará.",
+    checking: "Revisando tu reserva…",
+    checkAgain: "Revisar de nuevo",
+    elsewhereTitle: "Esta solicitud ya avanzó",
+    elsewhere: "La página de tu reserva muestra en qué estado está.",
   },
 };
 
