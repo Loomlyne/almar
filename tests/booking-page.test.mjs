@@ -409,3 +409,161 @@ test("secrets gate: no re_ or eyJ in this plan's lib and app files (unfiltered)"
     assert.equal(source.includes("re_") || source.includes("eyJ"), false, file);
   }
 });
+
+// ================================================================ Task 2: the page view's source rules
+
+test("view source: presentational (no fetch, storage, cookie or console), the model called, ConfirmDialog with one cancelLabel", () => {
+  const source = nc(readFileSync("app/bookings/trip/booking-page-view.tsx", "utf8"));
+  assert.equal(/fetch\(|localStorage|sessionStorage|document\.cookie|console\./.test(source), false);
+  assert.match(source, /bookingPageModel\(/);
+  assert.match(source, /<ConfirmDialog/);
+  assert.equal((source.match(/cancelLabel=/g) ?? []).length, 1, "the one ConfirmDialog always passes withdrawKeep");
+  assert.match(source, /cancelLabel=\{copy\.withdrawKeep\}/);
+  assert.match(source, /variant="secondary"[\s\S]{0,200}data-testid="withdraw"|data-testid="withdraw"[\s\S]{0,200}variant="secondary"/, "Withdraw is the secondary button");
+  assert.match(source, /JOURNEY_COPY\[locale\]\.bookingStatus/, "status words and the Pay-by sentence come from 04-03's group");
+  assert.match(source, /formatAed\(/);
+  assert.match(source, /formatIban\(/);
+  assert.match(source, /normalizeIban\(/);
+  assert.equal(/https?:\/\/(?!wa\.me\/971563883302)[a-z]/i.test(source), false, "no link to another origin but the WhatsApp link");
+});
+
+// ================================================================ Task 5: the view answer, the screen and the three pages
+
+const { viewAnswer, isBookingView, viewRequestBody } = await loadTs("app/bookings/trip/booking-view-answer.ts");
+const { REF_ALPHABET } = await loadTs("lib/booking/ref.ts");
+
+test("viewAnswer: 200 ok with a well-formed view of the asked ref is ready, in every state and language", () => {
+  for (const state of VIEW_STATES) {
+    for (const locale of LOCALES) {
+      const view = viewFixture(state, locale);
+      assert.equal(isBookingView(view), true, `${state} ${locale}`);
+      assert.deepEqual(viewAnswer(200, { ok: true, booking: view }, view.ref), { kind: "ready", view }, `${state} ${locale}`);
+    }
+  }
+});
+
+test("viewAnswer: 404 and 400 are not found; every other status, network error or odd body is unavailable", () => {
+  const view = viewFixture("awaiting", "en");
+  assert.deepEqual(viewAnswer(404, { ok: false }, view.ref), { kind: "not_found" });
+  assert.deepEqual(viewAnswer(404, null, view.ref), { kind: "not_found" });
+  assert.deepEqual(viewAnswer(400, { ok: false }, view.ref), { kind: "not_found" });
+  for (const status of [0, 201, 204, 301, 403, 409, 413, 429, 500, 502, 503]) {
+    assert.deepEqual(viewAnswer(status, { ok: true, booking: view }, view.ref), { kind: "unavailable" }, String(status));
+  }
+  for (const body of [null, "x", 1, {}, { ok: false }, { ok: true }, { ok: true, booking: null }, { ok: "true", booking: view }]) {
+    assert.deepEqual(viewAnswer(200, body, view.ref), { kind: "unavailable" }, JSON.stringify(body));
+  }
+});
+
+test("viewAnswer: a view of another ref is unavailable, never shown", () => {
+  const view = viewFixture("awaiting", "en");
+  assert.deepEqual(viewAnswer(200, { ok: true, booking: view }, "ALMAR-ZZZZZZ"), { kind: "unavailable" });
+});
+
+test("isBookingView: every value the page formats is checked first (fils, days, instants, statuses, shapes)", () => {
+  const breakers = [
+    (v) => { v.status = "paid"; },
+    (v) => { v.locale = "fr"; },
+    (v) => { v.ref = 42; },
+    (v) => { v.money.paidFils = -1; },
+    (v) => { v.money.grandFils = 1.5; },
+    (v) => { v.money.vatBp = "500"; },
+    (v) => { v.money.stillDueFils = Number.MAX_SAFE_INTEGER + 2; },
+    (v) => { v.arrive = "10/12/2026"; },
+    (v) => { v.leave = null; },
+    (v) => { v.deadline = "tomorrow"; },
+    (v) => { v.deadline = "2026-11-03T08:00:00"; },
+    (v) => { v.holdExpiresAt = 5; },
+    (v) => { v.balanceDueDate = "2026-11-26T00:00:00Z"; },
+    (v) => { v.plan = "monthly"; },
+    (v) => { v.airport = "JFK"; },
+    (v) => { v.pickupAddress = 3; },
+    (v) => { v.nights = -1; },
+    (v) => { v.adults = "2"; },
+    (v) => { v.travellers = null; },
+    (v) => { v.travellers[0].kind = "pet"; },
+    (v) => { v.travellers[2].age = "7"; },
+    (v) => { v.lines = [{ name: "x", unit: "week", quantity: 1, unitPriceFils: 1, lineFils: 1 }]; },
+    (v) => { v.lines[0].lineFils = -5; },
+    (v) => { v.payments = [{ receivedOn: "yesterday", method: "bank_transfer", amountFils: 1 }]; },
+    (v) => { v.payments = [{ receivedOn: null, method: "cash", amountFils: 1 }]; },
+    (v) => { v.flags = { partReceived: "no", overpaid: false, writtenOff: false }; },
+    (v) => { v.withdrawable = "true"; },
+    (v) => { v.guest = null; },
+    (v) => { v.stay.slug = null; },
+    (v) => { v.stay.image = { src: 1, alt: "x" }; },
+    (v) => { v.transfer.amountFils = "222222"; },
+    (v) => { v.transfer.iban = null; },
+    (v) => { v.transfer.currency = "USD"; },
+    (v) => { v.transfer.payBy = "soon"; },
+    (v) => { v.transfer.dueBy = "26/11/2026"; },
+    (v) => { v.access = { address: 1, wifiName: null, wifiPassword: null, doorCode: null, notes: null }; },
+  ];
+  for (const [i, breakIt] of breakers.entries()) {
+    const view = structuredClone(viewFixture("awaiting", "en"));
+    breakIt(view);
+    assert.equal(isBookingView(view), false, `breaker ${i}: ${breakIt.toString()}`);
+  }
+  for (const value of [null, undefined, "x", 1, [], {}]) assert.equal(isBookingView(value), false, JSON.stringify(value));
+});
+
+test("viewRequestBody: exactly { ref, t, locale }, t left out when absent or empty", () => {
+  assert.deepEqual(viewRequestBody("ALMAR-TEST22", "tok", "ar"), { ref: "ALMAR-TEST22", t: "tok", locale: "ar" });
+  assert.deepEqual(Object.keys(viewRequestBody("ALMAR-TEST22", "tok", "ar")), ["ref", "t", "locale"]);
+  assert.deepEqual(viewRequestBody("ALMAR-TEST22", undefined, "es"), { ref: "ALMAR-TEST22", locale: "es" });
+  assert.deepEqual(viewRequestBody("ALMAR-TEST22", "", "en"), { ref: "ALMAR-TEST22", locale: "en" });
+  assert.ok(!REF_ALPHABET.includes("0"));
+});
+
+test("booking-view-answer.ts: pure (no fetch, storage, cookie or console; no React)", () => {
+  const source = nc(readFileSync("app/bookings/trip/booking-view-answer.ts", "utf8"));
+  assert.equal(/fetch\(|localStorage|sessionStorage|document\.cookie|console\.|from "react"/.test(source), false);
+  assert.equal(/^"use client"/m.test(source), false);
+});
+
+test("screen source: no storage, cookie or console; one fetch, to /api/booking/view; the answer read by viewAnswer", () => {
+  const raw = readFileSync("app/bookings/trip/booking-trip-screen.tsx", "utf8");
+  const source = nc(raw);
+  assert.match(raw, /^"use client"/m);
+  assert.equal(/localStorage|sessionStorage|document\.cookie|console\./.test(source), false);
+  const fetches = [...source.matchAll(/\bfetch\(([^,)]*)/g)].map((m) => m[1].trim());
+  assert.deepEqual(fetches, ["VIEW_PATH"], "the screen's only fetch is the view call");
+  assert.equal((source.match(/const VIEW_PATH = "\/api\/booking\/view";/g) ?? []).length, 1);
+  assert.match(source, /cache: "no-store"/);
+  assert.match(source, /credentials: "same-origin"/);
+  assert.match(source, /viewAnswer\(/);
+  assert.match(source, /isBookingRef\(/);
+  assert.match(source, /isTestHost\(window\.location\.host\)/);
+  assert.match(source, /bookingPagePath\(/, "localeHrefs keep ref and t (bite P5)");
+  assert.match(source, /useSearchParams\(/);
+});
+
+test("screen source (Task 6): the withdraw call through postWithdraw, an in-flight ref, the view read again", () => {
+  const source = nc(readFileSync("app/bookings/trip/booking-trip-screen.tsx", "utf8"));
+  assert.match(source, /postWithdraw\(/);
+  assert.match(source, /useRef\(false\)/, "the in-flight guard");
+  assert.match(source, /withdraw=\{/);
+  assert.doesNotMatch(source, /request-client/, "never 04-06's client");
+});
+
+test("the three pages: force-static, their locale's metadata, a Suspense with the loading view around the screen", () => {
+  for (const locale of LOCALES) {
+    const file = `app/${locale}/bookings/trip/page.tsx`;
+    const source = nc(readFileSync(file, "utf8"));
+    assert.match(source, /export const dynamic = "force-static"/, file);
+    assert.equal((source.match(new RegExp(`bookingPageMetadata\\("${locale}"\\)`, "g")) ?? []).length, 1, file);
+    assert.match(source, /<Suspense/, file);
+    assert.match(source, /kind: "loading"/, file);
+    assert.match(source, new RegExp(`<BookingTripScreen locale="${locale}"`), file);
+    assert.doesNotMatch(source, /no-referrer/, file);
+    assert.doesNotMatch(readFileSync(file, "utf8"), /^"use client"/m, file);
+  }
+  assert.equal(existsSync("app/bookings/trip/page.tsx"), false, "no unprefixed page: every page is /en|ar|es/… (#33)");
+  assert.equal(existsSync("app/[locale]/bookings/trip"), false, "the static pages are not under the dynamic [locale] route");
+});
+
+test("booking-page-meta.ts: the title comes from the page copy", () => {
+  const source = nc(readFileSync("app/bookings/trip/booking-page-meta.ts", "utf8"));
+  assert.match(source, /title: BOOKING_PAGE_COPY\[locale\]\.pageTitle/);
+  assert.doesNotMatch(source, /TODO/);
+});
