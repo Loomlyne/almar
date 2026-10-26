@@ -422,6 +422,8 @@ test.describe("behaviour", () => {
     await mockRoutes(page, { view: () => ok(liveAwaiting("en")) });
     await openPage(page, "en");
     await expect(page.locator("[data-testid=transfer]")).toBeVisible();
+    // The dev server's own overlay (not the page) has buttons of its own.
+    await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
     await page.emulateMedia({ media: "print" });
     await expect(page.locator("header").first()).toBeHidden();
     await expect(page.locator("footer").first()).toBeHidden();
