@@ -68,8 +68,8 @@ export function originForBooking(isTest: boolean): string {
 }
 
 /**
- * The booking page's path: `/bookings/trip?ref=<ref>&t=<t>`, with `/ar` or `/es` in front for those languages and no
- * prefix for English. Without `t` the path carries the ref only (the signed-in guest's email decides then). Both values
+ * The booking page's path: `/<locale>/bookings/trip?ref=<ref>&t=<t>` (`/en`, `/ar` or `/es`; every page is
+ * locale-prefixed since #33). Without `t` the path carries the ref only (the signed-in guest's email decides then). Both values
  * are URL-encoded.
  */
 export function bookingPagePath(locale: "en" | "ar" | "es", ref: string, t?: string): string {
