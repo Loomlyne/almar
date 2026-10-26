@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAR 04-06 pictures: after the request, and the guest's bookings list</title>
+<style>
+:root{
+  --color-ivory:#fffaf0;--color-surface:#ffffff;--color-teal:#1f3b40;--color-teal-hover:#1b3438;--color-teal-press:#182d31;
+  --color-teal-tint:#d1dfe0;--color-gold:#d4ba8a;--color-ink:#262626;--color-muted:#63615f;--color-line:rgb(38 38 38 / 0.16);
+  --color-error:#8f2d2d;--color-success:#1e6b45;--color-warning:#8a3b12;--color-whatsapp:#25D366;
+  --control:44px;--chip:40px;--chip-dense:24px;--action:56px;--dock:88px;--mark:28px;--row:56px;
+  --container-column:1240px;--container-rail:400px;--container-dialog:480px;
+  --radius-control:0;--radius-overlay:0;
+  --shadow-lg:0 28px 56px -16px rgb(10 9 7 / 0.28),0 10px 20px -10px rgb(10 9 7 / 0.12);
+  --shadow-rule-primary:inset 0 -3px 0 var(--color-teal);
+  --face-display:Georgia,"Times New Roman",serif;
+  --face-body:"Lato",-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --tracking-kicker:0.12em;--tracking-display:-0.02em;
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;background:#ece8df;color:var(--color-ink);font-family:var(--face-body);font-size:14px}
+/* ---------- review page chrome (not product UI) ---------- */
+#top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;padding:10px 20px;background:var(--color-teal);color:var(--color-ivory)}
+#top h1{font:400 18px var(--face-display);margin:0;margin-inline-end:auto}
+#top .grp{display:flex;align-items:center;gap:6px}
+#top .grp span.l{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-inline-end:4px}
+#top button{font:inherit;font-size:13px;padding:6px 12px;border:1px solid rgba(255,250,240,.5);background:transparent;color:var(--color-ivory);cursor:pointer}
+#top button[aria-pressed=true]{background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)}
+#wrap{display:flex;align-items:flex-start}
+#index{position:sticky;top:52px;align-self:flex-start;width:268px;flex:none;height:calc(100vh - 52px);overflow:auto;background:var(--color-ivory);border-inline-end:1px solid var(--color-line);padding:14px 14px 40px;font-size:13px}
+#index h2{font:400 12px var(--face-body);letter-spacing:.12em;text-transform:uppercase;color:var(--color-muted);margin:16px 0 4px}
+#index a{display:block;color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:3px;padding:2px 0}
+#index a.st{margin-inline-start:12px;text-decoration:none;color:var(--color-ink)}
+#index a.st:hover{text-decoration:underline;text-decoration-color:var(--color-gold)}
+#main{flex:1;min-width:0;padding:20px 24px 80px}
+.banner{background:var(--color-ivory);border:1px solid var(--color-gold);padding:10px 14px;margin-bottom:20px;font-size:13px;line-height:1.5}
+.banner p{margin:0 0 6px}.banner p:last-child{margin:0}
+.grpbox{margin:0 0 44px}
+.grpbox>h2{font:400 22px var(--face-display);color:var(--color-teal);margin:0 0 4px}
+.grpbox>.q{margin:0 0 4px;font-size:14px;line-height:1.5;max-width:900px}
+.grpbox>.tag{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--color-teal);color:var(--color-teal);padding:2px 8px;margin-bottom:8px}
+.fr{margin:14px 0 26px}
+.cap{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin-bottom:6px}
+.cap code{font:600 13px ui-monospace,Menlo,monospace;background:#fff;border:1px solid var(--color-line);padding:2px 6px}
+.cap .opt{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-teal)}
+.cap .opt.rec{font-weight:700}
+.cap .rules{font-size:12px;color:var(--color-muted)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.fw{position:relative;overflow:hidden;border:1px solid var(--color-line);background:var(--color-ivory)}
+.stub{border:1px dashed var(--color-muted);padding:10px 14px;font-size:13px;background:#fff}
+.stub a{color:var(--color-teal)}
+.miss{background:#fde8e8;border:2px solid #c00000;color:#8b0000;font:600 12px ui-monospace,Menlo,monospace;padding:4px 8px;direction:ltr;text-align:left;display:inline-block}
+#misslist{flex-basis:100%;font:600 12px ui-monospace,Menlo,monospace;color:#ffb4b4}
+#misslist:empty{display:none}
+.urlbar{font:12px ui-monospace,Menlo,monospace;background:#fff;border:1px solid var(--color-line);border-bottom:0;padding:6px 10px;max-width:900px;direction:ltr;text-align:left}
+table.dr{border-collapse:collapse;width:100%;background:#fff;font-size:13px;line-height:1.5}
+table.dr th,table.dr td{border:1px solid var(--color-line);padding:6px 8px;vertical-align:top;text-align:start}
+table.dr th{font-weight:400;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-muted);background:var(--color-ivory)}
+table.dr td.k{font:12px ui-monospace,Menlo,monospace;white-space:nowrap}
+table.dr td.ar{font-family:"Noto Sans Arabic","Noto Sans",var(--face-body);line-height:1.7}
+table.dr .src{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-teal)}
+
+/* ---------- product frame: tokens.json values, component class strings mirrored ---------- */
+.frame{container:frame / inline-size;position:relative;transform-origin:top left;background:var(--color-ivory);color:var(--color-ink);font-family:var(--face-body);font-size:14px;line-height:1.43;padding-bottom:1px}
+.frame[dir=rtl]{font-family:"Noto Sans Arabic","Noto Sans",var(--face-body);line-height:1.63}
+.frame[dir=rtl] .disp{font-family:"Noto Naskh Arabic","Noto Sans Arabic",var(--face-display)}
+.frame p,.frame h1,.frame h2,.frame h3,.frame dl,.frame dd,.frame ol,.frame ul{margin:0}
+.frame ol,.frame ul{padding:0;list-style:none}
+.disp{font-family:var(--face-display);font-weight:400}
+.t-cap{font-size:12px;line-height:1.5}.t-label{font-size:14px;line-height:1.43}.t-body{font-size:16px;line-height:1.5}
+.t-title{font-size:20px;line-height:1.3}.t-heading{font-size:32px;line-height:1.2}.t-display{font-size:48px;line-height:1.1;letter-spacing:var(--tracking-display)}
+.frame[dir=rtl] .t-cap{line-height:1.7}.frame[dir=rtl] .t-label{line-height:1.63}.frame[dir=rtl] .t-body{line-height:1.7}
+.frame[dir=rtl] .t-title{line-height:1.5}.frame[dir=rtl] .t-heading{line-height:1.4}.frame[dir=rtl] .t-display{line-height:1.3;letter-spacing:0}
+.teal{color:var(--color-teal)}.muted{color:var(--color-muted)}.ink{color:var(--color-ink)}
+.kick{font-size:12px;line-height:1.5;text-transform:uppercase;letter-spacing:var(--tracking-kicker);color:var(--color-muted)}
+.frame[dir=rtl] .kick,.frame[dir=rtl] .up{text-transform:none;letter-spacing:0}
+.up{text-transform:uppercase;letter-spacing:var(--tracking-kicker)}
+.stack{display:flex;flex-direction:column}.g1{gap:4px}.g2{gap:8px}.g3{gap:12px}.g4{gap:16px}.g6{gap:24px}.g8{gap:32px}
+.row{display:flex;flex-wrap:wrap;align-items:center}.gx2{gap:8px}.gx3{gap:12px}.gx4{gap:16px}
+.start{align-items:flex-start}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.tab-num{font-variant-numeric:tabular-nums}
+svg.i{flex:none}
+/* buttons (components/ui/button.tsx) */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:100%;flex-shrink:0;height:var(--control);padding:0 24px;border:1px solid transparent;font:inherit;font-size:14px;line-height:1.43;cursor:pointer;background:transparent;text-decoration:none}
+.btn.lg{height:var(--action);padding:0 32px}
+.btn.full{width:100%}
+.btn-primary{background:var(--color-teal);color:var(--color-ivory);border-color:var(--color-teal)}
+.btn-secondary{background:transparent;color:var(--color-teal);border-color:var(--color-teal)}
+.btn-ghost{background:transparent;color:var(--color-teal);border-color:transparent;padding:0 16px}
+.btn:disabled,.btn.dis{background:var(--color-ivory);border-color:var(--color-line);color:var(--color-muted);cursor:default}
+.link{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-decoration-thickness:1px;text-underline-offset:4px;display:inline-flex;align-items:center;min-height:32px}
+/* nav (components/ui/nav.tsx; @6xl = 1152px) */
+.nav{position:relative;width:100%;border-bottom:1px solid var(--color-line);background:var(--color-ivory);color:var(--color-ink)}
+.navrow{display:flex;width:100%;align-items:center;gap:16px;padding:8px 12px}
+.logo{display:inline-flex;min-height:var(--control);align-items:center;color:var(--color-ink)}
+.logo svg{display:block;width:112px;height:auto;aspect-ratio:2845/2153}
+.menu{margin-inline-start:auto;display:inline-flex;height:var(--control);align-items:center;padding:0 16px;border:1px solid var(--color-muted);background:var(--color-surface);color:var(--color-ink);font:inherit;font-size:14px;text-transform:uppercase;letter-spacing:var(--tracking-kicker)}
+.frame[dir=rtl] .menu{text-transform:none;letter-spacing:0}
+.navfull{display:none}
+.nlink{display:inline-flex;min-height:var(--control);align-items:center;white-space:nowrap;padding:0 12px;font-size:12px;text-transform:uppercase;letter-spacing:var(--tracking-kicker);color:inherit;text-decoration:none}
+.frame[dir=rtl] .nlink{text-transform:none;letter-spacing:0}
+.sel{display:inline-flex;align-items:center;justify-content:space-between;gap:12px;height:var(--control);min-width:96px;padding:0 16px;border:1px solid var(--color-muted);background:var(--color-surface);font-size:12px;text-transform:uppercase;letter-spacing:var(--tracking-kicker);color:var(--color-ink)}
+.acct{display:inline-flex;height:var(--control);max-width:240px;align-items:center;gap:8px;border:1px solid var(--color-muted);background:var(--color-surface);padding-inline:16px 12px;font-size:14px}
+@container frame (min-width:1152px){
+  .navrow{gap:32px;padding:8px 24px}.logo svg{width:150px}.menu{display:none}
+  .navfull{display:flex;flex:1;align-items:center;gap:32px;min-width:0}
+  .navfull nav{display:flex;align-items:center;gap:12px}
+  .navfull .tools{display:flex;align-items:center;gap:16px;margin-inline-start:auto}
+  .navfull .tools .nlink{margin-inline-start:8px}
+}
+/* WhatsApp float (components/ui/whatsapp.tsx): drawn at the frame's bottom end */
+.wa{position:absolute;inset-inline-end:16px;bottom:16px;z-index:5;display:inline-flex;width:var(--control);height:var(--control);align-items:center;justify-content:center;background:var(--color-whatsapp);color:var(--color-ink)}
+.wa.dock{bottom:var(--dock)}
+@container frame (min-width:768px){.wa.dock{bottom:16px}}
+.footstub{margin-top:48px;border-top:1px solid var(--color-line);padding:16px;text-align:center;font-size:12px;color:var(--color-muted)}
+/* PageShell + TripLayout */
+.shell{width:100%;padding:48px 16px}
+.col{margin:0 auto;width:100%;max-width:var(--container-column)}
+.trip{display:flex;flex-direction:column;gap:24px}
+.rail{display:none;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--color-line)}
+.rail li{padding-bottom:16px;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--color-teal)}
+.rail li.cur{box-shadow:var(--shadow-rule-primary)}
+.mark{display:inline-flex;width:var(--mark);height:var(--mark);flex:none;align-items:center;justify-content:center}
+.mark.done{background:var(--color-teal);color:var(--color-ivory)}
+.mark.cur{border:1px solid var(--color-teal);color:var(--color-teal);font-size:12px}
+.prail{display:flex;flex-direction:column;gap:8px}
+.prail ol{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.prail li{height:3px;background:var(--color-teal)}
+.tcols{display:flex;flex-direction:column;gap:32px}
+.tmain{min-width:0;flex:1}
+.tcart{width:100%}
+@container frame (min-width:768px){
+  .shell{padding-inline:32px}
+  .rail{display:grid}.prail{display:none}
+  .tcols{flex-direction:row;align-items:flex-start}
+  .tcart{width:auto;flex-shrink:0}
+  .tcart .cart{width:var(--container-rail)}
+}
+/* journey-cart rail */
+.cart{background:var(--color-surface);border:1px solid var(--color-line);padding:24px;display:flex;flex-direction:column;gap:16px}
+.crow{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.crow.b{font-weight:700}
+.cline{display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:1px solid var(--color-line);font-size:14px;font-variant-numeric:tabular-nums}
+/* request-step + request-sent (planned) */
+.rs{container:rs / inline-size;display:flex;flex-direction:column;gap:24px}
+.band{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px;background:var(--color-teal-tint);padding:16px 24px;color:var(--color-teal)}
+.box{display:flex;flex-direction:column;gap:12px;border:1px solid var(--color-line);background:var(--color-surface);padding:16px}
+.rdl{display:grid;grid-template-columns:1fr;gap:12px}
+.rdl dt{font-size:12px;line-height:1.5;color:var(--color-muted)}
+.rdl dd{display:flex;flex-direction:column}
+.rdl dd.terms{flex-direction:row;align-items:center;gap:8px}
+.chk{display:inline-grid;width:20px;height:20px;flex:none;place-items:center;background:var(--color-teal);color:var(--color-ivory)}
+@container rs (min-width:512px){.rdl{grid-template-columns:repeat(3,1fr);column-gap:16px}.rdl dt{font-size:14px}.rdl dd{grid-column:span 2}.rdl dd.terms{grid-column:2 / span 2}}
+.next li{display:flex;gap:8px;border-inline-start:2px solid var(--color-gold);padding-inline-start:12px;font-size:16px;line-height:1.5}
+.frame[dir=rtl] .next li{line-height:1.7}
+.reason{display:flex;align-items:flex-start;gap:12px;border:1px solid var(--color-error);border-inline-start-width:4px;background:var(--color-surface);padding:12px 16px;font-size:14px;color:var(--color-ink)}
+.reason>svg{color:var(--color-error);margin-top:2px}
+.reason>span{display:flex;min-width:0;flex:1;flex-direction:column;align-items:flex-start}
+.busy{display:flex;align-items:center;gap:12px;background:var(--color-teal-tint);padding:16px;font-size:14px;color:var(--color-teal)}
+.busy i{display:inline-block;width:16px;height:16px;flex:none;border:1px solid var(--color-teal)}
+/* bookings list (planned) */
+.lmain{margin:0 auto;box-sizing:border-box;display:grid;width:100%;max-width:var(--container-column);justify-items:start;gap:24px;padding:48px 16px}
+@container frame (min-width:768px){.lmain{padding-inline:32px}}
+@container frame (min-width:1024px){.lmain{padding-inline:64px}}
+.startlink{display:inline-flex;height:var(--control);align-items:center;justify-content:center;border:1px solid var(--color-teal);padding:0 24px;color:var(--color-teal);text-decoration:none;text-transform:uppercase;letter-spacing:var(--tracking-kicker);font-size:14px}
+.frame[dir=rtl] .startlink{text-transform:none;letter-spacing:0}
+.tabs{display:flex;width:100%;gap:8px;border-bottom:1px solid var(--color-line)}
+.tab{display:inline-flex;height:var(--control);align-items:center;padding:0 12px;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;font:inherit;font-size:14px;color:var(--color-muted);text-transform:uppercase;letter-spacing:var(--tracking-kicker);cursor:pointer}
+.frame[dir=rtl] .tab{text-transform:none;letter-spacing:0}
+.tab[aria-selected=true]{color:var(--color-teal);border-bottom-color:var(--color-gold)}
+.panel{width:100%;display:flex;flex-direction:column;gap:16px}
+.gcard{display:grid;grid-template-columns:1fr;border:1px solid var(--color-line);background:var(--color-surface)}
+.gph{aspect-ratio:16/9}
+.photo{width:100%;height:100%;display:flex;align-items:flex-end;padding:8px 12px;background:linear-gradient(135deg,#3d5a5e 0%,#1f3b40 55%,#262626 100%);color:var(--color-ivory);font-size:12px}
+.tint{width:100%;height:100%;background:var(--color-teal-tint)}
+.gbody{display:flex;flex-direction:column;gap:8px;padding:16px;min-width:0}
+.schip{display:inline-flex;align-items:center;height:var(--chip-dense);padding:0 8px;border:1px solid var(--color-teal);color:var(--color-teal);font-size:12px;white-space:nowrap}
+.gm{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;font-size:14px;font-variant-numeric:tabular-nums;padding-top:8px;border-top:1px solid var(--color-line)}
+.gm dt{color:var(--color-muted)}
+.gm .nd{grid-column:1 / -1;color:var(--color-ink)}
+.gact{padding-top:8px}
+@container frame (min-width:768px){.gcard{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}.gph{aspect-ratio:auto;min-height:100%}}
+/* sign-in page (app/[locale]/login: AuthFrame + SignInScreen) */
+.auth{display:flex;flex-direction:column;min-height:780px;background:var(--color-ivory)}
+.aimg{position:relative;height:320px;flex:none;overflow:hidden;background:linear-gradient(160deg,#3d5a5e 0%,#1f3b40 60%,#262626 100%)}
+.aimg .ov{position:absolute;inset:0;background:rgb(38 38 38 / .3)}
+.aimg .top{position:absolute;inset-inline:16px;top:16px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.aimg .top .logo{color:var(--color-ivory)}
+.aimg .top .sel{background:transparent;color:var(--color-ivory);border-color:rgb(255 250 240 / .7)}
+.aimg .ph{position:absolute;inset-inline-end:16px;top:72px;font-size:12px;color:var(--color-ivory);opacity:.8}
+.aimg .brand{position:absolute;inset-inline:16px;bottom:24px;display:grid;gap:12px;color:var(--color-ivory)}
+.amain{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:48px;padding:32px 16px}
+.amain .lgrow{display:none;align-items:center;justify-content:space-between;gap:16px}
+.aform{display:grid;width:100%;max-width:432px;gap:24px}
+.field{display:grid;gap:8px}
+.inp{display:block;width:100%;min-height:var(--control);border:1px solid var(--color-ink);background:var(--color-surface);padding:8px 16px;font:inherit;font-size:14px;color:var(--color-muted);direction:ltr;text-align:left}
+.goldrule{display:block;width:40px;border-top:1px solid var(--color-gold)}
+@container frame (min-width:768px){.aimg{height:384px}.aimg .top{inset-inline:32px;top:24px}.aimg .brand{inset-inline:32px;bottom:32px}.amain{padding-inline:32px}}
+@container frame (min-width:1024px){
+  .auth{flex-direction:row}
+  .aimg{order:2;margin:16px;height:auto;flex:1}.aimg .top{display:none}.aimg .brand{inset-inline:48px;bottom:48px}.aimg .ph{top:16px}
+  .amain{order:1;width:560px;flex:none;padding-inline:64px}
+  .amain .lgrow{display:flex}.amain .lgrow .logo svg{width:150px}
+}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="almar-logo" viewBox="0 0 2845 2153" fill="currentColor"><path d="M0-78.725a877 877 0 0 0-13.498 23.026c-3.613 6.312-7.106 12.704-10.56 19.135a1145 1145 0 0 0-13.101 25.051 1797 1797 0 0 0-14.372 29.021C-56.97 28.783-62.329 40.137-67.728 51.61c-.516-29.616-3.215-58.24-13.776-90.159 7.345-8.654 14.808-17.547 22.391-26.519 4.724-5.558 9.448-11.156 14.292-16.714a242 242 0 0 1 3.056-3.573A861 861 0 0 1-30.37-98.297a955 955 0 0 1 16.078-17.547C-3.771-127 7.106-137.878 18.421-148.081a359 359 0 0 1 16.197-14.014c7.027-5.717 14.213-11.195 21.557-16.317 13.618-9.448 27.831-17.706 42.718-24.296-15.722 14.49-30.132 29.815-43.512 45.774-7.979 9.488-15.562 19.215-22.827 29.18l-4.287 5.955C18.302-107.825 8.932-93.454 0-78.725m-90.556 174.64c-32.156-2.302-59.986-13.339-84.679-30.846 31.799-31.125 58.478-60.503 87.974-96.313 15.92 38.271 20.486 93.057-3.295 127.159m-90.476-35.531c-64.949-50.816-98.297-176.903-37-208.187 54.269-27.711 108.143 45.417 129.343 106.872-29.696 37.239-57.645 70.627-92.343 101.315m414.786 33.268c-1.549-4.247-3.176-8.813-3.176-13.895v-257.93c0-6.313 1.31-11.791 2.977-17.31 4.605-15.602 20.525-19.611 36.365-19.056l-.079-9.051-65.862 1.826-33.07.635c-.794 6.471-1.866 11.99-3.851 17.984l-21.636 64.552-44.386 122.872-15.522 42.916c-.119.555-1.35.278-.953-1.112C80.71 15.96 76.86 5.876 73.009-4.248c-8.338-21.914-16.675-43.829-25.051-65.783-4.724-12.426-9.489-24.931-14.253-37.437a654 654 0 0 1 21.002-32.395c2.501-3.573 5.002-7.186 7.543-10.719 20.366-28.504 44.702-49.744 72.69-71.976-28.703 7.98-54.587 20.882-78.487 36.961a341 341 0 0 0-21.318 15.602c-6.472 5.081-12.783 10.401-18.977 15.88-3.335-9.091-6.63-18.143-9.845-27.234a6550 6550 0 0 0-10.521-29.577c-1.35-3.851-2.74-7.662-4.129-11.513-18.143 1.39-35.333 2.025-52.88.913l-37.477-2.382-.039 9.528c0-1.826 15.88.993 17.308 1.429 5.559 1.707 9.925 4.685 14.769 7.662 24.098 14.809 33.824 41.447 43.511 66.458l6.352 16.515c-5.518 5.678-10.918 11.474-16.237 17.349a1084 1084 0 0 0-11.195 12.466c-.557.635-1.152 1.271-1.707 1.945a1068 1068 0 0 0-14.015 16.119c-8.178 9.488-16.197 19.016-24.177 28.385-14.173-38.271-33.348-72.175-63.957-96.272-25.249-19.89-57.525-23.026-84.085-5.161-16.356 14.371-26.202 34.459-27.075 56.969-2.302 60.662 25.329 115.567 73.246 155.981-43.788 39.224-99.368 72.294-156.695 71.143-33.983.953-53.715-26.282-47.838-39.224 4.803-10.362 14.49-11.235 18.102-21.557.834-2.461-2.739-8.813-5.279-8.337-2.581.477-10.521 3.375-12.467 5.241-10.361 10.004-10.639 30.489-3.453 44.384 14.213 27.592 52.92 28.068 88.134 21.001 48.394-9.686 87.459-36.603 125.055-69.157 26.083 18.58 53.317 29.735 86.665 31.681l-5.201 15.363c16.753 4.01 24.932-3.056 29.1-15.046 8.456-1.826 17.031-4.406 25.289-7.781 5.717-2.342 11.315-5.002 16.634-8.099C-13.101 76.581-.08 65.148 8.853 50.498a81.4 81.4 0 0 0 8.139-17.547L6.709 44.941-7.702 61.773c-6.193 7.186-13.061 13.221-20.723 18.064a88.7 88.7 0 0 1-16.635 8.178c-6.59 2.422-13.656 4.208-21.239 5.24l18.262-37.754 14.57-30.132 18.341-38.033 10.243-21.2L7.345-59.232c.04-.04.04-.119.079-.159l4.287 11.116 29.697 76.581 17.706 45.139 13.259 36.524L111.081.913l29.219-79.4 17.825-49.466 22.153-62.845c2.541 16.356 2.342 31.76 2.739 47.799l.754 30.608.557 37.954.595 148.676c.079 15.84-5.36 31.919-21.756 32.753l-18.857.952.04 9.925 125.53-.119.04-10.123c-14.49-.119-31.084-.318-36.166-13.975" fill-rule="nonzero" transform="translate(1660.64 932.95)scale(4.16667)"/><path d="M0 16.957h23.423L11.101-14.761zm-25.985 28.058h10.37l27.57-77.465H17.2l29.766 77.465h9.394v4.392H24.276v-4.392H34.28l-9.027-23.301H-1.709l-8.295 23.301H0v4.392h-25.985z" fill-rule="nonzero" transform="translate(579.523 1718.007)scale(4.16667)"/><path d="M0 71.123c4.88 0 6.588-.61 11.589-21.105h3.903s-.974 13.053-.853 19.519v6.343h-61.971v-4.391h12.076V-.365h-12.076v-4.392h36.108v4.392H-23.3v71.488z" fill-rule="nonzero" transform="translate(1181.346 1607.702)scale(4.16667)"/><path d="M0 71.853h12.076V0H0v-4.392h27.57l21.836 62.826L71.975-4.392h27.083V0H86.98v71.853h12.078v4.392h-36.11v-4.392h12.077V2.44L48.553 76.245h-5.247L17.322 2.927v68.926H29.4v4.392H0z" fill-rule="nonzero" transform="translate(1437.522 1606.183)scale(4.16667)"/><path d="M0 16.957h23.423L11.101-14.761zm-25.985 28.058h10.37l27.57-77.465H17.2l29.766 77.465h9.394v4.392H24.276v-4.392H34.28l-9.027-23.301H-1.709l-8.295 23.301H0v4.392h-25.985z" fill-rule="nonzero" transform="translate(2128.803 1718.007)scale(4.16667)"/><path d="M0-5.611c11.711 0 15.738-5.368 15.738-16.103 0-11.468-3.783-17.202-15.738-17.202h-10.002v33.305zm-34.035 38.183h12.076v-71.853h-12.076v-4.392H-.244c20.862 0 28.669 8.174 28.669 20.861 0 8.783-4.636 16.591-17.69 19.518v.489c8.906 2.561 15.371 9.149 15.738 21.836.122 6.1.976 12.931 5.611 12.931 2.684 0 4.88-4.391 4.88-4.391l3.783 2.074s-2.929 8.417-12.322 8.417c-10.126 0-14.64-8.905-14.884-20.86C13.298 4.026 7.198-.854.854-.854h-10.856v33.426H1.953v4.392h-35.988z" fill-rule="nonzero" transform="translate(2675.22 1769.853)scale(4.16667)"/><path d="M0 15.734h2.645V0H0v-.962h6.972c5.316 0 6.972 2.244 6.972 5.049 0 3.393-2.351 5.61-6.011 5.61-.587 0-.988-.053-.988-.053v-.989s.374.053.801.053c2.512 0 3.393-1.87 3.393-4.541 0-2.591-.881-4.087-4.194-4.087H5.262v15.654h2.885v.962H0z" fill-rule="nonzero" transform="translate(927.583 2066.75)scale(4.16667)"/><path d="M0-1.228c2.564 0 3.446-1.175 3.446-3.526 0-2.511-.828-3.767-3.446-3.767h-2.19v7.293zm-7.452 8.361h2.644V-8.601h-2.644v-.962h7.399c4.568 0 6.278 1.79 6.278 4.568 0 1.924-1.016 3.633-3.874 4.274v.107c1.95.561 3.365 2.004 3.446 4.782.026 1.335.213 2.831 1.229 2.831.587 0 1.068-.961 1.068-.961l.828.454s-.641 1.843-2.697 1.843c-2.218 0-3.206-1.95-3.26-4.568C2.912.882 1.577-.186.187-.186H-2.19v7.319H.428v.962h-7.88z" fill-rule="nonzero" transform="translate(1058.786 2102.586)scale(4.16667)"/><path d="M0 15.734h2.645V0H0v-.962h7.907V0H5.262v15.734h2.645v.962H0z" fill-rule="nonzero" transform="translate(1135.225 2066.75)scale(4.16667)"/><path d="M0-17.925h5.583v.962h-2.19L-2.645 0h-1.148l-6.598-16.963h-2.351v-.962h7.293v.962h-2.218l5.103 13.249 4.728-13.249H0z" fill-rule="nonzero" transform="translate(1257.195 2137.43)scale(4.16667)"/><path d="M0 3.712h5.129L2.431-3.233zm-5.69 6.144h2.271L2.618-7.106h1.149l6.518 16.962h2.056v.962H5.316v-.962h2.19L5.529 4.754H-.374L-2.19 9.856H0v.962h-5.69z" fill-rule="nonzero" transform="translate(1329.738 2091.24)scale(4.16667)"/><path d="M0 15.734h2.644V.08H-.695c-1.069 0-1.389.107-2.484 4.354h-.882S-3.9 1.736-3.9.427V-.962h16.001l-.348 5.396h-.801l-.641-2.591C9.884.133 9.697.08 9.001.08H5.262v15.654h2.645v.962H0z" fill-rule="nonzero" transform="translate(1428.445 2066.75)scale(4.16667)"/><path d="M0 15.734h2.645V0H0v-.962h14.238l-1.069 5.396h-.801l-.187-3.285C12.127.16 11.994.08 11.38.08H5.262v7.346h4.141V5.075h1.149v6.011H9.403V8.468H5.262v7.186h5.529c1.07 0 1.443-.134 2.538-4.621h.855s-.213 2.858-.187 4.274v1.389H0z" fill-rule="nonzero" transform="translate(1520.244 2066.75)scale(4.16667)"/><path d="M0 6.198v-13.09h-2.645v-.961h7.907v.961H2.618v13.33c0 3.553-1.416 7.613-6.972 7.347v-.989C-.133 13.01 0 9.644 0 6.198" fill-rule="nonzero" transform="translate(1695.17 2095.463)scale(4.16667)"/><path d="M0 .026c0-4.728-.721-8.254-5.155-8.254-4.461 0-5.182 3.766-5.182 8.254 0 4.675.721 8.228 5.182 8.228C-.801 8.254 0 4.327 0 .026M-5.182-9.19c5.61 0 8.041 3.286 8.041 8.922 0 5.503-2.244 9.484-8.041 9.484-5.983 0-8.014-3.74-8.014-9.484 0-5.075 2.244-8.922 8.014-8.922" fill-rule="nonzero" transform="translate(1815.027 2099.474)scale(4.16667)"/><path d="M0-16.108h-2.645v-.962h7.933v.962H2.645v9.43c0 4.701 1.201 6.624 4.861 6.624 3.579 0 5.182-2.083 5.182-6.01v-10.044h-2.645v-.962h6.545v.962h-2.644V-6.01c0 3.98-1.737 6.972-6.438 6.972C1.71.962-.027-1.87 0-6.678z" fill-rule="nonzero" transform="translate(1880.34 2133.865)scale(4.16667)"/><path d="M0-1.228c2.564 0 3.446-1.175 3.446-3.526 0-2.511-.828-3.767-3.446-3.767h-2.19v7.293zm-7.452 8.361h2.644V-8.601h-2.644v-.962h7.399c4.568 0 6.278 1.79 6.278 4.568 0 1.924-1.016 3.633-3.874 4.274v.107C4.3-.053 5.716 1.39 5.797 4.168c.026 1.335.213 2.831 1.229 2.831.587 0 1.068-.961 1.068-.961l.828.454s-.641 1.843-2.697 1.843c-2.218 0-3.206-1.95-3.26-4.568C2.912.882 1.576-.186.187-.186H-2.19v7.319H.428v.962h-7.88z" fill-rule="nonzero" transform="translate(2021.55 2102.586)scale(4.16667)"/><path d="M0 15.601h2.645V.534c-.561-.56-.909-.667-2.378-.667h-.802v-.962h5.209l10.045 13.383V-.133h-2.645v-.962h6.438v.962h-2.645v16.829h-1.148L3.793 2.084v13.517h2.645v.962H0z" fill-rule="nonzero" transform="translate(2098.883 2067.304)scale(4.16667)"/><path d="M0 15.734h2.645V0H0v-.962h14.238l-1.069 5.396h-.801l-.187-3.285C12.127.16 11.994.08 11.379.08H5.262v7.346h4.141V5.075h1.149v6.011H9.403V8.468H5.262v7.186h5.529c1.07 0 1.444-.134 2.538-4.621h.855s-.213 2.858-.187 4.274v1.389H0z" fill-rule="nonzero" transform="translate(2218.058 2066.75)scale(4.16667)"/><path d="M0 15.734h2.645V9.296L-2.778 0h-2.351v-.962h7.506V0H.161l4.567 7.854L9.029 0H6.732v-.962h5.663V0h-2.083L5.263 9.189v6.545h2.645v.962H0z" fill-rule="nonzero" transform="translate(2337.017 2066.75)scale(4.16667)"/></symbol></svg>
+<header id="top"><h1>ALMAR 04-06 &middot; after the request, and the bookings list</h1>
+<div class="grp"><span class="l">Language</span><button data-loc="en">EN</button><button data-loc="ar">AR</button><button data-loc="es">ES</button></div>
+<div class="grp"><span class="l">Width</span><button data-w="390">390</button><button data-w="834">834</button><button data-w="1440">1440</button></div>
+<div id="misslist"></div></header>
+<div id="wrap"><nav id="index" aria-label="States"></nav><main id="main"></main></div>
+<script>
+/* ALMAR 04-06 pictures (owner rule: no shoot, one HTML page). Every visible product string is read from D, a verbatim
+   dump (node + jiti, at build time) of JOURNEY_COPY (afterRequest, bookingStatus, request, reasons, trip, steps, cart,
+   summary), GUEST_BOOKINGS_COPY, GUEST_COPY and HOME_COPY.nav. Data is symbolic only: AED [AMOUNT], [DD/MM/YYYY],
+   [HH:MM], [Stay name], [Destination], references like ALMAR-7K3QH9. Nothing here is wired. A string that does not
+   exist shows a red MISSING COPY box. */
+const D = {"en":{"afterRequest":{"heading":"Request sent","lead":"Nothing was charged on the site. Your stay is held while you pay by bank transfer.","referenceLabel":"Your reference","referenceHint":"Put it on your bank transfer.","planDeposit":"Deposit","planFull":"Full payment","dueNow":"Due now","amountOnPage":"The amount due is on your booking page.","emailSent":"We emailed you the bank details.","emailPage":"The bank details are on your booking page.","lapse":"If no payment has reached us by then, the request lapses and the nights are released.","open":"Open your booking page","help":"You can withdraw this request on your booking page until a payment is recorded. To change it, message us on WhatsApp.","retryNote":"Sending again is safe: you will not be booked twice.","checking":"Checking your booking…","checkAgain":"Check again","elsewhereTitle":"This request has moved on","elsewhere":"Your booking page shows where it stands."},"bookingStatus":{"held":"Not sent yet","awaiting_payment":"Awaiting payment","deposit_paid":"Deposit paid","paid_in_full":"Paid in full","confirmed":"Confirmed","completed":"Completed","cancelled":"Cancelled","expired":"Request lapsed","payBy":"Pay by {date}, {time} UAE time"},"list":{"tabsLabel":"Your bookings","upcoming":"Upcoming","past":"Past","cancelled":"Cancelled","reference":"Reference","total":"Total","paid":"Paid","stillDue":"Still due","nothingDue":"Nothing left to pay","emptyUpcoming":"No upcoming trips.","emptyPast":"No past trips.","emptyCancelled":"Nothing cancelled.","loadFailed":"We could not load your bookings. Try again in a moment.","tryAgain":"Try again","viewTrip":"View trip"},"trip":{"title":"Your trip","stepTitle":{"stay":"Your stay","addons":"Add-ons","travellers":"Travellers","request":"Request"}},"steps":{"label":"Booking steps","stay":"Stay","addons":"Add-ons","travelers":"Travellers","pay":"Request","change":"Change","phone":"Step {n} of 4 · {name}"},"request":{"send":"Send request","heldTitle":"Your dates are held","heldFor":"Held for {time}","change":"Change","paymentHeading":"Payment","deposit":"Deposit","full":"Full payment","depositDetail":"Pay {now} first · {balance} by {date}","fullDetail":"Pay {now} in one transfer","airportHeading":"UAE airport","airports":{"DXB":"Dubai · DXB","AUH":"Abu Dhabi · AUH","SHJ":"Sharjah · SHJ"},"returnSame":"Your return leaves from the same airport.","terms":"I accept the [Booking terms]","nextHeading":"What happens next","nextSend":"Send your request. Nothing is charged on this site.","nextEmail":"We email you the bank details at once; they are on your booking page too.","nextTransfer":"Transfer {amount} in AED within {window}, with {ref} as the payment reference. All transfer fees are paid by you, the sender.","nextReceipt":"Reply to that email with your bank receipt. We confirm your booking when the money arrives.","nextWithdraw":"Until a payment is recorded, you can withdraw your request on your booking page. To change it, message us on WhatsApp.","window":{"minute":{"one":"# minute","other":"# minutes"},"hour":{"one":"# hour","other":"# hours"},"day":{"one":"# day","other":"# days"}}},"reasons":{"requests_closed":"Requests are closed for now. Message us on WhatsApp and we will book it with you.","unavailable":"Something went wrong on our side. Try again, or message us on WhatsApp.","actions":{"backToStay":"Back to the stay","whatsapp":"Message us on WhatsApp","startAgain":"Start again from the stay"}},"summary":{"secondCity":"Another destination too? Ask us on WhatsApp"},"cart":{"kicker":"Your journey · {destination}","stay":{"one":"Stay · # night","other":"Stay · # nights"},"addons":{"one":"# add-on","other":"# add-ons"},"subtotal":"Subtotal","vat":"VAT [RATE]%","total":"Total","note":"Nothing is charged on this site. Your dates are held for 30 minutes once you continue from Travellers. At step 4 you choose a deposit or the full amount and send your request; you pay by bank transfer.","payFirst":"Due first (deposit)","balanceBy":"Balance by {date}","payFull":"Due (full amount)"},"nav":{"destinations":"Destinations","experiences":"Experiences","about":"About","contact":"Contact","currency":"Currency","language":"Language","login":"Login","account":"Account","menu":"Menu","close":"Close menu"},"guest":{"bookings":"Bookings","noBookingsYet":"No bookings yet","startATrip":"Start a trip","account":"Account","email":"Email","accessWithMagicLink":"Access with magic link","auth":{"heading":"Sign in or create an account","lead":"We email you a one-time link. No password to remember.","kickerPublic":"Your account","linkNote":"The link works once, for one hour.","newHere":"New here? Your account is created the first time you use the link.","tagline":"Colombia, Privately Yours"}}},"ar":{"afterRequest":{"heading":"تم إرسال الطلب","lead":"لم يُخصم أي مبلغ على الموقع. إقامتك محجوزة لك ريثما تدفع عبر حوالة بنكية.","referenceLabel":"رقمك المرجعي","referenceHint":"اكتبه في حوالتك البنكية.","planDeposit":"عربون","planFull":"الدفع الكامل","dueNow":"المستحق الآن","amountOnPage":"تجد المبلغ المستحق في صفحة حجزك.","emailSent":"أرسلنا إليك بيانات الحساب البنكي بالبريد الإلكتروني.","emailPage":"تجد بيانات الحساب البنكي في صفحة حجزك.","lapse":"إذا لم يصلنا أي دفع بحلول ذلك الموعد، تنتهي مهلة الطلب وتُتاح الليالي من جديد.","open":"افتح صفحة حجزك","help":"يمكنك سحب هذا الطلب من صفحة حجزك ما دام لم يُسجَّل أي دفع. لتعديله، راسلنا عبر واتساب.","retryNote":"الإرسال مرة أخرى آمن: لن يُحجز لك مرتين.","checking":"جارٍ التحقق من حجزك…","checkAgain":"تحقّق مرة أخرى","elsewhereTitle":"انتقل هذا الطلب إلى مرحلة أخرى","elsewhere":"توضّح صفحة حجزك أين وصل الطلب."},"bookingStatus":{"held":"لم يُرسَل بعد","awaiting_payment":"بانتظار الدفع","deposit_paid":"دُفعت الدفعة المقدّمة","paid_in_full":"مدفوع بالكامل","confirmed":"مؤكد","completed":"مكتمل","cancelled":"ملغى","expired":"انتهت مهلة الطلب","payBy":"ادفع في موعد أقصاه {date}، {time} بتوقيت الإمارات"},"list":{"tabsLabel":"حجوزاتك","upcoming":"القادمة","past":"السابقة","cancelled":"الملغاة","reference":"المرجع","total":"الإجمالي","paid":"المدفوع","stillDue":"المتبقي للدفع","nothingDue":"لا يوجد مبلغ متبقٍ للدفع","emptyUpcoming":"لا توجد رحلات قادمة.","emptyPast":"لا توجد رحلات سابقة.","emptyCancelled":"لا توجد حجوزات ملغاة.","loadFailed":"تعذّر علينا تحميل حجوزاتك. حاول مرة أخرى بعد قليل.","tryAgain":"حاول مرة أخرى","viewTrip":"عرض الرحلة"},"trip":{"title":"رحلتك","stepTitle":{"stay":"إقامتك","addons":"الإضافات","travellers":"المسافرون","request":"الطلب"}},"steps":{"label":"خطوات الحجز","stay":"الإقامة","addons":"الإضافات","travelers":"المسافرون","pay":"الطلب","change":"تغيير","phone":"الخطوة {n} من 4 · {name}"},"request":{"send":"إرسال الطلب","heldTitle":"تواريخك محجوزة","heldFor":"محجوزة لمدة {time}","change":"تغيير","paymentHeading":"الدفع","deposit":"عربون","full":"الدفع الكامل","depositDetail":"ادفع {now} أولًا · والرصيد {balance} بحلول {date}","fullDetail":"ادفع {now} في حوالة واحدة","airportHeading":"مطار الإمارات","airports":{"DXB":"دبي · DXB","AUH":"أبوظبي · AUH","SHJ":"الشارقة · SHJ"},"returnSame":"رحلة عودتك تغادر من المطار نفسه.","terms":"أوافق على [Booking terms]","nextHeading":"ما الذي سيحدث بعد ذلك","nextSend":"أرسل طلبك. لا يُخصم أي مبلغ على هذا الموقع.","nextEmail":"نرسل إليك بيانات الحساب البنكي بالبريد فورًا، وتجدها أيضًا في صفحة حجزك.","nextTransfer":"حوّل {amount} بالدرهم الإماراتي خلال {window}، واكتب {ref} مرجعًا للحوالة. يتحمّل المرسل، أي أنت، جميع رسوم التحويل.","nextReceipt":"ردّ على ذلك البريد وأرفق إيصال التحويل البنكي. نؤكد حجزك عند وصول المبلغ.","nextWithdraw":"ما دام لم يُسجَّل أي دفع، يمكنك سحب طلبك من صفحة حجزك. لتعديله، راسلنا عبر واتساب.","window":{"minute":{"zero":"# دقيقة","one":"دقيقة واحدة","two":"دقيقتين","few":"# دقائق","many":"# دقيقة","other":"# دقيقة"},"hour":{"zero":"# ساعة","one":"ساعة واحدة","two":"ساعتين","few":"# ساعات","many":"# ساعة","other":"# ساعة"},"day":{"zero":"# يوم","one":"يوم واحد","two":"يومين","few":"# أيام","many":"# يومًا","other":"# يوم"}}},"reasons":{"requests_closed":"الطلبات مغلقة حاليًا. راسلنا عبر واتساب وسنتولى الحجز معك.","unavailable":"حدث خطأ من جانبنا. حاول مرة أخرى أو راسلنا عبر واتساب.","actions":{"backToStay":"العودة إلى الإقامة","whatsapp":"راسلنا عبر واتساب","startAgain":"ابدأ من جديد من صفحة الإقامة"}},"summary":{"secondCity":"وجهة أخرى أيضًا؟ اسألنا عبر واتساب"},"cart":{"kicker":"رحلتك · {destination}","stay":{"zero":"الإقامة · # ليلة","one":"الإقامة · ليلة واحدة","two":"الإقامة · ليلتان","few":"الإقامة · # ليالٍ","many":"الإقامة · # ليلة","other":"الإقامة · # ليلة"},"addons":{"zero":"# إضافة","one":"إضافة واحدة","two":"إضافتان","few":"# إضافات","many":"# إضافة","other":"# إضافة"},"subtotal":"المجموع الفرعي","vat":"ضريبة القيمة المضافة [RATE]%","total":"الإجمالي","note":"لا يُخصم أي مبلغ على هذا الموقع. تبقى تواريخك محجوزة لمدة 30 دقيقة عند المتابعة من المسافرين. في الخطوة 4 تختار العربون أو المبلغ كاملًا وترسل طلبك، ثم تدفع بحوالة بنكية.","payFirst":"المستحق أولًا (العربون)","balanceBy":"الرصيد بحلول {date}","payFull":"المستحق (المبلغ كاملًا)"},"nav":{"destinations":"الوجهات","experiences":"التجارب","about":"عنّا","contact":"تواصل","currency":"العملة","language":"اللغة","login":"دخول","account":"الحساب","menu":"القائمة","close":"إغلاق القائمة"},"guest":{"bookings":"الحجوزات","noBookingsYet":"لا حجوزات بعد","startATrip":"ابدأ رحلة","account":"الحساب","email":"البريد الإلكتروني","accessWithMagicLink":"الدخول برابط سحري","auth":{"heading":"سجّل الدخول أو أنشئ حسابًا","lead":"نرسل إليك رابطًا لمرة واحدة. لا كلمة مرور لتتذكرها.","kickerPublic":"حسابك","linkNote":"يعمل الرابط مرة واحدة، لمدة ساعة.","newHere":"جديد هنا؟ يُنشأ حسابك عند أول استخدام للرابط.","tagline":"كولومبيا، لكم بخصوصية"}}},"es":{"afterRequest":{"heading":"Solicitud enviada","lead":"No se cobró nada en el sitio. Tu estancia queda reservada mientras pagas por transferencia bancaria.","referenceLabel":"Tu referencia","referenceHint":"Escríbela en tu transferencia bancaria.","planDeposit":"Depósito","planFull":"Pago total","dueNow":"A pagar ahora","amountOnPage":"El monto a pagar está en la página de tu reserva.","emailSent":"Te enviamos los datos bancarios por correo.","emailPage":"Los datos bancarios están en la página de tu reserva.","lapse":"Si no recibimos ningún pago para entonces, la solicitud vence y las noches se liberan.","open":"Abrir la página de tu reserva","help":"Puedes retirar esta solicitud en la página de tu reserva mientras no se registre un pago. Para cambiarla, escríbenos por WhatsApp.","retryNote":"Enviar de nuevo es seguro: tu reserva no se duplicará.","checking":"Revisando tu reserva…","checkAgain":"Revisar de nuevo","elsewhereTitle":"Esta solicitud ya avanzó","elsewhere":"La página de tu reserva muestra en qué estado está."},"bookingStatus":{"held":"Sin enviar","awaiting_payment":"Pendiente de pago","deposit_paid":"Depósito pagado","paid_in_full":"Pagado en su totalidad","confirmed":"Confirmado","completed":"Completado","cancelled":"Cancelado","expired":"Solicitud vencida","payBy":"Paga a más tardar el {date}, {time}, hora de los EAU"},"list":{"tabsLabel":"Tus reservas","upcoming":"Próximos","past":"Pasados","cancelled":"Cancelados","reference":"Referencia","total":"Total","paid":"Pagado","stillDue":"Por pagar","nothingDue":"No queda nada por pagar","emptyUpcoming":"No hay viajes próximos.","emptyPast":"No hay viajes pasados.","emptyCancelled":"No hay nada cancelado.","loadFailed":"No pudimos cargar tus reservas. Inténtalo de nuevo en un momento.","tryAgain":"Intentar de nuevo","viewTrip":"Ver viaje"},"trip":{"title":"Tu viaje","stepTitle":{"stay":"Tu estancia","addons":"Extras","travellers":"Viajeros","request":"Solicitud"}},"steps":{"label":"Pasos de la reserva","stay":"Estancia","addons":"Extras","travelers":"Viajeros","pay":"Solicitud","change":"Cambiar","phone":"Paso {n} de 4 · {name}"},"request":{"send":"Enviar solicitud","heldTitle":"Tus fechas están reservadas","heldFor":"Reservadas por {time}","change":"Cambiar","paymentHeading":"Pago","deposit":"Depósito","full":"Pago total","depositDetail":"Paga {now} primero · {balance} antes del {date}","fullDetail":"Paga {now} en una sola transferencia","airportHeading":"Aeropuerto de los EAU","airports":{"DXB":"Dubái · DXB","AUH":"Abu Dabi · AUH","SHJ":"Sharjah · SHJ"},"returnSame":"Tu regreso sale del mismo aeropuerto.","terms":"Acepto los [Booking terms]","nextHeading":"Qué sigue","nextSend":"Envía tu solicitud. No se cobra nada en este sitio.","nextEmail":"Te enviamos los datos bancarios por correo de inmediato; también están en la página de tu reserva.","nextTransfer":"Transfiere {amount} en AED dentro de {window}, con {ref} como referencia del pago. Todas las comisiones de la transferencia las paga quien envía, es decir, tú.","nextReceipt":"Responde a ese correo con tu comprobante bancario. Confirmamos tu reserva cuando llegue el dinero.","nextWithdraw":"Mientras no se registre un pago, puedes retirar tu solicitud en la página de tu reserva. Para cambiarla, escríbenos por WhatsApp.","window":{"minute":{"one":"# minuto","other":"# minutos"},"hour":{"one":"# hora","other":"# horas"},"day":{"one":"# día","other":"# días"}}},"reasons":{"requests_closed":"Las solicitudes están cerradas por ahora. Escríbenos por WhatsApp y hacemos la reserva contigo.","unavailable":"Algo salió mal de nuestro lado. Inténtalo de nuevo o escríbenos por WhatsApp.","actions":{"backToStay":"Volver a la estancia","whatsapp":"Escríbenos por WhatsApp","startAgain":"Empezar de nuevo desde la estancia"}},"summary":{"secondCity":"¿Otro destino también? Pregúntanos por WhatsApp"},"cart":{"kicker":"Tu viaje · {destination}","stay":{"one":"Estancia · # noche","other":"Estancia · # noches"},"addons":{"one":"# extra","other":"# extras"},"subtotal":"Subtotal","vat":"IVA [RATE]%","total":"Total","note":"No se cobra nada en este sitio. Tus fechas quedan reservadas por 30 minutos cuando continúas desde Viajeros. En el paso 4 eliges un depósito o el monto total y envías tu solicitud; pagas por transferencia bancaria.","payFirst":"A pagar primero (depósito)","balanceBy":"Saldo antes del {date}","payFull":"A pagar (monto total)"},"nav":{"destinations":"Destinos","experiences":"Experiencias","about":"Nosotros","contact":"Contacto","currency":"Moneda","language":"Idioma","login":"Entrar","account":"Cuenta","menu":"Menú","close":"Cerrar menú"},"guest":{"bookings":"Reservas","noBookingsYet":"Aún no hay reservas","startATrip":"Empezar un viaje","account":"Cuenta","email":"Correo electrónico","accessWithMagicLink":"Acceder con enlace mágico","auth":{"heading":"Inicia sesión o crea una cuenta","lead":"Te enviamos un enlace de un solo uso. Sin contraseña que recordar.","kickerPublic":"Tu cuenta","linkNote":"El enlace funciona una vez, durante una hora.","newHere":"¿Primera vez? Tu cuenta se crea la primera vez que usas el enlace.","tagline":"Colombia, en privado"}}}};
+const LOCS = ["en", "ar", "es"];
+let LOC = "en", WIDTH = 1440;
+const MISSING = new Set();
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fill = (s, o) => s.replace(/\{(\w+)\}/g, (m, k) => (k in o ? o[k] : m));
+const get = (root, path) => path.split(".").reduce((a, k) => (a == null ? a : a[k]), root);
+const missBox = (p) => { MISSING.add(p); return `<span class="miss">MISSING COPY: ${esc(p)}</span>`; };
+const t = (p) => { const v = get(D[LOC], p); return typeof v === "string" && v.trim() ? esc(v) : missBox(p); };
+/* plural forms with a symbolic count: the "other" form, # replaced by [N] */
+const pl = (p) => { const v = get(D[LOC], p); return v && typeof v.other === "string" ? esc(v.other).replace(/#/g, "[N]") : missBox(p); };
+const B = (x) => `<bdi dir="ltr">${x}</bdi>`;
+const AMT = "AED [AMOUNT]", DATE = "[DD/MM/YYYY]", TIME = "[HH:MM]", RANGE = "[DD/MM/YYYY] – [DD/MM/YYYY]";
+const STAY = "[Stay name]", PLACE = "[Destination]", REF = "ALMAR-7K3QH9";
+const WA_URL = "https://wa.me/971563883302";
+const payBy = () => fill(t("bookingStatus.payBy"), { date: B(DATE), time: B(TIME) });
+
+const IC = {
+  check: '<svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5.5 12.5 10 17 18.5 7.5"/></svg>',
+  alert: '<svg class="i" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.5M12 15.8v.7"/></svg>',
+  down: '<svg class="i" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" style="transform:rotate(90deg)"><path d="M9 6.5 14.5 12 9 17.5"/></svg>',
+  wa: '<svg class="i" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 4.5a7.5 7.5 0 0 0-6.5 11.2L4.5 19.5l3.9-1A7.5 7.5 0 1 0 12 4.5z"/><path fill="currentColor" stroke="none" d="M9 9.3c0-.4.4-.7.8-.7h.6c.3 0 .6.2.7.5l.5 1.3c.1.3 0 .6-.2.8l-.6.6c.4 1 1.2 1.8 2.2 2.2l.6-.6c.2-.2.5-.3.8-.2l1.3.5c.3.1.5.4.5.7v.6c0 .4-.3.8-.7.8-3 .2-6-2.8-5.8-5.8z"/></svg>',
+};
+const logo = () => `<a class="logo" aria-label="ALMAR Private Journeys home"><svg role="img" aria-label="ALMAR Private Journeys"><use href="#almar-logo"/></svg></a>`;
+const btn = (kind, label, o = {}) => `<button type="button" class="btn btn-${kind}${kind === "primary" || kind === "secondary" ? " up" : ""}${o.cls ? " " + o.cls : ""}"${o.disabled ? " disabled" : ""}>${label}</button>`;
+const linkBtn = (label, href) => `<a class="btn btn-primary up" href="${href}">${label}</a>`;
+const wa = (dock) => `<a class="wa${dock ? " dock" : ""}" aria-label="WhatsApp" href="${WA_URL}">${IC.wa}</a>`;
+
+/* ============ SiteNav (components/ui/nav.tsx) ============ */
+function siteNav(o = {}) {
+  const links = ["destinations", "experiences", "about", "contact"].map((k) => `<a class="nlink">${t("nav." + k)}</a>`).join("");
+  const lang = `<span class="sel" aria-label="${t("nav.language")}">${esc(LOC.toUpperCase())} ${IC.down}</span>`;
+  const end = o.account ? `<span class="acct"><bdi dir="ltr">[Guest name]</bdi> ${IC.down}</span>` : `<a class="nlink">${t("nav.login")}</a>`;
+  return `<header class="nav"><div class="navrow">${logo()}<button type="button" class="menu">${t("nav.menu")}</button><div class="navfull"><nav aria-label="Primary">${links}</nav><div class="tools">${lang}${end}</div></div></div></header>`;
+}
+
+/* ============ the trip page (PublicFrame > PageShell > TripLayout, step 4) ============ */
+function stepRail() {
+  const names = [t("steps.stay"), t("steps.addons"), t("steps.travelers"), t("steps.pay")];
+  const rail = names.map((n, i) => i < 3
+    ? `<li><span class="mark done" aria-hidden="true">${IC.check}</span><span>${n}</span></li>`
+    : `<li class="cur" aria-current="step"><span class="mark cur tab-num" aria-hidden="true">4</span><span>${n}</span></li>`).join("");
+  const phone = `<div class="prail"><ol aria-label="${t("steps.label")}">${names.map((n, i) => `<li${i === 3 ? ' aria-current="step"' : ""}><span class="sr">${n}</span></li>`).join("")}</ol><p class="t-cap muted">${fill(t("steps.phone"), { n: "4", name: names[3] })}</p></div>`;
+  return `<ol class="rail" aria-label="${t("steps.label")}">${rail}</ol>${phone}`;
+}
+function cart(plan) {
+  const planRows = plan === "full"
+    ? `<div class="crow"><span>${t("cart.payFull")}</span><span>${B(AMT)}</span></div>`
+    : `<div class="crow"><span>${t("cart.payFirst")}</span><span>${B(AMT)}</span></div><div class="crow"><span>${fill(t("cart.balanceBy"), { date: B(DATE) })}</span><span>${B(AMT)}</span></div>`;
+  return `<div class="cart">
+    <div class="stack g1"><p class="kick">${fill(t("cart.kicker"), { destination: B(esc(PLACE)) })}</p><h3 class="disp t-title teal">${B(esc(STAY))}</h3><p class="t-label muted">${B(RANGE)} · ${B("[Guests]")}</p></div>
+    <div class="cline"><div class="crow"><span>${pl("cart.stay")}</span><span>${B(AMT)}</span></div><p class="kick" style="padding-top:8px">${pl("cart.addons")}</p><div class="crow"><span>${B("[Add-on name]")}</span><span>${B(AMT)}</span></div></div>
+    <div class="stack g3 tab-num"><div class="crow"><span>${t("cart.subtotal")}</span><span>${B(AMT)}</span></div><div class="crow"><span>${t("cart.vat")}</span><span>${B(AMT)}</span></div><div class="crow b"><span>${t("cart.total")}</span><span>${B(AMT)}</span></div>${planRows}</div>
+    <p class="t-cap muted">${t("cart.note")}</p></div>`;
+}
+function tripPage(body, plan) {
+  return `${siteNav()}<main><div class="shell"><div class="col"><div class="trip">
+    <h1 class="disp t-heading teal">${t("trip.title")}</h1>${stepRail()}
+    <div class="tcols"><div class="tmain">${body}</div><div class="tcart">${cart(plan)}</div></div>
+  </div></div></div></main><div class="footstub">${B("[Site footer: unchanged, not drawn]")}</div>${wa(true)}`;
+}
+const reasonItem = (code) => `<li class="reason" data-reason="${code}">${IC.alert}<span><span>${t("reasons." + code)}</span><a class="link" href="${WA_URL}">${t("reasons.actions.whatsapp")}</a></span></li>`;
+const reasons = (codes) => `<ul class="stack g2" aria-live="assertive" style="align-self:stretch">${codes.map(reasonItem).join("")}</ul>`;
+const stepHead = () => `<h2 class="disp t-title teal">${t("trip.stepTitle.request")}</h2>`;
+
+/* RequestStep, held (04-03's component, as merged): used by closed and retry */
+function heldStep(o) {
+  const win = pl("request.window.hour");
+  const steps = [t("request.nextSend"), t("request.nextEmail"), fill(t("request.nextTransfer"), { amount: B(AMT), window: win, ref: B(REF) }), t("request.nextReceipt"), t("request.nextWithdraw")];
+  return `<section class="rs">${stepHead()}
+    <div class="stack g6">
+      <div class="band"><h3 class="disp t-title">${t("request.heldTitle")}</h3><span class="disp t-heading">${fill(t("request.heldFor"), { time: B("[MM:SS]") })}</span></div>
+      <div class="box"><div class="row" style="justify-content:flex-end">${btn("ghost", t("request.change"))}</div>
+        <dl class="rdl"><dt>${t("request.paymentHeading")}</dt><dd><span class="disp t-title teal">${t("request.deposit")}</span><span class="t-label muted">${fill(t("request.depositDetail"), { now: B(AMT), balance: B(AMT), date: B(DATE) })}</span></dd>
+        <dt>${t("request.airportHeading")}</dt><dd><span>${t("request.airports.DXB")}</span><span class="t-label muted">${t("request.returnSame")}</span></dd>
+        <dt class="sr">${t("request.terms")}</dt><dd class="terms"><span class="chk" aria-hidden="true">${IC.check}</span><span>${t("request.terms")}</span></dd></dl></div>
+      <div class="stack g4"><h3 class="disp t-title teal">${t("request.nextHeading")}</h3><ol class="stack g3 next">${steps.map((s, i) => `<li><span class="tab-num">${i + 1}.</span><span>${s}</span></li>`).join("")}</ol></div>
+      <div class="stack g2 start">${btn("primary", t("request.send"), { disabled: o.disabled })}${reasons(o.codes)}</div>
+      <p class="t-label"><a class="link">${t("summary.secondCity")}</a></p>
+    </div></section>${o.retryNote ? `<p class="t-body" style="margin-top:16px">${t("afterRequest.retryNote")}</p>` : ""}`;
+}
+/* RequestSent (planned in components/journey/request-sent.tsx, Task 1a step 2) */
+function requestSent(o) {
+  const a = "afterRequest.";
+  const planLine = o.plan ? `${t(a + (o.plan === "deposit" ? "planDeposit" : "planFull"))} · ${t(a + "dueNow")} ${B(AMT)}` : t(a + "amountOnPage");
+  return `<section class="rs">
+    <div class="band"><h2 class="disp t-title" role="status" tabindex="-1">${t(a + "heading")}</h2></div>
+    <p class="t-body">${t(a + "lead")}</p>
+    <div class="box"><p class="t-cap muted">${t(a + "referenceLabel")}</p><p class="disp t-title teal">${B(REF)}</p><p class="t-label muted">${t(a + "referenceHint")}</p></div>
+    <div class="stack g3"><p class="t-body">${planLine}</p><p class="t-body">${payBy()}</p><p class="t-body">${t(a + (o.email === "sent" ? "emailSent" : "emailPage"))}</p><p class="t-label muted">${t(a + "lapse")}</p></div>
+    <div>${linkBtn(t(a + "open"), "/bookings/trip?ref=" + REF + "&amp;t=[link token]")}</div>
+    <div class="stack g1"><p class="t-label">${t(a + "help")}</p><p class="t-label"><a class="link" href="${WA_URL}" target="_blank" rel="noopener noreferrer">${t("reasons.actions.whatsapp")}</a></p></div>
+  </section>`;
+}
+function requestChecking(failed) {
+  const line = failed ? `<p class="t-label muted" aria-live="polite">${t("afterRequest.checking")}</p>` : `<p class="busy" aria-live="polite"><i aria-hidden="true"></i><span>${t("afterRequest.checking")}</span></p>`;
+  return `<section class="rs">${stepHead()}<div class="stack g4 start">${line}${failed ? reasons(["unavailable"]) + btn("secondary", t("afterRequest.checkAgain")) : ""}</div></section>`;
+}
+function requestElsewhere() {
+  const a = "afterRequest.";
+  return `<section class="rs"><div class="band"><h2 class="disp t-title">${t(a + "elsewhereTitle")}</h2></div><p class="t-body">${t(a + "elsewhere")}</p>
+    <div class="box"><p class="t-cap muted">${t(a + "referenceLabel")}</p><p class="disp t-title teal">${B(REF)}</p></div>
+    <div>${linkBtn(t(a + "open"), "/bookings/trip?ref=" + REF + "&amp;t=[link token]")}</div></section>`;
+}
+
+/* ============ the bookings list (planned rewrite of app/[locale]/bookings/bookings-screen.tsx) ============ */
+const BASE = [
+  { ref: "ALMAR-7K3QH9", status: "awaiting_payment", tab: "upcoming", photo: true, paid: false, still: true, payBy: true, note: "awaiting payment, nothing paid, Pay by" },
+  { ref: "ALMAR-4MZ8RT", status: "awaiting_payment", tab: "upcoming", photo: true, paid: true, still: true, payBy: true, note: "awaiting payment, part paid, its Pay by date already passed (04-08 P-09: nights kept)" },
+  { ref: "ALMAR-9PXW2C", status: "deposit_paid", tab: "upcoming", photo: true, paid: true, still: true },
+  { ref: "ALMAR-H6TQ3N", status: "paid_in_full", tab: "upcoming", photo: true, paid: true, still: false },
+  { ref: "ALMAR-2DKV7Y", status: "confirmed", tab: "upcoming", photo: false, paid: true, still: false, note: "no photo: teal-tint block" },
+  { ref: "ALMAR-R8BN5J", status: "completed", tab: "past", photo: true, paid: true, still: false },
+  { ref: "ALMAR-W3FH6Q", status: "cancelled", tab: "cancelled", photo: true, paid: false, still: false },
+  { ref: "ALMAR-5YCM9K", status: "expired", tab: "cancelled", photo: true, paid: false, still: false },
+];
+const UNDERWAY = { ref: "ALMAR-T7GJ4P", status: "confirmed", photo: true, paid: true, still: false, dates: "[started DD/MM/YYYY] – [ends DD/MM/YYYY]", underway: true };
+function gcard(c, showPaid) {
+  const L = "list.";
+  const money = [`<dt>${t(L + "total")}</dt><dd>${B(AMT)}</dd>`];
+  if (showPaid && c.paid) money.push(`<dt>${t(L + "paid")}</dt><dd>${B(AMT)}</dd>`);
+  money.push(c.still ? `<dt>${t(L + "stillDue")}</dt><dd>${B(AMT)}</dd>` : `<dd class="nd">${t(L + "nothingDue")}</dd>`);
+  return `<article class="gcard"${c.underway ? ' data-underway="1"' : ""}>
+    <div class="gph">${c.photo ? `<div class="photo" role="img" aria-label="[Stay photo alt]"><span>${B("[Stay photo]")}</span></div>` : `<div class="tint"></div>`}</div>
+    <div class="gbody">
+      <div class="row gx3"><span class="schip">${t("bookingStatus." + c.status)}</span><span class="t-label"><span class="sr">${t(L + "reference")}</span>${B(c.ref)}</span></div>
+      <div class="stack g1"><h2 class="disp t-title teal">${B(esc(STAY))}</h2><p class="t-label muted">${B(esc(PLACE))}</p></div>
+      <p class="t-label">${B(esc(c.dates || RANGE))}</p>
+      <dl class="gm">${money.join("")}</dl>
+      ${c.payBy ? `<p class="t-label">${payBy()}</p>` : ""}
+      <div class="gact">${linkBtn(t(L + "viewTrip"), "/bookings/trip?ref=" + c.ref)}</div>
+    </div></article>`;
+}
+function tabs(sel) {
+  return `<div role="tablist" aria-label="${t("list.tabsLabel")}" class="tabs">${["upcoming", "past", "cancelled"].map((k) => `<button type="button" role="tab" class="tab" id="tab-${k}" aria-selected="${k === sel}" aria-controls="panel"${k === sel ? "" : ' tabindex="-1"'}>${t("list." + k)}</button>`).join("")}</div>`;
+}
+const EMPTY_KEY = { upcoming: "emptyUpcoming", past: "emptyPast", cancelled: "emptyCancelled" };
+function listBody(cards, sel, showPaid) {
+  const shown = cards.filter((c) => c.tab === sel);
+  const inner = shown.length ? shown.map((c) => gcard(c, showPaid)).join("") : `<p class="t-body muted">${t("list." + EMPTY_KEY[sel])}</p>`;
+  return `${tabs(sel)}<div role="tabpanel" id="panel" aria-labelledby="tab-${sel}" class="panel">${inner}</div>`;
+}
+function listPage(inner) {
+  return `${siteNav({ account: true })}<main id="content" class="lmain"><h1 class="disp t-display teal">${t("guest.bookings")}</h1>${inner}</main>${wa(false)}`;
+}
+const emptyBody = () => `<p class="t-body ink">${t("guest.noBookingsYet")}</p><a class="startlink">${t("guest.startATrip")}</a>`;
+const errorBody = () => `<p class="t-body ink">${t("list.loadFailed")}</p>${btn("secondary", t("list.tryAgain"))}`;
+function signInPage() {
+  const g = "guest.";
+  return `<div class="auth">
+    <div class="aimg"><div class="ov" aria-hidden="true"></div><span class="ph">${B("[Sign-in photo, unchanged]")}</span>
+      <div class="top">${logo()}<span class="sel">${esc(LOC.toUpperCase())} ${IC.down}</span></div>
+      <div class="brand"><span class="kick" style="color:var(--color-ivory)">ALMAR Private Journeys</span><span class="disp t-display">${t(g + "auth.tagline")}</span></div></div>
+    <main class="amain"><div class="lgrow">${logo()}<span class="sel">${esc(LOC.toUpperCase())} ${IC.down}</span></div>
+      <div class="aform"><div class="stack g3"><span class="kick">${t(g + "auth.kickerPublic")}</span><h1 class="disp t-heading teal" style="letter-spacing:var(--tracking-display)">${t(g + "auth.heading")}</h1><span class="goldrule" aria-hidden="true"></span></div>
+        <p class="t-body muted">${t(g + "auth.lead")}</p>
+        <div class="field"><label class="t-label">${t(g + "email")}</label><span class="inp">name@example.com</span></div>
+        ${btn("primary", t(g + "accessWithMagicLink"), { cls: "lg full" })}
+        <p class="t-label muted">${t(g + "auth.linkNote")}</p>
+        <p class="t-label ink" style="border-top:1px solid var(--color-line);padding-top:24px">${t(g + "auth.newHere")}</p></div>
+      <span class="t-cap muted"><bdi>inquiries@almarprivatejourney.com</bdi></span></main>
+  </div>${wa(false)}`;
+}
+
+/* ============================ STATES ============================ */
+const STATES = {
+  "sent": { fn: () => tripPage(requestSent({ plan: "deposit", email: "sent" }), "deposit"), note: "Deposit · Due now from the booking (view), deadline = bookingStatus.payBy, bank details emailed; the button carries the private link (P6-14)" },
+  "sent-no-amount": { fn: () => tripPage(requestSent({ plan: null, email: "sent" }), "deposit"), note: "the view read after the request failed (P6-03): the amount is on the booking page" },
+  "closed": { fn: () => tripPage(heldStep({ codes: ["requests_closed"], disabled: true }), "deposit"), note: "503 requests_closed: hold kept, Send request disabled, the closed line with WhatsApp (P6-06)" },
+  "retry": { fn: () => tripPage(heldStep({ codes: ["unavailable"], disabled: false, retryNote: true }), "deposit"), note: "network or server failure: the reason under Send, Send stays live, the retry note under the step" },
+  "checking": { fn: () => tripPage(requestChecking(false), "deposit"), note: "after a refresh: nothing is quoted, held or requested until /api/booking/view answers (P6-04)" },
+  "checking-failed": { fn: () => tripPage(requestChecking(true), "deposit"), note: "view failed: the checking line stays, the reason and a secondary Check again" },
+  "resumed-sent": { fn: () => tripPage(requestSent({ plan: "full", email: "page" }), "full"), note: "refresh on an awaiting-payment booking: Full payment, the bank details are on the booking page" },
+  "resumed-elsewhere": { fn: () => tripPage(requestElsewhere(), "deposit"), note: "refresh on a later status (deposit paid, paid in full, confirmed, completed, cancelled): a link to the booking page" },
+  "empty": { fn: () => listPage(emptyBody()), note: "no booking at all: today's empty state unchanged, no tabs", list: true },
+  "upcoming": { fn: () => listPage(listBody(BASE, "upcoming", false)), note: "P6-07 option 2: no Paid line", list: true },
+  "upcoming-with-paid": { fn: () => listPage(listBody(BASE, "upcoming", true)), note: "P6-07 option 1: Paid AED [AMOUNT] on every card with a payment (paidFils above 0)", list: true },
+  "upcoming-in-progress": { fn: () => listPage(listBody([...BASE, Object.assign({ tab: "upcoming" }, UNDERWAY)], "upcoming", false)), note: "P6-09 option 1: the trip under way (last card, [started …] – [ends …]) stays under Upcoming until its departure day", list: true },
+  "past": { fn: () => listPage(listBody(BASE, "past", false)), note: "Past tab open (the spec clicks Past)", list: true },
+  "past-in-progress": { fn: () => listPage(listBody([Object.assign({ tab: "past" }, UNDERWAY), ...BASE], "past", false)), note: "P6-09 option 2: the trip under way (first card) moves to Past from its arrival day", list: true },
+  "cancelled": { fn: () => listPage(listBody(BASE, "cancelled", false)), note: "Cancelled tab: a cancelled booking and a lapsed request (chip from bookingStatus.expired)", list: true },
+  "tab-empty": { fn: () => listPage(listBody(BASE.filter((c) => c.tab === "past"), "upcoming", false)), note: "bookings only in Past, Upcoming open: its empty line", list: true },
+  "error": { fn: () => listPage(errorBody()), note: "the list could not be read (no cards came back): the line and a secondary Try again", list: true },
+  "signed-out": { fn: () => signInPage(), note: "signed out: /<locale>/bookings redirects to today's sign-in page, unchanged; drawn from app/[locale]/login (AuthFrame + SignInScreen) strings", list: true, url: () => `/${LOC}/bookings  →  /${LOC}/login?return=bookings` },
+};
+
+/* ============================ GROUPS (Task 2, the owner's questions, in this order) ============================ */
+const GROUPS = [
+  { id: "p602", h: "P6-02 · No bank details on the trip page", sig: "approve", q: "The trip page never shows the bank details; they reach you only in the request email and on the booking page. Recommended: approve.", ids: ["sent"] },
+  { id: "p613", h: "P6-13 · No Withdraw button after sending", sig: "approve", q: "After sending there is no Withdraw button on this page; it says 'You can withdraw this request on your booking page until a payment is recorded. To change it, message us on WhatsApp.' (the Withdraw control and its states are drawn in 04-05). Recommended: approve.", ids: ["sent"] },
+  { id: "p614", h: "P6-14 · The booking-page button carries the private link", sig: "approve", q: "Not a visual choice: the button looks the same either way. The 'Open your booking page' button carries the private link, like the email does, so a guest without an account can open it; it is the only link on the page that does. Recommended: approve.", ids: ["sent"] },
+  { id: "trip", h: "Trip page · the other new states (for review)", sig: "info", q: "Try again, requests closed, checking after a refresh, checking failed, resumed sent, resumed moved on, sent without the amount. The held, sending, too many, taken and ended states are 04-03's signed pictures and are not drawn again.", ids: ["retry", "closed", "checking", "checking-failed", "resumed-sent", "resumed-elsewhere", "sent-no-amount"] },
+  { id: "p607", h: "P6-07 · Paid line on the list cards", sig: "choice", q: "A list card shows Total and Still due, plus Pay by while awaiting payment. Option 1 (recommended: the canvas card has 'Paid', k25): a 'Paid AED [AMOUNT]' line on every card with a payment. Option 2: no Paid line. Both: tabs Upcoming / Past / Cancelled, status, dates, Total, Still due or Nothing left to pay, Pay by on the awaiting cards, View trip.", opts: [["upcoming-with-paid", "Option 1 (recommended)"], ["upcoming", "Option 2"]] },
+  { id: "p608", h: "P6-08 · A lapsed request sits in Cancelled", sig: "approve", q: "A lapsed request sits in the Cancelled tab with the chip 'Request lapsed'. Recommended: approve.", ids: ["cancelled"] },
+  { id: "p609", h: "P6-09 · Where a trip under way sits", sig: "choice", q: "Option 1 (recommended): the trip under way stays under Upcoming until its departure day. Option 2: it moves to Past on its arrival day. Under both, a completed trip is always Past and a cancelled or lapsed one always Cancelled.", opts: [["upcoming-in-progress", "Option 1 (recommended)"], ["past-in-progress", "Option 2"]] },
+  { id: "past", h: "List · Past", sig: "info", q: "The Past tab.", ids: ["past"] },
+  { id: "tabempty", h: "List · An empty tab", sig: "info", q: "A tab with nothing in it shows one line.", ids: ["tab-empty"] },
+  { id: "empty", h: "List · No bookings at all", sig: "info", q: "Today's empty state, unchanged.", ids: ["empty"] },
+  { id: "error", h: "List · Could not load", sig: "info", q: "The list could not be read.", ids: ["error"] },
+  { id: "signedout", h: "List · Signed out", sig: "info", q: "Expected: today's sign-in page (the redirect is unchanged, now in the page's language: /<locale>/login?return=bookings).", ids: ["signed-out"] },
+];
+
+/* ============================ the AR/ES drafts next to their English source ============================ */
+const DRAFT_KEYS = [
+  ...["heading", "lead", "referenceLabel", "referenceHint", "planDeposit", "planFull", "dueNow", "amountOnPage", "emailSent", "emailPage", "lapse", "open", "help", "retryNote", "checking", "checkAgain", "elsewhereTitle", "elsewhere"].map((k) => ["afterRequest." + k, "lib/copy/journey.ts", "draft"]),
+  ...["tabsLabel", "cancelled", "reference", "total", "stillDue", "nothingDue", "emptyUpcoming", "emptyPast", "emptyCancelled", "loadFailed", "tryAgain"].map((k) => ["list." + k, "lib/copy/guest-bookings.ts", "draft"]),
+  ...[["upcoming", "k51"], ["past", "k52"], ["viewTrip", "k62"], ["paid", "k25"]].map(([k, c]) => ["list." + k, "lib/copy/guest-bookings.ts", "canvas " + c]),
+];
+function draftTable() {
+  const v = (l, p) => { const x = get(D[l], p); return typeof x === "string" ? esc(x) : missBox(l + "." + p); };
+  const label = (p) => p.replace(/^list\./, "GUEST_BOOKINGS_COPY.").replace(/^afterRequest\./, "JOURNEY_COPY.afterRequest.");
+  const rows = DRAFT_KEYS.map(([p, file, src]) => `<tr><td class="k">${esc(label(p))}<br><span class="src">${esc(src)}</span></td><td lang="en">${v("en", p)}</td><td class="ar" lang="ar" dir="rtl">${v("ar", p)}</td><td lang="es">${v("es", p)}</td></tr>`).join("");
+  const n = DRAFT_KEYS.filter((d) => d[2] === "draft").length;
+  return `<section class="grpbox" id="g-drafts"><h2>New AR and ES lines next to their English source</h2><p class="q">${n} keys are drafts in Arabic (Gulf-friendly Modern Standard Arabic) and Spanish (neutral Latin American, tú as on the rest of the guest site): ${n * 2} draft strings in all. The last four rows are the canvas words, verbatim in all three languages, not drafts. Correct any line by saying which key and the new text.</p>
+    <table class="dr"><thead><tr><th>Key</th><th>English</th><th>Arabic (draft)</th><th>Spanish (draft)</th></tr></thead><tbody>${rows}</tbody></table></section>`;
+}
+
+/* ============================ RENDER ============================ */
+const rendered = new Set();
+function frameHTML(id, tag) {
+  const s = STATES[id];
+  const first = !rendered.has(id);
+  rendered.add(id);
+  const body = s.fn();
+  const url = s.url ? `<div class="urlbar">${esc(s.url())}</div>` : "";
+  return `<div class="fr"${first ? ` id="s-${id}"` : ""}><div class="cap"><code>${id}-${WIDTH}-${LOC}</code>${tag ? `<span class="opt${/recommended/.test(tag) ? " rec" : ""}">${esc(tag)}</span>` : ""}<span class="rules">${esc(s.note)}</span></div>${url}<div class="fw" data-w="${WIDTH}"><div class="frame" style="width:${WIDTH}px" lang="${LOC}" dir="${LOC === "ar" ? "rtl" : "ltr"}">${body}</div></div></div>`;
+}
+function banner() {
+  return `<div class="banner">
+    <p><strong>04-06 pictures for signature (owner rule: no test, no shoot).</strong> One page replaces the plan's 162 PNGs: pick the language (EN, AR right to left, ES) and the width (390, 834, 1440) at the top; every state is drawn at that size, so the 8 trip states and 10 list states cover all 162 pictures. Choices (P6-07, P6-09) are drawn side by side.</p>
+    <p>Every visible product string is read from the copy files as committed: JOURNEY_COPY (the new afterRequest group, and 04-03's bookingStatus, request, reasons, trip, steps and cart), GUEST_BOOKINGS_COPY (new), GUEST_COPY and the nav labels. Data is symbolic only: AED [AMOUNT], [DD/MM/YYYY], [HH:MM], [Stay name], [Destination], [Guest name], references like ALMAR-7K3QH9; no real price, date or person. The deadline line is 04-03's bookingStatus.payBy filled with the placeholders.</p>
+    <p>Layout mirrors the real components: the nav (components/ui/nav.tsx), TripLayout and StepRail, 04-03's RequestStep and BookingReasons (closed, retry), the cart rail, and the bookings screen's heading and WhatsApp button. The sent, checking and moved-on blocks (RequestSent, RequestChecking, RequestElsewhere) and the list cards and tabs are the plan's new components, drawn from its text; they are not built yet. No card form, no Pay button and no bank details anywhere. The site footer and photos are labelled placeholders.</p>
+    <p><strong>Changed since the plan:</strong> the list now lives at /&lt;locale&gt;/bookings (owner decision 13, job 21: the language is in the path), not one English path. P6-11's "cookie language + refresh" is superseded: a language pick opens the other language's path (/en/bookings, /ar/bookings, /es/bookings). Signed out, /&lt;locale&gt;/bookings goes to /&lt;locale&gt;/login?return=bookings.</p>
+  </div>`;
+}
+function renderAll() {
+  rendered.clear(); MISSING.clear();
+  let html = banner();
+  for (const g of GROUPS) {
+    let inner;
+    if (g.sig === "choice") inner = `<div class="cmp">${g.opts.map(([id, tag]) => frameHTML(id, tag)).join("")}</div>`;
+    else inner = g.ids.map((id) => (rendered.has(id) ? `<div class="stub"><code>${id}</code> already drawn above: <a href="#s-${id}">jump to it</a>.</div>` : frameHTML(id))).join("");
+    const tag = g.sig === "choice" ? '<span class="tag">Owner signature: choose</span>' : g.sig === "approve" ? '<span class="tag">Owner signature: approve or change</span>' : "";
+    html += `<section class="grpbox" id="g-${g.id}"><h2>${esc(g.h)}</h2>${tag}<p class="q">${esc(g.q)}</p>${inner}</section>`;
+  }
+  html += draftTable();
+  return html;
+}
+function fit() {
+  const mainW = document.getElementById("main").clientWidth - 48;
+  document.querySelectorAll(".fw").forEach((fw) => {
+    const f = fw.firstElementChild, cmp = fw.closest(".cmp"), W = +fw.dataset.w;
+    const avail = cmp ? (mainW - 20) / 2 : mainW;
+    const sc = Math.min(1, avail / W);
+    fw.style.width = Math.round(W * sc) + 2 + "px";
+    f.style.transform = `scale(${sc})`;
+    fw.style.height = Math.ceil(f.offsetHeight * sc) + 2 + "px";
+  });
+}
+function buildIndex() {
+  let h = "";
+  for (const g of GROUPS) {
+    h += `<h2>${esc(g.h.split(" · ")[0])}</h2><a href="#g-${g.id}">${esc(g.h.split(" · ").slice(1).join(" · ") || g.h)}</a>`;
+    const ids = g.sig === "choice" ? g.opts.map((o) => o[0]) : g.ids;
+    h += ids.map((id) => `<a class="st" href="#s-${id}">${id}</a>`).join("");
+  }
+  h += `<h2>Drafts</h2><a href="#g-drafts">AR and ES drafts table</a>`;
+  document.getElementById("index").innerHTML = h;
+}
+function render() {
+  document.getElementById("main").innerHTML = renderAll();
+  document.getElementById("misslist").textContent = MISSING.size ? "MISSING COPY: " + [...MISSING].join(", ") : "";
+  fit();
+}
+function setPressed() {
+  document.querySelectorAll("#top [data-loc]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.loc === LOC));
+  document.querySelectorAll("#top [data-w]").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.w === WIDTH));
+}
+if (typeof document !== "undefined" && document.getElementById("main")) {
+  document.querySelectorAll("#top [data-loc]").forEach((b) => b.addEventListener("click", () => { LOC = b.dataset.loc; setPressed(); render(); }));
+  document.querySelectorAll("#top [data-w]").forEach((b) => b.addEventListener("click", () => { WIDTH = +b.dataset.w; setPressed(); render(); }));
+  window.addEventListener("resize", fit);
+  window.addEventListener("load", () => { fit(); setTimeout(fit, 400); });
+  buildIndex(); setPressed(); render();
+}
+</script></body></html>
