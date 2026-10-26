@@ -21,7 +21,7 @@ completed: 2026-10-26
 
 ## Owner signature (2026-10-26; plan section "Owner signature, 2026-10-26"; decision file `.planning/decisions/2026-10-26-04-05-pictures-signed.md`)
 
-- Pictures: one HTML page `.planning/phases/04-book-and-pay/pictures/04-05/index.html` (`f95a35e5`), 39 states (16 email + 23 page as finally counted; 15 emails built after E-11).
+- Pictures: one HTML page `.planning/phases/04-book-and-pay/pictures/04-05/index.html` (`f95a35e5`), 39 states; 15 email states built (the Arabic owner notice dropped by E-11).
 - E-11 = A: owner notices English only. E-31: one receipt per payment; a receipt for money received after the pay-by date drops the past "Pay by" sentence (owner 6b; the picture drew it, controller ruling 2026-10-26). Everything else approved as drawn.
 
 ## Commits
