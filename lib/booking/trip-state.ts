@@ -471,9 +471,10 @@ export function tripReducer(state: TripState, action: TripAction): TripState {
       const first = state.travellers[0];
       let travellers = state.travellers;
       if (first) {
-        // Not staying frees line 1 (its copied name goes); staying again fills an empty line 1 with the contact name.
+        // Not staying frees line 1 (its copied name goes). Staying again makes line 1 the booker's own once more: it
+        // always takes the contact name (whatever was typed there while away), read-only, and follows it from then on.
         if (!action.stays && first.fullName === state.contact.name) travellers = [{ ...first, fullName: "" }, ...travellers.slice(1)];
-        if (action.stays && first.fullName === "") travellers = [{ ...first, fullName: state.contact.name }, ...travellers.slice(1)];
+        if (action.stays && first.kind === "adult") travellers = [{ ...first, fullName: state.contact.name }, ...travellers.slice(1)];
       }
       return { ...state, bookerStays: action.stays, travellers };
     }

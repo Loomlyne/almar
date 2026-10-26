@@ -580,6 +580,16 @@ test("traveller lines: line 1 is the booker's own while they stay; I am not stay
   const lines = travellerInputs(run(away, { type: "traveller", index: 0, patch: { fullName: "Eve Guest" } }));
   assert.ok(lines.every((t) => t.isBooker === false));
   for (const st of [s, away]) assert.ok(travellerInputs(st).every((t) => t.notStaying === false));
+
+  // Staying again: line 1 is the booker's own again, always the contact name, whatever was typed there while away.
+  const typedAway = run(away, { type: "traveller", index: 0, patch: { fullName: "Eve Guest" } });
+  const back = run(typedAway, { type: "bookerStays", stays: true });
+  assert.equal(back.travellers[0].fullName, "Ann Guest", "reset to the contact name");
+  assert.deepEqual(travellerInputs(back).map((t) => t.isBooker), [true, false, false, false]);
+  assert.equal(run(back, { type: "contact", patch: { name: "Ann D" } }).travellers[0].fullName, "Ann D", "and follows it again");
+  const editedBack = run(edited, { type: "bookerStays", stays: false }, { type: "bookerStays", stays: true });
+  assert.equal(editedBack.travellers[0].fullName, "Ann C", "an edited line 1 also takes the contact name back");
+  assert.equal(run(away, { type: "bookerStays", stays: true }).travellers[0].fullName, "Ann Guest", "an empty line 1 too");
   assert.deepEqual(travellerInputs(s).map((t) => t.age), [undefined, undefined, 7, 1]);
 });
 
