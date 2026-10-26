@@ -40,9 +40,11 @@ const HELD_PROBES = [
 // Not held sections, but never served by Next either: they get the static 404 too.
 // Also the near misses of the opened sign-in paths: an unknown language, a child path, the ops-host handoff.
 const OTHER_MISSES = [
-  // /booking left the held list with plan 04-02 but has no page until 04-03: the same static 404 (no page is in PUBLIC_PAGES).
+  // /booking left the held list with plan 04-02; plan 04-03 gave /booking/trip its pages (/en|ar|es/booking/trip), so
+  // only the paths around them are still the static 404.
   "/booking",
-  "/booking/trip",
+  "/booking/trip/x",
+  "/ar/booking",
   "/es/booking",
   "/api/health/",
   "/api/nope",

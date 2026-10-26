@@ -11,7 +11,6 @@ const ROUTES = [
   // /account needs a session since 02-02: the hub renders through the harness with a fixture guest.
   { path: "/__harness?c=guest-account&s=hub&l=en", slug: "account", ownLanguageControl: true },
   { path: "/login", slug: "login", ownLanguageControl: true },
-  { path: "/booking/trip", slug: "booking-trip", ownLanguageControl: true },
 ] as const;
 
 const LOCALES = ["en", "ar"] as const;
@@ -26,7 +25,7 @@ const VIEWPORTS = [
  * Switches the page to Arabic through the visible language control.
  * Plan 12 drives LocaleSelect (Radix combobox) and edits only this helper.
  * Method per route:
- *  - /account, /login, /booking/trip: SiteNav Language control, option AR (native name العربية).
+ *  - /account, /login: SiteNav Language control, option AR (native name العربية).
  *  - /dashboard: static "Sign in" placeholder with no language control and no
  *    copy; the almar-locale cookie is set and html lang/dir applied directly.
  */
