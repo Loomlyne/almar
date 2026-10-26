@@ -2,6 +2,8 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { expect, test } from "@playwright/test";
 import { JOB02_SERVER_PATHS } from "../../lib/auth/server-paths";
+import { JOURNEY_COPY } from "../../lib/copy/journey";
+import { LOCALES, localeDir } from "../../lib/locale-path";
 import { HELD_PATHS } from "../../lib/server-routes";
 
 // Job 10 (plan 02-21): the server runtime on the BUILT Worker, through local `wrangler dev` (workerd, never --remote).
@@ -73,6 +75,10 @@ const OTHER_MISSES = [
   "/api/ops/site-status",
   "/ar/api/ops/stays",
 ];
+
+// Plan 04-03 (Q-06): the guest's trip, a static page in every locale (English is prefixed, job 21), noindex and
+// same-origin; the screen reads this query in the browser.
+const TRIP_QUERY = "stay=a&from=2026-11-02&to=2026-11-06&adults=2&children=0&infants=0";
 
 function htmlFiles(dir: string): string[] {
   const found: string[] = [];
@@ -316,6 +322,40 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
       expect(res.headers()["x-robots-tag"], path).toBe("noindex");
       const get = await request.get(path, { maxRedirects: 0 });
       expect(get.status(), path).toBe(405);
+    }
+  });
+
+  test("8c. /en|ar|es/booking/trip are static pages (plan 04-03): 200, the file's bytes, noindex, same-origin referrer, lang and dir", async ({ request }) => {
+    for (const locale of LOCALES) {
+      const file = readFileSync(join(FOLDER, `${locale}/booking/trip.html`));
+      for (const path of [`/${locale}/booking/trip`, ...(locale === "en" ? [`/en/booking/trip?${TRIP_QUERY}`] : [])]) {
+        const res = await request.get(path, { maxRedirects: 0 });
+        expect(res.status(), path).toBe(200);
+        expect(res.headers()["content-type"], path).toMatch(/^text\/html/);
+        const body = await res.body();
+        expect(Buffer.compare(body, file), path).toBe(0);
+        const html = body.toString("utf8");
+        expect(html, path).toMatch(/<meta name="robots" content="noindex, nofollow"\s*\/?>/);
+        expect(html, path).toMatch(/<meta name="referrer" content="same-origin"\s*\/?>/);
+        expect(html, path).toMatch(new RegExp(`<html lang="${locale}" dir="${localeDir(locale)}"`));
+      }
+    }
+  });
+
+  test("8d. the trip page's own POST /api/booking/quote is never 403 (F-02): the Origin the real page sends passes, and the page shows the reason", async ({ page }) => {
+    // The local Worker has no Supabase, so the quote is 503 `unavailable`; a 403 would mean the page's Origin (or a
+    // dropped referrer, Origin: null) is refused by isAllowedPostOrigin.
+    const quote = page.waitForResponse((r) => new URL(r.url()).pathname === "/api/booking/quote" && r.request().method() === "POST");
+    await page.goto(`/en/booking/trip?${TRIP_QUERY}`);
+    const res = await quote;
+    expect(res.status(), `the page's quote answered ${res.status()}`).not.toBe(403);
+    expect([400, 503], `the page's quote answered ${res.status()}`).toContain(res.status());
+    if (res.status() === 503) {
+      const line = page.locator('[data-reason="unavailable"]');
+      await expect(line).toHaveCount(1);
+      await expect(line).toContainText(JOURNEY_COPY.en.reasons.unavailable);
+    } else {
+      await expect(page.locator("[data-reason]").first()).toBeVisible();
     }
   });
 

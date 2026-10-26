@@ -83,12 +83,15 @@ const PAGES: Array<{ name: string; base: string; kind: Kind }> = [
 const DOCUMENTS: Doc[] = LOCALES.flatMap((locale) => PAGES.map((p) => ({ locale, ...p, url: localePath(locale, p.base) })));
 
 // The blog's documents (slice 4) are swept by tests/build/blog/sweep.spec.ts, About and Contact (slice 3A) by
-// tests/build/about and tests/build/contact; this sweep is every other public document.
-const isBlog = (url: string) => /^\/(?:(?:ar|es)\/)?blog(?:\/|$)/.test(url);
-const isSlice3 = (url: string) => /^\/(?:(?:ar|es)\/)?(?:about|contact)$/.test(url);
+// tests/build/about and tests/build/contact, the booking flow's trip pages (plan 04-03, noindex) by
+// tests/booking-trip.spec.ts and tests/build/server-runtime.spec.ts; this sweep is every other public document.
+// English is prefixed too since job 21 (#33), so each rule takes an en, ar or es prefix.
+const isBlog = (url: string) => /^\/(?:(?:en|ar|es)\/)?blog(?:\/|$)/.test(url);
+const isSlice3 = (url: string) => /^\/(?:(?:en|ar|es)\/)?(?:about|contact)$/.test(url);
+const isBookingFlow = (url: string) => /^\/(?:(?:en|ar|es)\/)?booking\/trip$/.test(url);
 
-test("the sweep list: publicDocuments() less the blog, About and Contact and the localePath construction agree, and each is an assembled file", () => {
-  const computed = computedDocuments().map(outToUrl).filter((u) => !isBlog(u) && !isSlice3(u));
+test("the sweep list: publicDocuments() less the blog, About and Contact, the booking flow and the localePath construction agree, and each is an assembled file", () => {
+  const computed = computedDocuments().map(outToUrl).filter((u) => !isBlog(u) && !isSlice3(u) && !isBookingFlow(u));
   expect(computed).toHaveLength(LOCALES.length * PAGES.length);
   expect(DOCUMENTS).toHaveLength(LOCALES.length * PAGES.length);
   expect(new Set(DOCUMENTS.map((d) => d.url)).size).toBe(DOCUMENTS.length);

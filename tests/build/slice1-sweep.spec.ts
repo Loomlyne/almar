@@ -63,14 +63,21 @@ const DOCUMENTS = LOCALES.flatMap((locale) => PAGES.map((page) => ({ locale, ...
  * Plan 03.3-17: every public React document, computed (scripts/media-lib.mjs publicDocuments(), read once in a child
  * process because that module imports .ts files). The sitemap lists all of them, not only slice 1's 42 (the sweep's
  * own scope stays DOCUMENTS), so its alternate count is this number, never a literal.
+ * Plan 04-03: less the documents scripts/crawl-files.mjs isSitemapExcluded drops (the noindex /booking/trip pages are
+ * in PUBLIC_PAGES but never in the sitemap), computed in the same child process. PUBLIC_REACT_ALL keeps every one, for
+ * the check that publicDocuments() and the page files under app/ agree.
  */
-const PUBLIC_REACT_DOCUMENTS: number = Number(
+const [PUBLIC_REACT_ALL, PUBLIC_REACT_DOCUMENTS] = JSON.parse(
   execFileSync(
     process.execPath,
-    ["--input-type=module", "-e", 'import { publicDocuments } from "./scripts/media-lib.mjs"; process.stdout.write(String(publicDocuments().length));'],
+    [
+      "--input-type=module",
+      "-e",
+      'import { publicDocuments } from "./scripts/media-lib.mjs"; import { isSitemapExcluded } from "./scripts/crawl-files.mjs"; const all = publicDocuments(); process.stdout.write(JSON.stringify([all.length, all.filter((rel) => !isSitemapExcluded(rel)).length]));',
+    ],
     { cwd: process.cwd(), encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
   ),
-);
+) as [number, number];
 
 /** The Framer documents still served: every app route.ts that holds a Framer export (same rule as locale-routing.spec.ts). */
 function framerDocumentCount(dir = "app"): number {
@@ -626,7 +633,7 @@ test.describe("crawl files as the Workers rules serve them (production variant o
     expect(new Set(locs).size, "no address twice").toBe(locs.length);
     // Every public React page carries alternates: the count is computed (publicDocuments(), and the page files
     // under app/ with the live posts), not typed; the two computations agree.
-    expect(reactPublicRoutes().length, "publicDocuments() and reactPublicRoutes() agree").toBe(PUBLIC_REACT_DOCUMENTS);
+    expect(reactPublicRoutes().length, "publicDocuments() and reactPublicRoutes() agree").toBe(PUBLIC_REACT_ALL);
     expect((xml.match(/hreflang="x-default"/g) ?? []).length, "every public React document carries alternates").toBe(PUBLIC_REACT_DOCUMENTS);
     expect(locs.length, "React documents plus the remaining Framer documents").toBe(PUBLIC_REACT_DOCUMENTS + framerDocumentCount());
 
