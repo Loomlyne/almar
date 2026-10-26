@@ -90,6 +90,23 @@ test("uaeDateTime: Asia/Dubai date and time from an instant", () => {
   }
 });
 
+test("hold announce: the plural for 10, 5 and 1 minutes in each language (1 is singular)", async () => {
+  const { formatPlural } = await loadTs("lib/journey-format.ts");
+  const say = (l, n) => formatPlural(JOURNEY_COPY[l].request.announce, n, l);
+  assert.equal(say("en", 10), "10 minutes left on your hold");
+  assert.equal(say("en", 5), "5 minutes left on your hold");
+  assert.equal(say("en", 1), "1 minute left on your hold");
+  assert.equal(say("es", 10), "Quedan 10 minutos de tu reserva temporal");
+  assert.equal(say("es", 1), "Queda 1 minuto de tu reserva temporal");
+  assert.equal(say("ar", 10), "تبقّى 10 دقائق على انتهاء الحجز المؤقت");
+  assert.equal(say("ar", 5), "تبقّى 5 دقائق على انتهاء الحجز المؤقت");
+  assert.equal(say("ar", 1), "تبقّت دقيقة واحدة على انتهاء الحجز المؤقت", "دقيقة, never دقائق, for one minute");
+  assert.equal(say("ar", 2), "تبقّت دقيقتان على انتهاء الحجز المؤقت");
+  assert.equal(say("ar", 11), "تبقّى 11 دقيقة على انتهاء الحجز المؤقت");
+  const timer = readFileSync("components/journey/hold-timer.tsx", "utf8");
+  assert.ok(timer.includes("formatPlural(r.announce, minute, locale)"), "the timer speaks the plural form");
+});
+
 test("bookingStatus copy pin", () => {
   const keys = ["held", "awaiting_payment", "deposit_paid", "paid_in_full", "confirmed", "completed", "cancelled", "expired", "payBy"];
   assert.deepEqual(Object.keys(JOURNEY_COPY.en.bookingStatus).sort(), [...keys].sort());

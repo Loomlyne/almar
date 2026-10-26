@@ -258,7 +258,7 @@ function Held({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 bg-teal-tint px-6 py-4 text-teal">
         <h3 className="m-0 font-display text-title">{r.heldTitle}</h3>
-        <HoldTimer endsAt={held.endsAt} now={now} onEnd={onEnd} copy={copy} className="font-display text-heading" />
+        <HoldTimer endsAt={held.endsAt} now={now} onEnd={onEnd} copy={copy} locale={locale} className="font-display text-heading" />
       </div>
 
       <div className="flex flex-col gap-3 border border-line bg-surface p-4">
