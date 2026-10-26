@@ -1,12 +1,11 @@
 // Plan 04-05 (Task 1): the booking emails. Two halves:
-//   1. the copy (BOOKING_EMAIL_COPY, OWNER_EMAIL_COPY) and the display text (stayDaysText, guestsText): run now;
-//   2. the renderers (lib/email/shell.ts, booking-guest-mail.ts, booking-owner-mail.ts), written against the names the
-//      plan gives. Those files wait for the owner's signature of the pictures (Task 3), so each renderer test is
-//      skipped, with that reason, until all three files exist; then every one of them runs.
+//   1. the copy (BOOKING_EMAIL_COPY, OWNER_EMAIL_COPY) and the display text (stayDaysText, guestsText);
+//   2. the renderers (lib/email/shell.ts, booking-guest-mail.ts, booking-owner-mail.ts), built after the owner signed
+//      the pictures on 2026-10-26 (E-11 = A: owner notices in English).
 // Every amount is a symbolic fixture value in fils and every bank value a documentation example (E-06).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { loadTs } from "./helpers/load-ts.mjs";
 
 const { BOOKING_EMAIL_COPY, OWNER_EMAIL_COPY, TEST_SUBJECT_PREFIX, BOOKING_CONTACT } = await loadTs("lib/copy/booking-email.ts");
@@ -223,11 +222,9 @@ test("fixtures: every view state in every language is a full view with the docum
   assert.equal(fx.paymentJobFixture("written-off", "en").view.money.stillDueFils, 0);
 });
 
-// ================================================================ 2. renderers (wait for the owner's signature)
+// ================================================================ 2. renderers
 
 const RENDERER_FILES = ["lib/email/shell.ts", "lib/email/booking-guest-mail.ts", "lib/email/booking-owner-mail.ts"];
-const RENDERERS_READY = RENDERER_FILES.every((f) => existsSync(f));
-const WAIT = RENDERERS_READY ? false : "the renderers wait for the owner's signature of the pictures (04-05 Task 3)";
 
 let loaded = null;
 async function mail() {
@@ -242,7 +239,7 @@ async function mail() {
   return loaded;
 }
 
-const rtest = (name, fn) => test(name, { skip: WAIT }, fn);
+const rtest = test;
 
 const ctx = (locale) => ({ copy: BOOKING_EMAIL_COPY[locale], brand: null });
 const DASHBOARD_LINK = "https://dashboard.almarprivatejourney.com/bookings/detail?ref=ALMAR-TEST22";
