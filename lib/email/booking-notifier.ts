@@ -19,6 +19,9 @@ import { isPlainEmail } from "../email-address";
 import { isLocale, type Locale } from "../locale-path";
 import { emailBrand, readSiteSettings, siteSettingsEnv } from "../site-settings-read";
 import { resendApiKey, sendWithResend, type OutgoingMail } from "./send";
+import { BOOKING_EMAIL_COPY, type BookingEmailCopy } from "../copy/booking-email";
+import { renderPaymentReceiptEmail, renderRequestLapsedEmail, renderRequestReceivedEmail } from "./booking-guest-mail";
+import { renderPaymentOwnerEmail, renderRequestOwnerEmail, renderWithdrawnOwnerEmail } from "./booking-owner-mail";
 
 /** What every renderer answers (lib/email/booking-guest-mail.ts and booking-owner-mail.ts, 04-05 Task 1). */
 export type RenderedMail = { subject: string; html: string; text: string };
@@ -26,12 +29,12 @@ export type RenderedMail = { subject: string; html: string; text: string };
 /** The guest renderers' context: the booking's language copy (BOOKING_EMAIL_COPY[locale]) and the saved brand or null. */
 export type GuestMailContext<C> = { copy: C; brand: EmailBrand | null };
 
-/** The owner renderers' context as the notifier passes it: English by default (E-11 recommended), so only the brand. */
+/** The owner renderers' context as the notifier passes it: English only (E-11 = A, signed 2026-10-26), so only the brand. */
 export type OwnerMailContext = { brand: EmailBrand | null };
 
 /**
- * The six renderers by the names Task 1 exports, and the guest copy table they read. When the renderer modules land,
- * the real value is `{ guestCopy: BOOKING_EMAIL_COPY, ...guestMail, ...ownerMail }` (BOOKING_MAIL below).
+ * The six renderers by the names Task 1 exports, and the guest copy table they read (BOOKING_MAIL below; fakes in the
+ * node tests).
  */
 export type BookingMailRenderers<C> = {
   guestCopy: Record<Locale, C>;
@@ -205,14 +208,18 @@ export function createBookingNotifier<C>(deps: BookingNotifierDeps<C>): BookingN
 }
 
 /**
- * The renderers this Worker sends with. Null until lib/email/booking-guest-mail.ts, lib/email/booking-owner-mail.ts and
- * lib/copy/booking-email.ts land (04-05 Task 1, after the owner's Task 3 signature); while it is null the live notifier
- * is null and getNotifier() keeps NOT_READY_NOTIFIER whatever the key.
- * TODO(04-05 flip): import BOOKING_EMAIL_COPY and the six render* functions and set this to
- * `{ guestCopy: BOOKING_EMAIL_COPY, renderRequestReceivedEmail, renderPaymentReceiptEmail, renderRequestLapsedEmail,
- * renderRequestOwnerEmail, renderPaymentOwnerEmail, renderWithdrawnOwnerEmail }`.
+ * The renderers this Worker sends with: the six signed templates (04-05 Task 1, owner signature 2026-10-26) and the
+ * guest copy table they read. Owner notices are English (E-11 = A), so the owner renderers get the brand only.
  */
-const BOOKING_MAIL: BookingMailRenderers<unknown> | null = null;
+const BOOKING_MAIL: BookingMailRenderers<BookingEmailCopy> = {
+  guestCopy: BOOKING_EMAIL_COPY,
+  renderRequestReceivedEmail,
+  renderPaymentReceiptEmail,
+  renderRequestLapsedEmail,
+  renderRequestOwnerEmail,
+  renderPaymentOwnerEmail,
+  renderWithdrawnOwnerEmail,
+};
 
 /** Wiring with an explicit key and renderers: null when either is missing (exported for the node tests). */
 export function liveNotifierFrom<C>(apiKey: string | null, mail: BookingMailRenderers<C> | null): BookingNotifier | null {

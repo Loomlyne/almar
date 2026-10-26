@@ -9,6 +9,7 @@
 // payload.
 import type { BookingDb } from "./server";
 import type { BookingStatus, BookingView } from "./types";
+import { liveBookingNotifier } from "../email/booking-notifier";
 
 /** The six booking mails. `request_withdrawn_owner` is the owner's notice of a guest's withdraw (P-19). */
 export type MailTemplate =
@@ -88,9 +89,7 @@ export const NOT_READY_NOTIFIER: BookingNotifier = Object.freeze({
 
 /** The notifier of this Worker. 04-05 changes only this body (its Resend notifier; that flip opens production, P-13). */
 export function getNotifier(): BookingNotifier {
-  // TODO(04-05 flip, once the six renderers land after the owner's signature): return the live notifier of
-  // lib/email/booking-notifier.ts when it is not null (RESEND_API_KEY set), else NOT_READY_NOTIFIER, with its one import.
-  return NOT_READY_NOTIFIER;
+  return liveBookingNotifier() ?? NOT_READY_NOTIFIER;
 }
 
 const KEY_PREFIX: Record<MailKind, string> = {

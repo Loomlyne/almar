@@ -561,7 +561,6 @@ test("live: getNotifier without RESEND_API_KEY is the NOT_READY_NOTIFIER object 
 
 test(
   "live (E-16, after the flip): with RESEND_API_KEY set, liveBookingNotifier and getNotifier are ready and not NOT_READY_NOTIFIER; decided on each call",
-  { todo: "the flip waits for the Task 1 renderers (BOOKING_MAIL in lib/email/booking-notifier.ts, getNotifier's TODO)" },
   async () => {
     await withKey(FAKE_KEY, () => {
       const live = liveBookingNotifier();
