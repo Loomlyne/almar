@@ -15,6 +15,12 @@ import { TripLayout } from "../../../components/journey/trip-layout";
 import type { StepNumber } from "../../../components/journey/step-rail";
 import type { AddOnItem, CartLine } from "../../../components/journey/types";
 import { ConfirmDialog } from "../../../components/ui/confirm-dialog";
+import { StayBooking, StayBookingBar, StayBookingDock } from "../../../components/pages/stay-detail/booking";
+import { pickStayJourneyCopy } from "../../../components/pages/stay-detail/booking-value";
+import { JOURNEY_CHOICE_KEY, isoOf, serializeJourneyChoice } from "../../../lib/journey-choice";
+import { STAY_DETAIL_COPY } from "../../../lib/copy/stay-detail";
+import { SITE_FOOTER_COPY } from "../../../lib/copy/site-footer";
+import { getLocalTimeZone, today } from "@internationalized/date";
 import type { Airport, BookingReason, ReasonCode } from "../../../lib/booking/types";
 import type { DepositBlock } from "../../../lib/money/booking-price";
 import { formatGuestSummary } from "../../../lib/journey-format";
@@ -327,6 +333,55 @@ function ReasonsAll({ ctx }: { ctx: SceneContext }) {
 
 const TWO_ADULTS: TravellersLine[] = LINES.slice(0, 2);
 
+// ---- Book on the stay page: the real booking island with fixture props (no Stay object, no price)
+
+function Book({ ctx, dates, view }: { ctx: SceneContext; dates: boolean; view: "bar" | "sheet" | "dock" }) {
+  // The bar reads the guest's stored choice on mount: give it dates a month ahead (never past, never blocked).
+  useState(() => {
+    const start = today(getLocalTimeZone()).add({ days: 30 });
+    window.sessionStorage.setItem(
+      JOURNEY_CHOICE_KEY,
+      serializeJourneyChoice({
+        destination_id: "cartagena",
+        from: dates ? isoOf(start) : null,
+        to: dates ? isoOf(start.add({ days: 5 })) : null,
+        adults: 2,
+        children: 1,
+        infants: 1,
+        guests_set: true,
+      }),
+    );
+    return null;
+  });
+  const stayCopy = STAY_DETAIL_COPY[ctx.locale];
+  return (
+    <StayBooking
+      locale={ctx.locale}
+      staySlug="getsemani-colonial-house"
+      destinationSlug="cartagena"
+      destinationName="Cartagena"
+      title={ctx.fixtures.stay.name}
+      blockedDates={[]}
+      copy={pickStayJourneyCopy(ctx.copy)}
+      sampleNote={null}
+      request={{
+        pageUrl: `https://almarprivatejourney.com/${ctx.locale}/private-stays/getsemani-colonial-house`,
+        copy: stayCopy.whatsapp,
+        label: stayCopy.whatsapp.button,
+        opensNote: SITE_FOOTER_COPY[ctx.locale].newTab,
+      }}
+      initialSheet={view === "sheet" ? { open: true, step: 3 } : undefined}
+    >
+      <div className="min-h-dvh bg-teal-tint">
+        <div className="mx-auto w-full max-w-column px-4 pt-section md:px-8">
+          <StayBookingBar />
+        </div>
+        {view === "dock" ? <StayBookingDock /> : null}
+      </div>
+    </StayBooking>
+  );
+}
+
 export const scenes: Scenes = {
   stay: (ctx) => <Stay ctx={ctx} />,
   "stay-taken": (ctx) => <Stay ctx={ctx} disabled loading reasons={[{ code: "sold_out", nights: NIGHTS }, { code: "blocked", nights: NIGHTS }]} />,
@@ -353,4 +408,8 @@ export const scenes: Scenes = {
   "q01-b-request-holding": (ctx) => <Request ctx={ctx} o={{ holdBusy: true }} />,
   "hold-ended": (ctx) => <Request ctx={ctx} o={{ ended: true }} />,
   "reasons-all": (ctx) => <ReasonsAll ctx={ctx} />,
+  "book-bar": (ctx) => <Book ctx={ctx} dates view="bar" />,
+  "book-bar-no-dates": (ctx) => <Book ctx={ctx} dates={false} view="bar" />,
+  "book-sheet": (ctx) => <Book ctx={ctx} dates view="sheet" />,
+  "book-dock": (ctx) => <Book ctx={ctx} dates view="dock" />,
 };

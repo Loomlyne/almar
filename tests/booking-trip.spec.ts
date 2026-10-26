@@ -95,6 +95,11 @@ test.describe("pictures", () => {
             await assertArabicFont(page);
             await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
           }
+          if (state === "book-bar-no-dates") {
+            // The guest's path: Book without dates shows the needDates line and opens the Dates panel.
+            await page.getByRole("button", { name: JOURNEY_COPY[locale].book.label, exact: true }).click();
+            await expect(page.getByRole("alert").filter({ hasText: JOURNEY_COPY[locale].book.needDates })).toBeVisible();
+          }
           await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
           const body = (await page.locator("body").innerText()) ?? "";
           expect(body, "no [object] in the scene").not.toMatch(/\[object|undefined|NaN/);

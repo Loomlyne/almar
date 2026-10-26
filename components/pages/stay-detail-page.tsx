@@ -164,6 +164,7 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
     <>
       <StayBooking
         locale={locale}
+        staySlug={slug}
         destinationSlug={stay.destination_slug}
         destinationName={stay.destination_name}
         title={stay.title}

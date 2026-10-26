@@ -319,7 +319,7 @@ export function JourneyBar({
               {divider}
             </>
           ) : null}
-          <div className={cn("min-w-0", lockStay ? "flex-13" : "flex-3")}>
+          <div data-bar-segment="when" className={cn("min-w-0", lockStay ? "flex-13" : "flex-3")}>
             <JourneySegment
               ref={(el) => {
                 segRefs.current.when = el;
