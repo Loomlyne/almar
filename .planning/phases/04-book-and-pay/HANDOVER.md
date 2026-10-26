@@ -1,6 +1,31 @@
-# HANDOVER note: 04-05 E-31 late receipt (2026-10-26)
+# HANDOVER: job 25, Phase 4 plan 04-05 (2026-10-26)
 
-- `receipt-part-2` differs from the signed picture on one line: a receipt for money received after the pay-by date has no "Pay by {date}" sentence (owner 6b; controller ruling 2026-10-26). Code: `lib/email/booking-guest-mail.ts` `receivedAfterPayBy`; test case added in `tests/booking-mail.test.mjs` (not run). The full 04-05 hand-over follows when the booking pages land.
+- **Branch:** `phase-04-book-and-request` (pushed). Code tip before this entry `c74b7f36`.
+- **Base:** origin/main merged in `3c9a3545`.
+- **Checks:** `npx tsc --noEmit` exit 0, `npm run tokens:check` up to date. Everything else **not run (owner: no test)**. Table in `04-05-SUMMARY.md`.
+- **Signature:** E-11 English owner notices; E-31 one receipt per payment; all else as drawn.
+- **Hosted database, secrets, Cloudflare, DNS, main:** not touched.
+
+## LIVE EFFECT (controller, before any deploy)
+
+- `getNotifier()` is live in code. Once this is on `main`, the first `almar-ops` deploy sends **real** lapse emails and receipts, because `almar-ops` already holds `RESEND_API_KEY`. `almar` and `almar-preview` send only after the key is set there. The controller flags this to the owner at the landing (noted 2026-10-26).
+- `/bookings/trip` is a public page with its three files now; a build is still unrun, so the first `next build` + `assemble-cloudflare` is its first check.
+
+## Differs from the signed picture
+
+- `receipt-part-2`: a receipt for money received after the pay-by date has no "Pay by {date}" sentence (owner 6b; controller ruling 2026-10-26). Code `lib/email/booking-guest-mail.ts` `receivedAfterPayBy` (late = the Dubai day received is after the pay-by instant's Dubai day); case added in `tests/booking-mail.test.mjs`.
+- Unavailable state: Try again is secondary (as drawn); the plan text said primary.
+
+## Not verified, in plain words (04-05)
+
+1. No email was rendered to a real inbox, no page was rendered: everything is type-checked only.
+2. The Resend call shape (package, Idempotency-Key header) was read from `node_modules/resend`, never called.
+3. Dev-only risk: with maintenance on, the dev middleware also closes `/<locale>/bookings/trip`; on Cloudflare the static file is served without the Worker.
+4. Withdraw focus after the dialog relies on a 50 ms timer after Radix's focus return.
+
+## Model-translated copy for the owner's check
+
+All AR and ES lines in `lib/copy/booking-email.ts` and `lib/copy/booking-page.ts` (headers say so). Owner copy is English only.
 
 # HANDOVER: job 25, Phase 4 plan 04-03 (2026-10-26)
 
