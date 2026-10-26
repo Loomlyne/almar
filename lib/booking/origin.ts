@@ -73,7 +73,7 @@ export function originForBooking(isTest: boolean): string {
  * are URL-encoded.
  */
 export function bookingPagePath(locale: "en" | "ar" | "es", ref: string, t?: string): string {
-  const prefix = locale === "ar" || locale === "es" ? `/${locale}` : "";
+  const prefix = `/${locale}`; // every page is /en|ar|es/… since job 21 (#33, owner decision 13)
   const query = `ref=${encodeURIComponent(ref)}` + (t === undefined ? "" : `&t=${encodeURIComponent(t)}`);
   return `${prefix}/bookings/trip?${query}`;
 }

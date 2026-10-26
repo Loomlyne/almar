@@ -71,16 +71,16 @@ test("originForBooking: the production origin for a real booking, the preview or
   assert.equal(originForBooking(true), "https://preview.almarprivatejourney.com");
 });
 
-test("bookingPagePath: /bookings/trip with ref and t; ar and es are prefixed, en is not", () => {
-  assert.equal(bookingPagePath("en", REF, TOKEN), `/bookings/trip?ref=${REF}&t=${TOKEN}`);
+test("bookingPagePath: /<locale>/bookings/trip with ref and t; every locale is prefixed (#33)", () => {
+  assert.equal(bookingPagePath("en", REF, TOKEN), `/en/bookings/trip?ref=${REF}&t=${TOKEN}`);
   assert.equal(bookingPagePath("ar", REF, TOKEN), `/ar/bookings/trip?ref=${REF}&t=${TOKEN}`);
   assert.equal(bookingPagePath("es", REF, TOKEN), `/es/bookings/trip?ref=${REF}&t=${TOKEN}`);
 });
 
 test("bookingPagePath: without t only the ref is in the link; both values are URL-encoded", () => {
-  assert.equal(bookingPagePath("en", REF), `/bookings/trip?ref=${REF}`);
+  assert.equal(bookingPagePath("en", REF), `/en/bookings/trip?ref=${REF}`);
   assert.equal(bookingPagePath("ar", REF), `/ar/bookings/trip?ref=${REF}`);
-  assert.equal(bookingPagePath("en", "a b&c", "x/y=z"), "/bookings/trip?ref=a%20b%26c&t=x%2Fy%3Dz");
+  assert.equal(bookingPagePath("en", "a b&c", "x/y=z"), "/en/bookings/trip?ref=a%20b%26c&t=x%2Fy%3Dz");
 });
 
 test("origin.ts stays pure: no imports, and PUBLIC_ORIGIN is not used for guest links", () => {
