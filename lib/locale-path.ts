@@ -100,6 +100,7 @@ export const PUBLIC_PAGES = [
   "/experiences",
   // Plan 04-03 (Q-06): the trip page, in every locale, noindex and out of the sitemap (scripts/crawl-files.mjs NOT_PUBLIC).
   "/booking/trip",
+  "/bookings/trip", // Plan 04-05 (Task 5): the guest's booking page, noindex and out of the sitemap (NOT_PUBLIC has bookings).
 ] as const;
 
 /**

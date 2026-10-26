@@ -88,6 +88,8 @@ export const NOT_READY_NOTIFIER: BookingNotifier = Object.freeze({
 
 /** The notifier of this Worker. 04-05 changes only this body (its Resend notifier; that flip opens production, P-13). */
 export function getNotifier(): BookingNotifier {
+  // TODO(04-05 flip, once the six renderers land after the owner's signature): return the live notifier of
+  // lib/email/booking-notifier.ts when it is not null (RESEND_API_KEY set), else NOT_READY_NOTIFIER, with its one import.
   return NOT_READY_NOTIFIER;
 }
 
