@@ -131,6 +131,7 @@ test("source rules: no money arithmetic", () => {
     "components/journey/travellers-step.tsx",
     "components/journey/request-step.tsx",
     "components/journey/hold-timer.tsx",
+    "components/journey/addons-step.tsx",
     "components/pages/stay-detail/book-link.tsx",
     ...TRIP_PAGES,
   ];
@@ -854,7 +855,7 @@ test("source rules: the trip modules keep the token out of URLs and the request 
     for (const f of readdirSync(dir)) {
       const text = readFileSync(`${dir}/${f}`, "utf8");
       assert.equal(/linkToken|[?&]t=/.test(text), false, `${dir}/${f}: token`);
-      assert.equal(/fetch\(|sessionStorage\.|localStorage\./.test(text) && /^(?:trip-layout|stay-summary-step|booking-reasons|travellers-step|request-step|hold-timer|book-link)\.tsx$/.test(f), false, `${dir}/${f}: no fetch or storage in a presentational component`);
+      assert.equal(/fetch\(|sessionStorage\.|localStorage\./.test(text) && /^(?:trip-layout|stay-summary-step|booking-reasons|travellers-step|request-step|hold-timer|addons-step|book-link)\.tsx$/.test(f), false, `${dir}/${f}: no fetch or storage in a presentational component`);
     }
   }
   const state = readFileSync("lib/booking/trip-state.ts", "utf8");

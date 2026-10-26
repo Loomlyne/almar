@@ -34,6 +34,8 @@ export type JourneyCartProps = {
   vatLabel?: string;
   planRows?: { label: string; amount: string }[];
   locked?: boolean;
+  /** Optional (plan 04-03): the phone dock's Continue is off while the step cannot go on. Absent = as before. */
+  continueDisabled?: boolean;
   onRemove: (id: string) => void;
   onContinue: () => void;
   variant?: "rail" | "phone";
@@ -185,7 +187,7 @@ function CartBody({
 
 // Desktop rail, or phone dock with a full-screen cart (D-50). Amounts are strings; no arithmetic.
 export function JourneyCart(props: JourneyCartProps) {
-  const { variant = "rail", copy, locale, lines, total, onContinue, defaultOpen = false, className } = props;
+  const { variant = "rail", copy, locale, lines, total, onContinue, continueDisabled, defaultOpen = false, className } = props;
   const c = copy.cart;
   const [open, setOpen] = useState(defaultOpen);
 
@@ -228,7 +230,7 @@ export function JourneyCart(props: JourneyCartProps) {
           <ChevronIcon size={20} className="shrink-0 text-teal -rotate-90" />
         </button>
       )}
-      <Button size="lg" onClick={onContinue}>
+      <Button size="lg" onClick={onContinue} disabled={continueDisabled}>
         {c.continue}
       </Button>
     </div>
