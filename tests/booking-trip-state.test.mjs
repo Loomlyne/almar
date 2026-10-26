@@ -7,7 +7,7 @@ import { loadTs } from "./helpers/load-ts.mjs";
 
 const fmt = await loadTs("lib/booking/trip-format.ts");
 const { JOURNEY_COPY } = await loadTs("lib/copy/journey.ts");
-const { formatBp, formatIsoDate, holdMsLeft, countdownParts, liveMinute, windowParts, uaeDateTime } = fmt;
+const { formatBp, formatIsoDate, holdMsLeft, clockOffsetMs, countdownParts, liveMinute, windowParts, uaeDateTime } = fmt;
 
 test("formatBp: basis points as a percentage", () => {
   assert.equal(formatBp(500), "5");
@@ -30,6 +30,22 @@ test("holdMsLeft: capped at 30 minutes, floored at 0", () => {
   assert.equal(holdMsLeft("2026-11-02T09:00:00Z", now), 30 * 60 * 1000);
   assert.equal(holdMsLeft("2026-11-02T07:00:00Z", now), 0);
   assert.equal(holdMsLeft("nonsense", now), 0);
+});
+
+test("clockOffsetMs: the server's clock minus the device's at the answer; 0 for an unparseable instant", () => {
+  const server = "2026-11-02T08:00:00Z";
+  const at = Date.parse(server);
+  assert.equal(clockOffsetMs(server, at), 0);
+  assert.equal(clockOffsetMs(server, at + 10 * 60_000), -10 * 60_000, "a device ten minutes fast");
+  assert.equal(clockOffsetMs(server, at - 3 * 60_000), 3 * 60_000, "a device three minutes slow");
+  assert.equal(clockOffsetMs("soon", at), 0);
+  assert.equal(clockOffsetMs(server, Number.NaN), 0);
+  // The countdown: serverEnd - (device clock + offset) = serverEnd - (serverNow + elapsed), still capped at 30 minutes.
+  const fast = at + 10 * 60_000;
+  const offset = clockOffsetMs(server, fast);
+  assert.equal(holdMsLeft("2026-11-02T08:30:00Z", fast + offset), 30 * 60_000);
+  assert.equal(holdMsLeft("2026-11-02T08:30:00Z", fast + 60_000 + offset), 29 * 60_000, "one minute counted on the device");
+  assert.equal(holdMsLeft("2026-11-02T09:30:00Z", fast + offset), 30 * 60_000, "never more than the 30 minutes");
 });
 
 test("countdownParts: seconds round up", () => {
@@ -168,6 +184,7 @@ const {
   tripNeedsPickup,
   isLinkToken,
   holdAnswerIsCurrent,
+  holdServerNow,
 } = trip;
 const { postJson, postQuote, postHold, postRelease } = client;
 const { parseQuoteRequest, parseHoldRequest, parseReleaseRequest } = validate;
@@ -232,6 +249,7 @@ const holdOk = (over = {}) => ({
   linkToken: TOKEN,
   breakdown: breakdown(),
   transferWindowMinutes: 35,
+  serverNow: "2026-11-01T08:00:00Z",
   ...over,
 });
 const HOLD_NOW = Date.parse("2026-11-01T08:00:00Z");
@@ -252,7 +270,7 @@ function filled() {
 }
 const chosen = () => run(filled(), { type: "plan", plan: "full" }, { type: "airport", airport: "DXB" }, { type: "terms", accepted: true });
 const heldState = () =>
-  run(chosen(), { type: "go", step: 2 }, { type: "go", step: 3 }, { type: "go", step: 4 }, { type: "holdSent", attempt: 1 }, { type: "held", hold: holdOk(), attempt: 1 });
+  run(chosen(), { type: "go", step: 2 }, { type: "go", step: 3 }, { type: "go", step: 4 }, { type: "holdSent", attempt: 1 }, { type: "held", hold: holdOk(), attempt: 1, receivedAtMs: HOLD_NOW });
 
 // ---- trip-link
 
@@ -436,7 +454,7 @@ test("storage: the stored keys, no amount, no terms, a round trip, and null for 
   const raw = JSON.parse(text);
   assert.deepEqual(Object.keys(raw), ["v", "query", "step", "addons", "addonsTouched", "contact", "bookerStays", "travellers", "pickup", "plan", "airport", "hold"]);
   assert.doesNotMatch(text, /Fils|price|amount|terms/i);
-  assert.deepEqual(raw.hold, { ref: REF, linkToken: TOKEN, holdExpiresAt: "2026-11-01T08:30:00Z", transferWindowMinutes: 35 });
+  assert.deepEqual(raw.hold, { ref: REF, linkToken: TOKEN, holdExpiresAt: "2026-11-01T08:30:00Z", transferWindowMinutes: 35, clockOffsetMs: 0 });
 
   const back = readTripState(text, Q);
   for (const key of ["step", "addons", "addonsTouched", "contact", "bookerStays", "travellers", "pickup", "plan", "airport", "hold"]) {
@@ -475,6 +493,9 @@ test("storage: the stored keys, no amount, no terms, a round trip, and null for 
     edit((r) => (r.hold.linkToken = "short")),
     edit((r) => (r.hold.holdExpiresAt = "2026-11-01T08:30:00")),
     edit((r) => (r.hold.transferWindowMinutes = 0)),
+    edit((r) => (r.hold.clockOffsetMs = 1.5)),
+    edit((r) => (r.hold.clockOffsetMs = "0")),
+    edit((r) => delete r.hold.clockOffsetMs),
     edit((r) => (r.hold.extra = 1)),
   ];
   for (const b of bad) assert.equal(readTripState(b, Q), null, String(b));
@@ -656,13 +677,13 @@ test("hold in flight: holdSent locks every input and step move until its answer;
   assert.equal(pending.holdAttempt, atFour.holdAttempt, "no second attempt while one is out");
   assert.equal(holdAnswerIsCurrent(pending, pending.holdAttempt), true);
 
-  const held = tripReducer(pending, { type: "held", hold: holdOk(), attempt: pending.holdAttempt });
+  const held = tripReducer(pending, { type: "held", hold: holdOk(), attempt: pending.holdAttempt, receivedAtMs: HOLD_NOW });
   assert.equal(held.holdPending, false);
   assert.equal(held.hold.ref, REF);
   assert.equal(holdAnswerIsCurrent(held, held.holdAttempt), false, "a hold is stored: a second answer is not current");
-  assert.equal(tripReducer(held, { type: "held", hold: holdOk({ ref: "ALMAR-2B3CD4" }), attempt: held.holdAttempt }), held, "never a second stored hold");
+  assert.equal(tripReducer(held, { type: "held", hold: holdOk({ ref: "ALMAR-2B3CD4" }), attempt: held.holdAttempt, receivedAtMs: HOLD_NOW }), held, "never a second stored hold");
 
-  const stale = tripReducer(pending, { type: "held", hold: holdOk(), attempt: pending.holdAttempt - 1 });
+  const stale = tripReducer(pending, { type: "held", hold: holdOk(), attempt: pending.holdAttempt - 1, receivedAtMs: HOLD_NOW });
   assert.equal(stale, pending, "an answer for an older attempt is not kept (the screen releases it)");
   assert.equal(holdAnswerIsCurrent(pending, pending.holdAttempt - 1), false);
   assert.equal(tripReducer(pending, { type: "refused", at: "hold", reasons: [{ code: "unavailable" }], attempt: pending.holdAttempt - 1 }), pending);
@@ -710,7 +731,7 @@ test("requestChoiceErrors and holdBody", () => {
 test("held, the locks, released, ended", () => {
   const s = heldState();
   assert.equal(s.step, 4);
-  assert.deepEqual(s.hold, { ref: REF, linkToken: TOKEN, holdExpiresAt: "2026-11-01T08:30:00Z", transferWindowMinutes: 35 });
+  assert.deepEqual(s.hold, { ref: REF, linkToken: TOKEN, holdExpiresAt: "2026-11-01T08:30:00Z", transferWindowMinutes: 35, clockOffsetMs: 0 });
   assert.deepEqual(s.holdBreakdown, breakdown());
   for (const action of [
     { type: "go", step: 3 },
@@ -768,6 +789,22 @@ test("canRequest", () => {
   assert.deepEqual(canRequest(s, Date.parse("2026-11-01T08:30:00Z")), { ok: false, reason: "hold_ended" });
   assert.deepEqual(canRequest(tripReducer(s, { type: "ended" }), HOLD_NOW), { ok: false, reason: "hold_ended" });
   assert.deepEqual(canRequest(tripReducer(s, { type: "closed" }), HOLD_NOW), { ok: false, reason: "requests_closed" });
+
+  // A device clock ten minutes fast: the hold runs on the server's clock (its serverNow), not the device's.
+  const atFour = run(chosen(), { type: "go", step: 2 }, { type: "go", step: 3 }, { type: "go", step: 4 }, { type: "holdSent", attempt: 1 });
+  const FAST = 10 * 60_000;
+  const skewed = tripReducer(atFour, { type: "held", hold: holdOk(), attempt: 1, receivedAtMs: HOLD_NOW + FAST });
+  assert.equal(skewed.hold.clockOffsetMs, -FAST);
+  assert.equal(holdServerNow(skewed.hold, HOLD_NOW + FAST), HOLD_NOW);
+  assert.deepEqual(canRequest(skewed, HOLD_NOW + FAST + 25 * 60_000), { ok: true }, "25 minutes in: still held, though the device reads 08:35");
+  assert.deepEqual(canRequest(skewed, HOLD_NOW + FAST + 30 * 60_000), { ok: false, reason: "hold_ended" }, "ends at the server's 08:30");
+  const slow = tripReducer(atFour, { type: "held", hold: holdOk(), attempt: 1, receivedAtMs: HOLD_NOW - FAST });
+  assert.deepEqual(canRequest(slow, HOLD_NOW - FAST + 30 * 60_000), { ok: false, reason: "hold_ended" }, "a slow device does not get extra time");
+  assert.equal(JSON.parse(serializeTripState(skewed)).hold.clockOffsetMs, -FAST, "the offset is kept with the hold for a reload");
+  assert.deepEqual(readTripState(serializeTripState(skewed), Q).hold, skewed.hold);
+  const screen = readFileSync("app/booking/trip/trip-screen.tsx", "utf8");
+  assert.ok(screen.includes("receivedAtMs: Date.now()"), "the screen stamps the answer's arrival");
+  assert.ok(screen.includes("now={holdClock}"), "the countdown gets the server's clock");
 });
 
 test("isLinkToken has the shape of validate.ts LINK_TOKEN", () => {
@@ -850,7 +887,7 @@ test("postHold and postRelease", async () => {
   const body = holdBody(chosen(), "en");
   assert.deepEqual(await withFetch(answer(200, holdOk()), () => postHold(body)), { status: 200, response: holdOk() });
   const UNAV = { ok: false, reasons: [{ code: "unavailable" }] };
-  for (const bad of [holdOk({ ref: "ALMAR-1" }), holdOk({ linkToken: "x" }), holdOk({ holdExpiresAt: "soon" }), holdOk({ transferWindowMinutes: 0 }), holdOk({ breakdown: null })]) {
+  for (const bad of [holdOk({ ref: "ALMAR-1" }), holdOk({ linkToken: "x" }), holdOk({ holdExpiresAt: "soon" }), holdOk({ transferWindowMinutes: 0 }), holdOk({ breakdown: null }), holdOk({ serverNow: "soon" }), holdOk({ serverNow: undefined })]) {
     assert.deepEqual(await withFetch(answer(200, bad), () => postHold(body)), { status: 200, response: UNAV }, JSON.stringify(bad));
   }
   for (const [status, reasons] of [

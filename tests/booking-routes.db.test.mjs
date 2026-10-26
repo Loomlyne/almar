@@ -214,7 +214,8 @@ test("hold route: 200 with the reference, the end of the hold and a signed link 
   if (!s) return;
   const guest = email();
   const body = await expectJson(await post(s.hold, holdBody(s, guest, { from: dubaiDay(2100), to: dubaiDay(2102) })), 200);
-  assert.deepEqual(Object.keys(body).sort(), ["breakdown", "holdExpiresAt", "linkToken", "ok", "ref", "transferWindowMinutes"]);
+  assert.deepEqual(Object.keys(body).sort(), ["breakdown", "holdExpiresAt", "linkToken", "ok", "ref", "serverNow", "transferWindowMinutes"]);
+  assert.ok(Math.abs(Date.parse(body.serverNow) - Date.now()) < 60_000, "serverNow is the server's clock as it answered");
   assert.equal(body.transferWindowMinutes, 35, "the preview host is TEST: the 35-minute window (P-06)");
   assert.match(body.ref, /^ALMAR-[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$/);
   assert.match(body.linkToken, /^[A-Za-z0-9_-]{43}$/);

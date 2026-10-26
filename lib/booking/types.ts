@@ -139,7 +139,11 @@ export type HoldRequest = QuoteRequest & {
   termsAccepted: true;
 };
 
-/** A successful hold carries `transferWindowMinutes`, the window the request will get (35 on a TEST booking). */
+/**
+ * A successful hold carries `transferWindowMinutes`, the window the request will get (35 on a TEST booking), and
+ * `serverNow`, the server's clock when it answered (an ISO instant): the page runs the countdown from it, never from
+ * the device's own clock (plan 04-03 review).
+ */
 export type HoldResponse =
   | {
       ok: true;
@@ -148,6 +152,7 @@ export type HoldResponse =
       linkToken: string;
       breakdown: PublicPriceSnapshot;
       transferWindowMinutes: number;
+      serverNow: string;
     }
   | { ok: false; reasons: BookingReason[] };
 

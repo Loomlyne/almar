@@ -28,6 +28,18 @@ export function holdMsLeft(endsAtIso: string, nowMs: number): number {
   return Math.max(0, Math.min(end - nowMs, HOLD_MS));
 }
 
+/**
+ * The server's clock minus the device's, from a hold answer: `serverNowIso` is the answer's serverNow, `receivedAtMs`
+ * the device clock (Date.now()) when the answer arrived. The server's time later is the device clock plus this offset,
+ * that is serverNow plus the time the device has counted since the answer, so a device set minutes off shows the
+ * server's countdown. 0 for an unparseable instant.
+ */
+export function clockOffsetMs(serverNowIso: string, receivedAtMs: number): number {
+  const server = Date.parse(serverNowIso);
+  if (Number.isNaN(server) || !Number.isFinite(receivedAtMs)) return 0;
+  return Math.round(server - receivedAtMs);
+}
+
 /** mm:ss with seconds rounded up, so 00:00 shows only at the end. */
 export function countdownParts(msLeft: number): { minutes: number; seconds: number; text: string } {
   const total = Math.max(0, Math.ceil(msLeft / 1000));

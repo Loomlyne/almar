@@ -187,7 +187,7 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
     void postHold(body).then(({ status, response }) => {
       const current = alive.current && holdAnswerIsCurrent(stateRef.current, attempt);
       if (response.ok) {
-        if (current) dispatch({ type: "held", hold: response, attempt });
+        if (current) dispatch({ type: "held", hold: response, attempt, receivedAtMs: Date.now() });
         else void postRelease({ ref: response.ref, t: response.linkToken });
         return;
       }
@@ -198,6 +198,10 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
     });
   }, [state, locale]);
   const holdBusy = state.holdPending;
+
+  // The countdown's clock is the server's: the device clock plus the offset taken from the hold answer's serverNow.
+  const clockOffset = state.hold?.clockOffsetMs ?? 0;
+  const holdClock = useMemo(() => () => Date.now() + clockOffset, [clockOffset]);
 
   const quote = state.quote;
   const price = displayBreakdown(state);
@@ -419,6 +423,7 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
         canRequest={canRequest(state, Date.now())}
         onRequest={requestTrip}
         secondCityHref={secondCity}
+        now={holdClock}
         onEnd={() => dispatch({ type: "ended" })}
         copy={copy}
         locale={locale}

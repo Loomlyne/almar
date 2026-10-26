@@ -16,7 +16,7 @@
 import { isEmail } from "../auth/rules";
 import type { Locale } from "../locale-path";
 import { isBookingRef } from "./ref";
-import { holdMsLeft } from "./trip-format";
+import { clockOffsetMs, holdMsLeft } from "./trip-format";
 import type { TripQuery } from "./trip-link";
 import type { Airport, BookingReason, HoldRequest, HoldResponse, PublicPriceSnapshot, QuoteRequest, QuoteResponse, TravellerInput } from "./types";
 import { needsPickupAddress } from "./validate";
@@ -39,8 +39,12 @@ export type TripContact = {
 /** One traveller line as typed: the age is the text of its field ("" for an adult). */
 export type TripTraveller = { kind: TravellerInput["kind"]; fullName: string; age: string };
 
-/** What the page keeps of a hold. The token stays here and in the request bodies, never in a URL. */
-export type TripHold = { ref: string; linkToken: string; holdExpiresAt: string; transferWindowMinutes: number };
+/**
+ * What the page keeps of a hold. The token stays here and in the request bodies, never in a URL. `clockOffsetMs` is
+ * the server's clock minus the device's when the hold answer arrived (clockOffsetMs of trip-format.ts): the hold's
+ * end is measured against the device clock plus it, never against the device clock alone.
+ */
+export type TripHold = { ref: string; linkToken: string; holdExpiresAt: string; transferWindowMinutes: number; clockOffsetMs: number };
 
 export type TripRefusal = { at: "hold" | "request"; reasons: BookingReason[] };
 
@@ -99,7 +103,8 @@ export type TripAction =
   | { type: "traveller"; index: number; patch: Partial<Pick<TripTraveller, "fullName" | "age">> }
   | { type: "pickup"; address: string }
   | { type: "holdSent"; attempt: number }
-  | { type: "held"; hold: Extract<HoldResponse, { ok: true }>; attempt: number }
+  /** `receivedAtMs`: the device clock (Date.now()) when the answer arrived, read against the answer's serverNow. */
+  | { type: "held"; hold: Extract<HoldResponse, { ok: true }>; attempt: number; receivedAtMs: number }
   | { type: "released"; next?: TripMove }
   | { type: "ended" }
   | { type: "retryHold" }
@@ -336,11 +341,16 @@ export function holdBody(state: TripState, locale: Locale): HoldRequest | null {
 
 export type CanRequest = { ok: true } | { ok: false; reason: "no_hold" | "hold_ended" | "requests_closed" };
 
-/** Send request is enabled exactly while a live hold is stored and requests are open. */
-export function canRequest(state: Pick<TripState, "hold" | "ended" | "closed">, nowMs: number): CanRequest {
+/** The server's time for a stored hold: the device clock `deviceMs` plus the hold's clock offset. */
+export function holdServerNow(hold: Pick<TripHold, "clockOffsetMs">, deviceMs: number): number {
+  return deviceMs + hold.clockOffsetMs;
+}
+
+/** Send request is enabled exactly while a live hold is stored and requests are open. `deviceMs` is Date.now(). */
+export function canRequest(state: Pick<TripState, "hold" | "ended" | "closed">, deviceMs: number): CanRequest {
   if (state.ended) return { ok: false, reason: "hold_ended" };
   if (!state.hold) return { ok: false, reason: "no_hold" };
-  if (holdMsLeft(state.hold.holdExpiresAt, nowMs) === 0) return { ok: false, reason: "hold_ended" };
+  if (holdMsLeft(state.hold.holdExpiresAt, holdServerNow(state.hold, deviceMs)) === 0) return { ok: false, reason: "hold_ended" };
   if (state.closed) return { ok: false, reason: "requests_closed" };
   return { ok: true };
 }
@@ -504,7 +514,13 @@ export function tripReducer(state: TripState, action: TripAction): TripState {
       return {
         ...state,
         step: 4,
-        hold: { ref: h.ref, linkToken: h.linkToken, holdExpiresAt: h.holdExpiresAt, transferWindowMinutes: h.transferWindowMinutes },
+        hold: {
+          ref: h.ref,
+          linkToken: h.linkToken,
+          holdExpiresAt: h.holdExpiresAt,
+          transferWindowMinutes: h.transferWindowMinutes,
+          clockOffsetMs: clockOffsetMs(h.serverNow, action.receivedAtMs),
+        },
         holdBreakdown: h.breakdown,
         ended: false,
         refusal: null,
@@ -549,7 +565,7 @@ export function tripReducer(state: TripState, action: TripAction): TripState {
 const STORED_KEYS = ["v", "query", "step", "addons", "addonsTouched", "contact", "bookerStays", "travellers", "pickup", "plan", "airport", "hold"] as const;
 const QUERY_KEYS = ["stay", "from", "to", "adults", "children", "infants"] as const;
 const LINE_KEYS = ["kind", "fullName", "age"] as const;
-const HOLD_KEYS = ["ref", "linkToken", "holdExpiresAt", "transferWindowMinutes"] as const;
+const HOLD_KEYS = ["ref", "linkToken", "holdExpiresAt", "transferWindowMinutes", "clockOffsetMs"] as const;
 const MAX_TEXT = 4000;
 
 type Rec = Record<string, unknown>;
@@ -644,7 +660,9 @@ export function readTripState(text: string | null, query: TripQuery): TripState 
     if (!isBookingRef(h.ref) || !isLinkToken(h.linkToken) || !isInstant(h.holdExpiresAt)) return null;
     const minutes = h.transferWindowMinutes;
     if (typeof minutes !== "number" || !Number.isInteger(minutes) || minutes < 1) return null;
-    hold = { ref: h.ref, linkToken: h.linkToken, holdExpiresAt: h.holdExpiresAt, transferWindowMinutes: minutes };
+    const offset = h.clockOffsetMs;
+    if (typeof offset !== "number" || !Number.isSafeInteger(offset)) return null;
+    hold = { ref: h.ref, linkToken: h.linkToken, holdExpiresAt: h.holdExpiresAt, transferWindowMinutes: minutes, clockOffsetMs: offset };
   }
 
   return {
@@ -664,10 +682,11 @@ export function readTripState(text: string | null, query: TripQuery): TripState 
 }
 
 /**
- * The trip of this tab for `query` (sessionStorage), else a fresh one. A stored hold already past its end at `nowMs`
- * comes back ended (the inputs kept, the hold cleared); 04-06 adds the server check through /api/booking/view.
+ * The trip of this tab for `query` (sessionStorage), else a fresh one. A stored hold already past its end (on the
+ * server's clock: the device clock `deviceMs` plus the stored offset) comes back ended (the inputs kept, the hold
+ * cleared); 04-06 adds the server check through /api/booking/view.
  */
-export function loadTripState(query: TripQuery, nowMs: number = Date.now()): TripState {
+export function loadTripState(query: TripQuery, deviceMs: number = Date.now()): TripState {
   let text: string | null = null;
   try {
     text = typeof window === "undefined" ? null : window.sessionStorage.getItem(TRIP_STATE_KEY);
@@ -675,7 +694,7 @@ export function loadTripState(query: TripQuery, nowMs: number = Date.now()): Tri
     text = null;
   }
   const state = readTripState(text, query) ?? initialTripState(query);
-  return state.hold && holdMsLeft(state.hold.holdExpiresAt, nowMs) === 0 ? tripReducer(state, { type: "ended" }) : state;
+  return state.hold && holdMsLeft(state.hold.holdExpiresAt, holdServerNow(state.hold, deviceMs)) === 0 ? tripReducer(state, { type: "ended" }) : state;
 }
 
 /** Store the trip for this tab; a storage that is off or full is ignored. */

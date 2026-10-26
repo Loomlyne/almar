@@ -1,8 +1,9 @@
 // POST /api/booking/hold: the guest's 30-minute hold (plan 04-02). The server prices the stay again and stores that
-// price; the browser's numbers are not read. 200 with the booking reference, the hold's end, a signed link token and the
-// transfer window the request will get (plan 04-08); 409 with the reasons when the stay cannot be booked as asked; 429
-// when the guest has asked too often; 400 for a body that is not a hold request; 403 for a foreign origin; 503 when the
-// server or the link secret is not ready, and 503 requests_closed while the request gate is closed (before any write).
+// price; the browser's numbers are not read. 200 with the booking reference, the hold's end, a signed link token, the
+// transfer window the request will get (plan 04-08) and the server's clock (`serverNow`, the page's countdown base, plan
+// 04-03); 409 with the reasons when the stay cannot be booked as asked; 429 when the guest has asked too often; 400 for
+// a body that is not a hold request; 403 for a foreign origin; 503 when the server or the link secret is not ready, and
+// 503 requests_closed while the request gate is closed (before any write).
 // TEST comes from the Host header, never from the body. Nothing is logged: no body, no email, no phone. The booking id
 // never leaves the server.
 import { bookingLinkConfigured } from "../../../../lib/booking/link";

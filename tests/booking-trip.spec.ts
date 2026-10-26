@@ -195,6 +195,8 @@ async function mockBooking(
   o: {
     quote?: (body: { addons: Addon[] }) => unknown;
     hold?: (n: number) => { status: number; json: unknown };
+    /** The server's clock for the default hold answer (its holdExpiresAt and serverNow); the test runner's by default. */
+    serverClock?: () => number;
   } = {},
 ): Promise<Mocks> {
   const m: Mocks = { quotes: [], holds: [], releases: [], urls: [] };
@@ -207,6 +209,7 @@ async function mockBooking(
   await page.route("**/api/booking/hold", async (route: Route) => {
     const body = route.request().postDataJSON() as Record<string, unknown>;
     m.holds.push(body);
+    const server = (o.serverClock ?? Date.now)();
     const answer = o.hold
       ? o.hold(m.holds.length)
       : {
@@ -214,10 +217,11 @@ async function mockBooking(
           json: {
             ok: true,
             ref: REF,
-            holdExpiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+            holdExpiresAt: new Date(server + 30 * 60 * 1000).toISOString(),
             linkToken: TOKEN,
             breakdown: breakdown(body.addons as Addon[], { plan: body.plan as "deposit" | "full" }),
             transferWindowMinutes: 35,
+            serverNow: new Date(server).toISOString(),
           },
         };
     await route.fulfill({ status: answer.status, contentType: "application/json", body: JSON.stringify(answer.json) });
@@ -505,6 +509,18 @@ test.describe("travellers and request", () => {
     await expect(page.getByRole("link", { name: en.request.startAgain })).toHaveAttribute("href", "/en/private-stays/getsemani-colonial-house");
     const stored = await page.evaluate(() => window.sessionStorage.getItem("almar-trip"));
     expect(JSON.parse(stored ?? "{}").hold).toBeNull();
+  });
+
+  test("the countdown runs on the server's clock: a device ten minutes ahead still shows the full 30 minutes", async ({ page }) => {
+    await page.setViewportSize(VIEWPORTS.desktop);
+    // The server answers ten minutes behind the browser: from the device clock alone the hold would read 20:00.
+    await mockBooking(page, { serverClock: () => Date.now() - 10 * 60 * 1000 });
+    await openTrip(page, "en");
+    await toTravellers(page);
+    await fillTravellers(page);
+    await chooseFull(page);
+    await page.getByRole("button", { name: en.travellers.continue }).click();
+    await expect(page.getByRole("timer")).toContainText(/30:00|29:5\d/);
   });
 
   test("AR is rtl on Travellers and Request at 390; no horizontal scroll", async ({ page }) => {

@@ -13,7 +13,10 @@ import type { JourneyCopy } from "./types";
 export type HoldTimerProps = {
   /** The server's holdExpiresAt (an instant with an offset). */
   endsAt: string;
-  /** The clock, for the harness pictures (a fixed time) and the tests. */
+  /**
+   * The clock: the page passes the server's (the device clock plus the offset from the hold answer's serverNow); the
+   * harness pictures pass a fixed time. The device clock alone only when absent.
+   */
   now?: () => number;
   onEnd: () => void;
   copy: JourneyCopy;

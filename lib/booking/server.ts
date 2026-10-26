@@ -464,6 +464,8 @@ export async function createWebHold(db: BookingDb, input: HoldRequest, ctx: Hold
       linkToken: await signBookingLink(id, version),
       breakdown: publicBreakdown(breakdown),
       transferWindowMinutes: ctx.transferWindowMinutes,
+      // The server's clock as it answers: the page's countdown runs from it, not from the device's clock.
+      serverNow: (ctx.now ?? new Date()).toISOString(),
     },
     bookingId: id,
   };

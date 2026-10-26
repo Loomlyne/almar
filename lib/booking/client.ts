@@ -262,6 +262,7 @@ export function isHoldOk(json: unknown): json is HoldOk {
     typeof json.transferWindowMinutes === "number" &&
     Number.isInteger(json.transferWindowMinutes) &&
     json.transferWindowMinutes >= 1 &&
+    isInstant(json.serverNow) &&
     isPriceSnapshot(json.breakdown)
   );
 }
@@ -284,6 +285,7 @@ export async function postHold(body: HoldRequest): Promise<{ status: number; res
         linkToken: j.linkToken,
         breakdown: j.breakdown,
         transferWindowMinutes: j.transferWindowMinutes,
+        serverNow: j.serverNow,
       },
     };
   }
