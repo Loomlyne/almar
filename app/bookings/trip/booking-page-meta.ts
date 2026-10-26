@@ -5,6 +5,7 @@
 // would make the browser send `Origin: null` on the page's POST to /api/booking/view and /api/booking/withdraw, which
 // both routes refuse with 403; same-origin still never sends the token to another site.
 import type { Metadata } from "next";
+import { BOOKING_PAGE_COPY } from "../../../lib/copy/booking-page";
 import { localeAlternates, type Locale } from "../../../lib/locale-path";
 
 /** The page's path in PUBLIC_PAGES (lib/locale-path.ts); the locale prefix comes from localePath. */
@@ -12,8 +13,7 @@ export const BOOKING_PAGE_PATH = "/bookings/trip";
 
 export function bookingPageMetadata(locale: Locale): Metadata {
   return {
-    // TODO(04-05 Task 5): `title: BOOKING_PAGE_COPY[locale].<page title key>` once lib/copy/booking-page.ts lands
-    // (Task 2, after the owner's signature); until then the root layout's default title stands.
+    title: BOOKING_PAGE_COPY[locale].pageTitle,
     robots: { index: false, follow: false },
     referrer: "same-origin",
     alternates: localeAlternates(locale, BOOKING_PAGE_PATH),

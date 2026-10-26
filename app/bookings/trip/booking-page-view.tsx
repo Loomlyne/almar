@@ -93,7 +93,8 @@ export function BookingPageView({
   localeHrefs?: Record<Locale, string>;
   /** E-04: the preview host's TEST banner. */
   isTest: boolean;
-  onRetry: () => void;
+  /** The unavailable state's Try again. Optional so the static page's loading fallback passes no function. */
+  onRetry?: () => void;
   /** A signed-in guest without a link token (the screen decides); drawn on Confirmed and Completed only. */
   showBackLink: boolean;
   /** Absent: no Withdraw section, no dialog and no notice (a control is drawn only where it is wired). */
@@ -143,7 +144,7 @@ function Body({
   locale: Locale;
   copy: BookingPageCopy;
   state: BookingPageState;
-  onRetry: () => void;
+  onRetry?: () => void;
   showBackLink: boolean;
   withdraw?: WithdrawControl;
 }) {
