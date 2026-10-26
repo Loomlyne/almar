@@ -1054,8 +1054,15 @@ function fakeSend(result) {
 
 const mail = (over = {}) => ({ bookingId: MAIL_BOOKING, template: "request_received", idempotencyKey: `request/${MAIL_BOOKING}`, ready: true, ...over });
 
-test("getNotifier: today the not-ready default; every method answers not_ready", async () => {
-  const n = getNotifier();
+test("getNotifier: without RESEND_API_KEY the not-ready default (04-05 E-16); every method answers not_ready", async () => {
+  const saved = process.env.RESEND_API_KEY;
+  delete process.env.RESEND_API_KEY;
+  let n;
+  try {
+    n = getNotifier();
+  } finally {
+    if (saved !== undefined) process.env.RESEND_API_KEY = saved;
+  }
   assert.equal(n, NOT_READY_NOTIFIER);
   assert.equal(n.ready, false);
   const job = { bookingId: MAIL_BOOKING };

@@ -135,7 +135,25 @@ test("matchPublicPage matches the five patterns and one [a-z0-9-] segment", () =
     "/destinations",
     "/experiences",
     "/booking/trip",
+    "/bookings/trip",
   ]);
+});
+
+test("/bookings/trip is a public page in every locale (plan 04-05 Task 5); /bookings itself stays a guest page", () => {
+  assert.equal(matchPublicPage("/bookings/trip"), "/bookings/trip");
+  assert.equal(matchPublicPage("/bookings"), null);
+  assert.equal(matchPublicPage("/bookings/trip/x"), null);
+  assert.equal(siteHref("ar", "/bookings/trip?ref=ALMAR-TEST22"), "/ar/bookings/trip?ref=ALMAR-TEST22");
+  assert.equal(siteHref("en", "/bookings/trip?ref=ALMAR-TEST22"), "/en/bookings/trip?ref=ALMAR-TEST22");
+  assert.deepEqual(localeHrefs("/bookings/trip"), {
+    en: "/en/bookings/trip",
+    ar: "/ar/bookings/trip",
+    es: "/es/bookings/trip",
+  });
+  const o = "https://almarprivatejourney.com";
+  assert.equal(localeAlternates("es", "/bookings/trip").canonical, `${o}/es/bookings/trip`);
+  assert.equal(localeAlternates("ar", "/bookings/trip").languages["x-default"], `${o}/en/bookings/trip`);
+  assert.equal(localeAlternates("en", "/bookings/trip").languages.ar, `${o}/ar/bookings/trip`);
 });
 
 test("/booking/trip is a public page in every locale (plan 04-03, Q-06); /booking and a deeper path are not", () => {
