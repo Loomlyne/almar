@@ -6,6 +6,15 @@
 - **Signature:** Q-01 = B, six approved, British "Travellers" (plan section "Owner signature, 2026-10-25 23:16 CET").
 - **Hosted database, secrets, Cloudflare, DNS, main:** not touched. No stack, dev server or build.
 
+## Task 5 build specs (`b8f477e1`, not run)
+
+- server-runtime: 200 probes for `/en|ar|es/booking/trip` (bytes, noindex, same-origin referrer, lang/dir) and a browser check of the page's own quote POST.
+- slice1-sweep: the sitemap counts leave out the noindex trip pages. slice2-sweep: `isBookingFlow` filter; also fixed `isBlog` / `isSlice3` to accept the `en` prefix (since #33 `/en/blog` etc. slipped through; the sweep-list test was failing on main). Revert those two regexes if this belongs in a separate fix.
+- stay-detail and stay-detail-held: Book button before dates, Book link to `tripHref(...)` after; the dock holds Book + the request link.
+- **Decision for the controller:** unprefixed `/booking/trip` now answers the static 404 (no file, no redirect). Pin it as a 404 miss, or add a 301 to `/en/booking/trip` in `_redirects`.
+- Plan text stale: Task 5 step 4 gate list says `out/booking/trip.html` and `! grep -q "booking" out/sitemap.xml`; the pages are `out/en|ar|es/booking/trip.html`.
+- Not done: step-rail / journey-cart baselines, the gate chain (no test, no shoot).
+
 ## Not verified, in plain words (04-03)
 
 1. No page was rendered or built. The route move to `/en|ar|es/booking/trip` (unprefixed page deleted) has not been through `next build` + `assemble-cloudflare`; that is the first thing to run.
