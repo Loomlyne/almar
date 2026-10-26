@@ -1,3 +1,30 @@
+# HANDOVER: job 25, Phase 4 plan 04-03 (2026-10-26)
+
+- **Branch:** `phase-04-book-and-request` (pushed). Code tip before this entry: the Task 5 build-spec commit (see the controller message); screens `093c6f45`.
+- **Base:** origin/main merged in `56d6618c` (after #33). Nothing newer merged since.
+- **Checks:** `npx tsc --noEmit` exit 0, `npm run tokens:check` up to date. Everything else **not run (owner: no test)**. Table in `04-03-SUMMARY.md`.
+- **Signature:** Q-01 = B, six approved, British "Travellers" (plan section "Owner signature, 2026-10-25 23:16 CET").
+- **Hosted database, secrets, Cloudflare, DNS, main:** not touched. No stack, dev server or build.
+
+## Not verified, in plain words (04-03)
+
+1. No page was rendered or built. The route move to `/en|ar|es/booking/trip` (unprefixed page deleted) has not been through `next build` + `assemble-cloudflare`; that is the first thing to run.
+2. No call reached 04-08's routes: quote, hold, release are wired by types only; request is 04-05's (not called here).
+3. The 29 harness scenes and every spec were written blind; selectors may need tweaks.
+
+## Model-translated copy for the owner's check (AR and ES)
+
+All AR and ES lines added or changed in `lib/copy/journey.ts` by this plan are model-translated (file header says so): Task 1a groups `book`, `trip`, `summary`, `travellers`, `request`, `reasons`, `bookingStatus` (except `bookingStatus.confirmed`, the canvas word), changed `steps.pay`, `addons.intro`, `cart.note`, new `cart.vatRate/payFirst/balanceBy/payFull`, `pay.terms.error`; and from the signature `travellers.errors.summary`, `request.windowNote`. The terms line keeps the English bracket `[Booking terms]` in AR and ES until the terms document exists.
+
+## NEEDS OWNER (04-03)
+
+- `request.windowNote` says "[N] hours", while the transfer window can be set in minutes or days (04-09 Settings). If the real window is not whole hours the line needs rewording, or should use the same `windowParts` text as the held state.
+- English labels the agent wrote where the plan had none (form labels, error lines, step titles, reason lines): listed in the 04-03 Task 1a report; worth one read by the owner.
+
+## 04-08 migration hash changed (04-09 follow-up)
+
+`20261019160000_booking_requests.sql` is now 2,106 lines, sha256 `2f04c72a969f9a15369609816763a99269d938261ebb7e9ceff5fe405de97f22` (note request_id, `a6723c6e`); the 04-08 entry below records the older hash.
+
 # HANDOVER: job 25, Phase 4 plan 04-09 (2026-10-25)
 
 - **Branch:** `phase-04-book-and-request` (pushed). **Final commit:** the one that adds this entry (`docs(04-09): SUMMARY and HANDOVER (owner: no test)`); code tip before it `fbca17bb`.
