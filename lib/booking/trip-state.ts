@@ -75,6 +75,11 @@ export type TripState = {
    * (never stored, so a reload sends nothing by itself).
    */
   holdAttempt: number;
+  /**
+   * The hold POST for `holdAttempt` is out and has not answered (never stored). While set, every input and every step
+   * move is refused, so nothing can change under the hold being placed or send a second one.
+   */
+  holdPending: boolean;
 };
 
 /** The moves the guest makes that a hold locks: the screen asks first, releases, then applies the move. */
@@ -93,11 +98,13 @@ export type TripAction =
   | { type: "bookerStays"; stays: boolean }
   | { type: "traveller"; index: number; patch: Partial<Pick<TripTraveller, "fullName" | "age">> }
   | { type: "pickup"; address: string }
-  | { type: "held"; hold: Extract<HoldResponse, { ok: true }> }
+  | { type: "holdSent"; attempt: number }
+  | { type: "held"; hold: Extract<HoldResponse, { ok: true }>; attempt: number }
   | { type: "released"; next?: TripMove }
   | { type: "ended" }
   | { type: "retryHold" }
-  | { type: "refused"; at: TripRefusal["at"]; reasons: BookingReason[] };
+  /** `attempt`: the holdAttempt a hold answer was sent for (a stale one is dropped); absent for the request's refusals. */
+  | { type: "refused"; at: TripRefusal["at"]; reasons: BookingReason[]; attempt?: number };
 
 // ---------------------------------------------------------------- shapes (the rules of lib/booking/validate.ts)
 
@@ -166,6 +173,7 @@ export function initialTripState(query: TripQuery): TripState {
     showErrors: false,
     refusal: null,
     holdAttempt: 0,
+    holdPending: false,
   };
 }
 
@@ -258,6 +266,14 @@ export function requestChoiceErrors(
 }
 
 const isEmpty = (o: object) => Object.keys(o).length === 0;
+
+/**
+ * Is a hold answer sent for `attempt` still the one the page waits for? No when the attempt moved on or a hold is
+ * already stored: then a held answer is not kept and the screen releases that hold.
+ */
+export function holdAnswerIsCurrent(state: Pick<TripState, "holdAttempt" | "hold">, attempt: number): boolean {
+  return attempt === state.holdAttempt && state.hold === null;
+}
 
 // ---------------------------------------------------------------- request bodies
 
@@ -388,7 +404,22 @@ function applyMove(state: TripState, move: TripMove): TripState {
   }
 }
 
+// The inputs and the step moves a hold POST in flight locks (the answer decides what comes next).
+const PENDING_LOCKED: ReadonlySet<TripAction["type"]> = new Set([
+  "go",
+  "setAddon",
+  "plan",
+  "airport",
+  "terms",
+  "contact",
+  "bookerStays",
+  "traveller",
+  "pickup",
+  "retryHold",
+]);
+
 export function tripReducer(state: TripState, action: TripAction): TripState {
+  if (state.holdPending && PENDING_LOCKED.has(action.type)) return state;
   switch (action.type) {
     case "go":
     case "setAddon":
@@ -460,7 +491,14 @@ export function tripReducer(state: TripState, action: TripAction): TripState {
     case "pickup":
       return state.hold ? state : { ...state, pickup: action.address };
 
+    case "holdSent":
+      // The screen's POST for this attempt is out: everything waits for its answer.
+      if (action.attempt !== state.holdAttempt || state.hold || state.holdPending) return state;
+      return { ...state, holdPending: true };
+
     case "held": {
+      // A stale answer (another attempt, or a hold already stored) is never kept: the screen releases it.
+      if (!holdAnswerIsCurrent(state, action.attempt)) return state;
       const h = action.hold;
       return {
         ...state,
@@ -470,6 +508,7 @@ export function tripReducer(state: TripState, action: TripAction): TripState {
         ended: false,
         refusal: null,
         showErrors: false,
+        holdPending: false,
       };
     }
 
@@ -489,8 +528,11 @@ export function tripReducer(state: TripState, action: TripAction): TripState {
       return { ...state, refusal: null, holdAttempt: state.holdAttempt + 1 };
 
     case "refused": {
-      if (action.reasons.length === 0) return state.refusal ? { ...state, refusal: null } : state;
-      let next: TripState = { ...state, refusal: { at: action.at, reasons: action.reasons } };
+      if (action.attempt !== undefined && !holdAnswerIsCurrent(state, action.attempt)) return state;
+      // The answer to the hold in flight frees the page again.
+      const base: TripState = action.attempt !== undefined && state.holdPending ? { ...state, holdPending: false } : state;
+      if (action.reasons.length === 0) return base.refusal ? { ...base, refusal: null } : base;
+      let next: TripState = { ...base, refusal: { at: action.at, reasons: action.reasons } };
       if (action.reasons.some((r) => r.code === "requests_closed")) next.closed = true;
       // A hold refused on a traveller field: back to Travellers with the errors shown.
       if (action.at === "hold" && !state.hold && action.reasons.some((r) => r.code === "invalid" && r.field !== undefined && TRAVELLER_FIELD.test(r.field))) {

@@ -167,6 +167,7 @@ const {
   canRequest,
   tripNeedsPickup,
   isLinkToken,
+  holdAnswerIsCurrent,
 } = trip;
 const { postJson, postQuote, postHold, postRelease } = client;
 const { parseQuoteRequest, parseHoldRequest, parseReleaseRequest } = validate;
@@ -250,7 +251,8 @@ function filled() {
   );
 }
 const chosen = () => run(filled(), { type: "plan", plan: "full" }, { type: "airport", airport: "DXB" }, { type: "terms", accepted: true });
-const heldState = () => run(chosen(), { type: "go", step: 2 }, { type: "go", step: 3 }, { type: "go", step: 4 }, { type: "held", hold: holdOk() });
+const heldState = () =>
+  run(chosen(), { type: "go", step: 2 }, { type: "go", step: 3 }, { type: "go", step: 4 }, { type: "holdSent", attempt: 1 }, { type: "held", hold: holdOk(), attempt: 1 });
 
 // ---- trip-link
 
@@ -351,6 +353,7 @@ test("initialTripState: step 1, nothing chosen, one empty line per guest, the bo
   assert.equal(s.hold, null);
   assert.equal(s.ended, false);
   assert.equal(s.closed, false);
+  assert.equal(s.holdPending, false);
 });
 
 test("tripReducer: the first ok quote adds the home pickup only (D-48); setAddon touches; qty 0 removes", () => {
@@ -614,6 +617,58 @@ test("retryHold: only on Request, not held, requests open, the body valid", () =
   assert.equal(tripReducer(atThree, { type: "retryHold" }), atThree);
   const ended = tripReducer(held, { type: "ended" });
   assert.equal(tripReducer(ended, { type: "retryHold" }), ended, "an ended hold starts again from the stay or the Travellers step");
+});
+
+test("hold in flight: holdSent locks every input and step move until its answer; a stale answer is dropped", () => {
+  const atFour = run(chosen(), { type: "go", step: 2 }, { type: "go", step: 3 }, { type: "go", step: 4 });
+  assert.equal(atFour.holdPending, false);
+  assert.equal(tripReducer(atFour, { type: "holdSent", attempt: atFour.holdAttempt + 1 }), atFour, "only for the current attempt");
+  const pending = tripReducer(atFour, { type: "holdSent", attempt: atFour.holdAttempt });
+  assert.equal(pending.holdPending, true);
+  assert.equal(pending.hold, null);
+  assert.equal(tripReducer(pending, { type: "holdSent", attempt: pending.holdAttempt }), pending, "once per attempt");
+  for (const action of [
+    { type: "go", step: 3 },
+    { type: "go", step: 1 },
+    { type: "setAddon", id: EXPERIENCE, qty: 0 },
+    { type: "setAddon", id: PICKUP, qty: 0 },
+    { type: "plan", plan: "deposit" },
+    { type: "airport", airport: "AUH" },
+    { type: "terms", accepted: false },
+    { type: "contact", patch: { name: "X" } },
+    { type: "traveller", index: 1, patch: { fullName: "X" } },
+    { type: "pickup", address: "X" },
+    { type: "bookerStays", stays: false },
+    { type: "retryHold" },
+  ]) {
+    assert.equal(tripReducer(pending, action), pending, JSON.stringify(action));
+  }
+  assert.equal(pending.holdAttempt, atFour.holdAttempt, "no second attempt while one is out");
+  assert.equal(holdAnswerIsCurrent(pending, pending.holdAttempt), true);
+
+  const held = tripReducer(pending, { type: "held", hold: holdOk(), attempt: pending.holdAttempt });
+  assert.equal(held.holdPending, false);
+  assert.equal(held.hold.ref, REF);
+  assert.equal(holdAnswerIsCurrent(held, held.holdAttempt), false, "a hold is stored: a second answer is not current");
+  assert.equal(tripReducer(held, { type: "held", hold: holdOk({ ref: "ALMAR-2B3CD4" }), attempt: held.holdAttempt }), held, "never a second stored hold");
+
+  const stale = tripReducer(pending, { type: "held", hold: holdOk(), attempt: pending.holdAttempt - 1 });
+  assert.equal(stale, pending, "an answer for an older attempt is not kept (the screen releases it)");
+  assert.equal(holdAnswerIsCurrent(pending, pending.holdAttempt - 1), false);
+  assert.equal(tripReducer(pending, { type: "refused", at: "hold", reasons: [{ code: "unavailable" }], attempt: pending.holdAttempt - 1 }), pending);
+
+  const refused = tripReducer(pending, { type: "refused", at: "hold", reasons: [{ code: "unavailable" }], attempt: pending.holdAttempt });
+  assert.equal(refused.holdPending, false, "the refusal frees the page");
+  assert.deepEqual(refused.refusal, { at: "hold", reasons: [{ code: "unavailable" }] });
+  assert.equal(tripReducer(refused, { type: "retryHold" }).holdAttempt, refused.holdAttempt + 1, "and the Hold button works again");
+  const back = tripReducer(refused, { type: "go", step: 3 });
+  assert.equal(back.step, 3);
+  assert.equal(JSON.parse(serializeTripState(pending)).holdPending, undefined, "never stored");
+
+  const screen = readFileSync("app/booking/trip/trip-screen.tsx", "utf8");
+  assert.ok(screen.includes("onStepChange={state.holdPending ? undefined : go}"), "no rail Change while a hold is being placed");
+  assert.ok(screen.includes("locked: Boolean(state.hold) || state.holdPending"), "no cart Remove while a hold is being placed");
+  assert.ok(/else void postRelease\(\{ ref: response\.ref, t: response\.linkToken \}\)/.test(screen), "a stale held answer is released");
 });
 
 test("requestChoiceErrors and holdBody", () => {

@@ -33,6 +33,7 @@ import { TRIP_PATH, parseTripQuery, secondCityHref, tripLocaleHrefs, type TripQu
 import {
   canRequest,
   displayBreakdown,
+  holdAnswerIsCurrent,
   holdBody,
   loadTripState,
   quoteBody,
@@ -129,7 +130,6 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   const copy = JOURNEY_COPY[locale];
   const [state, dispatch] = useReducer(tripReducer, query, (q) => loadTripState(q));
   const [quoting, setQuoting] = useState(true);
-  const [holdBusy, setHoldBusy] = useState(false);
   // A hold refused with a changed price (settings_changed, deposit_unavailable, ...) asks for a fresh quote.
   const [requote, setRequote] = useState(0);
   // Change while held: the move waits for the guest's yes, then the release.
@@ -166,24 +166,38 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   }, [quoteKey, locale]);
 
   // Q-01 = B: one POST /api/booking/hold per entry into Request (or per retry), never a second for the same attempt.
+  // While it is out (state.holdPending) the reducer refuses every input and step move. Each answer is tagged with the
+  // attempt it was sent for: a held answer that is no longer current (another attempt, a stored hold, the page gone)
+  // is never kept, and its hold is released at once.
   const holdSent = useRef(0);
+  const alive = useRef(true);
   useEffect(() => {
-    if (state.step !== 4 || state.hold || state.holdAttempt === 0 || holdSent.current === state.holdAttempt) return;
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (state.step !== 4 || state.hold || state.holdPending || state.holdAttempt === 0 || holdSent.current === state.holdAttempt) return;
     const body = holdBody(state, locale);
     if (!body) return;
-    holdSent.current = state.holdAttempt;
-    setHoldBusy(true);
+    const attempt = state.holdAttempt;
+    holdSent.current = attempt;
+    dispatch({ type: "holdSent", attempt });
     void postHold(body).then(({ status, response }) => {
-      setHoldBusy(false);
+      const current = alive.current && holdAnswerIsCurrent(stateRef.current, attempt);
       if (response.ok) {
-        dispatch({ type: "held", hold: response });
+        if (current) dispatch({ type: "held", hold: response, attempt });
+        else void postRelease({ ref: response.ref, t: response.linkToken });
         return;
       }
+      if (!current) return;
       if (status === 503 && response.reasons.some((r) => r.code === "requests_closed")) dispatch({ type: "closed" });
-      dispatch({ type: "refused", at: "hold", reasons: response.reasons });
+      dispatch({ type: "refused", at: "hold", reasons: response.reasons, attempt });
       if (status === 409 && !response.reasons.some((r) => r.code === "sold_out" || r.code === "blocked")) setRequote((n) => n + 1);
     });
   }, [state, locale]);
+  const holdBusy = state.holdPending;
 
   const quote = state.quote;
   const price = displayBreakdown(state);
@@ -210,8 +224,10 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   );
   const reasonLinks = { stay: stayHref, whatsapp: whatsappHref, startAgain: stayHref };
 
-  // A move the hold locks is asked first (Q-08); without a hold it applies at once.
+  // A move the hold locks is asked first (Q-08); without a hold it applies at once; while a hold is being placed,
+  // nothing moves.
   const move = (m: TripMove) => {
+    if (state.holdPending) return;
     if (state.hold && !(m.type === "go" && m.step === 4)) {
       setReleaseFailed(false);
       setPending(m);
@@ -260,7 +276,8 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
     vatLabel: price ? fill(copy.cart.vatRate, { rate: formatBp(price.vatBp) }) : undefined,
     total: price ? formatAed(price.grandFils) : NONE,
     planRows: price && state.step >= 3 ? planRows(state, price, copy) : undefined,
-    locked: Boolean(state.hold),
+    // Held, or a hold being placed: no Remove.
+    locked: Boolean(state.hold) || state.holdPending,
     loading: quoting && !price,
     onRemove: (id: string) => move({ type: "setAddon", id, qty: 0 }),
     copy,
@@ -412,7 +429,15 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   const r = copy.request;
   return (
     <>
-      <TripLayout title={copy.trip.title} step={state.step} onStepChange={go} copy={copy} cart={cart} cartDock={cartDock}>
+      <TripLayout
+        title={copy.trip.title}
+        step={state.step}
+        // No Change on the rail while a hold is being placed.
+        onStepChange={state.holdPending ? undefined : go}
+        copy={copy}
+        cart={cart}
+        cartDock={cartDock}
+      >
         {body}
       </TripLayout>
       <ConfirmDialog
