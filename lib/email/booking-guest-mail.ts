@@ -91,6 +91,22 @@ function payBySentence(locale: EmailLocale, iso: string): Rich {
   return fillRich(JOURNEY_COPY[locale].bookingStatus.payBy, { date: [ltr(date)], time: [ltr(time)] });
 }
 
+/** Asia/Dubai has no daylight saving: its calendar day is the UTC instant plus four hours. */
+function dubaiDay(iso: string): string | null {
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) ? new Date(ms + 4 * 60 * 60 * 1000).toISOString().slice(0, 10) : null;
+}
+
+/**
+ * Owner decision 6b (2026-10-21, confirmed with E-31 on 2026-10-26): a payment received after the pay-by date does not
+ * repeat the past "Pay by" sentence. Late = the day received (a Dubai day) is after the pay-by instant's Dubai day.
+ */
+function receivedAfterPayBy(receivedOn: string, payBy: string | null): boolean {
+  if (!payBy) return false;
+  const day = dubaiDay(payBy);
+  return day !== null && /^\d{4}-\d{2}-\d{2}$/.test(receivedOn) && receivedOn > day;
+}
+
 /**
  * The transfer instructions: the gold rule, the heading, the bank rows (amount, account name, bank, IBAN, SWIFT, bank
  * address, currency, note), the pay-by sentence when there is one, the reference line, B-29 (fees), B-28 (reply with
@@ -101,7 +117,7 @@ function transferBlocks(
   t: TransferInstructions,
   c: BookingEmailCopy,
   locale: EmailLocale,
-  options: { lapseRule: boolean },
+  options: { lapseRule: boolean; payBy?: boolean },
 ): EmailBlock[] {
   const out: EmailBlock[] = [
     RULE,
@@ -117,7 +133,7 @@ function transferBlocks(
       row(c.transfer.note, [multiline(t.note)]),
     ]),
   ];
-  if (t.payBy) out.push(paragraph(payBySentence(locale, t.payBy)));
+  if (t.payBy && options.payBy !== false) out.push(paragraph(payBySentence(locale, t.payBy)));
   out.push(
     paragraph(fillRich(c.transfer.referenceLine, { ref: [ltr(ref)] })),
     paragraph(c.transfer.fees),
@@ -161,8 +177,8 @@ export function renderRequestReceivedEmail(job: RequestMailJob, ctx: GuestMailCo
 
 /**
  * payment_receipt: one per recorded payment (E-31), in the booking's language. The amount and the day received, then
- * by the status after the recording: part received (still to transfer, the pay-by sentence as it stands and the bank
- * details again); a balance still due (its due date and the bank details); nothing more due (with the accepted-as-paid
+ * by the status after the recording: part received (still to transfer, the pay-by sentence unless the money arrived
+ * after the pay-by date (6b), and the bank details again); a balance still due (its due date and the bank details); nothing more due (with the accepted-as-paid
  * or overpaid line when flagged); or, on a lapsed or cancelled booking, the neutral E-10 variant: no intro, no total
  * paid, no bank details, no "nothing more is due" and no promise of the stay. The button when the job has a link, else
  * the line pointing to the request email.
@@ -188,7 +204,10 @@ export function renderPaymentReceiptEmail(job: PaymentMailJob, ctx: GuestMailCon
     blocks.push(paragraph(fillRich(r.moneyOnClosed, { amount: aed(job.amountFils) })));
   } else if (after === "awaiting_payment") {
     blocks.push(paragraph(r.partReceived), rows([row(r.stillDue, aed(money.dueNowFils))]));
-    if (view.transfer) blocks.push(...transferBlocks(view.ref, view.transfer, c, locale, { lapseRule: false }));
+    if (view.transfer) {
+      const payBy = !receivedAfterPayBy(job.receivedOn, view.transfer.payBy);
+      blocks.push(...transferBlocks(view.ref, view.transfer, c, locale, { lapseRule: false, payBy }));
+    }
   } else if (money.stillDueFils > 0) {
     if (view.balanceDueDate) blocks.push(balanceLine(c, money.stillDueFils, view.balanceDueDate));
     if (view.transfer) blocks.push(...transferBlocks(view.ref, view.transfer, c, locale, { lapseRule: false }));

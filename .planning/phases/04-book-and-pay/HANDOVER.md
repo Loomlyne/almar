@@ -1,3 +1,7 @@
+# HANDOVER note: 04-05 E-31 late receipt (2026-10-26)
+
+- `receipt-part-2` differs from the signed picture on one line: a receipt for money received after the pay-by date has no "Pay by {date}" sentence (owner 6b; controller ruling 2026-10-26). Code: `lib/email/booking-guest-mail.ts` `receivedAfterPayBy`; test case added in `tests/booking-mail.test.mjs` (not run). The full 04-05 hand-over follows when the booking pages land.
+
 # HANDOVER: job 25, Phase 4 plan 04-03 (2026-10-26)
 
 - **Branch:** `phase-04-book-and-request` (pushed). Code tip before this entry: the Task 5 build-spec commit (see the controller message); screens `093c6f45`.

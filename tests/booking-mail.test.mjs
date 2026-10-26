@@ -412,6 +412,17 @@ rtest("no mail prints the stay details (address, wifi, door code, notes), even w
   }
 });
 
+rtest("receipt received after the pay-by date (owner 6b, E-31): no past Pay by sentence; on time it stays", async () => {
+  const { guest } = await mail();
+  const payByWords = () => JOURNEY_COPY.en.bookingStatus.payBy.split("{date}")[0].trim();
+  const onTime = fx.paymentJobFixture("part", "en");
+  assert.ok(guest.renderPaymentReceiptEmail(onTime, ctx("en")).text.includes(payByWords()), "on time: the Pay by sentence is there");
+  const late = { ...onTime, view: fx.viewFixture("part-paid-late", "en"), receivedOn: "2026-11-04" };
+  const out = guest.renderPaymentReceiptEmail(late, ctx("en"));
+  assert.equal(out.text.includes(payByWords()), false, "late: no Pay by sentence");
+  assert.ok(out.text.includes(BOOKING_EMAIL_COPY.en.paymentReceipt.partReceived), "late: still the part-received line and the bank block");
+});
+
 rtest("receipt: amount and date received, total paid, then the part-received transfer block", async () => {
   const { guest } = await mail();
   const job = fx.paymentJobFixture("part", "en");
