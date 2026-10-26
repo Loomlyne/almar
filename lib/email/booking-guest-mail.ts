@@ -98,11 +98,15 @@ function dubaiDay(iso: string): string | null {
 }
 
 /**
- * Owner decision 6b (2026-10-21, confirmed with E-31 on 2026-10-26): a payment received after the pay-by date does not
- * repeat the past "Pay by" sentence. Late = the day received (a Dubai day) is after the pay-by instant's Dubai day.
+ * Owner decision 6b (2026-10-21, confirmed with E-31 on 2026-10-26): a receipt never repeats a "Pay by" sentence that
+ * is already past. Past = the day received (a Dubai day) is after the pay-by instant's Dubai day, or the mail is sent
+ * at or after the pay-by instant (a payment dated on time but recorded late: the booking page shows the deadline as
+ * passed, so the receipt does too).
  */
-function receivedAfterPayBy(receivedOn: string, payBy: string | null): boolean {
+function payByPast(receivedOn: string, sentAtMs: number, payBy: string | null): boolean {
   if (!payBy) return false;
+  const deadlineMs = Date.parse(payBy);
+  if (Number.isFinite(deadlineMs) && Number.isFinite(sentAtMs) && sentAtMs >= deadlineMs) return true;
   const day = dubaiDay(payBy);
   return day !== null && /^\d{4}-\d{2}-\d{2}$/.test(receivedOn) && receivedOn > day;
 }
@@ -205,7 +209,7 @@ export function renderPaymentReceiptEmail(job: PaymentMailJob, ctx: GuestMailCon
   } else if (after === "awaiting_payment") {
     blocks.push(paragraph(r.partReceived), rows([row(r.stillDue, aed(money.dueNowFils))]));
     if (view.transfer) {
-      const payBy = !receivedAfterPayBy(job.receivedOn, view.transfer.payBy);
+      const payBy = !payByPast(job.receivedOn, job.sentAtMs, view.transfer.payBy);
       blocks.push(...transferBlocks(view.ref, view.transfer, c, locale, { lapseRule: false, payBy }));
     }
   } else if (money.stillDueFils > 0) {

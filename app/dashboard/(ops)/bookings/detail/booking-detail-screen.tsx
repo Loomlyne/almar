@@ -35,7 +35,7 @@ type Dialog =
   | { kind: "status"; action: StatusAction }
   | { kind: "resolve" };
 
-type MailAnswer = "sent" | "pending" | "failed" | "skipped";
+type MailAnswer = "sent" | "pending" | "failed" | "unknown" | "skipped";
 type MailCopyKey = "sent" | "pending" | "failed";
 
 /** An answer that tells the owner the booking he was looking at is not the one on the server. */
@@ -175,7 +175,7 @@ export function BookingDetailScreen() {
   }
 
   const b = booking;
-  const mailWord = (state: MailAnswer | undefined): string => copy.payments.receipt[state === "sent" || state === "pending" || state === "failed" ? state : "none"];
+  const mailWord = (state: MailAnswer | undefined): string => copy.payments.receipt[state === "sent" || state === "pending" || state === "failed" || state === "unknown" ? state : "none"];
 
   function openRecord() {
     requestId.current = crypto.randomUUID();

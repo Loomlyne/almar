@@ -370,27 +370,31 @@ async function paymentMails(owner: BookingsOwner, deps: BookingsDeps, answer: Ro
       bookingUrl: await urlOrNull(deps, { id: bookingId, ref, locale, isTest, linkVersion }),
       amountFils: amount,
       receivedOn: body.received_on,
+      sentAtMs: Date.now(),
       statusBefore: before as BookingStatus,
       statusAfter: after as BookingStatus,
       attentionReason: typeof flags.attention_reason === "string" ? flags.attention_reason : null,
       recordedByEmail: owner.profile.email || null,
     };
     const receiptKey = mailKey("paymentReceipt", paymentId);
-    const receipt = await deliverMail(owner.admin, {
-      bookingId,
-      template: "payment_receipt",
-      idempotencyKey: receiptKey,
-      ready: notifier.ready,
-      send: guarded(() => notifier.paymentReceipt(job, { idempotencyKey: receiptKey })),
-    });
     const ownerKey = mailKey("ownerPayment", paymentId);
-    const ownerMail = await deliverMail(owner.admin, {
-      bookingId,
-      template: "payment_owner",
-      idempotencyKey: ownerKey,
-      ready: notifier.ready,
-      send: guarded(() => notifier.ownerPayment(job, { idempotencyKey: ownerKey })),
-    });
+    // The two mails go out side by side, so the owner's record waits for one send time, not two.
+    const [receipt, ownerMail] = await Promise.all([
+      deliverMail(owner.admin, {
+        bookingId,
+        template: "payment_receipt",
+        idempotencyKey: receiptKey,
+        ready: notifier.ready,
+        send: guarded(() => notifier.paymentReceipt(job, { idempotencyKey: receiptKey })),
+      }),
+      deliverMail(owner.admin, {
+        bookingId,
+        template: "payment_owner",
+        idempotencyKey: ownerKey,
+        ready: notifier.ready,
+        send: guarded(() => notifier.ownerPayment(job, { idempotencyKey: ownerKey })),
+      }),
+    ]);
     return { receipt, owner: ownerMail };
   } catch {
     return { ...SKIPPED };
@@ -556,6 +560,7 @@ export async function resendMail({ owner, body }: PostCtx<ResendBody>, deps: Boo
       bookingUrl,
       amountFils: row.amount_fils,
       receivedOn: row.received_on ?? dubaiDayOf(row.created_at),
+      sentAtMs: Date.now(),
       statusBefore: booking.status,
       statusAfter: booking.status,
       attentionReason: null,

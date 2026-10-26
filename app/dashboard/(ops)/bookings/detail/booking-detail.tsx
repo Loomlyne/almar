@@ -144,6 +144,7 @@ function eventLine(copy: OpsBookingsCopy, event: OwnerEvent): string {
     case "email_sent":
     case "email_pending":
     case "email_failed":
+    case "email_unknown":
       action = template ? fillCopy(h[event.action], { template }) : h.fallback;
       break;
     default:

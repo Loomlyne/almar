@@ -423,6 +423,22 @@ rtest("receipt received after the pay-by date (owner 6b, E-31): no past Pay by s
   assert.ok(out.text.includes(BOOKING_EMAIL_COPY.en.paymentReceipt.partReceived), "late: still the part-received line and the bank block");
 });
 
+rtest("receipt dated on time but sent at or after the pay-by instant (6b): no past Pay by sentence", async () => {
+  const { guest } = await mail();
+  const payByWords = () => JOURNEY_COPY.en.bookingStatus.payBy.split("{date}")[0].trim();
+  const onTime = fx.paymentJobFixture("part", "en");
+  const deadlineMs = Date.parse(onTime.view.transfer.payBy);
+  assert.ok(Number.isFinite(deadlineMs), "the fixture has a pay-by instant");
+  // Example: deadline 20/10 18:00, payment dated 19/10, recorded 22/10: received on time, sent after the deadline.
+  for (const sentAtMs of [deadlineMs, deadlineMs + 2 * 24 * 60 * 60 * 1000]) {
+    const out = guest.renderPaymentReceiptEmail({ ...onTime, sentAtMs }, ctx("en"));
+    assert.equal(out.text.includes(payByWords()), false, `sent at ${sentAtMs}: no Pay by sentence`);
+    assert.ok(out.text.includes(BOOKING_EMAIL_COPY.en.paymentReceipt.partReceived), "still the part-received line");
+  }
+  const before = guest.renderPaymentReceiptEmail({ ...onTime, sentAtMs: deadlineMs - 1 }, ctx("en"));
+  assert.ok(before.text.includes(payByWords()), "sent one ms before the deadline: the Pay by sentence stays");
+});
+
 rtest("receipt: amount and date received, total paid, then the part-received transfer block", async () => {
   const { guest } = await mail();
   const job = fx.paymentJobFixture("part", "en");

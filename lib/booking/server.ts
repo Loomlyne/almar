@@ -815,21 +815,24 @@ async function sendRequestMails(db: BookingDb, bookingId: string, ref: string, t
   const job: RequestMailJob = { bookingId, view, isTest: ctx.isTest, bookingUrl: ctx.origin + bookingPagePath(view.locale, ref, token) };
   const { notifier } = ctx;
   const guestKey = mailKey("requestReceived", bookingId);
-  const guest = await deliverMail(db, {
-    bookingId,
-    template: "request_received",
-    idempotencyKey: guestKey,
-    ready: notifier.ready,
-    send: () => notifier.requestReceived(job, { idempotencyKey: guestKey }),
-  });
   const ownerKey = mailKey("ownerRequest", bookingId);
-  await deliverMail(db, {
-    bookingId,
-    template: "request_owner",
-    idempotencyKey: ownerKey,
-    ready: notifier.ready,
-    send: () => notifier.ownerRequest(job, { idempotencyKey: ownerKey }),
-  });
+  // Side by side: the guest's answer waits for one send time, not two (deliverMail never throws).
+  const [guest] = await Promise.all([
+    deliverMail(db, {
+      bookingId,
+      template: "request_received",
+      idempotencyKey: guestKey,
+      ready: notifier.ready,
+      send: () => notifier.requestReceived(job, { idempotencyKey: guestKey }),
+    }),
+    deliverMail(db, {
+      bookingId,
+      template: "request_owner",
+      idempotencyKey: ownerKey,
+      ready: notifier.ready,
+      send: () => notifier.ownerRequest(job, { idempotencyKey: ownerKey }),
+    }),
+  ]);
   return guest === "sent";
 }
 

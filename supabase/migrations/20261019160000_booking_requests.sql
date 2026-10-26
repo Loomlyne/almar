@@ -107,14 +107,15 @@ alter table public.booking_payments
 alter table public.booking_payments validate constraint booking_payments_voided_fields;
 
 -- The twelve live actions of 20261005110000 (resend_requested is the one the dashboard's resend writes; email_resent
--- stays allowed and nothing writes it) plus the seven of this plan: 19 actions.
+-- stays allowed and nothing writes it) plus the eight of this plan: 20 actions (email_unknown: a send that timed out,
+-- which may still have been delivered).
 alter table public.booking_events drop constraint booking_events_action_check;
 alter table public.booking_events
   add constraint booking_events_action_check check (action in (
     'created', 'status', 'hold_expired', 'payment', 'refund', 'dispute', 'email_sent', 'email_resent', 'email_failed',
     'needs_attention', 'resend_requested', 'checkout_not_closed',
     'request_sent', 'payment_recorded', 'payment_voided', 'note_added', 'attention_resolved', 'email_pending',
-    'request_withdrawn')) not valid;
+    'request_withdrawn', 'email_unknown')) not valid;
 alter table public.booking_events validate constraint booking_events_action_check;
 
 -- ------------------------------------------------------------------------------------------------------------
@@ -2066,7 +2067,8 @@ grant execute on function public.claim_lapse_emails(int) to service_role;
 
 -- The outcome of one lapse email. Sent: lapse_email_sent_at and one email_sent event (a second report of the same
 -- send writes nothing). Not sent: one email_failed event with the error name only (lower case, a-z 0-9 and _, at most
--- 60 characters); the lease runs out by itself, so the next try comes after 10 minutes, at most 5 in all. Both events
+-- 60 characters), or email_unknown (no error) when the send timed out (p_error 'delivery_unknown': it may still have
+-- been delivered; the retry reuses the idempotency key, so it never arrives twice); the lease runs out by itself, so the next try comes after 10 minutes, at most 5 in all. Both events
 -- carry the key lapse/<booking_id>.
 create or replace function public.finish_lapse_email(p_booking uuid, p_ok boolean, p_error text default null)
 returns void
@@ -2092,6 +2094,9 @@ begin
       insert into public.booking_events (booking_id, actor, action, detail)
       values (p_booking, 'system', 'email_sent', jsonb_build_object('template', 'request_lapsed', 'key', v_key));
     end if;
+  elsif p_error = 'delivery_unknown' then
+    insert into public.booking_events (booking_id, actor, action, detail)
+    values (p_booking, 'system', 'email_unknown', jsonb_build_object('template', 'request_lapsed', 'key', v_key));
   else
     insert into public.booking_events (booking_id, actor, action, detail)
     values (p_booking, 'system', 'email_failed', jsonb_build_object(

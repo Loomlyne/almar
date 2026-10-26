@@ -22,7 +22,7 @@ type StatusWords = {
   expired: string;
 };
 
-type MailWords = { sent: string; pending: string; failed: string; none: string };
+type MailWords = { sent: string; pending: string; failed: string; unknown: string; none: string };
 
 export type OpsBookingsCopy = {
   list: {
@@ -214,6 +214,7 @@ export type OpsBookingsCopy = {
     email_sent: string;
     email_pending: string;
     email_failed: string;
+    email_unknown: string;
     fallback: string;
   };
   templates: {
@@ -376,12 +377,14 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
         sent: "Receipt sent",
         pending: "Receipt not sent yet: the email sender is not set up",
         failed: "Receipt not sent: the email failed",
+        unknown: "Receipt may not have arrived: the email did not answer in time",
         none: "Receipt not sent",
       },
       requestMail: {
         sent: "Request email sent",
         pending: "Request email not sent yet: the email sender is not set up",
         failed: "Request email not sent: the email failed",
+        unknown: "Request email may not have arrived: the email did not answer in time",
         none: "Request email not sent",
       },
       resendReceipt: "Resend receipt",
@@ -493,6 +496,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       email_sent: "{template} sent",
       email_pending: "{template} not sent yet",
       email_failed: "{template} not sent: the email failed",
+      email_unknown: "{template}: delivery not confirmed",
       fallback: "Change recorded",
     },
     templates: {
@@ -652,12 +656,14 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
         sent: "أُرسل الإيصال",
         pending: "لم يُرسل الإيصال بعد: مُرسِل البريد غير مُعدّ",
         failed: "لم يُرسل الإيصال: فشل البريد",
+        unknown: "ربما لم يصل الإيصال: لم يُجب البريد في الوقت",
         none: "لم يُرسل الإيصال",
       },
       requestMail: {
         sent: "أُرسل بريد الطلب",
         pending: "لم يُرسل بريد الطلب بعد: مُرسِل البريد غير مُعدّ",
         failed: "لم يُرسل بريد الطلب: فشل البريد",
+        unknown: "ربما لم يصل بريد الطلب: لم يُجب البريد في الوقت",
         none: "لم يُرسل بريد الطلب",
       },
       resendReceipt: "إعادة إرسال الإيصال",
@@ -768,6 +774,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       email_sent: "أُرسل {template}",
       email_pending: "لم يُرسل {template} بعد",
       email_failed: "لم يُرسل {template}: فشل البريد",
+      email_unknown: "{template}: لم يُؤكَّد التسليم",
       fallback: "سُجّل تغيير",
     },
     templates: {
@@ -929,12 +936,14 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
         sent: "Recibo enviado",
         pending: "Recibo aún no enviado: el envío de correo no está configurado",
         failed: "Recibo no enviado: el correo falló",
+        unknown: "Puede que el recibo no haya llegado: el correo no respondió a tiempo",
         none: "Recibo no enviado",
       },
       requestMail: {
         sent: "Correo de la solicitud enviado",
         pending: "Correo de la solicitud aún no enviado: el envío de correo no está configurado",
         failed: "Correo de la solicitud no enviado: el correo falló",
+        unknown: "Puede que el correo de la solicitud no haya llegado: el correo no respondió a tiempo",
         none: "Correo de la solicitud no enviado",
       },
       resendReceipt: "Reenviar recibo",
@@ -1046,6 +1055,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       email_sent: "{template} enviado",
       email_pending: "{template} aún no enviado",
       email_failed: "{template} no enviado: el correo falló",
+      email_unknown: "{template}: entrega no confirmada",
       fallback: "Cambio registrado",
     },
     templates: {

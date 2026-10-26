@@ -15,7 +15,14 @@ import type { MailOutcome } from "../booking/notify";
 /** The sender of every booking mail: the same text as the sign-in email's FROM (lib/auth/magic-link-server.ts). */
 export const BOOKING_FROM = "ALMAR Private Journey <inquiries@almarprivatejourney.com>";
 
-/** How long one send may take before it answers `timeout` (a request, a record or a lapse never waits longer). */
+/**
+ * The error of a send that outran SEND_TIMEOUT_MS. The Resend SDK takes no AbortSignal (its send options are only
+ * query, headers and idempotencyKey), so the POST may still deliver after the race: deliverMail writes `email_unknown`,
+ * never `email_failed`, and the idempotency key keeps a later resend of the same mail from arriving twice.
+ */
+export const DELIVERY_UNKNOWN = "delivery_unknown";
+
+/** How long one send may take before it answers DELIVERY_UNKNOWN (a request, a record or a lapse never waits longer). */
 export const SEND_TIMEOUT_MS = 8_000;
 
 /** One rendered mail to one address. `replyTo` is left out of the payload when undefined. */
@@ -63,8 +70,8 @@ export function mailErrorName(error: unknown): string {
 /**
  * Sends one mail through Resend: one `emails.send` with `{ from: BOOKING_FROM, to: [mail.to], subject, html, text,
  * replyTo }` (replyTo only when set) and `{ idempotencyKey }`. Answers `{ ok: true }` on an id; `{ ok: false, error }`
- * with mailErrorName on a Resend error, `no_id` without an id, `threw` on a throw or a failed package load, `timeout`
- * after `timeoutMs`. Never throws, never logs.
+ * with mailErrorName on a Resend error, `no_id` without an id, `threw` on a throw or a failed package load,
+ * DELIVERY_UNKNOWN after `timeoutMs`. Never throws, never logs.
  */
 export async function sendWithResend(
   apiKey: string,
@@ -99,7 +106,7 @@ export async function sendWithResend(
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   const late = new Promise<MailOutcome>((resolve) => {
-    timer = setTimeout(() => resolve({ ok: false, error: "timeout" }), timeoutMs);
+    timer = setTimeout(() => resolve({ ok: false, error: DELIVERY_UNKNOWN }), timeoutMs);
   });
   try {
     return await Promise.race([attempt(), late]);

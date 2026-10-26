@@ -10,6 +10,7 @@
 import type { BookingDb } from "./server";
 import type { BookingStatus, BookingView } from "./types";
 import { liveBookingNotifier } from "../email/booking-notifier";
+import { DELIVERY_UNKNOWN } from "../email/send";
 
 /** The six booking mails. `request_withdrawn_owner` is the owner's notice of a guest's withdraw (P-19). */
 export type MailTemplate =
@@ -24,7 +25,7 @@ export type MailTemplate =
 export type MailOutcome = { ok: true } | { ok: false; error: string };
 
 /** What happened to one mail: sent, pending (the sender is not ready) or failed. */
-export type MailDelivery = "sent" | "pending" | "failed";
+export type MailDelivery = "sent" | "pending" | "failed" | "unknown";
 
 /** The request mails (guest and owner) and the withdraw notice. The withdraw notice's link carries no token. */
 export type RequestMailJob = { bookingId: string; view: BookingView; isTest: boolean; bookingUrl: string };
@@ -38,6 +39,8 @@ export type PaymentMailJob = {
   bookingUrl: string | null;
   amountFils: number;
   receivedOn: string;
+  /** When the mail is built (ms): a receipt sent at or after the pay-by instant drops the past Pay by line (6b). */
+  sentAtMs: number;
   statusBefore: BookingStatus;
   statusAfter: BookingStatus;
   attentionReason: string | null;
@@ -138,7 +141,8 @@ export type MailRequest = {
  * Sends one mail and writes what happened, with `key` = the idempotency key on every event (04-09 finds a mail's
  * state by `detail.key`): not ready -> `email_pending` { template, key } and "pending", send is never called; sent ->
  * `email_sent` { template, key } and "sent"; refused -> `email_failed` { template, key, error } and "failed"; a send
- * that throws -> `email_failed` with error `threw` and "failed". Never throws.
+ * that throws -> `email_failed` with error `threw` and "failed"; a send whose answer never came (DELIVERY_UNKNOWN: the
+ * Resend POST may still have delivered) -> `email_unknown` { template, key } and "unknown". Never throws.
  */
 export async function deliverMail(db: BookingDb, mail: MailRequest): Promise<MailDelivery> {
   const { bookingId, template, idempotencyKey: key } = mail;
@@ -157,6 +161,10 @@ export async function deliverMail(db: BookingDb, mail: MailRequest): Promise<Mai
   if (answer?.ok === true) {
     await logEvent(db, bookingId, "email_sent", { template, key });
     return "sent";
+  }
+  if (answer?.error === DELIVERY_UNKNOWN) {
+    await logEvent(db, bookingId, "email_unknown", { template, key });
+    return "unknown";
   }
   await logEvent(db, bookingId, "email_failed", { template, key, error: errorName(answer?.error) });
   return "failed";

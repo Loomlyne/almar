@@ -82,6 +82,7 @@ const paymentJob = (over = {}) => ({
   bookingUrl: null,
   amountFils: 111111,
   receivedOn: "2026-10-20",
+  sentAtMs: Date.parse("2026-10-20T08:00:00Z"),
   statusBefore: "awaiting_payment",
   statusAfter: "deposit_paid",
   attentionReason: null,
@@ -243,7 +244,7 @@ test("send: an error name that would carry the key answers send_error", async ()
 test("send: a send that never answers resolves timeout after timeoutMs; never throws", async () => {
   const { load } = fakeLoad("hang");
   const outcome = await sendWithResend(FAKE_KEY, OUT, `request/${BOOKING}`, load, 20);
-  assert.deepEqual(outcome, { ok: false, error: "timeout" });
+  assert.deepEqual(outcome, { ok: false, error: "delivery_unknown" });
 });
 
 test("send: mailErrorName lower-cases a code name, else http_<status>, else send_error", () => {

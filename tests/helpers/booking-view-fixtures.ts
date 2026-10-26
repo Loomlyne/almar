@@ -380,6 +380,7 @@ export function paymentJobFixture(
     isTest: options.isTest ?? false,
     bookingUrl: bookingUrlFixture(locale),
     receivedOn: FIXTURE_RECEIVED_ON,
+    sentAtMs: FIXTURE_NOW,
     recordedByEmail: FIXTURE_RECORDED_BY,
   };
   switch (variant) {

@@ -8,13 +8,22 @@
 
 ## LIVE EFFECT (controller, before any deploy)
 
-- `getNotifier()` is live in code. Once this is on `main`, the first `almar-ops` deploy sends **real** lapse emails and receipts, because `almar-ops` already holds `RESEND_API_KEY`. `almar` and `almar-preview` send only after the key is set there. The controller flags this to the owner at the landing (noted 2026-10-26).
+- `getNotifier()` is live in code. Both `almar-ops` and `almar` already hold `RESEND_API_KEY` (`almar-preview` holds no secrets on purpose). Once this is on `main`, the first `almar-ops` deploy sends **real** lapse emails and receipts, and the first `almar` deploy can send request emails. Real (non-TEST) requests stay closed while `BOOKING_TERMS_IS_PLACEHOLDER = true` (`lib/booking/terms.ts:7`, gate in `lib/booking/gate-server.ts`), so `almar` sends request mail only on TEST hosts until the owner's booking terms replace the placeholder. The controller flags this to the owner at the landing (noted 2026-10-26; corrected after the Opus review).
 - `/bookings/trip` is a public page with its three files now; a build is still unrun, so the first `next build` + `assemble-cloudflare` is its first check.
 
 ## Differs from the signed picture
 
 - `receipt-part-2`: a receipt for money received after the pay-by date has no "Pay by {date}" sentence (owner 6b; controller ruling 2026-10-26). Code `lib/email/booking-guest-mail.ts` `receivedAfterPayBy` (late = the Dubai day received is after the pay-by instant's Dubai day); case added in `tests/booking-mail.test.mjs`.
 - Unavailable state: Try again is secondary (as drawn); the plan text said primary.
+
+## Review fixes (Opus review of 04-05, controller 2026-10-26)
+
+1. Receipt Pay-by (6b): `lib/email/booking-guest-mail.ts` `payByPast` also drops the sentence when the mail is sent at or after the pay-by instant (`PaymentMailJob.sentAtMs`, set to `Date.now()` in `lib/ops/bookings-api.ts` for a record and a resend). The received-day rule stays. New case in `tests/booking-mail.test.mjs` (not run).
+2. Send timeout: the Resend SDK takes no AbortSignal (its send options are query, headers and idempotencyKey only), so a send that outruns 8 s answers `delivery_unknown`, and `deliverMail` writes a new event `email_unknown` (not `email_failed`) and answers "unknown". `finish_lapse_email` does the same for the lapse mail. The migration's action check gains `email_unknown` (20 actions; new sha256 below). The dashboard shows "{template}: delivery not confirmed" in the history and "… may not have arrived: the email did not answer in time" for the receipt and request mail (EN/AR/ES; AR/ES drafts). The idempotency key keeps a resend within 24 h from arriving twice.
+3. The guest and owner mails go out in parallel (`Promise.all`) in `lib/booking/server.ts` `sendRequestMails` and `lib/ops/bookings-api.ts` `paymentMails`. The saved-brand read has a 2 s timeout (`BRAND_TIMEOUT_MS`, `lib/email/booking-notifier.ts`); past it, the design system is used.
+4. This section's LIVE EFFECT line is corrected (`almar` holds the key; real requests closed while the terms are a placeholder).
+
+Migration `supabase/migrations/20261019160000_booking_requests.sql` after these fixes: 2,111 lines, sha256 `e5af8032fa2ba30fccbfd05920ca368bef9e62a6e2e43e2739f7389e9636b427`.
 
 ## Not verified, in plain words (04-05)
 

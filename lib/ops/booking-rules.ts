@@ -651,12 +651,13 @@ export function uaeDate(day: string): string {
 // Mail state (04-08 deliverMail writes { template, key, error? } on every email event)
 // ------------------------------------------------------------------------------------------------------------
 
-export type MailState = "sent" | "pending" | "failed" | "none";
+export type MailState = "sent" | "pending" | "failed" | "unknown" | "none";
 
 const MAIL_EVENTS: Record<string, Exclude<MailState, "none">> = {
   email_sent: "sent",
   email_pending: "pending",
   email_failed: "failed",
+  email_unknown: "unknown",
 };
 
 function text(detail: Record<string, unknown> | null, key: string): string | null {

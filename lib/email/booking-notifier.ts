@@ -79,11 +79,20 @@ function plainAddress(value: unknown): string | null {
   return typeof value === "string" && isPlainEmail(value) ? value : null;
 }
 
-async function readBrand(brand: BookingNotifierDeps<unknown>["brand"]): Promise<EmailBrand | null> {
+/** How long the saved-brand read may take; a slower read renders with the design system (the mail never waits on it). */
+export const BRAND_TIMEOUT_MS = 2_000;
+
+async function readBrand(brand: BookingNotifierDeps<unknown>["brand"], timeoutMs: number = BRAND_TIMEOUT_MS): Promise<EmailBrand | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), timeoutMs);
+  });
   try {
-    return (await brand()) ?? null;
+    return (await Promise.race([Promise.resolve().then(brand), late])) ?? null;
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
