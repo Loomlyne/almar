@@ -316,7 +316,7 @@ select ok((select pg_get_constraintdef(c.oid) like '%''resend_requested''%' and 
 select is((select (length(d) - length(replace(d, '::text', ''))) / 6
              from (select pg_get_constraintdef(c.oid) as d from pg_constraint c
                     where c.conrelid = 'public.booking_events'::regclass and c.conname = 'booking_events_action_check') x),
-          19, 'constraints: the action check lists 19 actions');
+          20, 'constraints: the action check lists 20 actions (email_unknown added after the 04-05 review)');
 select ok((select pg_get_constraintdef(c.oid) like '%''deadline_passed_part_paid''%' and pg_get_constraintdef(c.oid) not like '%expired_with_payment%'
              from pg_constraint c where c.conrelid = 'public.bookings'::regclass and c.contype = 'c'
               and pg_get_constraintdef(c.oid) like '%paid_after_expiry%'),
