@@ -75,3 +75,75 @@ Each plan opens with pictures (real tokens, 390/834/1440, EN/AR/ES), then the ow
 GSD: `/gsd-execute-phase 6` fits next, wave by wave (wave 1 = 06-01 alone).
 Jev: 06-05 Requests triage, scoring an incoming request's kind and urgency (advisory, logged), fits on the owner's
 word. Automation: a daily unattended digest of unhandled Requests to inquiries@ (proposal only).
+
+---
+
+# 06-01 executed: hand-over (job 26)
+
+Written 2026-10-27 23:00 +0100 (from `date`). Branch `phase-06-site-and-rest-of-cms`, last code commit `eaec4c04`;
+this hand-over and `06-01-SUMMARY.md` are the commit after it. origin/main (`8d2bc5e3`) merged at `97a68aaa`; it had
+not moved at hand-over. Folder clean.
+
+## What is here
+Commits in order: `6fc08bb3` pictures · `c23cd3e8` Task 4 (data contracts, readers on the views, import script) ·
+`00939cfc` slot files (lock copy, `applyImport`) · `e24155d7` Task 3 migration + pgTAP · `b69a6e08` migration review
+answers + `ops_list_media` alt locks · `ee17c151` Tasks 5–6 (lock in the kit and every editor) · `97a68aaa` merge ·
+`eaec4c04` kit review answers. Details: `06-01-SUMMARY.md`.
+
+## Checks
+| Check | Result |
+|---|---|
+| `npx tsc --noEmit` | pass on `eaec4c04` |
+| `npm run tokens:check` | pass ("theme up to date") |
+| node tests, pgTAP, build, Playwright, import dry run | **not run (owner: no test)** |
+
+Written and not run: `tests/site-cms-import.test.mjs`, `tests/page-blocks.test.mjs`,
+`tests/data-source-site-cms.test.mjs`, `tests/ops-translation-lock.test.mjs`, `tests/helpers/site-cms-views.mjs`,
+`supabase/tests/site_cms.test.sql` (plan 225); updated: `tests/data-source.test.mjs`, `tests/ops-kit.test.mjs`,
+`tests/catalog-forms.test.mjs`, `tests/ops-media.test.mjs`, `supabase/tests/catalog_schema.test.sql`.
+
+## Migration `20261025120000_site_cms.sql` (not applied; the controller applies it after the wave 2–4 signatures)
+- Additive: 24 new tables, 14 views, new columns `locked_fields text[] default '{}'` on the ar/es translation tables
+  and `stay_access.notes_locked`. No column dropped or renamed, no row deleted.
+- Replaced functions (same signatures): the catalog save functions (set `locked_fields` as sent, never merged),
+  `ops_list_media` from `20261012120000` (adds `alt_locked {ar, es}`, same order and paging), the journey delete
+  (F-02: `almar:not_found` for a seeded journey's missing row; `catalog_schema.test.sql` follows).
+- The app runs before and after it: shape reads `locked_fields`/`notes_locked` as `[]` when absent, and the stay
+  access read is `select("*")` for that reason.
+- No env names added. No secret, no Worker or DNS change.
+
+## Reviews (`jev-review`, author Opus)
+- Migration: deep tier. Pass 1 Sonnet: ship. Pass 2 is **Fable**, which needs the owner's yes: not asked here.
+- Kit and screens: Sonnet, verdict "fix first". All seven answered in `eaec4c04`:
+  locks dropped on read (shape) · stay access never read `notes_locked` · lock-only change not dirty · a blank box
+  still locked · focus lost after Translate again · stay-access `aria-describedby` hid the error id · a stale
+  Translate again reply for another stay. Not re-reviewed after the fixes.
+
+## Open (for the controller or the named plan)
+- `consult_slots` builds every slot of the horizon per call: make it cheaper before 06-05 opens it publicly.
+- anon can read uuids of unpublished rows through base-table grants used by the views: accepted (no text exposed).
+- Unpublished seeded journeys can now be deleted (F-02): add a guard if the owner wants seeded ones kept.
+- `ops_save_consult` casts with `::int`: a non-number raises a raw error instead of `almar:invalid`.
+- `ops_list('journey_tier')` returns no legs: 06-06 reads them through the detail call.
+- pgTAP gaps the review named: lock set/clear per table, `ops_list_page` hidden sections.
+- `parseBody` refuses post photo blocks until 06-03 adds them.
+- `tests/fixtures-frozen` may need page blocks and posts frozen once the import runs on live.
+- Media Publish (`persist(alt, true)`) sends no `locked` key: the server keeps the stored alt locks.
+
+## Owner's check (once the migration is on a local stack or live)
+1. Open Catalog › Destinations › any destination.
+2. Click Edit translations, type an Arabic name, click Save. Expected: the Arabic box shows "Your own text…" with
+   Translate again.
+3. Reload the page and open it again. Expected: the lock line is still there.
+4. Change the English name, click Save. Expected: the Arabic stays as you typed it; Spanish updates.
+5. Click Translate again under the Arabic. Expected: the box refills from the English and the lock line goes;
+   the page says unsaved; Save keeps it.
+6. Same in Stays › a stay › Access › Notes, and in Media › a photo's alt text.
+
+## Proposed planning changes
+None beyond job 24's list above.
+
+## Lessons
+- A lock that is only written and never read back passes every type check: the kit review caught it. Check the
+  read path (shape, list functions) whenever a new column is saved.
+- The kit's Field spreads extra props after its own, so a passed `aria-describedby` replaces the error id: merge it.
