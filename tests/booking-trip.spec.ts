@@ -502,6 +502,13 @@ test.describe("travellers and request", () => {
     await chooseFull(page);
     await page.getByRole("button", { name: en.travellers.continue }).click();
     await expect(page.getByRole("timer")).toBeVisible();
+    // 04-06: a reload with a stored hold asks /api/booking/view first (held while its hold is alive, expired after).
+    const held = JSON.parse((await page.evaluate(() => window.sessionStorage.getItem("almar-trip"))) ?? "{}").hold as { ref: string; holdExpiresAt: string };
+    await page.route("**/api/booking/view", async (route: Route) => {
+      const alive = Date.now() < Date.parse(held.holdExpiresAt);
+      const booking = { ref: held.ref, status: alive ? "held" : "expired", plan: "full", money: { dueNowFils: 0 }, holdExpiresAt: alive ? held.holdExpiresAt : null, deadline: null };
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, booking }) });
+    });
     await page.reload();
     await expect(page.getByRole("timer")).toBeVisible();
     await page.clock.runFor(31 * 60 * 1000);
