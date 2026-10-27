@@ -22,7 +22,8 @@
 //   - nothing is invented: a sample row, a photo that is not in the media manifest, a copy text missing in one language,
 //     a fixture field the section does not use, or a post whose languages disagree on the body's blocks stops the build;
 //   - photos and their alt texts are not written here (the 3.2 import wrote every manifest image and alt);
-//   - nav links are not built here: 06-02 supplies them with job 21's header.
+//   - nav links (06-02): today's header and footer, lib/site-nav.ts DEFAULT_LINKS labelled from HOME_COPY, ids uuid v5
+//     of nav/<area>/<target>, so the site after the import shows the same links as before.
 
 import { createHash } from "node:crypto";
 import fs from "node:fs";
@@ -63,6 +64,26 @@ export function uuidV5(name, namespace = SITE_NAMESPACE) {
 
 export const sectionId = (page, section) => uuidV5(`page-section:${page}/${section}`);
 export const postBlockId = (postId, position) => uuidV5(`post-block:${postId}/${position}`);
+export const navLinkId = (area, target) => uuidV5(`nav/${area}/${target}`);
+
+/** lib/site-nav.ts and lib/copy/home.ts, bundled (their imports have no file extension, which plain Node cannot load). */
+async function loadNavModules(dataRoot) {
+  const { build } = await import("esbuild");
+  const out = await build({
+    stdin: {
+      contents: 'export { DEFAULT_LINKS } from "./lib/site-nav.ts"; export { HOME_COPY } from "./lib/copy/home.ts";',
+      resolveDir: dataRoot,
+      loader: "ts",
+    },
+    bundle: true,
+    platform: "node",
+    format: "esm",
+    write: false,
+    packages: "external",
+    logLevel: "silent",
+  });
+  return import(`data:text/javascript;base64,${Buffer.from(out.outputFiles[0].text).toString("base64")}`);
+}
 
 function fail(message) {
   throw new Error(`import-site-content: ${message}`);
@@ -279,6 +300,22 @@ export async function buildSiteContentPayload({ root: repoRoot = root } = {}) {
     }
   }
 
+  // 06-02: today's header and footer links (the same four in both, in job 21's order), labelled in EN/AR/ES.
+  const { DEFAULT_LINKS, HOME_COPY } = await loadNavModules(dataRoot);
+  const nav_links = [];
+  const nav_link_translations = [];
+  for (const area of ["header", "footer"]) {
+    DEFAULT_LINKS.forEach((target, index) => {
+      const id = navLinkId(area, target);
+      nav_links.push({ id, area, position: index + 1, is_shown: true, link_kind: "internal", target });
+      for (const locale of ["en", "ar", "es"]) {
+        const label = HOME_COPY[locale].nav[target];
+        if (typeof label !== "string" || label.trim() === "") fail(`nav ${area}/${target}: no ${locale} label in HOME_COPY`);
+        nav_link_translations.push({ link_id: id, locale, status: "published", label });
+      }
+    });
+  }
+
   const payload = {
     page_sections,
     page_section_translations,
@@ -289,10 +326,9 @@ export async function buildSiteContentPayload({ root: repoRoot = root } = {}) {
     post_translations,
     post_blocks,
     post_block_translations,
-    nav_links: [],
-    nav_link_translations: [],
+    nav_links,
+    nav_link_translations,
   };
-  skipped.push("nav links: none here; 06-02 supplies them with the header job 21 landed");
   skipped.push("hero videos: none (no video in the fixtures); the owner adds an https URL in the Pages editor");
   skipped.push("photos and alt texts: already in media / image_translations from the 3.2 import");
   skipped.push("contact details (contact.json, SITE-13): fixed in code, not a section");

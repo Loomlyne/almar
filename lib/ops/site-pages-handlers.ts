@@ -17,10 +17,10 @@ type PostCtx<B> = { owner: OpsOwner; body: B };
 type Row = Record<string, unknown>;
 
 /**
- * The owner's answer to the 06-02 picture question 2. A: each page's hero is always shown (no Show on site on a hero);
- * B: every section can be hidden. Until the answer is recorded, B's behaviour holds (the database allows both).
+ * The owner's answer to the 06-02 picture question 2 (decisions/2026-10-27-06-02-06-03-pictures-signed.md): A, each
+ * page's hero is always shown, so a hero takes no Show on site (Home's hero holds the booking bar, SITE-02).
  */
-export const HERO_FIXED = false;
+export const HERO_FIXED = true;
 
 function ok(body: Record<string, unknown>): OpsResult {
   return { body: { ok: true, ...body } };

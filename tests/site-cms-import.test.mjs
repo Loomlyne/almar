@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildSiteContentPayload, checkApplyTarget, postBlockId, sectionId, SITE_PAYLOAD_TABLES, uuidV5 } from "../scripts/import-site-content.mjs";
+import { buildSiteContentPayload, checkApplyTarget, navLinkId, postBlockId, sectionId, SITE_PAYLOAD_TABLES, uuidV5 } from "../scripts/import-site-content.mjs";
 import { PAGE_KEYS, PAGE_SECTIONS } from "../lib/data/page-sections.ts";
 
 const fixture = (name) => JSON.parse(readFileSync(`lib/data/fixtures/${name}.json`, "utf8"));
@@ -21,6 +21,9 @@ function scratch(mutate) {
   cpSync("lib/data/fixtures", join(dir, "lib", "data", "fixtures"), { recursive: true });
   cpSync("lib/data/media-manifest.json", join(dir, "lib", "data", "media-manifest.json"));
   cpSync("lib/data/page-sections.ts", join(dir, "lib", "data", "page-sections.ts"));
+  cpSync("lib/data/site-nav.snapshot.json", join(dir, "lib", "data", "site-nav.snapshot.json"));
+  cpSync("lib/site-nav.ts", join(dir, "lib", "site-nav.ts"));
+  cpSync("lib/locale-path.ts", join(dir, "lib", "locale-path.ts"));
   cpSync("lib/copy", join(dir, "lib", "copy"), { recursive: true });
   const edit = (name, fn) => {
     const file = join(dir, "lib", "data", "fixtures", `${name}.json`);
@@ -45,8 +48,26 @@ async function buildFrom(dir) {
 test("the payload has exactly the tables import_site_content takes, in foreign-key order", () => {
   assert.deepEqual(Object.keys(payload), SITE_PAYLOAD_TABLES);
   assert.deepEqual(Object.keys(counts), SITE_PAYLOAD_TABLES);
-  assert.equal(payload.nav_links.length, 0, "nav links come from 06-02");
-  assert.equal(payload.nav_link_translations.length, 0);
+});
+
+test("nav (06-02): today's four links in header and footer, internal, shown, uuid v5 of nav/<area>/<target>, EN/AR/ES published", async () => {
+  const targets = ["destinations", "experiences", "about", "contact"];
+  for (const area of ["header", "footer"]) {
+    const rows = payload.nav_links.filter((l) => l.area === area);
+    assert.deepEqual(rows.map((l) => l.target), targets);
+    assert.deepEqual(rows.map((l) => l.position), [1, 2, 3, 4]);
+    for (const row of rows) {
+      assert.equal(row.id, navLinkId(area, row.target));
+      assert.equal(row.link_kind, "internal");
+      assert.equal(row.is_shown, true);
+      const labels = payload.nav_link_translations.filter((t) => t.link_id === row.id);
+      assert.deepEqual(labels.map((t) => t.locale), ["en", "ar", "es"]);
+      assert.ok(labels.every((t) => t.status === "published" && t.label.trim() !== ""));
+    }
+  }
+  assert.equal(payload.nav_links.some((l) => l.target === "login"), false, "Login is never a row");
+  const again = await buildSiteContentPayload({ root: process.cwd() });
+  assert.deepEqual(again.payload.nav_links.map((l) => l.id), payload.nav_links.map((l) => l.id), "a second build gives the same ids");
 });
 
 test("one page_sections row per section of PAGE_SECTIONS, shown, no video, with the deterministic id", () => {
