@@ -4,7 +4,7 @@
 -- use the zz6 prefix and ids ending in 6xx.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(225);
+select plan(230);
 
 -- Helpers -------------------------------------------------------------------------------------------------------------
 -- The refusal's message and detail, or 'saved' when the call returns.
@@ -413,6 +413,11 @@ select is(pg_temp.outcome($$select public.ops_save_post('{"id": "00000000-0000-4
   'almar:invalid {"field": "slug", "locale": null}', 'a published post keeps its slug');
 select is(pg_temp.outcome($$select public.ops_save_post('{"id": "00000000-0000-4000-8000-000000000621", "cover_media_id": null}'::jsonb)$$),
   'almar:invalid {"field": "cover_media_id", "locale": null}', 'a published post keeps its cover');
+-- Fable review 2026-10-28: a bad published_at is almar:invalid, never a raw cast error.
+select is(pg_temp.outcome($$select public.ops_save_post('{"id": "00000000-0000-4000-8000-000000000621", "published_at": "soon"}'::jsonb)$$),
+  'almar:invalid {"field": "published_at", "locale": null}', 'published_at that is not a date is refused');
+select is(pg_temp.outcome($$select public.ops_save_post('{"id": "00000000-0000-4000-8000-000000000621", "published_at": "2026-02-30"}'::jsonb)$$),
+  'almar:invalid {"field": "published_at", "locale": null}', 'published_at that is not a real day is refused');
 select is((public.ops_get('post', '00000000-0000-4000-8000-000000000621') -> 'blocks' -> 1 ->> 'media_id'), '00000000-0000-4000-8000-0000000006a2',
   'ops_get returns the blocks with their pictures');
 
@@ -489,6 +494,9 @@ select lives_ok($$select public.ops_save_consult(jsonb_build_object(
     'days_off', jsonb_build_array(to_char(current_date + 10, 'YYYY-MM-DD')),
     'notice_hours', 24, 'horizon_days', 30))$$,
   'hours 09:00-17:00 every day, one day off, 24 h notice, 30 days ahead');
+-- Fable review 2026-10-28: JSON 24.0 is a whole number and is stored, not a raw 22P02.
+select lives_ok($$select public.ops_save_consult('{"notice_hours": 24.0, "horizon_days": 30.0}'::jsonb)$$, 'notice and horizon written as 24.0 and 30.0 are taken');
+select is((select array[notice_hours, horizon_days] from public.consult_settings where id = 1), array[24, 30]::int[], '24.0 and 30.0 are stored as 24 and 30');
 select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.dubai(current_date + 3, '20:00')))$$),
   'almar:slot_outside_hours {}', 'a slot outside the hours is refused');
 select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.dubai(current_date + 3, '10:15')))$$),
@@ -585,6 +593,10 @@ select is(pg_temp.outcome($$select public.import_site_content('{"page_section_me
   'almar:invalid {"field": "page_section_media.media_id", "locale": null}', 'a picture the library does not hold is refused');
 select is(pg_temp.outcome($$select public.import_site_content('{"stays": []}'::jsonb)$$),
   'almar:invalid {"field": "payload.stays", "locale": null}', 'an unknown key is refused');
+
+select is((select array_agg(p.provolatile::text order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname in ('site_request_date_ok', 'site_request_payload_ok')), array['s', 's'],
+  'the request payload checks are stable (they cast to date and timestamptz)');
 
 select * from finish();
 rollback;

@@ -471,11 +471,12 @@ $$;
 revoke execute on function public.site_request_text_ok(jsonb, text, int, int, boolean) from public, anon, authenticated;
 grant execute on function public.site_request_text_ok(jsonb, text, int, int, boolean) to service_role;
 
--- An optional date of a request payload: absent or json null, or a 'YYYY-MM-DD' string that is a real date.
+-- An optional date of a request payload: absent or json null, or a 'YYYY-MM-DD' string that is a real date. Stable, not
+-- immutable: the ::date cast is stable (Fable review 2026-10-28), as is site_request_payload_ok, which calls it.
 create or replace function public.site_request_date_ok(v jsonb)
 returns boolean
 language plpgsql
-immutable
+stable
 set search_path = ''
 as $$
 begin
@@ -508,7 +509,7 @@ grant execute on function public.site_request_date_ok(jsonb) to service_role;
 create or replace function public.site_request_payload_ok(p_kind text, p jsonb)
 returns boolean
 language plpgsql
-immutable
+stable
 set search_path = ''
 as $$
 declare
@@ -2305,9 +2306,26 @@ declare
   v_media uuid;
   v_bid uuid;
   v_path text;
+  v_at timestamptz;
 begin
   if p is null or jsonb_typeof(p) <> 'object' then
     perform public.catalog_invalid('item');
+  end if;
+  -- published_at: absent, null or '', or a 'YYYY-MM-DD' day or an ISO 8601 time that is real; anything else is
+  -- almar:invalid, never a raw cast error (Fable review 2026-10-28).
+  if nullif(p ->> 'published_at', '') is not null then
+    if jsonb_typeof(p -> 'published_at') <> 'string'
+       or (p ->> 'published_at') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2}(\.[0-9]{1,6})?)?(Z|[+-][0-9]{2}(:?[0-9]{2})?))?$' then
+      perform public.catalog_invalid('published_at');
+    end if;
+    begin
+      v_at := (p ->> 'published_at')::timestamptz;
+    exception when others then
+      v_at := null;
+    end;
+    if v_at is null then
+      perform public.catalog_invalid('published_at');
+    end if;
   end if;
   if p ? 'cover_media_id' then
     perform public.catalog_need_media((p ->> 'cover_media_id')::uuid, 'cover_media_id');
@@ -2363,7 +2381,7 @@ begin
     end if;
     insert into public.posts (slug, cover_media_id, published_at, destination_id, featured_stay_id, featured_experience_id)
     values (
-      public.catalog_txt(p, 'slug'), (p ->> 'cover_media_id')::uuid, nullif(p ->> 'published_at', '')::timestamptz,
+      public.catalog_txt(p, 'slug'), (p ->> 'cover_media_id')::uuid, v_at,
       nullif(p ->> 'destination_id', '')::uuid, nullif(p ->> 'featured_stay_id', '')::uuid,
       nullif(p ->> 'featured_experience_id', '')::uuid
     )
@@ -2384,7 +2402,7 @@ begin
     update public.posts po set
       slug = case when p ? 'slug' then public.catalog_txt(p, 'slug') else po.slug end,
       cover_media_id = case when p ? 'cover_media_id' then (p ->> 'cover_media_id')::uuid else po.cover_media_id end,
-      published_at = case when p ? 'published_at' then nullif(p ->> 'published_at', '')::timestamptz else po.published_at end,
+      published_at = case when p ? 'published_at' then v_at else po.published_at end,
       destination_id = case when p ? 'destination_id' then nullif(p ->> 'destination_id', '')::uuid else po.destination_id end,
       featured_stay_id = case when p ? 'featured_stay_id' then nullif(p ->> 'featured_stay_id', '')::uuid else po.featured_stay_id end,
       featured_experience_id = case when p ? 'featured_experience_id' then nullif(p ->> 'featured_experience_id', '')::uuid else po.featured_experience_id end
@@ -2938,6 +2956,8 @@ declare
   v_ord bigint;
   v_path text;
   v_n numeric;
+  v_notice int;
+  v_horizon int;
 begin
   if p is null or jsonb_typeof(p) <> 'object'
      or exists (select 1 from jsonb_object_keys(p) as k where k not in ('hours', 'days_off', 'notice_hours', 'horizon_days')) then
@@ -2951,6 +2971,8 @@ begin
     if v_n <> trunc(v_n) or v_n < 0 or v_n > 720 then
       perform public.catalog_invalid('notice_hours');
     end if;
+    -- From the checked number: JSON 5.0 is a whole number, but '5.0'::int would raise a raw 22P02 (Fable review 2026-10-28).
+    v_notice := trunc(v_n)::int;
   end if;
   if p ? 'horizon_days' and jsonb_typeof(p -> 'horizon_days') <> 'null' then
     if jsonb_typeof(p -> 'horizon_days') <> 'number' then
@@ -2960,6 +2982,7 @@ begin
     if v_n <> trunc(v_n) or v_n < 1 or v_n > 365 then
       perform public.catalog_invalid('horizon_days');
     end if;
+    v_horizon := trunc(v_n)::int;
   end if;
 
   if p ? 'hours' then
@@ -3001,8 +3024,8 @@ begin
   end if;
 
   update public.consult_settings s set
-    notice_hours = case when p ? 'notice_hours' then (p ->> 'notice_hours')::int else s.notice_hours end,
-    horizon_days = case when p ? 'horizon_days' then (p ->> 'horizon_days')::int else s.horizon_days end
+    notice_hours = case when p ? 'notice_hours' then v_notice else s.notice_hours end,
+    horizon_days = case when p ? 'horizon_days' then v_horizon else s.horizon_days end
   where s.id = 1;
   return public.ops_get_consult();
 end;
