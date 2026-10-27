@@ -260,13 +260,14 @@ select is((select links -> 0 ->> 'url' from public.team_members where slug = 'te
 select is((public.ops_publish('team_member', (select id from public.team_members where slug = 'test-member'), true)) -> 'missing',
   '[{"locale": "ar", "field": "name"}, {"locale": "ar", "field": "role"}, {"locale": "es", "field": "name"}, {"locale": "es", "field": "role"}]'::jsonb, 'a team member needs the name and role in every language');
 select is((public.ops_delete('team_member', (select id from public.team_members where slug = 'test-member'))) ->> 'id' is not null, true, 'an unpublished team member is deleted');
-select throws_ok($$select public.ops_delete('journey_tier', '00000000-0000-4000-8000-0000000000f1')$$, 'P0001', 'almar:invalid', 'the three journeys cannot be deleted');
+-- Plan 06-01 (F-02): an unpublished package can be deleted now, so an unknown id is not_found (was invalid under C-15).
+select throws_ok($$select public.ops_delete('journey_tier', '00000000-0000-4000-8000-0000000000f1')$$, 'P0001', 'almar:not_found', 'an unknown journey is not found');
 
 -- Journeys: existing rows only ---------------------------------------------------------------------------------------------
 insert into public.journey_tiers (id, slug, is_published, position) values ('00000000-0000-4000-8000-0000000000f1', 'test-journey', false, 1);
 insert into public.journey_tier_translations (tier_id, locale, status, name, price_label) values
   ('00000000-0000-4000-8000-0000000000f1', 'en', 'published', 'Journey', 'From USD $1,000');
-select throws_ok($$select public.ops_save_journey_tier('{"is_featured": true}'::jsonb)$$, 'P0001', 'almar:invalid', 'a journey cannot be created');
+select throws_ok($$select public.ops_save_journey_tier('{"is_featured": true}'::jsonb)$$, 'P0001', 'almar:invalid', 'a new journey needs a slug (06-01: packages can be created)');
 select lives_ok($$select public.ops_save_journey_tier('{"id": "00000000-0000-4000-8000-0000000000f1", "is_featured": true, "price_from_amount": 1000, "price_from_currency": "USD", "translations": {"en": {"tagline": "A tagline"}}}'::jsonb)$$, 'a journey is edited');
 select is((public.ops_get('journey_tier', '00000000-0000-4000-8000-0000000000f1') -> 'price_from'), '{"amount": 1000, "currency": "USD"}'::jsonb, 'ops_get rebuilds price_from');
 select is((public.ops_get('journey_tier', '00000000-0000-4000-8000-0000000000f1') -> 'price_estimate'), 'null'::jsonb, 'no estimate is null');

@@ -5,8 +5,9 @@
 // 20261025120000_site_cms.sql (the check on site_requests.payload): change both in one commit. 06-05 builds the validator
 // and the routes on these names; 06-06 sends kind `package`.
 //
-// `name` and `email` are columns of site_requests (the Requests list sorts and searches them); `payload` holds the rest,
-// with only the keys of its kind. Every text is the guest's own words: no number here is a price or a rate we set.
+// `payload` holds every key of its kind as sent, `name` and `email` included (required); the database also copies them
+// into the site_requests columns (name trimmed, email lower-cased) for the Requests list. Optional keys may be absent or
+// null; a key not listed for the kind is refused. Every text is the guest's own words: no number here is a price or a rate we set.
 
 export const SITE_REQUEST_KINDS = ["plan", "list", "package", "consultation"] as const;
 export type SiteRequestKind = (typeof SITE_REQUEST_KINDS)[number];
