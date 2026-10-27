@@ -21,6 +21,13 @@ export type BlogCopy = {
     /** The page h1 (board k20). */
     heading: string;
     empty: string;
+    /** The search box over the cards (plan 06-03, signed 2026-10-27). */
+    searchLabel: string;
+    searchClear: string;
+    /** `{q}` is the query as typed. */
+    searchNoMatch: string;
+    /** The result line: "#" is the number of stories shown. */
+    searchCount: PluralForms;
   };
   post: {
     /** The kicker over the title in the hero. */
@@ -56,16 +63,25 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
     list: {
       meta: {
         title: "Colombia travel guides | ALMAR",
-        description: "Simple guides about where to go, what to do, and how to travel private in Colombia.",
+        description:
+          "Simple guides about where to go, what to do, and how to travel private in Colombia.",
       },
       kicker: "Blog / News",
       heading: "Travel Insights",
       empty: "No stories yet.",
+      searchLabel: "Search stories",
+      searchClear: "Clear",
+      searchNoMatch: "No story matches “{q}”.",
+      searchCount: { one: "# story", other: "# stories" },
     },
     post: {
       kicker: "ALMAR Journal",
       cta: "Plan Your Journey — Contact ALMAR",
-      links: { back: "← Back to Travel Insights", home: "Home", destinations: "Destinations" },
+      links: {
+        back: "← Back to Travel Insights",
+        home: "Home",
+        destinations: "Destinations",
+      },
       readingTime: { one: "# min read", other: "# min read" },
       onThisPage: "On this page",
       share: "Share",
@@ -78,7 +94,8 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
       featuredExperience: "Featured experience",
       relatedKicker: "More from the ALMAR Journal",
       related: "Related stories",
-      intro: "Fully vetted stays, private drivers, and concierge on call. Tell us your dates and we plan the rest.",
+      intro:
+        "Fully vetted stays, private drivers, and concierge on call. Tell us your dates and we plan the rest.",
       barLabel: "Plan your journey",
       englishOnly: "This article is in English for now.",
     },
@@ -87,16 +104,31 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
     list: {
       meta: {
         title: "أدلة السفر في كولومبيا | ALMAR",
-        description: "أدلة بسيطة تخبركم إلى أين تذهبون وماذا تفعلون وكيف تسافرون بخصوصية في كولومبيا.",
+        description:
+          "أدلة بسيطة تخبركم إلى أين تذهبون وماذا تفعلون وكيف تسافرون بخصوصية في كولومبيا.",
       },
       kicker: "المدونة / الأخبار",
       heading: "رؤى السفر",
       empty: "لا توجد حكايات بعد.",
+      searchLabel: "ابحثوا في الحكايات",
+      searchClear: "مسح",
+      searchNoMatch: "لا توجد حكاية تطابق «{q}».",
+      searchCount: {
+        one: "حكاية واحدة",
+        two: "حكايتان",
+        few: "# حكايات",
+        many: "# حكاية",
+        other: "# حكاية",
+      },
     },
     post: {
       kicker: "مجلة ALMAR",
       cta: "خطّطوا لرحلتكم — تواصلوا مع ALMAR",
-      links: { back: "→ العودة إلى رؤى السفر", home: "الرئيسية", destinations: "الوجهات" },
+      links: {
+        back: "→ العودة إلى رؤى السفر",
+        home: "الرئيسية",
+        destinations: "الوجهات",
+      },
       readingTime: {
         one: "دقيقة قراءة واحدة",
         two: "دقيقتا قراءة",
@@ -115,7 +147,8 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
       featuredExperience: "تجربة مميزة",
       relatedKicker: "المزيد من مجلة ALMAR",
       related: "قصص ذات صلة",
-      intro: "إقامات موثّقة بالكامل، وسائقون خاصون، وكونسيرج عند الطلب. أخبرونا بتواريخكم ونخطط لكم الباقي.",
+      intro:
+        "إقامات موثّقة بالكامل، وسائقون خاصون، وكونسيرج عند الطلب. أخبرونا بتواريخكم ونخطط لكم الباقي.",
       barLabel: "خطّط لرحلتك",
       englishOnly: "هذا المقال متاح بالإنجليزية حاليًا.",
     },
@@ -124,16 +157,25 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
     list: {
       meta: {
         title: "Guías de viaje por Colombia | ALMAR",
-        description: "Guías sencillas sobre adónde ir, qué hacer y cómo viajar en privado por Colombia.",
+        description:
+          "Guías sencillas sobre adónde ir, qué hacer y cómo viajar en privado por Colombia.",
       },
       kicker: "Blog / Noticias",
       heading: "Guías de viaje",
       empty: "Aún no hay historias.",
+      searchLabel: "Buscar historias",
+      searchClear: "Borrar",
+      searchNoMatch: "Ninguna historia coincide con «{q}».",
+      searchCount: { one: "# historia", other: "# historias" },
     },
     post: {
       kicker: "Diario ALMAR",
       cta: "Planifica tu viaje — Contacta a ALMAR",
-      links: { back: "← Volver a las guías de viaje", home: "Inicio", destinations: "Destinos" },
+      links: {
+        back: "← Volver a las guías de viaje",
+        home: "Inicio",
+        destinations: "Destinos",
+      },
       readingTime: { one: "# min de lectura", other: "# min de lectura" },
       onThisPage: "En esta página",
       share: "Compartir",
