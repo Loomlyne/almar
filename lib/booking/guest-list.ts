@@ -37,7 +37,7 @@ function isListed(item: GuestBookingSummary): item is ListedSummary {
 }
 
 /**
- * P6-09, not yet signed by the owner: option 1 (recommended) is built, a trip stays Upcoming through its departure
+ * P6-09, signed option 1 (owner 2026-10-27), a trip stays Upcoming through its departure
  * day, so a trip under way is Upcoming. Option 2 (Past from its arrival day) is this one line:
  * `return item.arrive > today;`. ISO days compare as text.
  */
@@ -78,7 +78,7 @@ function toCard(item: ListedSummary, locale: BookingLocale, today: string): Gues
     image: item.image,
     dates: formatRange(dayText(item.arrive), dayText(item.leave)),
     total: formatAed(item.grandFils),
-    // P6-07, not yet signed: option 1 (recommended) is built, a Paid line when something is paid. Option 2 removes
+    // P6-07, signed option 1 (owner 2026-10-27), a Paid line when something is paid. Option 2 removes
     // `paid` from GuestCard and this line (Task 4 action step 2).
     paid: item.paidFils > 0 ? formatAed(item.paidFils) : null,
     stillDue: item.stillDueFils === 0 ? null : formatAed(item.stillDueFils),

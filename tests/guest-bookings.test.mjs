@@ -3,7 +3,7 @@
 // Every amount is a symbolic test value in fils (1 AED = 100 fils), never a real price; references and dates are
 // fixtures. Today is the fixed Dubai day "2026-11-10".
 //
-// Built as the recommended options while the owner has not signed P6-07 and P6-09: P6-07 option 1 (a Paid line from
+// Owner signed the recommended options on 2026-10-27: P6-07 option 1 (a Paid line from
 // paidFils above 0) and P6-09 option 1 (Upcoming through the departure day). After his signature only the lines marked
 // P6-07 / P6-09 change.
 //
