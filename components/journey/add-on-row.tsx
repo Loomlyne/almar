@@ -90,7 +90,7 @@ export function AddOnRow({ item, quantity, max, onChange, size = "row", copy }: 
       />
     );
 
-  const image = (
+  const image = item.image ? (
     <img
       src={item.image.src}
       alt={item.image.alt}
@@ -100,6 +100,8 @@ export function AddOnRow({ item, quantity, max, onChange, size = "row", copy }: 
         size === "row" ? "w-34 aspect-4/3" : "size-21",
       )}
     />
+  ) : (
+    <div aria-hidden="true" className={cn("bg-ivory", size === "row" ? "w-34 aspect-4/3" : "size-21")} />
   );
 
   if (size === "phone") {

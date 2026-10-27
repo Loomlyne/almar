@@ -105,6 +105,18 @@ test("plan 04-02: /booking is no longer held, and the three booking endpoints ar
   );
 });
 
+test("plan 04-08: the six booking endpoints are served (request, view and withdraw join quote, hold and release)", () => {
+  const routes = ["quote", "hold", "release", "request", "view", "withdraw"].map((name) => `/api/booking/${name}/route`);
+  assert.deepEqual(
+    serverPathsFrom([...routes, "/api/health/route"], []),
+    ["/api/booking/hold", "/api/booking/quote", "/api/booking/release", "/api/booking/request", "/api/booking/view", "/api/booking/withdraw", "/api/health"],
+  );
+  for (const name of ["request", "view", "withdraw"]) {
+    assert.equal(isHeldPath(`/api/booking/${name}`), false, name);
+    assert.ok(existsSync(`app/api/booking/${name}/route.ts`), `app/api/booking/${name}/route.ts exists`);
+  }
+});
+
 test("serverPathsFrom: a malformed extra path stops the build", () => {
   for (const bad of ["subscribe", "/subscribe/", "/", "/a?b", "/a#b", "/a*", "/a/[b]", "//a", "/a/../b", "/a/./b", "/a%2Fb", "/api/x"]) {
     assert.throws(() => serverPathsFrom([], [bad]), Error, bad);

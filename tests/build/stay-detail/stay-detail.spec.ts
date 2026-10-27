@@ -8,6 +8,7 @@ import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { SITE_FOOTER_COPY } from "../../../lib/copy/site-footer";
 import { STAY_DETAIL_COPY } from "../../../lib/copy/stay-detail";
 import { formatDate } from "../../../lib/format";
+import { tripHref } from "../../../lib/booking/trip-link";
 import { JOURNEY_CHOICE_KEY, parseJourneyChoice, serializeJourneyChoice } from "../../../lib/journey-choice";
 import { fill, formatGuestSummary } from "../../../lib/journey-format";
 import { absoluteLocaleUrl, localeDir, localePath, type Locale } from "../../../lib/locale-path";
@@ -167,6 +168,13 @@ function expectedRequest(c: Ctx, dates: Pick, adults: number, children = 0, infa
 
 const requestLinks = (scope: Locator | Page, c: Ctx) => scope.getByRole("link", { name: new RegExp(`^${escape(c.copy.whatsapp.button)}`) });
 
+// Plan 04-03 (B-01, Q-02): Book sits before the request in the bar, the sheet's last step and the dock. A button that
+// asks for the dates while none are chosen; a link to the guest's trip once they are.
+const bookButtons = (scope: Locator | Page, c: Ctx) => scope.getByRole("button", { name: c.journey.book.label, exact: true });
+const bookLinks = (scope: Locator | Page, c: Ctx) => scope.getByRole("link", { name: c.journey.book.label, exact: true });
+const tripOf = (c: Ctx, dates: { from: string; to: string }, adults: number, children = 0, infants = 0) =>
+  tripHref(c.locale, { stay: c.slug, from: dates.from, to: dates.to, adults, children, infants });
+
 /** wa.me is answered here: a popup to it must never leave the Mac. */
 async function answerWhatsApp(page: Page) {
   await page.context().route("https://wa.me/**", (route) => route.fulfill({ status: 200, contentType: "text/html", body: "<title>wa</title>" }));
@@ -217,7 +225,9 @@ for (const slug of FOCUS) {
           if (barLink) {
             await expect(barLink).toHaveCount(1);
             await expect(barLink).toHaveAttribute("href", base.href);
+            await expect(bookButtons(barOf(page, c), c), "the bar holds one Book, a button while no dates are chosen").toHaveCount(1);
           }
+          await expect(bookButtons(dockOf(page), c), "the dock holds one Book, a button while no dates are chosen").toHaveCount(1);
           for (const link of barLink ? [dockLink, barLink] : [dockLink]) {
             await expect(link).toHaveAttribute("target", "_blank");
             await expect(link).toHaveAttribute("rel", /noopener/);
@@ -240,6 +250,9 @@ for (const slug of FOCUS) {
             await page.getByRole("button", { name: fill(c.journey.guests.add, { group: c.journey.guests.group.child }) }).click();
             await page.keyboard.press("Escape");
             live = barLink!;
+            await expect(bookButtons(barOf(page, c), c), "with dates, the bar's Book is no longer a button").toHaveCount(0);
+            await expect(bookLinks(barOf(page, c), c), "the bar holds one Book").toHaveCount(1);
+            await expect(bookLinks(barOf(page, c), c)).toHaveAttribute("href", tripOf(c, win, 2, 1));
           } else {
             await page.getByRole("button", { name: line1Of(c) }).click();
             const sheet = page.getByRole("dialog", { name: c.journey.sheet.label });
@@ -252,6 +265,8 @@ for (const slug of FOCUS) {
             await sheet.getByRole("button", { name: fill(c.journey.guests.add, { group: c.journey.guests.group.adult }) }).click();
             await sheet.getByRole("button", { name: fill(c.journey.guests.add, { group: c.journey.guests.group.child }) }).click();
             live = requestLinks(sheet, c);
+            await expect(bookLinks(sheet, c), "the sheet's last step holds one Book").toHaveCount(1);
+            await expect(bookLinks(sheet, c)).toHaveAttribute("href", tripOf(c, win, 2, 1));
             // The label is printed once, in at most two lines, and the button sits inside the phone's width.
             await expect(live).toHaveCount(1);
             expect(((await live.textContent()) ?? "").split(c.copy.whatsapp.button).length - 1, "the label is printed once").toBe(1);
@@ -273,7 +288,9 @@ for (const slug of FOCUS) {
           expect(full.message).toContain(rangeOf(from, to).split(" – ")[0]);
           await expect(live).toHaveAttribute("href", full.href);
           // (by CSS, not by role: while the phone sheet is open the page behind it is aria-hidden)
-          await expect(dockOf(page).locator("a"), "the dock follows the bar and the sheet").toHaveAttribute("href", full.href);
+          await expect(dockOf(page).locator('a[href^="https://wa.me/"]'), "the dock follows the bar and the sheet").toHaveAttribute("href", full.href);
+          await expect(dockOf(page).locator("button"), "with dates, the dock's Book is no longer a button").toHaveCount(0);
+          await expect(dockOf(page).locator("a:not([href^='https://wa.me/'])"), "the dock's Book follows too").toHaveAttribute("href", tripOf(c, win, 2, 1));
 
           // Clicking opens a new tab at wa.me whose text is the message; the page itself stays.
           const pageUrl = page.url();
@@ -626,6 +643,9 @@ for (const slug of FOCUS) {
           const last = requestLinks(sheet, c);
           await expect(last).toHaveCount(1);
           await expect(last).toHaveAttribute("href", expectedRequest(c, { from, to }, 2).href);
+          // Book comes first on the last step (plan 04-03, Q-02), a link to the trip with these dates and guests.
+          await expect(bookLinks(sheet, c)).toHaveCount(1);
+          await expect(bookLinks(sheet, c)).toHaveAttribute("href", tripOf(c, { from, to }, 2));
           await page.keyboard.press("Escape");
           await expect(sheet).toHaveCount(0);
 
@@ -638,7 +658,7 @@ for (const slug of FOCUS) {
 
       // ---- the pinned dock -----------------------------------------------------------------------------------
       for (const size of ALL) {
-        test(`dock @${size.width}: pinned, 88px, clears the footer, its one control is the request link`, async ({ page }) => {
+        test(`dock @${size.width}: pinned, 88px, clears the footer, its controls are Book and the request link`, async ({ page }) => {
           const c = await context(locale, slug);
           const watched = await load(page, c, size);
           const dock = dockOf(page);
@@ -653,8 +673,11 @@ for (const slug of FOCUS) {
           const [first, second] = await dockLines(page);
           expect(first).toBe(line1Of(c));
           expect(second).toBe(`${c.journey.bar.dates.empty} · ${guests(1, 0, 0, c)}`);
-          await expect(dock.locator("button, [role=button]"), "no button in the dock").toHaveCount(0);
-          await expect(dock.locator("a, [role=link]"), "exactly one link: the request").toHaveCount(1);
+          // Plan 04-03 (B-01): with no dates chosen, Book is the dock's one button (it asks for the dates) and the
+          // request is its one link.
+          await expect(dock.locator("button, [role=button]"), "one button in the dock: Book").toHaveCount(1);
+          await expect(bookButtons(dock, c)).toHaveCount(1);
+          await expect(dock.locator("a, [role=link]"), "one link in the dock: the request").toHaveCount(1);
           await expect(requestLinks(dock, c)).toHaveCount(1);
 
           await page.mouse.wheel(0, 100_000);

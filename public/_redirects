@@ -20,6 +20,8 @@
 /account/ /en/account 301
 /bookings /en/bookings 301
 /bookings/ /en/bookings 301
+/booking/trip /en/booking/trip 301
+/booking/trip/ /en/booking/trip 301
 # /services and its detail pages were folded into /experiences (D-64, D-67; owner, 2026-10-03)
 /services /en/experiences?type=service 301
 /services/ /en/experiences?type=service 301

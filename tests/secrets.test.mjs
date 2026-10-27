@@ -15,10 +15,11 @@ function files(dir, acc = []) {
 // Everything that can reach a bundle, a Worker or a build: the app, its libraries, the build scripts and the Workers.
 const ALL = ["app", "components", "lib", "scripts", "worker"].flatMap((dir) => files(dir)).concat(["middleware.ts"]);
 
-// The service-role key is named in exactly two files: the server clients, and the controller's one-time import (plan 03.2-01).
-const SERVICE_KEY_FILES = [join("lib", "supabase", "clients.ts"), join("scripts", "import-catalog.mjs")];
+// The service-role key is named in exactly three files: the server clients, the controller's one-time import (plan
+// 03.2-01), and the cron's own plain client on almar-ops (lib/booking/lapse-worker.ts, PR #34 review: no Next imports).
+const SERVICE_KEY_FILES = [join("lib", "supabase", "clients.ts"), join("scripts", "import-catalog.mjs"), join("lib", "booking", "lapse-worker.ts")];
 
-test("the service-role key is named only in lib/supabase/clients.ts and scripts/import-catalog.mjs", () => {
+test("the service-role key is named only in lib/supabase/clients.ts, scripts/import-catalog.mjs and lib/booking/lapse-worker.ts", () => {
   const hits = ALL.filter((path) => readFileSync(path, "utf8").includes("SUPABASE_SERVICE_ROLE_KEY"));
   assert.deepEqual(hits.sort(), [...SERVICE_KEY_FILES].sort());
 });

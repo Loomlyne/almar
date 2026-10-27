@@ -164,7 +164,9 @@ test("live sections are only the wired ones (03.2-09 media; 02-06 settings; 03.2
   assert.equal(isLiveOpsPath("/dashboard/settings"), true);
   // 03.2-08 wires Team and Packages: pinned live both ways (the browser path and the rewrite target).
   for (const path of ["/content/team", "/dashboard/content/team", "/catalog/packages", "/dashboard/catalog/packages"]) assert.equal(isLiveOpsPath(path), true, path);
-  for (const path of ["/", "/home", "/bookings", "/profile", "/content/team-old", "/catalog"]) assert.equal(isLiveOpsPath(path), false, path);
+  // 04-09 wires Bookings: live both ways, the detail under it too.
+  for (const path of ["/bookings", "/dashboard/bookings", "/bookings/detail", "/dashboard/bookings/detail"]) assert.equal(isLiveOpsPath(path), true, path);
+  for (const path of ["/", "/home", "/profile", "/content/team-old", "/catalog"]) assert.equal(isLiveOpsPath(path), false, path);
 });
 
 // ---- Fable review of 7527f88: a trailing dot is the same host --------------------------------------------------

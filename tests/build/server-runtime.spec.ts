@@ -2,6 +2,8 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { expect, test } from "@playwright/test";
 import { JOB02_SERVER_PATHS } from "../../lib/auth/server-paths";
+import { JOURNEY_COPY } from "../../lib/copy/journey";
+import { LOCALES, localeDir } from "../../lib/locale-path";
 import { HELD_PATHS } from "../../lib/server-routes";
 
 // Job 10 (plan 02-21): the server runtime on the BUILT Worker, through local `wrangler dev` (workerd, never --remote).
@@ -40,9 +42,11 @@ const HELD_PROBES = [
 // Not held sections, but never served by Next either: they get the static 404 too.
 // Also the near misses of the opened sign-in paths: an unknown language, a child path, the ops-host handoff.
 const OTHER_MISSES = [
-  // /booking left the held list with plan 04-02 but has no page until 04-03: the same static 404 (no page is in PUBLIC_PAGES).
+  // /booking left the held list with plan 04-02; plan 04-03 gave /booking/trip its pages (/en|ar|es/booking/trip), so
+  // only the paths around them are still the static 404.
   "/booking",
-  "/booking/trip",
+  "/booking/trip/x",
+  "/ar/booking",
   "/es/booking",
   "/api/health/",
   "/api/nope",
@@ -71,6 +75,10 @@ const OTHER_MISSES = [
   "/api/ops/site-status",
   "/ar/api/ops/stays",
 ];
+
+// Plan 04-03 (Q-06): the guest's trip, a static page in every locale (English is prefixed, job 21), noindex and
+// same-origin; the screen reads this query in the browser.
+const TRIP_QUERY = "stay=a&from=2026-11-02&to=2026-11-06&adults=2&children=0&infants=0";
 
 function htmlFiles(dir: string): string[] {
   const found: string[] = [];
@@ -102,7 +110,19 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(existsSync(join(FOLDER, "en/index.html"))).toBe(true);
     expect(existsSync(join(FOLDER, "index.html")), `"/" is the Worker's language redirect, never a file`).toBe(false);
     expect(JSON.parse(readFileSync(".open-next/almar-server-routes.json", "utf8"))).toEqual(
-      ["/api/booking/hold", "/api/booking/quote", "/api/booking/release", "/api/contact", "/api/health", "/api/preferences", ...JOB02_SERVER_PATHS, "/newsletter"].sort(),
+      [
+        "/api/booking/hold",
+        "/api/booking/quote",
+        "/api/booking/release",
+        "/api/booking/request",
+        "/api/booking/view",
+        "/api/booking/withdraw",
+        "/api/contact",
+        "/api/health",
+        "/api/preferences",
+        ...JOB02_SERVER_PATHS,
+        "/newsletter",
+      ].sort(),
     );
   });
 
@@ -291,6 +311,52 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
     expect(res.headers()["x-robots-tag"]).toBe("noindex");
     const get = await request.get("/api/booking/quote", { maxRedirects: 0 });
     expect(get.status()).toBe(405);
+  });
+
+  test("8b. POST /api/booking/request, /view and /withdraw are served by Next (plan 04-08): an empty body is 400, 403 or 503, never the static 404; GET is 405", async ({ request }) => {
+    for (const path of ["/api/booking/request", "/api/booking/view", "/api/booking/withdraw"]) {
+      const res = await request.post(path, { data: {}, maxRedirects: 0 });
+      expect([400, 403, 503], `POST ${path} answered ${res.status()}`).toContain(res.status());
+      expect(res.headers()["content-type"], path).toMatch(/^application\/json/);
+      expect(res.headers()["cache-control"], path).toContain("no-store");
+      expect(res.headers()["x-robots-tag"], path).toBe("noindex");
+      const get = await request.get(path, { maxRedirects: 0 });
+      expect(get.status(), path).toBe(405);
+    }
+  });
+
+  test("8c. /en|ar|es/booking/trip are static pages (plan 04-03): 200, the file's bytes, noindex, same-origin referrer, lang and dir", async ({ request }) => {
+    for (const locale of LOCALES) {
+      const file = readFileSync(join(FOLDER, `${locale}/booking/trip.html`));
+      for (const path of [`/${locale}/booking/trip`, ...(locale === "en" ? [`/en/booking/trip?${TRIP_QUERY}`] : [])]) {
+        const res = await request.get(path, { maxRedirects: 0 });
+        expect(res.status(), path).toBe(200);
+        expect(res.headers()["content-type"], path).toMatch(/^text\/html/);
+        const body = await res.body();
+        expect(Buffer.compare(body, file), path).toBe(0);
+        const html = body.toString("utf8");
+        expect(html, path).toMatch(/<meta name="robots" content="noindex, nofollow"\s*\/?>/);
+        expect(html, path).toMatch(/<meta name="referrer" content="same-origin"\s*\/?>/);
+        expect(html, path).toMatch(new RegExp(`<html lang="${locale}" dir="${localeDir(locale)}"`));
+      }
+    }
+  });
+
+  test("8d. the trip page's own POST /api/booking/quote is never 403 (F-02): the Origin the real page sends passes, and the page shows the reason", async ({ page }) => {
+    // The local Worker has no Supabase, so the quote is 503 `unavailable`; a 403 would mean the page's Origin (or a
+    // dropped referrer, Origin: null) is refused by isAllowedPostOrigin.
+    const quote = page.waitForResponse((r) => new URL(r.url()).pathname === "/api/booking/quote" && r.request().method() === "POST");
+    await page.goto(`/en/booking/trip?${TRIP_QUERY}`);
+    const res = await quote;
+    expect(res.status(), `the page's quote answered ${res.status()}`).not.toBe(403);
+    expect([400, 503], `the page's quote answered ${res.status()}`).toContain(res.status());
+    if (res.status() === 503) {
+      const line = page.locator('[data-reason="unavailable"]');
+      await expect(line).toHaveCount(1);
+      await expect(line).toContainText(JOURNEY_COPY.en.reasons.unavailable);
+    } else {
+      await expect(page.locator("[data-reason]").first()).toBeVisible();
+    }
   });
 
   test("9. /newsletter is the footer's POST handler (plan 03.3-27): GET and HEAD are 405, never a page; a refused POST is JSON, no-store, noindex", async ({ request, baseURL }) => {

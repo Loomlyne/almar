@@ -82,6 +82,8 @@ const destinationRow = (id: string, name: string, position: number, published: b
   id,
   slug: id,
   name_en: name,
+  name_ar: null,
+  name_es: null,
   is_published: published,
   position,
   stay_count: 0,

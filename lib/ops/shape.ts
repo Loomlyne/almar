@@ -46,6 +46,11 @@ function strOrNull(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
+/** A name, or null when it is missing or blank (the screens fall back to English on null only). */
+function nameOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value : null;
+}
+
 function numOrNull(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
@@ -117,6 +122,8 @@ export function destinationSummary(r: Row): DestinationSummary {
     id: str(r.id),
     slug: str(r.slug),
     name_en: str(r.name_en),
+    name_ar: nameOrNull(r.name_ar),
+    name_es: nameOrNull(r.name_es),
     is_published: r.is_published === true,
     position: numOrNull(r.position) ?? 0,
     stay_count: numOrNull(r.stay_count) ?? 0,

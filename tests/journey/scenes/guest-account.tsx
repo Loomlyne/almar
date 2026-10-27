@@ -19,5 +19,5 @@ const account = { name: "Layla Haddad", email: "guest@example.com" };
 
 export const scenes: Scenes = {
   hub: ({ locale }) => <AccountScreen profile={guest(locale)} account={account} />,
-  bookings: ({ locale }) => <BookingsScreen initialLocale={locale} account={account} />,
+  bookings: ({ locale }) => <BookingsScreen initialLocale={locale} account={account} cards={[]} />,
 };

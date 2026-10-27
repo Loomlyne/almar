@@ -134,7 +134,42 @@ test("matchPublicPage matches the five patterns and one [a-z0-9-] segment", () =
     "/blog/[post]",
     "/destinations",
     "/experiences",
+    "/booking/trip",
+    "/bookings/trip",
   ]);
+});
+
+test("/bookings/trip is a public page in every locale (plan 04-05 Task 5); /bookings itself stays a guest page", () => {
+  assert.equal(matchPublicPage("/bookings/trip"), "/bookings/trip");
+  assert.equal(matchPublicPage("/bookings"), null);
+  assert.equal(matchPublicPage("/bookings/trip/x"), null);
+  assert.equal(siteHref("ar", "/bookings/trip?ref=ALMAR-TEST22"), "/ar/bookings/trip?ref=ALMAR-TEST22");
+  assert.equal(siteHref("en", "/bookings/trip?ref=ALMAR-TEST22"), "/en/bookings/trip?ref=ALMAR-TEST22");
+  assert.deepEqual(localeHrefs("/bookings/trip"), {
+    en: "/en/bookings/trip",
+    ar: "/ar/bookings/trip",
+    es: "/es/bookings/trip",
+  });
+  const o = "https://almarprivatejourney.com";
+  assert.equal(localeAlternates("es", "/bookings/trip").canonical, `${o}/es/bookings/trip`);
+  assert.equal(localeAlternates("ar", "/bookings/trip").languages["x-default"], `${o}/en/bookings/trip`);
+  assert.equal(localeAlternates("en", "/bookings/trip").languages.ar, `${o}/ar/bookings/trip`);
+});
+
+test("/booking/trip is a public page in every locale (plan 04-03, Q-06); /booking and a deeper path are not", () => {
+  assert.equal(matchPublicPage("/booking/trip"), "/booking/trip");
+  assert.equal(matchPublicPage("/booking"), null);
+  assert.equal(matchPublicPage("/booking/trip/x"), null);
+  assert.equal(siteHref("ar", "/booking/trip?stay=x"), "/ar/booking/trip?stay=x");
+  assert.equal(siteHref("en", "/booking/trip?stay=x"), "/en/booking/trip?stay=x");
+  assert.deepEqual(localeHrefs("/booking/trip"), {
+    en: "/en/booking/trip",
+    ar: "/ar/booking/trip",
+    es: "/es/booking/trip",
+  });
+  const o = "https://almarprivatejourney.com";
+  assert.equal(localeAlternates("es", "/booking/trip").canonical, `${o}/es/booking/trip`);
+  assert.equal(localeAlternates("ar", "/booking/trip").languages["x-default"], `${o}/en/booking/trip`);
 });
 
 test("/destinations is a public page in every locale; a destination slug under it is not", () => {

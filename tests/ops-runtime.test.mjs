@@ -248,6 +248,17 @@ test("worker/almar-ops.mjs imports exactly the OpenNext worker, the generated li
   assert.match(source, /serverPaths: OPS_PATHS, nextFetch/);
 });
 
+test("worker/almar-ops.mjs: exactly one dynamic import, the lazy lapse glue inside scheduled (04-08, P-18)", () => {
+  const source = readFileSync("worker/almar-ops.mjs", "utf8");
+  const dynamic = [...source.matchAll(/\bimport\(([^)]*)\)/g)].map((m) => m[1]);
+  assert.deepEqual(dynamic, ['"../lib/booking/lapse-worker.ts"']);
+  const scheduled = source.slice(source.indexOf("async scheduled("));
+  assert.ok(scheduled.startsWith("async scheduled("), "the handler is there");
+  assert.ok(scheduled.includes('await import("../lib/booking/lapse-worker.ts")'), "the import sits inside scheduled");
+  assert.match(scheduled, /await runScheduledLapse\(env\)/);
+  assert.equal(source.indexOf('import("../lib/booking/lapse-worker.ts")') > source.indexOf("async scheduled("), true);
+});
+
 // ---- the Worker itself, run for real on a scratch copy (Fable review of 7527f88) --------------------------------
 // worker/almar-ops.mjs imports a build output (.open-next/) that unit tests do not have, so each test copies the real
 // Worker, the real lib/ops-routes.ts, lib/host.ts and worker/handle.mjs into a scratch folder and puts a fake OpenNext
@@ -270,13 +281,22 @@ async function opsWorker(routes = WANT) {
   return new Response("next", { status: 200 });
 } };\n`,
   );
+  // The lapse glue is imported lazily by `scheduled` only; a fake that records its calls stands in for it (04-08).
+  mkdirSync(join(base, "lib/booking"));
+  writeFileSync(
+    join(base, "lib/booking/lapse-worker.ts"),
+    `export async function runScheduledLapse(env) { globalThis.__opsLapse.push(env); }\n`,
+  );
   globalThis.__opsNext = [];
+  globalThis.__opsLapse = [];
   const mod = await import(pathToFileURL(join(base, "worker/almar-ops.mjs")).href);
   const next = globalThis.__opsNext;
   const assets = [];
   const env = { ASSETS: { fetch: async (request) => (assets.push(new URL(request.url).pathname), new Response("asset", { status: 404 })) } };
   const run = (url, init) => mod.default.fetch(new Request(url, init), env, {});
-  return { next, assets, run };
+  const lapse = globalThis.__opsLapse;
+  const scheduled = (scheduledEnv) => mod.default.scheduled({ cron: "*/5 * * * *", scheduledTime: Date.now() }, scheduledEnv, {});
+  return { next, assets, run, lapse, scheduled };
 }
 
 const OPS_URL = "https://dashboard.almarprivatejourney.com";
@@ -412,12 +432,23 @@ test("wrangler.ops.toml: assets ./out-ops, binding ASSETS, every request runs th
   assert.equal((OPS.match(/^html_handling/gm) ?? []).length, 0, "html_handling is left at its default: no page HTML ships");
 });
 
+test("the ops Worker: scheduled runs the lapse glue once with the Worker env and touches no request path", async () => {
+  const { next, assets, lapse, scheduled } = await opsWorker();
+  const env = { SUPABASE_MARK: "symbolic", ASSETS: { fetch: async () => new Response("asset") } };
+  await scheduled(env);
+  assert.equal(lapse.length, 1);
+  assert.equal(lapse[0], env, "the very env the runtime passed");
+  assert.deepEqual(next, []);
+  assert.deepEqual(assets, []);
+});
+
 test("wrangler.ops.toml: exactly three bindings (ASSETS, AI, MEDIA on almar-media), no [vars], nothing key-like", () => {
   assert.deepEqual(block(OPS, "[ai]"), ['binding = "AI"']);
   assert.equal((OPS.match(/^\[\[r2_buckets\]\]$/gm) ?? []).length, 1);
   assert.deepEqual(block(OPS, "[[r2_buckets]]"), ['binding = "MEDIA"', 'bucket_name = "almar-media"']);
   const tables = OPS.split("\n").filter((l) => /^\[/.test(l));
-  assert.deepEqual(tables, ["[assets]", "[ai]", "[[r2_buckets]]", "[[routes]]"]);
+  assert.deepEqual(tables, ["[assets]", "[ai]", "[[r2_buckets]]", "[[routes]]", "[triggers]"]);
+  assert.deepEqual(block(OPS, "[triggers]"), ['crons = ["*/5 * * * *"]']);
   assert.equal(/^\[vars\]/m.test(OPS), false);
   assert.equal(/eyJ|re_[A-Za-z0-9]{8,}|sk_(live|test)_|sb_secret_|sb_publishable_/.test(OPS), false, "nothing that looks like a key");
 });
@@ -604,6 +635,20 @@ test("opsTestConfig: wrangler.ops.toml without [ai] and without the route, paths
   assert.equal(topKey(copy, "name"), '"almar-ops"');
   // Everything else is the real file's: same flags, date and account.
   for (const key of ["compatibility_date", "compatibility_flags", "account_id", "workers_dev", "preview_urls"]) assert.equal(topKey(copy, key), topKey(OPS, key), key);
+});
+
+test("04-08: only almar-ops has a cron; wrangler.toml, wrangler.preview.toml and worker/almar.mjs have none", () => {
+  for (const file of ["wrangler.toml", "wrangler.preview.toml"]) {
+    const text = readFileSync(file, "utf8");
+    assert.equal(/^\[triggers\]/m.test(text), false, `${file} has no [triggers]`);
+    assert.equal(/crons/.test(text), false, `${file} has no crons`);
+  }
+  assert.equal(/scheduled/.test(readFileSync("worker/almar.mjs", "utf8")), false, "the public Worker has no scheduled handler");
+  assert.equal((OPS.match(/crons/g) ?? []).length, 1);
+});
+
+test("opsTestConfig: the [triggers] block reaches the local ops Worker unchanged", () => {
+  assert.deepEqual(block(opsTestConfig(OPS), "[triggers]"), ['crons = ["*/5 * * * *"]']);
 });
 
 test("opsTestConfig: a wrangler.ops.toml that lost the lines it rewrites stops the script instead of writing a wrong copy", () => {

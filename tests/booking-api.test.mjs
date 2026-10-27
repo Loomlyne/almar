@@ -8,7 +8,7 @@ import { loadTs } from "./helpers/load-ts.mjs";
 const validate = await loadTs("lib/booking/validate.ts");
 const access = await loadTs("lib/booking/access.ts");
 
-const { parseQuoteRequest, parseHoldRequest, parseReleaseRequest, needsPickupAddress } = validate;
+const { parseQuoteRequest, parseHoldRequest, parseReleaseRequest, parseRequestRequest, parseViewRequest, parseWithdrawRequest, needsPickupAddress } = validate;
 const { authorizeBookingAccess } = access;
 
 const ADDON = "3f1c2a3e-1111-4222-8333-444455556666";
@@ -250,6 +250,51 @@ test("parseReleaseRequest: { ref, t } and nothing else", () => {
   refused(parseReleaseRequest(null), "body");
 });
 
+// ---------------------------------------------------------------- parseRequestRequest, parseViewRequest, parseWithdrawRequest (04-08)
+
+const HOSTILE = [null, undefined, [], "x", 5, true, Object.create({ ref: REF }), { ref: { toString: () => REF } }, { ref: REF, t: ["x"] }, { __proto__: null, ref: REF, t: TOKEN, locale: 7 }];
+
+test("parseRequestRequest: { ref, t } only, the release rules", () => {
+  const r = parseRequestRequest({ ref: REF, t: TOKEN });
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.value, { ref: REF, t: TOKEN });
+  refused(parseRequestRequest({ ref: "nope", t: TOKEN }), "ref");
+  refused(parseRequestRequest({ ref: REF, t: "short" }), "t");
+  refused(parseRequestRequest({ ref: REF }), "t"); // the request is link-only: no token, no request
+  refused(parseRequestRequest({ ref: REF, t: TOKEN, extra: 1 }), "extra");
+  refused(parseRequestRequest({ ref: REF, t: TOKEN, is_test: false }), "is_test");
+  refused(parseRequestRequest({ ref: REF, t: TOKEN, locale: "en" }), "locale");
+  refused(parseRequestRequest(null), "body");
+  for (const bad of HOSTILE) assert.doesNotThrow(() => parseRequestRequest(bad));
+});
+
+test("parseViewRequest: { ref, t?, locale? } with locale in en, ar, es", () => {
+  assert.deepEqual(parseViewRequest({ ref: REF, t: TOKEN }), { ok: true, value: { ref: REF, t: TOKEN } });
+  assert.deepEqual(parseViewRequest({ ref: REF }), { ok: true, value: { ref: REF } }, "no token: the signed-in email decides");
+  assert.deepEqual(parseViewRequest({ ref: REF, locale: "ar" }), { ok: true, value: { ref: REF, locale: "ar" } });
+  assert.deepEqual(parseViewRequest({ ref: REF, t: TOKEN, locale: "es" }), { ok: true, value: { ref: REF, t: TOKEN, locale: "es" } });
+  refused(parseViewRequest({ ref: "almar-7k3qh9" }), "ref");
+  refused(parseViewRequest({ ref: REF, t: "short" }), "t");
+  refused(parseViewRequest({ ref: REF, t: null }), "t");
+  refused(parseViewRequest({ ref: REF, locale: "fr" }), "locale");
+  refused(parseViewRequest({ ref: REF, locale: "EN" }), "locale");
+  refused(parseViewRequest({ ref: REF, isTest: true }), "isTest");
+  refused(parseViewRequest({ ref: REF, email: "ann@example.com" }), "email");
+  refused(parseViewRequest([]), "body");
+  for (const bad of HOSTILE) assert.doesNotThrow(() => parseViewRequest(bad));
+});
+
+test("parseWithdrawRequest: { ref, t? }, the view rules without locale (P-19)", () => {
+  assert.deepEqual(parseWithdrawRequest({ ref: REF, t: TOKEN }), { ok: true, value: { ref: REF, t: TOKEN } });
+  assert.deepEqual(parseWithdrawRequest({ ref: REF }), { ok: true, value: { ref: REF } });
+  refused(parseWithdrawRequest({ ref: REF, locale: "en" }), "locale");
+  refused(parseWithdrawRequest({ ref: REF, t: TOKEN, reason: "x" }), "reason");
+  refused(parseWithdrawRequest({ ref: "nope" }), "ref");
+  refused(parseWithdrawRequest({ ref: REF, t: 5 }), "t");
+  refused(parseWithdrawRequest("x"), "body");
+  for (const bad of HOSTILE) assert.doesNotThrow(() => parseWithdrawRequest(bad));
+});
+
 // ---------------------------------------------------------------- needsPickupAddress (B-11)
 
 test("needsPickupAddress: true when the home-pickup line has a quantity (the explicit flag, never is_uae or a slug)", () => {
@@ -329,7 +374,7 @@ test("access.ts takes its dependencies as arguments (no environment, no database
 process.env.BOOKING_LINK_SECRET = "test-secret-".padEnd(48, "x");
 const server = await loadTs("lib/booking/server.ts");
 const linkModule = await loadTs("lib/booking/link.ts");
-const { quoteBooking, priceQuote, createWebHold, releaseWebHold, snapshotRow, holdStatus, liveGate } = server;
+const { quoteBooking, priceQuote, createWebHold, releaseWebHold, snapshotRow, holdStatus } = server;
 const { signBookingLink } = linkModule;
 
 const NOW = new Date("2026-10-05T10:00:00Z"); // 14:00 in Dubai, so "today" is 2026-10-05
@@ -709,7 +754,7 @@ const guest = (over = {}) => ({
   termsAccepted: true,
   ...over,
 });
-const CTX = { ipHash: "iphash", emailHash: (email) => `h:${email}`, isTest: true, now: NOW };
+const CTX = { ipHash: "iphash", emailHash: (email) => `h:${email}`, isTest: true, transferWindowMinutes: 35, now: NOW };
 const created = { ok: true, booking_id: OWN_ID, ref: OWN_REF, hold_expires_at: "2026-10-05T10:30:00.000Z", link_version: 1 };
 
 test("hold: quote, then limiter, then create_web_booking, in that order; the answer carries a signed link and no booking id", async () => {
@@ -721,6 +766,8 @@ test("hold: quote, then limiter, then create_web_booking, in that order; the ans
   assert.equal(out.response.ref, OWN_REF);
   assert.equal(out.response.holdExpiresAt, "2026-10-05T10:30:00.000Z");
   assert.equal(out.response.breakdown.grandFils, 315000);
+  assert.equal(out.response.transferWindowMinutes, 35, "the window the request will get (04-08)");
+  assert.equal("checkout" in out.response, false, "a hold carries no card session (04-08)");
   assert.equal(await linkModule.verifyBookingLink(OWN_ID, 1, out.response.linkToken), true, "the link token belongs to this booking at its link version");
   assert.equal(await linkModule.verifyBookingLink(OWN_ID, 2, out.response.linkToken), false);
   assert.equal(out.bookingId, OWN_ID, "the booking id is returned for 04-04");
@@ -902,7 +949,7 @@ test("hold: a hold without the link secret is refused rather than answered witho
   }
 });
 
-// ---------------------------------------------------------------- holdStatus, liveGate
+// ---------------------------------------------------------------- holdStatus
 
 test("holdStatus: the HTTP status of a hold answer", () => {
   assert.equal(holdStatus({ ok: true, ref: OWN_REF, holdExpiresAt: "x", linkToken: "y", breakdown: {} }), 200);
@@ -913,14 +960,8 @@ test("holdStatus: the HTTP status of a hold answer", () => {
   assert.equal(holdStatus({ ok: false, reasons: [{ code: "unavailable" }] }), 503);
 });
 
-test("liveGate: Stripe is TEST unless the key says live, and live stays closed while the terms are a placeholder (B-13)", () => {
-  assert.deepEqual(liveGate(undefined, true), { isTest: true, open: true });
-  assert.deepEqual(liveGate("sk_test_abc", true), { isTest: true, open: true });
-  assert.deepEqual(liveGate("rk_live_abc", true), { isTest: true, open: true }, "only sk_live_ is live; anything else is TEST");
-  assert.deepEqual(liveGate("sk_live_abc", true), { isTest: false, open: false });
-  assert.deepEqual(liveGate("sk_live_abc", false), { isTest: false, open: true });
-  assert.deepEqual(liveGate("  sk_live_abc ", true), { isTest: false, open: false }, "a key with spaces is still read as live");
-});
+// 04-02's card-key gate test is gone with its function (plan 04-08, Task 4): the request gate that replaced it, TEST from
+// the Host header, is tested in tests/booking-gate.test.mjs.
 
 // ---------------------------------------------------------------- releaseWebHold
 
@@ -978,6 +1019,133 @@ test("release: without the link secret nothing verifies, and a lookup error is t
   await assert.rejects(() => releaseWebHold(dropBroken, { ref: OWN_REF, t: token }), /booking_drop_hold/);
 });
 
+// ================================================================ 04-08 Task 3: the email seam (lib/booking/notify.ts)
+// No mail is sent here: the fake send records its calls. Booking and payment ids are symbolic test values.
+
+const notify = await loadTs("lib/booking/notify.ts");
+const { getNotifier, NOT_READY_NOTIFIER, deliverMail, mailKey } = notify;
+
+const MAIL_BOOKING = "77777777-7777-4777-8777-777777777777";
+const MAIL_PAYMENT = "88888888-8888-4888-8888-888888888888";
+
+function logDb(mode = "ok") {
+  const events = [];
+  return {
+    events,
+    rpc: async (name, args) => {
+      if (name !== "log_booking_event") throw new Error(`unexpected rpc ${name}`);
+      if (mode === "throws") throw new Error("log down");
+      if (mode === "error") return { data: null, error: { message: "log down" } };
+      events.push(args);
+      return { data: null, error: null };
+    },
+  };
+}
+
+function fakeSend(result) {
+  const calls = [];
+  const send = async () => {
+    calls.push(1);
+    if (result instanceof Error) throw result;
+    return result;
+  };
+  return { calls, send };
+}
+
+const mail = (over = {}) => ({ bookingId: MAIL_BOOKING, template: "request_received", idempotencyKey: `request/${MAIL_BOOKING}`, ready: true, ...over });
+
+test("getNotifier: without RESEND_API_KEY the not-ready default (04-05 E-16); every method answers not_ready", async () => {
+  const saved = process.env.RESEND_API_KEY;
+  delete process.env.RESEND_API_KEY;
+  let n;
+  try {
+    n = getNotifier();
+  } finally {
+    if (saved !== undefined) process.env.RESEND_API_KEY = saved;
+  }
+  assert.equal(n, NOT_READY_NOTIFIER);
+  assert.equal(n.ready, false);
+  const job = { bookingId: MAIL_BOOKING };
+  const opts = { idempotencyKey: "k" };
+  for (const method of ["requestReceived", "ownerRequest", "paymentReceipt", "ownerPayment", "requestLapsed", "ownerWithdrawn"]) {
+    assert.equal(typeof n[method], "function", method);
+    assert.deepEqual(await n[method](job, opts), { ok: false, error: "not_ready" }, method);
+  }
+});
+
+test("mailKey: the Resend idempotency key of each mail", () => {
+  assert.equal(mailKey("requestReceived", MAIL_BOOKING), `request/${MAIL_BOOKING}`);
+  assert.equal(mailKey("ownerRequest", MAIL_BOOKING), `request-owner/${MAIL_BOOKING}`);
+  assert.equal(mailKey("paymentReceipt", MAIL_PAYMENT), `receipt/${MAIL_PAYMENT}`);
+  assert.equal(mailKey("ownerPayment", MAIL_PAYMENT), `payment-owner/${MAIL_PAYMENT}`);
+  assert.equal(mailKey("requestLapsed", MAIL_BOOKING), `lapse/${MAIL_BOOKING}`);
+  assert.equal(mailKey("ownerWithdrawn", MAIL_BOOKING), `withdrawn-owner/${MAIL_BOOKING}`);
+});
+
+test("deliverMail: a sender that is not ready is never called; email_pending with the template and the key", async () => {
+  const db = logDb();
+  const { calls, send } = fakeSend({ ok: true });
+  assert.equal(await deliverMail(db, { ...mail({ ready: false }), send }), "pending");
+  assert.equal(calls.length, 0);
+  assert.deepEqual(db.events, [
+    { p_booking: MAIL_BOOKING, p_actor: "system", p_action: "email_pending", p_detail: { template: "request_received", key: `request/${MAIL_BOOKING}` } },
+  ]);
+});
+
+test("deliverMail: ready and sent writes email_sent with the template and the key", async () => {
+  const db = logDb();
+  const { calls, send } = fakeSend({ ok: true });
+  const key = `request-owner/${MAIL_BOOKING}`;
+  assert.equal(await deliverMail(db, { ...mail({ template: "request_owner", idempotencyKey: key }), send }), "sent");
+  assert.equal(calls.length, 1);
+  assert.deepEqual(db.events, [{ p_booking: MAIL_BOOKING, p_actor: "system", p_action: "email_sent", p_detail: { template: "request_owner", key } }]);
+});
+
+test("deliverMail: a refused send writes email_failed with its short error name and the key", async () => {
+  const db = logDb();
+  const { send } = fakeSend({ ok: false, error: "http_429" });
+  assert.equal(await deliverMail(db, { ...mail(), send }), "failed");
+  assert.deepEqual(db.events, [
+    { p_booking: MAIL_BOOKING, p_actor: "system", p_action: "email_failed", p_detail: { template: "request_received", key: `request/${MAIL_BOOKING}`, error: "http_429" } },
+  ]);
+});
+
+test("deliverMail: the stored error is at most 60 characters of [a-z0-9_]; a message, an address or a payload is never stored", async () => {
+  const long = fakeSend({ ok: false, error: "x".repeat(80) });
+  const db1 = logDb();
+  await deliverMail(db1, { ...mail(), send: long.send });
+  assert.equal(db1.events[0].p_detail.error, "x".repeat(60));
+  for (const bad of ["Rate limit hit for ann@example.com", "<b>oops</b>", '{"to":"ann@example.com"}', "", 42, null]) {
+    const db = logDb();
+    await deliverMail(db, { ...mail(), send: fakeSend({ ok: false, error: bad }).send });
+    const stored = db.events[0].p_detail.error;
+    assert.match(stored, /^[a-z0-9_]{1,60}$/, String(bad));
+    assert.doesNotMatch(stored, /ann|example|oops/, String(bad));
+  }
+});
+
+test("deliverMail: a send that throws is failed, email_failed with error threw and the key", async () => {
+  const db = logDb();
+  const { send } = fakeSend(new Error("boom with ann@example.com"));
+  const key = `lapse/${MAIL_BOOKING}`;
+  assert.equal(await deliverMail(db, { ...mail({ template: "request_lapsed", idempotencyKey: key }), send }), "failed");
+  assert.deepEqual(db.events, [{ p_booking: MAIL_BOOKING, p_actor: "system", p_action: "email_failed", p_detail: { template: "request_lapsed", key, error: "threw" } }]);
+});
+
+test("deliverMail: a failing log is swallowed; the delivery still answers", async () => {
+  for (const mode of ["throws", "error"]) {
+    assert.equal(await deliverMail(logDb(mode), { ...mail({ ready: false }), send: fakeSend({ ok: true }).send }), "pending", mode);
+    assert.equal(await deliverMail(logDb(mode), { ...mail(), send: fakeSend({ ok: true }).send }), "sent", mode);
+    assert.equal(await deliverMail(logDb(mode), { ...mail(), send: fakeSend({ ok: false, error: "no_key" }).send }), "failed", mode);
+    assert.equal(await deliverMail(logDb(mode), { ...mail(), send: fakeSend(new Error("x")).send }), "failed", mode);
+  }
+});
+
+test("notify.ts reads no environment and logs nothing to the console", () => {
+  const source = readFileSync("lib/booking/notify.ts", "utf8");
+  assert.doesNotMatch(source, /process\.env|console\./);
+});
+
 // ---------------------------------------------------------------- the files themselves
 
 test("server.ts is database-agnostic: no environment, no Next, no Supabase import, no key name", () => {
@@ -985,8 +1153,10 @@ test("server.ts is database-agnostic: no environment, no Next, no Supabase impor
   assert.doesNotMatch(source, /process\.env|from "next|@supabase|SERVICE_ROLE/);
 });
 
-test("the three routes: POST only, dynamic, no-store, the origin check, and no logging of the body", () => {
-  for (const name of ["quote", "hold", "release"]) {
+const BOOKING_ROUTES = ["quote", "hold", "release", "request", "view", "withdraw"];
+
+test("the six booking routes: POST only, dynamic, no-store, the origin check, and no logging of the body", () => {
+  for (const name of BOOKING_ROUTES) {
     const source = readFileSync(`app/api/booking/${name}/route.ts`, "utf8");
     assert.match(source, /export const dynamic = "force-dynamic"/, name);
     assert.match(source, /export async function POST/, name);
@@ -995,5 +1165,26 @@ test("the three routes: POST only, dynamic, no-store, the origin check, and no l
     assert.match(source, /no-store/, name);
     assert.doesNotMatch(source, /console\./, `${name}: nothing is logged`);
     assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY/, name);
+  }
+});
+
+test("no booking route reads the card secret key (04-08: the request gate replaced it)", () => {
+  // The name is built here so the plan's grep for it stays empty.
+  const keyName = "STRIPE_" + "SECRET_KEY";
+  for (const name of BOOKING_ROUTES) {
+    const source = readFileSync(`app/api/booking/${name}/route.ts`, "utf8");
+    assert.equal(source.includes(keyName), false, name);
+  }
+});
+
+test("is_test never comes from the body: no booking route takes isTest or is_test from what it parsed", () => {
+  for (const name of BOOKING_ROUTES) {
+    const source = readFileSync(`app/api/booking/${name}/route.ts`, "utf8");
+    assert.doesNotMatch(source, /(isTest|is_test)\s*:\s*(parsed|body)\b/, name);
+    assert.doesNotMatch(source, /(parsed|body)\.value\.(isTest|is_test)\b/, name);
+    assert.doesNotMatch(source, /(parsed|body)\.value\[/, name);
+    for (const match of source.matchAll(/isTest\s*:\s*([^,}\n]+)/g)) {
+      assert.match(match[1].trim(), /^(gate\.isTest|isTest|isTestHost\(request\.headers\.get\("host"\)\))$/, `${name}: isTest from ${match[1].trim()}`);
+    }
   }
 });

@@ -53,4 +53,10 @@ export default {
     }
     return handle(request, env, ctx, { serverPaths: OPS_PATHS, nextFetch });
   },
+  // Plan 04-08 (P-18): the Cron Trigger in wrangler.ops.toml, every 5 minutes. It has no HTTP path. The glue is imported
+  // here, lazily, so it (and the Supabase client it pulls in) is evaluated by a scheduled run only, never at startup.
+  async scheduled(controller, env, ctx) {
+    const { runScheduledLapse } = await import("../lib/booking/lapse-worker.ts");
+    await runScheduledLapse(env);
+  },
 };

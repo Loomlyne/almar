@@ -6,6 +6,7 @@ import { OUTSIDE_FOOTER, expectFooterNewsletter } from "../newsletter/_footer";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { formatDate } from "../../../lib/format";
 import { fill } from "../../../lib/journey-format";
+import { tripHref } from "../../../lib/booking/trip-link";
 import type { Locale } from "../../../lib/locale-path";
 import { FIXED_NOW, FOCUS, LOCALES, WIDTHS, openStay, stayUrl, watch } from "./_helpers";
 
@@ -53,6 +54,7 @@ function oneNight(blocked: string[]): { from: string; to: string } {
 
 type Setup = {
   locale: Locale;
+  slug: string;
   journey: (typeof JOURNEY_COPY)[Locale];
   home: (typeof HOME_COPY)[Locale];
   itemNames: string[];
@@ -60,7 +62,7 @@ type Setup = {
 };
 
 /** Every held control of design 4.3, absent by role and exact name, plus the money and minimum-stay rules. */
-async function assertHeld(page: Page, s: Setup, where: string, { modal = false } = {}) {
+async function assertHeld(page: Page, s: Setup, where: string, { modal = false, dates }: { modal?: boolean; dates?: { from: string; to: string } } = {}) {
   const say = (what: string) => `${where}: ${what}`;
   const named = (role: "button" | "link", name: string) => page.getByRole(role, { name, exact: true });
 
@@ -82,13 +84,26 @@ async function assertHeld(page: Page, s: Setup, where: string, { modal = false }
     await expect(named(role, s.journey.cart.continue), say("no Continue")).toHaveCount(0);
     await expect(named(role, s.journey.addons.continue), say("no Continue to travelers")).toHaveCount(0);
   }
-  // The dock's one control is Request on WhatsApp (plan 45): a link to wa.me, never a button.
-  await expect(page.locator("div.fixed.bottom-0").locator("button"), say("the dock has no button")).toHaveCount(0);
-  await expect(page.locator("div.fixed.bottom-0").locator("a"), say("the dock has exactly one link")).toHaveCount(1);
-  await expect(page.locator("div.fixed.bottom-0").locator("a"), say("and it is the request")).toHaveAttribute(
-    "href",
-    /^https:\/\/wa\.me\/971563883302\?text=/,
-  );
+  // The dock holds two controls (plan 04-03, B-01, Q-02): Book, a button that asks for the dates while none are chosen
+  // and a link to the guest's trip once they are, and the one Request on WhatsApp link to wa.me. By element, not by
+  // role: with the phone sheet open the dock is aria-hidden.
+  const dock = page.locator("div.fixed.bottom-0");
+  const request = dock.locator('a[href^="https://wa.me/971563883302?text="]');
+  await expect(dock.locator("a, button"), say("the dock has exactly two controls: Book and the request")).toHaveCount(2);
+  await expect(request, say("one is the request")).toHaveCount(1);
+  if (dates) {
+    const book = dock.locator("a:not([href^='https://wa.me/'])");
+    await expect(dock.locator("button"), say("with dates, Book is no longer a button")).toHaveCount(0);
+    await expect(book, say("the other is Book")).toHaveText(s.journey.book.label);
+    await expect(book, say("Book links to the trip with the chosen dates")).toHaveAttribute(
+      "href",
+      tripHref(s.locale, { stay: s.slug, from: dates.from, to: dates.to, adults: 1, children: 0, infants: 0 }),
+    );
+  } else {
+    await expect(dock.locator("a"), say("without dates the request is the dock's one link")).toHaveCount(1);
+    await expect(dock.locator("button"), say("the other is Book, a button that asks for the dates")).toHaveText(s.journey.book.label);
+    await expect(dock.locator("button"), say("Book is a plain button, never a submit")).toHaveAttribute("type", "button");
+  }
 
   // 4.3 rows 2-3 and 4.1 row 6: no cart, no currency; the one combobox is the language (Login is live since job 21)
   await expect(page.getByRole("button", { name: CART }), say("no cart button")).toHaveCount(0);
@@ -147,6 +162,7 @@ for (const slug of FOCUS) {
         const catalog = await getCatalogForStay(locale, slug);
         const s: Setup = {
           locale,
+          slug,
           journey: JOURNEY_COPY[locale],
           home: HOME_COPY[locale],
           itemNames: [...catalog.services, ...catalog.experiences].map((item) => item.name),
@@ -179,7 +195,7 @@ for (const slug of FOCUS) {
           await expect(bar).toContainText(`${formatDate(fd, fm, fy)} – ${formatDate(td, tm, ty)}`);
           await page.getByRole("button", { name: s.journey.done }).click();
           await expect(page.getByRole("group", { name: s.journey.guests.label })).toBeVisible();
-          await assertHeld(page, s, "with the Guests panel open");
+          await assertHeld(page, s, "with the Guests panel open", { dates: night });
           await page.keyboard.press("Escape");
         } else {
           await page.getByRole("button", { name: `${stay!.destination_name}${locale === "ar" ? "، " : ", "}${stay!.title}` }).click();
@@ -191,13 +207,13 @@ for (const slug of FOCUS) {
           await sheet.getByRole("button", { name: s.journey.sheet.next, exact: true }).click();
           await expect(sheet.getByRole("heading", { name: s.journey.sheet.who })).toBeVisible();
           await expect(sheet.getByText(fill(s.journey.sheet.progress, { n: 3 }))).toBeVisible();
-          await assertHeld(page, s, "with the sheet open at Who", { modal: true });
+          await assertHeld(page, s, "with the sheet open at Who", { modal: true, dates: night });
           // The last step ends with the request link, not Done (plan 45): the sheet closes with Escape.
           await expect(sheet.getByRole("button", { name: s.journey.done })).toHaveCount(0);
           await page.keyboard.press("Escape");
           await expect(sheet).toHaveCount(0);
         }
-        await assertHeld(page, s, "after the panels closed");
+        await assertHeld(page, s, "after the panels closed", { dates: night });
 
         // the bytes the server sent, payload included
         const raw = await (await page.request.get(stayUrl(locale, slug))).text();

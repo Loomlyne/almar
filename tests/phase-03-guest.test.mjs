@@ -94,9 +94,14 @@ test("account hub: Save is wired to saveProfile, preferences save, no password i
   assert.equal(/name="email"/.test(text), false, "email is shown as text, not a field");
 });
 
-test("the trip screen points Login at /<locale>/login; the SiteNav default is unchanged", () => {
+test("the trip screen wears PublicFrame, which points Login at /<locale>/login; the SiteNav default is unchanged", () => {
+  // Plan 04-03: the trip page is a public page in the site's frame (Q-06). The frame owns the Login item since job 21
+  // (/<locale>/login, or Account from the sign-in hint); the screen passes no loginHref and renders no SiteNav itself.
   const trip = readFileSync(TRIP_SCREEN, "utf8");
-  assert.match(trip, /loginHref=\{localePath\(locale, "\/login"\)\}/);
+  assert.match(trip, /<PublicFrame\b/);
+  assert.equal(trip.includes("loginHref"), false);
+  assert.equal(trip.includes("<SiteNav"), false);
+  assert.match(readFileSync("components/site/public-frame.tsx", "utf8"), /loginHref: localePath\(locale, signedIn \? "\/account" : "\/login"\)/);
   const nav = readFileSync(NAV, "utf8");
   assert.match(nav, /loginHref = "#log-in"/);
 });

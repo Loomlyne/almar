@@ -693,7 +693,10 @@ Removed: none. Flagged suspicious: none.
 | A7 | Deposit not offered when arrival is within balance due days | Q4 | Pricing/policy decision; ask him |
 | A8 | OpenNext request overhead fits 10 ms CPU | Q3 | Error 1102; Workers Paid upgrade (his call) |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+Superseded on 2026-10-20 by `04-RESEARCH-BANK-TRANSFER.md` (Stripe parked; request to book by bank transfer). Its
+Open Questions (RESOLVED) section carries what is still owed.
 
 1. **How does the owner reach `/dashboard` in v1?** It is held, and the ops host is not on the Worker (02-23).
    The controller must pick: open `dashboard.almarprivatejourney.com` on Worker `almar` (DNS and route: owner
@@ -708,8 +711,8 @@ Removed: none. Flagged suspicious: none.
    question for him (A7).
    **RESOLVED for the late booking (2026-10-05):** B-21 — full payment only in v1. N itself is still his value, owed by
    Oct 9 (04-07 step a).
-4. **Resend domain status** for `inquiries@almarprivatejourney.com` (shared with job 02). **Still open:** an owner
-   step (job 02's gate; 04-05 owner step 2).
+4. **Resend domain status** for `inquiries@almarprivatejourney.com` (shared with job 02). **Superseded (2026-10-20):** an owner
+   step (job 02's gate), now 04-05's mail readiness and 04-08 P-13 (see 04-RESEARCH-BANK-TRANSFER.md).
 5. **Webhook endpoint per host:** preview (`https://preview.almarprivatejourney.com/api/stripe/webhook`, TEST)
    and production get separate `whsec_` values. Owner steps. **RESOLVED as owner steps:** 04-04 owner step 3 (preview,
    TEST); production at the live switch.

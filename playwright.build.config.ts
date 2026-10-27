@@ -15,6 +15,9 @@ const port = Number(process.env.PW_PORT ?? 8787);
 const wranglerConfig = process.env.PW_WRANGLER_CONFIG ?? "wrangler.toml";
 const readyPath = process.env.PW_READY_PATH ?? "/";
 const baseURL = `http://127.0.0.1:${port}`;
+// Plan 04-08: PW_TEST_SCHEDULED=1 adds wrangler's --test-scheduled, which serves /cdn-cgi/local/scheduled so
+// tests/build/lapse-cron.spec.ts can fire the ops Worker's cron by hand. Off by default: every existing run is unchanged.
+const testScheduled = process.env.PW_TEST_SCHEDULED === "1" ? " --test-scheduled" : "";
 
 export default defineConfig({
   testDir: "tests/build",
@@ -29,7 +32,7 @@ export default defineConfig({
     baseURL,
   },
   webServer: {
-    command: `./node_modules/.bin/wrangler dev --config ${wranglerConfig} --ip 127.0.0.1 --port ${port} --show-interactive-dev-session=false`,
+    command: `./node_modules/.bin/wrangler dev --config ${wranglerConfig} --ip 127.0.0.1 --port ${port} --show-interactive-dev-session=false${testScheduled}`,
     url: `${baseURL}${readyPath}`,
     reuseExistingServer: false,
     timeout: 120_000,

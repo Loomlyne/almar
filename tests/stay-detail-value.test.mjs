@@ -196,8 +196,9 @@ test("pickStayJourneyCopy keeps what the bar reads and leaves out add-ons, cart 
   for (const locale of ["en", "ar", "es"]) {
     const full = JOURNEY_COPY[locale];
     const picked = value.pickStayJourneyCopy(full);
-    assert.deepEqual(Object.keys(picked).sort(), ["bar", "dates", "done", "entry", "guests", "menu", "sheet", "steps"]);
-    for (const key of ["bar", "dates", "done", "entry", "guests", "menu", "sheet"]) assert.deepEqual(picked[key], full[key], key);
+    // Plan 04-03: `book` (Book and its needDates line) joins what the stay page reads.
+    assert.deepEqual(Object.keys(picked).sort(), ["bar", "book", "dates", "done", "entry", "guests", "menu", "sheet", "steps"]);
+    for (const key of ["bar", "book", "dates", "done", "entry", "guests", "menu", "sheet"]) assert.deepEqual(picked[key], full[key], key);
     assert.deepEqual(picked.steps, { stay: full.steps.stay });
     const text = JSON.stringify(picked);
     for (const gone of [full.addons.add, full.addons.unit.night, full.cart.continue, full.cart.subtotal]) {

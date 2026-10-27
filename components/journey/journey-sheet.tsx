@@ -132,6 +132,11 @@ export type JourneySheetProps = {
    * passes a `w-full whitespace-normal` link that prints its label once. Ignored when onSearch is set (Search wins).
    */
   finalAction?: ReactNode;
+  /**
+   * Optional (plan 04-03, Book + Request on WhatsApp): the footer of step 3 stacks the summary over a full-width
+   * finalAction, so two controls each print their label on a phone. Absent = the one-row footer as before.
+   */
+  finalActionStacked?: boolean;
   copy: JourneyCopy;
   locale: Locale;
   /** Injectable for deterministic tests. */
@@ -165,6 +170,7 @@ function SheetBody({
   onChange,
   onSearch,
   finalAction,
+  finalActionStacked = false,
   copy,
   locale,
   today,
@@ -328,7 +334,13 @@ function SheetBody({
           />
         )}
       </div>
-      <div className="h-dock shrink-0 px-4 pb-4 border-t border-line bg-ivory flex items-center gap-4">
+      <div
+        className={
+          finalActionStacked && step === 3 && !onSearch && finalAction
+            ? "shrink-0 px-4 pt-3 pb-4 border-t border-line bg-ivory flex flex-col items-stretch gap-3"
+            : "h-dock shrink-0 px-4 pb-4 border-t border-line bg-ivory flex items-center gap-4"
+        }
+      >
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="text-label text-ink truncate">{label}</span>
           {warn ? (

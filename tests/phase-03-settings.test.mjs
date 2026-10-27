@@ -37,6 +37,15 @@ test("settings groups follow the signed pictures (02-06): brand colours, type, m
   }
 });
 
+test("the Bank transfer section (04-09) sits under the Money group and before Maintenance", () => {
+  const text = readFileSync(SETTINGS_SCREEN, "utf8");
+  const money = text.indexOf(">{copy.money}</GroupTitle>");
+  const section = text.indexOf("<MoneySettings");
+  const maintenance = text.indexOf(">{copy.maintenance}</GroupTitle>");
+  assert.notEqual(section, -1, "missing <MoneySettings");
+  assert.ok(money < section && section < maintenance, "<MoneySettings must sit between the Money and Maintenance groups");
+});
+
 test("FX rate is read-only text from the API, or the not-available line; never an input or a hard-coded rate", () => {
   const text = readFileSync(SETTINGS_SCREEN, "utf8");
   assert.match(text, /copy\.fxNone/);

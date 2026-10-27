@@ -33,3 +33,10 @@ bucket_name = "almar-media"
 [[routes]]
 pattern = "dashboard.almarprivatejourney.com"
 custom_domain = true
+
+# The lapse (plan 04-08): a Cron Trigger on this Worker only, every 5 minutes (UTC). It runs `scheduled` in
+# worker/almar-ops.mjs: lapse unpaid requests past their deadline, flag part-paid ones, send the lapse mails. Deploying
+# replaces the previous triggers with this list. The controller deploys it on the owner's word, migration
+# 20261019160000 first (the cron calls its functions). wrangler.toml and wrangler.preview.toml have no cron.
+[triggers]
+crons = ["*/5 * * * *"]

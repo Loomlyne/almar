@@ -1,6 +1,7 @@
 // Bundles one app/api route handler for a node test. `next/headers` (request-scoped cookies, unusable outside a Next
-// request) is replaced by an empty cookie jar; every other package stays external. Routes under app/api/booking never
-// read cookies, so the stub is never called there. Tests run from the repo root, as loadTs does.
+// request) is replaced by an empty cookie jar; every other package stays external. Under app/api/booking only the view
+// and withdraw routes read cookies (the signed-in guest, when the body has no token): with the empty jar no one is
+// signed in. Tests run from the repo root, as loadTs does.
 import { build } from "esbuild";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";

@@ -1,7 +1,7 @@
 // Integer fils (1 AED = 100 fils), the one rounding rule and percent text to basis points (B-06, PAY-02).
 // Pure: no imports outside lib/money, no environment, no network.
 
-/** Stripe's minimum charge on an AED account: 2.00 AED. */
+/** The smallest amount due now that a quote accepts: 2.00 AED. A recorded bank transfer has no such floor (P-04). */
 export const MIN_CHARGE_FILS = 200;
 
 /**

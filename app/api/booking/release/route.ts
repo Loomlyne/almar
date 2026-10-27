@@ -1,8 +1,8 @@
 // POST /api/booking/release { ref, t }: the guest drops their own hold (plan 04-02), for "Change" and the deposit/full
 // switch. The signed link token is the only key; a wrong token, an unknown reference and a malformed one all answer 404
 // with the same body. 200 { ok: true } also when the booking was no longer held. 400 for a body that is not a release
-// request; 403 for a foreign origin; 503 when the server cannot answer. 04-04 adds expiring the returned Checkout
-// Sessions at Stripe. Nothing is logged.
+// request; 403 for a foreign origin; 503 when the server cannot answer. Only a held booking is released: a sent request
+// is withdrawn through /api/booking/withdraw (plan 04-08, P-19). Nothing is logged.
 import { readJsonBody } from "../../../../lib/booking/http";
 import { isAllowedPostOrigin } from "../../../../lib/booking/origin";
 import { releaseWebHold } from "../../../../lib/booking/server";

@@ -52,6 +52,8 @@ export const OPS_LIVE_SECTIONS: readonly string[] = [
   // 03.2-08: Content -> Team and Catalog -> Packages (the three home journeys), on the kit editor.
   "/content/team",
   "/catalog/packages",
+  // 04-09: the bookings list and detail.
+  "/bookings",
 ];
 
 /**
