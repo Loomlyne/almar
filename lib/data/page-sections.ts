@@ -83,6 +83,22 @@ export const PAGE_SECTIONS: Readonly<Record<PageKey, readonly SectionSpec[]>> = 
       mediaFrom: { poster: { file: "home", path: "hero.poster" } },
     },
     {
+      section: "welcome",
+      text: ["kicker", "heading", "salutation", "paragraphs", "sign_off", "signer", "signer_role"],
+      media: [one("signature"), many("images")],
+      video: false,
+      textFrom: fixture("home-translations", "welcome"),
+      mediaFrom: { signature: { file: "home", path: "welcome.signature" }, images: { file: "home", path: "welcome.images" } },
+    },
+    {
+      section: "gallery",
+      text: ["kicker", "heading"],
+      media: [many("images")],
+      video: false,
+      textFrom: fixture("home-translations", "gallery"),
+      mediaFrom: { images: { file: "home", path: "gallery.images" } },
+    },
+    {
       section: "stays",
       text: ["kicker", "heading", "intro"],
       media: [],
@@ -107,14 +123,6 @@ export const PAGE_SECTIONS: Readonly<Record<PageKey, readonly SectionSpec[]>> = 
       mediaFrom: {},
     },
     {
-      section: "welcome",
-      text: ["kicker", "heading", "salutation", "paragraphs", "sign_off", "signer", "signer_role"],
-      media: [one("signature"), many("images")],
-      video: false,
-      textFrom: fixture("home-translations", "welcome"),
-      mediaFrom: { signature: { file: "home", path: "welcome.signature" }, images: { file: "home", path: "welcome.images" } },
-    },
-    {
       section: "journeys",
       text: ["heading", "intro"],
       media: [],
@@ -129,14 +137,6 @@ export const PAGE_SECTIONS: Readonly<Record<PageKey, readonly SectionSpec[]>> = 
       video: false,
       textFrom: copy("home-page", HOME, { kicker: "stories.kicker", heading: "stories.heading", intro: "stories.intro" }),
       mediaFrom: {},
-    },
-    {
-      section: "gallery",
-      text: ["kicker", "heading"],
-      media: [many("images")],
-      video: false,
-      textFrom: fixture("home-translations", "gallery"),
-      mediaFrom: { images: { file: "home", path: "gallery.images" } },
     },
     {
       section: "begin",
