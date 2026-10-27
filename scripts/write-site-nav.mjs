@@ -6,8 +6,8 @@
 //                                              read through lib/data/source.ts with the anon key only (the same env
 //                                              checks as every build read; never the service-role key)
 //
-// scripts/assemble-cloudflare.mjs is to run it before `next build` with the build's own env (that one call is plan
-// 06-02 Task 5, on the controller's slot for that shared file; until then the committed snapshot is what builds). A link whose page is not on the
+// scripts/assemble-cloudflare.mjs runs it before `next build` with the build's own env (writeNavSnapshot, inside the
+// publish-sequence window) and reads the file back; the ops target keeps the committed snapshot. A link whose page is not on the
 // site yet (targetAvailable: PUBLIC_PAGES, published legal kinds, published package slugs) is left out. Hidden links are
 // already out of the view. A failed or truncated read throws: the build stops and the live site stays (C-03). An empty
 // header is allowed: Login, currency and language are drawn in code.

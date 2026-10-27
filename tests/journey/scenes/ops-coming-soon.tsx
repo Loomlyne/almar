@@ -13,32 +13,17 @@ import type { Scenes } from "../scene-types";
  */
 const opsHost = (path: string, page: ReactNode) => () => <OpsShell mode="ops">{isLiveOpsPath(path) ? page : null}</OpsShell>;
 
-/** The four Coming soon pages (plan 03.2-12) inside the preview shell, so the Content rail with its Soon chips is in view. Test-only. */
+/**
+ * The Coming soon page still in the rail (plan 03.2-12) inside the preview shell, so the Content rail with its Soon chip is
+ * in view. Test-only. Pages, Navigation and footer (06-02) and Blog (06-03) are real screens now; Legal goes with 06-04.
+ */
 export const scenes: Scenes = {
-  pages: () => (
-    <OpsShell mode="preview">
-      <ComingSoonScreen kind="pages" />
-    </OpsShell>
-  ),
-  blog: () => (
-    <OpsShell mode="preview">
-      <ComingSoonScreen kind="blog" />
-    </OpsShell>
-  ),
   legal: () => (
     <OpsShell mode="preview">
       <ComingSoonScreen kind="legal" />
     </OpsShell>
   ),
-  navigation: () => (
-    <OpsShell mode="preview">
-      <ComingSoonScreen kind="navigation" />
-    </OpsShell>
-  ),
-  "ops-host-pages": opsHost("/content/pages", <ComingSoonScreen kind="pages" />),
-  "ops-host-blog": opsHost("/content/blog", <ComingSoonScreen kind="blog" />),
   "ops-host-legal": opsHost("/content/legal", <ComingSoonScreen kind="legal" />),
-  "ops-host-navigation": opsHost("/content/navigation", <ComingSoonScreen kind="navigation" />),
   // A rail section not live yet (Home today; Bookings, Customers and Profile are off too): the same layout shows
   // "Not ready." even though a page is passed. The path is shared with tests/ops-coming-soon.spec.ts, which asserts
   // isLiveOpsPath is false for it; when that section is wired, ops-not-live-path.ts moves to the next one still off.

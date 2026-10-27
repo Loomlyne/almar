@@ -537,6 +537,31 @@ export function applySiteSettings({ outDir, pages, settings, logo, repoRoot = ro
 
 
 /**
+ * Runs scripts/write-site-nav.mjs with the build's env, then reads the file back. A failed read or write stops the
+ * assemble with the script's own error (execFileSync throws on a non-zero exit), and a snapshot without a header and a
+ * footer list for every language is refused, so a build never ships a silent empty or half-written nav (controller,
+ * 2026-10-28). Links the owner hid are simply not in the lists; Login, currency and language are drawn in code.
+ */
+export function writeNavSnapshot(env, run = execFileSync) {
+  run(process.execPath, [path.join(root, "scripts/write-site-nav.mjs")], { cwd: root, stdio: "inherit", env });
+  const file = path.join(root, "lib/data/site-nav.snapshot.json");
+  let snapshot;
+  try {
+    snapshot = JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch (error) {
+    throw new Error(`site-nav: ${file} could not be read after write-site-nav.mjs (${error.message}); the build stops`);
+  }
+  for (const area of ["header", "footer"]) {
+    for (const locale of LOCALES) {
+      if (!Array.isArray(snapshot?.[area]?.[locale])) {
+        throw new Error(`site-nav: the snapshot has no ${area} list for ${locale}; the build stops`);
+      }
+    }
+  }
+  return snapshot;
+}
+
+/**
  * node scripts/assemble-cloudflare.mjs [--target=local|preview|production|ops]
  *
  *   local (default)  out/          production crawl files; no media check, so the check set can build
@@ -572,12 +597,16 @@ async function main(argv = process.argv.slice(2)) {
   await guardPublishSequence({
     target,
     source,
-    build: () =>
+    build: () => {
+      // Plan 06-02 (CMS-09): the header and footer links are baked from the same source as the pages, inside the
+      // publish-sequence window. The ops build draws no public page and keeps the committed snapshot.
+      if (target !== "ops") writeNavSnapshot(nextBuildEnv(process.env, source));
       execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
         cwd: root,
         stdio: "inherit",
         env: nextBuildEnv(process.env, source),
-      }),
+      });
+    },
   });
   assertNoBundledEnv(path.join(root, ".open-next/cloudflare/next-env.mjs"));
   const folder = outDirNameFor(target);

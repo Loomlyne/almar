@@ -10,8 +10,11 @@ const TEAM_SCREEN = `${CONTENT_DIR}/team/team-screen.tsx`;
 const TEAM_PAGE = `${CONTENT_DIR}/team/page.tsx`;
 
 const COMING_SOON = `${CONTENT_DIR}/coming-soon.tsx`;
-const KINDS = ["pages", "blog", "legal", "navigation"];
-// Plan 03.2-12: pages, blog, legal and navigation are Coming soon pages.
+// Plan 03.2-12 made pages, blog, legal and navigation Coming soon pages; 06-02 wired pages and navigation and 06-03 blog
+// (tests/ops-pages.spec.ts, ops-nav.spec.ts, ops-blog.spec.ts). Legal stays until 06-04.
+const KINDS = ["legal"];
+// The copy keeps the pages and navigation blocks until the last Phase 6 content plan lands (controller, 2026-10-28).
+const COPY_KINDS = ["pages", "legal", "navigation"];
 const PAGES = KINDS.map((kind) => ({ path: `${CONTENT_DIR}/${kind}/page.tsx`, kind, screen: "coming-soon" }));
 
 test("each content page has no page gate (02-04 owner gate in the layout), is noindex and delegates to its screen with its kind", () => {
@@ -75,8 +78,8 @@ test("rail labels and Coming soon blocks are separate namespaces, and every rail
     const c = OPS_CONTENT_COPY[locale];
     // `rail` holds labels only; `comingSoon` holds blocks only; the two never share a key.
     for (const [key, value] of Object.entries(c.rail)) assert.equal(typeof value, "string", `${locale}.rail.${key}`);
-    assert.deepEqual(Object.keys(c.comingSoon).sort(), [...KINDS].sort());
-    for (const kind of KINDS) {
+    assert.deepEqual(Object.keys(c.comingSoon).sort(), [...COPY_KINDS].sort());
+    for (const kind of COPY_KINDS) {
       const block = c.comingSoon[kind];
       assert.equal(typeof block, "object", `${locale}.comingSoon.${kind}`);
       assert.equal(typeof block.title, "string");
@@ -96,13 +99,12 @@ test("rail labels and Coming soon blocks are separate namespaces, and every rail
     }
     assert.ok(c.soonNamed.includes("{label}"), `${locale}.soonNamed needs {label}`);
   }
-  // Pages and Blog are the canvas words (DashContent / DashPosts), word for word.
+  // Pages is the canvas words (DashContent), word for word.
   assert.equal(OPS_CONTENT_COPY.en.comingSoon.pages.title, "Page editing is coming soon");
-  assert.equal(OPS_CONTENT_COPY.en.comingSoon.blog.title, "The blog editor is coming soon");
   assert.equal(OPS_CONTENT_COPY.ar.comingSoon.pages.title, "تحرير الصفحات قريبًا");
-  assert.equal(OPS_CONTENT_COPY.es.comingSoon.blog.title, "El editor del blog llega pronto");
   assert.equal(OPS_CONTENT_COPY.en.comingSoon.pages.list.length, 6);
-  assert.equal(OPS_CONTENT_COPY.en.comingSoon.blog.list.length, 6);
+  // Blog left ComingSoonKind with 06-03 (controller, 2026-10-28).
+  assert.equal("blog" in OPS_CONTENT_COPY.en.comingSoon, false);
   // Legal and Navigation are two short blocks: no capability list, no legal or policy wording.
   for (const locale of ["en", "ar", "es"]) {
     for (const kind of ["legal", "navigation"]) assert.deepEqual(OPS_CONTENT_COPY[locale].comingSoon[kind].list, []);

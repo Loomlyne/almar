@@ -6,6 +6,7 @@ import { MotionController } from "./motion-controller";
 import { applyAccountSync, hasSignedInHint } from "./account-sync";
 import { SiteNav, type NavLabels } from "../ui/nav";
 import { WhatsApp } from "../ui/whatsapp";
+import { footerPageLinks } from "./page-links";
 import type { SelectedCurrency } from "../../lib/fx/rates";
 import { NEWSLETTER_HONEYPOT_FIELDS, subscribeToNewsletter } from "../../lib/newsletter";
 import {
@@ -30,7 +31,7 @@ import {
 // The newsletter is ON (plan 03.3-27, design 11.2 and 12.1 row 8): the end column of job 11's light footer, posting
 // to /newsletter through lib/newsletter.ts, with the strings of footerCopy.newsletter (SITE_FOOTER_COPY[locale]).
 
-export type PublicFrameLink = { label: string; href: string };
+export type PublicFrameLink = { label: string; href: string; external?: true };
 
 type NavTone = "solid" | "on-image";
 
@@ -87,8 +88,8 @@ export function PublicFrame({
   currentPath: string;
   /** Nav links, already localised by siteHref(locale, ...). */
   links: PublicFrameLink[];
-  /** Footer page links, already localised. */
-  footerLinks: PublicFrameLink[];
+  /** Footer page links, already localised. Omitted: the footer links the owner set (nav snapshot, 06-02). */
+  footerLinks?: PublicFrameLink[];
   /** The footer's string table, in this page's language. */
   footerCopy: FooterCopy;
   /** The page in each language. Defaults to localeHrefs(currentPath) when currentPath is a public page. */
@@ -143,7 +144,7 @@ export function PublicFrame({
       {children}
       <SiteFooter
         copy={footerCopy}
-        links={footerLinks}
+        links={footerLinks ?? footerPageLinks(locale)}
         contact={SITE_CONTACT}
         languageLinks={
           hrefs

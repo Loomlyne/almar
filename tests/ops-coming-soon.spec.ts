@@ -7,13 +7,13 @@ import { isLiveOpsPath } from "../lib/ops-routes";
 import { NOT_LIVE_OPS_PATH } from "./journey/scenes/ops-not-live-path";
 import { VIEWPORTS, sceneStates, settle, type Viewport } from "./journey/matrix";
 
-// Content -> Pages, Blog, Legal and Navigation and footer as Coming soon pages, and the Content rail with its Soon chips
-// (plan 03.2-12). The real pages run in the preview shell next dev serves without a session; the harness scene
-// (tests/journey/scenes/ops-coming-soon.tsx) frames the same four states for the pictures block.
+// Content -> Legal as a Coming soon page, and the Content rail with its Soon chip (plan 03.2-12). Pages, Navigation and
+// footer (06-02) and Blog (06-03) are real screens now and carry no chip. The real page runs in the preview shell next dev
+// serves without a session; the harness scene (tests/journey/scenes/ops-coming-soon.tsx) frames it for the pictures block.
 
 type Locale = "en" | "ar" | "es";
-const KINDS = ["pages", "blog", "legal", "navigation"] as const;
-const SOON_RAIL = ["pages", "blog", "legal", "navigation"];
+const KINDS = ["legal"] as const;
+const SOON_RAIL = ["legal"];
 
 async function openReal(page: Page, baseURL: string | undefined, kind: string, viewport: Viewport, locale: Locale) {
   await page.setViewportSize(VIEWPORTS[viewport]);
@@ -39,8 +39,7 @@ async function answerSiteStatus(page: Page) {
   );
 }
 
-const labelOf = (kind: string, locale: Locale) =>
-  kind === "navigation" ? OPS_CONTENT_COPY[locale].rail.navigation : DASHBOARD_COPY[locale].rail[kind as "pages" | "blog" | "legal"];
+const labelOf = (kind: (typeof KINDS)[number], locale: Locale) => DASHBOARD_COPY[locale].rail[kind];
 
 // ---- pictures ------------------------------------------------------------------------------------------------------
 // The signed pictures are in pictures/03.2-12 (made before the code, build-pictures.mjs). This block shoots the REAL pages
@@ -91,7 +90,7 @@ test.describe("coming soon pages", () => {
     }
   }
 
-  test("every rail label is a real string, four links carry the Soon chip and Packages, Team and Media carry none", async ({ page, baseURL }) => {
+  test("every rail label is a real string, Legal alone carries the Soon chip and Pages, Blog, Navigation, Packages, Team and Media carry none", async ({ page, baseURL }) => {
     for (const locale of ["en", "ar", "es"] as Locale[]) {
       await openReal(page, baseURL, "legal", "desktop", locale);
       const nav = page.locator("nav");
@@ -107,37 +106,41 @@ test.describe("coming soon pages", () => {
       const named = await links.evaluateAll((all) => all.filter((a) => a.hasAttribute("aria-label")).map((a) => a.getAttribute("href")));
       expect(named.map((href) => href?.split("/").pop())).toEqual(SOON_RAIL);
       const soon = OPS_CONTENT_COPY[locale].soon;
-      await expect(nav.locator("span", { hasText: new RegExp(`^${soon}$`) })).toHaveCount(4);
+      await expect(nav.locator("span", { hasText: new RegExp(`^${soon}$`) })).toHaveCount(1);
       for (const kind of KINDS) {
         const name = OPS_CONTENT_COPY[locale].soonNamed.replace("{label}", labelOf(kind, locale));
         await expect(nav.getByRole("link", { name })).toHaveAttribute("href", `/dashboard/content/${kind}`);
       }
-      for (const href of ["/dashboard/catalog/packages", "/dashboard/content/team", "/dashboard/content/media"]) {
+      for (const href of [
+        "/dashboard/content/pages",
+        "/dashboard/content/blog",
+        "/dashboard/content/navigation",
+        "/dashboard/catalog/packages",
+        "/dashboard/content/team",
+        "/dashboard/content/media",
+      ]) {
         await expect(nav.locator(`a[href="${href}"]`)).not.toHaveAttribute("aria-label", /.+/);
         await expect(nav.locator(`a[href="${href}"] span`)).toHaveCount(0);
       }
     }
   });
 
-  test("the rail reaches Legal and Navigation and footer", async ({ page, baseURL }) => {
-    await openReal(page, baseURL, "pages", "desktop", "en");
+  test("the rail reaches Legal", async ({ page, baseURL }) => {
+    await openReal(page, baseURL, "legal", "desktop", "en");
     await page.locator("nav").getByRole("link", { name: "Legal, soon" }).click();
     await expect(page).toHaveURL(/\/dashboard\/content\/legal$/);
     await expect(page.locator("main h2")).toHaveText(OPS_CONTENT_COPY.en.comingSoon.legal.title);
-    await page.locator("nav").getByRole("link", { name: "Navigation and footer, soon" }).click();
-    await expect(page).toHaveURL(/\/dashboard\/content\/navigation$/);
-    await expect(page.locator("main h2")).toHaveText(OPS_CONTENT_COPY.en.comingSoon.navigation.title);
     await expect(page.locator("nav a[aria-current=page]")).toHaveCount(1);
   });
 
   for (const locale of ["en", "ar"] as Locale[]) {
-    test(`at 390 the Menu drawer shows the chips and its first row sits below the header (${locale})`, async ({ page, baseURL }) => {
-      await openReal(page, baseURL, "navigation", "phone", locale);
+    test(`at 390 the Menu drawer shows the chip and its first row sits below the header (${locale})`, async ({ page, baseURL }) => {
+      await openReal(page, baseURL, "legal", "phone", locale);
       await expect(page.locator("nav")).toBeHidden();
       await page.getByRole("button", { name: DASHBOARD_COPY[locale].menu }).click();
       const nav = page.locator("nav");
       await expect(nav).toBeVisible();
-      await expect(nav.locator("span", { hasText: new RegExp(`^${OPS_CONTENT_COPY[locale].soon}$`) })).toHaveCount(4);
+      await expect(nav.locator("span", { hasText: new RegExp(`^${OPS_CONTENT_COPY[locale].soon}$`) })).toHaveCount(1);
       const header = await page.locator("header").boundingBox();
       const first = await nav.getByRole("link").first().boundingBox();
       expect(first!.y).toBeGreaterThanOrEqual(header!.y + header!.height);
@@ -147,9 +150,9 @@ test.describe("coming soon pages", () => {
   test("the harness scene frames the page in the preview shell", async ({ page, baseURL }) => {
     await page.setViewportSize(VIEWPORTS.desktop);
     await page.context().addCookies([{ name: "almar-locale", value: "es", url: baseURL ?? "http://127.0.0.1:3010" }]);
-    await page.goto("/__harness?c=ops-coming-soon&s=blog&l=es");
+    await page.goto("/__harness?c=ops-coming-soon&s=legal&l=es");
     await settle(page);
-    await expect(page.locator("main h2")).toHaveText(OPS_CONTENT_COPY.es.comingSoon.blog.title);
+    await expect(page.locator("main h2")).toHaveText(OPS_CONTENT_COPY.es.comingSoon.legal.title);
   });
 
   // The ops host: the (ops) layout puts a live section's page in OpsShell mode="ops", anything else shows "Not ready.".
@@ -193,7 +196,7 @@ test.describe("coming soon pages", () => {
       await answerSiteStatus(page);
       await page.setViewportSize(VIEWPORTS.phone);
       await page.context().addCookies([{ name: "almar-locale", value: locale, url: baseURL ?? "http://127.0.0.1:3010" }]);
-      await page.goto(`/__harness?c=ops-coming-soon&s=ops-host-pages&l=${locale}`);
+      await page.goto(`/__harness?c=ops-coming-soon&s=ops-host-legal&l=${locale}`);
       await settle(page);
       await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
       const status = page.locator("header [data-site-state]");

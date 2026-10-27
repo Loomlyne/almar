@@ -8,6 +8,10 @@ import type { PostsBody } from "./site-cms-api";
 import { OpsInvalid } from "./route-core";
 import { has, isoDay, isRecord, onlyKeys, record, slug, translations, uuid, uuidOrNull, type TextSpec } from "./validate";
 
+/** The JSON body cap of /api/ops/posts (controller slot 2026-10-28): a post carries up to 100 body blocks in three
+ * languages, more than the default 64 KiB. Passed to opsPost in app/api/ops/posts/route.ts only. */
+export const POSTS_BODY_LIMIT = 256 * 1024;
+
 export const POST_TEXT: TextSpec = {
   required: ["title", "excerpt"],
   fields: {

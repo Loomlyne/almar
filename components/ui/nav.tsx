@@ -6,6 +6,7 @@ import { cn } from "../../lib/cn";
 import { stripLocale } from "../../lib/locale-path";
 import { CloseIcon } from "../icons/icons";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
+import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { LocaleSelect } from "./locale-select";
 import { AccountMenu, type NavAccount } from "./account-menu";
 import { revealProps } from "./reveal";
@@ -53,7 +54,8 @@ const nav = cva("@container sticky top-0 z-40 w-full border-b", {
   defaultVariants: { tone: "solid" },
 });
 
-export type NavLink = { label: string; href: string };
+/** `external`: a link the owner set to another site (06-02 Navigation): it opens in a new tab and says so to a screen reader. */
+export type NavLink = { label: string; href: string; external?: true };
 
 export function SiteNav({
   locale,
@@ -256,7 +258,7 @@ export function SiteNav({
             aria-label="Primary"
             className="flex flex-col items-start @6xl:flex-row @6xl:items-center @6xl:gap-3"
           >
-            {links.map(({ label, href }, index) => {
+            {links.map(({ label, href, external }, index) => {
               // Compare paths without the locale prefix: PublicFrame passes the English path, the links are localised.
               const active =
                 currentPath !== undefined
@@ -264,13 +266,15 @@ export function SiteNav({
                   : markCurrent && index === 0;
               return (
                 <a
-                  key={href}
+                  key={`${index}-${href}`}
                   href={href}
                   className={cn(LINK, active && "underline decoration-2")}
                   aria-current={active ? "page" : undefined}
                   onClick={closeMenuIfOpen}
+                  {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                 >
                   {label}
+                  {external ? <span className="sr-only"> {SITE_FOOTER_COPY[locale].newTab}</span> : null}
                 </a>
               );
             })}

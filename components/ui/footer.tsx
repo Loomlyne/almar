@@ -17,7 +17,10 @@ const LIGHT_LINK =
   "inline-flex min-h-control max-w-full items-center break-words font-body text-body text-ink no-underline decoration-gold decoration-1 underline-offset-4 hover:underline";
 const LIGHT_HEAD = "mb-2 block font-body text-caption uppercase tracking-kicker text-ink ar:normal-case ar:tracking-normal";
 
-export type FooterLink = { label: string; href: string };
+/** `external`: a link the owner set to another site (06-02 Navigation): a new tab, with the screen-reader suffix. */
+export type FooterLink = { label: string; href: string; external?: true };
+
+const NEW_TAB = { target: "_blank", rel: "noopener noreferrer" } as const;
 
 export type FooterLanguageLink = {
   label: string;
@@ -300,9 +303,10 @@ export function SiteFooter({
         >
           <nav className="grid content-start justify-items-start" aria-label={copy.pages}>
             <p className={LIGHT_HEAD}>{copy.pages}</p>
-            {links.map((link) => (
-              <a key={link.href} className={LIGHT_LINK} href={link.href}>
+            {links.map((link, index) => (
+              <a key={`${index}-${link.href}`} className={LIGHT_LINK} href={link.href} {...(link.external ? NEW_TAB : {})}>
                 {link.label}
+                {link.external ? <span className="sr-only"> {copy.newTab}</span> : null}
               </a>
             ))}
           </nav>
@@ -386,9 +390,10 @@ export function SiteFooter({
       <div className="grid min-w-0 grid-cols-1 items-start gap-8 @2xl:grid-cols-3">
         <nav className="grid content-start justify-items-start" aria-label={copy.pages}>
           <p className={HEAD}>{copy.pages}</p>
-          {links.map((link) => (
-            <a key={link.href} className={LINK} href={link.href}>
+          {links.map((link, index) => (
+            <a key={`${index}-${link.href}`} className={LINK} href={link.href} {...(link.external ? NEW_TAB : {})}>
               {link.label}
+              {link.external ? <span className="sr-only"> {copy.newTab}</span> : null}
             </a>
           ))}
           {listWithUs && listHref ? (

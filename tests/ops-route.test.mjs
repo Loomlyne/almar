@@ -248,6 +248,25 @@ test("text/plain is 415 wrong_type; a 70,000-byte body is 413 too_large; invalid
   assert.equal((await run(post(atLimit))).status, 200, "exactly 64 KiB passes");
 });
 
+test("bodyLimit (06-03): a larger cap is read after the owner check; without it 64 KiB stays; only /api/ops/posts passes one", async () => {
+  const body = JSON.stringify({ t: "a".repeat(200_000) });
+  const handler = async () => ({ body: { ok: true } });
+  const run = (request, extra = {}) => runOps({ method: "POST", request, decide: async () => OWNER, parse: (b) => b, handler, nodeEnv: "production", ...extra });
+  assert.equal((await run(post(body))).status, 413, "the default stays 64 KiB");
+  assert.equal((await run(post(body), { bodyLimit: 256 * 1024 })).status, 200, "256 KiB lets a 200 KB post through");
+  assert.equal((await run(post(JSON.stringify({ t: "a".repeat(256 * 1024) })), { bodyLimit: 256 * 1024 })).status, 413);
+  // Not the owner: refused before the body is read, whatever the cap.
+  const notOwner = await run(post(body), { bodyLimit: 256 * 1024, decide: async () => ({ ok: false, status: 403, code: "not_owner" }) });
+  assert.equal(notOwner.status, 403);
+  const posts = await loadTs("lib/ops/validate-posts.ts");
+  assert.equal(posts.POSTS_BODY_LIMIT, 256 * 1024);
+  for (const file of walk(join("app", "api", "ops"))) {
+    const src = readFileSync(file, "utf8");
+    const passes = /bodyLimit/.test(src);
+    assert.equal(passes, file === join("app", "api", "ops", "posts", "route.ts"), `${file}: bodyLimit only on posts`);
+  }
+});
+
 test("a parse that throws OpsInvalid is 400 with the field and the locale; other throws are 503 with nothing internal", async () => {
   const run = (parse, handler = async () => ({ body: { ok: true } })) =>
     runOps({ method: "POST", request: post({}), decide: async () => OWNER, parse, handler, nodeEnv: "production" });
@@ -501,7 +520,8 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-// 04-09 Task 5: the eight owner booking routes (bookings, booking, booking/<action>); Task 6: money.
+// 04-09 Task 5: the eight owner booking routes (bookings, booking, booking/<action>); Task 6: money. 06-02: nav,
+// page-items, pages; 06-03: posts.
 const EXPECTED_ROUTES = [
   "blocks",
   "booking",
@@ -516,6 +536,10 @@ const EXPECTED_ROUTES = [
   "destinations",
   "journeys",
   "money",
+  "nav",
+  "page-items",
+  "pages",
+  "posts",
   "publish",
   "site-status",
   "site-update",
@@ -526,7 +550,7 @@ const EXPECTED_ROUTES = [
   "translate",
 ];
 
-test("source guard: every file under app/api/ops is a route.ts built with the wrapper; twenty-one routes; no dynamic segment", () => {
+test("source guard: every file under app/api/ops is a route.ts built with the wrapper; the expected routes; no dynamic segment", () => {
   const files = walk(join("app", "api", "ops")).sort();
   const names = files.map((f) => f.split("/").slice(3, -1).join("/"));
   for (const name of EXPECTED_ROUTES) assert.ok(names.includes(name), `app/api/ops/${name}/route.ts`);

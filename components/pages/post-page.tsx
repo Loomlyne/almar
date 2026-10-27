@@ -24,7 +24,6 @@ import { getDestinations } from "../../lib/data/destinations";
 import { getCatalogItem } from "../../lib/data/experiences";
 import { getPost, getPostSlugs, getRelatedPosts } from "../../lib/data/posts";
 import { getStay } from "../../lib/data/stays";
-import type { PostBodyBlock } from "../../lib/data/types";
 import { formatPlural } from "../../lib/journey-format";
 import { absoluteLocaleUrl, localeAlternates, localePath, siteHref, type Locale } from "../../lib/locale-path";
 
@@ -106,7 +105,7 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
   const url = absoluteLocaleUrl(locale, `/blog/${slug}`);
   const cover = { src: post.cover_image.url, alt: post.cover_image.alt };
   // Photo blocks (plan 06-03) go to RichText as their address and alt; the headings list and the lead rule skip them.
-  const body = post.body as readonly PostBodyBlock[];
+  const body = post.body;
   const blocks: RichTextBlock[] = body.map((block) =>
     block.type === "photo"
       ? { type: "photo", src: block.image.url, alt: block.image.alt, width: block.image.width, height: block.image.height }

@@ -383,7 +383,8 @@ export type Post = RowMeta & {
   slug: string;
   title: string;
   excerpt: string;
-  body: PostBlock[];
+  /** Heading, paragraph, quote and (06-03) photo blocks. */
+  body: PostBodyBlock[];
   seo_title: string | null;
   seo_description: string | null;
   published_at: Timestamp;
