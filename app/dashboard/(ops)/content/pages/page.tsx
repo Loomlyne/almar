@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ComingSoonScreen } from "../coming-soon";
+import { PagesScreen } from "./pages-screen";
 
 export const metadata: Metadata = {
   title: "Pages",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPagesPage() {
-  return <ComingSoonScreen kind="pages" />;
+  return <PagesScreen />;
 }

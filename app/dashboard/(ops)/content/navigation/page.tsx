@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ComingSoonScreen } from "../coming-soon";
+import { NavigationScreen } from "./navigation-screen";
 
 export const metadata: Metadata = {
   title: "Navigation and footer",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardNavigationPage() {
-  return <ComingSoonScreen kind="navigation" />;
+  return <NavigationScreen />;
 }
