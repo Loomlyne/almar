@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAR 06-07 pictures: Share and saved stays</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+Arabic:wght@400;600&family=Noto+Naskh+Arabic&display=swap">
+<style>
+
+/* Tokens copied from tokens.json (2026-10-27). Square corners everywhere; gold is a line only; teal is the primary. */
+:root{
+  --color-ivory:#fffaf0;--color-surface:#ffffff;--color-teal:#1f3b40;--color-teal-tint:#d1dfe0;--color-gold:#d4ba8a;
+  --color-ink:#262626;--color-muted:#63615f;--color-line:rgb(38 38 38 / 0.16);--color-error:#8f2d2d;
+  --control:44px;--sidebar:240px;
+  --face-display:Georgia,"Times New Roman",serif;
+  --face-body:"Lato",Arial,sans-serif;
+  --shadow-selected:inset 0 0 0 2px var(--color-teal);
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;background:#ece8df;color:var(--color-ink);font-family:var(--face-body);font-size:14px}
+/* ---------- review page chrome (not product UI) ---------- */
+#top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 20px;background:var(--color-teal);color:var(--color-ivory)}
+#top h1{font:400 18px var(--face-display);margin:0;margin-inline-end:auto}
+#top .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#top .grp span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-inline-end:4px}
+#top button,#top select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid rgba(255,250,240,.5);background:transparent;color:var(--color-ivory);cursor:pointer}
+#top select option{color:#000}
+#top button[aria-pressed=true]{background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)}
+#main{padding:20px 24px 80px}
+.banner{background:var(--color-ivory);border:1px solid var(--color-gold);padding:12px 16px;margin-bottom:24px;font-size:14px;line-height:1.55;max-width:1100px}
+.banner ol{margin:6px 0 0;padding-inline-start:20px}
+.banner code{font:13px ui-monospace,Menlo,monospace}
+.decision{border:2px solid var(--color-teal);background:#fff;padding:12px 16px;margin:12px 0 0}
+.st{margin:0 0 48px}
+.st>h2{font:400 22px var(--face-display);color:var(--color-teal);margin:0 0 4px}
+.st>p{margin:0 0 12px;max-width:900px;line-height:1.5}
+.shot{margin:0 0 28px}
+.shot .cap{font:600 13px ui-monospace,Menlo,monospace;margin:0 0 6px}
+.scroller{overflow-x:auto;padding-bottom:6px}
+.scaler{transform-origin:top left}
+.rv{font:12px ui-monospace,Menlo,monospace;background:#fff3c4;color:#4a3b00;padding:2px 6px;display:inline-block;direction:ltr}
+.newbadge{outline:2px dashed var(--color-gold);outline-offset:4px}
+/* ---------- public frame ---------- */
+.pub{background:var(--color-ivory);color:var(--color-ink);font:16px/1.5 var(--face-body);border:1px solid var(--color-line);min-height:640px}
+.phd{display:flex;align-items:center;gap:28px;padding:16px 40px;border-bottom:1px solid var(--color-line);background:var(--color-ivory)}
+.phd img.wm{height:44px;display:block}
+.phd nav{display:flex;gap:24px;margin-inline-end:auto}
+.phd a{color:var(--color-ink);text-decoration:none;white-space:nowrap}
+.phd .tools{display:flex;gap:16px;align-items:center;color:var(--color-ink)}
+.phd .login{border:1px solid var(--color-teal);color:var(--color-teal);padding:8px 16px}
+.pnarrow .phd{padding:12px 16px}.pnarrow .phd nav,.pnarrow .phd .tools{display:none}
+.pnarrow .phd .burger{display:inline-flex;margin-inline-start:auto}
+.phd .burger{display:none;width:44px;height:44px;border:1px solid var(--color-line);align-items:center;justify-content:center;color:var(--color-teal)}
+.hero{position:relative;min-height:520px;display:flex;align-items:flex-end;color:#fff}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgb(0 0 0 / .55),rgb(0 0 0 / 0) 60%)}
+.hero .in{position:relative;z-index:1;padding:48px 40px;display:flex;flex-direction:column;gap:12px;width:100%}
+.pnarrow .hero{min-height:420px}.pnarrow .hero .in{padding:24px 16px}
+.hero h1{margin:0;font:400 64px/1.1 var(--face-display)}.pnarrow .hero h1{font-size:40px}
+.kick{font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.pub[dir=rtl] .kick{letter-spacing:0}
+.booker{background:var(--color-surface);border:1px solid var(--color-line);min-height:64px;display:grid;grid-template-columns:repeat(3,1fr) auto;max-width:880px}
+.booker span{border-inline-end:1px solid var(--color-line)}.booker b{background:var(--color-teal);width:120px}
+.pnarrow .booker{grid-template-columns:1fr;min-height:56px}.pnarrow .booker span{display:none}.pnarrow .booker b{width:100%}
+.vid{position:absolute;top:16px;inset-inline-end:16px;z-index:2}
+.sec{padding:64px 40px;display:flex;flex-direction:column;gap:16px;max-width:1240px;margin:0 auto}
+.pnarrow .sec{padding:40px 16px}
+.sec h2{margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)}.pnarrow .sec h2{font-size:32px}
+.sec p{margin:0;max-width:640px}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.pnarrow .cards3{grid-template-columns:1fr}.pmid .cards3{grid-template-columns:1fr 1fr}
+.cards3 img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.cards3 h3{margin:12px 0 0;font:400 20px var(--face-display)}
+.ghost{height:140px;background:repeating-linear-gradient(135deg,transparent 0 10px,rgb(38 38 38 / .05) 10px 11px);border-top:1px solid var(--color-line)}
+.band{width:100%;aspect-ratio:16/6;object-fit:cover;display:block}.pnarrow .band{aspect-ratio:4/3}
+.pfoot{background:var(--color-teal);color:var(--color-ivory);padding:48px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.pnarrow .pfoot{grid-template-columns:1fr;padding:32px 16px}
+.pfoot h4{margin:0 0 12px;font-weight:400;font-size:12px;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+.pub[dir=rtl] .pfoot h4{letter-spacing:0}
+.pfoot a{display:flex;align-items:center;gap:6px;color:var(--color-ivory);text-decoration:none;min-height:32px}
+.sr{font-size:11px;opacity:.7}
+.pub[dir=rtl]{font-family:"Noto Sans Arabic",var(--face-body);line-height:1.7}
+.pub[dir=rtl] .disp{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.4}
+.pub{position:relative}
+.newbadge{outline:2px dashed var(--color-gold);outline-offset:4px}
+.rv{font:12px ui-monospace,Menlo,monospace;background:#fff3c4;color:#4a3b00;padding:2px 6px;display:inline-block;direction:ltr}
+.draft{font:12px ui-monospace,Menlo,monospace;background:#fff3c4;color:#4a3b00;padding:1px 5px}
+/* buttons (components/ui/button.tsx) */
+.btn{min-height:var(--control);padding:0 24px;font:inherit;font-size:14px;border:1px solid var(--color-teal);display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;text-transform:uppercase;letter-spacing:.16em;text-decoration:none;background:transparent;color:var(--color-teal)}
+.pub[dir=rtl] .btn,.pub[dir=rtl] .hb{text-transform:none;letter-spacing:0}
+.btn.outline{border-color:var(--color-gold)}
+.btn.ivory{background:var(--color-ivory);border-color:var(--color-gold)}
+/* heart / save control (components/ui/save-stay.tsx): 44x44 square, tone on-image or on-surface */
+.hb{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:var(--control);min-height:var(--control);font:inherit;font-size:14px;text-transform:uppercase;letter-spacing:.16em;border:0;padding:0}
+.hb.img{background:rgb(38 38 38 / .45);color:var(--color-ivory)}
+.hb.surf{background:var(--color-ivory);border:1px solid var(--color-line);color:var(--color-teal)}
+.hb.lab{padding:0 16px;border:1px solid var(--color-gold)}
+.hb svg{flex:none}
+.spin{width:16px;height:16px;border:2px solid var(--color-teal-tint);border-top-color:var(--color-teal);display:inline-block}
+.hb.img .spin{border-color:rgb(255 250 240 / .4);border-top-color:var(--color-ivory)}
+/* cards (components/ui/card.tsx) */
+.cgrid{display:grid;gap:24px;grid-template-columns:repeat(var(--n),minmax(0,1fr))}
+.pc{position:relative;aspect-ratio:2/3;overflow:hidden;color:var(--color-ivory);min-width:0}
+.pc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pc .veil{position:absolute;inset:0;background:linear-gradient(to top,rgb(38 38 38 / .7),rgb(38 38 38 / .1) 55%,transparent)}
+.pc .txt{position:absolute;inset-inline:0;bottom:0;padding:24px;display:flex;flex-direction:column;gap:12px}
+.pc h3{margin:0;font:400 32px/1.2 var(--face-display)}
+.pub[dir=rtl] .pc h3{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.4}
+.pc .facts{font-size:14px;display:flex;gap:8px;align-items:center}
+.pc .act{position:absolute;top:16px;inset-inline-end:16px;z-index:2}
+.mc{display:grid;gap:12px;align-content:start;min-width:0}
+.mc img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;outline:1px solid var(--color-line);outline-offset:-1px}
+.mc .row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.mc .t{font:400 20px/1.3 var(--face-display);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;display:block}
+.pub[dir=rtl] .mc .t{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.5}
+.mc .d{color:var(--color-muted);font-size:14px;display:block;margin-top:4px}
+.sec h2.sm{font-size:32px}
+.sec .lbl{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--color-muted);margin:0}
+.pub[dir=rtl] .lbl{letter-spacing:0;text-transform:none}
+.tlink{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;width:max-content}
+.toast{position:absolute;bottom:64px;left:50%;transform:translateX(-50%);background:var(--color-surface);color:var(--color-ink);padding:8px 8px 8px 16px;display:flex;align-items:center;gap:8px;box-shadow:0 28px 56px -16px rgb(10 9 7 / .28),0 10px 20px -10px rgb(10 9 7 / .12);z-index:6;max-width:calc(100% - 32px)}
+.toast p{margin:0}
+.toast .x{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;color:var(--color-teal)}
+.toast svg.ok{color:#1e6b45}.toast svg.wn{color:#8a3b12}
+/* stay hero */
+.sh{position:relative;isolation:isolate;display:flex;flex-direction:column;justify-content:space-between;color:var(--color-ivory);background:var(--color-teal);overflow:hidden}
+.sh>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-3}
+.sh::before{content:"";position:absolute;inset:0;background:rgb(38 38 38 / .45);z-index:-2}
+.sh::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgb(38 38 38 / .3),transparent);z-index:-1}
+.sh .mid{flex:1;display:grid;place-items:center;padding:96px 16px 24px}
+.sh .tb{display:grid;justify-items:center;gap:12px;text-align:center;max-width:720px}
+.sh .tb p{margin:0}
+.sh .k{font-size:12px;letter-spacing:.16em;text-transform:uppercase;display:inline-flex;gap:8px;align-items:center}
+.pub[dir=rtl] .sh .k{letter-spacing:0;text-transform:none}
+.sh h1{margin:0;font:400 64px/1.05 var(--face-display);text-wrap:balance}
+.pub[dir=rtl] .sh h1{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.4}
+.pnarrow .sh h1{font-size:32px}.pmid .sh h1{font-size:48px}
+.sh .sub{font:400 20px/1.3 var(--face-display)}
+.pub[dir=rtl] .sh .sub{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.5}
+.sh .actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:8px;pointer-events:auto}
+.sh .bk{padding:0 16px 32px}
+.sh .booker{margin:0 auto}
+.pnarrow .sh .booker{grid-template-columns:1fr}
+.phd .tools .acct{border:1px solid var(--color-teal);color:var(--color-teal);padding:8px 16px}
+/* account */
+.acc{max-width:1240px;margin:0 auto;padding:32px 64px 64px;display:grid;gap:24px}
+.pnarrow .acc{padding:32px 16px}.pmid .acc{padding:32px}
+.acc h1{margin:0;font:400 48px/1.1 var(--face-display);color:var(--color-teal)}
+.pnarrow .acc h1{font-size:32px}
+.pub[dir=rtl] .acc h1{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.3}
+.acc .lay{display:flex;gap:32px;align-items:flex-start}
+.pnarrow .acc .lay,.pmid .acc .lay{flex-direction:column;align-items:stretch}
+.acc .side{width:280px;flex:none;display:grid;gap:24px}
+.pnarrow .acc .side,.pmid .acc .side{width:auto}
+.acc nav{border:1px solid var(--color-line);background:var(--color-surface);padding:8px 0;display:grid}
+.acc nav .g{padding:12px 16px 4px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--color-muted)}
+.pub[dir=rtl] .acc nav .g{letter-spacing:0;text-transform:none}
+.acc nav a{display:flex;align-items:center;min-height:var(--control);padding:0 16px;font-size:14px;color:var(--color-ink)}
+.acc .main{flex:1;min-width:0;display:grid;gap:24px}
+.acard{display:grid;gap:16px;border:1px solid var(--color-line);background:var(--color-surface);padding:24px}
+.pnarrow .acard{padding:16px}
+.acard h2{margin:0;font:400 20px/1.3 var(--face-display);color:var(--color-teal)}
+.pub[dir=rtl] .acard h2{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.5}
+.acard p{margin:0}
+.ghostbox{height:44px;border:1px solid var(--color-line);background:var(--color-ivory)}
+.pnarrow .phd .tools{display:none}
+</style></head>
+<body>
+<div id="top">
+  <h1>06-07 · Share and saved stays · pictures for signature</h1>
+  <div class="grp"><span>Scene</span><select id="scene"></select></div>
+  <div class="grp"><span>Language</span><button data-l="all" aria-pressed="true">All</button><button data-l="en">EN</button><button data-l="ar">AR</button><button data-l="es">ES</button></div>
+  <div class="grp"><span>Width</span><button data-w="all" aria-pressed="true">All</button><button data-w="390">390</button><button data-w="834">834</button><button data-w="1440">1440</button></div>
+  <div class="grp"><span>Size</span><button data-z="fit" aria-pressed="true">Fit</button><button data-z="1">100%</button></div>
+</div>
+<div id="main">
+  <div class="banner">
+    <strong>What this adds.</strong> A <em>heart</em> on every stay card (home Private Stays, the Private Stays list, More Private Stays on a stay page) and on the stay page itself,
+    a <em>Share</em> control on the stay page, and a <em>Saved stays</em> card on Account. Signed out, the heart is a link to sign-in and the stay is saved when she comes back.
+    Stays, photos and names are the real published stays from the site data; nothing here is a price, a person or legal text. Arabic and Spanish are <span class="draft">draft for signature</span>; the full list of new lines is at the bottom.
+    <p style="margin:8px 0 4px"><strong>Your checks</strong> (each is a scene below; the name under each picture is <code>saved-&lt;scene&gt;-&lt;language&gt;-&lt;width&gt;</code>):</p>
+    <ol>
+      <li><code>saved-card-signed-out-en-1440</code>: an empty heart in the top corner of each stay photo, square, not inside the link.</li>
+      <li><code>saved-stay-signed-out-ar-390</code>: Save and Share under the stay name, right to left, in Arabic.</li>
+      <li><code>saved-stay-saved-after-return-en-834</code>: the heart filled and "Saved to your stays." after coming back from sign-in.</li>
+      <li><code>saved-share-fallback-es-390</code>: "Copy link" and "Share on WhatsApp" in Spanish; <code>saved-share-native-en-390</code> shows one "Share" button.</li>
+      <li><code>saved-account-full-en-1440</code> and <code>saved-account-empty-en-390</code>: three stay cards with Remove; empty: one line and "See Private Stays".</li>
+    </ol>
+    <p style="margin:8px 0 0">Also drawn: <code>card-saved</code>, <code>card-busy</code>, <code>card-failed</code>. Dashed gold outlines mark what is new; they are not part of the site.</p>
+  </div>
+  <div id="shots"></div>
+  <div class="banner" style="margin-top:24px"><strong>New lines for signature</strong> (lib/copy/saved-stays.ts). English is the plan's wording; Arabic and Spanish are drafts (public Spanish uses <em>tú</em>, as the site does). <code>{stay}</code> and <code>{url}</code> are fill slots, never shown.
+    <div id="table" style="overflow-x:auto"></div></div>
+</div>
+<script>
+const M="https://media.almarprivatejourney.com/";
+const WM="https://framerusercontent.com/images/RX7lhKpzXFpv2KTvbxNSm3UZz8.svg";
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const fill=(s,o)=>s.replace(/\{(\w+)\}/g,(_,k)=>o[k]);
+const ICON={
+ down:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+ menu:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+ pin:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 20s6-5.2 6-10a6 6 0 0 0-12 0c0 4.8 6 10 6 10z"/><circle cx="12" cy="10" r="2"/></svg>',
+ user:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c.8-3.5 3.6-5 7-5s6.2 1.5 7 5"/></svg>',
+ x:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+ shield:cls=>`<svg class="${cls}" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12 3.2 19 6v5.2c0 4.2-2.8 7.2-7 8.8-4.2-1.6-7-4.6-7-8.8V6l7-2.8zm-1.2 9.2-2-2 1.1-1.1 1.9 1.9 3.6-3.6 1.1 1.1-4.7 4.7z"/></svg>`,
+ wa:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 4.5a7.5 7.5 0 0 0-6.5 11.2L4.5 19.5l3.9-1A7.5 7.5 0 1 0 12 4.5z"/><path fill="currentColor" stroke="none" d="M9 9.3c0-.4.4-.7.8-.7h.6c.3 0 .6.2.7.5l.5 1.3c.1.3 0 .6-.2.8l-.6.6c.4 1 1.2 1.8 2.2 2.2l.6-.6c.2-.2.5-.3.8-.2l1.3.5c.3.1.5.4.5.7v.6c0 .4-.3.8-.7.8-3 .2-6-2.8-5.8-5.8z"/></svg>'
+};
+const HP="M12 19.2s-6.4-3.8-6.4-8.2A3.4 3.4 0 0 1 12 8.6a3.4 3.4 0 0 1 6.4 2.4c0 4.4-6.4 8.2-6.4 8.2z"; // HeartIcon path (components/icons/icons.tsx)
+const heart=on=>`<svg viewBox="0 0 24 24" width="24" height="24" fill="${on?"currentColor":"none"}" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="${HP}"/></svg>`;
+// ---- words that already exist on the site (nav: 06-03/06-02 pages; stay-detail.ts, stays-list.ts, guest.ts)
+const U={
+ en:{dir:"ltr",nav:{destinations:"Destinations",experiences:"Experiences",about:"About",contact:"Contact",login:"Login",account:"Account"},
+   homeStays:"Private Stays, Fully Vetted",listHeading:"Your Stay, Personally Selected",related:"More Private Stays",
+   hub:{personal:"Personal",profile:"Profile",settings:"Settings",preferences:"Preferences",security:"Sign-in and security"},dest:"Cartagena"},
+ ar:{dir:"rtl",nav:{destinations:"الوجهات",experiences:"التجارب",about:"عنّا",contact:"تواصل",login:"دخول",account:"الحساب"},
+   homeStays:"إقامات خاصة، موثّقة بالكامل",listHeading:"إقامتك، مختارة بعناية شخصية",related:"المزيد من الإقامات الخاصة",
+   hub:{personal:"شخصي",profile:"الملف الشخصي",settings:"الإعدادات",preferences:"التفضيلات",security:"تسجيل الدخول والأمان"},dest:"كارتاخينا"},
+ es:{dir:"ltr",nav:{destinations:"Destinos",experiences:"Experiencias",about:"Nosotros",contact:"Contacto",login:"Entrar",account:"Cuenta"},
+   homeStays:"Estancias privadas, totalmente verificadas",listHeading:"Tu estancia, elegida personalmente",related:"Más estancias privadas",
+   hub:{personal:"Personal",profile:"Perfil",settings:"Ajustes",preferences:"Preferencias",security:"Acceso y seguridad"},dest:"Cartagena"}
+};
+// ---- real published stays (lib/data/fixtures stays.json + stay-translations.json)
+const STAYS=[
+ {slug:"getsemani-colonial-house",name:{en:"Getsemaní Colonial House",ar:"بيت خيتسيماني الاستعماري",es:"Casa colonial de Getsemaní"},hood:"Casa Centro Getsemaní",guests:{en:"Up to 10 Guests",ar:"حتى 10 ضيوف",es:"Hasta 10 huéspedes"}},
+ {slug:"getsemani-courtyard-residence",name:{en:"Getsemaní Courtyard Residence",ar:"إقامة فناء خيتسيماني",es:"Residencia con patio en Getsemaní"},hood:"Casa Centro Getsemaní",guests:{en:"Up to 10 Guests",ar:"حتى 10 ضيوف",es:"Hasta 10 huéspedes"}},
+ {slug:"cartagena-historic-center-house",name:{en:"Cartagena Historic Center House",ar:"بيت المركز التاريخي في كارتاخينا",es:"Casa del centro histórico de Cartagena"},hood:"Casa Centro Histórico",guests:{en:"Up to 7 Guests",ar:"حتى 7 ضيوف",es:"Hasta 7 huéspedes"}}
+];
+const img=s=>M+"stays/"+s.slug+"/hero.webp";
+// ---- NEW copy: lib/copy/saved-stays.ts. EN = the plan; AR and ES = drafts for signature.
+const C={
+ en:{save:"Save",saved:"Saved",saveStay:"Save {stay} to your stays",removeStay:"Remove {stay} from your stays",signInToSave:"Sign in to save {stay}",savedNotice:"Saved to your stays.",removedNotice:"Removed from your stays.",saveFailed:"Could not save now. Try again.",share:"Share",shareOn:"Share on WhatsApp",whatsappText:"{stay} · ALMAR Private Journey {url}",copy:"Copy link",copied:"Link copied.",failed:"Could not copy. The address is {url}",savedStays:"Saved stays",savedEmpty:"No saved stays yet. Tap the heart on a stay to keep it here.",browseStays:"See Private Stays",remove:"Remove"},
+ ar:{save:"حفظ",saved:"تم الحفظ",saveStay:"احفظ {stay} في إقاماتك",removeStay:"أزل {stay} من إقاماتك",signInToSave:"سجّل الدخول لحفظ {stay}",savedNotice:"تم الحفظ في إقاماتك.",removedNotice:"تمت الإزالة من إقاماتك.",saveFailed:"تعذّر الحفظ الآن. حاول مرة أخرى.",share:"مشاركة",shareOn:"المشاركة عبر واتساب",whatsappText:"{stay} · ALMAR Private Journey {url}",copy:"نسخ الرابط",copied:"تم نسخ الرابط.",failed:"تعذّر النسخ. العنوان هو {url}",savedStays:"الإقامات المحفوظة",savedEmpty:"لا توجد إقامات محفوظة بعد. اضغط على القلب في أي إقامة لتحتفظ بها هنا.",browseStays:"عرض الإقامات الخاصة",remove:"إزالة"},
+ es:{save:"Guardar",saved:"Guardada",saveStay:"Guardar {stay} en tus estancias",removeStay:"Quitar {stay} de tus estancias",signInToSave:"Inicia sesión para guardar {stay}",savedNotice:"Guardada en tus estancias.",removedNotice:"Quitada de tus estancias.",saveFailed:"No se pudo guardar ahora. Inténtalo de nuevo.",share:"Compartir",shareOn:"Compartir por WhatsApp",whatsappText:"{stay} · ALMAR Private Journey {url}",copy:"Copiar enlace",copied:"Enlace copiado.",failed:"No se pudo copiar. La dirección es {url}",savedStays:"Estancias guardadas",savedEmpty:"Aún no tienes estancias guardadas. Toca el corazón en una estancia para guardarla aquí.",browseStays:"Ver estancias privadas",remove:"Quitar"}
+};
+// ---------- public pieces ----------
+const HEADER=["destinations","experiences","about","contact"];
+function pubHeader(l,signed){const u=U[l];
+  return `<header class="phd"><img class="wm" src="${WM}" alt="ALMAR"><nav>${HEADER.map(k=>`<a>${u.nav[k]}</a>`).join("")}</nav><div class="tools"><span>AED ${ICON.down}</span><span>${l.toUpperCase()} ${ICON.down}</span>${signed?`<span class="acct">${u.nav.account}</span>`:`<span class="login">${u.nav.login}</span>`}</div><span class="burger">${ICON.menu}</span></header>`;}
+function pubFooter(l){const u=U[l];
+  return `<footer class="pfoot"><div><img src="${WM}" alt="ALMAR" style="height:44px;filter:invert(1) brightness(2)"></div><div><h4>${u.nav.destinations}</h4>${HEADER.map(k=>`<a>${u.nav[k]}</a>`).join("")}</div><div><h4>${u.nav.contact}</h4><a dir="ltr">inquiries@almarprivatejourney.com</a><a dir="ltr">+971 56 388 3302</a></div></footer>`;}
+const pub=(l,w,inner,extra="")=>`<div class="pub ${w<1024?(w<768?"pnarrow":"pmid"):""}" dir="${U[l].dir}" lang="${l}" style="width:${w}px">${inner}${extra}</div>`;
+const toast=(text,tone)=>`<div class="toast" role="status">${ICON.shield(tone==="ok"?"ok":"wn")}<p>${esc(text)}</p><span class="x">${ICON.x}</span></div>`;
+// heart: state so (signed out, a link) | off | on | busy; tone img | surf; label optional (stay page)
+function hb(l,st,tone,stay,label){const c=C[l],nm=stay.name[l];
+  const on=st==="on";
+  const aria=st==="so"?fill(c.signInToSave,{stay:nm}):on?fill(c.removeStay,{stay:nm}):fill(c.saveStay,{stay:nm});
+  const body=st==="busy"?'<span class="spin"></span>':heart(on);
+  const txt=label?`<span>${on?c.saved:c.save}</span>`:"";
+  const cls=`hb ${tone}${label?" lab":""} newbadge`;
+  return st==="so"?`<a class="${cls}" aria-label="${esc(aria)}" data-kind="link to /${l}/login?return=stay&stay=${stay.slug}">${body}${txt}</a>`
+   :`<button type="button" class="${cls}" aria-label="${esc(aria)}" aria-pressed="${on}"${st==="busy"?' aria-busy="true"':""}>${body}${txt}</button>`;}
+const people=l=>ICON.user;
+function portrait(l,s,st){return `<div class="pc"><img src="${img(s)}" alt=""><span class="veil"></span><div class="txt"><h3>${esc(s.name[l])}</h3><span class="facts">${ICON.user}${esc(s.guests[l])}</span></div><span class="act">${hb(l,st,"img",s)}</span></div>`;}
+function media(l,s,st){return `<div class="mc"><img src="${img(s)}" alt=""><div class="row"><span><a class="t">${esc(s.name[l])}</a><span class="d">${esc(s.hood)}</span></span>${hb(l,st,"surf",s)}</div></div>`;}
+const cols=w=>w<768?1:w<1024?2:3;
+// ---- card scenes
+function cards(l,w,o){const u=U[l],n=cols(w),k=Math.max(2,n),st=o.st;
+  const pr=STAYS.slice(0,k).map((s,i)=>portrait(l,s,st[i]||st[0]==="so"&&"so"||"off")).join("");
+  const mc=STAYS.slice(0,k).map((s,i)=>media(l,s,st[i]||st[0]==="so"&&"so"||"off")).join("");
+  const inner=pubHeader(l,o.signed)+`<section class="sec"><p class="lbl">${esc(u.dest)}</p><h2>${u.homeStays}</h2><div class="cgrid" style="--n:${n}">${pr}</div></section>`
+   +`<section class="sec" style="padding-top:0"><h2>${u.listHeading}</h2><div class="cgrid" style="--n:${n}">${mc}</div></section>`+pubFooter(l);
+  return pub(l,w,inner,o.toast?toast(o.toast,"wn"):"");}
+// ---- stay page
+function stayPage(l,w,o){const u=U[l],c=C[l],s=STAYS[0],n=w<768?1:2,fs=o.share;
+  let act=hb(l,o.st,"surf",s,true);
+  if(fs==="native") act+=`<button type="button" class="btn ivory newbadge">${c.share}</button>`;
+  if(fs==="fallback") act+=`<button type="button" class="btn ivory newbadge">${c.copy}</button><a class="btn ivory newbadge">${ICON.wa}${c.shareOn}</a>`;
+  const hero=`<div class="sh" style="min-height:${w<768?600:640}px"><img src="${img(s)}" alt=""><div class="mid"><div class="tb"><p class="k">${ICON.pin}${u.dest}</p><h1>${esc(s.name[l])}</h1><p class="sub">${esc(s.hood)}</p><div class="actions">${act}</div></div></div><div class="bk"><div class="booker" style="max-width:880px"><span></span><span></span><span></span><b></b></div></div></div>`;
+  const rel=o.related?`<section class="sec"><h2 class="sm">${u.related}</h2><div class="cgrid" style="--n:${n}">${STAYS.slice(1,3).map(x=>portrait(l,x,o.st==="on"||o.st==="so"?(o.st==="so"?"so":"off"):"off")).join("")}</div></section>`:"";
+  return pub(l,w,pubHeader(l,o.signed)+hero+rel+(o.related?pubFooter(l):""),o.toast?toast(o.toast,"ok"):"");}
+// ---- account
+function account(l,w,full){const u=U[l],c=C[l],n=cols(w),h=u.hub;
+  const saved=full?`<div class="cgrid" style="--n:${n}">${STAYS.map(s=>`<div class="mc"><img src="${img(s)}" alt=""><div class="row"><span><a class="t">${esc(s.name[l])}</a><span class="d">${esc(u.dest)}</span></span><button type="button" class="btn newbadge" style="padding:0 16px">${c.remove}</button></div></div>`).join("")}</div>`
+   :`<p>${c.savedEmpty}</p><a class="btn outline newbadge">${c.browseStays}</a>`;
+  const inner=pubHeader(l,true)+`<main class="acc"><h1>${u.nav.account}</h1><div class="lay"><div class="side"><nav><span class="g">${h.personal}</span><a>${h.profile}</a><a class="newbadge">${c.savedStays}</a><span class="g">${h.settings}</span><a>${h.preferences}</a><a>${h.security}</a></nav></div>
+   <div class="main"><section class="acard"><h2>${c.savedStays}</h2>${saved}</section><section class="acard"><h2>${h.profile}</h2><div class="ghostbox"></div><div class="ghostbox"></div></section></div></div></main>`+pubFooter(l);
+  return pub(l,w,inner);}
+// ---------- scenes ----------
+const S={};
+S["card-signed-out"]={what:"Signed out. A square empty heart in the top corner of each stay photo (a link to sign-in, outside the card's link), and in the slot beside the title on the list card.",draw:(l,w)=>cards(l,w,{st:["so"],signed:false})};
+S["card-saved"]={what:"Signed in. The first stay is saved: filled heart on both cards (the state follows the stay on every card of the page).",draw:(l,w)=>cards(l,w,{st:["on"],signed:true})};
+S["card-busy"]={what:"Signed in, a tap is being saved: the heart shows the spinner and is not tappable for that moment.",draw:(l,w)=>cards(l,w,{st:["busy"],signed:true})};
+S["card-failed"]={what:"The save did not go through: the heart stays empty and the notice says so.",draw:(l,w)=>cards(l,w,{st:["off"],signed:true,toast:C[l].saveFailed})};
+S["stay-signed-out"]={what:"Stay page, signed out: Save (heart and word) and Share under the stay name; the heart on the related stays.",draw:(l,w)=>stayPage(l,w,{st:"so",share:"native",related:true,signed:false})};
+S["stay-saved-after-return"]={what:"Back from the sign-in link: the stay is saved, the heart is filled and the notice appears.",draw:(l,w)=>stayPage(l,w,{st:"on",share:"native",related:true,signed:true,toast:C[l].savedNotice})};
+S["share-native"]={what:"A browser with a share sheet: one Share button (it opens the sheet with the stay's own address).",draw:(l,w)=>stayPage(l,w,{st:"off",share:"native",signed:true})};
+S["share-fallback"]={what:"No share sheet: Copy link and Share on WhatsApp (opens a chat with the stay's name and address).",draw:(l,w)=>stayPage(l,w,{st:"off",share:"fallback",signed:true})};
+S["account-empty"]={what:"Account, no saved stays: one line and a link to Private Stays. The hub gets a Saved stays entry.",draw:(l,w)=>account(l,w,false)};
+S["account-full"]={what:"Account with three saved stays, newest first: a card each, with Remove. An unpublished stay is simply not listed.",draw:(l,w)=>account(l,w,true)};
+const ORDER=["card-signed-out","card-saved","card-busy","card-failed","stay-signed-out","stay-saved-after-return","share-native","share-fallback","account-empty","account-full"];
+const PREFIX="saved-";
+// draft strings table
+{const keys=Object.keys(C.en);let t='<table class="tbl" style="width:100%;border-collapse:collapse;font-size:13px"><tr><th align="start">key</th><th align="start">EN</th><th align="start">AR <span class="draft">draft for signature</span></th><th align="start">ES <span class="draft">draft for signature</span></th></tr>';
+ for(const k of keys) t+=`<tr style="border-top:1px solid var(--color-line);vertical-align:top"><td><code>${k}</code></td><td>${esc(C.en[k])}</td><td dir="rtl" style="font-family:'Noto Sans Arabic',sans-serif">${esc(C.ar[k])}</td><td>${esc(C.es[k])}</td></tr>`;
+ document.getElementById("table").innerHTML=t+"</table>";}
+// ---------- render ----------
+const sel=document.getElementById("scene");
+sel.innerHTML=`<option value="all">All (${ORDER.length})</option>`+ORDER.map(s=>`<option>${s}</option>`).join("");
+const locs=["en","ar","es"],widths=[390,834,1440];
+let html="";
+for(const s of ORDER){
+  html+=`<section class="st" data-st="${s}"><h2>${PREFIX}${s}</h2><p>${S[s].what}</p>`;
+  for(const l of locs) for(const w of widths)
+    html+=`<div class="shot" data-l="${l}" data-w="${w}"><p class="cap">${PREFIX}${s}-${l}-${w}${l!=="en"?' <span class="rv">draft for signature</span>':""}</p><div class="scroller"><div class="scaler" data-w="${w}">${S[s].draw(l,w)}</div></div></div>`;
+  html+=`</section>`;
+}
+document.getElementById("shots").innerHTML=html;
+const f={l:"all",w:"all",z:"fit",s:"all"};
+try{const h=location.hash.slice(1);if(S[h]){f.s=h;sel.value=h;}}catch(e){}
+function apply(){
+  document.querySelectorAll(".st").forEach(e=>{e.hidden=!(f.s==="all"||e.dataset.st===f.s);});
+  document.querySelectorAll(".shot").forEach(e=>{e.hidden=!((f.l==="all"||e.dataset.l===f.l)&&(f.w==="all"||e.dataset.w===f.w));});
+  document.querySelectorAll(".st:not([hidden]) .shot:not([hidden]) .scaler").forEach(e=>{const w=+e.dataset.w;const avail=e.parentElement.clientWidth-4;const k=f.z==="fit"?Math.min(1,avail/(w+2)):1;e.style.transform=`scale(${k})`;e.parentElement.style.height=(e.firstElementChild.offsetHeight*k+8)+"px";e.parentElement.style.overflowX=k<1?"hidden":"auto";});
+}
+sel.addEventListener("change",()=>{f.s=sel.value;history.replaceState(null,"","#"+(f.s==="all"?"":f.s));apply();});
+document.querySelectorAll("#top button").forEach(b=>b.addEventListener("click",()=>{
+  const k=Object.keys(b.dataset)[0];f[k]=b.dataset[k];document.querySelectorAll(`#top button[data-${k}]`).forEach(x=>x.setAttribute("aria-pressed",x===b));apply();
+}));
+addEventListener("resize",apply);document.fonts?.ready.then(apply);addEventListener("load",apply);apply();
+</script>
+</body></html>
