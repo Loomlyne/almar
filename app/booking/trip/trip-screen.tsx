@@ -212,6 +212,8 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   }, []);
   // The stored hold of this load (resume and Check again use it), and the pair the booking-page href is built from:
   // the stored one after a refresh, the pair captured at Send on a fresh request.
+  // One send at a time: set before the first await of a send, cleared when it ends (read by Change too).
+  const sendingRef = useRef(false);
   const storedHold = useRef(state.hold);
   const [link, setLink] = useState<{ ref: string; t: string } | null>(() => (state.hold ? { ref: state.hold.ref, t: state.hold.linkToken } : null));
   // The server's end of a resumed hold (the view's holdExpiresAt), shown instead of the stored one. Keyed by the ref:
@@ -236,9 +238,10 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   const quoted = quoteBody(state, locale);
   const quoteKey = JSON.stringify({ addons: quoted.addons, hold: quoted.hold?.ref ?? null, requote });
   const firstQuote = useRef(true);
-  const checking = phase.kind === "checking";
+  // Resume: nothing is quoted before the view of a stored hold answers, and nothing after a sent or moved-on request
+  // (the cart keeps the booking's own numbers; review pass 2, finding 2).
+  const checking = phase.kind === "checking" || phase.kind === "sent" || phase.kind === "elsewhere";
   useEffect(() => {
-    // Resume: nothing is quoted before the view of a stored hold answers.
     if (checking) return;
     const abort = new AbortController();
     setQuoting(true);
@@ -353,7 +356,9 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   // A move the hold locks is asked first (Q-08); without a hold it applies at once; while a hold is being placed,
   // nothing moves.
   const move = (m: TripMove) => {
-    if (state.holdPending) return;
+    // Nothing moves while a request is in flight either: every Change (the rail's and the step's) comes through here
+    // (review pass 2, finding 1).
+    if (state.holdPending || sendingRef.current || phaseRef.current.kind === "sending") return;
     if (state.hold && !(m.type === "go" && m.step === 4)) {
       setReleaseFailed(false);
       setPending(m);
@@ -378,7 +383,6 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
 
   // Send request (04-06). One send at a time (sendingRef, set before the first await, plus the phase). The pair is
   // captured before the first await and is the only one this send uses: the hold can end or be cleared meanwhile.
-  const sendingRef = useRef(false);
   const requestTrip = useCallback(async () => {
     const hold = stateRef.current.hold;
     const kind = phaseRef.current.kind;
@@ -446,7 +450,7 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   // the way on is the state's own link).
   const afterSteps = phase.kind === "checking" || phase.kind === "sent" || phase.kind === "elsewhere";
   const layoutStep: StepNumber = afterSteps ? 4 : state.step;
-  const railLocked = afterSteps || phase.kind === "ended" || phase.kind === "taken";
+  const railLocked = afterSteps || phase.kind === "sending" || phase.kind === "ended" || phase.kind === "taken";
 
   // ---- the cart, from the server's numbers only
   const lines: CartLine[] = (price?.lines ?? [])

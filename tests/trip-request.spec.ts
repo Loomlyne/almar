@@ -215,7 +215,7 @@ test.describe("refusals after Send request", () => {
       await expect(page.getByText(JOURNEY_COPY.en.request.ended).first()).toBeVisible();
       await expect(page.getByRole("link", { name: JOURNEY_COPY.en.request.startAgain }).first()).toHaveAttribute("href", STAY_PATH("en"));
       await expect(sendButton(page, "en")).toHaveCount(0);
-      expect(await storedTripHold(page)).toBeNull();
+      await expect.poll(() => storedTripHold(page)).toBeNull();
       expect(calls.posts.request).toBe(1);
       expect(calls.posts.view).toBe(0);
       expect(calls.posts.release).toBe(0);
@@ -232,7 +232,7 @@ test.describe("refusals after Send request", () => {
       await expect(page.getByRole("link", { name: JOURNEY_COPY.en.reasons.actions.startAgain }).first()).toHaveAttribute("href", STAY_PATH("en"));
       await expect.poll(() => calls.posts.release).toBe(1);
       expect(calls.bodies.release[0]).toEqual({ ref: REF, t: TOKEN });
-      expect(await storedTripHold(page)).toBeNull();
+      await expect.poll(() => storedTripHold(page)).toBeNull();
       await expect(page.getByRole("button", { name: JOURNEY_COPY.en.request.hold })).toBeDisabled();
       expect(calls.posts.request).toBe(1);
       expect(calls.posts.hold).toBe(1);
@@ -312,7 +312,7 @@ test.describe("race: the hold ends while sending", () => {
     const { calls, before } = await sendAcrossTheEnd(page, { abort: true });
     await expect(page.getByText(JOURNEY_COPY.en.request.ended).first()).toBeVisible();
     await expect(sendButton(page, "en")).toHaveCount(0);
-    expect(await storedTripHold(page)).toBeNull();
+    await expect.poll(() => storedTripHold(page)).toBeNull();
     expect(calls.posts.request).toBe(1);
     expect(calls.bodies.request[0]).toEqual({ ref: before?.ref, t: before?.linkToken });
   });
