@@ -1,0 +1,114 @@
+{
+  "header": {
+    "en": [
+      {
+        "label": "Destinations",
+        "href": "/en/destinations"
+      },
+      {
+        "label": "Experiences",
+        "href": "/en/experiences"
+      },
+      {
+        "label": "About",
+        "href": "/en/about"
+      },
+      {
+        "label": "Contact",
+        "href": "/en/contact"
+      }
+    ],
+    "ar": [
+      {
+        "label": "الوجهات",
+        "href": "/ar/destinations"
+      },
+      {
+        "label": "التجارب",
+        "href": "/ar/experiences"
+      },
+      {
+        "label": "عنّا",
+        "href": "/ar/about"
+      },
+      {
+        "label": "تواصل",
+        "href": "/ar/contact"
+      }
+    ],
+    "es": [
+      {
+        "label": "Destinos",
+        "href": "/es/destinations"
+      },
+      {
+        "label": "Experiencias",
+        "href": "/es/experiences"
+      },
+      {
+        "label": "Nosotros",
+        "href": "/es/about"
+      },
+      {
+        "label": "Contacto",
+        "href": "/es/contact"
+      }
+    ]
+  },
+  "footer": {
+    "en": [
+      {
+        "label": "Destinations",
+        "href": "/en/destinations"
+      },
+      {
+        "label": "Experiences",
+        "href": "/en/experiences"
+      },
+      {
+        "label": "About",
+        "href": "/en/about"
+      },
+      {
+        "label": "Contact",
+        "href": "/en/contact"
+      }
+    ],
+    "ar": [
+      {
+        "label": "الوجهات",
+        "href": "/ar/destinations"
+      },
+      {
+        "label": "التجارب",
+        "href": "/ar/experiences"
+      },
+      {
+        "label": "عنّا",
+        "href": "/ar/about"
+      },
+      {
+        "label": "تواصل",
+        "href": "/ar/contact"
+      }
+    ],
+    "es": [
+      {
+        "label": "Destinos",
+        "href": "/es/destinations"
+      },
+      {
+        "label": "Experiencias",
+        "href": "/es/experiences"
+      },
+      {
+        "label": "Nosotros",
+        "href": "/es/about"
+      },
+      {
+        "label": "Contacto",
+        "href": "/es/contact"
+      }
+    ]
+  }
+}
