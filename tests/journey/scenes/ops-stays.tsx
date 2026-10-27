@@ -184,6 +184,7 @@ function formOf(state: EditorState): StayForm {
     hero: photo(PHOTO_KEYS[0]!, 1),
     gallery: PHOTO_KEYS.slice(1).map((key, at) => photo(key, at + 2)),
     connected: ["e1", "e2", "v1"],
+    locked: { ar: [], es: [] },
   };
 }
 

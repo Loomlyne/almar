@@ -5,7 +5,7 @@
 
 import type { JourneyDetail, Locale3, MediaRef, TextStatus } from "../../../../../components/ops/api-types";
 import type { LiveFields } from "../../../../../components/ops/auto-translate";
-import { translationsFor } from "../catalog-forms";
+import { locksOf, translationsFor, type Locks } from "../catalog-forms";
 
 export const JOURNEY_TEXT_FIELDS = ["name", "price_label", "tagline", "duration_label", "ideal_for_label", "ideal_for", "body"] as const;
 export type JourneyTextField = (typeof JOURNEY_TEXT_FIELDS)[number];
@@ -21,6 +21,8 @@ export type JourneyForm = {
   media: MediaRef | null;
   text: Record<Locale3, JourneyText>;
   status: Record<Locale3, TextStatus>;
+  /** The Arabic and Spanish fields the owner fixed by hand (I18N-04): saved as `locked_fields`. */
+  locked: Locks;
   /** Whether an Arabic or Spanish record is stored: a stored one may be saved without its price line (kept as saved). */
   stored: Record<"ar" | "es", boolean>;
   /** What the server read from the saved English price line (read-only). */
@@ -47,6 +49,7 @@ export function journeyForm(detail: JourneyDetail): JourneyForm {
     media: detail.image,
     text: { en: text("en"), ar: text("ar"), es: text("es") },
     status: { en: status("en"), ar: status("ar"), es: status("es") },
+    locked: locksOf(detail.translations),
     stored: { ar: detail.translations.ar !== null, es: detail.translations.es !== null },
     price_from: detail.price_from,
     price_estimate: detail.price_estimate,

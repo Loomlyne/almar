@@ -53,6 +53,7 @@ function formOf(variant: Variant, locale: Locale3): DestinationForm {
     inset: variant === "published" ? SCENE_PHOTO : null,
     text: { en: textOf("en"), ar: textOf("ar"), es: textOf("es") },
     status: { en: "published", ar: published ? "published" : "draft", es: published ? "published" : "draft" },
+    locked: { ar: [], es: [] },
   };
 }
 

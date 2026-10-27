@@ -257,6 +257,7 @@ function JourneyEditor({ panel, list }: { panel: JourneyPanel | null; list: Reac
       english={form ? englishOf(form.text.en) : {}}
       savedEnglish={panel ? englishOf(panel.saved.en) : {}}
       translations={form ? { ar: englishOf(form.text.ar), es: englishOf(form.text.es) } : { ar: {}, es: {} }}
+      locked={form?.locked}
       translationFields={JOURNEY_TEXT_FIELDS.map((field) => ({ name: field, label: fieldLabels[field], multiline: field === "body" }))}
       onTranslationChange={(target, name, value) => {
         if (!panel || !form) return;
@@ -371,7 +372,7 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
 
   function onSave(payload: SavePayload, intent: SaveIntent): Promise<boolean> {
     if (!open) return Promise.resolve(false);
-    return persist(withTranslations(open.form, payload.translations), intent === "publish");
+    return persist(withTranslations(open.form, payload.translations, payload.locked), intent === "publish");
   }
 
   async function onUnpublish() {

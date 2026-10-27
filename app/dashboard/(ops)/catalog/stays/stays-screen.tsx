@@ -183,7 +183,7 @@ export function StaysScreen({ send }: { send?: Send } = {}) {
   async function onSave(payload: SavePayload, intent: SaveIntent): Promise<boolean> {
     setBusy(true);
     setError(null);
-    const next = { ...form, translations: payload.translations };
+    const next = { ...form, translations: payload.translations, locked: payload.locked };
     const id = await persist(next, intent === "publish");
     if (id !== null && intent === "publish") await setPublished(id, true);
     if (id !== null) await readStay(id);

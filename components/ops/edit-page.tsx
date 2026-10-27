@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { CheckIcon, ChevronIcon } from "../icons/icons";
+import { CheckIcon, ChevronIcon, LockIcon } from "../icons/icons";
 import { ConfirmDialog } from "../ui/confirm-dialog";
 import { Field } from "../ui/field";
 import { cn } from "../../lib/cn";
@@ -14,16 +14,20 @@ import {
   applyReplies,
   blankLive,
   emptiedLive,
+  lockedFrom,
+  lockedLists,
   pendingFields,
   planTranslation,
   plansAnything,
   requestTranslations,
+  retranslatePlan,
   touchKey,
   type FailReason,
   type Fields,
   type FieldValue,
   type LiveFields,
   type LiveGap,
+  type LockedLists,
   type Send,
   type Target,
 } from "./auto-translate";
@@ -46,8 +50,11 @@ export type EditSection = {
 /** A field the AI translates: its name (the route's field name) and how its Arabic and Spanish boxes are drawn. */
 export type TranslatableField = { name: string; label: string; multiline?: boolean; maxLength?: number };
 
-/** What Save hands the screen: every Arabic and Spanish value after this Save, and whether every one came back. */
-export type SavePayload = { translations: Record<Target, Fields>; complete: boolean };
+/**
+ * What Save hands the screen: every Arabic and Spanish value after this Save, whether every one came back, and the
+ * fields the owner fixed by hand (I18N-04): the screen saves `locked` as each ar/es record's `locked_fields`.
+ */
+export type SavePayload = { translations: Record<Target, Fields>; complete: boolean; locked: Record<Target, string[]> };
 
 /** `publish`: the owner pressed Publish with unsaved work, so the screen saves and publishes in one go. */
 export type SaveIntent = "save" | "publish";
@@ -100,7 +107,9 @@ const overlayOpen = () => document.querySelector('[role="dialog"], [role="alertd
  * Translation is automatic: the screen's fields are English only. On Save the page asks the translate route for the
  * Arabic and Spanish of the English that changed (or has none yet), hands them to `onSave`, and says "Arabic and Spanish
  * updated". If the AI fails, the gaps are saved empty, Publish waits and an alert says why; on a published item nothing
- * is saved. "Edit translations" opens the Arabic and Spanish boxes for a fix; a box typed in is left alone by the AI.
+ * is saved. "Edit translations" opens the Arabic and Spanish boxes for a fix; a box typed in is locked (I18N-04, F-14):
+ * the lock is saved with the row (`locked`), the AI leaves it alone on every later Save, and a line under the box says
+ * so with Translate again, which unlocks the box and fills it from the current English (signed pictures 06-01).
  *
  * The list stays mounted (hidden) while the page is open, so its search and scroll survive, and focus returns to the
  * row that opened the page. Escape and the back link close it; with unsaved changes they ask "Discard changes?" first,
@@ -141,6 +150,7 @@ export function EditPage({
   canSave = true,
   liveTranslations = {},
   holdOnFailure = false,
+  locked: storedLocks,
   send = opsSend,
 }: {
   /** The open item's id, or null for the list. A new key starts the page afresh. */
@@ -183,6 +193,8 @@ export function EditPage({
   liveTranslations?: LiveFields;
   /** The item is used on the site (a photo on a page): a failed translation saves nothing, as on a published item. */
   holdOnFailure?: boolean;
+  /** The row's stored locks per language (each ar/es record's `locked_fields`): the boxes the owner fixed by hand. */
+  locked?: LockedLists;
   /** Test seam: the translate request (opsSend by default). */
   send?: Send;
 }) {
@@ -201,7 +213,10 @@ export function EditPage({
   const englishNow = useRef(english);
   englishNow.current = english;
 
-  const [touched, setTouched] = useState<ReadonlySet<string>>(() => new Set());
+  // The locked boxes: the row's stored locks, plus every box typed in this session (I18N-04).
+  const [locked, setLocked] = useState<ReadonlySet<string>>(() => lockedFrom(storedLocks));
+  // Translate again per box (touchKey): waiting for the AI, or the AI did not answer.
+  const [again, setAgain] = useState<Record<string, "busy" | "failed">>({});
   const [phase, setPhase] = useState<"idle" | "translating" | "saving">("idle");
   const [result, setResult] = useState<Result>(null);
   const [showTranslations, setShowTranslations] = useState(false);
@@ -236,7 +251,8 @@ export function EditPage({
         opener.current = active ?? lastFocus.current;
         scrollY.current = window.scrollY;
       }
-      setTouched(new Set());
+      setLocked(lockedFrom(storedLocks));
+      setAgain({});
       setResult(null);
       setShowTranslations(false);
       setAsking(null);
@@ -265,12 +281,13 @@ export function EditPage({
     wasOpen.current = open;
   }, [openKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const plan = planTranslation(english, savedEnglish, translations, touched);
+  const plan = planTranslation(english, savedEnglish, translations, locked);
   const pending = pendingFields(plan);
   const savePending = plansAnything(plan) || TARGETS.some((target) => plan.clear[target].length > 0);
   // An Arabic or Spanish gap the next Save fills is not Maria's to fill: Publish saves first and fills it.
   const gaps = missing.filter((item) => !(item.locale === "ar" || item.locale === "es") || !pending[item.locale].has(item.field));
-  const working = busy || phase !== "idle";
+  const retranslating = Object.values(again).includes("busy");
+  const working = busy || phase !== "idle" || retranslating;
   const failed = result?.kind === "failed" ? result : null;
 
   function requestClose() {
@@ -390,7 +407,8 @@ export function EditPage({
       setEmptying({ intent, gaps: meant });
       return "not-saved";
     }
-    let payload: SavePayload = { translations, complete: true };
+    const locks = lockedLists(locked);
+    let payload: SavePayload = { translations, complete: true, locked: locks };
     let asked = false;
     let reason: FailReason = "failed";
     if (savePending) {
@@ -410,7 +428,7 @@ export function EditPage({
       const outcome = applyReplies(plan, translations, replies, limits);
       asked = outcome.asked;
       reason = outcome.reason ?? "failed";
-      payload = { translations: outcome.translations, complete: outcome.complete };
+      payload = { translations: outcome.translations, complete: outcome.complete, locked: locks };
       // A published text the AI failed to replace would go empty (not one she chose to empty).
       const lost = blankLive(liveTranslations, outcome.translations).some((gap) => !meant.some((one) => sameGap(one, gap)));
       if (!outcome.complete && (isPublished || holdOnFailure || lost)) {
@@ -426,13 +444,44 @@ export function EditPage({
     if (!mounted.current) return ok ? (payload.complete ? "complete" : "incomplete") : "not-saved";
     setPhase("idle");
     if (!ok) return "not-saved";
-    setTouched(new Set());
+    // The locks were saved with the row: they stay (a reload reads them back as `locked`).
+    setAgain({});
     if (!payload.complete) {
       setResult({ kind: "failed", reason, live: false });
       return "incomplete";
     }
     setResult(asked ? { kind: "updated" } : null);
     return "complete";
+  }
+
+  /** Translate again: unlock the box, empty it, ask the AI for that one field; a failure leaves it empty for the next Save. */
+  async function translateAgain(target: Target, field: string) {
+    if (working) return;
+    const key = touchKey(target, field);
+    setLocked((was) => {
+      const next = new Set(was);
+      next.delete(key);
+      return next;
+    });
+    const list = Array.isArray(translations[target][field]);
+    onTranslationChange(target, field, list ? [] : "");
+    const one = retranslatePlan(english, target, field);
+    if (!plansAnything(one)) {
+      setAgain((was) => Object.fromEntries(Object.entries(was).filter(([k]) => k !== key)));
+      return;
+    }
+    setAgain((was) => ({ ...was, [key]: "busy" }));
+    const replies = await requestTranslations(one, send);
+    if (!mounted.current) return;
+    const limits = Object.fromEntries(translationFields.map((f) => [f.name, f.maxLength]));
+    const outcome = applyReplies(one, { ...translations, [target]: { ...translations[target], [field]: null } }, replies, limits);
+    const value = outcome.translations[target][field];
+    if (outcome.complete && value !== null && value !== undefined) {
+      onTranslationChange(target, field, value);
+      setAgain((was) => Object.fromEntries(Object.entries(was).filter(([k]) => k !== key)));
+    } else {
+      setAgain((was) => ({ ...was, [key]: "failed" }));
+    }
   }
 
   async function publish() {
@@ -497,8 +546,13 @@ export function EditPage({
             fields={translationFields}
             values={translations}
             disabled={working}
+            locale={locale}
+            locked={locked}
+            again={again}
+            onTranslateAgain={(target, name) => void translateAgain(target, name)}
             onChange={(target, name, value) => {
-              setTouched((was) => new Set(was).add(touchKey(target, name)));
+              setLocked((was) => new Set(was).add(touchKey(target, name)));
+              setAgain((was) => Object.fromEntries(Object.entries(was).filter(([k]) => k !== touchKey(target, name))));
               onTranslationChange(target, name, value);
             }}
           />
@@ -647,6 +701,66 @@ export function EditPage({
   );
 }
 
+/**
+ * The line under a locked box, in the dashboard's language and direction (signed pictures 06-01): a small lock and "Your
+ * own text…" with Translate again at its end; while Translate again waits, "Translating…"; when the AI did not answer,
+ * the failure line (the box is then empty and unlocked). A plain line, not a badge.
+ */
+export function LockLine({
+  id,
+  copy,
+  locale,
+  state,
+  fieldLabel,
+  disabled,
+  onTranslateAgain,
+}: {
+  id: string;
+  copy: OpsKitCopy;
+  locale: string;
+  state: "locked" | "busy" | "failed";
+  /** The box's own label ("Name · AR"): the button's accessible name says which box it refills. */
+  fieldLabel: string;
+  disabled: boolean;
+  onTranslateAgain: () => void;
+}) {
+  const dir = locale === "ar" ? "rtl" : "ltr";
+  if (state === "busy") {
+    return (
+      <p id={id} role="status" lang={locale} dir={dir} className="m-0 text-label text-ink">
+        {copy.editor.translatingAgain}
+      </p>
+    );
+  }
+  if (state === "failed") {
+    return (
+      <p id={id} role="alert" lang={locale} dir={dir} className="m-0 max-w-prose border-s-2 border-error ps-2 text-label text-ink">
+        {copy.editor.translateAgainFailed}
+      </p>
+    );
+  }
+  return (
+    <div lang={locale} dir={dir} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-label text-muted">
+      <p id={id} className="m-0 flex min-w-0 flex-1 items-start gap-2">
+        <LockIcon size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+        <span>
+          <span className="sr-only">{copy.editor.lockedLabel}: </span>
+          {copy.editor.lockedNote}
+        </span>
+      </p>
+      <button
+        type="button"
+        disabled={disabled}
+        aria-label={`${copy.editor.translateAgain}: ${fieldLabel}`}
+        onClick={onTranslateAgain}
+        className="ms-auto inline-flex min-h-control cursor-pointer items-center whitespace-nowrap border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4 disabled:cursor-default disabled:text-muted disabled:no-underline"
+      >
+        {copy.editor.translateAgain}
+      </button>
+    </div>
+  );
+}
+
 /** The Edit translations link and, when open, one block per language with a box per translated field. */
 function TranslationBoxes({
   idBase,
@@ -656,6 +770,10 @@ function TranslationBoxes({
   fields,
   values,
   disabled,
+  locale,
+  locked,
+  again,
+  onTranslateAgain,
   onChange,
 }: {
   idBase: string;
@@ -665,6 +783,11 @@ function TranslationBoxes({
   fields: TranslatableField[];
   values: Record<Target, Fields>;
   disabled: boolean;
+  /** The dashboard's language: the lock line is written in it. */
+  locale: string;
+  locked: ReadonlySet<string>;
+  again: Record<string, "busy" | "failed">;
+  onTranslateAgain: (target: Target, name: string) => void;
   onChange: (target: Target, name: string, value: string | string[]) => void;
 }) {
   const regionId = `${idBase}-translations`;
@@ -693,29 +816,52 @@ function TranslationBoxes({
                   const current = values[target][field.name];
                   const list = Array.isArray(current);
                   const change = (text: string) => onChange(target, field.name, list ? text.split("\n") : text);
-                  return field.multiline || list ? (
-                    <Field
-                      key={field.name}
-                      id={id}
-                      label={label}
-                      className="max-w-none"
-                      multiline
-                      rows={4}
-                      maxLength={field.maxLength}
-                      value={asText(current)}
-                      onChange={(event) => change(event.target.value)}
-                    />
-                  ) : (
-                    <Field
-                      key={field.name}
-                      id={id}
-                      label={label}
-                      className="max-w-none"
-                      autoComplete="off"
-                      maxLength={field.maxLength}
-                      value={asText(current)}
-                      onChange={(event) => change(event.target.value)}
-                    />
+                  const key = touchKey(target, field.name);
+                  const line = again[key] ?? (locked.has(key) ? "locked" : null);
+                  const lineId = `${id}-lock`;
+                  const described = line ? { "aria-describedby": lineId } : {};
+                  const box =
+                    field.multiline || list ? (
+                      <Field
+                        id={id}
+                        label={label}
+                        className="max-w-none"
+                        multiline
+                        rows={4}
+                        maxLength={field.maxLength}
+                        value={asText(current)}
+                        disabled={again[key] === "busy"}
+                        onChange={(event) => change(event.target.value)}
+                        {...described}
+                      />
+                    ) : (
+                      <Field
+                        id={id}
+                        label={label}
+                        className="max-w-none"
+                        autoComplete="off"
+                        maxLength={field.maxLength}
+                        value={asText(current)}
+                        disabled={again[key] === "busy"}
+                        onChange={(event) => change(event.target.value)}
+                        {...described}
+                      />
+                    );
+                  return (
+                    <div key={field.name} className="flex min-w-0 flex-col gap-2">
+                      {box}
+                      {line ? (
+                        <LockLine
+                          id={lineId}
+                          copy={copy}
+                          locale={locale}
+                          state={line}
+                          fieldLabel={label}
+                          disabled={disabled}
+                          onTranslateAgain={() => onTranslateAgain(target, field.name)}
+                        />
+                      ) : null}
+                    </div>
                   );
                 })}
               </div>

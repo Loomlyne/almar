@@ -371,6 +371,7 @@ function TeamEditor({ panel, list }: { panel: TeamPanel | null; list: ReactNode 
         english={form ? englishOf(form.text.en) : {}}
         savedEnglish={panel ? englishOf(panel.saved.en) : {}}
         translations={form ? { ar: englishOf(form.text.ar), es: englishOf(form.text.es) } : { ar: {}, es: {} }}
+        locked={form?.locked}
         translationFields={TEAM_TEXT_FIELDS.map((field) => ({ name: field, label: fieldLabels[field], multiline: field === "bio" }))}
         onTranslationChange={(target, name, value) => {
           if (!panel || !form) return;
@@ -496,7 +497,7 @@ export function TeamScreen({ send }: { send?: Send } = {}) {
 
   function onSave(payload: SavePayload, intent: SaveIntent): Promise<boolean> {
     if (!open) return Promise.resolve(false);
-    return persist(withTranslations(open.form, payload.translations), intent === "publish");
+    return persist(withTranslations(open.form, payload.translations, payload.locked), intent === "publish");
   }
 
   async function onUnpublish() {

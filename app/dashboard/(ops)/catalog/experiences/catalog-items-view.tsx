@@ -492,6 +492,7 @@ function CatalogItemEditor({ panel, list }: { panel: CatalogPanel | null; list: 
         english={form ? englishOf(form.text.en) : {}}
         savedEnglish={panel ? englishOf(panel.saved.en) : {}}
         translations={form ? { ar: englishOf(form.text.ar), es: englishOf(form.text.es) } : { ar: {}, es: {} }}
+        locked={form?.locked}
         translationFields={CATALOG_TEXT_FIELDS.map((field) => ({ name: field, label: fieldLabels[field], multiline: field === "summary" }))}
         onTranslationChange={(target, name, value) => {
           if (!panel || !form) return;

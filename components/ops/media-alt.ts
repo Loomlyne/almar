@@ -53,21 +53,36 @@ export type SaveAltBody = {
   id: string;
   alt: { en: string; ar: string | null; es: string | null };
   status: Partial<Record<Other, "published" | "draft">>;
+  /** I18N-04 (plan 06-01): the Arabic or Spanish alt is the owner's own text. Sent whole on every save. */
+  locked?: Record<Other, boolean>;
 };
+
+/** The kit's lock lists for one photo (EditPage `locked`): the alt field per language when it is locked. */
+export function altLocks(item: MediaItem): Record<Other, string[]> {
+  return { ar: item.alt_locked?.ar ? [ALT_FIELD] : [], es: item.alt_locked?.es ? [ALT_FIELD] : [] };
+}
 
 /**
  * The save_alt body (contract 5.10). Arabic and Spanish with text are "published" when `publish` (Publish pressed) or
  * when that language is published already (`live`: a Save never takes a live language off the site), else "draft"; a
  * language left empty is sent as null and carries no status.
  */
-export function buildSaveAlt(id: string, alt: AltText, publish: boolean, live: Partial<Record<Other, boolean>> = {}): SaveAltBody {
+export function buildSaveAlt(
+  id: string,
+  alt: AltText,
+  publish: boolean,
+  live: Partial<Record<Other, boolean>> = {},
+  locked?: Record<Other, readonly string[]>,
+): SaveAltBody {
   const ar = alt.ar.trim();
   const es = alt.es.trim();
   const state = (code: Other) => (publish || live[code] ? "published" : "draft");
   const status: SaveAltBody["status"] = {};
   if (ar !== "") status.ar = state("ar");
   if (es !== "") status.es = state("es");
-  return { action: "save_alt", id, alt: { en: alt.en.trim(), ar: ar === "" ? null : ar, es: es === "" ? null : es }, status };
+  const body: SaveAltBody = { action: "save_alt", id, alt: { en: alt.en.trim(), ar: ar === "" ? null : ar, es: es === "" ? null : es }, status };
+  if (locked) body.locked = { ar: locked.ar.includes(ALT_FIELD), es: locked.es.includes(ALT_FIELD) };
+  return body;
 }
 
 /** The photo as the list shows it after a save: new alt text and the status the save sent. */
@@ -79,5 +94,6 @@ export function itemAfterSave(item: MediaItem, body: SaveAltBody): MediaItem {
     alt_en: body.alt.en,
     alt: { en: body.alt.en, ar: body.alt.ar, es: body.alt.es },
     alt_status: { en: "published", ar: statusOf("ar", body.alt.ar), es: statusOf("es", body.alt.es) },
+    alt_locked: body.locked ?? item.alt_locked,
   };
 }

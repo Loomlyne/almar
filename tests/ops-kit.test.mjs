@@ -1123,3 +1123,62 @@ test("EditPage: every field rests in a disabled fieldset while a Save runs; canS
   assert.equal(isDisabled(buttonTag(blocked, "Save")), true);
   assert.equal(isDisabled(buttonTag(page({ ...pageProps, dirty: true }), "Save")), false);
 });
+
+// ---- translation lock (I18N-04, plan 06-01; pictures signed 2026-10-27) ------------------------------------------------
+
+test("lock: a locked Arabic name is never sent when the English changes; Spanish is (F-14)", () => {
+  const locked = auto.lockedFrom({ ar: ["name"] });
+  const plan = auto.planTranslation({ name: "New" }, { name: "Old" }, both({ name: "يدوي" }, { name: "Viejo" }), locked);
+  assert.deepEqual(plan.send, { ar: {}, es: { name: "New" } });
+});
+
+test("lock: an emptied English leaves a locked translation as the owner wrote it (never in clear)", () => {
+  const locked = auto.lockedFrom({ es: ["note"] });
+  const plan = auto.planTranslation({ note: "" }, { note: "Was" }, both({ note: "كان" }, { note: "Mío" }), locked);
+  assert.deepEqual(plan.clear, { ar: ["note"], es: [] });
+});
+
+test("lockedFrom / lockedLists: stored lists to the touchKey set and back, sorted, both targets always present", () => {
+  const set = auto.lockedFrom({ ar: ["title", "name"], es: null });
+  assert.deepEqual([...set].sort(), ["ar:name", "ar:title"]);
+  assert.deepEqual(auto.lockedLists(set), { ar: ["name", "title"], es: [] });
+  assert.deepEqual(auto.lockedLists(auto.lockedFrom(undefined)), { ar: [], es: [] });
+  assert.equal(auto.touchKey("es", "alt"), "es:alt", "same key format as before: the earlier touchKey tests still describe it");
+});
+
+test("retranslatePlan: one field for one target; a blank English asks nothing", () => {
+  const plan = auto.retranslatePlan({ name: "Casa", note: "x" }, "ar", "name");
+  assert.deepEqual(plan.send, { ar: { name: "Casa" }, es: {} });
+  assert.deepEqual(plan.clear, { ar: [], es: [] });
+  assert.equal(auto.plansAnything(auto.retranslatePlan({ name: "  " }, "es", "name")), false);
+});
+
+test("EditPage source: the lock is persisted (prop `locked`, SavePayload.locked) and the lock line is the signed one", () => {
+  const src = read("edit-page.tsx");
+  assert.match(src, /planTranslation\(english, savedEnglish, translations, locked/);
+  assert.match(src, /locked: Record<Target, string\[\]>/);
+  assert.match(src, /lockedFrom\(storedLocks\)/);
+  assert.match(src, /copy\.editor\.lockedNote/);
+  assert.match(src, /copy\.editor\.translateAgain/);
+  assert.match(src, /copy\.editor\.translatingAgain/);
+  assert.match(src, /copy\.editor\.translateAgainFailed/);
+  assert.match(src, /<LockIcon/);
+  assert.doesNotMatch(src, /type="radio"/);
+});
+
+test("EditPage closed boxes: a stored lock draws nothing until Edit translations is opened (the page as today)", () => {
+  const html = page({ ...pageProps, locked: { ar: ["name"] } });
+  assert.doesNotMatch(html, /Your own text/);
+  assert.match(html, />Edit translations</);
+});
+
+test("lock copy: the five signed lines in en, ar and es", async () => {
+  const { OPS_KIT_COPY } = await loadTs("lib/copy/ops-kit.ts");
+  assert.equal(OPS_KIT_COPY.en.editor.lockedNote, "Your own text. A change to the English will not replace it.");
+  assert.equal(OPS_KIT_COPY.en.editor.translateAgain, "Translate again");
+  assert.equal(OPS_KIT_COPY.en.editor.translatingAgain, "Translating…");
+  assert.equal(OPS_KIT_COPY.en.editor.translateAgainFailed, "Could not translate now. It will be filled when you save.");
+  assert.equal(OPS_KIT_COPY.ar.editor.translateAgain, "ترجمة من جديد");
+  assert.equal(OPS_KIT_COPY.es.editor.translateAgain, "Traducir de nuevo");
+  for (const locale of LOCALES) assert.ok(OPS_KIT_COPY[locale].editor.lockedLabel.length > 0, locale);
+});

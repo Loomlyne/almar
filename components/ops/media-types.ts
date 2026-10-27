@@ -10,6 +10,8 @@ export type MediaItem = MediaRef & {
   source: "import" | "upload";
   alt: Record<Locale3, string | null>;
   alt_status: Record<Locale3, MediaAltStatus>;
+  /** Whether the Arabic or Spanish alt is the owner's own text (I18N-04, plan 06-01); absent before that migration. */
+  alt_locked?: Partial<Record<"ar" | "es", boolean>>;
   used_by: number;
 };
 

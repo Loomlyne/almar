@@ -213,6 +213,18 @@ export function translations(value: unknown, spec: TextSpec, { create }: { creat
         rec.status = item;
         continue;
       }
+      // I18N-04 (plan 06-01): the fields the owner fixed by hand, on Arabic and Spanish only. A list of distinct names of
+      // this spec's own fields; the database checks the same and sets the list it is sent (it never merges).
+      if (key === "locked_fields") {
+        if (locale === "en" || !Array.isArray(item)) throw new OpsInvalid(field, locale);
+        const names = new Set<string>();
+        for (const name of item) {
+          if (typeof name !== "string" || !has(spec.fields, name) || names.has(name)) throw new OpsInvalid(field, locale);
+          names.add(name);
+        }
+        rec.locked_fields = [...names];
+        continue;
+      }
       // Own properties only: an inherited name ("constructor", "__proto__") is not a field.
       const rule = has(spec.fields, key) ? spec.fields[key] : undefined;
       if (!rule) throw new OpsInvalid(field, locale);

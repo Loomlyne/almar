@@ -7,7 +7,7 @@ import { Field } from "../../../../../components/ui/field";
 import { PlusIcon } from "../../../../../components/icons/icons";
 import type { Send, Target } from "../../../../../components/ops/auto-translate";
 import { EditPage, type SaveIntent, type SavePayload } from "../../../../../components/ops/edit-page";
-import { ALT_FIELD, altInUse, altMissing, isAltPublished, liveAlt, type AltText } from "../../../../../components/ops/media-alt";
+import { ALT_FIELD, altInUse, altLocks, altMissing, isAltPublished, liveAlt, type AltText } from "../../../../../components/ops/media-alt";
 import { FileName, fileNameOf } from "../../../../../components/ops/media-picker";
 import { UPLOAD_TYPES, type MediaItem } from "../../../../../components/ops/media-types";
 import { StatusChip } from "../../../../../components/ops/status-chip";
@@ -179,6 +179,7 @@ export function MediaScreen({
         english={{ [ALT_FIELD]: alt.en }}
         savedEnglish={{ [ALT_FIELD]: savedAlt.en }}
         translations={{ ar: { [ALT_FIELD]: alt.ar }, es: { [ALT_FIELD]: alt.es } }}
+        locked={open ? altLocks(open) : undefined}
         translationFields={[{ name: ALT_FIELD, label: copy.altText, maxLength: ALT_MAX }]}
         onTranslationChange={(target, _name, value) => onAltChange(target, Array.isArray(value) ? value.join(" ") : value)}
         onSave={onSave}

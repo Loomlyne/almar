@@ -57,6 +57,7 @@ function formOf(variant: Variant): TeamForm {
         : [{ key: linkKey(), label: "Instagram", url: "https://www.instagram.com/[account]" }],
     text: { en: textOf("en"), ar: textOf("ar"), es: textOf("es") },
     status: { en: "published", ar: published ? "published" : "draft", es: published ? "published" : "draft" },
+    locked: { ar: [], es: [] },
   };
 }
 

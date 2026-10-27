@@ -3,7 +3,7 @@
 
 import type { Locale3, MediaRef, TeamDetail, TeamLink, TextStatus } from "../../../../../components/ops/api-types";
 import type { LiveFields } from "../../../../../components/ops/auto-translate";
-import { translationsFor } from "../../catalog/catalog-forms";
+import { locksOf, noLocks, translationsFor, type Locks } from "../../catalog/catalog-forms";
 
 /** The platforms a member's link may be (contract 5.7 stores the name as the link's label). */
 export const LINK_PLATFORMS = ["Instagram", "LinkedIn", "Facebook", "X"] as const;
@@ -36,6 +36,8 @@ export type TeamForm = {
   text: Record<Locale3, TeamText>;
   /** Arabic and Spanish go live with the English on Publish (owner, 2026-10-14). */
   status: Record<Locale3, TextStatus>;
+  /** The Arabic and Spanish fields the owner fixed by hand (I18N-04): saved as `locked_fields`. */
+  locked: Locks;
 };
 
 const blankText = (): TeamText => ({ name: "", role: "", bio: "" });
@@ -50,6 +52,7 @@ export function emptyTeamForm(): TeamForm {
     links: [],
     text: { en: blankText(), ar: blankText(), es: blankText() },
     status: { en: "published", ar: "draft", es: "draft" },
+    locked: noLocks(),
   };
 }
 
@@ -77,6 +80,7 @@ export function teamForm(detail: TeamDetail): TeamForm {
     ),
     text: { en: text("en"), ar: text("ar"), es: text("es") },
     status: { en: status("en"), ar: status("ar"), es: status("es") },
+    locked: locksOf(detail.translations),
   };
 }
 
