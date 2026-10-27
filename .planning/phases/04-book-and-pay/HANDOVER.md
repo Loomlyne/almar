@@ -1,3 +1,45 @@
+# HANDOVER: job 25, Phase 4 plan 04-06 (2026-10-27 13:56 +0100) and 04-07 (UAT plan written)
+
+- **Branch:** `phase-04-book-and-request` (pushed). Code tip `2ae15102`; this entry is the commit after it. Folder clean.
+- **Base:** origin/main merged at the start of 04-06 (already up to date at `5cf96bba`).
+- **Checks on `2ae15102`:** `npx tsc --noEmit` exit 0; `npm run tokens:check` up to date; acceptance greps clean.
+  Everything else **not run (owner: no test)**: node tests, Playwright, build, assemble. Table in `04-06-SUMMARY.md`.
+- **Signature:** owner 2026-10-27 13:15 +0100: P6-07 option 1, P6-09 option 1, all else as drawn (`977081ac`).
+- **Hosted database, secrets, Cloudflare, DNS, main:** not touched. No migration in 04-06 (the 04-05 review fix changed
+  `20261019160000` before it: 2,111 lines, sha256 `e5af8032fa2ba30fccbfd05920ca368bef9e62a6e2e43e2739f7389e9636b427`).
+- **Shared-file edits:** `app/booking/trip/trip-screen.tsx` (04-03's), `lib/copy/journey.ts` (group `afterRequest`
+  only), `tests/booking-trip.spec.ts` (one `/api/booking/view` mock), `app/[locale]/bookings/*` and
+  `tests/journey/scenes/guest-account.tsx` (job 02/21's). No environment name added.
+
+## Deep review (two passes, owner approved Fable)
+
+- **Sonnet, pass 1:** fix first, no auth or token leak; 5 fixes in `58877431` (resumed end keyed by ref, server clock
+  on resume, no Change while sending, retry note without remount, sent heading keeps its role). 3 low notes kept, with
+  reasons in the SUMMARY.
+- **Fable, pass 2:** fix first (one medium), no auth or token leak; fixed in `2ae15102` (rail Change refused while
+  sending, no quote after a sent or moved-on resume, spec polls storage). Kept: live regions that mount with content
+  (04-03's pattern), and a lost answer followed by the hold's end lets the guest re-hold (the plan's behaviour).
+  Follow-up proposed: `import "server-only"` in `lib/booking/server.ts`.
+
+## Not verified, in plain words (04-06)
+
+- No test or spec has run. The race tests, the resume path and the /bookings page with a real session are unproven.
+- `/<locale>/bookings` now calls the `guest_bookings` RPC through the service-role client on every load. That RPC
+  is in `20261019160000` part B, which has never run on any database. Its CPU on the Free plan is measured in 04-07.
+- The page has never been built. The first `next build` + `assemble-cloudflare` is the first check that the client
+  bundle has no server code (`GuestCard` is a type-only import).
+
+## 04-07
+
+- The plan was already written. It gains an "As built" section (`1e61be92`) that lists the paths, the signed options,
+  the mail and migration facts, and a known placeholder in step 4 (`[N] hours`). The owner said "no UAT": nothing
+  ran. The UAT steps are in `04-07-PLAN.md` Task 2. Before Task 1, the controller reads the "As built" section.
+
+## NEEDS OWNER (open, all plans)
+
+- Booking terms text (`[Booking terms]`) and the window line's number and unit (`[N] hours`) on the trip page.
+- 04-09 "Still due" wording on the booking detail.
+
 # HANDOVER: job 25, Phase 4 plan 04-05 (2026-10-26)
 
 - **Branch:** `phase-04-book-and-request` (pushed). Code tip before this entry `c74b7f36`.
