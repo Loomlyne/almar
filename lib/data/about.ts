@@ -3,7 +3,8 @@
 // Server only. The About page's own blocks: hero, intro (statement, the collage's five photos, the wide
 // still), the Get In Touch band's still, and the six Our Story / Our Values cards. Since plan 06-01 they come from
 // ./page-blocks (the fixture files, or the page-section and page-item views in supabase mode), in the same shapes.
-// Section headings and intro lines are still copy (lib/copy/about-page.ts) until 06-02 moves them to data.
+// Section headings and intro lines are copy (lib/copy/about-page.ts) in fixtures mode; in supabase mode
+// lib/data/page-content.ts reads them from the Pages CMS (plan 06-02).
 
 import { pageFixture, pageFixtureTranslations } from "./page-blocks";
 import { image, resolveRow, type RawImage, type StoredStatus } from "./resolve";
@@ -65,7 +66,8 @@ export async function getAboutBlocks(locale: Locale): Promise<AboutBlocks> {
   const a = about();
   const t = aboutT();
   const hero = block(t.hero, locale);
-  const intro = block(t.intro, locale);
+  // Intro may be hidden (plan 06-02): then it has no records in supabase mode, and the page does not draw it.
+  const intro = t.intro.length === 0 ? { statement: "" } : block(t.intro, locale);
   return {
     hero: { kicker: hero.kicker, headline: hero.headline, image: image(a.hero.image, locale) },
     intro: {

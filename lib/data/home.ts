@@ -80,6 +80,14 @@ function block<T extends Rec>(records: readonly T[], locale: Locale): T {
   return r;
 }
 
+/**
+ * A block the owner may hide (Welcome, Gallery; plan 06-02): hidden, it has no records in supabase mode, and its words
+ * come back empty (the page does not draw the section). The hero is always shown, so it keeps the strict read.
+ */
+function hideable<T extends Rec>(records: readonly T[], locale: Locale, empty: Omit<T, keyof Rec>): Omit<T, keyof Rec> {
+  return records.length === 0 ? empty : block(records, locale);
+}
+
 export async function getJourneyTiers(locale: Locale): Promise<JourneyTier[]> {
   await loadSource();
   const records = readSource<HomeTranslations["tiers"]>("journey-tier-translations");
@@ -121,8 +129,8 @@ export async function getHomeBlocks(locale: Locale): Promise<HomeBlocks> {
   await loadSource(); // the blocks' pictures take their alt texts from the same source as every other picture
   const h = home();
   const t = homeT();
-  const welcome = block(t.welcome, locale);
-  const gallery = block(t.gallery, locale);
+  const welcome = hideable(t.welcome, locale, { kicker: "", heading: "", salutation: "", paragraphs: [], sign_off: "", signer: "", signer_role: "" });
+  const gallery = hideable(t.gallery, locale, { kicker: "", heading: "" });
   return {
     hero: {
       headline: block(t.hero, locale).headline,

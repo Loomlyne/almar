@@ -1,16 +1,10 @@
 import { HOME_COPY } from "../../../lib/copy/home";
-import { siteHref, type Locale } from "../../../lib/locale-path";
+import type { Locale } from "../../../lib/locale-path";
+import { pageLinks } from "../../site/page-links";
 import type { PublicFrameLink } from "../../site/public-frame";
 
-/** The four pages the header and footer link to, localised (the Framer ones stay English-only through siteHref). */
-const PAGE_LINKS = [
-  { key: "destinations", path: "/destinations" },
-  { key: "experiences", path: "/experiences" },
-  { key: "about", path: "/about" },
-  { key: "contact", path: "/contact" },
-] as const;
-
+/** The header links the owner set in Content -> Navigation and footer (plan 06-02), with the nav labels. */
 export function blogFrameLinks(locale: Locale): { nav: typeof HOME_COPY.en.nav; links: PublicFrameLink[] } {
   const nav = HOME_COPY[locale].nav;
-  return { nav, links: PAGE_LINKS.map(({ key, path }) => ({ label: nav[key], href: siteHref(locale, path) })) };
+  return { nav, links: pageLinks(locale, nav) };
 }

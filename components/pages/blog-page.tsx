@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { footerPageLinks } from "../site/page-links";
 import { PublicFrame } from "../site/public-frame";
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
 import { MediaCard } from "../ui/card";
@@ -25,7 +26,7 @@ export async function BlogPage({ locale }: { locale: Locale }) {
       locale={locale}
       currentPath={PATH}
       links={links}
-      footerLinks={links}
+      footerLinks={footerPageLinks(locale)}
       footerCopy={SITE_FOOTER_COPY[locale]}
       labels={nav}
     >

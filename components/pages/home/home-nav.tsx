@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import type { FooterCopy } from "../../ui/footer";
 import type { NavLabels, NavLink } from "../../ui/nav";
+import { footerPageLinks } from "../../site/page-links";
 import { PublicFrame } from "../../site/public-frame";
 import type { Locale } from "../../../lib/locale-path";
 import { useCurrencyChoice } from "./currency-choice";
@@ -25,7 +26,7 @@ export function HomeFrame({
   children,
 }: {
   locale: Locale;
-  /** Destinations, Experiences, About, Contact, already localised. The nav and the footer use the same four. */
+  /** The header links (the nav snapshot, plan 06-02), already localised. The footer takes its own from the snapshot. */
   links: NavLink[];
   labels: Partial<NavLabels>;
   footerCopy: FooterCopy;
@@ -40,7 +41,7 @@ export function HomeFrame({
       locale={locale}
       currentPath={HOME_PATH}
       links={links}
-      footerLinks={links}
+      footerLinks={footerPageLinks(locale)}
       footerCopy={footerCopy}
       labels={labels}
       navTone={tone}

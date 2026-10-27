@@ -7,6 +7,7 @@ import { blogFrameLinks } from "./blog/frame-links";
 import { JourneyChoiceProvider } from "./home/journey-choice";
 import { blogPostingJsonLd } from "../site/blog-posting-json-ld";
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
+import { footerPageLinks } from "../site/page-links";
 import { PublicFrame } from "../site/public-frame";
 import { LinkButton } from "../ui/button";
 import { PortraitCard } from "../ui/card";
@@ -152,7 +153,7 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
           locale={locale}
           currentPath={`/blog/${slug}`}
           links={links}
-          footerLinks={links}
+          footerLinks={footerPageLinks(locale)}
           footerCopy={SITE_FOOTER_COPY[locale]}
           labels={nav}
           navTone="on-image"

@@ -6,7 +6,7 @@ import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { STAYS_LIST_COPY } from "../../lib/copy/stays-list";
 import { getDestinations } from "../../lib/data/destinations";
 import { getStays } from "../../lib/data/stays";
-import { pageLinks } from "../site/page-links";
+import { footerPageLinks, pageLinks } from "../site/page-links";
 import { absoluteLocaleUrl, localeAlternates, localePath, type Locale } from "../../lib/locale-path";
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
 import { PublicFrame, type PublicFrameLink } from "../site/public-frame";
@@ -50,7 +50,7 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
       locale={locale}
       currentPath={PATH}
       links={links}
-      footerLinks={links}
+      footerLinks={footerPageLinks(locale)}
       footerCopy={SITE_FOOTER_COPY[locale]}
       labels={nav}
     >

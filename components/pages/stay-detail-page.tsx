@@ -22,6 +22,7 @@ import { Reveal } from "../ui/reveal";
 import { Section } from "../ui/section";
 import { Slider } from "../ui/slider";
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
+import { footerPageLinks, pageLinks } from "../site/page-links";
 import { PublicFrame } from "../site/public-frame";
 import { toCatalogQuery } from "../../lib/data/catalog-filter";
 import { getCatalogForStay } from "../../lib/data/experiences";
@@ -139,12 +140,8 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
   const home = HOME_COPY[locale];
   const pagePath = `/private-stays/${slug}`;
 
-  const navLinks = [
-    { label: home.nav.destinations, href: siteHref(locale, "/destinations") },
-    { label: home.nav.experiences, href: siteHref(locale, "/experiences") },
-    { label: home.nav.about, href: siteHref(locale, "/about") },
-    { label: home.nav.contact, href: siteHref(locale, "/contact") },
-  ];
+  // The header and footer links the owner set in Content -> Navigation and footer (plan 06-02).
+  const navLinks = pageLinks(locale, home.nav);
 
   // Framer's order. A fact with no published value is left out: no dash, no placeholder.
   const facts: Fact[] = [
@@ -185,7 +182,7 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
           navTone="on-image"
           whatsapp={false}
           links={navLinks}
-          footerLinks={navLinks}
+          footerLinks={footerPageLinks(locale)}
           labels={{
             destinations: home.nav.destinations,
             experiences: home.nav.experiences,

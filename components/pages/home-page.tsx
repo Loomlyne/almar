@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
+import { pageLinks } from "../site/page-links";
 import { PageShell } from "../ui/page-shell";
 import { HomeFrame } from "./home/home-nav";
 import { CurrencyChoiceProvider } from "./home/currency-choice";
@@ -14,6 +15,7 @@ import { toCatalogQuery } from "../../lib/data/catalog-filter";
 import { getCatalogItems } from "../../lib/data/experiences";
 import { getDestinations } from "../../lib/data/destinations";
 import { getHomeBlocks, getJourneyTiers } from "../../lib/data/home";
+import { getPageContent, withPageWords } from "../../lib/data/page-content";
 import { getRates } from "../../lib/data/rates";
 import { getStays } from "../../lib/data/stays";
 import { getTeam } from "../../lib/data/team";
@@ -56,7 +58,8 @@ export async function homeMetadata(locale: Locale): Promise<Metadata> {
 }
 
 export async function HomePage({ locale }: { locale: Locale }) {
-  const [blocks, tiers, stays, allServices, destinations, team, rates] = await Promise.all([
+  const [content, blocks, tiers, stays, allServices, destinations, team, rates] = await Promise.all([
+    getPageContent("home", locale),
     getHomeBlocks(locale),
     getJourneyTiers(locale),
     getStays(locale),
@@ -70,17 +73,16 @@ export async function HomePage({ locale }: { locale: Locale }) {
     if (!item) throw new Error(`home: no published service ${slug}`);
     return item;
   });
-  const copy = HOME_PAGE_COPY[locale];
+  // The section words the owner edits in Content -> Pages (plan 06-02); in fixtures mode the copy file's own words.
+  const copy = withPageWords(HOME_PAGE_COPY[locale], "home", content);
   const nav = HOME_COPY[locale].nav;
+  // A section the owner hid is not drawn; the others keep the code's order (SITE-02). The hero (booking bar) is always on.
+  const on = (section: string) => content.shown.has(section);
 
   // Every public page exists in EN/AR/ES; siteHref returns its address in this locale (a path that is not a
   // public page comes back unchanged).
-  const links = [
-    { label: nav.destinations, href: siteHref(locale, "/destinations") },
-    { label: nav.experiences, href: siteHref(locale, "/experiences") },
-    { label: nav.about, href: siteHref(locale, "/about") },
-    { label: nav.contact, href: siteHref(locale, "/contact") },
-  ];
+  // The header links the owner set in Content -> Navigation and footer (plan 06-02), baked at build.
+  const links = pageLinks(locale, nav);
   const contactHref = siteHref(locale, "/contact");
   // Services live on the one /experiences page (design 4.2): the card opens that service's overlay, View All
   // selects Services. The query goes after localePath, which refuses a "?".
@@ -145,54 +147,64 @@ export async function HomePage({ locale }: { locale: Locale }) {
                 locale={locale}
                 barLabel={copy.hero.barLabel}
               />
-              <HomeWelcome welcome={blocks.welcome} />
-              <HomeGallery gallery={blocks.gallery} labels={copy.gallery} />
-              <PageShell>
-                <HomeStays stays={stayCards} listHref={listHref} copy={copy.stays} />
-              </PageShell>
+              {on("welcome") ? <HomeWelcome welcome={blocks.welcome} /> : null}
+              {on("gallery") ? <HomeGallery gallery={blocks.gallery} labels={copy.gallery} /> : null}
+              {on("stays") ? (
+                <PageShell>
+                  <HomeStays stays={stayCards} listHref={listHref} copy={copy.stays} />
+                </PageShell>
+              ) : null}
               <PageShell className="grid">
-                <Services
-                  items={services}
-                  hrefs={Object.fromEntries(
-                    services.map((item) => [
-                      item.slug,
-                      experiencesPath + toCatalogQuery({ kind: "service", destinations: [], stays: [], item: item.slug }),
-                    ]),
-                  )}
-                  viewAllHref={experiencesPath + toCatalogQuery({ kind: "service", destinations: [], stays: [] })}
-                  copy={copy.services}
-                />
-                <Moments destinations={destinations} contactHref={contactHref} copy={copy.moments} />
-                <HomeJourneys
-                  tiers={tiers.map((tier) => ({
-                    slug: tier.slug,
-                    name: tier.name,
-                    price_label: tier.price_label,
-                    tagline: tier.tagline,
-                    duration_label: tier.duration_label,
-                    ideal_for_label: tier.ideal_for_label,
-                    ideal_for: tier.ideal_for,
-                    body: tier.body,
-                    is_featured: tier.is_featured,
-                    image: tier.image
-                      ? { src: tier.image.url, alt: tier.image.alt, width: tier.image.width, height: tier.image.height }
-                      : null,
-                  }))}
-                  rates={rates}
-                  copy={copy.journeys}
-                  locale={locale}
-                />
-                <Stories
-                  stories={blocks.stories}
-                  hrefs={Object.fromEntries(blocks.stories.map((story) => [story.slug, siteHref(locale, `/blog/${story.slug}`)]))}
-                  readAllHref={siteHref(locale, "/blog")}
-                  copy={copy.stories}
-                />
+                {on("services") ? (
+                  <Services
+                    items={services}
+                    hrefs={Object.fromEntries(
+                      services.map((item) => [
+                        item.slug,
+                        experiencesPath + toCatalogQuery({ kind: "service", destinations: [], stays: [], item: item.slug }),
+                      ]),
+                    )}
+                    viewAllHref={experiencesPath + toCatalogQuery({ kind: "service", destinations: [], stays: [] })}
+                    copy={copy.services}
+                  />
+                ) : null}
+                {on("moments") ? <Moments destinations={destinations} contactHref={contactHref} copy={copy.moments} /> : null}
+                {on("journeys") ? (
+                  <HomeJourneys
+                    tiers={tiers.map((tier) => ({
+                      slug: tier.slug,
+                      name: tier.name,
+                      price_label: tier.price_label,
+                      tagline: tier.tagline,
+                      duration_label: tier.duration_label,
+                      ideal_for_label: tier.ideal_for_label,
+                      ideal_for: tier.ideal_for,
+                      body: tier.body,
+                      is_featured: tier.is_featured,
+                      image: tier.image
+                        ? { src: tier.image.url, alt: tier.image.alt, width: tier.image.width, height: tier.image.height }
+                        : null,
+                    }))}
+                    rates={rates}
+                    copy={copy.journeys}
+                    locale={locale}
+                  />
+                ) : null}
+                {on("stories") ? (
+                  <Stories
+                    stories={blocks.stories}
+                    hrefs={Object.fromEntries(blocks.stories.map((story) => [story.slug, siteHref(locale, `/blog/${story.slug}`)]))}
+                    readAllHref={siteHref(locale, "/blog")}
+                    copy={copy.stories}
+                  />
+                ) : null}
               </PageShell>
-              <Begin contactHref={contactHref} copy={copy.begin} media={blocks.begin} />
-              <PageShell>
-                <Team members={team} copy={copy.team} />
-              </PageShell>
+              {on("begin") ? <Begin contactHref={contactHref} copy={copy.begin} media={blocks.begin} /> : null}
+              {on("team") ? (
+                <PageShell>
+                  <Team members={team} copy={copy.team} />
+                </PageShell>
+              ) : null}
             </main>
           </HomeFrame>
         </JourneyChoiceProvider>
