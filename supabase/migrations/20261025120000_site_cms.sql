@@ -1,6 +1,6 @@
 -- Phase 6 plan 06-01 Task 3: the one Phase 6 migration (contract: .planning/phases/06-site-and-rest-of-cms/06-01-PLAN.md,
 -- "Interfaces for 06-02…06-07"). Number 20261025120000 reserved by the controller (2026-10-25), after Phase 4's
--- 20261019160000 and 20261019170000. No later Phase 6 plan writes a migration: 06-02…06-07 call what is here.
+-- 20261019160000 (live) and 20261021120000. No later Phase 6 plan writes a migration: 06-02…06-07 call what is here.
 --
 -- A work session never applies this file: only the controller applies it to the live project "Almar"
 -- (jkdkaldgeiowkhlfmsft), on the owner's word, after the wave 2-4 pictures are signed (a schema change from those
@@ -30,7 +30,8 @@
 -- The replaced bodies are the newest ones on the base: catalog_entity_meta, catalog_save_translations, catalog_gaps,
 -- ops_get, ops_list, ops_publish, ops_delete, ops_reorder, ops_save_journey_tier, ops_save_image_alts,
 -- catalog_media_uses, catalog_media_live and the policy "media: anon reads" from 20261005100000_catalog_and_team.sql;
--- ops_save_stay_access from 20261019140000_stay_access_notes_i18n.sql. "media: anon reads the site logo"
+-- ops_save_stay_access from 20261019140000_stay_access_notes_i18n.sql; ops_list_media (last section, one key added:
+-- alt_locked) from 20261012120000_ops_list_media.sql. "media: anon reads the site logo"
 -- (20261013120000) is a separate policy and is not touched.
 --
 -- Rules the whole file follows (those of 20261005100000):
@@ -2162,7 +2163,8 @@ begin
   end if;
 
   if v_create then
-    if public.catalog_txt(p, 'slug') is null then
+    if public.catalog_txt(p, 'slug') is null or public.catalog_txt(p, 'slug') !~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+       or char_length(public.catalog_txt(p, 'slug')) > 80 then
       perform public.catalog_invalid('slug');
     end if;
     if v_section is null then
@@ -2355,7 +2357,8 @@ begin
   end if;
 
   if v_create then
-    if public.catalog_txt(p, 'slug') is null then
+    if public.catalog_txt(p, 'slug') is null or public.catalog_txt(p, 'slug') !~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+       or char_length(public.catalog_txt(p, 'slug')) > 80 then
       perform public.catalog_invalid('slug');
     end if;
     insert into public.posts (slug, cover_media_id, published_at, destination_id, featured_stay_id, featured_experience_id)
@@ -2369,6 +2372,11 @@ begin
     select po.is_published, po.slug into v_pub, v_slug from public.posts po where po.id = v_id for update;
     if not found then
       perform public.catalog_fail('not_found');
+    end if;
+    -- A slug is refused as almar:invalid before the table check would raise a raw 23514 / 23502 (review 2026-10-27).
+    if p ? 'slug' and (public.catalog_txt(p, 'slug') is null or public.catalog_txt(p, 'slug') !~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+       or char_length(public.catalog_txt(p, 'slug')) > 80) then
+      perform public.catalog_invalid('slug');
     end if;
     if v_pub and p ? 'slug' and public.catalog_txt(p, 'slug') is distinct from v_slug then
       perform public.catalog_invalid('slug');
@@ -2574,7 +2582,8 @@ begin
   end if;
 
   if v_create then
-    if public.catalog_txt(p, 'slug') is null then
+    if public.catalog_txt(p, 'slug') is null or public.catalog_txt(p, 'slug') !~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+       or char_length(public.catalog_txt(p, 'slug')) > 80 then
       perform public.catalog_invalid('slug');
     end if;
     insert into public.journey_tiers (slug, is_featured, media_id, price_from_amount, price_from_currency, est_low, est_high,
@@ -2590,6 +2599,11 @@ begin
     select j.is_published, j.slug into v_pub, v_slug from public.journey_tiers j where j.id = v_id for update;
     if not found then
       perform public.catalog_fail('not_found');
+    end if;
+    -- A slug is refused as almar:invalid before the table check would raise a raw 23514 / 23502 (review 2026-10-27).
+    if p ? 'slug' and (public.catalog_txt(p, 'slug') is null or public.catalog_txt(p, 'slug') !~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+       or char_length(public.catalog_txt(p, 'slug')) > 80) then
+      perform public.catalog_invalid('slug');
     end if;
     if v_pub and p ? 'slug' and public.catalog_txt(p, 'slug') is distinct from v_slug then
       perform public.catalog_invalid('slug');
@@ -3226,3 +3240,77 @@ $$;
 
 revoke execute on function public.import_site_content(jsonb) from public, anon, authenticated;
 grant execute on function public.import_site_content(jsonb) to service_role;
+
+
+-- ---------------------------------------------------------------------------------------------------------------------
+-- ops_list_media (newest body: 20261012120000_ops_list_media.sql), unchanged except one added key per item:
+-- `alt_locked` {ar, es} booleans, so the Media editor reloads the lock it saved through ops_save_image_alts (I18N-04).
+-- Safe on live data: a function replacement, same signature, same order and paging.
+-- ---------------------------------------------------------------------------------------------------------------------
+create or replace function public.ops_list_media(p_q text default null, p_after text default null, p_limit int default 60)
+returns jsonb
+language plpgsql
+stable
+set search_path = ''
+as $$
+declare
+  v_needle text;
+  v_items jsonb;
+  v_next text;
+begin
+  if p_limit is null or p_limit < 1 or p_limit > 60 then
+    perform public.catalog_invalid('limit');
+  end if;
+  if p_q is not null and char_length(p_q) > 100 then
+    perform public.catalog_invalid('q');
+  end if;
+  if p_after is not null and (char_length(p_after) > 300 or p_after !~ '^[a-z0-9][a-z0-9_-]*(/[a-z0-9][a-z0-9_.-]*)*\.(webp|jpg|png)$') then
+    perform public.catalog_invalid('after');
+  end if;
+  v_needle := nullif(public.media_fold(btrim(coalesce(p_q, ''))), '');
+
+  with matching as (
+    select m.id, m.key collate "C" as key
+    from public.media m
+    where (p_after is null or m.key collate "C" > p_after collate "C")
+      and (
+        v_needle is null
+        or strpos(public.media_fold(m.key), v_needle) > 0
+        or strpos(public.media_fold((select it.alt from public.image_translations it where it.image_id = m.id and it.locale = 'en')), v_needle) > 0
+      )
+  ),
+  -- The key of the p_limit-th row: the page takes every row up to and including that key.
+  cut as (
+    select x.key from matching x order by x.key, x.id offset p_limit - 1 limit 1
+  )
+  select
+    (select c.key from cut c where exists (select 1 from matching y where y.key > c.key)),
+    coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', m.id, 'key', m.key, 'width', m.width, 'height', m.height, 'content_type', m.content_type, 'source', m.source,
+        'alt', jsonb_build_object(
+          'en', (select it.alt from public.image_translations it where it.image_id = m.id and it.locale = 'en'),
+          'ar', (select it.alt from public.image_translations it where it.image_id = m.id and it.locale = 'ar'),
+          'es', (select it.alt from public.image_translations it where it.image_id = m.id and it.locale = 'es')),
+        'alt_status', jsonb_build_object(
+          'en', coalesce((select it.status from public.image_translations it where it.image_id = m.id and it.locale = 'en'), 'missing'),
+          'ar', coalesce((select it.status from public.image_translations it where it.image_id = m.id and it.locale = 'ar'), 'missing'),
+          'es', coalesce((select it.status from public.image_translations it where it.image_id = m.id and it.locale = 'es'), 'missing')),
+        -- I18N-04 (plan 06-01): whether the owner fixed that alt by hand (image_translations.locked_fields = {alt}).
+        'alt_locked', jsonb_build_object(
+          'ar', coalesce((select 'alt' = any(it.locked_fields) from public.image_translations it where it.image_id = m.id and it.locale = 'ar'), false),
+          'es', coalesce((select 'alt' = any(it.locked_fields) from public.image_translations it where it.image_id = m.id and it.locale = 'es'), false)),
+        'used_by', public.catalog_media_uses(m.id)
+      ) order by x.key, x.id)
+      from matching x
+      join public.media m on m.id = x.id
+      where not exists (select 1 from cut) or x.key <= (select c.key from cut c)
+    ), '[]'::jsonb)
+  into v_next, v_items;
+
+  return jsonb_build_object('items', v_items, 'next', v_next);
+end;
+$$;
+
+revoke execute on function public.ops_list_media(text, text, int) from public, anon, authenticated;
+grant execute on function public.ops_list_media(text, text, int) to service_role;
