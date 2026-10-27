@@ -425,23 +425,32 @@ async function main(argv = process.argv.slice(2)) {
     return 0;
   }
 
+  return applyImport({ rpc: "import_catalog", payload: built.payload, args, name: "import-catalog", formatReport });
+}
+
+/**
+ * --apply: the host guard, then one rpc with the service-role key, then the inserted counts. Exported for
+ * scripts/import-site-content.mjs (plan 06-01) so the key stays named in this file only (tests/secrets.test.mjs).
+ * Returns the exit code; never prints the key or the URL's query.
+ */
+export async function applyImport({ rpc, payload, args, name, formatReport: report }) {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const target = checkApplyTarget({ url, key, projectRef: args.projectRef, local: args.local });
   if (!target.ok) {
-    console.error(`import-catalog: refused: ${target.error}. Nothing was sent.`);
+    console.error(`${name}: refused: ${target.error}. Nothing was sent.`);
     return 1;
   }
   const { createClient } = await import("@supabase/supabase-js");
   const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
   console.log(`\nimporting into ${target.host} (one transaction)...`);
-  const { data, error } = await client.rpc("import_catalog", { p: built.payload });
+  const { data, error } = await client.rpc(rpc, { p: payload });
   if (error) {
-    console.error(`import-catalog: the database refused: ${error.message}`);
+    console.error(`${name}: the database refused: ${error.message}`);
     return 1;
   }
   const inserted = Object.values(data ?? {}).reduce((sum, n) => sum + Number(n), 0);
-  console.log(formatReport({ counts: data ?? {}, skipped: [] }).split("\n\nskipped")[0].replace("rows", "inserted"));
+  console.log(report({ counts: data ?? {}, skipped: [] }).split("\n\nskipped")[0].replace("rows", "inserted"));
   console.log(`\n${inserted} rows inserted${inserted === 0 ? " (everything was already there)" : ""}.`);
   return 0;
 }

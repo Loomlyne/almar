@@ -161,6 +161,16 @@ export type OpsKitCopy = {
     emptyLiveText: string;
     /** The question's confirm button. */
     saveEmpty: string;
+    /** I18N-04 (plan 06-01, pictures 06-01): the line under an Arabic or Spanish box the owner fixed by hand. */
+    lockedNote: string;
+    /** The text button at the end of that line: unlocks the box and fills it again from the English. */
+    translateAgain: string;
+    /** In that line while Translate again waits for the AI. */
+    translatingAgain: string;
+    /** In that line when the AI did not answer: the box stays empty and unlocked; the next Save fills it. */
+    translateAgainFailed: string;
+    /** Screen-reader suffix of a locked box's label. */
+    lockedLabel: string;
   };
 };
 
@@ -281,6 +291,11 @@ export const OPS_KIT_COPY: Record<OpsKitLocale, OpsKitCopy> = {
       emptyLiveTitle: "Save with a published translation empty?",
       emptyLiveText: "This text is on the site now. If you save it empty, the site loses it:",
       saveEmpty: "Save empty",
+      lockedNote: "Your own text. A change to the English will not replace it.",
+      translateAgain: "Translate again",
+      translatingAgain: "Translating…",
+      translateAgainFailed: "Could not translate now. It will be filled when you save.",
+      lockedLabel: "locked",
     },
   },
   ar: {
@@ -394,6 +409,11 @@ export const OPS_KIT_COPY: Record<OpsKitLocale, OpsKitCopy> = {
       emptyLiveTitle: "حفظ ترجمة منشورة فارغة؟",
       emptyLiveText: "هذا النص ظاهر على الموقع الآن. إذا حفظته فارغًا فسيُحذف من الموقع:",
       saveEmpty: "احفظه فارغًا",
+      lockedNote: "نصّك الخاص. لن يستبدله أي تغيير في النص الإنجليزي.",
+      translateAgain: "ترجمة من جديد",
+      translatingAgain: "جارٍ الترجمة…",
+      translateAgainFailed: "تعذّرت الترجمة الآن. ستُملأ عند الحفظ.",
+      lockedLabel: "مقفل",
     },
   },
   es: {
@@ -508,6 +528,11 @@ export const OPS_KIT_COPY: Record<OpsKitLocale, OpsKitCopy> = {
       emptyLiveTitle: "¿Guardar con una traducción publicada vacía?",
       emptyLiveText: "Este texto está ahora en el sitio. Si queda vacío al guardar, el sitio lo pierde:",
       saveEmpty: "Guardar vacío",
+      lockedNote: "Su propio texto. Un cambio en el inglés no lo reemplazará.",
+      translateAgain: "Traducir de nuevo",
+      translatingAgain: "Traduciendo…",
+      translateAgainFailed: "No se pudo traducir ahora. Se completará cuando guarde.",
+      lockedLabel: "bloqueado",
     },
   },
 };
