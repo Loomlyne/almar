@@ -1,11 +1,16 @@
-// Plan 06-03: a long blog post has more text than one /api/ops/translate call takes (TRANSLATE_LIMITS: 40 fields, the
+// Plan 06-03: a long blog post has more text than one /api/ops/translate call takes (CHUNK_LIMITS: 40 fields, the
 // JSON the model is sent). chunkedSend wraps the editor's `send` so the kit's one call per language becomes several calls
 // in order, each within the limits, and their answers are merged into one reply the kit already understands.
 // A body that fits is sent exactly once, as before.
 
 import type { Send, TranslateReply } from "../../components/ops/auto-translate";
 import type { OpsResponse } from "../../components/ops/ops-client";
-import { TRANSLATE_LIMITS } from "./translate";
+
+/**
+ * The route's field count and JSON size (lib/ops/translate.ts CHUNK_LIMITS.fields and .json), copied here so the
+ * browser bundle never imports the translate route and its prompt; tests/ops-posts-api.test.mjs keeps the two equal.
+ */
+export const CHUNK_LIMITS = { fields: 40, json: 7680 } as const;
 
 type Fields = Record<string, string | string[] | null>;
 type Body = { target: TranslateReply["target"]; fields: Fields };
@@ -26,7 +31,7 @@ export function chunkFields(fields: Fields): Fields[] {
   for (const [name, value] of Object.entries(fields)) {
     if (empty(value)) continue;
     const next = { ...current, [name]: value };
-    const fits = Object.keys(next).length <= TRANSLATE_LIMITS.fields && JSON.stringify(next).length <= TRANSLATE_LIMITS.json;
+    const fits = Object.keys(next).length <= CHUNK_LIMITS.fields && JSON.stringify(next).length <= CHUNK_LIMITS.json;
     if (fits || Object.keys(current).length === 0) {
       current = next;
     } else {

@@ -132,6 +132,10 @@ function fakeSend(fail = () => false) {
   return { calls, send };
 }
 
+test("chunkedSend's limits are the translate route's (copied so the browser never imports the route)", () => {
+  assert.deepEqual(c.CHUNK_LIMITS, { fields: TRANSLATE_LIMITS.fields, json: TRANSLATE_LIMITS.json });
+});
+
 test("chunkedSend: a body that fits is sent exactly once", async () => {
   const { calls, send } = fakeSend();
   const reply = await c.chunkedSend(send)("/api/ops/translate", { target: "ar", fields: { title: "T", block_1: "B" } }, { timeoutMs: 1 });
