@@ -11,13 +11,21 @@
 // traveller fields, and entering Request without a hold places exactly one hold (the reducer's holdAttempt, guarded by
 // a ref). While held the choices, the add-ons and every earlier step are locked: Change asks first, releases the hold,
 // then applies the move (Q-08). Nothing re-holds by itself.
+//
+// Plan 04-06 (signed 2026-10-27): Send request posts `{ ref, t }` once (an in-flight guard plus the request phase of
+// lib/booking/after-request.ts), reads the booking back through the view route for the sent state, and shows every
+// refusal as a reason with a way on. A stored hold is checked with the server first on load (resume): nothing is
+// quoted, held or requested before the view answers, and the stored end or the device clock never decides. The link
+// token goes only into the POST bodies and the one booking-page href of the sent state (P6-14).
 
 import { Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { parseDate } from "@internationalized/date";
 import { AddonsStep } from "../../../components/journey/addons-step";
 import { JourneyCart } from "../../../components/journey/journey-cart";
+import { BookingReasons } from "../../../components/journey/booking-reasons";
 import { RequestChoices, RequestStep } from "../../../components/journey/request-step";
+import { RequestChecking, RequestElsewhere, RequestRetryNote, RequestSent } from "../../../components/journey/request-sent";
 import { StaySummaryStep } from "../../../components/journey/stay-summary-step";
 import { TravellersStep } from "../../../components/journey/travellers-step";
 import { TripLayout } from "../../../components/journey/trip-layout";
@@ -27,20 +35,35 @@ import { PublicFrame, type PublicFrameLink } from "../../../components/site/publ
 import { ConfirmDialog } from "../../../components/ui/confirm-dialog";
 import { Link } from "../../../components/ui/link";
 import { PageShell } from "../../../components/ui/page-shell";
+import {
+  INITIAL_REQUEST_PHASE,
+  holdEndNow,
+  requestOutcome,
+  requestPhaseReducer,
+  resumeOutcome,
+  sentFromRequest,
+  type RequestAnswer,
+  type RequestPhase,
+  type RequestPhaseAction,
+} from "../../../lib/booking/after-request";
 import { postHold, postQuote, postRelease } from "../../../lib/booking/client";
-import { formatBp, formatIsoDate, windowParts } from "../../../lib/booking/trip-format";
+import { bookingPagePath } from "../../../lib/booking/origin";
+import { postRequest, postView } from "../../../lib/booking/request-client";
+import { formatBp, formatIsoDate, uaeDateTime, windowParts } from "../../../lib/booking/trip-format";
 import { TRIP_PATH, parseTripQuery, secondCityHref, tripLocaleHrefs, type TripQuery } from "../../../lib/booking/trip-link";
 import {
   canRequest,
   displayBreakdown,
   holdAnswerIsCurrent,
   holdBody,
-  loadTripState,
+  initialTripState,
   quoteBody,
+  readTripState,
   requestChoiceErrors,
   travellersErrors,
   tripNeedsPickup,
   tripReducer,
+  TRIP_STATE_KEY,
   writeTripState,
   type TripMove,
   type TripState,
@@ -51,7 +74,7 @@ import { SITE_FOOTER_COPY } from "../../../lib/copy/site-footer";
 import { fill, formatGuestSummary, formatPlural } from "../../../lib/journey-format";
 import { localeHrefs, localePath, siteHref, type Locale } from "../../../lib/locale-path";
 import { formatAed } from "../../../lib/money/format";
-import { stayRequestHref } from "../../../lib/whatsapp-request";
+import { ALMAR_WHATSAPP_NUMBER, stayRequestHref } from "../../../lib/whatsapp-request";
 
 const PAGE_LINKS = [
   { key: "destinations", path: "/destinations" },
@@ -62,6 +85,10 @@ const PAGE_LINKS = [
 
 const NONE = "—";
 const QUOTE_DEBOUNCE_MS = 300;
+/** The WhatsApp float's chat (components/ui/whatsapp.tsx), for the sent state's help line. */
+const HELP_HREF = `https://wa.me/${ALMAR_WHATSAPP_NUMBER}`;
+/** A retry and a failed check show this one reason (after-request.ts carries none for them). */
+const UNAVAILABLE = [{ code: "unavailable" as const }];
 
 export function TripPage({ locale }: { locale: Locale }) {
   const nav = HOME_COPY[locale].nav;
@@ -121,6 +148,46 @@ function TripScreen({ locale, onQuery }: { locale: Locale; onQuery: (q: TripQuer
   return <Trip key={search} locale={locale} query={query} />;
 }
 
+/**
+ * The stored trip of this tab as it is, its hold included (readTripState accepts only the exact shape). Unlike
+ * loadTripState, a stored hold is never ended here by the stored end and the device clock: the view route decides
+ * (resume, plan 04-06 P6-04).
+ */
+function restoreTrip(query: TripQuery): TripState {
+  let text: string | null = null;
+  try {
+    text = typeof window === "undefined" ? null : window.sessionStorage.getItem(TRIP_STATE_KEY);
+  } catch {
+    text = null;
+  }
+  return readTripState(text, query) ?? initialTripState(query);
+}
+
+/** The pay-by line: bookingStatus.payBy with the UAE date and time kept left to right. */
+function payByLine(template: string, at: { date: string; time: string }): ReactNode {
+  return template
+    .split(/\{(\w+)\}/g)
+    .map((part, i) =>
+      i % 2 === 1 ? (
+        <bdi key={i} dir="ltr">
+          {part === "date" ? at.date : part === "time" ? at.time : `{${part}}`}
+        </bdi>
+      ) : (
+        part
+      ),
+    );
+}
+
+/** uaeDateTime of a deadline after-request.ts passed on (its shape), or null should it still not read. */
+function deadlineParts(iso: string | null): { date: string; time: string } | null {
+  if (iso === null) return null;
+  try {
+    return uaeDateTime(iso);
+  } catch {
+    return null;
+  }
+}
+
 /** Nights between two ISO dates (calendar days; not money). */
 function nightsBetween(from: string, to: string): number {
   return parseDate(to).compare(parseDate(from));
@@ -128,7 +195,27 @@ function nightsBetween(from: string, to: string): number {
 
 function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   const copy = JOURNEY_COPY[locale];
-  const [state, dispatch] = useReducer(tripReducer, query, (q) => loadTripState(q));
+  const [state, dispatch] = useReducer(tripReducer, query, restoreTrip);
+  // 04-06: the request phase beside the trip. A stored hold starts in `checking` (resume): the view answers first.
+  const [phase, dispatchPhase] = useReducer(requestPhaseReducer, state.hold !== null, (stored: boolean) =>
+    stored ? requestPhaseReducer(INITIAL_REQUEST_PHASE, { type: "resume" }) : INITIAL_REQUEST_PHASE,
+  );
+  // The phase as the hold timer's end and the send read it: equal to the current phase on each render, and moved at
+  // once by applyPhase (the same pure reducer), so a timer tick between a dispatch and its render reads the new phase.
+  const phaseRef = useRef<RequestPhase>(phase);
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
+  const applyPhase = useCallback((action: RequestPhaseAction) => {
+    phaseRef.current = requestPhaseReducer(phaseRef.current, action);
+    dispatchPhase(action);
+  }, []);
+  // The stored hold of this load (resume and Check again use it), and the pair the booking-page href is built from:
+  // the stored one after a refresh, the pair captured at Send on a fresh request.
+  const storedHold = useRef(state.hold);
+  const [link, setLink] = useState<{ ref: string; t: string } | null>(() => (state.hold ? { ref: state.hold.ref, t: state.hold.linkToken } : null));
+  // The server's end of a resumed hold (the view's holdExpiresAt), shown instead of the stored one.
+  const [resumedEndsAt, setResumedEndsAt] = useState<string | null>(null);
   const [quoting, setQuoting] = useState(true);
   // A hold refused with a changed price (settings_changed, deposit_unavailable, ...) asks for a fresh quote.
   const [requote, setRequote] = useState(0);
@@ -148,7 +235,10 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   const quoted = quoteBody(state, locale);
   const quoteKey = JSON.stringify({ addons: quoted.addons, hold: quoted.hold?.ref ?? null, requote });
   const firstQuote = useRef(true);
+  const checking = phase.kind === "checking";
   useEffect(() => {
+    // Resume: nothing is quoted before the view of a stored hold answers.
+    if (checking) return;
     const abort = new AbortController();
     setQuoting(true);
     const wait = firstQuote.current ? 0 : QUOTE_DEBOUNCE_MS;
@@ -163,7 +253,7 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
       window.clearTimeout(timer);
       abort.abort();
     };
-  }, [quoteKey, locale]);
+  }, [quoteKey, locale, checking]);
 
   // Q-01 = B: one POST /api/booking/hold per entry into Request (or per retry), never a second for the same attempt.
   // While it is out (state.holdPending) the reducer refuses every input and step move. Each answer is tagged with the
@@ -199,7 +289,36 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   }, [state, locale]);
   const holdBusy = state.holdPending;
 
+  // Resume (P6-04): one view per check of the stored hold; Check again starts a new check. Held continues 04-03's
+  // restore with the server's end; expired or unknown is 04-03's ended; the rest is the phase's.
+  const viewFor = useRef<RequestPhase | null>(null);
+  useEffect(() => {
+    const hold = storedHold.current;
+    if (phase.kind !== "checking" || phase.failed || !hold || viewFor.current === phase) return;
+    viewFor.current = phase;
+    void postView({ ref: hold.ref, t: hold.linkToken, locale }).then(({ status, json }) => {
+      if (!alive.current) return;
+      const outcome = resumeOutcome(status, json, Date.now());
+      if (outcome.kind === "held") setResumedEndsAt(outcome.holdExpiresAt);
+      if (outcome.kind === "ended") dispatch({ type: "ended" });
+      applyPhase({ type: "resumed", outcome });
+    });
+  }, [phase, locale, applyPhase]);
+
+  // Race: the hold timer's end while a request is in flight is held back (the server's answer decides), then applied
+  // after a retry, refused or closed answer; a sent or moved-on request clears it.
+  const holdEndedWhileSending = useRef(false);
+  const onHoldEnd = useCallback(() => {
+    if (!holdEndNow(phaseRef.current)) {
+      holdEndedWhileSending.current = true;
+      return;
+    }
+    dispatch({ type: "ended" });
+  }, []);
+
   // The countdown's clock is the server's: the device clock plus the offset taken from the hold answer's serverNow.
+  // After a resume the end is the view's.
+  const liveHold = state.hold && resumedEndsAt ? { ...state.hold, holdExpiresAt: resumedEndsAt } : state.hold;
   const clockOffset = state.hold?.clockOffsetMs ?? 0;
   const holdClock = useMemo(() => () => Date.now() + clockOffset, [clockOffset]);
 
@@ -254,10 +373,77 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
     setPending(null);
   };
 
-  // The submit seam. 04-06 implements the call to the request route (its own) inside the same phase PR (it dispatches
-  // { type: "closed" } and { type: "refused", at: "request" } for its refusals); this plan sends nothing from here.
-  const requestTrip = useCallback(() => {}, []);
+  // Send request (04-06). One send at a time (sendingRef, set before the first await, plus the phase). The pair is
+  // captured before the first await and is the only one this send uses: the hold can end or be cleared meanwhile.
+  const sendingRef = useRef(false);
+  const requestTrip = useCallback(async () => {
+    const hold = stateRef.current.hold;
+    const kind = phaseRef.current.kind;
+    if (sendingRef.current || !hold || (kind !== "idle" && kind !== "refused" && kind !== "retry")) return;
+    const { ref, linkToken } = hold;
+    sendingRef.current = true;
+    holdEndedWhileSending.current = false;
+    applyPhase({ type: "send" });
+    dispatch({ type: "refused", at: "request", reasons: [] });
+    try {
+      const sent = await postRequest({ ref, t: linkToken });
+      const outcome = requestOutcome(sent.status, sent.json);
+      let result: RequestAnswer;
+      if (outcome.kind === "sent") {
+        // The amount and the plan come from the booking itself (P6-03); without the view, the request's own answer.
+        const view = await postView({ ref, t: linkToken, locale });
+        const read = resumeOutcome(view.status, view.json, Date.now());
+        if (read.kind === "sent") result = { kind: "sent", summary: { ...read.summary, emailSent: outcome.emailSent } };
+        else if (read.kind === "elsewhere") result = read;
+        else result = { kind: "sent", summary: sentFromRequest(outcome) };
+      } else {
+        // Taken: the guest's own held nights are freed once (best effort), then 04-03's released.
+        if (outcome.kind === "taken") await postRelease({ ref, t: linkToken });
+        result = outcome;
+      }
+      if (!alive.current) return;
+      const endedMeanwhile = holdEndedWhileSending.current;
+      holdEndedWhileSending.current = false;
+      setLink({ ref, t: linkToken });
+      applyPhase({ type: "answer", result });
+      switch (result.kind) {
+        case "ended":
+          dispatch({ type: "ended" });
+          break;
+        case "taken":
+          dispatch({ type: "released" });
+          dispatch({ type: "refused", at: "hold", reasons: result.reasons });
+          break;
+        case "closed":
+          dispatch({ type: "closed" });
+          dispatch({ type: "refused", at: "request", reasons: result.reasons });
+          if (endedMeanwhile) dispatch({ type: "ended" });
+          break;
+        case "refused":
+          dispatch({ type: "refused", at: "request", reasons: result.reasons });
+          if (endedMeanwhile) dispatch({ type: "ended" });
+          break;
+        case "retry":
+          dispatch({ type: "refused", at: "request", reasons: UNAVAILABLE });
+          if (endedMeanwhile) dispatch({ type: "ended" });
+          break;
+        case "sent":
+        case "elsewhere":
+          // The server took the request before the hold ended; the stored hold stays, so a refresh resumes via view.
+          break;
+      }
+    } finally {
+      sendingRef.current = false;
+    }
+  }, [locale, applyPhase]);
   const canContinue = Boolean(quote?.ok) && !state.closed;
+
+  // After Request (sent, moved on) and while a stored hold is checked, the step gives way to the after-request state;
+  // then, and after a request that ended or was taken, the rail has no Change (nothing can be edited after Request;
+  // the way on is the state's own link).
+  const afterSteps = phase.kind === "checking" || phase.kind === "sent" || phase.kind === "elsewhere";
+  const layoutStep: StepNumber = afterSteps ? 4 : state.step;
+  const railLocked = afterSteps || phase.kind === "ended" || phase.kind === "taken";
 
   // ---- the cart, from the server's numbers only
   const lines: CartLine[] = (price?.lines ?? [])
@@ -295,7 +481,7 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   };
   const cart = <JourneyCart {...cartProps} onContinue={next[state.step]} variant="rail" className="w-full static md:w-rail md:sticky" />;
   const cartDock =
-    state.step < 4 ? (
+    layoutStep < 4 ? (
       <JourneyCart {...cartProps} onContinue={next[state.step]} variant="phone" continueDisabled={state.step === 1 && !canContinue} />
     ) : undefined;
 
@@ -318,8 +504,37 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
     price: formatAed(o.priceFils),
   }));
 
+  const a = copy.afterRequest;
+  const bookingHref = (ref: string) => (link ? bookingPagePath(locale, link.ref, link.t) : bookingPagePath(locale, ref));
+
   let body: ReactNode = null;
-  if (state.step === 1) {
+  if (phase.kind === "checking") {
+    body = (
+      <RequestChecking
+        copy={copy}
+        failed={phase.failed}
+        onRetry={() => applyPhase({ type: "resume" })}
+        reasonsSlot={<BookingReasons reasons={UNAVAILABLE} copy={copy} locale={locale} links={reasonLinks} live="assertive" />}
+      />
+    );
+  } else if (phase.kind === "sent") {
+    const s = phase.summary;
+    const at = deadlineParts(s.deadline);
+    body = (
+      <RequestSent
+        reference={s.ref}
+        planLabel={s.plan === "deposit" ? a.planDeposit : s.plan === "full" ? a.planFull : null}
+        amountText={s.dueNowFils === null ? null : formatAed(s.dueNowFils)}
+        deadlineText={at ? payByLine(copy.bookingStatus.payBy, at) : null}
+        emailLine={s.emailSent === true ? "sent" : "page"}
+        bookingHref={bookingHref(s.ref)}
+        helpHref={HELP_HREF}
+        copy={copy}
+      />
+    );
+  } else if (phase.kind === "elsewhere") {
+    body = <RequestElsewhere reference={phase.ref} bookingHref={bookingHref(phase.ref)} copy={copy} />;
+  } else if (state.step === 1) {
     body = (
       <div className="flex flex-col gap-4">
         {quote ? null : <p className="m-0 text-label text-muted">{copy.trip.loading}</p>}
@@ -391,7 +606,7 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
       />
     );
   } else {
-    const hold = state.hold;
+    const hold = liveHold;
     const win = hold ? windowParts(hold.transferWindowMinutes) : null;
     const dueNow = price ? formatAed(state.plan === "deposit" && price.deposit ? price.deposit.dueNowFils : price.full.dueNowFils) : NONE;
     const refusal = releaseFailed ? { at: "request" as const, reasons: [{ code: "unavailable" as const }] } : state.refusal;
@@ -403,7 +618,7 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
         airport={state.airport}
         holdBusy={holdBusy}
         onHold={() => dispatch({ type: "retryHold" })}
-        holdDisabled={holdBusy || state.closed || state.ended}
+        holdDisabled={holdBusy || state.closed || state.ended || phase.kind === "taken"}
         held={
           hold && win
             ? {
@@ -420,31 +635,47 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
         refusal={refusal}
         reasonLinks={reasonLinks}
         offerName={offerName}
-        canRequest={canRequest(state, Date.now())}
+        canRequest={canRequest({ ...state, hold: liveHold }, Date.now())}
+        requestBusy={phase.kind === "sending"}
         onRequest={requestTrip}
         secondCityHref={secondCity}
         now={holdClock}
-        onEnd={() => dispatch({ type: "ended" })}
+        onEnd={onHoldEnd}
         copy={copy}
         locale={locale}
       />
     );
+    // A retry: the reason sits under Send request (the refusal) and this note directly under the step.
+    if (phase.kind === "retry" && hold && !state.ended && state.refusal?.at === "request") {
+      body = (
+        <>
+          {body}
+          <RequestRetryNote text={a.retryNote} />
+        </>
+      );
+    }
   }
 
   const r = copy.request;
   return (
     <>
-      <TripLayout
-        title={copy.trip.title}
-        step={state.step}
-        // No Change on the rail while a hold is being placed.
-        onStepChange={state.holdPending ? undefined : go}
-        copy={copy}
-        cart={cart}
-        cartDock={cartDock}
-      >
-        {body}
-      </TripLayout>
+      {railLocked ? (
+        <TripLayout title={copy.trip.title} step={layoutStep} copy={copy} cart={cart} cartDock={cartDock}>
+          {body}
+        </TripLayout>
+      ) : (
+        <TripLayout
+          title={copy.trip.title}
+          step={layoutStep}
+          // No Change on the rail while a hold is being placed.
+          onStepChange={state.holdPending ? undefined : go}
+          copy={copy}
+          cart={cart}
+          cartDock={cartDock}
+        >
+          {body}
+        </TripLayout>
+      )}
       <ConfirmDialog
         open={pending !== null}
         onOpenChange={(open) => {
