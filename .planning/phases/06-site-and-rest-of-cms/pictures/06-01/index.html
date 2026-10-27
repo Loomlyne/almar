@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAR 06-01 pictures: translation lock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+Arabic:wght@400;600&family=Noto+Naskh+Arabic&display=swap">
+<style>
+/* Tokens copied from tokens.json (2026-10-27). Square corners everywhere; gold is a line only; teal is the primary. */
+:root{
+  --color-ivory:#fffaf0;--color-surface:#ffffff;--color-teal:#1f3b40;--color-teal-tint:#d1dfe0;--color-gold:#d4ba8a;
+  --color-ink:#262626;--color-muted:#63615f;--color-line:rgb(38 38 38 / 0.16);--color-error:#8f2d2d;
+  --control:44px;--sidebar:240px;
+  --face-display:Georgia,"Times New Roman",serif;
+  --face-body:"Lato",Arial,sans-serif;
+  --shadow-selected:inset 0 0 0 2px var(--color-teal);
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;background:#ece8df;color:var(--color-ink);font-family:var(--face-body);font-size:14px}
+/* ---------- review page chrome (not product UI) ---------- */
+#top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:10px 20px;background:var(--color-teal);color:var(--color-ivory)}
+#top h1{font:400 18px var(--face-display);margin:0;margin-inline-end:auto}
+#top .grp{display:flex;align-items:center;gap:6px}
+#top .grp span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-inline-end:4px}
+#top button{font:inherit;font-size:13px;padding:6px 12px;border:1px solid rgba(255,250,240,.5);background:transparent;color:var(--color-ivory);cursor:pointer}
+#top button[aria-pressed=true]{background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)}
+#main{padding:20px 24px 80px}
+.banner{background:var(--color-ivory);border:1px solid var(--color-gold);padding:12px 16px;margin-bottom:24px;font-size:14px;line-height:1.55;max-width:1100px}
+.banner ol{margin:6px 0 0;padding-inline-start:20px}
+.banner code{font:13px ui-monospace,Menlo,monospace}
+.st{margin:0 0 48px}
+.st>h2{font:400 22px var(--face-display);color:var(--color-teal);margin:0 0 4px}
+.st>p{margin:0 0 12px;max-width:900px;line-height:1.5}
+.shot{margin:0 0 28px}
+.shot .cap{font:600 13px ui-monospace,Menlo,monospace;margin:0 0 6px}
+.scroller{overflow-x:auto;padding-bottom:6px}
+.scaler{transform-origin:top left}
+/* ---------- product frame: dashboard shell + editor page ---------- */
+.frame{background:var(--color-ivory);color:var(--color-ink);font:14px/1.43 var(--face-body);border:1px solid var(--color-line);display:flex;min-height:640px}
+.frame[dir=rtl]{font-family:"Noto Sans Arabic",var(--face-body);line-height:1.63}
+.frame[dir=rtl] .disp{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.4}
+.rail{width:var(--sidebar);flex:none;border-inline-end:1px solid var(--color-line);padding:20px 16px;display:flex;flex-direction:column;gap:2px}
+.rail .mark{font:400 20px var(--face-display);color:var(--color-ink);letter-spacing:.06em;margin-bottom:20px}
+.rail a{display:flex;align-items:center;min-height:40px;padding:0 12px;color:var(--color-ink);text-decoration:none}
+.rail a.sub{padding-inline-start:28px}
+.rail a.on{box-shadow:inset 3px 0 0 var(--color-teal);background:var(--color-surface);color:var(--color-teal)}
+.frame[dir=rtl] .rail a.on{box-shadow:inset -3px 0 0 var(--color-teal)}
+.bar{display:none;align-items:center;justify-content:space-between;height:56px;padding:0 16px;border-bottom:1px solid var(--color-line);background:var(--color-ivory)}
+.bar .mark{font:400 18px var(--face-display);letter-spacing:.06em}
+.bar .menu{min-height:var(--control);min-width:var(--control);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-ink);background:transparent}
+.col{flex:1;min-width:0;display:flex;flex-direction:column}
+.page{padding:24px 32px 48px;display:flex;flex-direction:column;gap:24px;max-width:1240px}
+.narrow .rail{display:none}.narrow .bar{display:flex}.narrow .page{padding:16px 16px 40px}
+.back{display:inline-flex;align-items:center;gap:4px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;width:max-content}
+.frame[dir=rtl] .back svg{transform:none}.back svg{transform:rotate(180deg)}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid var(--color-line);padding-bottom:16px}
+.head h1{margin:0;font:400 32px/1.2 var(--face-display);color:var(--color-teal)}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border:1px solid var(--color-teal);color:var(--color-teal);font-size:12px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:var(--control);padding:0 20px;font:inherit;border:1px solid var(--color-teal);display:inline-flex;align-items:center;cursor:default}
+.btn.o{background:transparent;color:var(--color-teal)}
+.btn.p{background:var(--color-teal);color:#fff}
+.card{border:1px solid var(--color-line);background:var(--color-surface);padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.narrow .card{padding:16px}
+.card h2{margin:0;font:400 20px/1.3 var(--face-display);color:var(--color-teal)}
+.note{margin:0;color:var(--color-muted)}
+.field{display:grid;gap:8px}
+.field label{color:var(--color-ink)}
+.input{min-height:var(--control);border:1px solid var(--color-ink);background:var(--color-surface);padding:8px 16px;font:inherit;color:var(--color-ink);width:100%;white-space:pre-wrap}
+.input.area{min-height:96px}
+.input.busy{color:var(--color-muted);background:var(--color-ivory);border-color:var(--color-line)}
+.link{display:inline-flex;align-items:center;gap:8px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-decoration-thickness:1px;text-underline-offset:4px;background:none;border:0;padding:0;font:inherit;cursor:default}
+.boxes{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+.narrow .boxes{grid-template-columns:1fr}
+.mid .boxes{grid-template-columns:1fr 1fr}
+.lang{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.lang h3{margin:0;font-weight:400;color:var(--color-muted)}
+.lang[dir=rtl]{font-family:"Noto Sans Arabic",var(--face-body);line-height:1.63}
+/* The new piece: one plain line under a locked box. */
+.lockline{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 16px;color:var(--color-muted);margin-top:-4px}
+.narrow:not(.mid) .lockline{grid-template-columns:1fr}.narrow:not(.mid) .lockline .link{justify-self:end}
+.lockline .txt{display:flex;align-items:flex-start;gap:6px;min-width:0}
+.lockline .txt svg{flex:none;margin-top:2px}
+.lockline .link{min-height:var(--control);white-space:nowrap}
+.lockline.failed .txt{border-inline-start:2px solid var(--color-error);padding-inline-start:8px;color:var(--color-ink)}
+.lockline.busy .txt{color:var(--color-ink)}
+.spin{width:14px;height:14px;border:2px solid var(--color-teal-tint);border-top-color:var(--color-teal);display:inline-block;flex:none;margin-top:3px;animation:s 1s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+.newbadge{outline:2px dashed var(--color-gold);outline-offset:4px}
+</style></head>
+<body>
+<div id="top">
+  <h1>06-01 · Translation lock (I18N-04, F-14) · pictures for signature</h1>
+  <div class="grp"><span>Language</span><button data-l="all" aria-pressed="true">All</button><button data-l="en">EN</button><button data-l="ar">AR</button><button data-l="es">ES</button></div>
+  <div class="grp"><span>Width</span><button data-w="all" aria-pressed="true">All</button><button data-w="390">390</button><button data-w="834">834</button><button data-w="1440">1440</button></div>
+  <div class="grp"><span>Size</span><button data-z="fit" aria-pressed="true">Fit</button><button data-z="1">100%</button></div>
+  <div class="grp"><span>Mark new</span><button data-m="on" aria-pressed="false">Show</button></div>
+</div>
+<div id="main">
+  <div class="banner">
+    <strong>What changes.</strong> In every editor, an Arabic or Spanish text you type yourself under <em>Edit translations</em>
+    stays yours: a later change to the English does not replace it. Under such a box there is one plain line with a small lock,
+    and <em>Translate again</em> at its end (on the left in Arabic) to hand that one box back to the AI. Nothing else on the
+    page moves. Example: the Cartagena destination, with its real texts; "قرطاجنة" and "Cartagena de Indias" are the hand-typed names.
+    Drawn with the real tokens (teal primary, gold underline on text buttons, square corners, no badge, no radio).
+    <ol>
+      <li><code>lock-one-en-1440</code>: under the Arabic name, "Your own text. A change to the English will not replace it." and Translate again at the end; the Spanish box has no line.</li>
+      <li><code>lock-one-ar-390</code>: the same in Arabic, right to left, Translate again on the left.</li>
+      <li><code>lock-refilling-en-834</code> and <code>lock-refill-failed-en-834</code>: "Translating…" while it works; if the AI fails, "Could not translate now. It will be filled when you save." and the box empty.</li>
+      <li><code>lock-none-es-1440</code>: the page as today, no line anywhere.</li>
+    </ol>
+    <p style="margin:8px 0 0">Arabic and Spanish wording of the new lines is our draft (dashboard Spanish uses <em>usted</em>); change any word in your reply.
+    Screen-reader only: a locked box is announced with "locked" / "مقفل" / "bloqueado" after its label.</p>
+  </div>
+  <div id="shots"></div>
+</div>
+<script>
+const LOCK='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="10.5" width="12" height="8.5"/><path d="M8.5 10.5V8.2a3.5 3.5 0 0 1 7 0v2.3"/></svg>';
+const CHEV='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+const MENU='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+// UI copy: existing strings from lib/copy (ops-kit.ts, ops-catalog.ts, dashboard.ts); NEW = the five lines proposed for editor.*
+const UI={
+ en:{dir:"ltr",rail:["Home","Bookings","Customers","Calendar","Catalog","Destinations","Stays","Experiences & Services","Packages","Content","Settings"],
+   back:"Destinations",published:"Published",unsaved:"Unsaved changes",save:"Save",unpublish:"Unpublish",text:"Text",
+   englishOnly:"Write in English. Arabic and Spanish are added when you save.",hide:"Hide translations",
+   note:"Arabic and Spanish were filled in from the English. Change a word only if you need to.",
+   langs:{ar:"Arabic",es:"Spanish"},f:{name:"Name",region:"Region",summary:"Description"},
+   NEW:{lockedNote:"Your own text. A change to the English will not replace it.",translateAgain:"Translate again",translatingAgain:"Translating…",translateAgainFailed:"Could not translate now. It will be filled when you save."}},
+ ar:{dir:"rtl",rail:["الرئيسية","الحجوزات","العملاء","التقويم","الكتالوج","الوجهات","الإقامات","التجارب والخدمات","الباقات","المحتوى","الإعدادات"],
+   back:"الوجهات",published:"منشور",unsaved:"تغييرات غير محفوظة",save:"حفظ",unpublish:"إلغاء النشر",text:"النص",
+   englishOnly:"اكتب بالإنجليزية. تُضاف العربية والإسبانية عند الحفظ.",hide:"إخفاء الترجمات",
+   note:"تمت كتابة العربية والإسبانية تلقائيًا من النص الإنجليزي. غيّر كلمة فقط عند الحاجة.",
+   langs:{ar:"العربية",es:"الإسبانية"},f:{name:"الاسم",region:"المنطقة",summary:"الوصف"},
+   NEW:{lockedNote:"نصّك الخاص. لن يستبدله أي تغيير في النص الإنجليزي.",translateAgain:"ترجمة من جديد",translatingAgain:"جارٍ الترجمة…",translateAgainFailed:"تعذّرت الترجمة الآن. ستُملأ عند الحفظ."}},
+ es:{dir:"ltr",rail:["Inicio","Reservas","Clientes","Calendario","Catálogo","Destinos","Estancias","Experiencias y servicios","Paquetes","Contenido","Ajustes"],
+   back:"Destinos",published:"Publicado",unsaved:"Cambios sin guardar",save:"Guardar",unpublish:"Dejar de publicar",text:"Texto",
+   englishOnly:"Escriba en inglés. El árabe y el español se añaden al guardar.",hide:"Ocultar traducciones",
+   note:"El árabe y el español se completaron a partir del inglés. Cambie una palabra solo si lo necesita.",
+   langs:{ar:"árabe",es:"español"},f:{name:"Nombre",region:"Región",summary:"Descripción"},
+   NEW:{lockedNote:"Su propio texto. Un cambio en el inglés no lo reemplazará.",translateAgain:"Traducir de nuevo",translatingAgain:"Traduciendo…",translateAgainFailed:"No se pudo traducir ahora. Se completará cuando guarde."}}
+};
+// Content: lib/data/fixtures/destination-translations.json (Cartagena); hand-typed names marked in the states.
+const TXT={
+ en:{name:"Cartagena",region:"Caribbean coast",summary:"Cartagena is ALMAR's densest verified inventory: colonial houses in Getsemaní and the Historic Center, San Diego residences, Bocagrande beach houses, Barú villas, private islands, and marine charters."},
+ ar:{name:"كارتاخينا",region:"الساحل الكاريبي",summary:"تضم كارتاخينا أكبر مجموعة من العقارات الموثّقة لدى ALMAR: بيوت استعمارية في خيتسيماني والمركز التاريخي، وإقامات في سان دييغو، وبيوت شاطئية في بوكاغراندي، وفلل في بارو، وجزر خاصة، ورحلات بحرية خاصة."},
+ es:{name:"Cartagena",region:"Costa Caribe",summary:"Cartagena concentra la mayor oferta verificada de ALMAR: casas coloniales en Getsemaní y el Centro Histórico, residencias en San Diego, casas de playa en Bocagrande, villas en Barú, islas privadas y chárteres náuticos."}
+};
+const HAND={ar:"قرطاجنة",es:"Cartagena de Indias"};
+// state -> per target: the name box's state ("auto" | "locked" | "busy" | "failed")
+const STATES={
+ "none":{ar:"auto",es:"auto",dirty:false,what:"Today's page, unchanged: Edit translations open, no hand-typed text, no line anywhere."},
+ "one":{ar:"locked",es:"auto",dirty:true,what:"The owner typed the Arabic name by hand. One line under that box; the Spanish box is untouched."},
+ "both":{ar:"locked",es:"locked",dirty:true,what:"Arabic and Spanish names both typed by hand: a line under each."},
+ "refilling":{ar:"busy",es:"auto",dirty:true,what:"Translate again pressed on the Arabic name: the box waits, the line says Translating…, the button is gone until it answers."},
+ "refill-failed":{ar:"failed",es:"auto",dirty:true,what:"The AI did not answer: the box stays empty and unlocked, and the next Save fills it."}
+};
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+function lockLine(u,state,field,target){
+  const lbl=u.f[field]+" · "+target.toUpperCase();
+  if(state==="locked") return `<div class="lockline new" dir="${u.dir}"><span class="txt">${LOCK}<span>${u.NEW.lockedNote}</span></span><button class="link" aria-label="${u.NEW.translateAgain}: ${lbl}">${u.NEW.translateAgain}</button></div>`;
+  if(state==="busy") return `<div class="lockline busy new" dir="${u.dir}" role="status"><span class="txt"><span class="spin" aria-hidden="true"></span><span>${u.NEW.translatingAgain}</span></span></div>`;
+  if(state==="failed") return `<div class="lockline failed new" dir="${u.dir}" role="alert"><span class="txt"><span>${u.NEW.translateAgainFailed}</span></span></div>`;
+  return "";
+}
+function langBox(u,target,st){
+  const fields=["name","region","summary"].map(f=>{
+    const s=f==="name"?st[target]:"auto";
+    const val=s==="locked"?HAND[target]:(s==="busy"||s==="failed")?"":TXT[target][f];
+    const area=f==="summary";
+    return `<div class="field"><label>${u.f[f]} · ${target.toUpperCase()}</label><div class="input${area?" area":""}${s==="busy"?" busy":""}" dir="${target==="ar"?"rtl":"ltr"}" lang="${target}">${esc(val)||"&nbsp;"}</div>${lockLine(u,s,f,target)}</div>`;
+  }).join("");
+  return `<div class="lang" lang="${target}" dir="${target==="ar"?"rtl":"ltr"}"><h3>${u.langs[target]}</h3>${fields}</div>`;
+}
+function frame(stateKey,loc,w){
+  const u=UI[loc],st=STATES[stateKey];
+  const cls=w<1024?(w<768?"narrow":"narrow mid"):"";
+  const rail=u.rail.map((r,i)=>`<a class="${i>=5&&i<=8?"sub ":""}${i===5?"on":""}">${r}</a>`).join("");
+  const eng=["name","region","summary"].map(f=>`<div class="field"><label>${UI[loc].f[f]}${f==="name"?" *":""}</label><div class="input${f==="summary"?" area":""}" dir="ltr" lang="en">${esc(TXT.en[f])}</div></div>`).join("");
+  return `<div class="frame ${cls}" dir="${u.dir}" lang="${loc}" style="width:${w}px">
+   <nav class="rail"><div class="mark">ALMAR</div>${rail}</nav>
+   <div class="col"><div class="bar"><span class="mark">ALMAR</span><span class="menu">${MENU}</span></div>
+   <div class="page">
+     <div><a class="back">${CHEV}${u.back}</a>
+       <div class="head"><div><h1 class="disp">Cartagena</h1><div class="meta"><span class="chip">${u.published}</span>${st.dirty?`<span>${u.unsaved}</span>`:""}</div></div>
+       <div class="acts"><span class="btn o">${u.save}</span><span class="link">${u.unpublish}</span></div></div></div>
+     <section class="card"><h2 class="disp">${u.text}</h2><p class="note">${u.englishOnly}</p>${eng}
+       <div style="display:flex;flex-direction:column;gap:16px"><button class="link">${CHEV.replace('<path','<path transform="rotate(-90 12 12)"')}${u.hide}</button>
+       <p class="note">${u.note}</p>
+       <div class="boxes">${langBox(u,"ar",st)}${langBox(u,"es",st)}</div></div>
+     </section>
+   </div></div></div>`;
+}
+const order=["none","one","both","refilling","refill-failed"],locs=["en","ar","es"],widths=[390,834,1440];
+let html="";
+for(const s of order){
+  html+=`<section class="st" data-st="${s}"><h2>ops-lock-${s}</h2><p>${STATES[s].what}</p>`;
+  for(const l of locs) for(const w of widths)
+    html+=`<div class="shot" data-l="${l}" data-w="${w}"><p class="cap">ops-lock-${s}-${l}-${w}</p><div class="scroller"><div class="scaler" data-w="${w}">${frame(s,l,w)}</div></div></div>`;
+  html+=`</section>`;
+}
+document.getElementById("shots").innerHTML=html;
+const f={l:"all",w:"all",z:"fit"};
+function apply(){
+  document.querySelectorAll(".shot").forEach(e=>{e.hidden=!((f.l==="all"||e.dataset.l===f.l)&&(f.w==="all"||e.dataset.w===f.w));});
+  const avail=document.getElementById("main").clientWidth-8;
+  document.querySelectorAll(".scaler").forEach(e=>{const w=+e.dataset.w;const k=f.z==="fit"?Math.min(1,avail/(w+2)):1;e.style.transform=`scale(${k})`;e.parentElement.style.height=(e.firstElementChild.offsetHeight*k+8)+"px";e.parentElement.style.overflowX=k<1?"hidden":"auto";});
+}
+document.querySelectorAll("#top button").forEach(b=>b.addEventListener("click",()=>{
+  const k=Object.keys(b.dataset)[0];
+  if(k==="m"){const on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",on);document.querySelectorAll(".new").forEach(n=>n.classList.toggle("newbadge",on));return;}
+  f[k]=b.dataset[k];document.querySelectorAll(`#top button[data-${k}]`).forEach(x=>x.setAttribute("aria-pressed",x===b));apply();
+}));
+addEventListener("resize",apply);document.fonts?.ready.then(apply);apply();
+</script>
+</body></html>
