@@ -83,3 +83,20 @@ test("the snapshot writer drops a link whose page is not on the site, sorts by p
   assert.equal(out.header.es[1].label, "About", "a draft Spanish label falls back to English");
   assert.deepEqual(out.footer.es, [{ label: "Partner", href: "https://example.com", external: true }]);
 });
+
+test("the snapshot writer leaves out a link with a draft English label, with a warning, and the build goes on", () => {
+  const built = { pages: PUBLIC_PAGES, legal: [], packages: [] };
+  const links = [
+    { id: "a", area: "header", position: 1, link_kind: "internal", target: "destinations" },
+    { id: "b", area: "header", position: 2, link_kind: "internal", target: "about" },
+  ];
+  const translations = [
+    { link_id: "a", locale: "en", status: "draft", label: "Destinations" },
+    { link_id: "b", locale: "en", status: "published", label: "About" },
+  ];
+  const warned = [];
+  const out = snapshotFromRows({ ...nav }, { links, translations, built }, (line) => warned.push(line));
+  for (const locale of ["en", "ar", "es"]) assert.deepEqual(out.header[locale].map((l) => l.label), ["About"]);
+  assert.equal(warned.length, 1);
+  assert.match(warned[0], /link a left out/);
+});

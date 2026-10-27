@@ -59,6 +59,9 @@ export function chunkedSend(send: Send): Send {
         Object.assign(fields, reply.fields);
         left.push(...(reply.left ?? []));
       } else {
+        // The daily limit is the owner's to know (the kit says when it resets): stop and answer it, even after some chunks
+        // came back, rather than "some fields left" with no reason. Any other failure leaves that chunk's fields in `left`.
+        if (reply.error.code === "translate_limit") return reply;
         firstFailure ??= reply;
         left.push(...Object.keys(chunk));
       }

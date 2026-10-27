@@ -4,7 +4,7 @@
 // nav_link_translations, ops_save_nav). What depends on the section itself (its text columns, its photo slots, whether
 // it takes a video) is checked by the handler once it has read the section: see checkSectionSave.
 
-import { PAGE_KEYS, type PageKey, type SectionSpec } from "../data/page-sections";
+import { PAGE_KEYS, PAGE_SECTIONS, type PageKey, type SectionSpec } from "../data/page-sections";
 import { isNavTarget } from "../site-nav";
 import type { NavLinkBody, PageItemsBody, SaveNavBody, SavePageSectionBody } from "./site-cms-api";
 import { OpsInvalid } from "./route-core";
@@ -112,9 +112,15 @@ export function parsePageSave(value: unknown): SavePageSectionBody {
 /**
  * The checks that need the section (page, section) the id belongs to: only that section's text columns (and locks on
  * them), only its photo slots with one photo on a single slot, a video address only on a section that takes one, and
- * (when the owner keeps heroes fixed) no Show on site on a hero.
+ * (when the owner keeps heroes fixed) a hero cannot be hidden. `hero`: the section is its page's main heading, the first
+ * section of the page in PAGE_SECTIONS (Contact's is `title`, review of 57cb4cc0). Sending is_shown: true on a hero is
+ * harmless and accepted; only false is refused.
  */
-export function checkSectionSave(body: SavePageSectionBody, spec: SectionSpec, { heroFixed }: { heroFixed: boolean }): void {
+export function isPageHero(page: PageKey, section: string): boolean {
+  return PAGE_SECTIONS[page][0]?.section === section;
+}
+
+export function checkSectionSave(body: SavePageSectionBody, spec: SectionSpec, { heroFixed, hero }: { heroFixed: boolean; hero: boolean }): void {
   const columns = new Set<string>(spec.text);
   for (const [locale, rec] of Object.entries(body.translations ?? {})) {
     if (!rec) continue;
@@ -132,7 +138,7 @@ export function checkSectionSave(body: SavePageSectionBody, spec: SectionSpec, {
     if (!rule || (!rule.many && ids.length > 1)) throw new OpsInvalid(`media.${slot}`);
   }
   if (has(body, "video_url") && !spec.video) throw new OpsInvalid("video_url");
-  if (has(body, "is_shown") && heroFixed && spec.section === "hero") throw new OpsInvalid("is_shown");
+  if (heroFixed && hero && body.is_shown === false) throw new OpsInvalid("is_shown");
 }
 
 // ---- POST /api/ops/page-items --------------------------------------------------------------------------------------
@@ -169,6 +175,24 @@ export function parsePageItemAction(value: unknown): PageItemsBody {
 
 // ---- POST /api/ops/nav ---------------------------------------------------------------------------------------------
 
+/**
+ * A link's labels, with error paths that name the link (links.3.translations.en.label, as post blocks do). A link has no
+ * publish flag of its own, so English is always sent as published: the build leaves out a link with no published
+ * English label, and a new row would otherwise default to draft (review of 57cb4cc0).
+ */
+function linkTranslations(value: unknown, path: string, create: boolean): NavLinkBody["translations"] {
+  let out: NavLinkBody["translations"];
+  try {
+    out = translations(value, NAV_LINK_TEXT, { create }) as NavLinkBody["translations"];
+  } catch (error) {
+    if (error instanceof OpsInvalid) throw new OpsInvalid(`${path}.${error.field}`, error.locale);
+    throw error;
+  }
+  const en = out.en as (Record<string, unknown> & { status?: string }) | null | undefined;
+  if (en) en.status = "published";
+  return out;
+}
+
 function navLink(value: unknown, path: string): NavLinkBody {
   const link = record(value, path);
   onlyKeys(link, ["id", "is_shown", "link_kind", "target", "translations"], `${path}.`);
@@ -188,7 +212,7 @@ function navLink(value: unknown, path: string): NavLinkBody {
     is_shown: has(link, "is_shown") ? bool(link.is_shown, `${path}.is_shown`) : true,
     link_kind: kind,
     target,
-    translations: translations(link.translations, NAV_LINK_TEXT, { create }) as NavLinkBody["translations"],
+    translations: linkTranslations(link.translations, path, create),
   };
   if (!create) out.id = uuid(link.id, `${path}.id`);
   return out;

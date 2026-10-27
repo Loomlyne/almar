@@ -41,20 +41,25 @@ test("parsePageSave: http, javascript:, a space, a 501-character address and an 
 test("checkSectionSave: only the section's text columns, slots and video; one photo on a single slot", () => {
   const hero = sections.sectionSpec("home", "hero");
   const welcome = sections.sectionSpec("home", "welcome");
-  v.checkSectionSave({ id: ID, translations: { en: { headline: "X" }, ar: { headline: "س", locked_fields: ["headline"] } } }, hero, { heroFixed: false });
-  invalid(() => v.checkSectionSave({ id: ID, translations: { en: { heading: "X" } } }, hero, { heroFixed: false }), "translations.en.heading", "en");
-  invalid(() => v.checkSectionSave({ id: ID, translations: { ar: { locked_fields: ["heading"] } } }, hero, { heroFixed: false }), "translations.ar.locked_fields", "ar");
-  invalid(() => v.checkSectionSave({ id: ID, media: { images: [ID] } }, hero, { heroFixed: false }), "media.images");
-  invalid(() => v.checkSectionSave({ id: ID, media: { poster: [ID, ID2] } }, hero, { heroFixed: false }), "media.poster");
-  v.checkSectionSave({ id: ID, media: { images: [ID, ID2] } }, welcome, { heroFixed: false });
-  invalid(() => v.checkSectionSave({ id: ID, video_url: null }, welcome, { heroFixed: false }), "video_url");
+  v.checkSectionSave({ id: ID, translations: { en: { headline: "X" }, ar: { headline: "س", locked_fields: ["headline"] } } }, hero, { heroFixed: false, hero: true });
+  invalid(() => v.checkSectionSave({ id: ID, translations: { en: { heading: "X" } } }, hero, { heroFixed: false, hero: true }), "translations.en.heading", "en");
+  invalid(() => v.checkSectionSave({ id: ID, translations: { ar: { locked_fields: ["heading"] } } }, hero, { heroFixed: false, hero: true }), "translations.ar.locked_fields", "ar");
+  invalid(() => v.checkSectionSave({ id: ID, media: { images: [ID] } }, hero, { heroFixed: false, hero: true }), "media.images");
+  invalid(() => v.checkSectionSave({ id: ID, media: { poster: [ID, ID2] } }, hero, { heroFixed: false, hero: true }), "media.poster");
+  v.checkSectionSave({ id: ID, media: { images: [ID, ID2] } }, welcome, { heroFixed: false, hero: false });
+  invalid(() => v.checkSectionSave({ id: ID, video_url: null }, welcome, { heroFixed: false, hero: false }), "video_url");
 });
 
 test("checkSectionSave: with heroes fixed (owner's answer A), Show on site is refused on a hero only", () => {
   const hero = sections.sectionSpec("about", "hero");
-  invalid(() => v.checkSectionSave({ id: ID, is_shown: false }, hero, { heroFixed: true }), "is_shown");
-  v.checkSectionSave({ id: ID, is_shown: false }, hero, { heroFixed: false });
-  v.checkSectionSave({ id: ID, is_shown: false }, sections.sectionSpec("about", "values"), { heroFixed: true });
+  invalid(() => v.checkSectionSave({ id: ID, is_shown: false }, hero, { heroFixed: true, hero: true }), "is_shown");
+  v.checkSectionSave({ id: ID, is_shown: false }, hero, { heroFixed: false, hero: true });
+  v.checkSectionSave({ id: ID, is_shown: false }, sections.sectionSpec("about", "values"), { heroFixed: true, hero: false });
+  v.checkSectionSave({ id: ID, is_shown: true }, hero, { heroFixed: true, hero: true });
+  invalid(() => v.checkSectionSave({ id: ID, is_shown: false }, sections.sectionSpec("contact", "title"), { heroFixed: true, hero: v.isPageHero("contact", "title") }), "is_shown");
+  assert.equal(v.isPageHero("home", "hero"), true);
+  assert.equal(v.isPageHero("home", "begin"), false);
+  assert.equal(v.isPageHero("contact", "confidence"), false);
 });
 
 test("parsePagesQuery: one of the five pages, or an id", () => {
@@ -105,13 +110,16 @@ test("parseNavSave: login, mailto:, tel:, http:, javascript:, an unknown key, 21
   }
   invalid(() => v.parseNavSave({ area: "side", links: [] }), "area");
   invalid(() => v.parseNavSave({ area: "header", links: Array(21).fill({ link_kind: "internal", target: "about", translations: label("x") }) }), "links");
-  invalid(() => v.parseNavSave({ area: "header", links: [{ link_kind: "internal", target: "about", translations: { en: {} } }] }), "translations.en.label", "en");
+  invalid(() => v.parseNavSave({ area: "header", links: [{ link_kind: "internal", target: "about", translations: { en: {} } }] }), "links.0.translations.en.label", "en");
+  const sent = v.parseNavSave({ area: "header", links: [{ link_kind: "internal", target: "about", translations: { en: { label: "About" } } }] });
+  assert.equal(sent.links[0].translations.en.status, "published", "English always goes out published (no publish flag on links)");
+  assert.equal(v.parseNavSave({ area: "header", links: [{ link_kind: "internal", target: "about", translations: { en: { label: "About", status: "draft" } } }] }).links[0].translations.en.status, "published");
   invalid(() => v.parseNavSave({ area: "header", links: [{ id: ID, link_kind: "internal", target: "about", translations: {} }, { id: ID, link_kind: "internal", target: "contact", translations: {} }] }), "links");
 });
 
 // ---- handlers with a fake admin client --------------------------------------------------------------------------------
 
-function fakeAdmin({ rpc = {}, section = { page: "home", section: "hero" } } = {}) {
+function fakeAdmin({ rpc = {}, section = { page: "home", section: "hero" }, items = [] } = {}) {
   const calls = [];
   return {
     calls,
@@ -122,7 +130,13 @@ function fakeAdmin({ rpc = {}, section = { page: "home", section: "hero" } } = {
     },
     from(table) {
       calls.push(["from", table]);
-      const q = { select: () => q, eq: () => q, maybeSingle: () => Promise.resolve({ data: section, error: null }) };
+      // page_sections is read with maybeSingle (the section); page_items as a list (a section's card ids).
+      const q = {
+        select: () => q,
+        eq: () => q,
+        maybeSingle: () => Promise.resolve({ data: section, error: null }),
+        then: (resolve, reject) => Promise.resolve({ data: items, error: null }).then(resolve, reject),
+      };
       return q;
     },
   };
@@ -157,14 +171,25 @@ test("getPages: the five pages with shown / total; ?page= calls ops_list_page; ?
 });
 
 test("postPageItems: save without the action key, delete and reorder through ops_delete / ops_reorder", async () => {
-  const admin = fakeAdmin({ rpc: { ops_save_page_item: { id: ID2 } } });
+  const ID3 = "33333333-3333-4333-8333-333333333333";
+  const admin = fakeAdmin({
+    rpc: { ops_save_page_item: { id: ID2 }, ops_delete: { id: ID2, affects_site: false }, ops_reorder: { affects_site: true } },
+    items: [{ id: ID }, { id: ID2 }],
+  });
   const saved = await h.postPageItems({ owner: owner(admin), body: { action: "save", id: ID2, is_shown: false } });
   assert.deepEqual(admin.calls.at(-1), ["ops_save_page_item", { p: { id: ID2, is_shown: false } }]);
   assert.equal(saved.body.affects_site, true);
-  await h.postPageItems({ owner: owner(admin), body: { action: "delete", id: ID2 } });
+  const deleted = await h.postPageItems({ owner: owner(admin), body: { action: "delete", id: ID2 } });
   assert.deepEqual(admin.calls.at(-1), ["ops_delete", { p_entity: "page_item", p_id: ID2 }]);
-  await h.postPageItems({ owner: owner(admin), body: { action: "reorder", section_id: ID, ids: [ID2, ID] } });
+  assert.equal(deleted.body.affects_site, false, "a hidden card's delete passes on the SQL's answer");
+  const moved = await h.postPageItems({ owner: owner(admin), body: { action: "reorder", section_id: ID, ids: [ID2, ID] } });
   assert.deepEqual(admin.calls.at(-1), ["ops_reorder", { p_entity: "page_item", p_ids: [ID2, ID] }]);
+  assert.equal(moved.body.affects_site, true);
+  // The list must be exactly the section's cards: a foreign id, or one missing, is refused before ops_reorder.
+  await assert.rejects(h.postPageItems({ owner: owner(admin), body: { action: "reorder", section_id: ID, ids: [ID2, ID3] } }), (e) => e.field === "ids");
+  await assert.rejects(h.postPageItems({ owner: owner(admin), body: { action: "reorder", section_id: ID, ids: [ID2] } }), (e) => e.field === "ids");
+  const none = await h.postPageItems({ owner: owner(fakeAdmin()), body: { action: "reorder", section_id: ID, ids: [ID] } });
+  assert.equal(none.status, 404);
 });
 
 test("postNav calls ops_save_nav(p_area, p_links); getNav groups links and offers every target with its availability", async () => {

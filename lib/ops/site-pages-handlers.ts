@@ -1,15 +1,16 @@
 // Plan 06-02: the handlers of /api/ops/pages, /api/ops/page-items and /api/ops/nav, on the functions of migration
 // 20261025120000_site_cms.sql. Same rules as catalog-handlers.ts: writes are ONE service-role RPC, a database error goes
-// back as { dbError } (mapped by the wrapper), nothing is logged. Every write answers affects_site: true, so opsPost asks
-// for the site update (C-01…C-03); no rebuild code here.
+// back as { dbError } (mapped by the wrapper), nothing is logged. Reads of page_sections and page_items through .from()
+// are reads only (the section's page, a section's card ids). Section, card and nav saves answer affects_site: true; a
+// card delete or reorder passes on the SQL's answer (the card was shown). opsPost asks for the site update (C-01…C-03).
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PAGE_KEYS, sectionSpec, type PageKey } from "../data/page-sections";
 import { PUBLIC_PAGES } from "../locale-path";
 import { JOURNEY_PREFIX, NAV_TARGET_KEYS, targetAvailable, type BuiltPages } from "../site-nav";
-import { errorBody, type OpsOutcome, type OpsResult } from "./route-core";
+import { errorBody, OpsInvalid, type OpsOutcome, type OpsResult } from "./route-core";
 import type { PageItemsBody, SaveNavBody, SavePageSectionBody } from "./site-cms-api";
-import { checkSectionSave, parsePagesQuery } from "./validate-site-pages";
+import { checkSectionSave, isPageHero, parsePagesQuery } from "./validate-site-pages";
 
 type OpsOwner = { profile: { id: string }; admin: SupabaseClient };
 type GetCtx = { owner: OpsOwner; url: URL };
@@ -69,11 +70,11 @@ export async function postPages({ owner, body }: PostCtx<SavePageSectionBody>): 
   const found = await owner.admin.from("page_sections").select("page, section").eq("id", body.id).maybeSingle();
   if (found.error) return { dbError: found.error };
   if (!isRow(found.data)) return notFound();
-  const spec = (PAGE_KEYS as readonly unknown[]).includes(found.data.page)
-    ? sectionSpec(found.data.page as PageKey, String(found.data.section))
-    : undefined;
+  if (!(PAGE_KEYS as readonly unknown[]).includes(found.data.page)) return notFound();
+  const page = found.data.page as PageKey;
+  const spec = sectionSpec(page, String(found.data.section));
   if (!spec) return notFound();
-  checkSectionSave(body, spec, { heroFixed: HERO_FIXED });
+  checkSectionSave(body, spec, { heroFixed: HERO_FIXED, hero: isPageHero(page, spec.section) });
   const { data, error } = await owner.admin.rpc("ops_save_page_section", { p: body });
   if (error) return { dbError: error };
   return ok({ id: isRow(data) ? data.id : body.id, affects_site: true });
@@ -83,14 +84,22 @@ export async function postPages({ owner, body }: PostCtx<SavePageSectionBody>): 
 
 export async function postPageItems({ owner, body }: PostCtx<PageItemsBody>): Promise<OpsOutcome> {
   if (body.action === "delete") {
-    const { error } = await owner.admin.rpc("ops_delete", { p_entity: "page_item", p_id: body.id });
+    const { data, error } = await owner.admin.rpc("ops_delete", { p_entity: "page_item", p_id: body.id });
     if (error) return { dbError: error };
-    return ok({ id: body.id, affects_site: true });
+    // The SQL answers whether the card was on the site (shown); a hidden card's delete asks for no update.
+    return ok({ id: body.id, affects_site: isRow(data) && data.affects_site === true });
   }
   if (body.action === "reorder") {
-    const { error } = await owner.admin.rpc("ops_reorder", { p_entity: "page_item", p_ids: body.ids });
+    // ops_reorder renumbers the ids it is sent and skips unknown ones: the list must be exactly this section's cards,
+    // so another section's card is never renumbered and no card keeps a tied position (review of 57cb4cc0).
+    const siblings = await owner.admin.from("page_items").select("id").eq("section_id", body.section_id);
+    if (siblings.error) return { dbError: siblings.error };
+    const mine = rows(siblings.data).map((r) => String(r.id));
+    if (mine.length === 0) return notFound();
+    if (mine.length !== body.ids.length || !body.ids.every((id) => mine.includes(id))) throw new OpsInvalid("ids");
+    const { data, error } = await owner.admin.rpc("ops_reorder", { p_entity: "page_item", p_ids: body.ids });
     if (error) return { dbError: error };
-    return ok({ affects_site: true });
+    return ok({ affects_site: isRow(data) && data.affects_site === true });
   }
   const { action: _action, ...item } = body;
   const { data, error } = await owner.admin.rpc("ops_save_page_item", { p: item });

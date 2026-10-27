@@ -165,3 +165,19 @@ test("chunkedSend: a failed chunk adds its names to left; every chunk failing re
   assert.equal(failed.ok, false);
   assert.equal(failed.error.code, "translate_busy");
 });
+
+test("chunkedSend: the daily limit stops the loop and is the reply, so the kit shows its reason", async () => {
+  const fields = Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`block_${i + 1}`, "x".repeat(300)]));
+  const calls = [];
+  let n = 0;
+  const send = async (path, body) => {
+    calls.push(body);
+    n += 1;
+    if (n === 2) return { ok: false, status: 429, error: { code: "translate_limit", field: null, locale: null, detail: null } };
+    return { ok: true, target: body.target, fields: Object.fromEntries(Object.keys(body.fields).map((k) => [k, `[${k}]`])) };
+  };
+  const reply = await c.chunkedSend(send)("/api/ops/translate", { target: "ar", fields }, { timeoutMs: 1 });
+  assert.equal(calls.length, 2, "no chunk is sent after the limit");
+  assert.equal(reply.ok, false);
+  assert.equal(reply.error.code, "translate_limit");
+});

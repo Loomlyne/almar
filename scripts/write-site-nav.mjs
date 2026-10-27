@@ -6,16 +6,20 @@
 //                                              read through lib/data/source.ts with the anon key only (the same env
 //                                              checks as every build read; never the service-role key)
 //
-// scripts/assemble-cloudflare.mjs runs it before `next build` with the build's own env. A link whose page is not on the
+// scripts/assemble-cloudflare.mjs is to run it before `next build` with the build's own env (that one call is plan
+// 06-02 Task 5, on the controller's slot for that shared file; until then the committed snapshot is what builds). A link whose page is not on the
 // site yet (targetAvailable: PUBLIC_PAGES, published legal kinds, published package slugs) is left out. Hidden links are
 // already out of the view. A failed or truncated read throws: the build stops and the live site stays (C-03). An empty
 // header is allowed: Login, currency and language are drawn in code.
 //
 // The TypeScript modules are bundled with esbuild (their imports have no file extension, which plain Node cannot load).
+// The bundle is written under node_modules/.cache and removed after the import: packages stay external, and a bare
+// import such as @supabase/supabase-js (lib/data/source.ts, supabase mode) resolves from the repo's node_modules only
+// when the bundle sits inside the repo. A link whose English label is not published is left out with a warning (nav
+// links have no publish flag of their own; parseNavSave sends English as published, so this guards older rows).
 
 import { build } from "esbuild";
-import { mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -43,10 +47,16 @@ async function loadModules() {
     packages: "external",
     logLevel: "silent",
   });
-  const dir = mkdtempSync(join(tmpdir(), "almar-site-nav-"));
+  const cache = join(ROOT, "node_modules/.cache");
+  mkdirSync(cache, { recursive: true });
+  const dir = mkdtempSync(join(cache, "almar-site-nav-"));
   const file = join(dir, "site-nav.mjs");
   writeFileSync(file, out.outputFiles[0].text);
-  return import(pathToFileURL(file).href);
+  try {
+    return await import(pathToFileURL(file).href);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 /** A published record in this language, else the published English one (the site's fallback rule). */
@@ -65,16 +75,20 @@ function publishedLegal(pages, translations) {
 }
 
 /** The snapshot from the database rows (pure, so a node test feeds it rows). */
-export function snapshotFromRows(mod, { links, translations, built }) {
+export function snapshotFromRows(mod, { links, translations, built }, warn = (line) => console.warn(line)) {
   const out = { header: { en: [], ar: [], es: [] }, footer: { en: [], ar: [], es: [] } };
   const sorted = [...links].sort((a, b) => (a.area === b.area ? a.position - b.position : a.area.localeCompare(b.area)));
   for (const link of sorted) {
     if (!AREAS.includes(link.area)) throw new Error(`site-nav: unknown area ${JSON.stringify(String(link.area))}`);
     if (link.link_kind === "internal" && !mod.targetAvailable(link.target, built)) continue;
     const records = translations.filter((t) => t.link_id === link.id);
+    if (labelOf(records, "en") === null) {
+      // Left out in every language (the three lists stay the same links), not a failed build: the rest of the site updates.
+      warn(`site-nav: link ${link.id} left out: no published English label`);
+      continue;
+    }
     for (const locale of LOCALES) {
       const label = labelOf(records, locale);
-      if (label === null) throw new Error(`site-nav: link ${link.id} has no published English label`);
       out[link.area][locale].push(mod.navItem(locale, { link_kind: link.link_kind, target: link.target, label }));
     }
   }
