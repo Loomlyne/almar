@@ -214,8 +214,9 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
   // the stored one after a refresh, the pair captured at Send on a fresh request.
   const storedHold = useRef(state.hold);
   const [link, setLink] = useState<{ ref: string; t: string } | null>(() => (state.hold ? { ref: state.hold.ref, t: state.hold.linkToken } : null));
-  // The server's end of a resumed hold (the view's holdExpiresAt), shown instead of the stored one.
-  const [resumedEndsAt, setResumedEndsAt] = useState<string | null>(null);
+  // The server's end of a resumed hold (the view's holdExpiresAt), shown instead of the stored one. Keyed by the ref:
+  // it applies to that hold only, never to a later hold placed after a Change (review 2026-10-27, finding 1).
+  const [resumedEnd, setResumedEnd] = useState<{ ref: string; endsAt: string } | null>(null);
   const [quoting, setQuoting] = useState(true);
   // A hold refused with a changed price (settings_changed, deposit_unavailable, ...) asks for a fresh quote.
   const [requote, setRequote] = useState(0);
@@ -298,8 +299,9 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
     viewFor.current = phase;
     void postView({ ref: hold.ref, t: hold.linkToken, locale }).then(({ status, json }) => {
       if (!alive.current) return;
-      const outcome = resumeOutcome(status, json, Date.now());
-      if (outcome.kind === "held") setResumedEndsAt(outcome.holdExpiresAt);
+      // The server's clock (device plus the stored offset), never the raw device clock (review finding 3).
+      const outcome = resumeOutcome(status, json, Date.now() + hold.clockOffsetMs);
+      if (outcome.kind === "held") setResumedEnd({ ref: hold.ref, endsAt: outcome.holdExpiresAt });
       if (outcome.kind === "ended") dispatch({ type: "ended" });
       applyPhase({ type: "resumed", outcome });
     });
@@ -318,7 +320,8 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
 
   // The countdown's clock is the server's: the device clock plus the offset taken from the hold answer's serverNow.
   // After a resume the end is the view's.
-  const liveHold = state.hold && resumedEndsAt ? { ...state.hold, holdExpiresAt: resumedEndsAt } : state.hold;
+  const liveHold =
+    state.hold && resumedEnd && resumedEnd.ref === state.hold.ref ? { ...state.hold, holdExpiresAt: resumedEnd.endsAt } : state.hold;
   const clockOffset = state.hold?.clockOffsetMs ?? 0;
   const holdClock = useMemo(() => () => Date.now() + clockOffset, [clockOffset]);
 
@@ -610,7 +613,11 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
     const win = hold ? windowParts(hold.transferWindowMinutes) : null;
     const dueNow = price ? formatAed(state.plan === "deposit" && price.deposit ? price.deposit.dueNowFils : price.full.dueNowFils) : NONE;
     const refusal = releaseFailed ? { at: "request" as const, reasons: [{ code: "unavailable" as const }] } : state.refusal;
+    // A retry: the reason sits under Send request (the refusal) and this note directly under the step. The step stays
+    // at the same place in the tree with or without the note, so it never remounts (review finding 5).
+    const retryNote = phase.kind === "retry" && hold && !state.ended && state.refusal?.at === "request";
     body = (
+      <>
       <RequestStep
         plan={state.plan}
         deposit={depositView}
@@ -629,7 +636,11 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
               }
             : null
         }
-        onChange={() => go(3)}
+        onChange={() => {
+          // No Change while a request is in flight: the server's answer decides first (review finding 4).
+          if (sendingRef.current || phaseRef.current.kind === "sending") return;
+          go(3);
+        }}
         ended={state.ended}
         startAgainHref={stayHref}
         refusal={refusal}
@@ -644,16 +655,9 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
         copy={copy}
         locale={locale}
       />
+      {retryNote ? <RequestRetryNote text={a.retryNote} /> : null}
+      </>
     );
-    // A retry: the reason sits under Send request (the refusal) and this note directly under the step.
-    if (phase.kind === "retry" && hold && !state.ended && state.refusal?.at === "request") {
-      body = (
-        <>
-          {body}
-          <RequestRetryNote text={a.retryNote} />
-        </>
-      );
-    }
   }
 
   const r = copy.request;

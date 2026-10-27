@@ -61,7 +61,7 @@ export function RequestSent({ reference, planLabel, amountText, deadlineText, em
   return (
     <section className="flex flex-col gap-6" aria-labelledby="trip-request-sent">
       <div className={BAND}>
-        <h2 id="trip-request-sent" ref={heading} role="status" tabIndex={-1} className={BAND_HEADING}>
+        <h2 id="trip-request-sent" ref={heading} tabIndex={-1} className={BAND_HEADING}>
           {a.heading}
         </h2>
       </div>
