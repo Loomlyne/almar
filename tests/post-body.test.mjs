@@ -54,3 +54,19 @@ test("dateLabel equals the published labels byte for byte, Latin digits only", (
     }
   }
 });
+
+// Plan 06-03: photo blocks (written, not run; owner rule 2026-10-21).
+const IMAGE = { id: "img-1", url: "https://media.almarprivatejourney.com/a.webp", alt: "A", width: 1600, height: 1067, position: 0 };
+
+test("parseBody takes a photo block only through the image resolver", () => {
+  const raw = { id: "img-1", media_key: "a.webp", width: 1600, height: 1067, position: 0 };
+  const out = parseBody([{ type: "paragraph", text: "P" }, { type: "photo", image: raw }], (got) => (got === raw ? IMAGE : null));
+  assert.deepEqual(out, [{ type: "paragraph", text: "P" }, { type: "photo", image: IMAGE }]);
+  assert.throws(() => parseBody([{ type: "photo", image: raw }]), /photo with no image/, "no resolver");
+  assert.throws(() => parseBody([{ type: "photo", image: raw }], () => null), /photo with no image/, "the resolver found none");
+});
+
+test("readingMinutes counts text blocks only: photos add no words", () => {
+  const words = Array.from({ length: 200 }, () => "word").join(" ");
+  assert.equal(readingMinutes([{ type: "paragraph", text: words }, { type: "photo", image: IMAGE }], "en"), 1);
+});
