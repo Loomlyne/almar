@@ -147,3 +147,71 @@ None beyond job 24's list above.
 - A lock that is only written and never read back passes every type check: the kit review caught it. Check the
   read path (shape, list functions) whenever a new column is saved.
 - The kit's Field spreads extra props after its own, so a passed `aria-describedby` replaces the error id: merge it.
+
+---
+
+# 06-02 and 06-03 executed: hand-over (job 26)
+
+Written 2026-10-28 00:13 +0100 (from `date`). Branch `phase-06-site-and-rest-of-cms`. origin/main `6558cb6f` merged
+at `34e829d1`; this hand-over is the commit after it. Details: `06-02-SUMMARY.md`, `06-03-SUMMARY.md`.
+
+## Migration: Fable pass 2 (owner-approved), verdict APPLY
+Read at `65f2500d`; no fix-first item. Its three low findings are fixed in `f4c53751`:
+1. `ops_save_consult` wrote `(p->>'notice_hours')::int` after the numeric check, so JSON `5.0` raised a raw 22P02:
+   it now writes `trunc(v_n)::int` from the checked number (notice and horizon).
+2. `site_request_payload_ok` (and `site_request_date_ok`, which it calls) were `immutable` with `::date` /
+   `::timestamptz` casts: now `stable`. They are a table check only, never an index.
+3. `ops_save_post` cast `published_at` unchecked: a day or ISO time is checked first, anything else is `almar:invalid`
+   `published_at`.
+pgTAP: plan 225 → 230 (two published_at cases, 24.0/30.0 stored, both checks stable). Written, not run.
+**`20261025120000_site_cms.sql` now: 3,339 lines, sha256 `0906af3c9c7573b7cdd12a8b634dd73f8e4df211dab853f2c62e5c922c8c2470`.**
+Reviewer's note: `23460bfe` (after the 06-01 hand-over) changed `page_section_slots()` Home order; SQL and
+`lib/data/page-sections.ts` agree.
+
+## Commits since the 06-01 hand-over
+`ed303ec9` / `65f2500d` pictures · `57cb4cc0` 06-02 owner API + nav snapshot · `a1261025` 06-03 owner API + chunked
+translate · `c7eb2544` heroes always shown · `a1bb228f`, `dd156103` copy · `8f1503d4` first review answers ·
+`0fd430d8` kit `status` prop (slot 8) · `4d3f997b` Pages and Navigation screens · `cfeba43e` their specs ·
+`eda622e1` public pages · `1250db22` public blog · `57f99c2d` Blog screen · `74b9afd0` blog tests · `f4c53751`
+Fable answers · `99ccec0e` slots 1–7, 9, 10 · `7f69ba3f` second review answers · `34e829d1` merge.
+
+## Checks
+| Check | Result |
+|---|---|
+| `npx tsc --noEmit` | pass on `34e829d1` |
+| `npm run tokens:check` | pass ("theme up to date") |
+| node tests, pgTAP, build, Playwright | **not run (owner: no test)** |
+
+## Before the first supabase-mode build (controller)
+1. Apply the migration (sha above), then run `scripts/import-site-content.mjs` on live: `getPageContent` now stops the
+   build when a page has no row in `api_page_sections`, and the assemble now writes the nav snapshot from
+   `api_nav_links`, failing loudly on a bad read.
+2. The 256 KiB cap is on `/api/ops/posts` only, after `requireOwner`. OpenNext reads the whole body on Workers (Free
+   plan, 10 ms CPU) whatever the cap, so a large post save costs CPU on that route.
+
+## Reviews (`jev-review`, author Opus)
+- Range `8f1503d4..74b9afd0`: standard tier, Sonnet, "fix first", 9 findings. Fixed: 1, 2, 3, 4, 5, 6, 7 and the
+  comment in 8. Finding 8's reflow claim was wrong (the net `blog.ts` diff is the four search keys). Not changed: 9 (search
+  text size). List in each SUMMARY. Not re-reviewed after `7f69ba3f`.
+
+## Owner's check (after the migration, the import and a preview build)
+1. Open the dashboard, Content › Pages › Home. Expected: the sections in page order; the first one says it is always shown.
+2. Open Welcome, change the heading, click Save and update site. Expected: the Arabic and Spanish fill in; the
+   preview home shows the new heading in each language.
+3. Open Gallery, switch Show on site off, Save. Expected: the preview home has no gallery.
+4. Content › Navigation and footer: add a header link to Contact, Save. Expected: the preview header shows it in all
+   three languages.
+5. Content › Blog › New post: title, excerpt, a paragraph, a photo; click Publish. Expected: `/en/blog` lists it;
+   the post shows the photo; its address can no longer be changed.
+6. On `/es/blog`, type part of a title without its accents. Expected: only matching stories; a word that matches
+   nothing says so with Clear; Escape brings all back.
+
+## Open
+- `trip-screen` and `booking-page-view` still build their own links (outside both plans).
+- No harness scenes or picture specs for 06-02/06-03 (the pictures were HTML).
+- No unit test for the AR/ES body kind-order check (`lib/data/posts.ts`).
+- Fable second pass on this range: not asked (needs the owner's yes).
+
+GSD: `/gsd-verify-work 6` fits once the live import has run (the six checks above). Jev: none fits these two plans
+(no bounded decision in them). Automation: a nightly unattended check that every published post's AR/ES body still
+matches English in kind and order, reporting the posts that fall back (proposal only).
