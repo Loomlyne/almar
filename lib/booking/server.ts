@@ -861,6 +861,20 @@ export async function requestBooking(db: BookingDb, input: RequestRequest, ctx: 
   return { status: 200, response: { ok: true, ref, status, deadline, firstTime, emailSent } };
 }
 
+/**
+ * True when the link's booking exists on this host's side and is no longer `held` (its request was already sent, or it
+ * moved on). The route asks this only while the request gate is closed (PR #34 review): a replay of a request already
+ * sent is answered by request_web_booking's idempotent branch (first_time false, nothing written, no mail), so closing
+ * requests never strands a guest whose first answer was lost; a booking still held stays behind the gate. A refused
+ * link, an unknown booking or an unreadable view is false (the route keeps its 503 requests_closed).
+ */
+export async function requestAlreadySent(db: BookingDb, input: RequestRequest, isTest: boolean): Promise<boolean> {
+  const access = await authorizeBookingAccess(input, accessDeps(db, noSession));
+  if (!access.ok) return false;
+  const view = await readBookingView(db, access.bookingId, null, isTest);
+  return view !== null && view.status !== "held";
+}
+
 export type ViewDeps = {
   /** From the Host header, never from the body. */
   isTest: boolean;

@@ -7,7 +7,7 @@
 -- Run: node tests/helpers/local-supabase.mjs test supabase/tests/booking-requests.test.sql
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(221);
+select plan(223);
 
 -- Helpers (temporary, gone with the transaction; the first six are bookings-and-ops.test.sql:9-71) -----------------
 create function pg_temp.d(n int) returns date language sql as $$ select ((now() at time zone 'Asia/Dubai')::date + n) $$;
@@ -605,6 +605,12 @@ select is(pg_temp.bv('bk1') ->> 'access', null, 'view: no access before confirme
 update public.bookings set status = 'confirmed' where id = pg_temp.bid('bk1');
 select is(pg_temp.bv('bk1') #>> '{access,address}', 'Calle 10 # 5-20, Cartagena', 'view: access for a confirmed booking (BOOK-08, OPS-10)');
 select is(pg_temp.bv('bk1', 'es') #>> '{access,notes}', 'Ring the bell.', 'view: access notes fall back to English');
+-- PR #34 review: no access once the stay has ended (Dubai date past leave) or once the booking is completed.
+update public.bookings set arrive = (now() at time zone 'Asia/Dubai')::date - 3, leave = (now() at time zone 'Asia/Dubai')::date - 1
+  where id = pg_temp.bid('bk1');
+select is(pg_temp.bv('bk1') ->> 'access', null, 'view: no access for a confirmed booking whose leave date has passed');
+update public.bookings set status = 'completed' where id = pg_temp.bid('bk1');
+select is(pg_temp.bv('bk1') ->> 'access', null, 'view: no access for a completed booking');
 select is(pg_temp.bv('rq1') ->> 'access', null, 'view: no access for an awaiting request');
 select pg_temp.mkq('v1', 'req-stay-one', 46, 2, 'v1@example.com');
 select pg_temp.past('v1', interval '3 minutes');

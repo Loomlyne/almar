@@ -935,7 +935,9 @@ begin
     from public.booking_payments p
     where p.booking_id = v_b.id and p.status = 'succeeded';
 
-  if v_b.status in ('confirmed', 'completed') then
+  -- The address and access only while the booking is confirmed and its stay has not ended (leave day included, Dubai
+  -- date): a booking link opened after the stay shows no door code or wifi (PR #34 review).
+  if v_b.status = 'confirmed' and (now() at time zone 'Asia/Dubai')::date <= v_b.leave then
     select jsonb_build_object(
         'address', x.j ->> 'address',
         'wifi_name', x.j ->> 'wifi_name',

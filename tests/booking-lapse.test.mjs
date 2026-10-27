@@ -151,10 +151,12 @@ test("source: lapse.ts imports nothing from next, @supabase or lib/supabase and 
   assert.equal(/stripe|checkout session/i.test(source), false);
 });
 
-test("source: lapse-worker.ts names no key, calls createSupabaseAdmin, copies only string env values and logs counts once", () => {
+test("source: lapse-worker.ts builds its own plain client (no Next imports), copies only string env values and logs counts once", () => {
   const source = readFileSync("lib/booking/lapse-worker.ts", "utf8");
-  assert.equal(/SUPABASE_SERVICE_ROLE_KEY|RESEND_API_KEY|BOOKING_LINK_SECRET/.test(source), false, "names no key");
-  assert.match(source, /createSupabaseAdmin\(\)/);
+  assert.equal(/RESEND_API_KEY|BOOKING_LINK_SECRET/.test(source), false, "names no other key");
+  assert.match(source, /from "@supabase\/supabase-js"/);
+  assert.equal(/supabase\/clients|next\/|@supabase\/ssr|createSupabaseAdmin/.test(source), false, "no Next or ssr import");
+  assert.match(source, /createClient\(url, serviceKey/);
   assert.match(source, /typeof value === "string"/);
   assert.match(source, /lapse: database not configured/);
   assert.equal((source.match(/console\.log\(/g) ?? []).length, 1);

@@ -1,3 +1,23 @@
+# HANDOVER: job 25, PR #34 review fixes (2026-10-27 20:32 +0100)
+
+Owner (via the controller): "Fix first … tsc only, no tests. Then ask me Ship." Three fixes; `npx tsc --noEmit` exit 0,
+`npm run tokens:check` up to date; nothing else run (owner).
+
+1. **Cron database client.** `lib/booking/lapse-worker.ts` builds its own plain `createClient(url, serviceKey)` from
+   `@supabase/supabase-js` (the URL and key from the scheduled `env`, else process.env); it no longer imports
+   `lib/supabase/clients` (next/headers, @supabase/ssr). `tests/secrets.test.mjs` allows the service-key name in this
+   file (third file); `tests/booking-lapse.test.mjs`'s source rule now asks for no Next or ssr import (both not run).
+2. **No access after the stay.** `booking_view` returns the address and access only while the booking is `confirmed`
+   and the Dubai date is on or before `leave` (completed and past stays: none). Two pgTAP rows added (plan 221 → 223,
+   not run). Migration `20261019160000_booking_requests.sql`: **2,113 lines, sha256
+   `0480a26c98d686c66dcced7aaa69ffeae31b200974e3c6a7569799835974019e`** (supersedes every earlier hash in this file
+   and in `04-07-PLAN.md`'s as-built section).
+3. **Replay while requests are closed.** `app/api/booking/request/route.ts`: a closed gate now answers 503
+   `requests_closed` only for a booking still `held` (or a refused link); a booking already requested goes on to
+   `request_web_booking`'s idempotent branch (first_time false, nothing written, no mail). New
+   `requestAlreadySent(db, input, isTest)` in `lib/booking/server.ts` (signed-link check, then the view's status). No
+   new test written for it.
+
 # HANDOVER: job 25, Phase 4 plan 04-06 (2026-10-27 13:56 +0100) and 04-07 (UAT plan written)
 
 - **Branch:** `phase-04-book-and-request` (pushed). Code tip `2ae15102`; this entry is the commit after it. Folder clean.

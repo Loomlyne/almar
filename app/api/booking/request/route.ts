@@ -10,7 +10,7 @@ import { readJsonBody } from "../../../../lib/booking/http";
 import { bookingLinkConfigured } from "../../../../lib/booking/link";
 import { getNotifier } from "../../../../lib/booking/notify";
 import { isAllowedPostOrigin, originForBooking } from "../../../../lib/booking/origin";
-import { requestBooking } from "../../../../lib/booking/server";
+import { requestAlreadySent, requestBooking } from "../../../../lib/booking/server";
 import { parseRequestRequest } from "../../../../lib/booking/validate";
 import { createSupabaseAdmin } from "../../../../lib/supabase/clients";
 
@@ -35,9 +35,11 @@ export async function POST(request: Request): Promise<Response> {
   const admin = createSupabaseAdmin();
   if (!admin || !bookingLinkConfigured()) return reply(unavailable, 503);
   try {
-    // The request gate before any write: a closed gate requests nothing.
+    // The request gate before any write: a closed gate places no new request. It guards a booking still held only:
+    // a replay of a request already sent goes on to request_web_booking's idempotent answer (first_time false, nothing
+    // written, no mail), so a guest whose first answer was lost is never told "closed" (PR #34 review).
     const gate = await currentRequestGate(admin, request.headers.get("host"));
-    if (!gate.open) return reply(requestsClosed, 503);
+    if (!gate.open && !(await requestAlreadySent(admin, parsed.value, gate.isTest))) return reply(requestsClosed, 503);
     const outcome = await requestBooking(admin, parsed.value, { isTest: gate.isTest, origin: originForBooking(gate.isTest), notifier: getNotifier() });
     return reply(outcome.response, outcome.status);
   } catch {
