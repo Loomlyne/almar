@@ -134,3 +134,28 @@ test("supabase mode: an edited heading reaches the page in its language; a store
   });
   assert.equal(heroIds.size, 5);
 });
+
+test("supabase mode (Sonnet review 06-02): an empty Arabic column reads the English record's, column by column; a page with no row stops the build", async () => {
+  const views = pageViews(payload);
+  const stays = views.api_page_sections.find((s) => s.page === "home" && s.section === "stays");
+  views.api_page_section_translations = views.api_page_section_translations.map((t) => {
+    if (t.section_id !== stays.id) return t;
+    if (t.locale === "en") return { ...t, heading: "[Stays, English]" };
+    if (t.locale === "ar") return { ...t, heading: null };
+    return t;
+  });
+  const mod = await loaded(views);
+  await withEnv(SUPABASE_ENV, async () => {
+    const ar = await mod.getPageContent("home", "ar");
+    assert.equal(ar.text.stays.heading, "[Stays, English]", "the empty Arabic heading falls back to English");
+    const own = views.api_page_section_translations.find((t) => t.section_id === stays.id && t.locale === "ar");
+    for (const [column, value] of Object.entries(ar.text.stays)) {
+      if (column !== "heading" && typeof own[column] === "string" && own[column] !== "") assert.equal(value, own[column], `ar ${column} is its own`);
+    }
+  });
+
+  const empty = await loaded({ ...pageViews(payload), api_page_sections: pageViews(payload).api_page_sections.filter((s) => s.page !== "contact") });
+  await withEnv(SUPABASE_ENV, async () => {
+    await assert.rejects(() => empty.getPageContent("contact", "en"), /no row for page "contact"/);
+  });
+});

@@ -52,19 +52,21 @@ function liveBase(): PostBase[] {
 const photoIn = (locale: Locale) => (raw: unknown) => image(raw as RawImage, locale);
 
 /**
- * The records the page may use (plan 06-03): an Arabic or Spanish record whose body does not parse, or has another
- * number of blocks than the English one, is treated as absent, so resolveRow falls back to English ("English only" on
+ * The records the page may use (plan 06-03): an Arabic or Spanish record whose body does not parse, or whose blocks are
+ * not the English ones in kind and order (Sonnet review 06-03: a count alone let a paragraph stand where the photo is),
+ * is treated as absent, so resolveRow falls back to English ("English only" on
  * the page) and the build goes on; one log line names the post and the language. A bad English body still fails the
  * build (C-03: the live site stays).
  */
 function usableRecords(base: PostBase, own: readonly PostTranslation[], locale: Locale): PostTranslation[] {
   const en = own.find((t) => t.locale === "en");
-  const enCount = en && Array.isArray(en.body) ? en.body.length : null;
+  const kindsOf = (body: unknown) => (Array.isArray(body) ? body.map((block) => String((block as { type?: unknown } | null)?.type)).join(",") : null);
+  const enKinds = en ? kindsOf(en.body) : null;
   return own.filter((t) => {
     if (t.locale === "en") return true;
     try {
       parseBody(t.body, photoIn(locale));
-      if (enCount !== null && Array.isArray(t.body) && t.body.length !== enCount) throw new Error("block count differs from English");
+      if (enKinds !== null && kindsOf(t.body) !== enKinds) throw new Error("blocks differ from English in kind or order");
       return true;
     } catch (error) {
       if (t.locale === locale) console.warn(`post ${base.slug}: ${t.locale} body left out, English shown (${(error as Error).message})`);

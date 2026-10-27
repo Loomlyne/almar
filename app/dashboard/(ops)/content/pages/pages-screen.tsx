@@ -109,14 +109,21 @@ export function PagesScreen({ send }: { send?: Send } = {}) {
     setOpen({ form, saved: form });
   }
 
-  /** After a write: the page read again; the open section (and card) refreshed from it. */
-  async function reread(sectionId: string, cardId?: string | null) {
+  /**
+   * After a write: the page read again; the open section (and card) refreshed from it. `keepEdits` (a card save, delete
+   * or move): unsaved edits to the section itself stay in the form; only what was saved is refreshed (Sonnet review 06-02).
+   */
+  async function reread(sectionId: string, cardId?: string | null, keepEdits = false) {
     if (!page) return;
     const fresh = await loadPage(page);
     const section = fresh?.find((s) => s.id === sectionId);
     if (section) {
       const form = sectionForm(section);
-      setOpen({ form, saved: form });
+      setOpen((prev) =>
+        keepEdits && prev && prev.form.id === sectionId && JSON.stringify(prev.form) !== JSON.stringify(prev.saved)
+          ? { form: prev.form, saved: form }
+          : { form, saved: form },
+      );
       if (cardId) {
         const item = section.items?.find((i) => i.id === cardId);
         if (item) {
@@ -189,7 +196,7 @@ export function PagesScreen({ send }: { send?: Send } = {}) {
     const id = reply.id ?? form.id;
     const held = { ...form, id, slug: form.slug || String(body.body.slug ?? "") };
     setCard({ form: held, saved: held });
-    await reread(open.form.id, id);
+    await reread(open.form.id, id, true);
     writing.current = false;
     setBusy(false);
     return true;
@@ -202,7 +209,7 @@ export function PagesScreen({ send }: { send?: Send } = {}) {
     const reply = await opsSend<WriteResult>(ITEMS, { action: "delete", id: card.form.id });
     if (reply.ok) {
       setCard(null);
-      await reread(open.form.id);
+      await reread(open.form.id, null, true);
     } else setError(reply.error);
     setBusy(false);
   }
@@ -218,7 +225,7 @@ export function PagesScreen({ send }: { send?: Send } = {}) {
   async function sendOrder(sectionId: string, ids: string[]) {
     setReordering(true);
     const reply = await opsSend<ReorderResult>(ITEMS, { action: "reorder", section_id: sectionId, ids });
-    await reread(sectionId);
+    await reread(sectionId, null, true);
     if (!reply.ok) setError(reply.error);
     moving.current = false;
     setReordering(false);

@@ -7,7 +7,7 @@ import type { Send, TranslateReply } from "../../components/ops/auto-translate";
 import type { OpsResponse } from "../../components/ops/ops-client";
 
 /**
- * The route's field count and JSON size (lib/ops/translate.ts CHUNK_LIMITS.fields and .json), copied here so the
+ * The route's field count and JSON size (lib/ops/translate.ts TRANSLATE_LIMITS.fields and .json), copied here so the
  * browser bundle never imports the translate route and its prompt; tests/ops-posts-api.test.mjs keeps the two equal.
  */
 export const CHUNK_LIMITS = { fields: 40, json: 7680 } as const;

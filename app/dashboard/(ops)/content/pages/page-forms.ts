@@ -87,8 +87,8 @@ export function videoOk(video: string): boolean {
 
 const trimmed = (value: string | string[] | undefined, list: boolean): string | string[] | null => {
   if (list) {
-    const items = (Array.isArray(value) ? value : []).map((item) => item.trim()).filter((item) => item !== "");
-    return items.length > 0 ? items : null;
+    // A list column is always an array: the validator (lib/ops/validate.ts textList) refuses null (Sonnet review 06-02).
+    return (Array.isArray(value) ? value : []).map((item) => item.trim()).filter((item) => item !== "");
   }
   const text = typeof value === "string" ? value.trim() : "";
   return text === "" ? null : text;
@@ -103,7 +103,7 @@ function sectionRecord(spec: SectionSpec, text: SectionText, english: boolean): 
   for (const column of spec.text) {
     const value = trimmed(text[column], isList(column));
     out[column] = value;
-    if (value !== null) any = true;
+    if (Array.isArray(value) ? value.length > 0 : value !== null) any = true;
   }
   if (!english && !any) return null;
   out.status = "published";

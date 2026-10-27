@@ -8,8 +8,9 @@
 // Fixtures mode: every section shown, the copy files' own words, the hero as today (no video, no new photo), so the
 // pages' HTML is unchanged. Supabase mode (after `await loadSource()`, anon views only): `shown` is the sections the
 // published view holds (a hidden section is absent), each copy-held column comes from the section's published record in
-// the locale (English when that locale has none); a section with no record at all keeps the copy file's words, so a
-// row imported without text never blanks the page. The section order stays the code's: nothing here reorders.
+// the locale, column by column (an empty or missing column in Arabic or Spanish reads the English record's); a section
+// with no record at all keeps the copy file's words, so a row imported without text never blanks the page. A page with
+// no row in the view stops the build. The section order stays the code's: nothing here reorders.
 
 import { ABOUT_PAGE_COPY } from "../copy/about-page";
 import { CONTACT_PAGE_COPY } from "../copy/contact-page";
@@ -73,11 +74,16 @@ function copyWords(spec: SectionSpec, locale: Locale): SectionWords {
   return out;
 }
 
-/** The section's published record in the locale, else the English one; none -> null. */
-function recordFor(rows: readonly SectionTextRow[], locale: Locale): SectionTextRow | null {
+/** The section's published records: the locale's and the English one (either may be missing). */
+function recordsFor(rows: readonly SectionTextRow[], locale: Locale): { own: SectionTextRow | null; en: SectionTextRow | null } {
   const published = rows.filter((row) => row.status === "published");
-  return published.find((row) => row.locale === locale) ?? published.find((row) => row.locale === "en") ?? null;
+  return { own: published.find((row) => row.locale === locale) ?? null, en: published.find((row) => row.locale === "en") ?? null };
 }
+
+const wordsOf = (value: unknown): string | string[] | null =>
+  Array.isArray(value) ? value.map(String) : typeof value === "string" ? value : null;
+const filled = (value: string | string[] | null): value is string | string[] =>
+  value !== null && (Array.isArray(value) ? value.length > 0 : value.trim() !== "");
 
 export async function getPageContent(page: PageKey, locale: Locale): Promise<PageContent> {
   await loadSource();
@@ -90,6 +96,11 @@ export async function getPageContent(page: PageKey, locale: Locale): Promise<Pag
   }
 
   const sections = readSource<SectionRow[]>("page-sections").filter((row) => row.page === page);
+  // A page with no published row at all is a build before the import (or a broken view), not an owner's choice: the
+  // first section can never be hidden. Stop the build instead of shipping a page with every section gone (C-03).
+  if (sections.length === 0) {
+    throw new Error(`page-content: api_page_sections has no row for page "${page}"; run the site content import first`);
+  }
   const bySection = new Map(sections.map((row) => [row.section, row]));
   const texts = readSource<SectionTextRow[]>("page-section-translations");
   const text: Partial<Record<string, SectionWords>> = {};
@@ -97,18 +108,22 @@ export async function getPageContent(page: PageKey, locale: Locale): Promise<Pag
     if (spec.textFrom?.kind !== "copy") continue;
     const row = bySection.get(spec.section);
     if (!row) continue;
-    const record = recordFor(
+    const { own, en } = recordsFor(
       texts.filter((t) => t.section_id === row.id),
       locale,
     );
-    if (!record) {
-      text[spec.section] = copyWords(spec, locale);
+    const fallback = copyWords(spec, locale);
+    if (!own && !en) {
+      text[spec.section] = fallback;
       continue;
     }
+    // Column by column (Sonnet review 06-02): the locale's own words when filled; else the English record's (the owner
+    // may have emptied an English column on purpose, so it is used as it is); else the copy file's.
     const words: SectionWords = {};
     for (const column of Object.keys(spec.textFrom.paths)) {
-      const value = record[column];
-      words[column] = Array.isArray(value) ? value.map(String) : typeof value === "string" ? value : "";
+      const mine = own ? wordsOf(own[column]) : null;
+      const english = en ? wordsOf(en[column]) : null;
+      words[column] = filled(mine) ? mine : en ? (english ?? "") : (fallback[column] ?? "");
     }
     text[spec.section] = words;
   }

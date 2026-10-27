@@ -471,7 +471,9 @@ export function BlogScreen({ send }: { send?: Send } = {}) {
     const reply = await opsSend<PublishResult>("/api/ops/publish", { entity: "post", id: open.form.id, published: false });
     if (!reply.ok) setError(reply.error);
     else {
-      setError(await openDetail(open.form.id, open.form.blocks.map((b) => b.key)));
+      // The stored blocks are the last saved ones (the kit asks before Unpublish drops unsaved typing): their keys, in
+      // the order they were sent, so a lock lands on its own block (Sonnet review 06-03).
+      setError(await openDetail(open.form.id, sentBlockKeys(open.saved)));
       await loadList();
     }
     setBusy(false);
