@@ -513,7 +513,9 @@ export function parseJourneyAction(value: unknown): SaveAction | ReorderAction {
 
 // ---- 5.9 publish -----------------------------------------------------------------------------------------------------
 
-export const PUBLISH_ENTITIES = ["destination", "stay", "catalog_item", "team_member", "journey_tier"] as const;
+// Plan 06-01: `post` (06-03) and `legal_page` (06-04, the cookie banner is a legal_page kind) are accepted here once, so
+// those plans never edit this list. ops_publish in migration 20261025120000 holds their publish rules.
+export const PUBLISH_ENTITIES = ["destination", "stay", "catalog_item", "team_member", "journey_tier", "post", "legal_page"] as const;
 export type PublishEntity = (typeof PUBLISH_ENTITIES)[number];
 
 export function parsePublish(value: unknown): { entity: PublishEntity; id: string; published: boolean } {

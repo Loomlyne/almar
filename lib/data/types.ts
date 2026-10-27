@@ -398,3 +398,93 @@ export type Post = RowMeta & {
   cover_image: ImageRef;
   is_published: boolean;
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Phase 6 (plan 06-01): additive only. The pages, links, posts, legal pages and packages the owner edits. The readers
+// that return these are written by 06-02…06-07; nothing above changes shape.
+// ---------------------------------------------------------------------------------------------------------------
+
+/** An editable public page (lib/data/page-sections.ts PAGE_KEYS). */
+export type PageKey = "home" | "about" | "destinations" | "experiences" | "contact";
+
+/** A section key of one page (PAGE_SECTIONS); the order on the page is fixed in code. */
+export type SectionKey = string;
+
+/** One shown section, one language: the texts it uses, its photos per slot and its hero video. */
+export type PageSection = {
+  page: PageKey;
+  section: SectionKey;
+  locale: Locale;
+  translation_status: TranslationStatus;
+  /** Only the section's own text columns are present. `paragraphs` is a list. */
+  text: Partial<Record<string, string | string[] | null>>;
+  /** Slot name -> photos in the owner's order (a single slot holds at most one). Decorative photos have alt "". */
+  media: Record<string, ImageRef[]>;
+  /** An https video URL (CMS-06) or null. */
+  video_url: string | null;
+};
+
+export type NavArea = "header" | "footer";
+
+/** One header or footer link, one language. Login is never a row: it is drawn last by the header itself (F-15). */
+export type NavLink = {
+  id: Uuid;
+  area: NavArea;
+  position: number;
+  /** `internal`: `target` is a page key; `external`: an https URL. */
+  link_kind: "internal" | "external";
+  target: string;
+  label: string;
+  locale: Locale;
+  translation_status: TranslationStatus;
+};
+
+/** A photo inside a post body (F-08). `PostBlock` itself is unchanged, so no existing switch changes. */
+export type PostPhotoBlock = { type: "photo"; image: ImageRef };
+
+/** Every block a post body can hold once 06-03 lands. */
+export type PostBodyBlock = PostBlock | PostPhotoBlock;
+
+/** The legal pages the owner publishes (F-07); `cookie_banner` holds the banner's words (F-05). */
+export type LegalKind = "privacy" | "terms" | "booking_terms" | "waiver" | "disclaimer" | "cookie_banner";
+
+/** A published legal page, one language. A kind with no published text has no route and no footer link. */
+export type LegalPage = {
+  id: Uuid;
+  kind: Exclude<LegalKind, "cookie_banner">;
+  title: string;
+  seo_title: string | null;
+  seo_description: string | null;
+  body: Array<{ type: "heading" | "paragraph" | "quote"; text: string }>;
+  updated_at: Timestamp;
+  locale: Locale;
+  translation_status: TranslationStatus;
+};
+
+/** The cookie banner's words (legal kind `cookie_banner`), one language. */
+export type CookieBannerText = {
+  title: string;
+  body: Array<{ type: "heading" | "paragraph" | "quote"; text: string }>;
+  necessary_label: string;
+  necessary_body: string | null;
+  analytics_label: string;
+  analytics_body: string | null;
+  locale: Locale;
+  translation_status: TranslationStatus;
+};
+
+/** One city of a package (F-02): the destination, an optional suggested stay and the owner's nights line. */
+export type PackageLeg = {
+  id: Uuid;
+  position: number;
+  destination_id: Uuid;
+  /** Null when no stay is suggested or the stay is not published. */
+  stay_id: Uuid | null;
+  nights_label: string | null;
+};
+
+/** A catalog item a package includes (ADDN-03): shown as included, never removable. */
+export type PackageAddOn = { item_id: Uuid; position: number };
+
+/** The four kinds of request a guest sends from the site (F-10). */
+export type SiteRequestKind = "plan" | "list" | "package" | "consultation";

@@ -37,6 +37,23 @@ export const SOURCE_VIEWS = {
   "journey-tiers": "api_journey_tiers",
   "journey-tier-translations": "api_journey_tier_translations",
   "image-translations": "api_image_translations",
+  // Phase 6 (plan 06-01, migration 20261025120000). The page blocks and posts leave the fixtures in supabase mode;
+  // lib/data/page-blocks.ts reads the five page-* views (fixtures mode reads the files themselves, never these names).
+  "page-sections": "api_page_sections",
+  "page-section-translations": "api_page_section_translations",
+  "page-section-media": "api_page_section_media",
+  "page-items": "api_page_items",
+  "page-item-translations": "api_page_item_translations",
+  posts: "api_posts",
+  "post-translations": "api_post_translations",
+  // Named here up front so 06-02, 06-04 and 06-06 never edit this map. No fixture file: fixtures mode returns [].
+  "nav-links": "api_nav_links",
+  "nav-link-translations": "api_nav_link_translations",
+  "legal-pages": "api_legal_pages",
+  "legal-page-translations": "api_legal_page_translations",
+  "journey-tier-legs": "api_journey_tier_legs",
+  "journey-tier-leg-translations": "api_journey_tier_leg_translations",
+  "journey-tier-addons": "api_journey_tier_addons",
 } as const;
 
 export type SourceName = keyof typeof SOURCE_VIEWS;
@@ -57,7 +74,41 @@ const ORDER: Record<SourceName, readonly string[]> = {
   "journey-tiers": ["position", "slug"],
   "journey-tier-translations": ["tier_id", "locale"],
   "image-translations": ["image_id", "locale"],
+  "page-sections": ["page", "section"],
+  "page-section-translations": ["section_id", "locale"],
+  "page-section-media": ["section_id", "slot", "position"],
+  "page-items": ["position", "id"],
+  "page-item-translations": ["card_id", "locale"],
+  posts: ["slug"],
+  "post-translations": ["post_id", "locale"],
+  "nav-links": ["area", "position", "id"],
+  "nav-link-translations": ["link_id", "locale"],
+  "legal-pages": ["kind"],
+  "legal-page-translations": ["page_id", "locale"],
+  "journey-tier-legs": ["tier_id", "position", "id"],
+  "journey-tier-leg-translations": ["leg_id", "locale"],
+  "journey-tier-addons": ["tier_id", "position", "item_id"],
 };
+
+/** Phase 6 sources with no fixture file: fixtures mode returns [] for them and reads no file. */
+const NO_FIXTURE: ReadonlySet<SourceName> = new Set([
+  "nav-links",
+  "nav-link-translations",
+  "legal-pages",
+  "legal-page-translations",
+  "journey-tier-legs",
+  "journey-tier-leg-translations",
+  "journey-tier-addons",
+]);
+
+/** Read through lib/data/page-blocks.ts only, which reads the fixture files itself in fixtures mode. */
+const PAGE_VIEWS: ReadonlySet<SourceName> = new Set([
+  "page-sections",
+  "page-section-translations",
+  "page-section-media",
+  "page-items",
+  "page-item-translations",
+]);
 
 /** PostgREST answers at most 1,000 rows a request by default (research pitfall 6): read in pages of this size. */
 const PAGE = 1000;
@@ -96,6 +147,8 @@ export function readFixtureFile<T>(name: string): T {
 }
 
 function fixtureSource<T>(name: SourceName): T {
+  if (NO_FIXTURE.has(name)) return [] as T;
+  if (PAGE_VIEWS.has(name)) throw new Error(`readSource("${name}") in fixtures mode: page blocks are read through lib/data/page-blocks.ts`);
   if (name === "journey-tiers") return readFixtureFile<{ tiers: unknown }>("home").tiers as T;
   if (name === "journey-tier-translations") return readFixtureFile<{ tiers: unknown }>("home-translations").tiers as T;
   return readFixtureFile<T>(name);
@@ -181,9 +234,6 @@ async function readView(client: ViewClient, name: SourceName): Promise<unknown[]
 
 type ImageAlt = { image_id: string; locale: string; alt?: string };
 
-/** The fixture files whose page blocks stay in fixtures in supabase mode (C-21); home's `tiers` come from the database. */
-const BLOCK_FIXTURES = ["home", "about", "posts", "destinations-page"] as const;
-
 /** The ids of every image (an object with a string `id` and `media_key`) inside `value`. */
 function collectImageIds(value: unknown, into: Set<string>): Set<string> {
   if (Array.isArray(value)) {
@@ -196,46 +246,40 @@ function collectImageIds(value: unknown, into: Set<string>): Set<string> {
   return into;
 }
 
-/** The images of the page blocks that stay in fixtures: their alt texts are the only ones fixtures may still supply. */
-function blockImageIds(): Set<string> {
-  const ids = new Set<string>();
-  for (const name of BLOCK_FIXTURES) {
-    const blocks = readFixtureFile<Record<string, unknown>>(name);
-    collectImageIds(name === "home" ? { ...blocks, tiers: undefined } : blocks, ids);
-  }
-  return ids;
-}
-
 /**
- * Alt texts in supabase mode: every database record, plus the fixture records of the images of the page blocks that stay
- * in fixtures (BLOCK_FIXTURES) that the database has no record of. Merged per image, never per locale: an image the
- * database knows takes all its alts from the database, so one (image_id, locale) is never present twice. A
- * fixture alt of a stay, destination, catalogue item, team member or tier never mixes into database content. No database
- * record at all, while stays exist, is a broken read (the import writes every catalogue image's alts): it throws.
+ * Alt texts in supabase mode: the database records only. Since plan 06-01 the page blocks and posts are read from the
+ * database too, so no fixture file is read at all in this mode. No record at all, while stays exist, is a broken read (the
+ * imports write every image's alts): it throws.
  */
-function mergeImageTranslations(database: ImageAlt[]): ImageAlt[] {
+function checkImageTranslations(database: ImageAlt[]): ImageAlt[] {
   if (database.length === 0) {
     throw new Error("api_image_translations: no alt texts while stays exist (an empty read never ships; the live site stays as it was)");
   }
-  const known = new Set(database.map((r) => r.image_id));
-  const blocks = blockImageIds();
-  const fromFixtures = readFixtureFile<ImageAlt[]>("image-translations").filter((r) => blocks.has(r.image_id) && !known.has(r.image_id));
-  return [...database, ...fromFixtures];
+  return database;
 }
 
 /** The views that must hold at least one published row: an empty one ships a site with no stays, journeys, destinations or catalogue. The team may be empty (C-17). */
-const MUST_HAVE_ROWS: readonly SourceName[] = ["stays", "catalog", "journey-tiers", "destinations"];
+const MUST_HAVE_ROWS: readonly SourceName[] = ["stays", "catalog", "journey-tiers", "destinations", "page-sections"];
 
 /** The pictures every published picture needs an alt text for (03.2-02b: a missing one never becomes `alt=""` or an English alt on /ar and /es). */
 const ALT_LOCALES = ["en", "ar", "es"] as const;
 
-/** The entity rows whose pictures are published through the database (the page blocks that stay in fixtures are not checked here). */
-const PICTURE_SOURCES: readonly SourceName[] = ["stays", "destinations", "catalog", "team", "journey-tiers"];
+/**
+ * The rows whose pictures are published through the database. Decorative page photos (the About collage and the Get In
+ * Touch still, `is_decorative`) are drawn with alt="" in every language on purpose and are skipped.
+ */
+const PICTURE_SOURCES: readonly SourceName[] = ["stays", "destinations", "catalog", "team", "journey-tiers", "page-section-media", "page-items", "posts", "post-translations"];
+
+/** A source's rows as the alt check sees them: decorative page photos left out. */
+function pictureRows(name: SourceName, rows: unknown[] | undefined): unknown[] {
+  if (name !== "page-section-media" || !rows) return rows ?? [];
+  return rows.filter((row) => !(row as { is_decorative?: boolean }).is_decorative);
+}
 
 /** Throws, naming the pictures, when a published picture lacks a non-empty alt text in en, ar or es. */
 function assertAltTexts(loaded: Map<SourceName, unknown[]>, alts: ImageAlt[]): void {
   const ids = new Set<string>();
-  for (const name of PICTURE_SOURCES) collectImageIds(loaded.get(name), ids);
+  for (const name of PICTURE_SOURCES) collectImageIds(pictureRows(name, loaded.get(name)), ids);
   const have = new Set(alts.filter((r) => typeof r.alt === "string" && r.alt.trim() !== "").map((r) => `${r.image_id}:${r.locale}`));
   const missing: string[] = [];
   for (const id of [...ids].sort()) for (const locale of ALT_LOCALES) if (!have.has(`${id}:${locale}`)) missing.push(`${id} (${locale})`);
@@ -257,7 +301,7 @@ async function readAll(): Promise<void> {
       throw new Error(`${SOURCE_VIEWS[name]}: no published rows (an empty ${name} never ships; the live site stays as it was)`);
     }
   }
-  const alts = mergeImageTranslations(loaded.get("image-translations") as ImageAlt[]);
+  const alts = checkImageTranslations(loaded.get("image-translations") as ImageAlt[]);
   assertAltTexts(loaded, alts);
   loaded.set("image-translations", alts);
   rows = loaded;

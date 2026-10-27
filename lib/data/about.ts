@@ -1,11 +1,12 @@
 // lib/data/about.ts
 //
 // Server only. The About page's own blocks: hero, intro (statement, the collage's five photos, the wide
-// still), the Get In Touch band's still, and the six Our Story / Our Values cards. Phase 3.2/6 swap
-// readFixture for Supabase (Content > Pages) and touch nothing else. Section headings and intro lines are
-// copy (lib/copy/about-page.ts), not data.
+// still), the Get In Touch band's still, and the six Our Story / Our Values cards. Since plan 06-01 they come from
+// ./page-blocks (the fixture files, or the page-section and page-item views in supabase mode), in the same shapes.
+// Section headings and intro lines are still copy (lib/copy/about-page.ts) until 06-02 moves them to data.
 
-import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { pageFixture, pageFixtureTranslations } from "./page-blocks";
+import { image, resolveRow, type RawImage, type StoredStatus } from "./resolve";
 import { loadSource } from "./source";
 import type { AboutBlocks, AboutCard, Locale } from "./types";
 
@@ -34,8 +35,8 @@ type AboutTranslations = {
   cards: Array<Rec & { card_id: string; title: string; body: string }>;
 };
 
-const about = () => readFixture<AboutFixture>("about");
-const aboutT = () => readFixture<AboutTranslations>("about-translations");
+const about = () => pageFixture<AboutFixture>("about");
+const aboutT = () => pageFixtureTranslations<AboutTranslations>("about");
 
 /** A block's text for one locale, falling back to English. */
 function block<T extends Rec>(records: readonly T[], locale: Locale): T {
@@ -60,7 +61,7 @@ function cardsFor(section: AboutCard["section"], locale: Locale): AboutCard[] {
 }
 
 export async function getAboutBlocks(locale: Locale): Promise<AboutBlocks> {
-  await loadSource(); // the blocks stay fixtures (C-21); their pictures' alt texts come from the shared source
+  await loadSource(); // the blocks and their pictures' alt texts come from the same source
   const a = about();
   const t = aboutT();
   const hero = block(t.hero, locale);
