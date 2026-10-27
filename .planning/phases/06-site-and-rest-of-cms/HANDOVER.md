@@ -182,12 +182,24 @@ Fable answers · `99ccec0e` slots 1–7, 9, 10 · `7f69ba3f` second review answe
 | `npm run tokens:check` | pass ("theme up to date") |
 | node tests, pgTAP, build, Playwright | **not run (owner: no test)** |
 
-## Before the first supabase-mode build (controller)
-1. Apply the migration (sha above), then run `scripts/import-site-content.mjs` on live: `getPageContent` now stops the
-   build when a page has no row in `api_page_sections`, and the assemble now writes the nav snapshot from
-   `api_nav_links`, failing loudly on a bad read.
-2. The 256 KiB cap is on `/api/ops/posts` only, after `requireOwner`. OpenNext reads the whole body on Workers (Free
-   plan, 10 ms CPU) whatever the cap, so a large post save costs CPU on that route.
+## Before the first supabase-mode build (controller runbook)
+`getPageContent` stops the build when a page has no row in `api_page_sections`, and the assemble writes the nav snapshot
+from `api_nav_links` (a bad read stops it). So the import runs after the migration and before any `--target=preview` or
+`--target=production` build. Run these in the main checkout on the landed `main`:
+1. Apply `supabase/migrations/20261025120000_site_cms.sql` (3,339 lines, sha256 above) and read it back.
+2. Dry run (no network, no client; prints each table's row count and every skipped value; it must end with "dry run:
+   nothing was sent"):
+   `node scripts/import-site-content.mjs --out /Users/koss/.almar-import/site-content-payload.json`
+3. Apply to live, in the controller's terminal only. `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are exported from
+   the Supabase CLI output by a pipe, never printed or saved:
+   `node scripts/import-site-content.mjs --apply --project-ref jkdkaldgeiowkhlfmsft`
+   It is one `import_site_content` rpc in one transaction with `on conflict do nothing`, so a second run writes nothing new.
+4. Read back (anon views): `api_page_sections` holds rows for home, about, destinations, experiences and contact;
+   `api_nav_links` holds today's header and footer links; `api_posts` holds the three posts.
+5. Then the usual pre-deploy checks (`parity-build.mjs --live --keep`, media dry run), then assemble.
+
+The 256 KiB cap is on `/api/ops/posts` only, after `requireOwner`. OpenNext reads the whole body on Workers (Free plan,
+10 ms CPU) whatever the cap, so a large post save costs CPU on that route.
 
 ## Reviews (`jev-review`, author Opus)
 - Range `8f1503d4..74b9afd0`: standard tier, Sonnet, "fix first", 9 findings. Fixed: 1, 2, 3, 4, 5, 6, 7 and the
