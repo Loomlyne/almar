@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-27 20:40 +0100:** Phase 4 landed on main `3c5e8bc5` (PR #34) on the owner's Ship; no migration, secret or deploy. Phase 6 (06-01) is unblocked; migration, secrets and deploys of Phase 4 wait for his word.
+
 **2026-10-25 22:51 CET:** Owner (question form): "Wait: start Phase 6 only after Phase 4 lands." Phase 6 execution is queued behind the Phase 4 landing.
 
 **2026-10-25 22:49 CET:** **almar deployed** `e0872751` (rollback `ccf1fffb`) from `0f8f6091` on the owner's word (question form): /en /ar /es URLs, language cookie, Login link, pets rule, price sort. Pre-checks: PARITY OK on live rows, media 170/170 200, key in 0 files, dry run 0, Sonnet GO. Live: / 302 by cookie (ar/es, bad → /en/), /en /ar /es pages 200 with lang/dir, old URLs 301 to /en/… with query, account/bookings 307 to their login, sign-out → /ar/, robots allow + sitemap 66 prefixed URLs, no noindex on pages, /api/booking/* 400 on empty, www 200. almar-ops unchanged (`3605ce9f`).
