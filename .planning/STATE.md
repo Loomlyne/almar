@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-27 21:54 +0100:** Phase 4 live: migration 20261019160000 applied and read back, BOOKING_LINK_SECRET on almar and almar-ops, almar-preview 1ce1873f, almar-ops 9fad3c4e (cron ok), almar 1435e262. Requests closed until booking terms exist. Phase 6 (06-01) next.
+
 **2026-10-27 20:40 +0100:** Phase 4 landed on main `3c5e8bc5` (PR #34) on the owner's Ship; no migration, secret or deploy. Phase 6 (06-01) is unblocked; migration, secrets and deploys of Phase 4 wait for his word.
 
 **2026-10-25 22:51 CET:** Owner (question form): "Wait: start Phase 6 only after Phase 4 lands." Phase 6 execution is queued behind the Phase 4 landing.
