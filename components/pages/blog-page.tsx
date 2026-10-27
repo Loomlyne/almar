@@ -5,6 +5,7 @@ import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
 import { MediaCard } from "../ui/card";
 import { PageShell } from "../ui/page-shell";
 import { SectionHead } from "../ui/section";
+import { BlogSearchList } from "./blog/blog-search";
 import { blogFrameLinks } from "./blog/frame-links";
 import { BLOG_COPY } from "../../lib/copy/blog";
 import { HOME_PAGE_COPY } from "../../lib/copy/home-page";
@@ -43,9 +44,15 @@ export async function BlogPage({ locale }: { locale: Locale }) {
           {posts.length === 0 ? (
             <p className="m-0 text-body text-ink">{copy.empty}</p>
           ) : (
-            <ul className="m-0 grid list-none grid-cols-1 gap-6 p-0 md:grid-cols-2 xl:grid-cols-3 xl:gap-8">
-              {posts.map((post) => (
-                <li key={post.slug} className="min-w-0">
+            <BlogSearchList
+              locale={locale}
+              copy={copy}
+              listClassName="m-0 grid list-none grid-cols-1 gap-6 p-0 md:grid-cols-2 xl:grid-cols-3 xl:gap-8"
+              cards={posts.map((post) => ({
+                slug: post.slug,
+                // What the search reads: the title, excerpt and every text block in this language (photos have none).
+                text: [post.title, post.excerpt, ...post.body.flatMap((block) => ("text" in block ? [block.text] : []))].join(" "),
+                card: (
                   <MediaCard
                     href={localePath(locale, `${PATH}/${post.slug}`)}
                     image={{ src: post.cover_image.url, alt: post.cover_image.alt }}
@@ -60,9 +67,9 @@ export async function BlogPage({ locale }: { locale: Locale }) {
                       </>
                     }
                   />
-                </li>
-              ))}
-            </ul>
+                ),
+              }))}
+            />
           )}
         </PageShell>
       </main>

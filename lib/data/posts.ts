@@ -10,7 +10,7 @@ import { dateLabel, parseBody, readingMinutes } from "./post-body";
 import { image, resolveRow, type RawImage, type StoredStatus } from "./resolve";
 import { loadSource, readSource } from "./source";
 import { getStays } from "./stays";
-import type { Locale, Post, PostBlock } from "./types";
+import type { Locale, Post, PostBodyBlock } from "./types";
 
 type PostBase = {
   id: string;
@@ -48,11 +48,40 @@ function liveBase(): PostBase[] {
     .sort((a, b) => b.published_at.localeCompare(a.published_at));
 }
 
+/** A stored photo (the view's `{ id, media_key, … }`) as an image with its alt text in `locale`. */
+const photoIn = (locale: Locale) => (raw: unknown) => image(raw as RawImage, locale);
+
+/**
+ * The records the page may use (plan 06-03): an Arabic or Spanish record whose body does not parse, or has another
+ * number of blocks than the English one, is treated as absent, so resolveRow falls back to English ("English only" on
+ * the page) and the build goes on; one log line names the post and the language. A bad English body still fails the
+ * build (C-03: the live site stays).
+ */
+function usableRecords(base: PostBase, own: readonly PostTranslation[], locale: Locale): PostTranslation[] {
+  const en = own.find((t) => t.locale === "en");
+  const enCount = en && Array.isArray(en.body) ? en.body.length : null;
+  return own.filter((t) => {
+    if (t.locale === "en") return true;
+    try {
+      parseBody(t.body, photoIn(locale));
+      if (enCount !== null && Array.isArray(t.body) && t.body.length !== enCount) throw new Error("block count differs from English");
+      return true;
+    } catch (error) {
+      if (t.locale === locale) console.warn(`post ${base.slug}: ${t.locale} body left out, English shown (${(error as Error).message})`);
+      return false;
+    }
+  });
+}
+
 async function resolvePost(base: PostBase, locale: Locale): Promise<Post> {
   await loadSource();
-  const own = readSource<PostTranslation[]>("post-translations").filter((t) => t.post_id === base.id);
+  const own = usableRecords(
+    base,
+    readSource<PostTranslation[]>("post-translations").filter((t) => t.post_id === base.id),
+    locale,
+  );
   const row = resolveRow(base, own, locale);
-  const body: PostBlock[] = parseBody(row.body);
+  const body: PostBodyBlock[] = parseBody(row.body, photoIn(locale));
 
   const dest = base.destination_id
     ? ((await getDestinations(locale, { includeEmpty: true })).find((d) => d.id === base.destination_id) ?? null)

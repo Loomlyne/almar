@@ -16,7 +16,7 @@ import { Link } from "../ui/link";
 import { OnThisPage } from "../ui/on-this-page";
 import { PageShell } from "../ui/page-shell";
 import { Reveal } from "../ui/reveal";
-import { RichText } from "../ui/rich-text";
+import { RichText, type RichTextBlock } from "../ui/rich-text";
 import { BLOG_COPY } from "../../lib/copy/blog";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
@@ -24,6 +24,7 @@ import { getDestinations } from "../../lib/data/destinations";
 import { getCatalogItem } from "../../lib/data/experiences";
 import { getPost, getPostSlugs, getRelatedPosts } from "../../lib/data/posts";
 import { getStay } from "../../lib/data/stays";
+import type { PostBodyBlock } from "../../lib/data/types";
 import { formatPlural } from "../../lib/journey-format";
 import { absoluteLocaleUrl, localeAlternates, localePath, siteHref, type Locale } from "../../lib/locale-path";
 
@@ -104,9 +105,16 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
 
   const url = absoluteLocaleUrl(locale, `/blog/${slug}`);
   const cover = { src: post.cover_image.url, alt: post.cover_image.alt };
-  const headings = post.body.flatMap((block) => (block.type === "heading" ? [{ id: block.id, text: block.text }] : []));
+  // Photo blocks (plan 06-03) go to RichText as their address and alt; the headings list and the lead rule skip them.
+  const body = post.body as readonly PostBodyBlock[];
+  const blocks: RichTextBlock[] = body.map((block) =>
+    block.type === "photo"
+      ? { type: "photo", src: block.image.url, alt: block.image.alt, width: block.image.width, height: block.image.height }
+      : block,
+  );
+  const headings = body.flatMap((block) => (block.type === "heading" ? [{ id: block.id, text: block.text }] : []));
   // One paragraph reads as a lead and is centred; from the second block on the body is start-aligned.
-  const lead = post.body.length === 1 && post.body[0].type === "paragraph";
+  const lead = body.length === 1 && body[0].type === "paragraph";
   const fallback = post.translation_status === "fallback";
 
   const stayCard =
@@ -140,7 +148,7 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
       {headings.length >= 2 ? (
         <OnThisPage label={copy.onThisPage} items={headings} className="w-full text-start" />
       ) : null}
-      <RichText blocks={post.body} className={lead ? "justify-items-center text-center" : "w-full justify-items-start text-start"} />
+      <RichText blocks={blocks} className={lead ? "justify-items-center text-center" : "w-full justify-items-start text-start"} />
     </article>
   );
 

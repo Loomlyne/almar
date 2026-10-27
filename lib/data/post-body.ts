@@ -2,14 +2,18 @@
 //
 // Pure helpers for blog posts: no fs, no value imports, so node tests can load this file directly.
 
-import type { Locale, PostBlock } from "./types";
+import type { ImageRef, Locale, PostBodyBlock } from "./types";
 
 export const WORDS_PER_MINUTE = 200;
 
 const KINDS = new Set(["paragraph", "heading", "quote"]);
 
-/** Validates a stored body and assigns heading ids section-1..n. Throws (fails the build) on anything else. */
-export function parseBody(json: unknown): PostBlock[] {
+/**
+ * Validates a stored body and assigns heading ids section-1..n. Throws (fails the build) on anything else. A photo block
+ * (`{ type: "photo", image }`, plan 06-03) is accepted only through `toImage`, the caller's resolver of the stored image
+ * (alt text in the page's language); without one, or when it returns null, the photo throws like any bad block.
+ */
+export function parseBody(json: unknown, toImage?: (raw: unknown) => ImageRef | null): PostBodyBlock[] {
   if (!Array.isArray(json)) throw new Error("post body: not an array");
   let headings = 0;
   return json.map((item, i) => {
@@ -17,6 +21,11 @@ export function parseBody(json: unknown): PostBlock[] {
       throw new Error(`post body[${i}]: not an object`);
     }
     const { type, text } = item as { type?: unknown; text?: unknown };
+    if (type === "photo") {
+      const image = toImage ? toImage((item as { image?: unknown }).image) : null;
+      if (!image) throw new Error(`post body[${i}]: a photo with no image`);
+      return { type: "photo", image };
+    }
     if (typeof type !== "string" || !KINDS.has(type)) {
       throw new Error(`post body[${i}]: unknown block type ${JSON.stringify(type)}`);
     }
@@ -25,17 +34,20 @@ export function parseBody(json: unknown): PostBlock[] {
     }
     if (type === "heading") {
       headings += 1;
-      return { type: "heading", text, id: `section-${headings}` } as PostBlock;
+      return { type: "heading", text, id: `section-${headings}` } as PostBodyBlock;
     }
-    return { type, text } as PostBlock;
+    return { type, text } as PostBodyBlock;
   });
 }
 
-/** Minutes to read: words / 200, rounded up, at least 1. Word count by Intl.Segmenter for the locale. */
-export function readingMinutes(blocks: readonly PostBlock[], locale: Locale): number {
+/** Minutes to read: words / 200, rounded up, at least 1. Word count by Intl.Segmenter for the locale; photos have none. */
+export function readingMinutes(blocks: readonly PostBodyBlock[], locale: Locale): number {
   const seg = new Intl.Segmenter(locale, { granularity: "word" });
   let words = 0;
-  for (const b of blocks) for (const s of seg.segment(b.text)) if (s.isWordLike) words += 1;
+  for (const b of blocks) {
+    if (b.type === "photo") continue;
+    for (const s of seg.segment(b.text)) if (s.isWordLike) words += 1;
+  }
   return Math.max(1, Math.ceil(words / WORDS_PER_MINUTE));
 }
 
