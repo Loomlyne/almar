@@ -151,6 +151,7 @@ export function EditPage({
   liveTranslations = {},
   holdOnFailure = false,
   locked: storedLocks,
+  status,
   send = opsSend,
 }: {
   /** The open item's id, or null for the list. A new key starts the page afresh. */
@@ -195,6 +196,11 @@ export function EditPage({
   holdOnFailure?: boolean;
   /** The row's stored locks per language (each ar/es record's `locked_fields`): the boxes the owner fixed by hand. */
   locked?: LockedLists;
+  /**
+   * Replaces the Published / Draft chip beside the title, for content with no publish step (a page section, an About
+   * card, a header or footer link: Shown / Hidden, plan 06-02).
+   */
+  status?: ReactNode;
   /** Test seam: the translate request (opsSend by default). */
   send?: Send;
 }) {
@@ -593,7 +599,7 @@ export function EditPage({
                   {title}
                 </h1>
                 <span className="inline-flex flex-wrap items-center gap-3">
-                  {isNew ? null : <StatusChip published={isPublished} locale={locale} />}
+                  {isNew ? null : (status ?? <StatusChip published={isPublished} locale={locale} />)}
                   <span role="status" className={statusLine ? "inline-flex items-center gap-2 text-label text-ink" : "sr-only"}>
                     {result?.kind === "updated" && phase === "idle" && !dirty ? <CheckIcon size={16} className="text-teal" aria-hidden="true" /> : null}
                     {statusLine}
