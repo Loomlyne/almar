@@ -11,6 +11,7 @@ const vc = await loadTs("lib/ops/validate-catalog.ts");
 const forms = await loadTs("app/dashboard/(ops)/catalog/catalog-forms.ts");
 const stays = await loadTs("app/dashboard/(ops)/catalog/stays/stay-forms.ts");
 const alt = await loadTs("components/ops/media-alt.ts");
+const shape = await loadTs("lib/ops/shape.ts");
 
 const SPEC = { required: ["name"], fields: { name: { kind: "text", max: 160 }, summary: { kind: "text", max: 4000 } } };
 const ID = "11111111-1111-4111-8111-111111111111";
@@ -96,7 +97,7 @@ test("destination form reads the stored locks and sends them back on every ar/es
 
 test("withTranslations stores the kit's lock lists; a lock change makes the form differ (the page is dirty)", () => {
   const form = forms.destinationFormOf(destinationDetail({ ar: [], es: [] }));
-  const next = forms.withTranslations(form, { ar: { name: "قرطاجنة" }, es: { name: "Cartagena" } }, { ar: ["name"], es: [] });
+  const next = forms.withTranslations(form, { ar: { name: "قرطاجنة" }, es: { name: "Cartagena de Indias" } }, { ar: ["name"], es: [] });
   assert.deepEqual(next.locked, { ar: ["name"], es: [] });
   assert.equal(forms.sameForm(form, next), false);
   assert.deepEqual(forms.withTranslations(form, { ar: {}, es: {} }).locked, form.locked, "no lists given: the form's own stay");
@@ -126,4 +127,20 @@ test("media: the alt locks go into save_alt and come back from the list item", (
   assert.deepEqual(body.locked, { ar: false, es: true });
   assert.deepEqual(alt.itemAfterSave(item, body).alt_locked, { ar: false, es: true });
   assert.equal("locked" in alt.buildSaveAlt(ID, { en: "Pool", ar: "", es: "" }, false), false, "no lists: no key (older callers)");
+});
+
+// ---- lib/ops/shape.ts: what the routes read back -------------------------------------------------------------------------
+
+test("shape: each ar/es record keeps its locked_fields (strings only); before the migration it reads as []", () => {
+  const row = destinationDetail({ ar: ["name", 3], es: undefined });
+  const out = shape.destinationDetail(row);
+  assert.deepEqual(out.translations.ar.locked_fields, ["name"]);
+  assert.deepEqual(out.translations.es.locked_fields, []);
+  assert.equal("locked_fields" in out.translations.en, false, "English never carries a lock");
+});
+
+test("shape: stay access keeps notes_locked (ar / es only); absent reads as []", () => {
+  const base = { address: null, wifi_name: null, wifi_password: null, door_code: null, notes: "Gate", notes_ar: "بوابة", notes_es: null, updated_at: "2026-10-27T00:00:00Z" };
+  assert.deepEqual(shape.stayAccess({ ...base, notes_locked: ["ar", "en"] }).notes_locked, ["ar"]);
+  assert.deepEqual(shape.stayAccess(base).notes_locked, []);
 });

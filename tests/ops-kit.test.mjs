@@ -614,7 +614,7 @@ test("every summary and detail shape of contract 5.1 to 5.9 and 6 is in api-type
   assert.deepEqual(typeFields("RateRange"), ["id", "first_night", "last_night", "nights", "nightly_rate_aed"]);
   assert.deepEqual(typeFields("RatesView"), ["stay_id", "base_nightly_rate_aed", "ranges", "nights"]);
   assert.deepEqual(typeFields("Block"), ["id", "scope", "destination_id", "stay_id", "starts_on", "ends_on", "reason", "created_at"]);
-  assert.deepEqual(typeFields("StayAccess"), ["address", "wifi_name", "wifi_password", "door_code", "notes", "notes_ar", "notes_es", "updated_at"]);
+  assert.deepEqual(typeFields("StayAccess"), ["address", "wifi_name", "wifi_password", "door_code", "notes", "notes_ar", "notes_es", "notes_locked", "updated_at"]);
   assert.deepEqual(typeFields("MediaRef"), ["id", "key", "url", "width", "height", "alt_en"]);
   assert.deepEqual(typeFields("OpsError"), ["code", "field", "locale", "detail"]);
   assert.deepEqual(typeFields("PublishResult"), ["id", "is_published", "affects_site", "warnings"]);

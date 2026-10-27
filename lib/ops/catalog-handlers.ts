@@ -225,7 +225,9 @@ export async function getStayAccess({ owner, url }: GetCtx): Promise<OpsOutcome>
   if (!stay.found) return notFound();
   const { data, error } = await owner.admin
     .from("stay_access")
-    .select("address, wifi_name, wifi_password, door_code, notes, notes_ar, notes_es, updated_at")
+    // Every column (the shape keeps only the card's): notes_locked exists only once 20261025120000 is applied, and a named
+    // column would fail this read on a database without it.
+    .select("*")
     .eq("stay_id", stayId)
     .maybeSingle();
   if (error) return { dbError: error };

@@ -81,6 +81,10 @@ export function StayAccessSection({
   const [translationFailed, setTranslationFailed] = useState(false);
   const [done, setDone] = useState<"saved" | "translated" | null>(null);
 
+  // The stay this card is for now: a Translate again answer for another stay is dropped.
+  const stayNow = useRef(stayId);
+  stayNow.current = stayId;
+
   const load = useCallback(async () => {
     setLoadError(false);
     const reply = await opsFetch<StayAccessView>(PATH, { stay_id: stayId });
@@ -209,7 +213,9 @@ export function StayAccessSection({
       return;
     }
     setAgain((was) => ({ ...was, [target]: "busy" }));
+    const asked = stayId;
     const replies = await requestTranslations(one, send);
+    if (stayNow.current !== asked) return;
     const reply = replies[target];
     const got = reply?.ok === true ? reply.fields.notes : undefined;
     if (typeof got === "string" && sendable(got) && [...got].length <= MAX_ACCESS_CHARS) {
@@ -218,6 +224,9 @@ export function StayAccessSection({
     } else {
       setAgain((was) => ({ ...was, [target]: "failed" }));
     }
+    // The box was off while the AI worked, so focus left it: put it back once the box is on again.
+    const boxId = `${id}-notes-${target}`;
+    requestAnimationFrame(() => document.getElementById(boxId)?.focus());
   }
   const field = (key: keyof AccessInput) => ({
     id: `${id}-${key}`,
@@ -278,11 +287,24 @@ export function StayAccessSection({
                 disabled={working}
                 error={tooLong === target ? copy.access.tooLong : undefined}
                 value={notes[target]}
-                {...(line ? { "aria-describedby": `${id}-notes-${target}-lock` } : {})}
+                {...(line
+                  ? {
+                      // Field's own error id stays with the lock line's (the spread replaces Field's aria-describedby).
+                      "aria-describedby": [tooLong === target ? `${id}-notes-${target}-message` : null, `${id}-notes-${target}-lock`]
+                        .filter(Boolean)
+                        .join(" "),
+                    }
+                  : {})}
                 onChange={(event) => {
                   const value = event.target.value;
                   setNotes((was) => ({ ...was, [target]: value }));
-                  setLocked((was) => new Set(was).add(touchKey(target, "notes")));
+                  // A note typed in is locked; one emptied by hand is not (the next Save fills it from the English).
+                  setLocked((was) => {
+                    const next = new Set(was);
+                    if (value.trim() === "") next.delete(touchKey(target, "notes"));
+                    else next.add(touchKey(target, "notes"));
+                    return next;
+                  });
                   setAgain((was) => ({ ...was, [target]: undefined }));
                   setDone(null);
                 }}

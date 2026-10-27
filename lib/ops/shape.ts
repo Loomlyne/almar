@@ -94,7 +94,10 @@ function status(value: unknown): TextStatus {
   return value === "published" ? "published" : "draft";
 }
 
-/** One record per language with exactly `textKeys` (+ `lists`) and its status; a missing record is null. */
+/**
+ * One record per language with exactly `textKeys` (+ `lists`) and its status; a missing record is null. Arabic and
+ * Spanish also carry `locked_fields` (I18N-04, plan 06-01): the stored lock, or [] before migration 20261025120000.
+ */
 function translationsOf<T>(value: unknown, textKeys: readonly string[], lists: readonly string[] = []): Translations<T> {
   const all = isRow(value) ? value : {};
   const out = {} as Record<Locale3, unknown>;
@@ -108,6 +111,7 @@ function translationsOf<T>(value: unknown, textKeys: readonly string[], lists: r
     for (const key of textKeys) item[key] = strOrNull(rec[key]);
     for (const key of lists) item[key] = Array.isArray(rec[key]) ? (rec[key] as unknown[]).map(str) : [];
     item.status = status(rec.status);
+    if (locale !== "en") item.locked_fields = Array.isArray(rec.locked_fields) ? (rec.locked_fields as unknown[]).filter((x): x is string => typeof x === "string") : [];
     out[locale] = item;
   }
   return out as Translations<T>;
@@ -248,6 +252,8 @@ export function stayAccess(r: Row): StayAccess {
     notes: strOrNull(r.notes),
     notes_ar: strOrNull(r.notes_ar),
     notes_es: strOrNull(r.notes_es),
+    // I18N-04 (plan 06-01): absent before migration 20261025120000, then [].
+    notes_locked: Array.isArray(r.notes_locked) ? r.notes_locked.filter((x): x is "ar" | "es" => x === "ar" || x === "es") : [],
     updated_at: str(r.updated_at),
   };
 }

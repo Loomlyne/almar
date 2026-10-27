@@ -127,7 +127,7 @@ export function EditPage({
   title,
   isNew = false,
   isPublished,
-  dirty,
+  dirty: screenDirty,
   busy = false,
   missing,
   warnings = [],
@@ -217,6 +217,8 @@ export function EditPage({
   const [locked, setLocked] = useState<ReadonlySet<string>>(() => lockedFrom(storedLocks));
   // Translate again per box (touchKey): waiting for the AI, or the AI did not answer.
   const [again, setAgain] = useState<Record<string, "busy" | "failed">>({});
+  // A lock set or taken off is a change to save, even when the text reads the same (Translate again refilled it).
+  const dirty = screenDirty || JSON.stringify(lockedLists(locked)) !== JSON.stringify(lockedLists(lockedFrom(storedLocks)));
   const [phase, setPhase] = useState<"idle" | "translating" | "saving">("idle");
   const [result, setResult] = useState<Result>(null);
   const [showTranslations, setShowTranslations] = useState(false);
@@ -482,6 +484,9 @@ export function EditPage({
     } else {
       setAgain((was) => ({ ...was, [key]: "failed" }));
     }
+    // The box was off while the AI worked, so focus left it: put it back once the box is on again.
+    const boxId = `${idBase}-${target}-${field}`;
+    requestAnimationFrame(() => document.getElementById(boxId)?.focus());
   }
 
   async function publish() {
@@ -551,7 +556,14 @@ export function EditPage({
             again={again}
             onTranslateAgain={(target, name) => void translateAgain(target, name)}
             onChange={(target, name, value) => {
-              setLocked((was) => new Set(was).add(touchKey(target, name)));
+              // A box typed in is locked; a box emptied by hand is not (the next Save fills it from the English).
+              const blank = Array.isArray(value) ? value.every((line) => line.trim() === "") : value.trim() === "";
+              setLocked((was) => {
+                const next = new Set(was);
+                if (blank) next.delete(touchKey(target, name));
+                else next.add(touchKey(target, name));
+                return next;
+              });
               setAgain((was) => Object.fromEntries(Object.entries(was).filter(([k]) => k !== touchKey(target, name))));
               onTranslationChange(target, name, value);
             }}

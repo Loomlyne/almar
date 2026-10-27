@@ -136,7 +136,7 @@ test("catalogItemPayload on Save: the facts as booleans and money strings, Arabi
     stay_ids: ["s1"],
     translations: {
       en: { name: "Coffee farm", summary: "A morning", duration_label: null, status: "published" },
-      ar: { name: "مزرعة البن", summary: null, duration_label: null, status: "draft" },
+      ar: { name: "مزرعة البن", summary: null, duration_label: null, status: "draft", locked_fields: [] },
       es: null,
     },
   });
