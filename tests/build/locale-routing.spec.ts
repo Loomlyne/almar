@@ -270,7 +270,7 @@ test("slice inventory: out/ holds every React document, every remaining Framer d
         : pattern === "/legal/[legal]"
           ? []
           : pattern === "/journeys/[journey]"
-            ? readPackageSlugs().map((s) => `/journeys/${s}`)
+            ? readPackageSlugs().map((s: string) => `/journeys/${s}`)
             : [pattern],
   );
   const react = LOCALES.flatMap((l) =>
