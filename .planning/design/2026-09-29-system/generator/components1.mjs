@@ -15,13 +15,13 @@ function btn(label, variant, state, size = 'md', withIcon = null) {
   if (state === 'hover') {
     if (variant === 'primary') { bg = C.tealHover; bd = `1px solid ${C.tealHover}`; }
     if (variant === 'secondary') bg = C.tealTint;
-    if (variant === 'ghost') extra = `text-decoration:underline;text-decoration-color:${C.gold};text-decoration-thickness:1px;text-underline-offset:4px;`;
+    if (variant === 'ghost') bg = C.tealTint;
     if (variant === 'danger') bg = C.ivory;
   }
   if (state === 'press') {
     if (variant === 'primary') { bg = C.tealPress; bd = `1px solid ${C.tealPress}`; }
     if (variant === 'secondary') { bg = C.tealTint; bd = `1px solid ${C.tealPress}`; }
-    if (variant === 'ghost') extra = `text-decoration:underline;text-decoration-color:${C.gold};text-decoration-thickness:1px;text-underline-offset:4px;`;
+    if (variant === 'ghost') bg = C.tealTint;
     if (variant === 'danger') bg = C.line;
   }
   if (state === 'focus') extra = FOCUS;
@@ -45,10 +45,11 @@ export function controlsBoard(k) {
 <div style="display:flex;flex-direction:column;gap:8px">${cap('docked · 56 × 160')}${btn(V.Search, 'primary', 'rest', 'docked', 'search')}</div>`, 'align-items:flex-end;flex-wrap:wrap'));
 
   // Links
-  const lnk = (t, hover) => `<a href="#" style="font-size:16px;line-height:{{lhB}};color:${C.teal};text-decoration:${hover ? 'underline' : 'none'};text-decoration-color:${C.gold};text-decoration-thickness:1px;text-underline-offset:4px">${t}</a>`;
-  const inl = (t, hover) => `<a href="#" style="color:${C.teal};text-decoration:underline;text-decoration-color:${hover ? C.gold : C.teal};text-decoration-thickness:1px;text-underline-offset:4px">${t}</a>`;
+  // Signed 2026-10-30, no line under text. Stand-alone: teal text and an arrow, a tint tile on hover. In a sentence: bold teal on an always-on tint block, teal with ivory words on hover.
+  const lnk = (t, hover) => `<a href="#" style="display:inline-flex;align-items:center;gap:8px;min-height:44px;width:max-content;max-width:100%;box-sizing:border-box;padding:0 8px;margin-inline-start:-8px;font-size:16px;line-height:{{lhB}};color:${C.teal};text-decoration:none;background:${hover ? C.tealTint : 'transparent'}"><span>${t}</span>${icon('arrow-right', 16, 'currentColor', true)}</a>`;
+  const inl = (t, hover) => `<a href="#" style="padding:0 4px;font-weight:700;color:${hover ? C.ivory : C.teal};text-decoration:none;background:${hover ? C.teal : C.tealTint};-webkit-box-decoration-break:clone;box-decoration-break:clone">${t}</a>`;
   const links = grid(2, 24,
-    panel(col(16, cap(k('Standalone link', 'رابط مستقل', 'Enlace independiente')) + row(32, `<div style="display:flex;flex-direction:column;gap:4px">${cap(k('Rest', 'عادي', 'Reposo'))}${lnk(k('Back to stay', 'العودة إلى الإقامة', 'Volver a la estancia'), false)}</div><div style="display:flex;flex-direction:column;gap:4px">${cap(k('Hover: 1px gold underline', 'تمرير: تسطير ذهبي ١ بكسل', 'Hover: subrayado dorado de 1 px'))}${lnk(k('Back to stay', 'العودة إلى الإقامة', 'Volver a la estancia'), true)}</div>`))) +
+    panel(col(16, cap(k('Standalone link', 'رابط مستقل', 'Enlace independiente')) + row(32, `<div style="display:flex;flex-direction:column;gap:4px">${cap(k('Rest', 'عادي', 'Reposo'))}${lnk(k('Back to stay', 'العودة إلى الإقامة', 'Volver a la estancia'), false)}</div><div style="display:flex;flex-direction:column;gap:4px">${cap(k('Hover: teal-tint tile', 'تمرير: خلفية خضراء مزرقة فاتحة', 'Hover: fondo verde azulado claro'))}${lnk(k('Back to stay', 'العودة إلى الإقامة', 'Volver a la estancia'), true)}</div>`))) +
     panel(col(16, cap(k('Link in a sentence', 'رابط داخل جملة', 'Enlace en una frase')) + `<p style="margin:0;font-size:16px;line-height:{{lhB}}">${k('Need a change? ', 'هل تحتاج إلى تغيير؟ ', '¿Necesitas un cambio? ')}${inl(k('Edit search', 'عدّل البحث', 'Editar búsqueda'), false)}</p><p style="margin:0;font-size:16px;line-height:{{lhB}}">${k('Need a change? ', 'هل تحتاج إلى تغيير؟ ', '¿Necesitas un cambio? ')}${inl(k('Edit search', 'عدّل البحث', 'Editar búsqueda'), true)} ${cap(k('(hover)', '(تمرير)', '(hover)'))}</p>`)));
 
   // Fields

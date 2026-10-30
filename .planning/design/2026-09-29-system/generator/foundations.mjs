@@ -43,10 +43,10 @@ ${code(name, C.ink, 14)}${code(hex, C.muted, 12)}${cap(role)}</div>`;
     col(16, h3(k('Gold is a line. The complete list', 'الذهبي خط فقط. القائمة كاملة', 'El dorado es una línea. La lista completa')) + ul([
       k('2px top rule of the journey bar (hero, docked, phone).', 'خط علوي بسماكة ٢ بكسل لشريط الرحلة.', 'Regla superior de 2 px de la barra de viaje.'),
       k('Rules between page sections.', 'الخطوط الفاصلة بين أقسام الصفحة.', 'Reglas entre secciones de la página.'),
-      k('Active public-nav underline, 2px.', 'تسطير عنصر التنقل النشط، ٢ بكسل.', 'Subrayado activo de la navegación pública, 2 px.'),
+      k('Current public-nav page: bold, no gold line.', 'الصفحة الحالية في التنقل العام: نص عريض، بلا خط ذهبي.', 'Página actual en la navegación pública: negrita, sin línea dorada.'),
       k('Current-step rule. Teal in this phase, pending your answer A.', 'خط الخطوة الحالية. أخضر مزرق في هذه المرحلة بانتظار إجابتك على السؤال أ.', 'Regla del paso actual. Verde azulado en esta fase, a la espera de tu respuesta A.'),
       k('1px hairline on the Confirmed status chip.', 'خط رفيع ١ بكسل على رقاقة «مؤكد».', 'Línea de 1 px en el chip «Confirmed».'),
-      k('1px underline on link hover.', 'تسطير ١ بكسل عند تمرير المؤشر على الرابط.', 'Subrayado de 1 px al pasar sobre un enlace.'),
+      k('Links: no line under the text, at rest or on hover, and never gold.', 'الروابط: بلا خط تحت النص، لا في الوضع العادي ولا عند التمرير، ولا تكون ذهبية أبدًا.', 'Enlaces: sin línea bajo el texto, ni en reposo ni al pasar el cursor, y nunca dorados.'),
     ]) + cap(k('Gold on ivory is 1.80:1, so it is never text or an icon.', 'الذهبي على العاجي نسبته ١٫٨٠:١، لذلك لا يُستخدم نصًا أو أيقونة.', 'El dorado sobre marfil es 1,80:1, por eso nunca es texto ni icono.'))));
 
   const rowsData = [
