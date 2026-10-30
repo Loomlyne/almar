@@ -227,3 +227,63 @@ The 256 KiB cap is on `/api/ops/posts` only, after `requireOwner`. OpenNext read
 GSD: `/gsd-verify-work 6` fits once the live import has run (the six checks above). Jev: none fits these two plans
 (no bounded decision in them). Automation: a nightly unattended check that every published post's AR/ES body still
 matches English in kind and order, reporting the posts that fall back (proposal only).
+
+---
+
+# 06-04 executed: hand-over (job 26)
+
+Written 2026-10-30 (from `date`). Branch `phase-06-site-and-rest-of-cms`. Details: `06-04-SUMMARY.md`.
+
+## Publishing the booking terms: tell the owner at the landing
+**Publishing the terms opens real requests only after `almar` is rebuilt and deployed**, and only if every other live gate condition holds (test host rule, link secret, mail ready, bank details, window). Publishing alone opens nothing. This state lasts until the next deploy he approves; it is not a matter of minutes.
+
+The gate is open only when the live `booking_terms_current()` version equals the one the deployed build baked (`lib/booking/baked-terms.snapshot.json`, written by `scripts/write-booking-terms.mjs`; the build prints one line with the version or "no version baked"). A failed read at build bakes none: closed.
+
+**These saves on Booking terms change the version, so they close requests again until the next deploy, even with the page still published:**
+- the title in English, Arabic or Spanish;
+- any block's text in any of the three languages (including a draft-status block row);
+- adding, removing or reordering blocks, or moving text between blocks.
+
+**These do not change it (requests stay open):** a block's kind (heading, paragraph, quote: the page changes, the gate does not); SEO title and description; `locked_fields`; re-saving identical text; any other legal page.
+
+**Unpublishing** the terms, or any of the three translations leaving published, closes requests at once. Republishing unchanged text reopens them with no deploy, because the version is unchanged.
+
+## Money row in Settings (`terms_final`)
+It runs on `almar-ops` but reads **`almar`'s** bake: `https://almarprivatejourney.com/booking-terms-version.json`, a no-store file the public build writes. It says final only when the live version equals that one. Between publish and deploy, and after any save in the first list above, it says not final. A failed fetch says not final. **Not verified:** the same-zone fetch from `almar-ops` to `almar`; the controller checks it on the first real deploy. If it fails, the row stays not final (the safe direction) while requests may be open.
+
+## Files the controller's conditions named
+- `deploy/production/robots.txt`: adds `Disallow` for `/api/`, `/auth/`, `/<locale>/account`, `/<locale>/bookings` and the unprefixed two. Sitemap line unchanged.
+- `_headers`: a `/*` block with nosniff, `Referrer-Policy: strict-origin-when-cross-origin`, Permissions-Policy; `/booking-terms-version.json` no-store. Existing blocks unchanged. `deploy/preview/_headers` carries the same three.
+- `worker/handle.mjs`: the three headers on Worker answers when absent (a route's own stays, so the auth hand-off keeps no-referrer), on the 413, and on the `/` 302 and legacy 301 (controller's yes). The redirect targets and `public/_redirects` are unchanged; no wrangler file touched, so `run_worker_first` and the booking pages' noindex are as they were.
+- `scripts/assemble-cloudflare.mjs`: `expectedPublicPaths` + `assertSitemapCovers` (a missing path stops the build), and the bake.
+- `lib/ops/route.ts`: `bodyLimit` 256 KiB also on `/api/ops/legal` (accepted by the controller), read after the owner and Origin checks; OpenNext reads the whole body on Workers.
+
+## Migration: every change since `65f2500d` (Fable read that version)
+Final at this hand-over: **3,350 lines, sha256 `4a43c764fb27cf34bf08915e20debf3acd87cb6b67f93a0cddbd9d0ad8a6a6e4`**.
+1. `f4c53751`: `ops_save_consult` writes `trunc(v_n)::int`; `site_request_date_ok` and `site_request_payload_ok` are stable; `ops_save_post` checks `published_at` first.
+2. `420641af`: `ops_save_legal_page` no longer refuses `blocks` on `cookie_banner`; its comment.
+3. `258587cb`: `grant execute on booking_terms_current() to anon`; body and `security invoker` unchanged. The controller proves in the dry run that anon's hash equals the service role's.
+4. `3960cf4b`: `consult_slots` rewritten as one set query (settings read once, dates clamped to notice and horizon, days off and booked as conditions); its signature and grants unchanged.
+pgTAP: plan 232 (new cases for each; banner blocks and the anon call flipped). Not run.
+
+## Reviews
+Sonnet, deep tier. First pass "fix first"; re-review of the fixes "ship". Answered: gate before page, checkbox link, Money row, booking-page footer, redirect headers, beacon on token-bearing addresses, ops bake, `cache` option on the Worker fetch.
+**Not fixed, on purpose:**
+- one extra rpc per quote when a version is baked (none while nothing is baked);
+- a block row with empty English drops its AR/ES text on save (same rule as the blog);
+- a block's kind is not in the hash (controller's "keep the function body").
+
+## Open
+- `CF_WEB_ANALYTICS_TOKEN` is null: no banner, no Cookie settings and no beacon until the owner's Cloudflare step, even with the banner published.
+- The booking pages' Cookie settings difference above.
+- `getPackageSlugs` is not on the base: 06-06 adds it to `expectedPublicPaths`.
+- Not run: whether a build with an empty `[legal]` static-params list passes.
+
+## Owner's check (after the import and a preview build)
+1. Content › Legal. Expected: six kinds, each with its status.
+2. Open Privacy policy, write a title and a paragraph, click Publish. Expected: Arabic and Spanish fill in; after the rebuild `/en/legal/privacy` shows your text and the footer has a Legal row.
+3. Open Booking terms, write and publish. Expected: Settings still says terms not final; after the deploy it says final and the request step's box links your title in a new tab.
+4. Edit one word of the booking terms. Expected: Settings says not final again until the next deploy.
+5. Publish the Cookie banner (after the Cloudflare token step). Expected: first visit shows the banner; no `cloudflareinsights` request until Accept analytics.
+
+Jev: none fits (bounded, deterministic gates only). Automation: a daily unattended check that the public version file equals the live `booking_terms_current()` version, emailing the owner when they differ (proposal only).
