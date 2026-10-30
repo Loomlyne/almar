@@ -1965,7 +1965,8 @@ begin
             'translation_state', public.catalog_tr_state('journey_tier_leg', l.id)) order by l.position, l.id)
           from public.journey_tier_legs l where l.tier_id = j.id), '[]'::jsonb),
         'addon_ids', coalesce((select jsonb_agg(a.item_id order by a.position, a.item_id)
-          from public.journey_tier_addons a where a.tier_id = j.id), '[]'::jsonb))
+          from public.journey_tier_addons a join public.catalog_items c on c.id = a.item_id
+          where a.tier_id = j.id and not c.is_home_pickup), '[]'::jsonb))
     into v_out from public.journey_tiers j where j.id = p_id;
   elsif p_entity = 'page_section' then
     select to_jsonb(s) - 'created_at'
@@ -2542,7 +2543,7 @@ grant execute on function public.ops_save_legal_page(jsonb) to service_role;
 --     end of the list, unpublished. A published tier keeps its slug (like stays); an unpublished one may change it.
 --   * legs? = [{destination_id, stay_id?, translations?}] (at most 50, a guard against malformed payloads only), replaced whole when present, in the order given;
 --     a leg's stay belongs to its destination.
---   * addon_ids? = uuid[] (at most 30), replaced whole when present: catalog items, never the home pickup.
+--   * addon_ids? = uuid[] (at most 500, a guard against malformed payloads only), replaced whole when present: catalog items, never the home pickup.
 -- The structured prices come from the route, which parses them from the English price_label; they are set only when
 -- their keys are present.
 create or replace function public.ops_save_journey_tier(p jsonb)
@@ -2592,7 +2593,7 @@ begin
     end loop;
   end if;
   if p ? 'addon_ids' then
-    v_ids := public.site_uuid_list(p -> 'addon_ids', 'addon_ids', 30);
+    v_ids := public.site_uuid_list(p -> 'addon_ids', 'addon_ids', 500);
     if (select count(*) from public.catalog_items c where c.id = any (v_ids) and not c.is_home_pickup) <> cardinality(v_ids) then
       perform public.catalog_invalid('addon_ids');
     end if;

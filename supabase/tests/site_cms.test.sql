@@ -4,7 +4,7 @@
 -- use the zz6 prefix and ids ending in 6xx.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(243);
+select plan(244);
 
 -- Helpers -------------------------------------------------------------------------------------------------------------
 -- The refusal's message and detail, or 'saved' when the call returns.
@@ -582,6 +582,8 @@ select is(pg_temp.outcome(format($$select public.ops_save_journey_tier('{"id": "
   'almar:invalid {"field": "legs.0.stay_id", "locale": null}', 'a leg''s stay belongs to its destination');
 select is(pg_temp.outcome(format($$select public.ops_save_journey_tier('{"id": "%s", "addon_ids": ["00000000-0000-4000-8000-0000000006c2"]}'::jsonb)$$, (select v ->> 'id' from t6 where k = 'tier'))),
   'almar:invalid {"field": "addon_ids", "locale": null}', 'the home pickup is never an included add-on');
+select ok(not coalesce(public.ops_get('journey_tier', '00000000-0000-4000-8000-0000000006f1') -> 'addon_ids' @> '["00000000-0000-4000-8000-0000000006c2"]'::jsonb, false),
+  'ops_get never returns the home pickup as an add-on, so the editor cannot send it back');
 select is(pg_temp.outcome(format($$select public.ops_save_journey_tier('{"id": "%s", "addon_ids": ["00000000-0000-4000-8000-0000000006c1", "00000000-0000-4000-8000-0000000006c3"]}'::jsonb)$$, (select v ->> 'id' from t6 where k = 'tier'))),
   'saved', 'add-ons are saved');
 select is((public.ops_get('journey_tier', (select (v ->> 'id')::uuid from t6 where k = 'tier')) -> 'addon_ids'),

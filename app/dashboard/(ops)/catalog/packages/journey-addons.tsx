@@ -60,8 +60,7 @@ export function JourneyAddons({ options, connected, onChange }: { options: Addon
 
   function connectSelected() {
     if (picked.length === 0) return;
-    // 30 is MAX_JOURNEY_ADDONS and the database's cap: past it the whole save would be refused.
-    onChange([...connected, ...picked.map((option) => option.id)].slice(0, 30));
+    onChange([...connected, ...picked.map((option) => option.id)]);
     setTicked(new Set());
   }
 
@@ -73,7 +72,9 @@ export function JourneyAddons({ options, connected, onChange }: { options: Addon
         {connected.length > 0 ? (
           <ul ref={listRef} className="m-0 flex list-none flex-col p-0">
             {connected.map((id) => {
-              const label = byId.get(id)?.label ?? id;
+              // The screen reads the catalog before it opens a package, so every connected item has its name here; never print an id.
+              const label = byId.get(id)?.label;
+              if (!label) return null;
               return (
                 <li key={id} data-addon-row={id} className="flex min-h-12 flex-wrap items-center justify-between gap-3 border-b border-line py-1">
                   <span className="min-w-0 text-label text-ink">{label}</span>

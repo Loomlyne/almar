@@ -499,7 +499,8 @@ export const JOURNEY_LEG_TEXT: TextSpec = {
 
 /** The caps of ops_save_journey_tier (migration 20261025120000). */
 const MAX_JOURNEY_LEGS = 50;
-const MAX_JOURNEY_ADDONS = 30;
+// A guard against malformed payloads, not a limit for the owner (2026-10-30); ops_save_journey_tier holds the same number.
+const MAX_JOURNEY_ADDONS = 500;
 
 /** Plan 06-06: a package's cities, replaced whole. English is required per leg, and each leg's lock rides with its Arabic and Spanish. */
 function journeyLegs(value: unknown): Payload[] {

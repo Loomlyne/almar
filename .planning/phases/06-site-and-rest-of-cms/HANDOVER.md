@@ -293,12 +293,13 @@ Jev: none fits (bounded, deterministic gates only). Automation: a daily unattend
 Commits: see `06-05-SUMMARY.md`; tip of the plan `5c7e4e3f`. Also pushed here: `6a1a43f2` (06-04, the owner's B). Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test).
 
 ## Migration: every change since the 06-04 hand-over
-Final at this hand-over: **3,378 lines, sha256 `2a764d3d8387ca6156815e9c3747cf88f89c925df564a9dc3c54f0d95480595f`**. Add to the four items in the 06-04 section; 5-7 in `5c7e4e3f`, 8 and 9 after it:
+Final at this hand-over: **3,379 lines, sha256 `8af56ba2977f5567df4b456055e594b5ad1e4c0cc8ad3ce02f7fe205d9694980`**. Add to the four items in the 06-04 section; 5-7 in `5c7e4e3f`, 8-10 after it:
 5. `site_request_payload_ok`: a phone needs at least 7 digits (`-------` passed before).
 6. New `consult_is_open()`, service role only: the public slots read no longer loads `ops_get_consult`, which carries every upcoming guest's name and email.
 7. `book_consultation`: an advisory lock on the email, taken before the slot's; the same email on a future start it already holds gets that booking back (a retry whose reply was lost, Resend's idempotency keys hold the emails); a third upcoming call for one email raises `almar:slot_limit` (removed in item 8).
 8. The owner chose no limit on calls per email (2026-10-30): the count check, `slot_limit`, its 429 and its reason are gone; the email lock and the same-email retry stay.
-9. The owner chose no limit on cities (2026-10-30): `site_request_payload_ok` cities 6 -> 50 and `ops_save_journey_tier` legs 12 -> 50, purely as a guard against malformed payloads; their comments. pgTAP plan 243.
+9. The owner chose no limit on cities (2026-10-30): `site_request_payload_ok` cities 6 -> 50 and `ops_save_journey_tier` legs 12 -> 50, purely as a guard against malformed payloads; their comments. 
+10. Add-ons (controller, 2026-10-30): `ops_save_journey_tier` addon_ids 30 -> 500, a guard only; `ops_get` no longer returns a home-pickup item in `addon_ids`, so the editor can never send it back and be refused. pgTAP plan 244.
 pgTAP: plan 241 (new: `consult_is_open` closed, open, anon, guest; retry; a second and third call for one email booked; phone; 24:00 read-back; "booked twice" now uses a second email). Not run.
 
 `to_char('24:00'::time, 'HH24:MI')` reads back `24:00` on the live database (controller, 2026-10-30).
@@ -366,12 +367,12 @@ Jev: none fits (a plain saved list, no judgment). Automation: a weekly unattende
 
 # 06-06 executed: hand-over (job 26)
 
-Commits: see `06-06-SUMMARY.md`; tip of the plan `aae76387`. Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test). **Migration at this hand-over: 3,378 lines, sha256 `2a764d3d8387ca6156815e9c3747cf88f89c925df564a9dc3c54f0d95480595f` (item 9).**
+Commits: see `06-06-SUMMARY.md`; tip of the plan `aae76387`. Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test). **Migration at this hand-over: 3,379 lines, sha256 `8af56ba2977f5567df4b456055e594b5ad1e4c0cc8ad3ce02f7fe205d9694980` (items 9 and 10).**
 
 ## Reviews
 Sonnet: "ship", three lows. Reviewed `670ab183^..13b1a294`; the slot commits and these fixes were not reviewed. Answered in `aae76387`:
 1. A destination name of 121-160 characters made the form unsubmittable: dashboard cap now 120 (`DESTINATION_TEXT.name`). A stored name over 120 would still do it; check the live rows before the import.
-2. Add-ons past 30 refused the whole save: connecting stops at 30, silently, because no words are signed for it. **Not fixed:** a connected add-on missing from the options (it became the home pickup, or the catalog read failed) shows as a raw id and trips the SQL refusal on the next save.
+2. Add-ons: no stop at 30 (guard 500, migration item 10). Before a package opens the screen reads the catalog again if the first read failed or a connected item is unknown; if that read fails the package does not open, so nothing shows as a raw id or is lost. An item that became the home pickup is left out by `ops_get`.
 3. `$` in a package name garbled the WhatsApp text: fixed.
 
 ## For the Fable review

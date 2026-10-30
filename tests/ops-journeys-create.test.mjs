@@ -57,11 +57,11 @@ test("a leg's lock rides with its Arabic and Spanish; a name that is not the leg
   assert.throws(() => parse.parseJourneyAction({ action: "save", item: { id: A, legs: [leg({ translations: { en: { nights_label: "3" }, ar: { nights_label: "x", locked_fields: ["name"] } } })] } }));
 });
 
-test("addon_ids: distinct uuids, at most 30", () => {
+test("addon_ids: distinct uuids, at most 500 (a guard only)", () => {
   assert.deepEqual(parse.parseJourneyAction({ action: "save", item: { id: A, addon_ids: [B, C] } }).item.addon_ids, [B, C]);
   invalid(() => parse.parseJourneyAction({ action: "save", item: { id: A, addon_ids: [B, B] } }), "addon_ids");
   invalid(() => parse.parseJourneyAction({ action: "save", item: { id: A, addon_ids: ["x"] } }), "addon_ids");
-  const many = Array.from({ length: 31 }, (_, i) => `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`);
+  const many = Array.from({ length: 501 }, (_, i) => `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`);
   invalid(() => parse.parseJourneyAction({ action: "save", item: { id: A, addon_ids: many } }), "addon_ids");
 });
 

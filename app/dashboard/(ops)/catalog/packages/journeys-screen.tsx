@@ -424,6 +424,8 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
   const [destinations, setDestinations] = useState<DestinationSummary[]>([]);
   const [stays, setStays] = useState<StaySummary[]>([]);
   const [items, setItems] = useState<CatalogSummary[]>([]);
+  // The catalog as last read, null until a read has worked.
+  const catalog = useRef<CatalogSummary[] | null>(null);
   const [listError, setListError] = useState<OpsError | null>(null);
   const [open, setOpen] = useState<Open | null>(null);
   const [busy, setBusy] = useState(false);
@@ -442,7 +444,7 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
     return refusal;
   }
 
-  /** What the legs' selects and the add-on picker offer. A refusal stays on the list; the editor then offers what did load. */
+  /** What the legs' selects and the add-on picker offer. A refusal stays on the list; openDetail reads the catalog again if it must. */
   async function loadOptions() {
     const [d, s, c] = await Promise.all([
       opsFetch<ListReply<DestinationSummary>>("/api/ops/destinations"),
@@ -451,7 +453,10 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
     ]);
     if (d.ok) setDestinations(d.items);
     if (s.ok) setStays(s.items);
-    if (c.ok) setItems(c.items);
+    if (c.ok) {
+      catalog.current = c.items;
+      setItems(c.items);
+    }
     const failed = [d, s, c].find((reply) => !reply.ok);
     if (failed && !failed.ok) setListError(failed.error);
   }
@@ -468,6 +473,14 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
   async function openDetail(id: string, legKeys: readonly string[] = []): Promise<OpsError | null> {
     const reply = await opsFetch<DetailReply<JourneyDetailWithLegs>>(PATH, { id });
     if (!reply.ok) return reply.error;
+    // Every connected add-on needs its name in the editor: a failed first read, or an item added since, is read again before it opens.
+    const held = catalog.current;
+    if (!held || reply.item.addon_ids.some((addon) => !held.some((item) => item.id === addon))) {
+      const fresh = await opsFetch<ListReply<CatalogSummary>>("/api/ops/catalog");
+      if (!fresh.ok) return fresh.error;
+      catalog.current = fresh.items;
+      setItems(fresh.items);
+    }
     const form = journeyForm(reply.item, legKeys);
     setOpen({ form, saved: form });
     return null;
