@@ -195,13 +195,13 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
                   {copy.cta}
                 </LinkButton>
                 <nav aria-label={copy.links.back} className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                  <Link href={localePath(locale, "/blog")} inline>
+                  <Link href={localePath(locale, "/blog")}>
                     {copy.links.back}
                   </Link>
-                  <Link href={localePath(locale, "/")} inline>
+                  <Link href={localePath(locale, "/")}>
                     {copy.links.home}
                   </Link>
-                  <Link href={siteHref(locale, "/destinations")} inline>
+                  <Link href={siteHref(locale, "/destinations")}>
                     {copy.links.destinations}
                   </Link>
                 </nav>

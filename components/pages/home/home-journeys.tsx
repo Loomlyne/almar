@@ -3,7 +3,7 @@
 import { Amount } from "../../ui/amount";
 import { CARD_ZOOM } from "../../ui/card";
 import { Divider } from "../../ui/divider";
-import { CARD_TITLE, CardTitleWords, Link } from "../../ui/link";
+import { CARD_TITLE, Link } from "../../ui/link";
 import { Reveal } from "../../ui/reveal";
 import { Section } from "../../ui/section";
 import { cn } from "../../../lib/cn";
@@ -17,7 +17,7 @@ import { useCurrencyChoice } from "./currency-choice";
 // else on the section changes. The rates travel as data attributes so a test can read the same numbers.
 //
 // Plan 06-06, as signed (pictures/06-06 home-cards, decision 2): each card opens its package page, /<locale>/journeys/<slug>.
-// The heading is the link (the card title of pictures/no-underlines, kind 2); "See this journey" repeats it at the card's end for a pointer only (aria-hidden,
+// The heading is the link, with no arrow; the photo zooms with the card. "See this journey" has the card's one arrow and repeats the link at the card's end for a pointer only (aria-hidden,
 // out of the tab order), so each card is one link target for a keyboard and a screen reader. A card holds what the page
 // draws: number, name, price line, tagline. The duration, the ideal-for lines and the description live on the package page.
 
@@ -91,7 +91,7 @@ export function HomeJourneys({
                   <p className="m-0 text-caption text-teal">{String(index + 1).padStart(2, "0")}</p>
                   <h3 className="m-0 font-display text-heading text-teal">
                     <a href={tier.href} className={CARD_TITLE}>
-                      <CardTitleWords>{tier.name}</CardTitleWords>
+                      {tier.name}
                     </a>
                   </h3>
                   <p data-price={tier.slug} className="m-0 text-label text-teal md:text-body">

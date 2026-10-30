@@ -284,7 +284,7 @@ function Ready({
   return (
     <>
       {backLink ? (
-        <Link href={localePath(locale, "/bookings")} className="self-start print:hidden" data-print-hidden="">
+        <Link href={localePath(locale, "/bookings")} arrow={false} className="self-start print:hidden" data-print-hidden="">
           {`‹ ${copy.backToBookings}`}
         </Link>
       ) : null}
