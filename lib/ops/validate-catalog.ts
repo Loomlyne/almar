@@ -55,7 +55,8 @@ const PARAGRAPH_LIST = { kind: "list", max: CAPS.paragraph } as const;
 
 export const DESTINATION_TEXT: TextSpec = {
   required: ["name"],
-  fields: { name: NAME, short_line: NAME, region: NAME, summary: PARAGRAPH, nights_label: LABEL },
+  // Name at 120, not 160: it is a ticked city on a package's request form, whose `cities` cap is 120 (06-06).
+  fields: { name: LABEL, short_line: NAME, region: NAME, summary: PARAGRAPH, nights_label: LABEL },
 };
 
 export const STAY_TEXT: TextSpec = {

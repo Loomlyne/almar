@@ -60,7 +60,8 @@ export function JourneyAddons({ options, connected, onChange }: { options: Addon
 
   function connectSelected() {
     if (picked.length === 0) return;
-    onChange([...connected, ...picked.map((option) => option.id)]);
+    // 30 is MAX_JOURNEY_ADDONS and the database's cap: past it the whole save would be refused.
+    onChange([...connected, ...picked.map((option) => option.id)].slice(0, 30));
     setTicked(new Set());
   }
 

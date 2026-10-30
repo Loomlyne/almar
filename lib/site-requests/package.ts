@@ -90,5 +90,5 @@ async function legNames(admin: SupabaseClient, tierId: string): Promise<Set<stri
 
 /** The WhatsApp message of the page's "Something else?" link: the greeting with the name, then the address. Takes no money field. */
 export function buildPackageAskMessage({ name, pageUrl }: { name: string; pageUrl: string }, copy: { waMessage: string }): string {
-  return `${copy.waMessage.replace("{name}", name)}\n${pageUrl}`;
+  return `${copy.waMessage.replace("{name}", () => name)}\n${pageUrl}`;
 }
