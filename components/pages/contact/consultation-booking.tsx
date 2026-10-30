@@ -89,6 +89,8 @@ export function ConsultationBooking({ locale, copy, whatsappCta, tooLong, email,
   const [shown, setShown] = useState<Month | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [slots, setSlots] = useState<string[]>([]);
+  // The month `slots` belong to: while another one is read, its times are not judged from the last month's.
+  const [slotsFor, setSlotsFor] = useState<string | null>(null);
   const [day, setDay] = useState<string | null>(null);
   const [slot, setSlot] = useState<string | null>(null);
   const [notice, setNotice] = useState(false);
@@ -126,6 +128,7 @@ export function ConsultationBooking({ locale, copy, whatsappCta, tooLong, email,
     }
     setStatus("open");
     setSlots(answer.slots);
+    setSlotsFor(monthKey(month));
   }
 
   useEffect(() => {
@@ -319,7 +322,7 @@ export function ConsultationBooking({ locale, copy, whatsappCta, tooLong, email,
     );
 
     const zoneLine = c.zone.replace("{zone}", zone);
-    const times = chosenDay ? (
+    const times = slotsFor !== monthKey(shown) ? null : chosenDay ? (
       <div className="grid gap-3">
         <p className="m-0 text-label text-muted">
           {dateLabel(chosenDay.slots[0]!.start, zone, locale, false)} · {zoneLine}
