@@ -270,8 +270,19 @@ const ALT_LOCALES = ["en", "ar", "es"] as const;
  */
 const PICTURE_SOURCES: readonly SourceName[] = ["stays", "destinations", "catalog", "team", "journey-tiers", "page-section-media", "page-items", "posts", "post-translations"];
 
-/** A source's rows as the alt check sees them: decorative page photos left out. */
+/** The six About story and values pictures imported with no alt text: each sits beside its card's title and renders alt="" today. Any other page item's picture still needs its alts. */
+const NO_ALT_PAGE_ITEM_PICTURES: ReadonlySet<string> = new Set([
+  "0ef47bf1-b746-598d-9180-3fc172e4914b",
+  "1493a030-7ae7-5c4c-949d-1dffeb451b9b",
+  "1e06f20e-03da-5c9f-b6f9-eea7cde2b73f",
+  "3293b75c-05a3-5c9e-87ad-a10800211432",
+  "87bed148-2b68-55ee-96ed-de615e445b43",
+  "b42c46da-536d-5cc7-8bd1-2cca4a021e43",
+]);
+
+/** A source's rows as the alt check sees them: decorative page photos and the six known About pictures left out. */
 function pictureRows(name: SourceName, rows: unknown[] | undefined): unknown[] {
+  if (name === "page-items" && rows) return rows.filter((row) => !NO_ALT_PAGE_ITEM_PICTURES.has((row as { image?: { id?: string } }).image?.id ?? ""));
   if (name !== "page-section-media" || !rows) return rows ?? [];
   return rows.filter((row) => !(row as { is_decorative?: boolean }).is_decorative);
 }

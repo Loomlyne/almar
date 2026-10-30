@@ -361,6 +361,14 @@ test("supabase mode: a decorative page photo (About collage, Get In Touch still)
   assert.match(shown.result.message, /p9 \(en\)/);
 });
 
+test("supabase mode: the six known About pictures need no alt; any other page item's picture does", async () => {
+  const known = await loadedWith({ api_page_items: [{ id: "i1", image: pictureOf("0ef47bf1-b746-598d-9180-3fc172e4914b") }], api_image_translations: altsOf("p1") });
+  assert.equal(known.result, "ok");
+  const other = await loadedWith({ api_page_items: [{ id: "i2", image: pictureOf("p9") }], api_image_translations: altsOf("p1") });
+  assert.ok(other.result instanceof Error);
+  assert.match(other.result.message, /p9 \(en\)/);
+});
+
 // 03.2-02b finding 1: assembled builds read the live project only -------------------------------------------------------
 
 test("assertLiveSupabaseUrl accepts the live project's https origin and nothing else (names only in the message)", () => {
