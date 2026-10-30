@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-31 00:03 +0100:** almar-preview `a96a64d4` live from main `2a38744c` (alt-check fix on the owner's Ship). almar and almar-ops not deployed. Next: his word on almar-ops, then almar.
+
 **2026-10-30 23:14 +0100:** Phase 6 migration 20261025120000 applied and read back; content import applied (191 rows). No deploy yet.
 
 **2026-10-30 23:12 +0100:** Phase 6 landed on main `da90743f` (PR #35) on the owner's Ship; no migration, import or deploy. Tests and build not run (owner). Next: migration and import on his word, then deploys, then Phase 5.
