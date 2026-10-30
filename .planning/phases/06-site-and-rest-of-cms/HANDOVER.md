@@ -378,6 +378,7 @@ Sonnet: "ship", three lows. Reviewed `670ab183^..13b1a294`; the slot commits and
 
 ## For the Fable review
 - `ops_publish` checks leg translations and destinations since Fable's review (migration item 11).
+- **Known gap:** that check runs only at Publish. Hiding a destination later, while a shown package uses it, drops that city for guests with no warning (controller, 2026-10-30: listed, not fixed).
 
 ## Owner's answers, 2026-10-30
 - Cities: no limit. Done, migration item 9; `legsFull` removed; a route over 6 cities takes columns on the form at `md` and up. 50 cities of long Arabic names could pass the 16 KB body cap on `/api/requests` ; realistic names fit.

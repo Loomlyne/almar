@@ -99,7 +99,7 @@ test("plan 41 keys: brand (the wordmark's alt) and madeBy; the English is the li
 });
 
 test("plan 06-05 key: listWithUs is the canvas PublicContact wording", () => {
-  assert.deepEqual(LOCALES.map((l) => SITE_FOOTER_COPY[l].listWithUs), ["List with us", "أدرجوا عقاركم", "Publiquen con nosotros"]);
+  assert.deepEqual(LOCALES.map((l) => SITE_FOOTER_COPY[l].listWithUs), ["List with us", "أدرجوا عقاركم", "Publica con nosotros"]);
 });
 
 test("plan 06-04 keys: legal and cookieSettings are the signed words (drafted UI copy, pictures 06-04)", () => {

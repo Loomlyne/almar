@@ -152,6 +152,6 @@ export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
     },
     legal: "Legal",
     cookieSettings: "Ajustes de cookies",
-    listWithUs: "Publiquen con nosotros",
+    listWithUs: "Publica con nosotros",
   },
 };
