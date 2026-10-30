@@ -175,13 +175,10 @@ export async function HomePage({ locale }: { locale: Locale }) {
                   <HomeJourneys
                     tiers={tiers.map((tier) => ({
                       slug: tier.slug,
+                      href: localePath(locale, `/journeys/${tier.slug}`),
                       name: tier.name,
                       price_label: tier.price_label,
                       tagline: tier.tagline,
-                      duration_label: tier.duration_label,
-                      ideal_for_label: tier.ideal_for_label,
-                      ideal_for: tier.ideal_for,
-                      body: tier.body,
                       is_featured: tier.is_featured,
                       image: tier.image
                         ? { src: tier.image.url, alt: tier.image.alt, width: tier.image.width, height: tier.image.height }

@@ -1,7 +1,6 @@
 "use client";
 
 import { Amount } from "../../ui/amount";
-import { CalendarIcon } from "../../icons/icons";
 import { Divider } from "../../ui/divider";
 import { Reveal } from "../../ui/reveal";
 import { Section } from "../../ui/section";
@@ -13,17 +12,20 @@ import { useCurrencyChoice } from "./currency-choice";
 // visitor picks a currency they print exactly as published; after that, and only that, the three prices
 // move together through Amount with the build-time rates, and one line says which day's rates. Nothing
 // else on the section changes. The rates travel as data attributes so a test can read the same numbers.
+//
+// Plan 06-06, as signed (pictures/06-06 home-cards, decision 2): each card opens its package page, /<locale>/journeys/<slug>.
+// The heading is the link (gold underline); "See this journey" repeats it at the card's end for a pointer only (aria-hidden,
+// out of the tab order), so each card is one link target for a keyboard and a screen reader. A card holds what the page
+// draws: number, name, price line, tagline. The duration, the ideal-for lines and the description live on the package page.
 
 export type HomeTier = {
   slug: string;
+  /** The package page in this card's language. */
+  href: string;
   name: string;
   /** The published price text, never recomputed here. */
   price_label: string;
   tagline: string | null;
-  duration_label: string | null;
-  ideal_for_label: string | null;
-  ideal_for: string | null;
-  body: string | null;
   is_featured: boolean;
   image: { src: string; alt: string; width: number | null; height: number | null } | null;
 };
@@ -49,7 +51,7 @@ export function HomeJourneys({
   tiers: HomeTier[];
   /** Read once when the site is built. Null when the feed was unreachable: prices print as published. */
   rates: FxRates | null;
-  copy: { heading: string; intro: string; featured: string; ratesOf: string };
+  copy: { heading: string; intro: string; featured: string; ratesOf: string; open: string };
   locale: "en" | "ar" | "es";
 }) {
   const { selected } = useCurrencyChoice();
@@ -82,29 +84,25 @@ export function HomeJourneys({
                     </span>
                   ) : null}
                 </div>
-                <div className="grid gap-4 p-6">
+                <div className="grid gap-3 p-6">
                   <p className="m-0 text-caption text-teal">{String(index + 1).padStart(2, "0")}</p>
-                  <h3 className="m-0 font-display text-heading text-teal">{tier.name}</h3>
+                  <h3 className="m-0 font-display text-heading text-teal">
+                    <a href={tier.href} className="text-teal underline decoration-gold decoration-1 underline-offset-4">
+                      {tier.name}
+                    </a>
+                  </h3>
                   <p data-price={tier.slug} className="m-0 text-label text-teal md:text-body">
                     <Amount text={tier.price_label} selected={selected} rates={rates} locale={locale} />
                   </p>
                   {tier.tagline ? <p className="m-0 text-body text-ink">{tier.tagline}</p> : null}
-                  {tier.duration_label ? (
-                    <p className="m-0 flex items-center gap-2 text-caption text-ink">
-                      <CalendarIcon size={16} />
-                      {tier.duration_label}
-                    </p>
-                  ) : null}
-                  <div className="border-t border-line" />
-                  {tier.ideal_for_label && tier.ideal_for ? (
-                    <>
-                      <p className="m-0 text-caption uppercase tracking-kicker text-teal ar:normal-case ar:tracking-normal">
-                        {tier.ideal_for_label}
-                      </p>
-                      <p className="m-0 text-label text-ink">{tier.ideal_for}</p>
-                    </>
-                  ) : null}
-                  {tier.body ? <p className="m-0 text-label text-muted">{tier.body}</p> : null}
+                  <a
+                    href={tier.href}
+                    aria-hidden="true"
+                    tabIndex={-1}
+                    className="inline-flex min-h-control w-max items-center text-body text-teal underline decoration-gold decoration-1 underline-offset-4"
+                  >
+                    {copy.open}
+                  </a>
                 </div>
               </article>
             ))}

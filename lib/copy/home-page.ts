@@ -38,6 +38,8 @@ export type HomePageCopy = {
     featured: string;
     /** DRAFTED UI COPY: shown only after a currency is chosen. `{date}` is the day the rates were read. */
     ratesOf: string;
+    /** Plan 06-06, signed: the text link at a card's end, to the package page. */
+    open: string;
   };
   stories: { kicker: string; heading: string; intro: string; readAll: string };
   begin: { heading: string; intro: string; cta: string };
@@ -83,6 +85,7 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
         "Three tiers of privacy, luxury, and Colombia immersion — each crafted around a different depth of experience.",
       featured: "Most Popular",
       ratesOf: "Converted at the exchange rate of {date}.",
+      open: "See this journey",
     },
     stories: {
       kicker: "Travel Insights",
@@ -136,6 +139,7 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
       intro: "ثلاثة مستويات من الخصوصية والفخامة والانغماس في كولومبيا، صُمّم كلٌّ منها لعمق مختلف من التجربة.",
       featured: "الأكثر طلباً",
       ratesOf: "حُوِّلت المبالغ بسعر الصرف بتاريخ {date}.",
+      open: "اطّلعوا على هذه الرحلة",
     },
     stories: {
       kicker: "رؤى السفر",
@@ -190,6 +194,7 @@ export const HOME_PAGE_COPY: Record<HomePageLocale, HomePageCopy> = {
         "Tres niveles de privacidad, lujo e inmersión en Colombia, cada uno pensado para una profundidad distinta de experiencia.",
       featured: "Más popular",
       ratesOf: "Convertido al tipo de cambio del {date}.",
+      open: "Ver este viaje",
     },
     stories: {
       kicker: "Guías de viaje",
