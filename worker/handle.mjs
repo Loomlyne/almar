@@ -57,12 +57,12 @@ export async function handle(request, env, ctx, { serverPaths, nextFetch, rootRe
   const { pathname, search } = new URL(request.url);
   if (rootRedirect && pathname === "/" && (request.method === "GET" || request.method === "HEAD")) {
     const location = `${rootLocaleTarget(request.headers.get("cookie"))}${search}`;
-    return new Response(null, { status: 302, headers: { location, ...ROOT_REDIRECT_HEADERS } });
+    return new Response(null, { status: 302, headers: { location, ...ROOT_REDIRECT_HEADERS, ...SECURITY_HEADERS } });
   }
   // The old unprefixed pages are 301s in public/_redirects (asset layer). Should one reach the Worker anyway (a path
   // added to run_worker_first, or the asset layer not keeping a query), it gets the same 301 here, query kept.
   const legacy = rootRedirect && (request.method === "GET" || request.method === "HEAD") ? legacyLocaleTarget(pathname) : null;
-  if (legacy) return new Response(null, { status: 301, headers: { location: `${legacy}${search}` } });
+  if (legacy) return new Response(null, { status: 301, headers: { location: `${legacy}${search}`, ...SECURITY_HEADERS } });
   if (!serverPaths.has(pathname)) return env.ASSETS.fetch(request);
   if (declaredTooLarge(request, pathname)) {
     return Response.json({ ok: false }, { status: 413, headers: { "cache-control": "no-store", "x-robots-tag": "noindex", ...SECURITY_HEADERS } });

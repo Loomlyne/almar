@@ -3106,6 +3106,9 @@ $$;
 
 revoke all on function public.booking_terms_current() from public, anon, authenticated;
 grant execute on function public.booking_terms_current() to service_role;
+-- The build reads it with the anon key to bake the version it saw (scripts/write-booking-terms.mjs): only the published
+-- flag and a hash of text anon can already read on a published page.
+grant execute on function public.booking_terms_current() to anon;
 
 -- ------------------------------------------------------------------------------------------------------------
 -- Import of today's page blocks, posts and links (06-01 Task 4, 06-02), service role only, called by

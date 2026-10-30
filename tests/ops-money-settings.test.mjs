@@ -9,7 +9,6 @@ import { loadTs } from "./helpers/load-ts.mjs";
 
 const m = await loadTs("lib/ops/money-settings.ts");
 const { runOps } = await loadTs("lib/ops/route-core.ts");
-const { BOOKING_TERMS_IS_PLACEHOLDER } = await loadTs("lib/booking/terms.ts");
 const SOURCE = readFileSync("lib/ops/money-settings.ts", "utf8");
 const ROUTE = readFileSync("app/api/ops/money/route.ts", "utf8");
 
@@ -108,11 +107,28 @@ test("parseMoneySave: ranges, types, keys and the six together", () => {
 
 // ---- handlers --------------------------------------------------------------------------------------------------------
 
-test("getMoneyRoute: ops_get_money_settings as it answers, and terms_final from BOOKING_TERMS_IS_PLACEHOLDER", async () => {
+const TERMS = "cms-0123456789abcdef";
+
+test("getMoneyRoute: ops_get_money_settings as it answers; no public version: not final, the terms are not even read", async () => {
   const db = fakeDb({ ops_get_money_settings: { data: MONEY, error: null } });
-  const out = await m.getMoneyRoute({ owner: owner(db) });
+  const out = await m.getMoneyRoute({ owner: owner(db), publicVersion: async () => null });
   assert.deepEqual(db.calls, [{ name: "ops_get_money_settings", args: undefined }]);
-  assert.deepEqual(out, { body: { ok: true, money: MONEY, terms_final: !BOOKING_TERMS_IS_PLACEHOLDER } });
+  assert.deepEqual(out, { body: { ok: true, money: MONEY, terms_final: false } });
+});
+
+test("getMoneyRoute: terms_final only when the live version equals the one the public Worker was built with", async () => {
+  const live = (version) => fakeDb({ ops_get_money_settings: { data: MONEY, error: null }, booking_terms_current: { data: { published: true, version }, error: null } });
+  const final = (version) => m.getMoneyRoute({ owner: owner(live(version)), publicVersion: async () => TERMS }).then((out) => out.body.terms_final);
+  assert.equal(await final(TERMS), true);
+  assert.equal(await final("cms-ffffffffffffffff"), false, "published or edited after the last deploy: not final");
+});
+
+test("fetchPublicTermsVersion: the public file's version; anything else is null", async () => {
+  const answer = (body, ok = true) => async () => ({ ok, json: async () => body });
+  assert.equal(await m.fetchPublicTermsVersion(answer({ version: TERMS })), TERMS);
+  assert.equal(await m.fetchPublicTermsVersion(answer({ version: null })), null);
+  assert.equal(await m.fetchPublicTermsVersion(answer({ version: TERMS }, false)), null);
+  assert.equal(await m.fetchPublicTermsVersion(async () => { throw new Error("network"); }), null);
 });
 
 test("getMoneyRoute: an error or an unreadable answer is { dbError } (503 through route-core)", async () => {

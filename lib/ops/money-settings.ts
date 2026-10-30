@@ -6,7 +6,8 @@
 // Nothing here logs. IBAN and SWIFT / BIC are checked with lib/booking/bank.ts, the browser's rules (lib/ops/money-form.ts),
 // and the SQL checks them again on save. No Next import, no Supabase import, no environment: node tests run it.
 import { BANK_TEXT_LIMITS, isValidBic, isValidIban, normalizeBic, normalizeIban } from "../booking/bank";
-import { BOOKING_TERMS_IS_PLACEHOLDER } from "../booking/terms";
+import { bookingTermsGate } from "../booking/terms";
+import { SITE_ORIGIN } from "../locale-path";
 import { mapBookingRefusal, type OpsDb } from "./bookings-api";
 import { errorBody, OpsInvalid, type DbError, type OpsOutcome } from "./route-core";
 import { has, int, onlyKeys, record } from "./validate";
@@ -137,12 +138,31 @@ function moneyRefusal(error: Parameters<typeof mapBookingRefusal>[0]): OpsOutcom
   return mapped;
 }
 
-/** GET /api/ops/money: the saved values (null when unset) and whether the booking terms are final (Q-13). */
-export async function getMoneyRoute({ owner }: { owner: MoneyOwner }): Promise<OpsOutcome> {
+/**
+ * The terms version the public Worker `almar` was built with, from the file its build publishes. This handler runs on
+ * `almar-ops`, a separate build whose own bake says nothing about the public site. Any failure is null: not final.
+ */
+export async function fetchPublicTermsVersion(doFetch: typeof fetch = fetch): Promise<string | null> {
+  try {
+    const response = await doFetch(`${SITE_ORIGIN}/booking-terms-version.json`, { cache: "no-store", signal: AbortSignal.timeout(3000) });
+    if (!response.ok) return null;
+    const { version } = (await response.json()) as { version?: unknown };
+    return typeof version === "string" ? version : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * GET /api/ops/money: the saved values (null when unset) and whether the booking terms are final (Q-13): the same test as
+ * the public gate, with the public Worker's baked version, so the row never says final while `almar` is still closed.
+ */
+export async function getMoneyRoute({ owner, publicVersion = fetchPublicTermsVersion }: { owner: MoneyOwner; publicVersion?: () => Promise<string | null> }): Promise<OpsOutcome> {
   const { data, error } = await owner.admin.rpc("ops_get_money_settings");
   if (error) return moneyRefusal(error);
   if (!isRow(data)) return UNREADABLE;
-  return { body: { ok: true, money: data, terms_final: !BOOKING_TERMS_IS_PLACEHOLDER } };
+  const terms = await bookingTermsGate(owner.admin, await publicVersion());
+  return { body: { ok: true, money: data, terms_final: !terms.isPlaceholder } };
 }
 
 /** POST /api/ops/money: one ops_save_money_settings; answers what GET answers. Never affects the public site. */

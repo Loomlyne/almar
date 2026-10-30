@@ -209,7 +209,7 @@ select throws_ok($$insert into public.site_requests (kind, locale, name, email) 
 select throws_ok($$select public.submit_site_request('plan', 'en', '{}'::jsonb)$$, '42501', null, 'anon cannot call submit_site_request');
 select throws_ok($$select public.book_consultation('en', '{}'::jsonb)$$, '42501', null, 'anon cannot call book_consultation');
 select throws_ok($$select public.stay_is_published('00000000-0000-4000-8000-0000000006e1')$$, '42501', null, 'anon cannot call stay_is_published');
-select throws_ok($$select public.booking_terms_current()$$, '42501', null, 'anon cannot call booking_terms_current');
+select lives_ok($$select public.booking_terms_current()$$, 'anon can call booking_terms_current (the build bakes its version with the anon key)');
 select throws_ok($$select public.import_site_content('{}'::jsonb)$$, '42501', null, 'anon cannot call import_site_content');
 select throws_ok($$select public.ops_save_page_section('{}'::jsonb)$$, '42501', null, 'anon cannot call ops_save_page_section');
 select throws_ok($$select public.consult_slots(current_date, current_date)$$, '42501', null, 'anon cannot call consult_slots');

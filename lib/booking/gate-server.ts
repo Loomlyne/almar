@@ -6,15 +6,15 @@ import { isTestHost } from "./origin";
 import { bookingLinkConfigured } from "./link";
 import { getNotifier } from "./notify";
 import { readBookingGate, requestGate, type BookingDb, type RequestGate } from "./server";
-import { bookingTermsGate } from "./terms";
+import { BAKED_TERMS_VERSION, bookingTermsGate } from "./terms";
 
 /**
  * The gate and the terms version from one read of the terms: the hold route stores this version on the booking, so what
  * opened the gate is what the booking names. A database failure of booking_gate() is thrown (the route answers 503); a
  * failure of the terms read is closed terms.
  */
-export async function requestGateAndTerms(db: BookingDb, host: string | null | undefined): Promise<{ gate: RequestGate; termsVersion: string }> {
-  const [terms, state] = await Promise.all([bookingTermsGate(db), readBookingGate(db)]);
+export async function requestGateAndTerms(db: BookingDb, host: string | null | undefined, baked = BAKED_TERMS_VERSION): Promise<{ gate: RequestGate; termsVersion: string }> {
+  const [terms, state] = await Promise.all([bookingTermsGate(db, baked), readBookingGate(db)]);
   const gate = requestGate({
     isTest: isTestHost(host),
     termsArePlaceholder: terms.isPlaceholder,

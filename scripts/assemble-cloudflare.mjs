@@ -628,6 +628,9 @@ async function main(argv = process.argv.slice(2)) {
       // Plan 06-02 (CMS-09): the header and footer links are baked from the same source as the pages, inside the
       // publish-sequence window. The ops build draws no public page and keeps the committed snapshot.
       if (target !== "ops") writeNavSnapshot(nextBuildEnv(process.env, source));
+      // Plan 06-04: the booking terms version this build saw; the request gate opens only on the same version. Its one
+      // line says which version or that none was baked. Only a file that cannot be written stops here.
+      if (target !== "ops") execFileSync(process.execPath, [path.join(root, "scripts/write-booking-terms.mjs")], { cwd: root, stdio: "inherit", env: nextBuildEnv(process.env, source) });
       if (hasSitemap) expectedPaths = expectedPublicPaths(source);
       execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
         cwd: root,
@@ -655,6 +658,8 @@ async function main(argv = process.argv.slice(2)) {
     .filter((f) => f.rel.endsWith(".html"))
     .map((f) => f.rel);
   writeTargetFiles({ outDir, target, root, htmlFiles });
+  // Plan 06-04: the dashboard's Money row reads this file to know what the public Worker was built with (lib/ops/money-settings.ts).
+  if (target !== "ops") fs.copyFileSync(path.join(root, "lib/booking/baked-terms.snapshot.json"), path.join(outDir, "booking-terms-version.json"));
   assertTargetFiles(outDir, target, { root });
   // A published post or legal page with no page file stops the build, naming the URL (the live site stays as it was).
   if (hasSitemap) assertSitemapCovers(fs.readFileSync(path.join(outDir, "sitemap.xml"), "utf8"), expectedPaths);
