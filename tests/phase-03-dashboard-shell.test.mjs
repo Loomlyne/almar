@@ -82,10 +82,10 @@ test("ops rail lists the eight labels and the interior mark", () => {
 test("ops rail keeps every route and the Catalog group is a disclosure", () => {
   const text = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
   for (const href of [
-    "/dashboard/home", "/dashboard/bookings", "/dashboard/customers", "/dashboard/calendar",
+    "/dashboard/home", "/dashboard/bookings", "/dashboard/requests", "/dashboard/customers", "/dashboard/calendar",
     "/dashboard/catalog/destinations", "/dashboard/catalog/stays", "/dashboard/catalog/experiences", "/dashboard/catalog/packages",
     "/dashboard/content/pages", "/dashboard/content/blog", "/dashboard/content/team", "/dashboard/content/legal",
-    "/dashboard/content/media", "/dashboard/content/navigation",
+    "/dashboard/content/media", "/dashboard/content/navigation", "/dashboard/content/consultation",
     "/dashboard/settings", "/dashboard/profile",
   ]) {
     assert.equal(text.includes(`"${href}"`), true, href);
@@ -114,11 +114,11 @@ test("sidebar is a Radix dialog with title and Close, docked with end-0 and no J
   assert.equal(text.includes("KitDialog"), false);
 });
 
-test("Content rail: Pages, Blog, Team, Legal, Media, Navigation and footer in canvas order; no Soon chip is left (06-02, 06-03, 06-04)", () => {
+test("Content rail: Pages, Blog, Team, Legal, Media, Navigation and footer in canvas order, then Consultation (06-05); no Soon chip is left (06-02, 06-03, 06-04)", () => {
   const text = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
   const content = text.slice(text.indexOf('key: "content"'), text.indexOf('key: "settings"'));
   const rows = [...content.matchAll(/\{ key: "([a-z]+)", label: "[^"]+", href: "([^"]+)"(, soon: true)? \}/g)].map((m) => ({ key: m[1], href: m[2], soon: Boolean(m[3]) }));
-  assert.deepEqual(rows.map((r) => r.key), ["pages", "blog", "team", "legal", "media", "navigation"]);
+  assert.deepEqual(rows.map((r) => r.key), ["pages", "blog", "team", "legal", "media", "navigation", "consultation"]);
   assert.deepEqual(rows.filter((r) => r.soon).map((r) => r.key), []);
   assert.equal(text.slice(text.indexOf('key: "catalog"'), text.indexOf('key: "content"')).includes("soon: true"), false, "Packages carries no chip");
   // The chip and the accessible name ", soon" come from lib/copy/ops-content.ts, not from the shared dashboard copy.

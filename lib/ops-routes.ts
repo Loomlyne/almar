@@ -54,6 +54,9 @@ export const OPS_LIVE_SECTIONS: readonly string[] = [
   "/catalog/packages",
   // 04-09: the bookings list and detail.
   "/bookings",
+  // 06-05: Requests and Content -> Consultation.
+  "/requests",
+  "/content/consultation",
 ];
 
 /**
