@@ -98,15 +98,6 @@ async function bannerText(locale: Locale): Promise<CookieBannerText | null> {
 }
 
 /**
- * The chrome of the trip and booking pages: the footer's legal links only. Their addresses hold the stay, the dates and the
- * booking's link token, so no banner and no analytics beacon run there (review 2026-10-30), whatever a visitor accepted.
- */
-export async function getBookingPageLegal(locale: Locale): Promise<SiteLegalChrome> {
-  const { links } = await getSiteLegalChrome(locale);
-  return { links, banner: null, privacyHref: null };
-}
-
-/**
  * The request step's link to the booking terms, as signed 2026-10-30: only when this build baked a terms version (the gate
  * can open on this text) and the page exists. Otherwise null: the label stays as it was, with no link.
  */

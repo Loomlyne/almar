@@ -24,7 +24,7 @@
 - `legal-page.tsx` is in `components/pages` (data-boundary rule); `SiteLegalChrome` lives in `lib/data/types.ts`.
 - Outside the plan's list: `deploy/preview/_headers` and its pin, `scripts/media-lib.mjs` (`[legal]` enumerator), `tests/helpers/site-links.mjs` and the pins in `public-documents`, `media-guard`, `locale-path`, `build/locale-routing`; `components/ui/rich-text.tsx` (optional gold-line quote); `tests/phase-03-dashboard-shell.test.mjs`; `lib/booking/gate-server.ts`; `lib/ops/money-settings.ts`; the booking and trip screens and their six pages.
 - The kit Dialog has no gold top line, unlike the picture.
-- **On the trip and booking pages the legal row has no Cookie settings link and no banner or beacon runs** (`getBookingPageLegal`): their addresses hold the stay, dates and link token. The signed row drew the link; this is the one difference, from the re-review.
+- **Trip and booking pages: the owner signed option B (2026-10-30)**: the Cookie settings link, banner and beacon behave there as on every other page, though those addresses hold the stay, dates and link token. Before `CF_WEB_ANALYTICS_TOKEN` is set, the controller confirms whether the beacon sends the query string on those addresses and reports that to the owner.
 - `seo_title` is capped at 70, so a longer AI Spanish title leaves a gap the owner fills by hand.
 
 ## Checks

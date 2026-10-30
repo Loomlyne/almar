@@ -267,7 +267,7 @@ Final at this hand-over: **3,350 lines, sha256 `4a43c764fb27cf34bf08915e20debf3a
 pgTAP: plan 232 (new cases for each; banner blocks and the anon call flipped). Not run.
 
 ## Reviews
-Sonnet, deep tier. First pass "fix first"; re-review of the fixes "ship". Answered: gate before page, checkbox link, Money row, booking-page footer, redirect headers, beacon on token-bearing addresses, ops bake, `cache` option on the Worker fetch.
+Sonnet, deep tier. First pass "fix first"; re-review of the fixes "ship". Answered: gate before page, checkbox link, Money row, booking-page footer, redirect headers, ops bake, `cache` option on the Worker fetch. Beacon on token-bearing addresses: the owner's choice, see Open.
 **Not fixed, on purpose:**
 - one extra rpc per quote when a version is baked (none while nothing is baked);
 - a block row with empty English drops its AR/ES text on save (same rule as the blog);
@@ -275,7 +275,7 @@ Sonnet, deep tier. First pass "fix first"; re-review of the fixes "ship". Answer
 
 ## Open
 - `CF_WEB_ANALYTICS_TOKEN` is null: no banner, no Cookie settings and no beacon until the owner's Cloudflare step, even with the banner published.
-- The booking pages' Cookie settings difference above.
+- Trip and booking pages, Cookie settings: **signed B** (the link, banner and beacon as on every other page). Before `CF_WEB_ANALYTICS_TOKEN` is set, the controller confirms whether the beacon sends the query string on those addresses (stay, dates, link token) and reports that to the owner.
 - `getPackageSlugs` is not on the base: 06-06 adds it to `expectedPublicPaths`.
 - Not run: whether a build with an empty `[legal]` static-params list passes.
 
