@@ -78,12 +78,13 @@ test("consultation: name, email, phone, a :00 or :30 UTC start and a real zone",
   assert.equal(slotStart("2026-11-03T14:00:00+04:00"), "2026-11-03T10:00:00.000Z");
 });
 
-test("package: Tier becomes tier_slug by the slug rule; repeated Cities become cities, at most 6 of at most 120", () => {
+test("package: Tier becomes tier_slug by the slug rule; repeated Cities become cities, at most 50 of at most 120", () => {
   const good = validateSiteRequest("package", form({ ...CONTACT, [F.tier]: "grand-tour", [F.cities]: ["Bogotá", "Cartagena"] }));
   assert.deepEqual(good.payload, { name: "Ana", email: "ana@example.com", tier_slug: "grand-tour", cities: ["Bogotá", "Cartagena"] });
   assert.equal(validateSiteRequest("package", form(CONTACT)).errors.tier_slug, "required");
   assert.equal(validateSiteRequest("package", form({ ...CONTACT, [F.tier]: "Bad Slug" })).errors.tier_slug, "invalid");
-  assert.equal(validateSiteRequest("package", form({ ...CONTACT, [F.tier]: "a", [F.cities]: Array(7).fill("x") })).errors.cities, "invalid");
+  assert.equal(validateSiteRequest("package", form({ ...CONTACT, [F.tier]: "a", [F.cities]: Array(51).fill("x") })).errors.cities, "invalid");
+  assert.equal(validateSiteRequest("package", form({ ...CONTACT, [F.tier]: "a", [F.cities]: Array(50).fill("x") })).ok, true);
   assert.equal(validateSiteRequest("package", form({ ...CONTACT, [F.tier]: "a", [F.cities]: ["x".repeat(121)] })).errors.cities, "tooLong");
 });
 

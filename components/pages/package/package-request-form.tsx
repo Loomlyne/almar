@@ -162,7 +162,8 @@ export function PackageRequestForm({ tierSlug, cities, copy, locale }: { tierSlu
             <p id={id("cities")} className="m-0 text-label text-ink">
               {copy.cities}
             </p>
-            <div className="grid gap-1">
+            {/* A long route takes columns on a wide screen rather than a very long form. */}
+            <div className={cities.length > 6 ? "grid gap-1 md:grid-cols-2 lg:grid-cols-3" : "grid gap-1"}>
               {cities.map((city) => (
                 <Checkbox
                   key={city}

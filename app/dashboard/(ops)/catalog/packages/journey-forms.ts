@@ -51,8 +51,8 @@ export type JourneyForm = {
 
 export const blankJourneyText = (): JourneyText => ({ name: "", price_label: "", tagline: "", duration_label: "", ideal_for_label: "", ideal_for: "", body: "" });
 
-/** A request form takes at most six cities (site_request_payload_ok), so the editor stops there: every city can be asked for. */
-export const MAX_FORM_LEGS = 6;
+/** No limit for the owner (2026-10-30). 50 is only the guard in ops_save_journey_tier and site_request_payload_ok against malformed payloads. */
+export const MAX_FORM_LEGS = 50;
 
 let legCount = 0;
 const legKey = () => `leg_${++legCount}`;

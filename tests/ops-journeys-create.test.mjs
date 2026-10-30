@@ -34,13 +34,13 @@ test("save with an id may carry a slug: the server refuses a change once publish
   assert.equal(parse.parseJourneyAction({ action: "save", item: { id: A, slug: "the-explorer" } }).item.slug, "the-explorer");
 });
 
-test("legs: at most 12, each with a destination, an optional stay and an English nights line", () => {
+test("legs: at most 50 (a guard only), each with a destination, an optional stay and an English nights line", () => {
   const out = parse.parseJourneyAction({ action: "save", item: { id: A, legs: [leg({ stay_id: B }), leg()] } });
   assert.equal(out.item.legs.length, 2);
   assert.equal(out.item.legs[0].stay_id, B);
   assert.equal(out.item.legs[1].stay_id, null);
-  assert.equal(parse.parseJourneyAction({ action: "save", item: { id: A, legs: Array.from({ length: 12 }, () => leg()) } }).item.legs.length, 12);
-  invalid(() => parse.parseJourneyAction({ action: "save", item: { id: A, legs: Array.from({ length: 13 }, () => leg()) } }), "legs");
+  assert.equal(parse.parseJourneyAction({ action: "save", item: { id: A, legs: Array.from({ length: 50 }, () => leg()) } }).item.legs.length, 50);
+  invalid(() => parse.parseJourneyAction({ action: "save", item: { id: A, legs: Array.from({ length: 51 }, () => leg()) } }), "legs");
   invalid(() => parse.parseJourneyAction({ action: "save", item: { id: A, legs: [leg({ destination_id: "x" })] } }), "legs.0.destination_id");
   invalid(() => parse.parseJourneyAction({ action: "save", item: { id: A, legs: [leg({ stay_id: "x" })] } }), "legs.0.stay_id");
   invalid(() => parse.parseJourneyAction({ action: "save", item: { id: A, legs: [leg({ extra: 1 })] } }), "legs.0.extra");

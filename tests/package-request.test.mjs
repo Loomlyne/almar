@@ -35,7 +35,7 @@ test("parsePackageRequest returns validateSiteRequest's errors unchanged and hol
     { [F.from]: "2026-12-19", [F.to]: "2026-12-12" },
     { [F.guests]: "0" },
     { [F.guests]: "100" },
-    { [F.cities]: ["a", "b", "c", "d", "e", "f", "g"] },
+    { [F.cities]: Array(51).fill("a") },
     { [F.notes]: "x".repeat(2001) },
   ];
   for (const extra of cases) {

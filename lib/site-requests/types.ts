@@ -114,7 +114,7 @@ export const SITE_REQUEST_CAPS: { readonly [K in SiteRequestKind]: Readonly<Reco
     from: opt({ kind: "day" }),
     to: opt({ kind: "day" }),
     guests: opt({ kind: "int", min: 1, max: 99 }),
-    cities: opt({ kind: "list", maxItems: 6, item: { kind: "text", min: 1, max: 120 } }),
+    cities: opt({ kind: "list", maxItems: 50, item: { kind: "text", min: 1, max: 120 } }),
   },
   consultation: {
     ...CONTACT,

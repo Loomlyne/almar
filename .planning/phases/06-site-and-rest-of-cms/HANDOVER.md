@@ -293,11 +293,12 @@ Jev: none fits (bounded, deterministic gates only). Automation: a daily unattend
 Commits: see `06-05-SUMMARY.md`; tip of the plan `5c7e4e3f`. Also pushed here: `6a1a43f2` (06-04, the owner's B). Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test).
 
 ## Migration: every change since the 06-04 hand-over
-Final at this hand-over: **3,378 lines, sha256 `9f917461e8e532d660ab0c374ddc275c96a8e508f3f924eddd720751b91fa77d`**. Add to the four items in the 06-04 section; 5-7 in `5c7e4e3f`, 8 after it:
+Final at this hand-over: **3,378 lines, sha256 `2a764d3d8387ca6156815e9c3747cf88f89c925df564a9dc3c54f0d95480595f`**. Add to the four items in the 06-04 section; 5-7 in `5c7e4e3f`, 8 and 9 after it:
 5. `site_request_payload_ok`: a phone needs at least 7 digits (`-------` passed before).
 6. New `consult_is_open()`, service role only: the public slots read no longer loads `ops_get_consult`, which carries every upcoming guest's name and email.
 7. `book_consultation`: an advisory lock on the email, taken before the slot's; the same email on a future start it already holds gets that booking back (a retry whose reply was lost, Resend's idempotency keys hold the emails); a third upcoming call for one email raises `almar:slot_limit` (removed in item 8).
 8. The owner chose no limit on calls per email (2026-10-30): the count check, `slot_limit`, its 429 and its reason are gone; the email lock and the same-email retry stay.
+9. The owner chose no limit on cities (2026-10-30): `site_request_payload_ok` cities 6 -> 50 and `ops_save_journey_tier` legs 12 -> 50, purely as a guard against malformed payloads; their comments. pgTAP plan 243.
 pgTAP: plan 241 (new: `consult_is_open` closed, open, anon, guest; retry; a second and third call for one email booked; phone; 24:00 read-back; "booked twice" now uses a second email). Not run.
 
 `to_char('24:00'::time, 'HH24:MI')` reads back `24:00` on the live database (controller, 2026-10-30).
@@ -365,7 +366,7 @@ Jev: none fits (a plain saved list, no judgment). Automation: a weekly unattende
 
 # 06-06 executed: hand-over (job 26)
 
-Commits: see `06-06-SUMMARY.md`; tip of the plan `aae76387`. Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test). **Migration unchanged since 06-05: 3378 lines, sha256 `9f917461e8e532d660ab0c374ddc275c96a8e508f3f924eddd720751b91fa77d`.**
+Commits: see `06-06-SUMMARY.md`; tip of the plan `aae76387`. Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test). **Migration at this hand-over: 3,378 lines, sha256 `2a764d3d8387ca6156815e9c3747cf88f89c925df564a9dc3c54f0d95480595f` (item 9).**
 
 ## Reviews
 Sonnet: "ship", three lows. Reviewed `670ab183^..13b1a294`; the slot commits and these fixes were not reviewed. Answered in `aae76387`:
@@ -375,11 +376,10 @@ Sonnet: "ship", three lows. Reviewed `670ab183^..13b1a294`; the slot commits and
 
 ## For the Fable review
 - **`ops_publish` does not check leg translations; the page falls back to English** (controller's request to list it).
-- `ops_save_journey_tier` allows 12 legs, `site_request_payload_ok` and the validator cap `cities` at 6.
 
-## Waiting on the owner (controller has both; not changed)
-- The six-city limit and its line "Up to six cities.".
-- The gold underline at rest on "See this journey" and the WhatsApp links.
+## Owner's answers, 2026-10-30
+- Cities: no limit. Done, migration item 9; `legsFull` removed; a route over 6 cities takes columns on the form at `md` and up. 50 cities of long Arabic names could pass the 16 KB body cap on `/api/requests` ; realistic names fit.
+- Underlines: none on the whole site, at rest or on hover. Not coded yet: picture first (`pictures/no-underlines/index.html`).
 
 ## Open
 - `tests/build/slice1-sweep.spec.ts` granted, not edited: its counts are computed from `publicDocuments()` or are slice 1's own 42.

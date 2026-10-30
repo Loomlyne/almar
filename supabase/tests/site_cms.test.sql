@@ -4,7 +4,7 @@
 -- use the zz6 prefix and ids ending in 6xx.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(241);
+select plan(243);
 
 -- Helpers -------------------------------------------------------------------------------------------------------------
 -- The refusal's message and detail, or 'saved' when the call returns.
@@ -460,6 +460,10 @@ select is(pg_temp.outcome($$select public.submit_site_request('package', 'en', '
 select is((select count(*)::int from public.site_requests where kind = 'package'), 0, 'and nothing was saved');
 select is(pg_temp.outcome($$select public.submit_site_request('package', 'en', '{"name": "Zz6", "email": "zz6@example.com", "tier_slug": "zz6-pub-tier", "guests": 2, "cities": ["Cartagena"]}'::jsonb)$$),
   'saved', 'a package request for a published package is saved');
+select is(public.site_request_payload_ok('package', jsonb_build_object('name', 'Zz6', 'email', 'zz6@example.com', 'tier_slug', 'zz6-pub-tier', 'cities', (select jsonb_agg('City ' || n) from generate_series(1, 50) as n))), true,
+  'a request may ask for 50 cities (no limit for the owner; 50 only guards against malformed payloads)');
+select is(public.site_request_payload_ok('package', jsonb_build_object('name', 'Zz6', 'email', 'zz6@example.com', 'tier_slug', 'zz6-pub-tier', 'cities', (select jsonb_agg('City ' || n) from generate_series(1, 51) as n))), false,
+  'and 51 is a malformed payload');
 select is(pg_temp.outcome($$select public.submit_site_request('consultation', 'en', '{"name": "Zz6", "email": "zz6@example.com"}'::jsonb)$$),
   'almar:invalid {"field": "kind", "locale": null}', 'a consultation goes through book_consultation only');
 select is(pg_temp.outcome($$select public.submit_site_request('plan', 'en', '{"name": "Zz6", "email": "zz6@example.com", "price": "1"}'::jsonb)$$),

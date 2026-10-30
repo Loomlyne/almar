@@ -155,7 +155,7 @@ export function validateSiteRequest(kind: SiteRequestKind, fields: RequestFields
     else b.payload.tier_slug = tier;
     datesAndGuests(b);
     const cities = fields.getAll(REQUEST_FIELD.cities).map(cleanLine).filter((city) => city !== "");
-    if (cities.length > 6) b.errors.cities = "invalid";
+    if (cities.length > 50) b.errors.cities = "invalid";
     else if (cities.some((city) => city.length > 120)) b.errors.cities = "tooLong";
     else if (cities.length > 0) b.payload.cities = cities;
   } else {

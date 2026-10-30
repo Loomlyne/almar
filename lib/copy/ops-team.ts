@@ -102,7 +102,6 @@ export type OpsTeamCopy = {
     legs: string;
     addCity: string;
     /** Beside Add a city once there are six: a request form takes at most six cities. */
-    legsFull: string;
     destination: string;
     stay: string;
     noStay: string;
@@ -197,7 +196,6 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       slugLocked: "The web address cannot change after publishing.",
       legs: "Cities on this journey",
       addCity: "Add a city",
-      legsFull: "Up to six cities.",
       destination: "Destination",
       stay: "Suggested stay",
       noStay: "No suggested stay",
@@ -282,7 +280,6 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       slugLocked: "لا يمكن تغيير عنوان الويب بعد النشر.",
       legs: "المدن في هذه الرحلة",
       addCity: "إضافة مدينة",
-      legsFull: "ست مدن كحدّ أقصى.",
       destination: "الوجهة",
       stay: "الإقامة المقترحة",
       noStay: "بلا إقامة مقترحة",
@@ -367,7 +364,6 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       slugLocked: "La dirección web no se puede cambiar después de publicar.",
       legs: "Ciudades de este viaje",
       addCity: "Añadir una ciudad",
-      legsFull: "Hasta seis ciudades.",
       destination: "Destino",
       stay: "Estancia sugerida",
       noStay: "Sin estancia sugerida",

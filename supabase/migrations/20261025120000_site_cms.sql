@@ -503,7 +503,7 @@ grant execute on function public.site_request_date_ok(jsonb) to service_role;
 --   plan         destination <= 120, from / to 'YYYY-MM-DD' with from < to when both are present, guests 1..99,
 --                budget <= 120 (the guest's own words), airport <= 80; all optional
 --   list         property_type 1..80, city 1..120, message 1..2000; all three required
---   package      tier_slug (required, the slug rule, <= 80), from / to, guests, cities (<= 6 strings, each 1..120)
+--   package      tier_slug (required, the slug rule, <= 80), from / to, guests, cities (<= 50 strings, a guard against malformed payloads only; each 1..120)
 --   consultation slot_start (required, ISO 8601 with a Z or an offset), time_zone (required, an IANA-style name <= 64)
 -- An optional key may be absent or json null. Lengths are counted on the trimmed text.
 create or replace function public.site_request_payload_ok(p_kind text, p jsonb)
@@ -580,7 +580,7 @@ begin
       return false;
     end if;
     if p ? 'cities' and jsonb_typeof(p -> 'cities') <> 'null' then
-      if jsonb_typeof(p -> 'cities') <> 'array' or jsonb_array_length(p -> 'cities') > 6
+      if jsonb_typeof(p -> 'cities') <> 'array' or jsonb_array_length(p -> 'cities') > 50
          or exists (select 1 from jsonb_array_elements(p -> 'cities') as e
                     where jsonb_typeof(e.value) <> 'string'
                        or char_length(btrim(e.value #>> '{}', E' \t\r\n')) not between 1 and 120) then
@@ -2540,7 +2540,7 @@ grant execute on function public.ops_save_legal_page(jsonb) to service_role;
 -- Packages (06-06, F-02). The update of 20261005100000 is kept as it was; Phase 6 adds:
 --   * create (no id): slug required (the stay slug rule), the English name and price label required; it goes to the
 --     end of the list, unpublished. A published tier keeps its slug (like stays); an unpublished one may change it.
---   * legs? = [{destination_id, stay_id?, translations?}] (at most 12), replaced whole when present, in the order given;
+--   * legs? = [{destination_id, stay_id?, translations?}] (at most 50, a guard against malformed payloads only), replaced whole when present, in the order given;
 --     a leg's stay belongs to its destination.
 --   * addon_ids? = uuid[] (at most 30), replaced whole when present: catalog items, never the home pickup.
 -- The structured prices come from the route, which parses them from the English price_label; they are set only when
@@ -2573,7 +2573,7 @@ begin
   -- Legs and add-ons are checked before anything is written.
   if p ? 'legs' then
     v_legs := coalesce(nullif(p -> 'legs', 'null'::jsonb), '[]'::jsonb);
-    if jsonb_typeof(v_legs) <> 'array' or jsonb_array_length(v_legs) > 12 then
+    if jsonb_typeof(v_legs) <> 'array' or jsonb_array_length(v_legs) > 50 then
       perform public.catalog_invalid('legs');
     end if;
     for v_leg, v_ord in select e.value, e.ord from jsonb_array_elements(v_legs) with ordinality as e(value, ord) loop

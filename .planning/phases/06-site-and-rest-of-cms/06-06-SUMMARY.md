@@ -19,9 +19,9 @@ The first two commits do not compile alone; `tsc` holds from `13b1a294`.
 ## Deviations
 - Outside the plan's list: `app/dashboard/(ops)/catalog/packages/journey-addons.tsx` (the kit's `ConnectPicker` draws Connected the other way round), `tests/package-view-render.test.mjs`, `scripts/expected-public-paths.mjs`; `components/pages/home/home-journeys.tsx` and its scene (edited before a slot; the controller confirmed them).
 - **Signed page not followed, real or shared part kept:** status line instead of a Settings switch (the kit's Publish/Unpublish does it); `LockedAddress` for the read-only address; `ConfirmDialog`'s outlined danger button; Draft chip hidden on a new package; home heading stays `text-heading`, kicker tracking stays the token; real `PublicFrame`; 44px fields and native date inputs, as 06-05.
-- Words not on the signed page: `waMessage` AR and ES (drafts); `legsFull` "Up to six cities." in three languages (with the owner); email labels "Package name:" and "Page:". Unused from the table: `price`, `dest2`, `slugPh`.
-- Plan changes: `leg_<k>` for `leg.<key>.nights_label` (the translate route refuses dots); `tier.href` for `hrefFor(slug)`; `buildPackageAskMessage` in `lib/site-requests/package.ts`; leg shaping in `catalog-handlers`; error key `cities`; no no-JS fallback on the form (as 06-05); the editor stops at 6 cities, the parser at 12.
+- Words not on the signed page: `waMessage` AR and ES (drafts); email labels "Package name:" and "Page:". Unused from the table: `price`, `dest2`, `slugPh`.
+- Plan changes: `leg_<k>` for `leg.<key>.nights_label` (the translate route refuses dots); `tier.href` for `hrefFor(slug)`; `buildPackageAskMessage` in `lib/site-requests/package.ts`; leg shaping in `catalog-handlers`; error key `cities`; no no-JS fallback on the form (as 06-05); no limit on cities for the owner; 50 only guards against malformed payloads (migration item 9).
 - Destination names are capped at 120 (was 160): each is a ticked city on the form, and `cities` caps at 120.
 
 ## Checks
-`npx tsc --noEmit` and `npm run tokens:check` pass. Node tests, pgTAP, build, Playwright: **not run (owner: no test)**. Nothing has been seen in a browser; the city boxes have no browser test at all, because fixtures have no legs. No migration change.
+`npx tsc --noEmit` and `npm run tokens:check` pass. Node tests, pgTAP, build, Playwright: **not run (owner: no test)**. Nothing has been seen in a browser; the city boxes have no browser test at all, because fixtures have no legs. Migration changed once: item 9 in the HANDOVER.

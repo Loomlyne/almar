@@ -182,7 +182,6 @@ export function JourneyLegs({
           <PlusIcon size={16} aria-hidden="true" />
           {copy.addCity}
         </Button>
-        {full ? <span className="text-label text-muted">{copy.legsFull}</span> : null}
       </div>
     </>
   );
