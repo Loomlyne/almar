@@ -182,7 +182,6 @@ test("bookConsultation: the refusals", async () => {
   assert.deepEqual(await refused("slot_taken"), { ok: false, status: 409, reason: "slot_taken" });
   assert.deepEqual(await refused("consult_closed"), { ok: false, status: 409, reason: "closed" });
   for (const code of ["slot_outside_hours", "slot_too_soon", "slot_too_far"]) assert.deepEqual(await refused(code), { ok: false, status: 409, reason: "unavailable" });
-  assert.deepEqual(await refused("slot_limit"), { ok: false, status: 429, reason: "limit" });
   assert.deepEqual(await refused("invalid"), { ok: false, status: 400, reason: "invalid" });
 });
 

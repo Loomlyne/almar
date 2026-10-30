@@ -293,37 +293,37 @@ Jev: none fits (bounded, deterministic gates only). Automation: a daily unattend
 Commits: see `06-05-SUMMARY.md`; tip of the plan `5c7e4e3f`. Also pushed here: `6a1a43f2` (06-04, the owner's B). Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test).
 
 ## Migration: every change since the 06-04 hand-over
-Final at this hand-over: **3,383 lines, sha256 `ba93c6045d72c5a4f521cb25d0499cf0a805ed6ae10b4c7e04333aa94ee8d2cd`**. Add to the four items in the 06-04 section; all in `5c7e4e3f`:
+Final at this hand-over: **3,378 lines, sha256 `9f917461e8e532d660ab0c374ddc275c96a8e508f3f924eddd720751b91fa77d`**. Add to the four items in the 06-04 section; 5-7 in `5c7e4e3f`, 8 after it:
 5. `site_request_payload_ok`: a phone needs at least 7 digits (`-------` passed before).
 6. New `consult_is_open()`, service role only: the public slots read no longer loads `ops_get_consult`, which carries every upcoming guest's name and email.
-7. `book_consultation`: an advisory lock on the email, taken before the slot's; the same email on a future start it already holds gets that booking back (a retry whose reply was lost, Resend's idempotency keys hold the emails); a third upcoming call for one email raises `almar:slot_limit`.
-pgTAP: plan 241 (new: `consult_is_open` closed, open, anon, guest; retry; limit; phone; 24:00 read-back; "booked twice" now uses a second email). Not run.
+7. `book_consultation`: an advisory lock on the email, taken before the slot's; the same email on a future start it already holds gets that booking back (a retry whose reply was lost, Resend's idempotency keys hold the emails); a third upcoming call for one email raises `almar:slot_limit` (removed in item 8).
+8. The owner chose no limit on calls per email (2026-10-30): the count check, `slot_limit`, its 429 and its reason are gone; the email lock and the same-email retry stay.
+pgTAP: plan 241 (new: `consult_is_open` closed, open, anon, guest; retry; a second and third call for one email booked; phone; 24:00 read-back; "booked twice" now uses a second email). Not run.
 
-**Check on the dry run:** `to_char('24:00'::time, 'HH24:MI')` must read back `24:00`, or a saved all-day range reloads as invalid. The pgTAP case settles it; I could not run it.
+`to_char('24:00'::time, 'HH24:MI')` reads back `24:00` on the live database (controller, 2026-10-30).
 
 ## Reviews
 Sonnet (`jev-review`: deep, "touches security"; Fable deferred to the whole PR, the owner's decision). Verdict "fix first", no high findings. All eight answered in `5c7e4e3f`, no re-review:
 1. Owner email lost when the guest's brand failed: separate `try` blocks.
 2. Phones with no digits: pattern, validator and SQL.
 3. Anonymous slots read loaded guests' names and emails: `consult_is_open()`.
-4. One script could book every slot and mail any address: **two upcoming calls per email, my number, not signed.** It stops repeat mail to one address; many addresses are still stopped only by `FORM_LIMITER` (5 a minute per IP), which fails open with no binding. The refusal is 429 and shows the signed `failed` line.
+4. One script could book every slot and mail any address: **not limited, the owner's choice (2026-10-30).** The brake is `FORM_LIMITER`, bound at 5 a minute per IP in `wrangler.toml` and `wrangler.preview.toml`.
 5. A failed month read showed "not open yet": **partly fixed**, one quiet second try. After two failures it still shows the closed line with WhatsApp, because the signed page has no words for a failed read.
 6. Lost reply then retry told the guest their own slot was taken: fixed for the consultation. Plan and List can still make two rows on a retry; the owner sees both and marks one handled.
 7. WhatsApp button on a number with no country code opened no chat: shown only when the number starts with `+`.
 8. Hidden past days off could fill the list and block saving: they are dropped on save.
 
 ## Open
-- **Owner's word:** two upcoming calls per email. Say another number and it is one constant in `book_consultation`.
-- All three public routes answer 503 with no service-role key on `almar`, after refusing bad input; Contact then shows the closed line plus WhatsApp, the forms the failed line. **Whether `almar` holds that key was not checked**: the controller checks before the deploy. No `RESEND_API_KEY`: the row is saved, `emailed: false`.
+- `almar` holds `SUPABASE_SERVICE_ROLE_KEY` (controller, `wrangler secret list`). Without it the three public routes would answer 503 after refusing bad input. No `RESEND_API_KEY`: the row is saved, `emailed: false`.
 - The calendar stays closed until the owner types notice and horizon in Content › Consultation.
-- Bare `/plan-with-us` is a 404; tell me if it should redirect (shared files, needs a slot).
+- Bare `/plan-with-us` and `/list-with-us` stay 404s (controller, 2026-10-30): the redirect list is for old addresses, and these pages never had one.
 - `/api/*` is already in `run_worker_first`; wrangler untouched.
 
 ## Owner's check (after the migration, a preview build with the service-role key and Resend)
 1. Content › Consultation: add hours, type 24 notice and 30 ahead, click Save. Expected: saved, and reloading shows the same.
 2. Contact page, pick a day and a time, fill the form with your own email and a `+` number, click to book. Expected: the confirmation line with your time and Dubai time; your inbox gets the email with an `.ics`; `inquiries@` gets its own.
 3. Try to book the same time from another email. Expected: the time is gone from the list.
-4. Book a second time with your email, then a third. Expected: the second books; the third shows "It did not send…" with email and WhatsApp.
+4. Book a second time with your email. Expected: it books; both show in Content › Consultation.
 5. Dashboard › Requests, open the booking, cancel it. Expected: cancelled tag; the time is offered again on Contact.
 6. Send Plan with us and List with us from `/en/plan-with-us` and `/en/list-with-us`. Expected: thank-you line, both in Requests; Mark handled moves them; WhatsApp shows only for a `+` number.
 7. Repeat one form in Arabic and Spanish. Expected: RTL with Arabic text; Spanish with tú.

@@ -126,7 +126,7 @@ export async function handleSiteRequestPost(
 
 // ---- Consultation ---------------------------------------------------------------------------------------------------
 
-export type ConsultRefusalReason = "slot_taken" | "closed" | "unavailable" | "limit" | "invalid" | "error";
+export type ConsultRefusalReason = "slot_taken" | "closed" | "unavailable" | "invalid" | "error";
 
 export type BookConsultationResult =
   | { ok: true; request_id: string; booking_id: string; slot_start: string; emailed: boolean }
@@ -142,8 +142,6 @@ function bookingRefusal(message: string | null | undefined): { status: number; r
     case "almar:slot_too_soon":
     case "almar:slot_too_far":
       return { status: 409, reason: "unavailable" };
-    case "almar:slot_limit":
-      return { status: 429, reason: "limit" };
     case "almar:invalid":
       return { status: 400, reason: "invalid" };
     default:

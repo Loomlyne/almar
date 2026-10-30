@@ -22,7 +22,7 @@
 - Signed picture over plan: From/To native date fields, airport as Select, kind filter as toggles, email subjects and bodies as drawn.
 - `site-cms-api.ts` over plan: `{id, handled}`, `{action:"cancel", booking_id}`, `handled=yes|no|all`. The slots reply also carries `time_zone`.
 - `public/_redirects` and `LEGACY_SECTIONS` untouched (not granted; these pages never had unprefixed URLs): a bare `/plan-with-us` is a 404.
-- Added after review, not in the plan: at most two upcoming calls per email, and `consult_is_open()`.
+- Added after review, not in the plan: `consult_is_open()`, and a retry of the same email and start returns its booking. No limit on calls per email (owner, 2026-10-30).
 
 ## Checks
 `npx tsc --noEmit` and `npm run tokens:check` pass. Node tests, pgTAP, build, Playwright: **not run (owner: no test)**. Slot booking and the back guard have never run in a browser.

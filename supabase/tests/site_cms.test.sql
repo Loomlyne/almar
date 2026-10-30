@@ -550,8 +550,8 @@ select throws_ok($$insert into public.consult_bookings (slot_start, request_id) 
 select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('2 days') + interval '30 minutes'))$$),
   'saved', 'a second upcoming call for one email is booked');
 select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('2 days') + interval '60 minutes'))$$),
-  'almar:slot_limit {}', 'a third upcoming call for one email is refused');
-select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('2 days') + interval '60 minutes') || '{"phone": "-------"}'::jsonb)$$),
+  'saved', 'a third too: no limit on calls per email (owner, 2026-10-30)');
+select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('2 days') + interval '90 minutes') || '{"phone": "-------"}'::jsonb)$$),
   'almar:invalid {"field": "payload", "locale": null}', 'a phone with no digits is refused');
 select is(pg_temp.outcome($$select public.book_consultation('en', jsonb_build_object('name', 'Zz6', 'email', 'zz6@example.com', 'slot_start', 'tomorrow', 'time_zone', 'Asia/Dubai'))$$),
   'almar:invalid {"field": "payload", "locale": null}', 'a malformed slot start is refused');

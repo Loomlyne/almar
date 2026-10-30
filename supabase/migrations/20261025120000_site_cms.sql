@@ -2889,9 +2889,8 @@ grant execute on function public.consult_is_open() to service_role;
 -- Books one slot (T-06-03): the payload is a consultation request (slot_start, time_zone, name, email, phone?,
 -- notes?); advisory locks on the email and on the slot's epoch serialise a guest's bookings and two guests on the same
 -- start; the same email on a start it already holds gets that booking back (a retry whose reply was lost); then the
--- refusals of consult_slot_refusal at now(); then at most two upcoming booked calls per email (slot_limit: one script
--- cannot make ALMAR mail one address over and over); then the request and the booking in this transaction (a unique
--- violation from the partial index is slot_taken too). Returns {request_id, booking_id, slot_start (ISO UTC)}.
+-- refusals of consult_slot_refusal at now(); then the request and the booking in this transaction (a unique
+-- violation from the partial index is slot_taken too). No limit on calls per email (owner, 2026-10-30). Returns {request_id, booking_id, slot_start (ISO UTC)}.
 create or replace function public.book_consultation(p_locale text, p_payload jsonb)
 returns jsonb
 language plpgsql
@@ -2928,10 +2927,6 @@ begin
   v_code := public.consult_slot_refusal(v_slot, now());
   if v_code is not null then
     perform public.catalog_fail(v_code);
-  end if;
-  if (select count(*) from public.consult_bookings b join public.site_requests r on r.id = b.request_id
-      where b.status = 'booked' and b.slot_start > now() and r.email = v_email) >= 2 then
-    perform public.catalog_fail('slot_limit');
   end if;
   begin
     insert into public.site_requests (kind, locale, name, email, payload)
