@@ -362,3 +362,40 @@ The card link stays first in the DOM, so the Tab-order test's first stop holds; 
 5. Repeat 1-3 in Arabic and Spanish. Expected: RTL with Arabic words; Spanish with tú.
 
 Jev: none fits (a plain saved list, no judgment). Automation: a weekly unattended email to the owner of the most-saved stays, as a demand signal (proposal only).
+
+# 06-06 executed: hand-over (job 26)
+
+Commits: see `06-06-SUMMARY.md`; tip of the plan `aae76387`. Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test). **Migration unchanged since 06-05: 3378 lines, sha256 `9f917461e8e532d660ab0c374ddc275c96a8e508f3f924eddd720751b91fa77d`.**
+
+## Reviews
+Sonnet: "ship", three lows. Reviewed `670ab183^..13b1a294`; the slot commits and these fixes were not reviewed. Answered in `aae76387`:
+1. A destination name of 121-160 characters made the form unsubmittable: dashboard cap now 120 (`DESTINATION_TEXT.name`). A stored name over 120 would still do it; check the live rows before the import.
+2. Add-ons past 30 refused the whole save: connecting stops at 30, silently, because no words are signed for it. **Not fixed:** a connected add-on missing from the options (it became the home pickup, or the catalog read failed) shows as a raw id and trips the SQL refusal on the next save.
+3. `$` in a package name garbled the WhatsApp text: fixed.
+
+## For the Fable review
+- **`ops_publish` does not check leg translations; the page falls back to English** (controller's request to list it).
+- `ops_save_journey_tier` allows 12 legs, `site_request_payload_ok` and the validator cap `cities` at 6.
+
+## Waiting on the owner (controller has both; not changed)
+- The six-city limit and its line "Up to six cities.".
+- The gold underline at rest on "See this journey" and the WhatsApp links.
+
+## Open
+- `tests/build/slice1-sweep.spec.ts` granted, not edited: its counts are computed from `publicDocuments()` or are slice 1's own 42.
+- The email's page address is the English form; the hook has no locale.
+- Home cards no longer show duration, ideal-for or description, as drawn.
+- A static page offering a renamed city gets the failed line until the next build.
+- After a locked leg is removed the editor stays dirty until closed, as the blog does.
+- `tests/package-page.spec.ts` checks `dir=rtl` on html; not confirmed for this route.
+- Baselines shift: home "Choose Your Journey" and home full-page snapshots; ops-journeys pictures.
+
+## Owner's check (after the migration, the import and a preview build)
+1. Catalog › Packages › New package. Type a name, price line and web address, add two cities and an add-on, click Save. Expected: saved, the web address still editable.
+2. Click Publish. Expected: Arabic and Spanish fill in; the web address locks; Delete is off with "A shown package cannot be deleted. Hide it first."
+3. After a rebuild, open it from "Choose Your Journey" on home. Expected: `/en/journeys/<web address>`, your price line exactly as typed, the cities in order, Included with no remove button, no amount to pay anywhere.
+4. Send the form with one city unticked. Expected: sent line; the request in Requests shows the package and the ticked city.
+5. Open it in Arabic and Spanish. Expected: RTL with Arabic words; Spanish with tú.
+6. Hide the package, open it in the editor, click Delete and confirm. Expected: gone from the list, and after a rebuild its page is a 404.
+
+Jev: fits later as a score on which package a free-text request is closest to, advisory and logged; not added. Automation: a weekly unattended email to the owner listing shown packages whose cities or add-ons have since been hidden (proposal only).
