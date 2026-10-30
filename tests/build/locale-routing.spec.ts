@@ -1,3 +1,4 @@
+import { readPackageSlugs } from "../../scripts/media-lib.mjs";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { expect, test, type Browser, type Page } from "@playwright/test";
@@ -268,7 +269,9 @@ test("slice inventory: out/ holds every React document, every remaining Framer d
         ? POSTS.map((s) => `/blog/${s}`)
         : pattern === "/legal/[legal]"
           ? []
-          : [pattern],
+          : pattern === "/journeys/[journey]"
+            ? readPackageSlugs().map((s) => `/journeys/${s}`)
+            : [pattern],
   );
   const react = LOCALES.flatMap((l) =>
     paths.map((p) => {

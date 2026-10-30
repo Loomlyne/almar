@@ -138,8 +138,8 @@ test("the prepare hook's lines reach the email; a kind without a hook skips it; 
   await run(post("/api/requests", { ...PLAN, [F.email]: "nope" }), deps(fakeAdmin(saved)), { plan: async () => (seen++, { ok: true, emailLines: [] }) });
   assert.equal(seen, 0);
   assert.equal((await run(post("/api/requests", PLAN), deps(fakeAdmin(saved)), {})).status, 200);
-  assert.deepEqual(REQUEST_PREPARE, {});
-  assert.deepEqual([...REQUEST_ROUTE_KINDS], ["plan", "list"]);
+  assert.deepEqual(Object.keys(REQUEST_PREPARE), ["package"]);
+  assert.deepEqual([...REQUEST_ROUTE_KINDS], ["plan", "list", "package"]);
 });
 
 // ---- consultation ------------------------------------------------------------------------------------------------------

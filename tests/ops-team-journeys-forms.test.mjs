@@ -269,9 +269,10 @@ const journeyDetail = (over = {}) => ({
   ...over,
 });
 
-test("journeyPayload: the id, the stored is_featured, the photo and the text; never a price column, a slug or a create", () => {
+test("journeyPayload: the id, the stored is_featured, the photo, the text, the legs and add-ons; never a price column; a slug only while hidden", () => {
   const item = journeys.journeyPayload(journeys.journeyForm(journeyDetail()), { publish: false });
-  assert.deepEqual(Object.keys(item).sort(), ["id", "is_featured", "media_id", "translations"]);
+  assert.deepEqual(Object.keys(item).sort(), ["addon_ids", "id", "is_featured", "legs", "media_id", "translations"]);
+  assert.equal(journeys.journeyPayload(journeys.journeyForm(journeyDetail({ is_published: false })), { publish: false }).slug, "the-classic");
   assert.equal(item.is_featured, true);
   assert.equal(item.media_id, PHOTO.id);
   assert.deepEqual(item.translations.en, { name: "[Name]", price_label: "From USD [amount]", tagline: "[Tagline]", duration_label: null, ideal_for_label: null, ideal_for: null, body: null, status: "published" });
