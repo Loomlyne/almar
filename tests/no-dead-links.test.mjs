@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import {
   HIDDEN,
@@ -58,4 +59,13 @@ test("every link without a route is a known one", () => {
 test("every known dead link is still linked and still has no route", () => {
   const linked = new Set([...dead.keys()].map(deadKey));
   assert.deepEqual(KNOWN_DEAD.filter((path) => !linked.has(path)), []);
+});
+
+test("every home journey card opens a page in each language (plan 06-06)", () => {
+  const { tiers } = JSON.parse(readFileSync("lib/data/fixtures/home.json", "utf8"));
+  const published = tiers.filter((tier) => tier.is_published);
+  assert.ok(published.length > 0);
+  for (const { slug } of published) {
+    for (const locale of ["en", "ar", "es"]) assert.ok(hasRoute(`/${locale}/journeys/${slug}`, { pages, rules }), `/${locale}/journeys/${slug}`);
+  }
 });

@@ -139,7 +139,14 @@ test("matchPublicPage matches the five patterns and one [a-z0-9-] segment", () =
     "/legal/[legal]",
     "/plan-with-us",
     "/list-with-us",
+    "/journeys/[journey]",
   ]);
+});
+
+test("a package page is a public page in every locale (plan 06-06)", () => {
+  assert.equal(matchPublicPage("/journeys/the-explorer"), "/journeys/[journey]");
+  assert.equal(matchPublicPage("/journeys"), null);
+  assert.equal(siteHref("ar", "/journeys/the-explorer"), "/ar/journeys/the-explorer");
 });
 
 test("a legal page is a public page in every locale (plan 06-04)", () => {

@@ -1,7 +1,7 @@
-// Prints, as JSON, the public paths the published rows say must be pages (plan 06-04, SITE-11): every post and every
-// legal page, in the English form ("/blog/<slug>", "/legal/<slug>"). scripts/assemble-cloudflare.mjs runs it with the
-// build's own env (expectedPublicPaths) and checks the sitemap against the list (assertSitemapCovers). 06-06 adds its
-// package slugs to the same list.
+// Prints, as JSON, the public paths the published rows say must be pages (plans 06-04, 06-06; SITE-11): every post, every
+// legal page and every package, in the English form ("/blog/<slug>", "/legal/<slug>", "/journeys/<slug>").
+// scripts/assemble-cloudflare.mjs runs it with the build's own env (expectedPublicPaths) and checks the sitemap against the
+// list (assertSitemapCovers).
 //
 // The TypeScript modules are bundled with esbuild, as scripts/write-site-nav.mjs does (their imports have no file
 // extension, which plain Node cannot load; the bundle sits under node_modules/.cache so a bare import resolves). A failed
@@ -21,6 +21,7 @@ async function loadReaders() {
         'export { getPostSlugs } from "./lib/data/posts.ts";',
         'export { getPublishedLegalKinds } from "./lib/data/legal.ts";',
         'export { LEGAL_SLUGS } from "./lib/legal/kinds.ts";',
+        'export { getPackageSlugs } from "./lib/data/journeys.ts";',
       ].join("\n"),
       resolveDir: ROOT,
       loader: "ts",
@@ -45,10 +46,11 @@ async function loadReaders() {
 }
 
 export async function readExpectedPublicPaths() {
-  const { getPostSlugs, getPublishedLegalKinds, LEGAL_SLUGS } = await loadReaders();
+  const { getPostSlugs, getPublishedLegalKinds, LEGAL_SLUGS, getPackageSlugs } = await loadReaders();
   const posts = await getPostSlugs();
   const legal = await getPublishedLegalKinds();
-  return [...posts.map((slug) => `/blog/${slug}`), ...legal.map((kind) => `/legal/${LEGAL_SLUGS[kind]}`)];
+  const packages = await getPackageSlugs();
+  return [...posts.map((slug) => `/blog/${slug}`), ...legal.map((kind) => `/legal/${LEGAL_SLUGS[kind]}`), ...packages.map((slug) => `/journeys/${slug}`)];
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

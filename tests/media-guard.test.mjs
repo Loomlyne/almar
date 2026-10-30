@@ -215,7 +215,8 @@ test("fixtures hold keys: the distinct media_key count of collectFixtureImages e
 });
 
 test("publicDocuments is computed from PUBLIC_PAGES: 3 locales x (static pages + published stays + live posts), the new pages named, no services", () => {
-  const per = { "/private-stays/[stay]": readStaySlugs().length, "/blog/[post]": readPostSlugs().length, "/legal/[legal]": 0 };
+  const packages = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "lib", "data", "fixtures", "home.json"), "utf8")).tiers.filter((tier) => tier.is_published);
+  const per = { "/private-stays/[stay]": readStaySlugs().length, "/blog/[post]": readPostSlugs().length, "/legal/[legal]": 0, "/journeys/[journey]": packages.length };
   const perLocale = PUBLIC_PAGES.reduce((n, p) => n + (per[p] ?? 1), 0);
   const docs = publicDocuments();
   assert.equal(docs.length, 3 * perLocale);
@@ -225,6 +226,7 @@ test("publicDocuments is computed from PUBLIC_PAGES: 3 locales x (static pages +
   for (const d of ["en/blog.html", "ar/blog.html", "es/blog.html", "en/destinations.html", "ar/destinations.html", "es/destinations.html", "en/experiences.html", "ar/experiences.html", "es/experiences.html"]) {
     assert.ok(docs.includes(d), `${d} is in the list`);
   }
+  for (const { slug } of packages) assert.ok(docs.includes(`en/journeys/${slug}.html`) && docs.includes(`ar/journeys/${slug}.html`) && docs.includes(`es/journeys/${slug}.html`), slug);
   assert.ok(!docs.some((d) => d.includes("services")), "services have no page of their own");
 });
 

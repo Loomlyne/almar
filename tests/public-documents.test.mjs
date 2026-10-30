@@ -2,11 +2,14 @@
 // the published stay slugs and live post slugs, so a slice adds a page pattern and nothing here changes.
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { LOCALES, PUBLIC_PAGES, matchPublicPage, stripLocale } from "../lib/locale-path.ts";
 import { SLICE1_PAGES, publicDocuments, readPostSlugs, readStaySlugs } from "../scripts/media-lib.mjs";
 import { reactPublicRoutes } from "./helpers/site-links.mjs";
 
 const slugs = readStaySlugs();
+/** The published packages of the home fixture (plan 06-06): the documents of /journeys/[journey]. */
+const packageSlugs = JSON.parse(readFileSync("lib/data/fixtures/home.json", "utf8")).tiers.filter((tier) => tier.is_published).map((tier) => tier.slug);
 
 /** The slice-1 algorithm as it stood at 84deec2, rebuilt here as the reference (English under en/ since job 21). */
 function reference(staySlugs) {
@@ -31,8 +34,9 @@ test("publicDocuments() length is computed from PUBLIC_PAGES; locales are symmet
   const stayPages = PUBLIC_PAGES.filter((p) => p.includes("[stay]")).length;
   const postPages = PUBLIC_PAGES.filter((p) => p.includes("[post]")).length;
   const legalPages = PUBLIC_PAGES.filter((p) => p.includes("[legal]")).length; // no document: the database's only (plan 06-04)
-  assert.equal(statics + stayPages + postPages + legalPages, PUBLIC_PAGES.length, "every pattern is static, [stay], [post] or [legal]");
-  assert.equal(docs.length, LOCALES.length * (statics + slugs.length * stayPages + readPostSlugs().length * postPages));
+  const journeyPages = PUBLIC_PAGES.filter((p) => p.includes("[journey]")).length; // the published packages (plan 06-06)
+  assert.equal(statics + stayPages + postPages + legalPages + journeyPages, PUBLIC_PAGES.length, "every pattern is static, [stay], [post], [legal] or [journey]");
+  assert.equal(docs.length, LOCALES.length * (statics + slugs.length * stayPages + readPostSlugs().length * postPages + packageSlugs.length * journeyPages));
   assert.equal(new Set(docs).size, docs.length);
   const perLocale = (l) => docs.filter((d) => d.startsWith(`${l}/`));
   const sizes = LOCALES.map((l) => perLocale(l).length);

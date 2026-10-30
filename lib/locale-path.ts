@@ -104,6 +104,7 @@ export const PUBLIC_PAGES = [
   "/legal/[legal]", // Plan 06-04: a legal page exists only once published in all three languages (lib/data/legal.ts).
   "/plan-with-us", // Plan 06-05 (SITE-04): linked from the home Begin section and Contact.
   "/list-with-us", // Plan 06-05 (SITE-05): linked from the footer only.
+  "/journeys/[journey]", // Plan 06-06 (CMS-03, BOOK-05): one page per published package, opened from its home card.
 ] as const;
 
 /**
