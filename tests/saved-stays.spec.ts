@@ -83,14 +83,14 @@ test.describe("the heart", () => {
     await signedIn(context);
     const mock = await mockSaved(page, { stays: [STAY] });
     await page.goto(STAY_PATH);
-    await expect(heroRemove(page)).toHaveAttribute("aria-pressed", "true");
+    await expect(heroRemove(page)).toBeVisible();
     await expect(heroRemove(page)).toContainText(en.saved);
     await expect(heroRemove(page).locator("svg")).toHaveAttribute("fill", "currentColor");
     expect(mock.requests.filter((r) => r.method === "GET")).toHaveLength(1);
 
     await page.goto("/en/private-stays");
     const card = page.getByRole("button", { name: fill(en.removeStay, { stay: TITLE }), exact: true });
-    await expect(card).toHaveAttribute("aria-pressed", "true");
+    await expect(card).toBeVisible();
     await expect(card).not.toContainText(en.saved);
   });
 
@@ -108,12 +108,12 @@ test.describe("the heart", () => {
     await page.goto(STAY_PATH);
     await expect(heroSave(page).locator("svg")).toHaveAttribute("fill", "none");
     await heroSave(page).click();
-    await expect(heroRemove(page)).toHaveAttribute("aria-pressed", "true");
+    await expect(heroRemove(page)).toBeVisible();
     const post = mock.requests.find((r) => r.method === "POST");
     expect(post?.body).toBe(JSON.stringify({ stay: STAY }));
 
     await heroRemove(page).click();
-    await expect(heroSave(page)).toHaveAttribute("aria-pressed", "false");
+    await expect(heroSave(page)).toBeVisible();
     expect(mock.requests.find((r) => r.method === "DELETE")?.url).toContain(`/api/saved-stays?stay=${STAY}`);
   });
 
@@ -123,7 +123,7 @@ test.describe("the heart", () => {
     await page.goto(STAY_PATH);
     await heroSave(page).click();
     await expect(page.getByText(en.saveFailed)).toBeVisible();
-    await expect(heroSave(page)).toHaveAttribute("aria-pressed", "false");
+    await expect(heroSave(page)).toBeVisible();
   });
 
   test("a 401 on a tap: the hearts offer sign-in again", async ({ page, context }) => {
@@ -144,7 +144,7 @@ test.describe("the heart", () => {
     const mock = await mockSaved(page);
     await page.goto(STAY_PATH);
     await expect(page.getByText(en.savedNotice)).toBeVisible();
-    await expect(heroRemove(page)).toHaveAttribute("aria-pressed", "true");
+    await expect(heroRemove(page)).toBeVisible();
     expect(mock.requests.filter((r) => r.method === "POST")).toEqual([expect.objectContaining({ body: JSON.stringify({ stay: STAY }) })]);
     expect(await page.evaluate(() => window.localStorage.getItem("almar-save-intent"))).toBeNull();
   });

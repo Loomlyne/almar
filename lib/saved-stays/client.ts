@@ -48,7 +48,13 @@ async function fetchSaved(): Promise<void> {
     const response = await fetch(ENDPOINT, { credentials: "same-origin", cache: "no-store" });
     const body = (await response.json()) as { ok?: boolean; signedIn?: boolean; stays?: unknown };
     if (response.ok && body.ok === true && body.signedIn === true && Array.isArray(body.stays)) {
-      update({ status: "ready", slugs: new Set(body.stays.filter((slug): slug is string => typeof slug === "string")) });
+      // This read may predate a tap still going: those hearts keep what she tapped.
+      const slugs = new Set(body.stays.filter((slug): slug is string => typeof slug === "string"));
+      for (const slug of store.busy) {
+        if (store.slugs.has(slug)) slugs.add(slug);
+        else slugs.delete(slug);
+      }
+      update({ status: "ready", slugs });
     } else {
       update({ status: "signed-out", slugs: EMPTY });
     }

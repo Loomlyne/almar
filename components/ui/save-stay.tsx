@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "../../lib/cn";
 import type { SaveHeartCopy } from "../../lib/copy/saved-stays";
 import { fill } from "../../lib/journey-format";
@@ -72,7 +73,7 @@ export function SaveStayView({
     );
   }
   return (
-    <button type="button" aria-label={label} aria-pressed={on} aria-busy={busy || undefined} onClick={busy ? undefined : onToggle} className={className}>
+    <button type="button" aria-label={label} aria-busy={busy || undefined} onClick={busy ? undefined : onToggle} className={className}>
       {body}
     </button>
   );
@@ -149,14 +150,19 @@ function NoticeBridge() {
 }
 
 /**
- * Shows the hearts' notices, once per page. Put it where no ancestor forms a stacking context: the toasts are fixed to the viewport.
- * Whatever it wraps may use the kit's toasts too (Copy link in the hero). `dismissLabel` names the toast's close button.
+ * Shows the hearts' notices, once per page. The toasts are fixed to the viewport, and a stacking context or PageShell's `@container`
+ * above them would move them: with no children it renders into the body. With children it stays in place, so whatever it wraps may use
+ * the kit's toasts too (Copy link in the hero); put that one outside any such ancestor. `dismissLabel` names the toast's close button.
  */
 export function SaveStayNotices({ dismissLabel, children }: { dismissLabel: string; children?: ReactNode }) {
-  return (
+  const [body, setBody] = useState<HTMLElement | null>(null);
+  useEffect(() => setBody(document.body), []);
+  const host = (
     <ToastProvider dismissLabel={dismissLabel}>
       <NoticeBridge />
       {children}
     </ToastProvider>
   );
+  if (children) return host;
+  return body ? createPortal(host, body) : null;
 }
