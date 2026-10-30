@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "../../../../../lib/cn";
 import { useEffect, useRef } from "react";
 import { ArrowIcon, PlusIcon } from "../../../../../components/icons/icons";
 import { useDashboardLocale } from "../../../../../components/ops/use-dashboard-locale";
@@ -110,7 +111,7 @@ export function JourneyLegs({
                   </Button>
                   <button
                     type="button"
-                    className={LINK_BUTTON_DANGER}
+                    className={cn(LINK_BUTTON_DANGER, "ms-0")}
                     aria-label={`${copy.removeCity}: ${name}`}
                     onClick={() => {
                       removed.current = true;

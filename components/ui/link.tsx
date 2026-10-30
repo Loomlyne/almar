@@ -58,10 +58,10 @@ export function LinkArrow({ className }: { className?: string }) {
 /**
  * Kind 4, a link inside a sentence: bold teal on an always-on tint block; hover and press turn the block teal with ivory
  * words. It is a plain inline box so it wraps with the sentence, and box-decoration-clone gives each line its own whole block.
- * On a touch screen the box's tap area is a full 44px high without moving the lines of text around it.
+ * No extended tap area: a label's plain words next to it must stay plain (the terms line), and a link in a sentence is exempt from the size rule.
  */
 export const LINK_IN_SENTENCE =
-  "relative bg-teal-tint px-1 font-bold text-teal box-decoration-clone transition-colors duration-fast ease-standard hover:bg-teal hover:text-ivory active:bg-teal active:text-ivory pointer-coarse:before:absolute pointer-coarse:before:inset-x-0 pointer-coarse:before:top-1/2 pointer-coarse:before:h-control pointer-coarse:before:-translate-y-1/2";
+  "bg-teal-tint px-1 font-bold text-teal box-decoration-clone transition-colors duration-fast ease-standard hover:bg-teal hover:text-ivory active:bg-teal active:text-ivory";
 
 /**
  * Kind 5 and any other text action that is not a link to somewhere (Clear, Add, Try again, Back): teal text, a tint tile on

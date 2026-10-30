@@ -218,7 +218,7 @@ export function SiteNav({
         <a
           href={homeHref}
           aria-label="ALMAR Private Journeys home"
-          className={cn("inline-flex min-h-control min-w-control items-center", open && "me-12")}
+          className={cn("inline-flex min-h-control min-w-control items-center", onPhoto, open && "me-12")}
         >
           <img
             alt="ALMAR Private Journeys"
@@ -232,6 +232,7 @@ export function SiteNav({
           className={cn(
             "ms-auto inline-flex h-control min-w-control cursor-pointer items-center justify-center whitespace-nowrap rounded-none border px-4 font-body text-label uppercase tracking-kicker ar:normal-case ar:tracking-normal @6xl:hidden",
             onImage ? "border-ivory/70 bg-transparent text-ivory" : "border-muted bg-surface text-ink",
+            onPhoto,
             open && "hidden",
           )}
           aria-expanded={open}

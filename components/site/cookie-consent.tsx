@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Dialog } from "../ui/dialog";
-import { LINK_ALONE, LinkArrow } from "../ui/link";
+import { LINK_ALONE, LINK_BUTTON, LinkArrow } from "../ui/link";
 import { RichText } from "../ui/rich-text";
 import { Switch } from "../ui/switch";
 import { cn } from "../../lib/cn";
@@ -125,9 +125,9 @@ export function CookieConsent({ locale, banner, privacyHref }: { locale: Locale;
             <Button className="w-full md:w-max" variant="secondary" onClick={() => choose(false)}>
               {copy.necessaryOnly}
             </Button>
-            <button type="button" className={TEXT_LINK} onClick={openCookieSettings}>
+            {/* It opens a dialog here and goes nowhere: a text action, with no arrow. */}
+            <button type="button" className={cn(LINK_BUTTON, "w-max")} onClick={openCookieSettings}>
               {copy.settings}
-              <LinkArrow />
             </button>
           </div>
         </div>

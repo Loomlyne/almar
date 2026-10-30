@@ -48,7 +48,7 @@ export function AccountMenu({
         aria-label={`${labels.menuLabel}: ${account.name}`}
         className={cn(
           "inline-flex h-control max-w-60 cursor-pointer items-center gap-2 rounded-none border pe-3 ps-4 font-body text-label",
-          tone === "on-image" ? "border-ivory/70 bg-transparent text-ivory" : "border-muted bg-surface text-ink",
+          tone === "on-image" ? "border-ivory/70 bg-transparent text-ivory focus-visible:outline-ivory" : "border-muted bg-surface text-ink",
         )}
       >
         <bdi className="truncate">{account.name}</bdi>

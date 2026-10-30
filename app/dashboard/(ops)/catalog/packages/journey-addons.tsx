@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "../../../../../lib/cn";
 import { useEffect, useId, useRef, useState } from "react";
 import { ArrowIcon } from "../../../../../components/icons/icons";
 import { canMove, moveConnected } from "../../../../../components/ops/connect-order";
@@ -84,7 +85,7 @@ export function JourneyAddons({ options, connected, onChange }: { options: Addon
                     <Button variant="secondary" className={SQUARE} data-move="down" aria-label={`${kit.moveDown}: ${label}`} title={kit.moveDown} disabled={!canMove(connected, id, 1)} onClick={() => move(id, 1)}>
                       <ArrowIcon size={16} className="rotate-90" aria-hidden="true" />
                     </Button>
-                    <button type="button" className={LINK_BUTTON_DANGER} aria-label={fillCopy(kit.removeNamed, { name: label })} onClick={() => onChange(connected.filter((other) => other !== id))}>
+                    <button type="button" className={cn(LINK_BUTTON_DANGER, "ms-0")} aria-label={fillCopy(kit.removeNamed, { name: label })} onClick={() => onChange(connected.filter((other) => other !== id))}>
                       <RemoveMark />
                       {kit.remove}
                     </button>

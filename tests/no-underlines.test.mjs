@@ -26,7 +26,7 @@ function code(file) {
 }
 
 /** Every class-like word, with its variants taken off. */
-const bareWords = (text) => text.split(/[\s"'`{}()]+/).map((word) => word.replace(/^(?:[^:[\]]+:)+/, "").replace(/^!/, ""));
+const bareWords = (text) => text.split(/[\s"'`{}()]+/).map((word) => word.slice(word.lastIndexOf(":") + 1).replace(/^!/, ""));
 
 test("no underline or decoration- class in components or app", () => {
   const found = [];
@@ -35,6 +35,12 @@ test("no underline or decoration- class in components or app", () => {
       if (/^(?:underline|underline-offset-.+|decoration-.+)$/.test(word)) found.push(`${file}: ${word}`);
     }
   }
+  assert.deepEqual(found, []);
+});
+
+test("no <u> or <ins>, which draw a line by default", () => {
+  const found = [];
+  for (const file of [...collect("components"), ...collect("app")]) if (/<(?:u|ins)[\s>]/.test(code(file))) found.push(file);
   assert.deepEqual(found, []);
 });
 

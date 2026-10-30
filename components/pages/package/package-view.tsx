@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { InclusionsList } from "../../journey/inclusions-list";
 import { WhatsAppIcon } from "../../icons/icons";
 import { Amount } from "../../ui/amount";
-import { LINK_ALONE, LINK_IN_SENTENCE, LinkArrow } from "../../ui/link";
+import { LINK_ALONE, LINK_IN_SENTENCE } from "../../ui/link";
 import { cn } from "../../../lib/cn";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import type { PackagePageCopy } from "../../../lib/copy/package-page";
@@ -131,7 +131,6 @@ export function PackageView({
         <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={cn(LINK_ALONE, "w-max text-body")}>
           <WhatsAppIcon size={20} className="shrink-0" aria-hidden="true" />
           {copy.wa}
-          <LinkArrow />
           <span className="sr-only"> {newTabLabel}</span>
         </a>
       </section>
