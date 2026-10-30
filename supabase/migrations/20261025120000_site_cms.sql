@@ -2825,7 +2825,9 @@ revoke execute on function public.consult_slot_refusal(timestamptz, timestamptz)
 grant execute on function public.consult_slot_refusal(timestamptz, timestamptz) to service_role;
 
 -- The free starts between two Dubai dates (both included, at most 62 days apart), exactly those book_consultation
--- would accept at p_now. Empty while the calendar is closed.
+-- would accept at p_now. Empty while the calendar is closed. A public path: one read of the settings, the dates clamped to
+-- the notice and horizon window, and the refusals of consult_slot_refusal as set conditions, never a call per candidate
+-- (controller, 2026-10-27). Keep the two in step; site_cms.test.sql checks every offered start against consult_slot_refusal.
 create or replace function public.consult_slots(p_from date, p_to date, p_now timestamptz default now())
 returns table (slot_start timestamptz)
 language plpgsql
@@ -2833,28 +2835,36 @@ stable
 set search_path = ''
 as $$
 declare
-  v_step int;
+  c record;
+  v_first timestamptz;
+  v_last timestamptz;
 begin
   if p_from is null or p_to is null or p_to < p_from or p_to - p_from > 62 then
     perform public.catalog_invalid('range');
   end if;
-  select s.slot_minutes into v_step from public.consult_settings s
-  where s.id = 1 and s.notice_hours is not null and s.horizon_days is not null;
-  if v_step is null then
+  select s.notice_hours, s.horizon_days, s.slot_minutes into c from public.consult_settings s where s.id = 1;
+  if not found or c.notice_hours is null or c.horizon_days is null then
     return;
   end if;
+  v_first := p_now + make_interval(hours => c.notice_hours);
+  v_last := p_now + make_interval(days => c.horizon_days);
   return query
     select x.s
     from (
       select (g.d + make_interval(mins => m.n)) at time zone 'Asia/Dubai' as s
-      from generate_series(p_from::timestamp, p_to::timestamp, interval '1 day') as g(d)
+      from generate_series(
+        greatest(p_from, (v_first at time zone 'Asia/Dubai')::date)::timestamp,
+        least(p_to, (v_last at time zone 'Asia/Dubai')::date)::timestamp,
+        interval '1 day') as g(d)
       join public.consult_hours h on h.weekday = extract(isodow from g.d)::int
       cross join lateral generate_series(
         (extract(hour from h.starts) * 60 + extract(minute from h.starts))::int,
-        (extract(hour from h.ends) * 60 + extract(minute from h.ends))::int - v_step,
-        v_step) as m(n)
+        (extract(hour from h.ends) * 60 + extract(minute from h.ends))::int - c.slot_minutes,
+        c.slot_minutes) as m(n)
+      where not exists (select 1 from public.consult_days_off o where o.day = g.d::date)
     ) x
-    where public.consult_slot_refusal(x.s, p_now) is null
+    where x.s >= v_first and x.s <= v_last
+      and not exists (select 1 from public.consult_bookings b where b.slot_start = x.s and b.status = 'booked')
     order by x.s;
 end;
 $$;

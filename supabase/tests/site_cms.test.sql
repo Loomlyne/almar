@@ -4,7 +4,7 @@
 -- use the zz6 prefix and ids ending in 6xx.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(230);
+select plan(232);
 
 -- Helpers -------------------------------------------------------------------------------------------------------------
 -- The refusal's message and detail, or 'saved' when the call returns.
@@ -505,6 +505,10 @@ select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consul
   'almar:slot_outside_hours {}', 'a slot on a day off is refused');
 select is((select count(*)::int from public.consult_slots(current_date + 10, current_date + 10)), 0, 'consult_slots offers nothing on a day off');
 select is((select count(*)::int from public.consult_slots(current_date + 3, current_date + 3)), 16, 'consult_slots offers the 16 half hours of 09:00-17:00');
+select is((select count(*)::int from public.consult_slots(current_date, current_date + 40) s where public.consult_slot_refusal(s.slot_start, now()) is not null), 0,
+  'every start consult_slots offers is one consult_slot_refusal accepts (the two stay in step)');
+select is((select count(*)::int from public.consult_slots(current_date - 5, current_date) s where s.slot_start < now() + interval '24 hours'), 0,
+  'consult_slots offers nothing inside the notice');
 select is(pg_temp.outcome($$select public.consult_slots(current_date, current_date + 63)$$), 'almar:invalid {"field": "range", "locale": null}',
   'consult_slots reads at most 62 days ahead');
 select lives_ok($$select public.ops_save_consult(jsonb_build_object(
