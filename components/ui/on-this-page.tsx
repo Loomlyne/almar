@@ -1,4 +1,5 @@
 import { cn } from "../../lib/cn";
+import { TILE_ON_LIGHT } from "./link";
 
 export type OnThisPageItem = { id: string; text: string };
 
@@ -13,7 +14,7 @@ export function OnThisPage({ label, items, className }: { label: string; items: 
           <li key={item.id}>
             <a
               href={`#${item.id}`}
-              className="flex min-h-control items-center border-b border-line text-label text-teal no-underline decoration-gold decoration-1 underline-offset-4 hover:underline"
+              className={cn("flex min-h-control items-center border-b border-line px-2 text-label text-teal", TILE_ON_LIGHT)}
             >
               {item.text}
             </a>

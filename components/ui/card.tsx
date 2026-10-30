@@ -1,5 +1,6 @@
 import type { ReactNode, Ref } from "react";
 import { cn } from "../../lib/cn";
+import { CARD_TITLE, CardTitleWords } from "./link";
 
 export type MediaCardImage = { src: string; alt: string };
 
@@ -18,7 +19,7 @@ type MediaCardBase = {
   align?: "start" | "center";
   /**
    * Picture zoom on hover, over the hover duration with the reveal ease; never under reduced motion.
-   * "none" (default), "sm" 1.02x, "md" 1.05x.
+   * Default: "md" 1.05x on a card that opens something, none on a card that does not. "sm" 1.02x, "none" no zoom.
    */
   zoom?: "none" | "sm" | "md";
   className?: string;
@@ -35,13 +36,16 @@ export type MediaCardProps = MediaCardBase &
     | { onOpen: () => void; openRef?: Ref<HTMLButtonElement>; href?: undefined }
   );
 
-const ROOT = "group grid min-w-0 content-start gap-3 text-ink no-underline";
+const ROOT = "group grid min-w-0 content-start gap-3 text-ink";
 const IMAGE = "block w-full object-cover outline outline-1 outline-line -outline-offset-1";
-const TITLE_REST = "text-teal decoration-gold decoration-1 underline-offset-4 group-hover:underline";
-const ZOOM = {
-  sm: "transition-transform duration-hover ease-reveal motion-safe:group-hover:scale-102",
-  md: "transition-transform duration-hover ease-reveal motion-safe:group-hover:scale-105",
+/** A card's photo while the `group` card is hovered: it grows inside a clipped frame; a press dims it. */
+export const CARD_ZOOM = {
+  sm: "transition-transform duration-hover ease-reveal motion-safe:group-hover:scale-102 group-active:brightness-88",
+  md: "transition-transform duration-hover ease-reveal motion-safe:group-hover:scale-105 group-active:brightness-88",
 } as const;
+// The stretched link's outline is drawn on its stretched box, so the whole card reads as focused (pictures/no-underlines, kind 2).
+const WHOLE_CARD_FOCUS =
+  "after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-teal";
 
 /**
  * The card every stay, service, experience and story uses. Anatomy from the public board's
@@ -58,14 +62,17 @@ export function MediaCard({
   action,
   titleSize = "title",
   align = "start",
-  zoom = "none",
+  zoom,
   className,
 }: MediaCardProps) {
-  const TITLE = cn("font-display", titleSize === "heading" ? "text-heading" : "text-title", TITLE_REST);
+  const opens = Boolean(href || onOpen);
+  const zoomed = zoom ?? (opens ? "md" : "none");
+  const TITLE_SIZE = cn("font-display", titleSize === "heading" ? "text-heading" : "text-title");
+  const TITLE = cn(TITLE_SIZE, CARD_TITLE);
   const center = align === "center";
   const lineBox = cn("flex min-w-0 flex-col gap-1", center && "items-center text-center");
   const picture =
-    zoom === "none" ? (
+    zoomed === "none" ? (
       <img
         src={image.src}
         alt={image.alt}
@@ -79,14 +86,20 @@ export function MediaCard({
           src={image.src}
           alt={image.alt}
           decoding="async"
-          className={cn(IMAGE, ZOOM[zoom])}
+          className={cn(IMAGE, CARD_ZOOM[zoomed])}
           style={{ aspectRatio: `1 / ${ratio}` }}
         />
       </span>
     );
   const lines = (
     <span className={lineBox}>
-      <span className={TITLE}>{title}</span>
+      {opens ? (
+        <span className={TITLE}>
+          <CardTitleWords>{title}</CardTitleWords>
+        </span>
+      ) : (
+        <span className={cn(TITLE_SIZE, "text-teal")}>{title}</span>
+      )}
       {detail ? <span className="text-label text-muted">{detail}</span> : null}
     </span>
   );
@@ -105,10 +118,11 @@ export function MediaCard({
               onClick={onOpen}
               className={cn(
                 TITLE,
-                "cursor-pointer border-0 bg-transparent p-0 text-start no-underline after:absolute after:inset-0",
+                "cursor-pointer border-0 bg-transparent p-0 text-start",
+                WHOLE_CARD_FOCUS,
               )}
             >
-              {title}
+              <CardTitleWords>{title}</CardTitleWords>
             </button>
             {detail ? <span className="text-label text-muted">{detail}</span> : null}
           </span>
@@ -134,8 +148,8 @@ export function MediaCard({
         {picture}
         <div className="flex items-start justify-between gap-3">
           <span className={lineBox}>
-            <a href={href} className={cn(TITLE, "no-underline after:absolute after:inset-0")}>
-              {title}
+            <a href={href} className={cn(TITLE, WHOLE_CARD_FOCUS)}>
+              <CardTitleWords>{title}</CardTitleWords>
             </a>
             {detail ? <span className="text-label text-muted">{detail}</span> : null}
           </span>
@@ -180,7 +194,8 @@ const ARABIC_SCRIPT = /[֐-ࣿ]/;
 
 /**
  * The Framer stay card: one link, a 2:3 photo, the title and an icon facts row on the photo over a dark gradient.
- * The photo zooms 1.05x on hover over the hover duration with the reveal ease (not under reduced motion).
+ * The photo zooms 1.05x on hover over the hover duration with the reveal ease (not under reduced motion), the gradient deepens
+ * and the arrow after the title slides; a press dims the photo.
  * Without href it is an article with no zoom; `kicker`, `ratio`, `uppercase` and `action` are opt-in and change nothing when absent.
  */
 export function PortraitCard({ href, image, title, facts = [], kicker, ratio = "portrait", uppercase = false, action, className }: PortraitCardProps) {
@@ -188,13 +203,19 @@ export function PortraitCard({ href, image, title, facts = [], kicker, ratio = "
   const capitals = uppercase && !ARABIC_SCRIPT.test(title);
   const body = (
     <>
-      <img src={image.src} alt={image.alt} decoding="async" className={cn("absolute inset-0 size-full object-cover", href && ZOOM.md)} />
-      <span aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-ink/70 via-ink/10 to-transparent" />
+      <img src={image.src} alt={image.alt} decoding="async" className={cn("absolute inset-0 size-full object-cover", href && CARD_ZOOM.md)} />
+      <span aria-hidden="true" className={cn("absolute inset-0 bg-linear-to-t from-ink/70 via-ink/10 to-transparent", href && "group-hover:from-ink/82 group-hover:via-ink/25")} />
       <span className="absolute inset-x-0 bottom-0 flex flex-col gap-3 px-6 pb-6 md:px-8 md:pb-8">
         {kicker ? (
           <span className="text-caption uppercase tracking-kicker text-ivory ar:normal-case ar:tracking-normal">{kicker}</span>
         ) : null}
-        <span className={cn("font-display text-heading text-ivory", capitals && "uppercase")}>{title}</span>
+        {href ? (
+          <span className={cn("inline-flex items-center gap-2 font-display text-heading text-ivory", capitals && "uppercase")}>
+            <CardTitleWords>{title}</CardTitleWords>
+          </span>
+        ) : (
+          <span className={cn("font-display text-heading text-ivory", capitals && "uppercase")}>{title}</span>
+        )}
         {facts.length > 0 ? (
           <span className="flex flex-wrap gap-x-6 gap-y-2 text-label text-ivory">
             {facts.map((fact, index) => (
@@ -211,7 +232,7 @@ export function PortraitCard({ href, image, title, facts = [], kicker, ratio = "
   const card = !href ? (
     <article className={cn("relative block", shape, "min-w-0 overflow-hidden text-ivory", className)}>{body}</article>
   ) : (
-    <a href={href} className={cn("group relative block", shape, "min-w-0 overflow-hidden text-ivory no-underline", className)}>
+    <a href={href} className={cn("group relative block", shape, "min-w-0 overflow-hidden text-ivory", className)}>
       {body}
     </a>
   );

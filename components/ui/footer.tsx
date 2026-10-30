@@ -2,19 +2,22 @@
 
 import { Fragment, useEffect, useRef, useState, type FormEvent } from "react";
 import polyBlack from "../../brand/Logo Typography/Poly_Black.svg";
+import { cn } from "../../lib/cn";
 import { Button } from "./button";
 import { Divider } from "./divider";
+import { LINK_CURRENT, TILE_ON_LIGHT, TILE_ON_TEAL } from "./link";
 import { ToastProvider, useToast } from "./toast";
 import { postPreferences } from "../site/account-sync";
 import { isPlainEmail } from "../../lib/email-address";
 import { isDocumentLocale } from "../../lib/set-document-locale";
 
-const LINK =
-  "inline-flex min-h-control max-w-full items-center break-words font-body text-body text-ivory underline decoration-1 underline-offset-4";
+// Each link is a tile on hover; the negative margin keeps its words in line with the column's heading.
+const LINK = cn("inline-flex min-h-control max-w-full items-center -ms-3 px-3 break-words font-body text-body text-ivory", TILE_ON_TEAL);
 const HEAD = "mb-2 block font-body text-caption uppercase tracking-kicker text-ivory ar:normal-case ar:tracking-normal";
-// The light footer: ink on ivory, the gold underline on hover as the nav's links have it.
-const LIGHT_LINK =
-  "inline-flex min-h-control max-w-full items-center break-words font-body text-body text-ink no-underline decoration-gold decoration-1 underline-offset-4 hover:underline";
+// The light footer: ink on ivory, the tint tile on hover as the nav's links have it.
+const LIGHT_LINK = cn("inline-flex min-h-control max-w-full items-center -ms-3 px-3 break-words font-body text-body text-ink", TILE_ON_LIGHT);
+// The language row's links sit between dots: the tile is even on both sides, and only the first pulls back to the column.
+const LANGUAGE = "ms-0 px-2 first:-ms-2";
 const LIGHT_HEAD = "mb-2 block font-body text-caption uppercase tracking-kicker text-ink ar:normal-case ar:tracking-normal";
 
 /** `external`: a link the owner set to another site (06-02 Navigation): a new tab, with the screen-reader suffix. */
@@ -277,7 +280,7 @@ function LegalRow({
         </a>
       ))}
       {cookieSettings ? (
-        <button type="button" className={`${linkClass} cursor-pointer border-0 bg-transparent p-0`} onClick={cookieSettings.onOpen}>
+        <button type="button" className={`${linkClass} cursor-pointer border-0 bg-transparent py-0`} onClick={cookieSettings.onOpen}>
           {cookieSettings.label}
         </button>
       ) : null}
@@ -391,7 +394,7 @@ export function SiteFooter({
         {hasLegal ? <LegalRow name={copy.legal} links={legalLinks} cookieSettings={cookieSettings} rowClass="border-teal-tint" linkClass={LIGHT_LINK} /> : null}
         <div className={hasLegal ? "mt-2 grid items-center gap-4 border-t border-teal-tint pt-4 @2xl:grid-cols-3" : "mt-8 grid items-center gap-4 border-t border-teal-tint pt-6 @2xl:grid-cols-3"}>
           {languageLinks && languageLinks.length > 0 ? (
-            <nav aria-label={copy.language} className="flex flex-wrap items-center gap-x-2">
+            <nav aria-label={copy.language} className="flex flex-wrap items-center">
               {languageLinks.map((item, index) => (
                 <Fragment key={item.lang}>
                   {index > 0 ? (
@@ -400,7 +403,7 @@ export function SiteFooter({
                     </span>
                   ) : null}
                   <a
-                    className={`${LIGHT_LINK} ${item.current ? "underline decoration-2" : ""}`}
+                    className={cn(LIGHT_LINK, LANGUAGE, item.current && LINK_CURRENT, item.current && "text-teal")}
                     href={item.href}
                     hrefLang={item.lang}
                     lang={item.lang}
@@ -473,7 +476,7 @@ export function SiteFooter({
       {hasLegal ? <LegalRow name={copy.legal} links={legalLinks} cookieSettings={cookieSettings} rowClass="border-ivory" linkClass={LINK} /> : null}
       <div className={hasLegal ? "flex flex-wrap items-center justify-between gap-4 pt-2" : "mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-ivory pt-6"}>
         {languageLinks && languageLinks.length > 0 ? (
-          <nav aria-label={copy.language} className="flex flex-wrap items-center gap-x-2">
+          <nav aria-label={copy.language} className="flex flex-wrap items-center">
             {languageLinks.map((item, index) => (
               <Fragment key={item.lang}>
                 {index > 0 ? (
@@ -482,7 +485,7 @@ export function SiteFooter({
                   </span>
                 ) : null}
                 <a
-                  className={`${LINK} ${item.current ? "decoration-2" : ""}`}
+                  className={cn(LINK, LANGUAGE, item.current && LINK_CURRENT)}
                   href={item.href}
                   hrefLang={item.lang}
                   lang={item.lang}

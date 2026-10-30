@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { LINK_CURRENT, TILE_ON_LIGHT } from "./link";
 import { stripLocale } from "../../lib/locale-path";
 import { CloseIcon } from "../icons/icons";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
@@ -41,8 +42,10 @@ const NAV_ROW_MIN = 1152;
 type Locale = "en" | "ar" | "es";
 type Currency = "AED" | "USD" | "EUR";
 
-const LINK =
-  "inline-flex min-h-control items-center whitespace-nowrap px-3 font-body text-caption uppercase tracking-kicker no-underline ar:normal-case ar:tracking-normal hover:underline decoration-gold decoration-1 underline-offset-4";
+const LINK = cn(
+  "inline-flex min-h-control items-center whitespace-nowrap px-3 font-body text-caption uppercase tracking-kicker ar:normal-case ar:tracking-normal",
+  TILE_ON_LIGHT,
+);
 
 const nav = cva("@container sticky top-0 z-40 w-full border-b", {
   variants: {
@@ -194,7 +197,9 @@ export function SiteNav({
   const onImage = tone === "on-image" && !open;
   const localeCopy = JOURNEY_COPY[locale].locale;
   const tools = onImage ? "on-image" : "default";
-  const login = cn(LINK, "@6xl:ms-2");
+  // Over a photo the words stay ivory at rest, so the current page and the focus outline stay readable; the hover tile is the same.
+  const onPhoto = onImage && "focus-visible:outline-ivory";
+  const login = cn(LINK, onPhoto, "@6xl:ms-2");
   const motion = reveal ? revealProps("nav", "load") : null;
   const headerProps = { ...motion, className: cn(nav({ tone }), motion?.className) };
   const closeMenuIfOpen = () => {
@@ -268,7 +273,7 @@ export function SiteNav({
                 <a
                   key={`${index}-${href}`}
                   href={href}
-                  className={cn(LINK, active && "underline decoration-2")}
+                  className={cn(LINK, onPhoto, active && LINK_CURRENT, active && !onImage && "text-teal")}
                   aria-current={active ? "page" : undefined}
                   onClick={closeMenuIfOpen}
                   {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
