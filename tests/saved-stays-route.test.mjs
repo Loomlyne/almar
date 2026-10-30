@@ -251,3 +251,17 @@ test("the login page: return=stay goes through the slug rule, the other keys are
   assert.match(page, /localizedReturnPath\(safeReturnPath\(store\.get\(returnCookieName\(\)\)\?\.value\), locale\)/);
   assert.match(page, /stay\?: string/);
 });
+
+test("Account: the page reads her cards through her session and survives a failed read; the screen removes, never toggles", () => {
+  const page = readFileSync("app/[locale]/account/page.tsx", "utf8");
+  assert.match(page, /savedStayCards\(supabase, anon, locale\)/);
+  assert.match(page, /catch \{\s*console\.error\("\[saved-stays\] account read failed"\);\s*return \[\];/);
+  assert.equal(/createSupabaseAdmin/.test(page), false);
+  const screen = readFileSync("app/[locale]/account/account-screen.tsx", "utf8");
+  assert.match(screen, /await setSaved\(slug, false\)/);
+  assert.equal(/\btoggle\(/.test(screen.replace(/^\s*\/\/.*$/gm, "")), false);
+  assert.match(screen, /href="#saved"/);
+  const list = readFileSync("components/site/saved-stays-list.tsx", "utf8");
+  assert.match(list, /id="saved"/);
+  assert.match(list, /role="status"/);
+});

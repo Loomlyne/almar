@@ -3,7 +3,7 @@ import { SAVED_STAYS_COPY } from "../lib/copy/saved-stays";
 import { fill } from "../lib/journey-format";
 
 // Plan 06-07 Task 4: the heart and Share on the real pages, with /api/saved-stays answered here. No database. Written, NOT run (owner
-// rule 2026-10-21). The account card is at the end, by source check of its page: it needs a session.
+// rule 2026-10-21). The account card needs a session: tests/saved-stays-route.test.mjs checks its source.
 
 const STAY = "getsemani-colonial-house";
 const TITLE = "Getsemaní Colonial House";
