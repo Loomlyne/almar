@@ -15,8 +15,8 @@
 import { ROOT_REDIRECT_HEADERS, legacyLocaleTarget, rootLocaleTarget } from "../lib/locale-redirect.ts";
 
 /**
- * Review fix (PR #16 round 1): the byte caps of the two public form handlers, the same numbers as
- * INQUIRY_LIMITS.body (lib/contact-inquiry.ts) and MAX_BODY_BYTES (app/newsletter/route.ts); tests/server-runtime.test.mjs
+ * Review fix (PR #16 round 1): the byte caps of the public form handlers, the same numbers as
+ * INQUIRY_LIMITS.body (lib/contact-inquiry.ts), MAX_BODY_BYTES (app/newsletter/route.ts) and SITE_REQUEST_BODY_LIMIT; tests/server-runtime.test.mjs
  * pins them. OpenNext reads a POST body whole before the route runs, so a POST whose Content-Length is above its
  * route's cap is answered 413 here, before Next, with the route's own 413 (JSON {"ok":false}, no-store, noindex). A
  * missing or non-numeric Content-Length (a chunked upload) goes on to the route, whose own cap still applies while it
@@ -25,6 +25,9 @@ import { ROOT_REDIRECT_HEADERS, legacyLocaleTarget, rootLocaleTarget } from "../
 export const FORM_BODY_CAPS = new Map([
   ["/api/contact", 16384],
   ["/newsletter", 8192],
+  // Plan 06-05: SITE_REQUEST_BODY_LIMIT (lib/site-requests/validate.ts).
+  ["/api/requests", 16384],
+  ["/api/consult/book", 16384],
 ]);
 
 /**

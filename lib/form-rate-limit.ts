@@ -1,5 +1,5 @@
 // The rate limit of the public forms (plan 26: POST /api/contact, scope "contact"; plan 27 reuses it for /newsletter,
-// scope "newsletter"). Server only. It reads the Cloudflare Workers Rate Limiting binding FORM_LIMITER
+// scope "newsletter"; plan 06-05: /api/requests, scope "request", and /api/consult/book, scope "consult"). Server only. It reads the Cloudflare Workers Rate Limiting binding FORM_LIMITER
 // (`[[ratelimits]]` in wrangler.toml and wrangler.preview.toml: 5 posts a minute per scope and visitor address) through
 // getCloudflareContext(), the way lib/ops/media-env.ts reads its R2 binding.
 //
@@ -23,7 +23,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 /** The Workers Rate Limiting binding, structurally (the repo has no @cloudflare/workers-types). */
 export type FormLimiter = { limit: (options: { key: string }) => Promise<{ success: boolean }> };
 
-export type FormScope = "contact" | "newsletter";
+export type FormScope = "contact" | "newsletter" | "request" | "consult";
 
 declare global {
   interface CloudflareEnv {

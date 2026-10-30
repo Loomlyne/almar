@@ -343,7 +343,12 @@ test("handle (review fix, PR #16): a form POST whose Content-Length is above its
 });
 
 test("handle (review fix, PR #16): the Worker's caps are the routes' caps", () => {
-  assert.deepEqual([...FORM_BODY_CAPS.keys()].sort(), ["/api/contact", "/newsletter"]);
+  assert.deepEqual([...FORM_BODY_CAPS.keys()].sort(), ["/api/consult/book", "/api/contact", "/api/requests", "/newsletter"]);
+  // Plan 06-05: the two site-request POST paths share one cap.
+  const requests = readFileSync(new URL("../lib/site-requests/validate.ts", import.meta.url), "utf8");
+  const requestCap = Number(/^export const SITE_REQUEST_BODY_LIMIT = (\d+);$/m.exec(requests)?.[1]);
+  assert.equal(FORM_BODY_CAPS.get("/api/requests"), requestCap);
+  assert.equal(FORM_BODY_CAPS.get("/api/consult/book"), requestCap);
   const contact = readFileSync(new URL("../lib/contact-inquiry.ts", import.meta.url), "utf8");
   assert.equal(FORM_BODY_CAPS.get("/api/contact"), Number(/body: (\d+) \} as const;/.exec(contact)?.[1]));
   const newsletter = readFileSync(new URL("../app/newsletter/route.ts", import.meta.url), "utf8");
