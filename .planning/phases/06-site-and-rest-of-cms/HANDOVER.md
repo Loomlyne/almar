@@ -400,3 +400,40 @@ Sonnet: "ship", three lows. Reviewed `670ab183^..13b1a294`; the slot commits and
 6. Hide the package, open it in the editor, click Delete and confirm. Expected: gone from the list, and after a rebuild its page is a 404.
 
 Jev: fits later as a score on which package a free-text request is closest to, advisory and logged; not added. Automation: a weekly unattended email to the owner listing shown packages whose cities or add-ons have since been hidden (proposal only).
+
+# No underlines: hand-over (job 26, owner 2026-10-30)
+
+Signed: `pictures/no-underlines/index.html`, `decisions/2026-10-30-no-underlines-pictures-signed.md`. Commits `85c2a13a`..`e2830ad1`, `1643d317`..`d6e25933`, Sonnet's answers `699d5a4f`. Checks: `tsc` and `tokens:check` pass; **nothing rendered, no test run**. Migration unchanged by this work: **3379 lines, sha256 `8af56ba2977f5567df4b456055e594b5ad1e4c0cc8ad3ce02f7fe205d9694980`**.
+
+## What changed
+- The five kinds live in `components/ui/link.tsx`. Underline and `decoration-*` classes in product code: 0. `no-underline` classes: 0. `line-through` on blocked days stays. New guard: `tests/no-underlines.test.mjs`.
+- Controller's calls: home journey cards have one arrow, on "See this journey"; x on red actions; nav over a photo is a tint tile with teal words, current page bold ivory; Clear gets a tile and no arrow; zoom stays 1.05 and 1.02 (an existing pin; the picture drew 1.04).
+- "The arrow below the text": the picture's own CSS drew it so; the product's toggle was already one row. All three chevron toggles and the stand-alone links are hardened so the arrow keeps its line. Not seen on screen.
+- Links in legal and blog text: `RichText` renders plain text, so none exists today. If the CMS gets links they must use `<Link inline>`.
+- Emails: 3 button links, `text-decoration:none`, bold. Static 404 and maintenance pages have tiles. No underlines in the Framer files or `public/`.
+- Design source: `03.1-CONTEXT.md`, `03.1-UI-SPEC.md`, `scripts/screens-diff.mjs`, `tests/screens/INDEX.md`, and the generator and boards under `.planning/design`. **By hand: `build.mjs` imports a folder that no longer exists, so the generated boards could not be rebuilt and have not been rendered.** Their AR and ES lines are drafts. They differ from the claude.ai canvas until the controller republishes it. `2026-09-28-audit` keeps its underlines as frozen history.
+
+## Reviews
+Sonnet: "fix first", no blocker. It read `103fb6f7..e2830ad1`; the later slots and these answers have no review yet. Answered in `699d5a4f`:
+1. The 44px tap area on a link in a sentence could open the terms when a guest tapped the label's plain words: removed. These links are now text height.
+2. Cookie settings opens a dialog: text action, no arrow.
+3. The package page's WhatsApp link had an icon and an arrow: icon only.
+4. Logo, Menu and account menu over a photo: ivory focus outline. **Not done:** `components/ui/select.tsx`'s on-image trigger (language and currency) keeps its teal outline over a photo; the file is not in my slots and the outline is not new.
+5. Remove no longer touches Move down.
+6. The guard now sees any variant and bans `<u>` and `<ins>`.
+
+## Stale snapshots (not regenerated)
+- `tests/journey/visual.spec.ts`, `team-section-with-email` (9 PNG): the only committed scene using changed link code. Check it first.
+- `tests/screens/before` (24 PNG): an old before-set, no pin.
+- Byte pins written by hand and never rendered: `tests/snapshots/ui-primitives-defaults.json`, `tests/snapshots/site-footer-teal-default.html`, `tests/portrait-card-options.test.mjs`. Sonnet read them as matching; a class-order slip would fail them.
+
+## Owner's check (after a preview build; Arabic and the mail apps are his to judge here)
+1. Open the home page, the footer and the nav. Move over each link. Expected: a tile behind it, no line; the current page is bold with no gold line.
+2. Move over a stay card and a blog card. Expected: the photo zooms and the arrow slides; on a phone the arrow is there without touching. Home journey cards have one arrow, on "See this journey".
+3. Dashboard, open a package and find Edit translations; switch the dashboard to Arabic and Spanish. Expected: the chevron on the same line as the words at any width.
+4. On a phone in Arabic, reach the booking request step's terms line. Expected: the terms words read as a link, bold teal on a pale block. **If they do not read as a link, say so: it is the one treatment that leans on weight in Arabic.**
+5. On that line tap the plain words, then the terms words. Expected: the plain words tick the box; the terms words open the terms in a new tab.
+6. Move over the terms words on a computer. Expected: the block turns teal with ivory words.
+7. Trigger a sign-in email and a consultation booking, and open both in Gmail, Apple Mail and Outlook. Expected: the buttons have no line. **Mail apps may still make plain phone numbers, addresses, dates and web addresses blue and underlined, and Outlook desktop may restyle links; our HTML cannot fully stop that. Say if you can live with what you see.**
+
+Jev: none fits (styling only). Automation: none proposed beyond the guard test, which runs with the suite.
