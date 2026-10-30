@@ -252,7 +252,8 @@ function framerDocuments(dir = "app", out: string[] = []): string[] {
 }
 
 // Once, no viewport. The inventory is derived, so the next slice that converts a page changes no literal: the React
-// documents are every PUBLIC_PAGES pattern (with [stay] and [post] expanded to the published slugs) in the three
+// documents are every PUBLIC_PAGES pattern (with [stay] and [post] expanded to the published slugs; [legal] to none: no
+// fixture holds a legal page, plan 06-04) in the three
 // locales; the Framer documents are the route.ts files that still serve a Framer export (English only).
 test("slice inventory: out/ holds every React document, every remaining Framer document and three 404s", async () => {
   test.skip(
@@ -265,7 +266,9 @@ test("slice inventory: out/ holds every React document, every remaining Framer d
       ? STAYS.map((s) => `/private-stays/${s}`)
       : pattern === "/blog/[post]"
         ? POSTS.map((s) => `/blog/${s}`)
-        : [pattern],
+        : pattern === "/legal/[legal]"
+          ? []
+          : [pattern],
   );
   const react = LOCALES.flatMap((l) =>
     paths.map((p) => {

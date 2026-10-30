@@ -10,8 +10,11 @@ export type RichTextBlock =
   | { type: "quote"; text: string }
   | { type: "photo"; src: string; alt: string; width: number | null; height: number | null };
 
-/** A body from typed blocks: paragraph, heading with an anchor id, pull quote, photo. No HTML is ever injected. */
-export function RichText({ blocks, className }: { blocks: RichTextBlock[]; className?: string }) {
+/**
+ * A body from typed blocks: paragraph, heading with an anchor id, pull quote, photo. No HTML is ever injected. `quote`: "tint"
+ * is the post's pull quote; "line" is the legal page's (pictures 06-04): a gold line at its start, 20px display.
+ */
+export function RichText({ blocks, className, quote = "tint" }: { blocks: RichTextBlock[]; className?: string; quote?: "tint" | "line" }) {
   return (
     <div className={cn("grid gap-6", className)}>
       {blocks.map((block, index) => {
@@ -39,6 +42,13 @@ export function RichText({ blocks, className }: { blocks: RichTextBlock[]; class
           );
         }
         if (block.type === "quote") {
+          if (quote === "line") {
+            return (
+              <blockquote key={index} className="m-0 border-s border-gold ps-5">
+                <p className="m-0 font-display text-title text-teal">{block.text}</p>
+              </blockquote>
+            );
+          }
           return (
             <blockquote key={index} className="m-0 bg-teal-tint p-6">
               <p className="m-0 font-display text-heading text-teal">{block.text}</p>

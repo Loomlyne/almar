@@ -215,7 +215,7 @@ test("fixtures hold keys: the distinct media_key count of collectFixtureImages e
 });
 
 test("publicDocuments is computed from PUBLIC_PAGES: 3 locales x (static pages + published stays + live posts), the new pages named, no services", () => {
-  const per = { "/private-stays/[stay]": readStaySlugs().length, "/blog/[post]": readPostSlugs().length };
+  const per = { "/private-stays/[stay]": readStaySlugs().length, "/blog/[post]": readPostSlugs().length, "/legal/[legal]": 0 };
   const perLocale = PUBLIC_PAGES.reduce((n, p) => n + (per[p] ?? 1), 0);
   const docs = publicDocuments();
   assert.equal(docs.length, 3 * perLocale);

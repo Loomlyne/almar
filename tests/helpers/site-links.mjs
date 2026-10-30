@@ -72,7 +72,7 @@ function postRows() {
  * The URL of every React public page in every locale: page.tsx files under app/ whose English path matches a
  * PUBLIC_PAGES pattern, with route groups dropped and a [stay] segment expanded to every slug of the base
  * stays fixture and a [post] segment to every live slug (published, date reached) of the posts fixture (each read only when such a page
- * exists). Any other [param] on a public page throws.
+ * exists); a [legal] segment to none. Any other [param] on a public page throws.
  */
 export function reactPublicRoutes() {
   const urls = [];
@@ -87,11 +87,12 @@ export function reactPublicRoutes() {
     const pattern = stripLocale(probe).path;
     if (matchPublicPage(pattern) === null) continue;
     const params = segments.filter((s) => /^\[.+\]$/.test(s));
-    for (const p of params) if (p !== "[stay]" && p !== "[post]") throw new Error(`no enumerator for ${p}`);
+    for (const p of params) if (p !== "[stay]" && p !== "[post]" && p !== "[legal]") throw new Error(`no enumerator for ${p}`);
     if (params.length === 0) {
       urls.push(shape === "/en" || shape === "/ar" || shape === "/es" ? `${shape}/` : shape);
     } else {
-      const rows = params[0] === "[post]" ? postRows() : stayRows();
+      // [legal]: no fixture holds a legal page (plan 06-04, F-07), so a fixtures build has none.
+      const rows = params[0] === "[legal]" ? [] : params[0] === "[post]" ? postRows() : stayRows();
       for (const row of rows) urls.push(shape.replace(params[0], row.slug));
     }
   }

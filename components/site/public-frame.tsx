@@ -2,11 +2,14 @@
 
 import { useEffect, useState, type ComponentProps, type ReactNode } from "react";
 import { SiteFooter, type FooterCopy } from "../ui/footer";
+import { CookieConsent, openCookieSettings } from "./cookie-consent";
 import { MotionController } from "./motion-controller";
 import { applyAccountSync, hasSignedInHint } from "./account-sync";
 import { SiteNav, type NavLabels } from "../ui/nav";
 import { WhatsApp } from "../ui/whatsapp";
 import { footerPageLinks } from "./page-links";
+import { CF_WEB_ANALYTICS_TOKEN } from "../../lib/analytics-config";
+import type { SiteLegalChrome } from "../../lib/data/types";
 import type { SelectedCurrency } from "../../lib/fx/rates";
 import { NEWSLETTER_HONEYPOT_FIELDS, subscribeToNewsletter } from "../../lib/newsletter";
 import {
@@ -81,6 +84,7 @@ export function PublicFrame({
   currency = false,
   whatsappClassName,
   whatsapp = true,
+  legal,
   children,
 }: {
   locale: Locale;
@@ -107,6 +111,11 @@ export function PublicFrame({
   whatsappClassName?: string;
   /** The green WhatsApp float. false: none, for a page whose own button already is the one WhatsApp action. */
   whatsapp?: boolean;
+  /**
+   * The legal chrome (plan 06-04, lib/data/legal.ts getSiteLegalChrome): the footer's legal row and the cookie banner. Absent,
+   * or nothing published: no legal row, no Cookie settings, no banner and no beacon.
+   */
+  legal?: SiteLegalChrome;
   children: ReactNode;
 }) {
   // Plan 02-05: right after sign-in, her saved currency becomes this browser's choice. This child effect runs before
@@ -137,6 +146,7 @@ export function PublicFrame({
     reveal: true,
   };
   if (currency !== false) nav.onCurrency = currency.onChange;
+  const banner = legal?.banner && CF_WEB_ANALYTICS_TOKEN ? legal.banner : null;
 
   return (
     <>
@@ -159,8 +169,11 @@ export function PublicFrame({
         {...PUBLIC_NEWSLETTER}
         tone="light"
         madeBy={{ label: footerCopy.madeBy ?? "", name: MADE_BY.name, href: MADE_BY.href }}
+        legalLinks={legal?.links}
+        cookieSettings={banner ? { label: footerCopy.cookieSettings ?? "", onOpen: openCookieSettings } : undefined}
       />
       {whatsapp ? whatsappClassName ? <WhatsApp className={whatsappClassName} /> : <WhatsApp /> : null}
+      {banner ? <CookieConsent locale={locale} banner={banner} privacyHref={legal?.privacyHref ?? null} /> : null}
       <MotionController />
     </>
   );

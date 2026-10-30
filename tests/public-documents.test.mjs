@@ -30,7 +30,8 @@ test("publicDocuments() length is computed from PUBLIC_PAGES; locales are symmet
   const statics = PUBLIC_PAGES.filter((p) => !p.includes("[")).length;
   const stayPages = PUBLIC_PAGES.filter((p) => p.includes("[stay]")).length;
   const postPages = PUBLIC_PAGES.filter((p) => p.includes("[post]")).length;
-  assert.equal(statics + stayPages + postPages, PUBLIC_PAGES.length, "every pattern is static, [stay] or [post]");
+  const legalPages = PUBLIC_PAGES.filter((p) => p.includes("[legal]")).length; // no document: the database's only (plan 06-04)
+  assert.equal(statics + stayPages + postPages + legalPages, PUBLIC_PAGES.length, "every pattern is static, [stay], [post] or [legal]");
   assert.equal(docs.length, LOCALES.length * (statics + slugs.length * stayPages + readPostSlugs().length * postPages));
   assert.equal(new Set(docs).size, docs.length);
   const perLocale = (l) => docs.filter((d) => d.startsWith(`${l}/`));

@@ -10,6 +10,7 @@ import { blogFrameLinks } from "./blog/frame-links";
 import { BLOG_COPY } from "../../lib/copy/blog";
 import { HOME_PAGE_COPY } from "../../lib/copy/home-page";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { getSiteLegalChrome } from "../../lib/data/legal";
 import { getPosts } from "../../lib/data/posts";
 import { absoluteLocaleUrl, localeAlternates, localePath, type Locale } from "../../lib/locale-path";
 
@@ -29,6 +30,7 @@ export async function BlogPage({ locale }: { locale: Locale }) {
       links={links}
       footerLinks={footerPageLinks(locale)}
       footerCopy={SITE_FOOTER_COPY[locale]}
+      legal={await getSiteLegalChrome(locale)}
       labels={nav}
     >
       <script {...ORGANIZATION_JSON_LD_SCRIPT} />

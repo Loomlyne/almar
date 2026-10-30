@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { EXPERIENCES_PAGE_COPY } from "../../lib/copy/experiences-page";
 import { HOME_COPY } from "../../lib/copy/home";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { getSiteLegalChrome } from "../../lib/data/legal";
 import { getDestinations } from "../../lib/data/destinations";
 import { getCatalogItems } from "../../lib/data/experiences";
 import { getPageContent, withPageWords } from "../../lib/data/page-content";
@@ -79,6 +80,7 @@ export async function ExperiencesPage({ locale }: { locale: Locale }) {
       links={links}
       footerLinks={footerPageLinks(locale)}
       footerCopy={SITE_FOOTER_COPY[locale]}
+      legal={await getSiteLegalChrome(locale)}
       labels={nav}
     >
       <script {...ORGANIZATION_JSON_LD_SCRIPT} />

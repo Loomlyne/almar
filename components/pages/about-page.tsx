@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { HOME_COPY } from "../../lib/copy/home";
 import { ABOUT_PAGE_COPY } from "../../lib/copy/about-page";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { getSiteLegalChrome } from "../../lib/data/legal";
 import { getAboutBlocks } from "../../lib/data/about";
 import { getPageContent, withPageWords } from "../../lib/data/page-content";
 import { getTeam } from "../../lib/data/team";
@@ -47,6 +48,7 @@ export async function AboutPage({ locale }: { locale: Locale }) {
       links={links}
       footerLinks={footerPageLinks(locale)}
       footerCopy={SITE_FOOTER_COPY[locale]}
+      legal={await getSiteLegalChrome(locale)}
       labels={nav}
       navTone="on-image"
     >

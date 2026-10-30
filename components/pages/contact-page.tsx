@@ -1,6 +1,7 @@
 import { HOME_COPY } from "../../lib/copy/home";
 import { CONTACT_PAGE_COPY } from "../../lib/copy/contact-page";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { getSiteLegalChrome } from "../../lib/data/legal";
 import { getContactDetails } from "../../lib/data/contact";
 import { getPageContent, withPageWords } from "../../lib/data/page-content";
 import { getTeam } from "../../lib/data/team";
@@ -45,6 +46,7 @@ export async function ContactPage({ locale }: { locale: Locale }) {
       links={pageLinks(locale, nav)}
       footerLinks={footerPageLinks(locale)}
       footerCopy={SITE_FOOTER_COPY[locale]}
+      legal={await getSiteLegalChrome(locale)}
       labels={nav}
     >
       <script {...ORGANIZATION_JSON_LD_SCRIPT} />

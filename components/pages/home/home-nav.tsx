@@ -5,6 +5,7 @@ import type { FooterCopy } from "../../ui/footer";
 import type { NavLabels, NavLink } from "../../ui/nav";
 import { footerPageLinks } from "../../site/page-links";
 import { PublicFrame } from "../../site/public-frame";
+import type { SiteLegalChrome } from "../../../lib/data/types";
 import type { Locale } from "../../../lib/locale-path";
 import { useCurrencyChoice } from "./currency-choice";
 
@@ -23,6 +24,7 @@ export function HomeFrame({
   footerCopy,
   currencyEnabled,
   tone = "on-image",
+  legal,
   children,
 }: {
   locale: Locale;
@@ -33,6 +35,7 @@ export function HomeFrame({
   /** False when the build had no exchange rates: with nothing to convert there is no currency control. */
   currencyEnabled: boolean;
   tone?: "solid" | "on-image";
+  legal?: SiteLegalChrome;
   children: ReactNode;
 }) {
   const { selected, choose } = useCurrencyChoice();
@@ -46,6 +49,7 @@ export function HomeFrame({
       labels={labels}
       navTone={tone}
       currency={currencyEnabled ? { selected, onChange: choose } : false}
+      legal={legal}
     >
       {children}
     </PublicFrame>

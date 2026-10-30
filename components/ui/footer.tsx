@@ -49,6 +49,10 @@ export type FooterCopy = {
   madeBy?: string;
   /** Needed only when `newsletter` is true. */
   newsletter?: FooterNewsletterCopy;
+  /** Accessible name of the legal row. Needed only with `legalLinks` or `cookieSettings`. */
+  legal?: string;
+  /** The label of the Cookie settings link (the frame hands it to `cookieSettings`). */
+  cookieSettings?: string;
 };
 
 /** The newsletter column's strings (lib/copy/site-footer.ts SiteFooterNewsletterCopy is one). */
@@ -249,13 +253,44 @@ function offerLanguage(item: FooterLanguageLink) {
   postPreferences({ locale: item.lang });
 }
 
+/** The legal row (plan 06-04, pictures signed 2026-10-30): under Pages and Contact, the published titles then Cookie settings. */
+function LegalRow({
+  name,
+  links,
+  cookieSettings,
+  rowClass,
+  linkClass,
+}: {
+  name?: string;
+  links: FooterLink[];
+  cookieSettings?: { label: string; onOpen: () => void };
+  rowClass: string;
+  linkClass: string;
+}) {
+  return (
+    <nav aria-label={name} className={`mt-8 flex flex-wrap items-center gap-x-6 border-t pt-2 ${rowClass}`}>
+      {links.map((link) => (
+        <a key={link.href} className={linkClass} href={link.href}>
+          {link.label}
+        </a>
+      ))}
+      {cookieSettings ? (
+        <button type="button" className={`${linkClass} cursor-pointer border-0 bg-transparent p-0`} onClick={cookieSettings.onOpen}>
+          {cookieSettings.label}
+        </button>
+      ) : null}
+    </nav>
+  );
+}
+
 /**
  * The public footer. Every string arrives through `copy`; the contact details default to the
  * owner's. There is no newsletter form unless `newsletter` is true AND an `onSubscribe` handler is
  * given: a form that does nothing is a fake control. The form mounts only in the browser (none with
  * JavaScript off), sends the honeypots named in `honeypotFields`, and tells the visitor what the
  * handler did: the success toast when it resolves, the failed line when it rejects. The "List with us"
- * slot renders nothing until it has an href. The language row is plain links that work with JavaScript off.
+ * slot renders nothing until it has an href. The language row is plain links that work with JavaScript off. `legalLinks` and
+ * `cookieSettings` add the legal row; without them the footer is what it always was.
  */
 export function SiteFooter({
   copy,
@@ -268,6 +303,8 @@ export function SiteFooter({
   listWithUs,
   tone = "teal",
   madeBy,
+  legalLinks = [],
+  cookieSettings,
 }: {
   copy: FooterCopy;
   links: FooterLink[];
@@ -287,10 +324,15 @@ export function SiteFooter({
   tone?: "teal" | "light";
   /** The studio credit, light tone only. */
   madeBy?: FooterMadeBy;
+  /** The legal pages published in all three languages (plan 06-04). */
+  legalLinks?: FooterLink[];
+  /** Cookie settings, a button that opens the settings sheet (plan 06-04): only with published banner words and a token. */
+  cookieSettings?: { label: string; onOpen: () => void };
 }) {
   const [emailName, emailHost] = contact.email.split("@");
   const showNewsletter = newsletter && Boolean(onSubscribe) && Boolean(copy.newsletter);
   const listHref = listWithUs?.href;
+  const hasLegal = legalLinks.length > 0 || Boolean(cookieSettings);
 
   if (tone === "light") {
     const src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(polyBlack)}`;
@@ -339,7 +381,8 @@ export function SiteFooter({
             />
           ) : null}
         </div>
-        <div className="mt-8 grid items-center gap-4 border-t border-teal-tint pt-6 @2xl:grid-cols-3">
+        {hasLegal ? <LegalRow name={copy.legal} links={legalLinks} cookieSettings={cookieSettings} rowClass="border-teal-tint" linkClass={LIGHT_LINK} /> : null}
+        <div className={hasLegal ? "mt-2 grid items-center gap-4 border-t border-teal-tint pt-4 @2xl:grid-cols-3" : "mt-8 grid items-center gap-4 border-t border-teal-tint pt-6 @2xl:grid-cols-3"}>
           {languageLinks && languageLinks.length > 0 ? (
             <nav aria-label={copy.language} className="flex flex-wrap items-center gap-x-2">
               {languageLinks.map((item, index) => (
@@ -420,7 +463,8 @@ export function SiteFooter({
           <NewsletterColumn copy={copy.newsletter!} onSubscribe={onSubscribe!} honeypotFields={honeypotFields} light={false} />
         ) : null}
       </div>
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-ivory pt-6">
+      {hasLegal ? <LegalRow name={copy.legal} links={legalLinks} cookieSettings={cookieSettings} rowClass="border-ivory" linkClass={LINK} /> : null}
+      <div className={hasLegal ? "flex flex-wrap items-center justify-between gap-4 pt-2" : "mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-ivory pt-6"}>
         {languageLinks && languageLinks.length > 0 ? (
           <nav aria-label={copy.language} className="flex flex-wrap items-center gap-x-2">
             {languageLinks.map((item, index) => (

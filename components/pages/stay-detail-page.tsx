@@ -32,6 +32,7 @@ import { HOME_COPY } from "../../lib/copy/home";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { pickStayJourneyCopy } from "./stay-detail/booking-value";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { getSiteLegalChrome } from "../../lib/data/legal";
 import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
 import { fill } from "../../lib/journey-format";
 import { petsText } from "../../lib/stay-pets";
@@ -195,6 +196,7 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
             close: home.nav.close,
           }}
           footerCopy={SITE_FOOTER_COPY[locale]}
+          legal={await getSiteLegalChrome(locale)}
         >
           <main id="content">
             <StayHero

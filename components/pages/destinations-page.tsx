@@ -3,6 +3,7 @@ import { PinIcon } from "../icons/icons";
 import { DESTINATIONS_PAGE_COPY } from "../../lib/copy/destinations-page";
 import { HOME_COPY } from "../../lib/copy/home";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { getSiteLegalChrome } from "../../lib/data/legal";
 import { getDestinations, getDestinationsPageHero } from "../../lib/data/destinations";
 import { getPageContent, withPageWords } from "../../lib/data/page-content";
 import { absoluteLocaleUrl, localeAlternates, type Locale } from "../../lib/locale-path";
@@ -51,6 +52,7 @@ export async function DestinationsPage({ locale }: { locale: Locale }) {
       links={links}
       footerLinks={footerPageLinks(locale)}
       footerCopy={SITE_FOOTER_COPY[locale]}
+      legal={await getSiteLegalChrome(locale)}
       labels={nav}
     >
       <script {...ORGANIZATION_JSON_LD_SCRIPT} />

@@ -20,6 +20,7 @@ import { RichText, type RichTextBlock } from "../ui/rich-text";
 import { BLOG_COPY } from "../../lib/copy/blog";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { getSiteLegalChrome } from "../../lib/data/legal";
 import { getDestinations } from "../../lib/data/destinations";
 import { getCatalogItem } from "../../lib/data/experiences";
 import { getPost, getPostSlugs, getRelatedPosts } from "../../lib/data/posts";
@@ -162,6 +163,7 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
           links={links}
           footerLinks={footerPageLinks(locale)}
           footerCopy={SITE_FOOTER_COPY[locale]}
+          legal={await getSiteLegalChrome(locale)}
           labels={nav}
           navTone="on-image"
         >
