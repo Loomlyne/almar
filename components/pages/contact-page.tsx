@@ -1,6 +1,7 @@
 import { HOME_COPY } from "../../lib/copy/home";
 import { CONTACT_PAGE_COPY } from "../../lib/copy/contact-page";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { SITE_REQUESTS_COPY, SITE_REQUESTS_LINKS } from "../../lib/copy/site-requests";
 import { getSiteLegalChrome } from "../../lib/data/legal";
 import { getContactDetails } from "../../lib/data/contact";
 import { getPageContent, withPageWords } from "../../lib/data/page-content";
@@ -11,9 +12,11 @@ import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
 import { footerPageLinks, pageLinks } from "../site/page-links";
 import { PublicFrame } from "../site/public-frame";
 import { Divider } from "../ui/divider";
+import { Link } from "../ui/link";
 import { PageShell } from "../ui/page-shell";
 import { Reveal } from "../ui/reveal";
 import { SectionHead } from "../ui/section";
+import { ConsultationBooking } from "./contact/consultation-booking";
 import { ContactDetailsBlock } from "./contact/contact-details";
 import { CONTACT_PATH, contactLinks } from "./contact/contact-links";
 import { InquiryForm, InquiryStart } from "./contact/inquiry-form";
@@ -26,7 +29,8 @@ export { contactMetadata } from "./contact/contact-meta";
  * columns from 1024 px (the details at the start, the framed inquiry form box with `Message on WhatsApp` at the end),
  * Travel With Confidence centred below with the outlined `Start Your Inquiry`, divider, the team (nothing today).
  * The form box and `Start Your Inquiry` appear only after hydration (plan 26): without JavaScript the columns hold the
- * details alone and Travel With Confidence follows them, so no control is shown that cannot work.
+ * details alone and Travel With Confidence follows them, so no control is shown that cannot work. Plan 06-05 adds the
+ * "Plan with us" line under the intro and the 30-minute consultation (after the columns, also only after hydration).
  */
 export async function ContactPage({ locale }: { locale: Locale }) {
   const [content, details, team] = await Promise.all([getPageContent("contact", locale), getContactDetails(locale), getTeam(locale)]);
@@ -60,6 +64,13 @@ export async function ContactPage({ locale }: { locale: Locale }) {
               {copy.title.heading}
             </h1>
             <p className="m-0 max-w-md text-label text-ink md:text-body">{copy.title.intro}</p>
+            {/* Plan 06-05, as signed: under the intro. */}
+            <p className="m-0 max-w-md text-label text-ink md:text-body">
+              {SITE_REQUESTS_LINKS[locale].planLine}{" "}
+              <Link inline href={siteHref(locale, "/plan-with-us")}>
+                {SITE_REQUESTS_LINKS[locale].planBtn}
+              </Link>
+            </p>
           </Reveal>
         </PageShell>
         <PageShell>
@@ -81,6 +92,16 @@ export async function ContactPage({ locale }: { locale: Locale }) {
             />
           </div>
         </PageShell>
+        <ConsultationBooking
+          locale={locale}
+          copy={SITE_REQUESTS_COPY[locale]}
+          whatsappCta={copy.whatsappCta}
+          tooLong={copy.form.errors.tooLong}
+          email={details.email}
+          mailto={links.mailto}
+          whatsappHref={links.whatsappMessage}
+          newTabLabel={copy.newTab}
+        />
         {on("confidence") ? (
           <PageShell className="py-16 md:py-section">
             <section aria-labelledby="contact-confidence-heading" className="grid justify-items-center gap-6">

@@ -53,6 +53,8 @@ export type FooterCopy = {
   legal?: string;
   /** The label of the Cookie settings link (the frame hands it to `cookieSettings`). */
   cookieSettings?: string;
+  /** The label of the List with us link (the frame hands it to `listWithUs`). */
+  listWithUs?: string;
 };
 
 /** The newsletter column's strings (lib/copy/site-footer.ts SiteFooterNewsletterCopy is one). */
@@ -319,7 +321,7 @@ export function SiteFooter({
   /**
    * "teal" (the default) is the footer as it always was. "light" is the public site's footer (job 11): ivory ground, the
    * divider, the wordmark, pages and contact (and, plan 27, the newsletter as the end column), then the language links,
-   * the copyright and the studio credit. It has no "List with us" slot.
+   * the copyright and the studio credit. "List with us" is last in its Pages column (plan 06-05, as signed).
    */
   tone?: "teal" | "light";
   /** The studio credit, light tone only. */
@@ -351,6 +353,11 @@ export function SiteFooter({
                 {link.external ? <span className="sr-only"> {copy.newTab}</span> : null}
               </a>
             ))}
+            {listWithUs && listHref ? (
+              <a className={LIGHT_LINK} href={listHref}>
+                {listWithUs.label}
+              </a>
+            ) : null}
           </nav>
           <address className="grid content-start justify-items-start not-italic">
             <p className={LIGHT_HEAD}>{copy.contact}</p>

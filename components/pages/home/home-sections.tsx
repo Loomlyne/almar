@@ -2,6 +2,8 @@ import { useId } from "react";
 import { TeamSection } from "../../journey/team-section";
 import { BackgroundMedia } from "../../ui/background-media";
 import { LinkButton } from "../../ui/button";
+import { SITE_REQUESTS_LINKS } from "../../../lib/copy/site-requests";
+import { siteHref, stripLocale } from "../../../lib/locale-path";
 import { MediaCard } from "../../ui/card";
 import { PageShell } from "../../ui/page-shell";
 import { Reveal } from "../../ui/reveal";
@@ -191,6 +193,8 @@ export function Begin({
   media: { poster: ImageRef | null; video_url: string | null };
 }) {
   const headingId = useId();
+  // The page's language, from the address it already passes (home-page.tsx gives the Contact link in this language).
+  const { locale } = stripLocale(contactHref);
   return (
     <section
       id="begin"
@@ -209,9 +213,13 @@ export function Begin({
           </h2>
           <p className="m-0 max-w-md text-label md:text-body">{copy.intro}</p>
         </Reveal>
-        <Reveal kind="button" className="mt-6 grid justify-items-center">
-          <LinkButton variant="ivory" size="lg" href={contactHref}>
+        <Reveal kind="button" className="mt-6 flex flex-wrap justify-center gap-2">
+          <LinkButton variant="ivory" size="lg" href={`${contactHref}#consultation`}>
             {copy.cta}
+          </LinkButton>
+          {/* Plan 06-05, as signed: the ivory outline on the teal section; hover keeps the ivory text readable. */}
+          <LinkButton variant="outline" size="lg" className="border-ivory text-ivory hover:bg-teal" href={siteHref(locale, "/plan-with-us")}>
+            {SITE_REQUESTS_LINKS[locale].planBtn}
           </LinkButton>
         </Reveal>
       </PageShell>

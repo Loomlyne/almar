@@ -12,11 +12,12 @@ test("the frame composes nav, footer and WhatsApp once", () => {
   assert.equal((src.match(/<WhatsApp\s*\/>/g) ?? []).length, 1);
 });
 
-test("login is on (job 21): /<locale>/login, or /<locale>/account once the sign-in hint is there; no cart, no List with us, no form in the frame; the newsletter is on through PUBLIC_NEWSLETTER with subscribeToNewsletter", () => {
+test("login is on (job 21): /<locale>/login, or /<locale>/account once the sign-in hint is there; no cart, no form in the frame; List with us only through the footer copy's label (plan 06-05); the newsletter is on through PUBLIC_NEWSLETTER with subscribeToNewsletter", () => {
   assert.match(src, /loginHref: localePath\(locale, signedIn \? "\/account" : "\/login"\)/);
   assert.match(src, /setSignedIn\(hasSignedInHint\(\)\)/);
   assert.equal(/login: false/.test(src), false);
-  assert.equal(/cart:\s*true|login:\s*true|listWithUs/.test(src), false);
+  assert.equal(/cart:\s*true|login:\s*true/.test(src), false);
+  assert.match(src, /listWithUs=\{footerCopy\.listWithUs \? \{ label: footerCopy\.listWithUs, href: localePath\(locale, "\/list-with-us"\) \} : undefined\}/);
   assert.equal(src.includes("<form"), false);
   // Plan 03.3-27: on for every page that wears the frame, through one constant; the request is lib/newsletter.ts's.
   assert.equal(/newsletter=\{false\}/.test(src), false);

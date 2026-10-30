@@ -28,7 +28,8 @@ import {
 
 // and supply their own <main id="content"> (the skip link in the root document points at it).
 
-// Every held control is off here, so a page cannot show one by accident: no cart, no "List with us" column. Login is
+// Every held control is off here, so a page cannot show one by accident: no cart. "List with us" is in the footer since plan
+// 06-05 (the page exists; its label is footerCopy.listWithUs, and no header link goes there). Login is
 // on since job 21 (owner, 2026-10-21, decision #5): the last item of the header, /<locale>/login, or Account
 // (/<locale>/account) once this browser carries the sign-in hint. Currency is off unless a page passes the state its own amounts use.
 // The newsletter is ON (plan 03.3-27, design 11.2 and 12.1 row 8): the end column of job 11's light footer, posting
@@ -169,6 +170,7 @@ export function PublicFrame({
         {...PUBLIC_NEWSLETTER}
         tone="light"
         madeBy={{ label: footerCopy.madeBy ?? "", name: MADE_BY.name, href: MADE_BY.href }}
+        listWithUs={footerCopy.listWithUs ? { label: footerCopy.listWithUs, href: localePath(locale, "/list-with-us") } : undefined}
         legalLinks={legal?.links}
         cookieSettings={banner ? { label: footerCopy.cookieSettings ?? "", onOpen: openCookieSettings } : undefined}
       />

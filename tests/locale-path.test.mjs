@@ -137,6 +137,8 @@ test("matchPublicPage matches the five patterns and one [a-z0-9-] segment", () =
     "/booking/trip",
     "/bookings/trip",
     "/legal/[legal]",
+    "/plan-with-us",
+    "/list-with-us",
   ]);
 });
 

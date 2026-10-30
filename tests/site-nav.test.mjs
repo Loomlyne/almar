@@ -48,8 +48,8 @@ test("an external link keeps its https address and is marked external", () => {
 test("targetAvailable: a page is available only once it is on the site", () => {
   const today = { pages: PUBLIC_PAGES, legal: [], packages: [] };
   assert.equal(nav.targetAvailable("about", today), true);
-  assert.equal(nav.targetAvailable("list-with-us", today), false);
-  assert.equal(nav.targetAvailable("list-with-us", { ...today, pages: [...PUBLIC_PAGES, "/list-with-us"] }), true);
+  assert.equal(nav.targetAvailable("list-with-us", { ...today, pages: PUBLIC_PAGES.filter((p) => p !== "/list-with-us") }), false);
+  assert.equal(nav.targetAvailable("list-with-us", today), true, "plan 06-05: the page is on the site");
   const legalRoute = [...PUBLIC_PAGES, "/legal/[legal]"];
   assert.equal(nav.targetAvailable("legal-privacy", { ...today, pages: legalRoute }), false, "route without the published page");
   assert.equal(nav.targetAvailable("legal-privacy", { ...today, legal: ["privacy"] }), false, "published page without the route");

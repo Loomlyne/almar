@@ -28,6 +28,7 @@
 //   legal, cookieSettings     DRAFTED UI COPY, signed with the 06-04 pictures (decisions/2026-10-30-06-04-06-05-06-07-pictures-signed.md,
 //                             the page's `legal` and `settings`): the name of the legal links row and the link that opens
 //                             the cookie settings sheet. AR and ES are his approved drafts.
+//   listWithUs                the footer link of plan 06-05, the canvas PublicContact dictionary's words, verbatim (signed 2026-10-30).
 
 export type SiteFooterLocale = "en" | "ar" | "es";
 
@@ -76,6 +77,8 @@ export type SiteFooterCopy = {
   legal: string;
   /** The link that opens the cookie settings sheet (plan 06-04). */
   cookieSettings: string;
+  /** The link to /<locale>/list-with-us (plan 06-05). */
+  listWithUs: string;
 };
 
 export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
@@ -101,6 +104,7 @@ export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
     },
     legal: "Legal",
     cookieSettings: "Cookie settings",
+    listWithUs: "List with us",
   },
   ar: {
     pages: "الصفحات",
@@ -124,6 +128,7 @@ export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
     },
     legal: "قانوني",
     cookieSettings: "إعدادات ملفات الارتباط",
+    listWithUs: "أدرجوا عقاركم",
   },
   es: {
     pages: "Páginas",
@@ -147,5 +152,6 @@ export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
     },
     legal: "Legal",
     cookieSettings: "Ajustes de cookies",
+    listWithUs: "Publiquen con nosotros",
   },
 };
