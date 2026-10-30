@@ -340,11 +340,12 @@ Sonnet (no Fable per plan, the owner's decision). Verdict "fix first"; all three
 2. The saved heart read "Remove X, pressed": `aria-pressed` dropped, the name carries the state; `tests/saved-stays.spec.ts` follows.
 3. A read returning during a tap could flip the heart back: hearts still being saved keep what she tapped.
 
-## Slots needed (existing tests the hearts will break; not edited)
+## Slots (granted by the controller 2026-10-30; all four edited, tests not run)
 1. `tests/build/private-stays/private-stays.spec.ts:138`: `cardLinks` finds 0, cards are now `article` with the link nested. Use `main ul[role='list'] > li a[href*='/private-stays/']`; recheck its Tab-order test (527-567), each card gains a stop.
 2. `tests/build/stay-detail/stay-detail.spec.ts:755`: `#related ul a` also counts hearts. Use `a[href*='/private-stays/']`.
 3. `tests/build/server-runtime.spec.ts:125`: add `"/api/saved-stays"`.
-Optional: `worker/handle.mjs` `FORM_BODY_CAPS` `["/api/saved-stays", 256]` plus its pin, otherwise a large POST is read whole before it is refused, as `/api/preferences` today.
+4. `worker/handle.mjs` `FORM_BODY_CAPS` `["/api/saved-stays", 256]` plus its pin in `tests/server-runtime.test.mjs`.
+The card link stays first in the DOM, so the Tab-order test's first stop holds; a heart is the next stop after it.
 
 ## Open
 - **Owner's look:** the gold title underline at rest changes the /private-stays list. One prop to remove if the drawing meant hover only.

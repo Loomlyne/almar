@@ -28,6 +28,8 @@ export const FORM_BODY_CAPS = new Map([
   // Plan 06-05: SITE_REQUEST_BODY_LIMIT (lib/site-requests/validate.ts).
   ["/api/requests", 16384],
   ["/api/consult/book", 16384],
+  // Plan 06-07: SAVED_STAYS_BODY_LIMIT (lib/saved-stays/route.ts).
+  ["/api/saved-stays", 256],
 ]);
 
 /**

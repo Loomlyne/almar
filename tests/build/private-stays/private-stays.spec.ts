@@ -135,7 +135,7 @@ async function visit(page: Page, url: string) {
 // ---- small locators ------------------------------------------------------------------------------------------------
 
 const grid = (page: Page) => page.locator("main ul[role='list']");
-const cardLinks = (page: Page) => page.locator("main ul[role='list'] > li > a");
+const cardLinks = (page: Page) => page.locator("main ul[role='list'] > li a[href*='/private-stays/']");
 const countLine = (page: Page) => page.locator("main p[aria-live='polite']");
 const searchBox = (page: Page, d: Data) => page.getByRole("searchbox", { name: d.copy.search.label, exact: true });
 const group = (page: Page, name: string) => page.getByRole("group", { name, exact: true });

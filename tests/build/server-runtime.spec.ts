@@ -123,6 +123,7 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
         "/api/health",
         "/api/preferences",
         "/api/requests",
+        "/api/saved-stays",
         ...JOB02_SERVER_PATHS,
         "/newsletter",
       ].sort(),
