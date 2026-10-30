@@ -65,7 +65,9 @@ export function renderStaticNotFound(locale: Locale = "en", homeHref: string = N
   main { max-width: 40rem; margin-inline: auto; padding: 4rem 1rem; }
   svg { width: 8rem; height: auto; }
   h1 { font-weight: 400; font-size: 2rem; line-height: 1.1; }
-  a { color: var(--color-teal, #1f3b40); text-decoration: none; }
+  a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; margin-inline-start: -8px; color: var(--color-teal, #1f3b40); text-decoration: none; }
+  a:hover, a:active { background: var(--color-teal-tint, #d1dfe0); }
+  a:focus-visible { outline: 2px solid var(--color-teal, #1f3b40); outline-offset: 2px; }
 </style>
 </head>
 <body>
