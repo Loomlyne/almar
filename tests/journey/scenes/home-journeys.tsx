@@ -19,13 +19,10 @@ const SLUGS = ["explorer", "resident", "sovereign"];
 function tiers(ctx: SceneContext): HomeTier[] {
   return HOME_COPY[ctx.locale].journeys.map((tier, index) => ({
     slug: SLUGS[index],
+    href: `/${ctx.locale}/journeys/${SLUGS[index]}`,
     name: tier.name,
     price_label: tier.price,
     tagline: tier.text,
-    duration_label: null,
-    ideal_for_label: null,
-    ideal_for: null,
-    body: null,
     is_featured: index === 1,
     image: { src: tier.src, alt: tier.alt, width: null, height: null },
   }));

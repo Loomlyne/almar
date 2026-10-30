@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { Button } from "../../../components/ui/button";
 import { Field } from "../../../components/ui/field";
+import { Link } from "../../../components/ui/link";
 import { GUEST_COPY } from "../../../lib/copy/guest";
 import { setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
 import { AuthFrame } from "../../[locale]/login/auth-frame";
@@ -99,9 +100,9 @@ export function ContinueScreen({
           </>
         ) : null}
         <ContinueButton>{copy.button}</ContinueButton>
-        <a href={signInHref} rel="noreferrer" className="text-label text-ink underline decoration-gold underline-offset-4">
+        <Link href={signInHref} rel="noreferrer" className="w-max text-label">
           {copy.other}
-        </a>
+        </Link>
       </form>
     </AuthFrame>
   );

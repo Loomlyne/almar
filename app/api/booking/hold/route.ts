@@ -9,7 +9,7 @@
 import { bookingLinkConfigured } from "../../../../lib/booking/link";
 import { readJsonBody } from "../../../../lib/booking/http";
 import { isAllowedPostOrigin } from "../../../../lib/booking/origin";
-import { currentRequestGate } from "../../../../lib/booking/gate-server";
+import { requestGateAndTerms } from "../../../../lib/booking/gate-server";
 import { createWebHold, holdStatus } from "../../../../lib/booking/server";
 import { parseHoldRequest } from "../../../../lib/booking/validate";
 import { limiterHash, visitorIpKey } from "../../../../lib/auth/limit";
@@ -39,13 +39,15 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     // The request gate (plan 04-08), before the quote and the limiter: a closed gate writes nothing.
-    const gate = await currentRequestGate(admin, request.headers.get("host"));
+    // One read of the terms (plan 06-04): the version that opened the gate is the one stored on the booking.
+    const { gate, termsVersion } = await requestGateAndTerms(admin, request.headers.get("host"));
     if (!gate.open) return reply(requestsClosed, 503);
     const outcome = await createWebHold(admin, parsed.value, {
       ipHash: limiterHash(limitKey, "ip", visitorIpKey(request.headers.get("x-forwarded-for"))),
       emailHash: (email) => limiterHash(limitKey, "email", email),
       isTest: gate.isTest,
       transferWindowMinutes: gate.windowMinutes,
+      termsVersion,
     });
     return reply(outcome.response, holdStatus(outcome.response));
   } catch {

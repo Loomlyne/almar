@@ -261,7 +261,7 @@ test("team: at most 8 links, label at most 40, https urls only; email shape or n
 
 // ---- 5.8 journeys -------------------------------------------------------------------------------------------------------
 
-test("journeys: save needs an existing id (no create); the EN price label is parsed into the five price columns", () => {
+test("journeys: a new package needs a slug; the EN price label is parsed into the five price columns", () => {
   const out = p.parseJourneyAction({ action: "save", item: { id: A, translations: { en: { name: "The Explorer", price_label: "From USD $3,000/person · Est. AED 80,000–90,000" } } } });
   assert.deepEqual(out.item, {
     id: A,
@@ -272,11 +272,13 @@ test("journeys: save needs an existing id (no create); the EN price label is par
     est_high: 90000,
     est_open_ended: false,
   });
-  invalid(() => p.parseJourneyAction({ action: "save", item: { translations: { en: { name: "x", price_label: "y" } } } }), "id");
-  invalid(() => p.parseJourneyAction({ action: "save", item: { id: A, slug: "the-explorer" } }), "slug");
+  invalid(() => p.parseJourneyAction({ action: "save", item: { translations: { en: { name: "x", price_label: "y" } } } }), "slug");
+  // The lock on a published package's address is the database's (ops_save_journey_tier).
+  assert.equal(p.parseJourneyAction({ action: "save", item: { id: A, slug: "the-explorer" } }).item.slug, "the-explorer");
+  invalid(() => p.parseJourneyAction({ action: "save", item: { id: A, slug: "Bad_Address" } }), "slug");
   invalid(() => p.parseJourneyAction({ action: "save", item: { id: A, translations: { en: { name: "The Explorer" } } } }), "translations.en.price_label", "en");
   invalid(() => p.parseJourneyAction({ action: "save", item: { id: A, translations: { en: { price_label: "Price on request" } } } }), "translations.en.name", "en");
-  invalid(() => p.parseJourneyAction({ action: "delete", id: A }), "action");
+  assert.deepEqual(p.parseJourneyAction({ action: "delete", id: A }), { action: "delete", id: A });
 });
 
 test("journeys: an unparsable label stores null prices; a save without EN leaves the prices alone", () => {

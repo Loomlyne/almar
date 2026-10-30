@@ -6,6 +6,7 @@ import { readSessionProfile } from "../../../lib/supabase/clients";
 import { returnCookieName, safeReturnPath } from "../../../lib/auth/rules";
 import { isLocale, localePath } from "../../../lib/locale-path";
 import { localizedReturnPath } from "../../../lib/account-preferences";
+import { stayReturnPath } from "../../../lib/saved-stays/rules";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function LoginPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ expired?: string; return?: string }>;
+  searchParams: Promise<{ expired?: string; return?: string; stay?: string }>;
 }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
@@ -31,9 +32,11 @@ export default async function LoginPage({
   const query = await searchParams;
   // `return` is a key from a fixed list, never a URL, so it cannot redirect off-site.
   const key = query.return ?? "";
-  const returnTo = Object.hasOwn(RETURN_KEYS, key)
+  // Plan 06-07: the key `stay` names a slug; the slug rule then builds the path, so a bad one falls back like any unknown key.
+  const stayPath = key === "stay" ? stayReturnPath(locale, query.stay) : null;
+  const returnTo = stayPath ?? (Object.hasOwn(RETURN_KEYS, key)
     ? localePath(locale, RETURN_KEYS[key])
-    : localizedReturnPath(safeReturnPath(store.get(returnCookieName())?.value), locale);
+    : localizedReturnPath(safeReturnPath(store.get(returnCookieName())?.value), locale));
   if (await readSessionProfile()) redirect(returnTo);
 
   const { expired } = query;

@@ -5,7 +5,8 @@
 // `locale` is the required first argument on every read: each page is built three times, so a caller that
 // forgets it would silently ship English into an Arabic document.
 
-import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { pageFixture } from "./page-blocks";
+import { image, resolveRow, type RawImage, type StoredStatus } from "./resolve";
 import { loadSource, readSource } from "./source";
 import type { Destination, ImageRef, Locale } from "./types";
 
@@ -88,7 +89,7 @@ export async function getDestinationSlugs(): Promise<string[]> {
 /** The /destinations hero slideshow: three photos, in the owner's order (S2-16). Never null entries. */
 export async function getDestinationsPageHero(locale: Locale): Promise<ImageRef[]> {
   await loadSource(); // the hero's alt texts come from the same source as every picture
-  const raw = readFixture<{ hero: RawImage[] }>("destinations-page").hero;
+  const raw = pageFixture<{ hero: RawImage[] }>("destinations").hero;
   return [...raw]
     .sort((a, b) => a.position - b.position)
     .flatMap((r) => {

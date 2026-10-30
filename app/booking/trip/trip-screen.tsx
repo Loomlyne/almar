@@ -68,6 +68,7 @@ import {
   type TripMove,
   type TripState,
 } from "../../../lib/booking/trip-state";
+import type { BookingTermsLink, SiteLegalChrome } from "../../../lib/data/types";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { SITE_FOOTER_COPY } from "../../../lib/copy/site-footer";
@@ -90,7 +91,7 @@ const HELP_HREF = `https://wa.me/${ALMAR_WHATSAPP_NUMBER}`;
 /** A retry and a failed check show this one reason (after-request.ts carries none for them). */
 const UNAVAILABLE = [{ code: "unavailable" as const }];
 
-export function TripPage({ locale }: { locale: Locale }) {
+export function TripPage({ locale, legal, termsLink = null }: { locale: Locale; legal?: SiteLegalChrome; termsLink?: BookingTermsLink | null }) {
   const nav = HOME_COPY[locale].nav;
   const copy = JOURNEY_COPY[locale];
   const pageLinks: PublicFrameLink[] = PAGE_LINKS.map(({ key, path }) => ({ label: nav[key], href: siteHref(locale, path) }));
@@ -107,6 +108,7 @@ export function TripPage({ locale }: { locale: Locale }) {
       footerLinks={pageLinks}
       footerCopy={SITE_FOOTER_COPY[locale]}
       labels={nav}
+      legal={legal}
       whatsappClassName="bottom-dock md:bottom-4"
     >
       <main id="content">
@@ -119,7 +121,7 @@ export function TripPage({ locale }: { locale: Locale }) {
               </div>
             }
           >
-            <TripScreen locale={locale} onQuery={onQuery} />
+            <TripScreen locale={locale} onQuery={onQuery} termsLink={termsLink} />
           </Suspense>
         </PageShell>
       </main>
@@ -127,7 +129,7 @@ export function TripPage({ locale }: { locale: Locale }) {
   );
 }
 
-function TripScreen({ locale, onQuery }: { locale: Locale; onQuery: (q: TripQuery | null) => void }) {
+function TripScreen({ locale, onQuery, termsLink }: { locale: Locale; onQuery: (q: TripQuery | null) => void; termsLink: BookingTermsLink | null }) {
   const params = useSearchParams();
   const search = params.toString();
   const query = useMemo(() => parseTripQuery(new URLSearchParams(search)), [search]);
@@ -145,7 +147,7 @@ function TripScreen({ locale, onQuery }: { locale: Locale; onQuery: (q: TripQuer
       </div>
     );
   }
-  return <Trip key={search} locale={locale} query={query} />;
+  return <Trip key={search} locale={locale} query={query} termsLink={termsLink} />;
 }
 
 /**
@@ -193,7 +195,7 @@ function nightsBetween(from: string, to: string): number {
   return parseDate(to).compare(parseDate(from));
 }
 
-function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
+function Trip({ locale, query, termsLink }: { locale: Locale; query: TripQuery; termsLink: BookingTermsLink | null }) {
   const copy = JOURNEY_COPY[locale];
   const [state, dispatch] = useReducer(tripReducer, query, restoreTrip);
   // 04-06: the request phase beside the trip. A stored hold starts in `checking` (resume): the view answers first.
@@ -607,6 +609,7 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
             errors={choiceErrors}
             copy={copy}
             locale={locale}
+            termsLink={termsLink}
           />
         }
         copy={copy}
@@ -658,6 +661,7 @@ function Trip({ locale, query }: { locale: Locale; query: TripQuery }) {
         onEnd={onHoldEnd}
         copy={copy}
         locale={locale}
+        termsLink={termsLink}
       />
       {retryNote ? <RequestRetryNote text={a.retryNote} /> : null}
       </>

@@ -605,7 +605,7 @@ test("money: save then get round-trips (IBAN and BIC normalized); a wrong check 
   };
   const saved = await post(s.owner, money.parseMoneySave, (ctx) => money.postMoneyRoute(ctx), save);
   assert.equal(saved.status, 200, JSON.stringify(saved.body));
-  const read = await get(s.owner, (ctx) => money.getMoneyRoute(ctx), "");
+  const read = await get(s.owner, (ctx) => money.getMoneyRoute({ ...ctx, publicVersion: async () => null }), "");
   assert.equal(read.status, 200);
   assert.deepEqual(read.body.money, saved.body.money, "GET answers what the save answered");
   assert.equal(read.body.money.transfer_window_minutes, 1440);

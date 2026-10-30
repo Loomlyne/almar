@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAR 06-06 pictures: Packages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+Arabic:wght@400;600&family=Noto+Naskh+Arabic&display=swap">
+<style>
+/* Tokens copied from tokens.json (2026-10-27). Square corners everywhere; gold is a line only; teal is the primary. */
+:root{
+  --color-ivory:#fffaf0;--color-surface:#ffffff;--color-teal:#1f3b40;--color-teal-tint:#d1dfe0;--color-gold:#d4ba8a;
+  --color-ink:#262626;--color-muted:#63615f;--color-line:rgb(38 38 38 / 0.16);--color-error:#8f2d2d;
+  --control:44px;--sidebar:240px;
+  --face-display:Georgia,"Times New Roman",serif;
+  --face-body:"Lato",Arial,sans-serif;
+  --shadow-selected:inset 0 0 0 2px var(--color-teal);
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;background:#ece8df;color:var(--color-ink);font-family:var(--face-body);font-size:14px}
+/* ---------- review page chrome (not product UI) ---------- */
+#top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 20px;background:var(--color-teal);color:var(--color-ivory)}
+#top h1{font:400 18px var(--face-display);margin:0;margin-inline-end:auto}
+#top .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#top .grp span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-inline-end:4px}
+#top button,#top select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid rgba(255,250,240,.5);background:transparent;color:var(--color-ivory);cursor:pointer}
+#top select option{color:#000}
+#top button[aria-pressed=true]{background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)}
+#main{padding:20px 24px 80px}
+.banner{background:var(--color-ivory);border:1px solid var(--color-gold);padding:12px 16px;margin-bottom:24px;font-size:14px;line-height:1.55;max-width:1100px}
+.banner ol{margin:6px 0 0;padding-inline-start:20px}
+.banner code{font:13px ui-monospace,Menlo,monospace}
+.decision{border:2px solid var(--color-teal);background:#fff;padding:12px 16px;margin:12px 0 0}
+.st{margin:0 0 48px}
+.st>h2{font:400 22px var(--face-display);color:var(--color-teal);margin:0 0 4px}
+.st>p{margin:0 0 12px;max-width:900px;line-height:1.5}
+.shot{margin:0 0 28px}
+.shot .cap{font:600 13px ui-monospace,Menlo,monospace;margin:0 0 6px}
+.scroller{overflow-x:auto;padding-bottom:6px}
+.scaler{transform-origin:top left}
+.rv{font:12px ui-monospace,Menlo,monospace;background:#fff3c4;color:#4a3b00;padding:2px 6px;display:inline-block;direction:ltr}
+.newbadge{outline:2px dashed var(--color-gold);outline-offset:4px}
+/* ---------- dashboard frame ---------- */
+.frame{background:var(--color-ivory);color:var(--color-ink);font:14px/1.43 var(--face-body);border:1px solid var(--color-line);display:flex;min-height:640px;position:relative}
+.frame[dir=rtl],.pub[dir=rtl]{font-family:"Noto Sans Arabic",var(--face-body);line-height:1.63}
+.frame[dir=rtl] .disp,.pub[dir=rtl] .disp{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.4}
+.rail{width:var(--sidebar);flex:none;border-inline-end:1px solid var(--color-line);padding:20px 16px;display:flex;flex-direction:column;gap:2px}
+.rail .mark{font:400 20px var(--face-display);letter-spacing:.06em;margin-bottom:20px}
+.rail a{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:40px;padding:0 12px;color:var(--color-ink);text-decoration:none}
+.rail a.sub{padding-inline-start:28px}
+.rail a.on{box-shadow:inset 3px 0 0 var(--color-teal);background:var(--color-surface);color:var(--color-teal)}
+.frame[dir=rtl] .rail a.on{box-shadow:inset -3px 0 0 var(--color-teal)}
+.rail .soon{font-size:12px;color:var(--color-muted);border:1px solid var(--color-line);padding:0 6px}
+.bar{display:none;align-items:center;justify-content:space-between;height:56px;padding:0 16px;border-bottom:1px solid var(--color-line)}
+.bar .mark{font:400 18px var(--face-display);letter-spacing:.06em}
+.bar .menu{min-height:var(--control);min-width:var(--control);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-teal)}
+.col{flex:1;min-width:0;display:flex;flex-direction:column}
+.page{padding:24px 32px 48px;display:flex;flex-direction:column;gap:24px;max-width:1240px}
+.narrow .rail{display:none}.narrow .bar{display:flex}.narrow .page{padding:16px 16px 40px}
+.back{display:inline-flex;align-items:center;gap:4px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;width:max-content}
+.back svg{transform:rotate(180deg)}.frame[dir=rtl] .back svg{transform:none}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid var(--color-line);padding-bottom:16px}
+.head h1,.lh1{margin:0;font:400 32px/1.2 var(--face-display);color:var(--color-teal)}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border:1px solid var(--color-teal);color:var(--color-teal);font-size:12px;white-space:nowrap}
+.chip.off{border-color:var(--color-line);color:var(--color-muted)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{min-height:var(--control);padding:0 20px;font:inherit;border:1px solid var(--color-teal);display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.o{background:var(--color-surface);color:var(--color-teal)}
+.btn.p{background:var(--color-teal);color:#fff}
+.btn.dis{opacity:.45}
+.btn.sq{padding:0;width:var(--control);justify-content:center}
+.card{border:1px solid var(--color-line);background:var(--color-surface);padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.narrow .card{padding:16px}
+.card h2{margin:0;font:400 20px/1.3 var(--face-display);color:var(--color-teal)}
+.note{margin:0;color:var(--color-muted)}
+.cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}
+.cols>div{display:flex;flex-direction:column;gap:24px;min-width:0}
+.narrow .cols{grid-template-columns:1fr}
+.field{display:grid;gap:8px;min-width:0}
+.input{min-height:var(--control);border:1px solid var(--color-ink);background:var(--color-surface);padding:8px 16px;font:inherit;color:var(--color-ink);width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+.input.area{min-height:96px}
+.input.bad{border-color:var(--color-error);box-shadow:inset 0 0 0 1px var(--color-error)}
+.input.ph{color:var(--color-muted)}
+.input.sel{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.input.ro{border-color:var(--color-line);background:var(--color-ivory)}
+.err{margin:0;border-inline-start:2px solid var(--color-error);padding-inline-start:8px;color:var(--color-ink)}
+.link{display:inline-flex;align-items:center;gap:8px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-decoration-thickness:1px;text-underline-offset:4px;background:none;border:0;padding:0;font:inherit;width:max-content}
+.link.red{color:var(--color-error);text-decoration-color:var(--color-error)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:var(--control)}
+.sw{width:44px;height:24px;border:1px solid var(--color-ink);background:var(--color-surface);position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:16px;height:16px;background:var(--color-muted)}
+.sw.on{background:var(--color-teal);border-color:var(--color-teal)}.sw.on::after{inset-inline-start:23px;background:#fff}
+.fixed{display:flex;gap:8px;align-items:flex-start;color:var(--color-muted)}
+.fixed svg{flex:none;margin-top:2px}
+/* tables (ListTable) */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-weight:400;color:var(--color-muted);text-align:start;padding:8px 12px;border-bottom:1px solid var(--color-line);font-size:12px}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--color-line);vertical-align:middle}
+.tbl td.t{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px}
+.tbl tr.hid td.t{color:var(--color-muted)}
+.tbl tr.fix td{color:var(--color-muted)}
+.tbl .mv{display:flex;gap:4px;justify-content:flex-end}
+.narrow:not(.mid) .tbl thead{display:none}
+.narrow:not(.mid) .tbl tr{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 0;border-bottom:1px solid var(--color-line)}
+.narrow:not(.mid) .tbl td{border:0;padding:0}
+.narrow:not(.mid) .tbl td.wide{grid-column:1/-1}
+.narrow:not(.mid) .tbl .mv{justify-content:flex-start}
+/* media */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+.tile{display:flex;flex-direction:column;gap:4px}
+.tile img,.ph-img{width:100%;aspect-ratio:3/2;object-fit:cover;display:block;background:var(--color-teal-tint)}
+.ph-img{display:flex;align-items:center;justify-content:center;color:var(--color-muted);border:1px dashed var(--color-line)}
+.one{max-width:320px}
+/* toggle cards (never radio) */
+.tcards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.narrow:not(.mid) .tcards{grid-template-columns:1fr}
+.tcard{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;min-height:var(--control);display:flex;flex-direction:column;gap:4px}
+.tcard.on{box-shadow:var(--shadow-selected);border-color:var(--color-teal)}
+.tcard b{font-weight:700;color:var(--color-ink)}
+/* lock line (06-01, signed) */
+.lockline{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 16px;color:var(--color-muted);margin-top:-4px}
+.narrow:not(.mid) .lockline{grid-template-columns:1fr}
+.lockline .txt{display:flex;align-items:flex-start;gap:6px}
+.boxes{display:grid;gap:16px;grid-template-columns:1fr 1fr}.narrow:not(.mid) .boxes{grid-template-columns:1fr}
+.lang{border:1px solid var(--color-line);background:var(--color-ivory);padding:16px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.lang h3{margin:0;font-weight:400;color:var(--color-muted)}
+/* dialog */
+.scrim{position:absolute;inset:0;background:rgb(38 38 38 / .45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}
+.dialog{background:var(--color-surface);border:1px solid var(--color-line);padding:24px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:16px}
+.dialog h2{margin:0;font:400 20px var(--face-display);color:var(--color-teal)}
+/* ---------- public frame ---------- */
+.pub{background:var(--color-ivory);color:var(--color-ink);font:16px/1.5 var(--face-body);border:1px solid var(--color-line);min-height:640px}
+.phd{display:flex;align-items:center;gap:28px;padding:16px 40px;border-bottom:1px solid var(--color-line);background:var(--color-ivory)}
+.phd img.wm{height:44px;display:block}
+.phd nav{display:flex;gap:24px;margin-inline-end:auto}
+.phd a{color:var(--color-ink);text-decoration:none;white-space:nowrap}
+.phd .tools{display:flex;gap:16px;align-items:center;color:var(--color-ink)}
+.phd .login{border:1px solid var(--color-teal);color:var(--color-teal);padding:8px 16px}
+.pnarrow .phd{padding:12px 16px}.pnarrow .phd nav,.pnarrow .phd .tools{display:none}
+.pnarrow .phd .burger{display:inline-flex;margin-inline-start:auto}
+.phd .burger{display:none;width:44px;height:44px;border:1px solid var(--color-line);align-items:center;justify-content:center;color:var(--color-teal)}
+.hero{position:relative;min-height:520px;display:flex;align-items:flex-end;color:#fff}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgb(0 0 0 / .55),rgb(0 0 0 / 0) 60%)}
+.hero .in{position:relative;z-index:1;padding:48px 40px;display:flex;flex-direction:column;gap:12px;width:100%}
+.pnarrow .hero{min-height:420px}.pnarrow .hero .in{padding:24px 16px}
+.hero h1{margin:0;font:400 64px/1.1 var(--face-display)}.pnarrow .hero h1{font-size:40px}
+.kick{font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.pub[dir=rtl] .kick{letter-spacing:0}
+.booker{background:var(--color-surface);border:1px solid var(--color-line);min-height:64px;display:grid;grid-template-columns:repeat(3,1fr) auto;max-width:880px}
+.booker span{border-inline-end:1px solid var(--color-line)}.booker b{background:var(--color-teal);width:120px}
+.pnarrow .booker{grid-template-columns:1fr;min-height:56px}.pnarrow .booker span{display:none}.pnarrow .booker b{width:100%}
+.vid{position:absolute;top:16px;inset-inline-end:16px;z-index:2}
+.sec{padding:64px 40px;display:flex;flex-direction:column;gap:16px;max-width:1240px;margin:0 auto}
+.pnarrow .sec{padding:40px 16px}
+.sec h2{margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)}.pnarrow .sec h2{font-size:32px}
+.sec p{margin:0;max-width:640px}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.pnarrow .cards3{grid-template-columns:1fr}.pmid .cards3{grid-template-columns:1fr 1fr}
+.cards3 img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.cards3 h3{margin:12px 0 0;font:400 20px var(--face-display)}
+.ghost{height:140px;background:repeating-linear-gradient(135deg,transparent 0 10px,rgb(38 38 38 / .05) 10px 11px);border-top:1px solid var(--color-line)}
+.band{width:100%;aspect-ratio:16/6;object-fit:cover;display:block}.pnarrow .band{aspect-ratio:4/3}
+.pfoot{background:var(--color-teal);color:var(--color-ivory);padding:48px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.pnarrow .pfoot{grid-template-columns:1fr;padding:32px 16px}
+.pfoot h4{margin:0 0 12px;font-weight:400;font-size:12px;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+.pub[dir=rtl] .pfoot h4{letter-spacing:0}
+.pfoot a{display:flex;align-items:center;gap:6px;color:var(--color-ivory);text-decoration:none;min-height:32px}
+.sr{font-size:11px;opacity:.7}
+/* ---------- 06-05 additions (same tokens; no new colours) ---------- */
+.pub .input{font-size:16px;min-height:48px}
+.pub .btn{min-height:48px;font-size:16px}
+.pub label{font-size:14px}
+.tb{font:inherit;min-height:var(--control);padding:0 16px;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.tb[aria-pressed=true]{box-shadow:var(--shadow-selected);border-color:var(--color-teal);color:var(--color-teal);font-weight:700}
+.tbs{display:flex;flex-wrap:wrap;gap:8px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pnarrow .fgrid,.narrow:not(.mid) .fgrid{grid-template-columns:1fr}
+.fcard{border:1px solid var(--color-line);background:var(--color-surface);padding:32px;display:flex;flex-direction:column;gap:16px;max-width:880px}
+.pnarrow .fcard{padding:16px}
+.msg{margin:0;padding:12px 16px;border:1px solid var(--color-line);border-inline-start:3px solid var(--color-teal);background:var(--color-surface)}
+.msg.bad{border-inline-start-color:var(--color-error)}
+.msg a,.lnk{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px}
+.nopay{margin:0;color:var(--color-muted);border-top:1px solid var(--color-gold);padding-top:12px}
+.hint{color:var(--color-muted);font-size:14px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:420px}
+.cal .wd{font-size:12px;color:var(--color-muted);text-align:center;padding:4px 0}
+.day{min-height:44px;border:1px solid transparent;background:transparent;color:var(--color-muted);font:inherit;text-align:center;display:flex;align-items:center;justify-content:center}
+.day.free{background:var(--color-surface);border-color:var(--color-line);color:var(--color-ink);box-shadow:inset 0 -3px 0 var(--color-teal)}
+.day[aria-pressed=true]{box-shadow:var(--shadow-selected);background:var(--color-teal-tint);border-color:var(--color-teal);font-weight:700}
+.calhd{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:420px}
+.calhd b{font:400 20px var(--face-display);color:var(--color-teal)}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+.slot{border:1px solid var(--color-line);background:var(--color-surface);min-height:56px;padding:6px 12px;display:flex;flex-direction:column;justify-content:center;font:inherit;color:var(--color-ink);text-align:start}
+.slot small{font-size:12px;color:var(--color-muted)}
+.slot[aria-pressed=true]{box-shadow:var(--shadow-selected);border-color:var(--color-teal);color:var(--color-teal)}
+.cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:start}
+.pnarrow .cgrid,.pmid .cgrid{grid-template-columns:1fr}
+.begin{background:var(--color-teal-tint);padding:64px 40px;display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.pnarrow .begin{padding:40px 16px}
+.begin h2{margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)}.pnarrow .begin h2{font-size:32px}
+.begin p{margin:0;max-width:640px}
+.begin .acts .btn{text-decoration:none}
+/* emails */
+.mailwrap{background:#fff;border:1px solid var(--color-line);font:16px/1.5 var(--face-body);color:var(--color-ink)}
+.mailwrap[dir=rtl]{font-family:"Noto Sans Arabic",var(--face-body);line-height:1.63}
+.mmeta{background:var(--color-ivory);border-bottom:1px solid var(--color-line);padding:12px 16px;font-size:14px;display:grid;gap:2px;direction:ltr;text-align:start}
+.mmeta div{display:flex;gap:8px}.mmeta span{color:var(--color-muted);min-width:64px}
+.mbody{padding:0}
+.mband{background:var(--color-teal);padding:20px 24px}
+.mtxt{padding:24px;display:flex;flex-direction:column;gap:16px}
+.mtxt h1{margin:0;font:400 32px/1.2 var(--face-display);color:var(--color-teal)}
+.mrows{border-top:1px solid var(--color-gold);border-bottom:1px solid var(--color-gold)}
+.mrows div{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--color-line)}.mrows div:last-child{border:0}
+.mrows span{color:var(--color-muted)}
+.mbtn{display:inline-block;background:var(--color-teal);color:#fff;padding:12px 24px;text-decoration:none;align-self:flex-start}
+.att{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--color-line);padding:8px 12px;font-size:14px;align-self:flex-start}
+pre.plain{margin:0;padding:24px;font:14px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:start;background:#fff}
+/* dashboard */
+.filters{display:flex;flex-direction:column;gap:12px}
+.frow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.frow>span{color:var(--color-muted);min-width:64px}
+.dl{display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:12px 24px;margin:0}
+.dl dt{color:var(--color-muted)}.dl dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.narrow:not(.mid) .dl{grid-template-columns:1fr;gap:2px}.narrow:not(.mid) .dl dd{margin-bottom:12px}
+.hrow{display:grid;grid-template-columns:140px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--color-line);align-items:start}
+.narrow:not(.mid) .hrow{grid-template-columns:1fr}
+.rng{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.rng .input{width:120px}
+.rngs{display:flex;flex-direction:column;gap:8px}
+.mini{min-height:var(--control);display:inline-flex;align-items:center;color:var(--color-muted)}
+.chip.ok{background:var(--color-teal-tint)}
+.nw{display:inline-block}
+/* ---------- 06-06 additions (same tokens; no new colours) ---------- */
+.draft{font:12px ui-monospace,Menlo,monospace;background:#fff3c4;color:#4a3b00;padding:1px 5px}
+.pub .btn.p{background:var(--color-teal);color:#fff}
+.pub .btn.o{background:var(--color-surface);color:var(--color-teal)}
+.hgrid{display:grid;gap:24px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.pnarrow .hgrid{grid-template-columns:1fr}.pmid .hgrid{grid-template-columns:1fr 1fr}
+.hcard{display:grid;align-content:start;border:1px solid var(--color-line);background:var(--color-surface);min-width:0;position:relative}
+.hcard .ph{position:relative}
+.hcard img{display:block;width:100%;aspect-ratio:48/35;object-fit:cover}
+.hcard .feat{position:absolute;inset-inline-end:16px;top:16px;background:var(--color-teal);color:var(--color-ivory);padding:4px 12px;font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.pub[dir=rtl] .hcard .feat{letter-spacing:0;text-transform:none}
+.hcard .bd{display:grid;gap:12px;padding:24px}
+.hcard .no{margin:0;font-size:12px;color:var(--color-teal)}
+.hcard h3{margin:0;font:400 24px/1.25 var(--face-display);color:var(--color-teal)}
+.pub[dir=rtl] .hcard h3{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.5}
+.hcard h3 a{color:inherit;text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px}
+.hcard .pr{margin:0;color:var(--color-teal)}
+.hcard .tg{margin:0}
+.hcard .more{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;width:max-content;min-height:44px;display:inline-flex;align-items:center}
+.hcard .hint2{font-size:12px;color:var(--color-muted);margin:0}
+.pkhero{position:relative;isolation:isolate;min-height:560px;display:flex;align-items:flex-end;color:#fff;background:var(--color-teal);overflow:hidden}
+.pnarrow .pkhero{min-height:440px}
+.pkhero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+.pkhero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgb(38 38 38 / .65),rgb(38 38 38 / .1) 60%);z-index:-1}
+.pkhero .in{padding:48px 40px;display:flex;flex-direction:column;gap:12px;width:100%;max-width:1240px;margin:0 auto}
+.pnarrow .pkhero .in{padding:24px 16px}
+.pkhero h1{margin:0;font:400 64px/1.1 var(--face-display)}.pnarrow .pkhero h1{font-size:40px}.pmid .pkhero h1{font-size:48px}
+.pub[dir=rtl] .pkhero h1{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.4}
+.pkhero .pl{font:400 20px/1.3 var(--face-display)}
+.pub[dir=rtl] .pkhero .pl{font-family:"Noto Naskh Arabic",var(--face-display)}
+.facts2{display:flex;flex-wrap:wrap;gap:8px 32px;margin:0}
+.facts2 div{display:grid;gap:2px}.facts2 span{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--color-muted)}
+.pub[dir=rtl] .facts2 span{letter-spacing:0;text-transform:none}
+.route{list-style:none;margin:0;padding:0;display:grid;gap:0;max-width:760px}
+.route li{display:grid;grid-template-columns:48px 1fr;gap:16px;padding:16px 0;border-top:1px solid var(--color-gold)}
+.route li:last-child{border-bottom:1px solid var(--color-gold)}
+.route .n{font:400 32px/1 var(--face-display);color:var(--color-teal)}
+.pub[dir=rtl] .route .n{font-family:"Noto Naskh Arabic",var(--face-display)}
+.route .d{display:grid;gap:4px}
+.route .d b{font:400 20px/1.3 var(--face-display);color:var(--color-teal);font-weight:400}
+.pub[dir=rtl] .route .d b{font-family:"Noto Naskh Arabic",var(--face-display)}
+.route .sub2{color:var(--color-muted);font-size:14px}
+.incl{background:var(--color-teal-tint);padding:24px;display:flex;flex-direction:column;gap:16px;max-width:760px}
+.incl .hd2{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:baseline}
+.incl h2{margin:0;font:400 24px/1.3 var(--face-display);color:var(--color-teal)}
+.pub[dir=rtl] .incl h2{font-family:"Noto Naskh Arabic",var(--face-display)}
+.incl ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:12px 24px;color:var(--color-teal)}
+.incl li{display:flex;gap:8px;align-items:center}
+.cbs{display:grid;gap:4px}
+.cb{display:flex;align-items:center;gap:12px;min-height:44px}
+.box{width:20px;height:20px;border:1px solid var(--color-ink);background:var(--color-surface);display:inline-flex;align-items:center;justify-content:center;flex:none;color:#fff}
+.box.on{background:var(--color-teal);border-color:var(--color-teal)}
+.walink{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;width:max-content;min-height:44px;display:inline-flex;align-items:center}
+.dtin{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wrap2{display:grid;gap:24px;max-width:880px}
+/* dashboard additions */
+.leg{border:1px solid var(--color-line);background:var(--color-ivory);padding:16px;display:grid;gap:12px}
+.leg .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.leg .top b{font:400 16px var(--face-display);color:var(--color-teal)}
+.leg .g3{display:grid;grid-template-columns:1fr 1fr 160px;gap:12px}
+.narrow:not(.mid) .leg .g3{grid-template-columns:1fr}
+.btn.sq.dis{opacity:.45}
+.pick{display:grid;gap:12px}
+.prow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;border-bottom:1px solid var(--color-line)}
+.prow .cbx{display:flex;align-items:center;gap:12px}
+.dlg2{background:var(--color-surface)}
+.lockico{display:inline-flex;color:var(--color-muted)}
+.wireframe{display:grid;gap:8px;border:1px solid var(--color-line);background:var(--color-ivory);padding:12px}
+.wf{background:repeating-linear-gradient(135deg,transparent 0 8px,rgb(38 38 38 / .06) 8px 9px);border:1px solid var(--color-line);min-height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--color-muted)}
+.opts{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-top:12px}
+.opt{border:1px solid var(--color-line);padding:12px;background:var(--color-surface);display:grid;gap:8px;align-content:start;min-width:0}
+.opt.rec{border:2px solid var(--color-teal)}
+.opt h4{margin:0;font-size:14px}
+.opt .tag{font:12px ui-monospace,Menlo,monospace;background:var(--color-teal);color:#fff;padding:1px 6px;margin-inline-start:6px}
+.addr{border:1px solid var(--color-ink);background:#fff;padding:8px 12px;font:14px ui-monospace,Menlo,monospace;direction:ltr;overflow-wrap:anywhere}
+.addr b{color:var(--color-teal)}
+</style></head>
+<body>
+<div id="top">
+  <h1>06-06 · Packages (public page, request form, home card, dashboard editor) · pictures for signature</h1>
+  <div class="grp"><span>Scene</span><select id="scene"></select></div>
+  <div class="grp"><span>Language</span><button data-l="all" aria-pressed="true">All</button><button data-l="en">EN</button><button data-l="ar">AR</button><button data-l="es">ES</button></div>
+  <div class="grp"><span>Width</span><button data-w="all" aria-pressed="true">All</button><button data-w="390">390</button><button data-w="834">834</button><button data-w="1440">1440</button></div>
+  <div class="grp"><span>Size</span><button data-z="fit" aria-pressed="true">Fit</button><button data-z="1">100%</button></div>
+</div>
+<div id="main">
+  <div class="banner">
+    <strong>What this adds.</strong> Public: every package gets its own page, <code>/&lt;locale&gt;/journeys/&lt;web address&gt;</code>, opened from its card in Choose Your Journey on home (the section and the card order do not move). The page shows the name, your own price line as typed, the route (cities in order, a suggested stay when you set one, the nights line), what is included (no remove control), a <em>Request this journey</em> form and <em>Something else? Ask on WhatsApp</em>. There is no amount to pay, no checkout and no card field. Dashboard: Catalog → Packages gains <em>New package</em>, <em>Web address</em> (locked once published), <em>Cities on this journey</em>, <em>Included in this package</em> and <em>Delete</em> (only while hidden).
+    All names, prices, taglines and nights lines are <code>[brackets]</code>: yours to type, never invented. Cartagena and the Getsemaní house are real catalogue rows. Dashed gold outlines mark what is new; they are not part of the site. Arabic and Spanish are <span class="draft">draft for signature</span> on every picture; public Spanish uses <em>tú</em>, dashboard Spanish uses <em>usted</em>.
+    <p style="margin:8px 0 4px"><strong>Your checks</strong> (the name under each picture is <code>&lt;scene&gt;-&lt;language&gt;-&lt;width&gt;</code>):</p>
+    <ol>
+      <li><code>home-cards-en-1440</code>: Choose Your Journey in its usual place, same order, each card with "See this journey"; it opens <code>/en/journeys/&lt;web address&gt;</code>.</li>
+      <li><code>package-full-ar-390</code>: right to left; name, your price line, the route with three cities in order (one with a suggested stay), Included with two add-ons and no remove button, the form, and "Something else? Ask on WhatsApp" at the end.</li>
+      <li><code>request-sent-es-834</code> and <code>request-failed-en-834</code>: sent says ALMAR replies by email or WhatsApp; failed says it was not sent and offers WhatsApp. No amount or pay button anywhere.</li>
+      <li><code>journey-editor-legs-en-1440</code> and <code>journey-editor-addons-es-1440</code>: cities with destination, optional suggested stay, nights, move and remove; add-ons picked from the catalog; Spanish uses usted.</li>
+      <li><code>journey-published-locked-en-834</code>: web address locked, Delete off, the line "A shown package cannot be deleted. Hide it first."</li>
+    </ol>
+  </div>
+  <div class="banner" style="border-color:var(--color-teal)"><strong>Left open by the plan (marked, not decided by this page).</strong> The wording of the field errors, the dashboard intro line and the delete text are my drafts (dashed, in the table at the bottom). The nights line format (for example "[3 nights]") is yours: the page prints whatever you type per city. The photo on the package page is the package's own photo; the pictures borrow a house photo only to fill the frame. The "Included" panel is the existing inclusions panel of the stay pages, so its title and note are its existing words ("Included in your journey", "No extra charge"); the plan's one-word "Included" heading would need a copy change there (decision 6).</div>
+  <div id="decisions"></div>
+  <div id="shots"></div>
+  <div class="banner" style="margin-top:24px"><strong>New lines for signature</strong> (lib/copy/package-page.ts public; lib/copy/ops-team.ts dashboard). English is the plan's wording where the plan gives it, otherwise my draft. Arabic and Spanish are drafts. <code>{name}</code> is a fill slot, never shown.
+    <div id="table" style="overflow-x:auto"></div></div>
+</div>
+<script>
+const M="https://media.almarprivatejourney.com/";
+const WM="https://framerusercontent.com/images/RX7lhKpzXFpv2KTvbxNSm3UZz8.svg";
+const IMG1=M+"stays/getsemani-colonial-house/hero.webp",IMG2=M+"stays/getsemani-courtyard-residence/hero.webp",IMG3=M+"stays/cartagena-historic-center-house/hero.webp";
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const fill=(s,o)=>s.replace(/\{(\w+)\}/g,(_,k)=>o[k]);
+const svg=(p,s=16,x="")=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" ${x}>${p}</svg>`;
+const ICON={
+ chev:svg('<path d="M9 6l6 6-6 6"/>'),down:svg('<path d="M6 9l6 6 6-6"/>'),menu:svg('<path d="M4 7h16M4 12h16M4 17h16"/>',20),
+ up:svg('<path d="M12 19V5M6 11l6-6 6 6"/>'),dn:svg('<path d="M12 5v14M6 13l6 6 6-6"/>'),
+ lock:svg('<rect x="5" y="11" width="14" height="9"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
+ check:svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),cal:svg('<rect x="4" y="5" width="16" height="15"/><path d="M4 10h16M9 3v4M15 3v4"/>'),
+ spin:'<span style="width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;display:inline-block"></span>',
+ wa:svg('<path d="M12 4.5a7.5 7.5 0 0 0-6.5 11.2L4.5 19.5l3.9-1A7.5 7.5 0 1 0 12 4.5z"/>',20)
+};
+const CONTACT={email:"inquiries@almarprivatejourney.com"};
+// ---- words that already exist (home-page.ts, home.ts nav, site-footer.ts, dashboard.ts rail, ops-kit.ts, ops-team.ts)
+const U={
+ en:{dir:"ltr",rail:{home:"Home",bookings:"Bookings",requests:"Requests",customers:"Customers",calendar:"Calendar",catalog:"Catalog",destinations:"Destinations",stays:"Stays",experiences:"Experiences & Services",packages:"Packages",content:"Content",pages:"Pages",blog:"Blog",team:"Team",legal:"Legal",media:"Media",navigation:"Navigation and footer",consultation:"Consultation",settings:"Settings",profile:"Profile"},soon:"Soon",
+   nav:{destinations:"Destinations",experiences:"Experiences",about:"About",contact:"Contact",login:"Login"},foot:{pages:"Pages",contact:"Contact",instagram:"Instagram"},
+   hj:{heading:"Choose Your Journey",intro:"Three tiers of privacy, luxury, and Colombia immersion — each crafted around a different depth of experience.",featured:"Most Popular"}},
+ ar:{dir:"rtl",rail:{home:"الرئيسية",bookings:"الحجوزات",requests:"الطلبات",customers:"العملاء",calendar:"التقويم",catalog:"الكتالوج",destinations:"الوجهات",stays:"الإقامات",experiences:"التجارب والخدمات",packages:"الباقات",content:"المحتوى",pages:"الصفحات",blog:"المدونة",team:"الفريق",legal:"القانوني",media:"الوسائط",navigation:"التنقل والتذييل",consultation:"الاستشارة",settings:"الإعدادات",profile:"الملف الشخصي"},soon:"قريبًا",
+   nav:{destinations:"الوجهات",experiences:"التجارب",about:"عنّا",contact:"تواصل",login:"دخول"},foot:{pages:"الصفحات",contact:"تواصل",instagram:"Instagram"},
+   hj:{heading:"اختاروا رحلتكم",intro:"ثلاثة مستويات من الخصوصية والفخامة والانغماس في كولومبيا، صُمّم كلٌّ منها لعمق مختلف من التجربة.",featured:"الأكثر طلباً"}},
+ es:{dir:"ltr",rail:{home:"Inicio",bookings:"Reservas",requests:"Solicitudes",customers:"Clientes",calendar:"Calendario",catalog:"Catálogo",destinations:"Destinos",stays:"Estancias",experiences:"Experiencias y servicios",packages:"Paquetes",content:"Contenido",pages:"Páginas",blog:"Blog",team:"Equipo",legal:"Legal",media:"Medios",navigation:"Navegación y pie",consultation:"Consulta",settings:"Ajustes",profile:"Perfil"},soon:"Pronto",
+   nav:{destinations:"Destinos",experiences:"Experiencias",about:"Nosotros",contact:"Contacto",login:"Entrar"},foot:{pages:"Páginas",contact:"Contacto",instagram:"Instagram"},
+   hj:{heading:"Elige tu viaje",intro:"Tres niveles de privacidad, lujo e inmersión en Colombia, cada uno pensado para una profundidad distinta de experiencia.",featured:"Más popular"}}
+};
+// existing kit words (ops-kit.ts) and Packages words (ops-team.ts journeys / team)
+const K={
+ en:{save:"Save",cancel:"Cancel",delete:"Delete",published:"Published",draft:"Draft",publish:"Publish",unpublish:"Unpublish",moveUp:"Move up",moveDown:"Move down",remove:"Remove",connectSelected:"Connect selected",selected:"{n} selected",search:"Search",noneConnected:"Nothing connected yet.",connected:"Connected",order:"Order",englishOnly:"Write in English. Arabic and Spanish are added when you save.",sec:{text:"Text",price:"Price",photo:"Photo",settings:"Settings"}},
+ ar:{save:"حفظ",cancel:"إلغاء",delete:"حذف",published:"منشور",draft:"مسودة",publish:"نشر",unpublish:"إلغاء النشر",moveUp:"تحريك لأعلى",moveDown:"تحريك لأسفل",remove:"إزالة",connectSelected:"ربط المحدد",selected:"تم اختيار {n}",search:"بحث",noneConnected:"لا شيء مرتبط بعد.",connected:"المرتبط",order:"الترتيب",englishOnly:"اكتب بالإنجليزية. تُضاف العربية والإسبانية عند الحفظ.",sec:{text:"النص",price:"السعر",photo:"الصورة",settings:"الإعدادات"}},
+ es:{save:"Guardar",cancel:"Cancelar",delete:"Eliminar",published:"Publicado",draft:"Borrador",publish:"Publicar",unpublish:"Dejar de publicar",moveUp:"Subir",moveDown:"Bajar",remove:"Quitar",connectSelected:"Conectar seleccionados",selected:"{n} seleccionados",search:"Buscar",noneConnected:"Nada conectado todavía.",connected:"Conectado",order:"Orden",englishOnly:"Escriba en inglés. El árabe y el español se añaden al guardar.",sec:{text:"Texto",price:"Precio",photo:"Foto",settings:"Ajustes"}}
+};
+const J={
+ en:{title:"Packages",colName:"Name",colPrice:"Price line",colShown:"Shown",fieldName:"Name",fieldTagline:"Tagline",fieldDuration:"Duration line",fieldIdealForLabel:"Ideal-for label",fieldIdealFor:"Ideal for",fieldBody:"Description",fieldPhoto:"Photo",fieldPrice:"Price line",priceHint:"Shown on the home page exactly as you write it.",fieldSlug:"Web address",slugLocked:"The web address cannot change after publishing.",untitled:"Journey"},
+ ar:{title:"الباقات",colName:"الاسم",colPrice:"سطر السعر",colShown:"الظهور",fieldName:"الاسم",fieldTagline:"الشعار",fieldDuration:"سطر المدة",fieldIdealForLabel:"تسمية «مثالي لـ»",fieldIdealFor:"مثالي لـ",fieldBody:"الوصف",fieldPhoto:"الصورة",fieldPrice:"سطر السعر",priceHint:"يظهر في الصفحة الرئيسية كما تكتبه تمامًا.",fieldSlug:"عنوان الويب",slugLocked:"لا يمكن تغيير عنوان الويب بعد النشر.",untitled:"رحلة"},
+ es:{title:"Paquetes",colName:"Nombre",colPrice:"Línea de precio",colShown:"Visible",fieldName:"Nombre",fieldTagline:"Lema",fieldDuration:"Línea de duración",fieldIdealForLabel:"Etiqueta «Ideal para»",fieldIdealFor:"Ideal para",fieldBody:"Descripción",fieldPhoto:"Foto",fieldPrice:"Línea de precio",priceHint:"Se muestra en la página de inicio tal como usted la escribe.",fieldSlug:"Dirección web",slugLocked:"La dirección web no se puede cambiar después de publicar.",untitled:"Viaje"}
+};
+// existing inclusions panel words (lib/copy/journey.ts)
+const INC={en:{title:"Included in your journey",note:"No extra charge"},ar:{title:"مشمول في رحلتك",note:"دون رسوم إضافية"},es:{title:"Incluido en tu viaje",note:"Sin costo adicional"}};
+// ---- NEW public copy (lib/copy/package-page.ts, home-page.ts journeys.open). EN = the plan where it gives wording; AR/ES drafts.
+const P={
+ en:{open:"See this journey",kicker:"Journey",route:"Your route",stay:"Suggested stay",price:"Price",reqHeading:"Request this journey",reqIntro:"Tell us your dates and who is travelling. We reply by email or WhatsApp with the price and how to pay.",arrive:"Arrive",leave:"Leave",guests:"Guests",cities:"Cities",notes:"Notes",name:"Name",email:"Email",phone:"Phone",send:"Send request",sending:"Sending…",
+  sent:"Thank you. Your request has reached ALMAR. We will reply by email or WhatsApp.",
+  err:{required:"Fill in this field.",email:"Check the email address.",phone:"Check the phone number.",guests:"Enter a number of guests from 1 to 99.",dates:"The leave date must be after the arrive date.",long:"Use 2,000 characters or fewer."},
+  limited:"Too many requests from here. Try again in a few minutes.",failed:"Your request could not be sent. Try again, or write to us on WhatsApp.",wa:"Something else? Ask on WhatsApp",
+  dur:"Duration",ideal:"Ideal for"},
+ ar:{open:"اطّلعوا على هذه الرحلة",kicker:"رحلة",route:"مسار رحلتكم",stay:"الإقامة المقترحة",price:"السعر",reqHeading:"اطلبوا هذه الرحلة",reqIntro:"أخبرونا بتواريخكم وبمن سيسافر. نردّ عليكم بالبريد الإلكتروني أو واتساب بالسعر وطريقة الدفع.",arrive:"الوصول",leave:"المغادرة",guests:"عدد الضيوف",cities:"المدن",notes:"ملاحظات",name:"الاسم",email:"البريد الإلكتروني",phone:"الهاتف",send:"أرسلوا الطلب",sending:"جارٍ الإرسال…",
+  sent:"شكرًا لكم. وصل طلبكم إلى ALMAR. سنردّ عليكم بالبريد الإلكتروني أو واتساب.",
+  err:{required:"املؤوا هذا الحقل.",email:"تحقّقوا من البريد الإلكتروني.",phone:"تحقّقوا من رقم الهاتف.",guests:"أدخلوا عدد ضيوف من 1 إلى 99.",dates:"يجب أن يكون تاريخ المغادرة بعد تاريخ الوصول.",long:"استخدموا 2000 حرف أو أقل."},
+  limited:"طلبات كثيرة من هذا الموقع. حاولوا مرة أخرى بعد بضع دقائق.",failed:"تعذّر إرسال طلبكم. حاولوا مرة أخرى أو راسلونا على واتساب.",wa:"هل تريدون شيئًا آخر؟ اسألونا على واتساب",
+  dur:"المدة",ideal:"مثالي لـ"},
+ es:{open:"Ver este viaje",kicker:"Viaje",route:"Tu ruta",stay:"Estancia sugerida",price:"Precio",reqHeading:"Solicita este viaje",reqIntro:"Cuéntanos tus fechas y quién viaja. Te respondemos por correo o por WhatsApp con el precio y cómo pagar.",arrive:"Llegada",leave:"Salida",guests:"Viajeros",cities:"Ciudades",notes:"Notas",name:"Nombre",email:"Correo electrónico",phone:"Teléfono",send:"Enviar solicitud",sending:"Enviando…",
+  sent:"Gracias. Tu solicitud ha llegado a ALMAR. Te responderemos por correo o por WhatsApp.",
+  err:{required:"Completa este campo.",email:"Revisa el correo electrónico.",phone:"Revisa el número de teléfono.",guests:"Escribe un número de viajeros del 1 al 99.",dates:"La fecha de salida debe ser posterior a la de llegada.",long:"Usa 2.000 caracteres o menos."},
+  limited:"Demasiadas solicitudes desde aquí. Inténtalo de nuevo en unos minutos.",failed:"No se pudo enviar tu solicitud. Inténtalo de nuevo o escríbenos por WhatsApp.",wa:"¿Algo más? Pregunta por WhatsApp",
+  dur:"Duración",ideal:"Ideal para"}
+};
+// ---- NEW dashboard copy (lib/copy/ops-team.ts journeys.*). Spanish: usted.
+const D={
+ en:{newPackage:"New package",intro:"These are your journeys. Each has a page on the site where guests can request it.",slugHint:"Lowercase letters, numbers and dashes. It cannot change once the package is published.",legs:"Cities on this journey",addCity:"Add a city",destination:"Destination",stay:"Suggested stay",noStay:"No suggested stay",nights:"Nights",removeCity:"Remove city",city:"City {n}",addons:"Included in this package",addonsSearch:"Search the catalog",addonsHint:"Shown as included. Guests cannot remove them.",deletePkg:"Delete package",cannotDelete:"A shown package cannot be deleted. Hide it first.",deleteTitle:"Delete {name}?",deleteText:"The package and its cities are deleted. The photo stays in Media.",dest2:"Destination name",slugPh:"[web-address]"},
+ ar:{newPackage:"باقة جديدة",intro:"هذه هي رحلاتك. لكل رحلة صفحة في الموقع يستطيع الضيوف طلبها منها.",slugHint:"أحرف لاتينية صغيرة وأرقام وشرطات. لا يمكن تغييره بعد نشر الباقة.",legs:"المدن في هذه الرحلة",addCity:"إضافة مدينة",destination:"الوجهة",stay:"الإقامة المقترحة",noStay:"بلا إقامة مقترحة",nights:"عدد الليالي",removeCity:"إزالة المدينة",city:"المدينة {n}",addons:"المشمول في هذه الباقة",addonsSearch:"ابحث في الكتالوج",addonsHint:"تظهر كمشمولة. لا يستطيع الضيوف إزالتها.",deletePkg:"حذف الباقة",cannotDelete:"لا يمكن حذف باقة ظاهرة. أخفِها أولًا.",deleteTitle:"حذف {name}؟",deleteText:"تُحذف الباقة ومدنها. تبقى الصورة في الوسائط.",dest2:"اسم الوجهة",slugPh:"[web-address]"},
+ es:{newPackage:"Nuevo paquete",intro:"Estos son sus viajes. Cada uno tiene una página en el sitio donde los huéspedes pueden solicitarlo.",slugHint:"Minúsculas, números y guiones. No se puede cambiar una vez publicado el paquete.",legs:"Ciudades de este viaje",addCity:"Añadir una ciudad",destination:"Destino",stay:"Estancia sugerida",noStay:"Sin estancia sugerida",nights:"Noches",removeCity:"Quitar la ciudad",city:"Ciudad {n}",addons:"Incluido en este paquete",addonsSearch:"Buscar en el catálogo",addonsHint:"Se muestra como incluido. Los huéspedes no pueden quitarlo.",deletePkg:"Eliminar paquete",cannotDelete:"No se puede eliminar un paquete visible. Primero ocúltelo.",deleteTitle:"¿Eliminar {name}?",deleteText:"Se eliminan el paquete y sus ciudades. La foto permanece en Medios.",dest2:"Nombre del destino",slugPh:"[web-address]"}
+};
+// ---- sample values: brackets are stand-ins, never real names, prices or people
+const V={
+ pkg:{en:"[Package name]",ar:"[اسم الباقة]",es:"[Nombre del paquete]"},
+ price:{en:"[Price line]",ar:"[سطر السعر]",es:"[Línea de precio]"},
+ tag:{en:"[Tagline]",ar:"[الشعار]",es:"[Lema]"},
+ body:{en:"[Description]",ar:"[الوصف]",es:"[Descripción]"},
+ dur:{en:"[Duration line]",ar:"[سطر المدة]",es:"[Línea de duración]"},
+ idealL:{en:"[Ideal-for label]",ar:"[تسمية مثالي لـ]",es:"[Etiqueta]"},
+ ideal:{en:"[Ideal-for text]",ar:"[نص مثالي لـ]",es:"[Texto]"},
+ d1:{en:"Cartagena",ar:"كارتاخينا",es:"Cartagena"},
+ d2:{en:"[Destination 2]",ar:"[الوجهة 2]",es:"[Destino 2]"},
+ d3:{en:"[Destination 3]",ar:"[الوجهة 3]",es:"[Destino 3]"},
+ stay1:{en:"Getsemaní Colonial House",ar:"بيت خيتسيماني الاستعماري",es:"Casa colonial de Getsemaní"},
+ n1:{en:"[3 nights]",ar:"[3 ليالٍ]",es:"[3 noches]"},n2:{en:"[2 nights]",ar:"[ليلتان]",es:"[2 noches]"},n3:{en:"[4 nights]",ar:"[4 ليالٍ]",es:"[4 noches]"},
+ a1:{en:"[Add-on 1]",ar:"[الإضافة 1]",es:"[Complemento 1]"},a2:{en:"[Add-on 2]",ar:"[الإضافة 2]",es:"[Complemento 2]"},a3:{en:"[Add-on 3]",ar:"[الإضافة 3]",es:"[Complemento 3]"},
+ guest:{en:"[Guest name]",ar:"[اسم الضيف]",es:"[Nombre del huésped]"},mail:"[guest email]",phone:"[Guest phone]",notes:{en:"[Notes]",ar:"[ملاحظات]",es:"[Notas]"},
+ slug:"[web-address]"
+};
+const v=(k,l)=>V[k][l];
+// ---------- public pieces ----------
+const HEADER=["destinations","experiences","about","contact"];
+function pubHeader(l){const u=U[l];
+  return `<header class="phd"><img class="wm" src="${WM}" alt="ALMAR"><nav>${HEADER.map(k=>`<a>${u.nav[k]}</a>`).join("")}</nav><div class="tools"><span>AED ${ICON.down}</span><span>${l.toUpperCase()} ${ICON.down}</span><span class="login">${u.nav.login}</span></div><span class="burger">${ICON.menu}</span></header>`;}
+function pubFooter(l){const u=U[l];
+  return `<footer class="pfoot"><div><img src="${WM}" alt="ALMAR" style="height:44px;filter:invert(1) brightness(2)"></div><div><h4>${u.foot.pages}</h4>${HEADER.map(k=>`<a>${u.nav[k]}</a>`).join("")}</div><div><h4>${u.foot.contact}</h4><a dir="ltr">${CONTACT.email}</a><a dir="ltr">+971 56 388 3302</a><a>${u.foot.instagram}</a></div></footer>`;}
+const pub=(l,w,inner)=>`<div class="pub ${w<1024?(w<768?"pnarrow":"pmid"):""}" dir="${U[l].dir}" lang="${l}" style="width:${w}px">${inner}</div>`;
+const field=(label,val,o={})=>`<div class="field"><label>${label}${o.req?" *":""}</label><div class="input${o.area?" area":""}${o.bad?" bad":""}${o.ph?" ph":""}${o.dt?" dtin":""}" dir="${o.dir||"auto"}">${o.dt?`<span>${val===""?"&nbsp;":esc(val)}</span>${ICON.cal}`:(val===""||val==null?"&nbsp;":esc(val))}</div>${o.bad?`<p class="err" role="alert">${o.bad}</p>`:""}</div>`;
+const btnP=(t,o={})=>`<span class="btn p${o.dis?" dis":""}">${o.spin?ICON.spin:""}${t}</span>`;
+const dFmt=(l,d,m,y)=>new Intl.DateTimeFormat({en:"en-GB",ar:"ar-AE-u-nu-latn",es:"es"}[l],{timeZone:"UTC",day:"numeric",month:"short",year:"numeric"}).format(Date.UTC(y,m,d));
+const cbx=(label,on)=>`<div class="cb"><span class="box${on?" on":""}">${on?ICON.check:""}</span><span>${label}</span></div>`;
+// ---- the request form. st: idle | errors | sending | failed | limited
+function reqForm(l,st,o={}){const p=P[l],e=st==="errors",f=st==="sending"||st==="failed"||st==="limited";
+  const cities=o.noLegs?"":`<div class="field"><label>${p.cities}</label><div class="cbs" role="group" aria-label="${p.cities}">${cbx(v("d1",l),1)}${cbx(v("d2",l),1)}${cbx(v("d3",l),1)}</div></div>`;
+  const from=f?dFmt(l,12,11,2026):e?dFmt(l,19,11,2026):"",to=f?dFmt(l,19,11,2026):e?dFmt(l,12,11,2026):"";
+  const msg=st==="failed"?`<p class="msg bad" role="alert">${p.failed}</p>`:st==="limited"?`<p class="msg bad" role="alert">${p.limited}</p>`:"";
+  return `${msg}<form class="fcard" aria-label="${p.reqHeading}">
+   <div class="fgrid">${field(p.arrive,from,{dt:1,ph:!from,bad:e?p.err.dates:""})}${field(p.leave,to,{dt:1,ph:!to})}</div>
+   ${field(p.guests,f?"2":e?"0":"",{bad:e?p.err.guests:""})}
+   ${cities}
+   ${field(p.notes,f?v("notes",l):"",{area:1,bad:""})}
+   <div class="fgrid">${field(p.name,f?v("guest",l):"",{req:1,bad:e?p.err.required:""})}${field(p.email,f?v("mail",l):e?"guest@":"",{req:1,dir:"ltr",bad:e?p.err.email:""})}</div>
+   ${field(p.phone,f?v("phone",l):e?"12ab":"",{dir:"ltr",bad:e?p.err.phone:""})}
+   <div>${btnP(st==="sending"?p.sending:p.send,{dis:st==="sending",spin:st==="sending"})}</div></form>`;}
+// ---- the package page. o: {noLegs, req: idle|errors|sending|sent|failed|limited}
+function pkgPage(l,w,o={}){const p=P[l],u=U[l],inc=INC[l];
+  const legs=o.noLegs?"":`<section class="sec" style="gap:16px"><h2 class="disp" style="font-size:32px">${p.route}</h2><ol class="route">
+   <li><span class="n">1</span><div class="d"><b>${v("d1",l)}</b><span class="sub2">${p.stay}: <a class="lnk">${v("stay1",l)}</a></span><span>${v("n1",l)}</span></div></li>
+   <li><span class="n">2</span><div class="d"><b>${v("d2",l)}</b><span>${v("n2",l)}</span></div></li>
+   <li><span class="n">3</span><div class="d"><b>${v("d3",l)}</b><span>${v("n3",l)}</span></div></li></ol></section>`;
+  const incl=`<section class="sec" style="padding-top:0"><div class="incl"><div class="hd2"><h2>${inc.title}</h2><span>${inc.note}</span></div><ul><li>${ICON.check}<span>${v("a1",l)}</span></li><li>${ICON.check}<span>${v("a2",l)}</span></li></ul></div></section>`;
+  let form;
+  if(o.req==="sent") form=`<p class="msg" role="status" tabindex="-1">${p.sent}</p>`;
+  else form=reqForm(l,o.req||"idle",o);
+  const req=`<section class="sec" style="gap:16px"><h2 class="disp" style="font-size:32px">${p.reqHeading}</h2><p>${p.reqIntro}</p><div class="wrap2">${form}</div><a class="walink">${ICON.wa}&nbsp;${p.wa}</a></section>`;
+  const hero=`<section class="pkhero"><img src="${IMG1}" alt=""><div class="in"><span class="kick">${p.kicker}</span><h1>${v("pkg",l)}</h1><span class="pl">${v("price",l)}</span><span>${v("tag",l)}</span></div></section>`;
+  const about=`<section class="sec" style="gap:24px"><p>${v("body",l)}</p><div class="facts2"><div><span>${p.dur}</span>${v("dur",l)}</div><div><span>${v("idealL",l)}</span>${v("ideal",l)}</div></div></section>`;
+  return pub(l,w,pubHeader(l)+hero+about+legs+incl+req+pubFooter(l));}
+// ---- home cards (Choose Your Journey with the link). form: A heading link + text link (drawn) | B | C used by decisions
+function homeCard(l,i,form){const p=P[l],u=U[l],img=[IMG1,IMG2,IMG3][i];
+  const feat=i===1?`<span class="feat">${u.hj.featured}</span>`:"";
+  const head=form==="B"?`<a style="color:inherit;text-decoration:none">${v("pkg",l)}</a>`:`<a>${v("pkg",l)}</a>`;
+  const open=form==="C"?`<span class="btn o newbadge" style="align-self:start">${p.open}</span>`:form==="B"?`<span class="more newbadge">${p.open} ${ICON.chev}</span>`:`<a class="more newbadge">${p.open}</a>`;
+  return `<article class="hcard${form==="B"?" newbadge":""}"><div class="ph"><img src="${img}" alt="">${feat}</div><div class="bd"><p class="no">0${i+1}</p><h3 class="${form==="A"||!form?"newbadge":""}">${form==="C"?v("pkg",l):head}</h3><p class="pr">${v("price",l)}</p><p class="tg">${v("tag",l)}</p>${open}</div></article>`;}
+function homeCards(l,w,form="A"){const u=U[l];
+  return pub(l,w,pubHeader(l)+`<section class="sec"><h2 class="disp">${u.hj.heading}</h2><p>${u.hj.intro}</p><div class="hgrid">${[0,1,2].map(i=>homeCard(l,i,form)).join("")}</div></section>`+pubFooter(l));}
+// ---------- dashboard pieces ----------
+function shell(l,w,inner,overlay=""){
+  const u=U[l],r=u.rail,cls=w<1024?(w<768?"narrow":"narrow mid"):"";
+  const items=[["home"],["bookings"],["requests"],["customers"],["calendar"],["catalog"],["destinations",1],["stays",1],["experiences",1],["packages",1],["content"],["pages",1],["blog",1],["team",1],["legal",1,1],["media",1],["navigation",1],["consultation",1],["settings"],["profile"]];
+  const rail=items.map(([k,sub,soon])=>`<a class="${sub?"sub ":""}${k==="packages"?"on":""}"><span>${r[k]}</span>${soon?`<span class="soon">${u.soon}</span>`:""}</a>`).join("");
+  return `<div class="frame ${cls}" dir="${u.dir}" lang="${l}" style="width:${w}px"><nav class="rail"><div class="mark">ALMAR</div>${rail}</nav>
+   <div class="col"><div class="bar"><span class="mark">ALMAR</span><span class="menu">${ICON.menu}</span></div><div class="page">${inner}</div></div>${overlay}</div>`;}
+const chip=(t,o="")=>`<span class="chip ${o}">${t}</span>`;
+const back=t=>`<a class="back">${ICON.chev}${t}</a>`;
+const dfield=(label,val,o={})=>`<div class="field"><label>${label}</label><div class="input${o.bad?" bad":""}${o.sel?" sel":""}${o.ph?" ph":""}${o.ro?" ro":""}${o.area?" area":""}" dir="${o.dir||"auto"}">${val===""||val==null?"&nbsp;":esc(val)}${o.sel?ICON.down:""}</div>${o.hint?`<p class="note">${o.hint}</p>`:""}</div>`;
+const mvb=(ic,label,dis)=>`<span class="btn o sq${dis?" dis":""}" role="button" aria-label="${label}" ${dis?'aria-disabled="true"':""}>${ic}</span>`;
+function legRow(l,n,total,o={}){const d=D[l],k=K[l];
+  const dest=[v("d1",l),v("d2",l),v("d3",l)][n-1],stay=n===1?v("stay1",l):d.noStay,nt=[v("n1",l),v("n2",l),v("n3",l)][n-1];
+  return `<div class="leg newbadge"><div class="top"><b>${fill(d.city,{n})}</b><div class="acts">${mvb(ICON.up,k.moveUp,n===1)}${mvb(ICON.dn,k.moveDown,n===total)}<span class="link red">${d.removeCity}</span></div></div>
+   <div class="g3">${dfield(d.destination,dest,{sel:1})}${dfield(d.stay,stay,{sel:1,ph:n!==1})}${dfield(d.nights,nt,{})}</div></div>`;}
+function legsCard(l,legs){const d=D[l];
+  return `<section class="card"><h2 class="disp">${d.legs}</h2>${legs?[1,2,3].map(n=>legRow(l,n,3)).join(""):""}<div><span class="btn o newbadge">${ICON.chev.replace("M9 6l6 6-6 6","M12 5v14M5 12h14")}${d.addCity}</span></div></section>`;}
+function addonsCard(l){const d=D[l],k=K[l];
+  const con=[v("a1",l),v("a2",l)].map((a,i)=>`<div class="prow"><span>${a}</span><div class="acts">${mvb(ICON.up,k.moveUp,i===0)}${mvb(ICON.dn,k.moveDown,i===1)}<span class="link red">${k.remove}</span></div></div>`).join("");
+  const opt=[[v("a3",l),1],[v("a1",l),0],[v("a2",l),0]].map(([a,on],i)=>`<div class="prow"><div class="cbx"><span class="box${i===0?" on":""}">${i===0?ICON.check:""}</span><span>${a}</span></div>${i>0?`<span class="chip ok">${k.connected}</span>`:""}</div>`).join("");
+  return `<section class="card newbadge"><h2 class="disp">${d.addons}</h2><p class="note">${d.addonsHint}</p>
+   <div class="pick"><div><b>${k.connected}</b>${con}</div>
+   ${dfield(k.search,d.addonsSearch,{ph:1})}${opt}
+   <div class="acts"><span class="btn p">${k.connectSelected}</span><span class="note">${fill(k.selected,{n:1})}</span></div></div></section>`;}
+function editor(l,w,o){const d=D[l],k=K[l],j=J[l],pub1=o.published;
+  const slug=pub1?`<div class="field"><label>${j.fieldSlug}</label><div class="input ro" dir="ltr"><span class="lockico">${ICON.lock}</span> ${V.slug}</div><p class="fixed">${ICON.lock}<span>${j.slugLocked}</span></p></div>`
+   :dfield(j.fieldSlug,o.isNew?"":V.slug,{dir:"ltr",ph:o.isNew,hint:d.slugHint});
+  const settings=`<section class="card"><h2 class="disp">${k.sec.settings}</h2><div class="switch"><span>${pub1?k.published:k.draft}</span><span class="sw${pub1?" on":""}"></span></div>
+   ${o.isNew?"":pub1?`<div class="acts"><span class="btn o dis" aria-disabled="true">${d.deletePkg}</span></div><p class="fixed newbadge">${ICON.lock}<span>${d.cannotDelete}</span></p>`:`<div class="acts"><span class="btn o newbadge" style="color:var(--color-error);border-color:var(--color-error)">${d.deletePkg}</span></div>`}</section>`;
+  const text=`<section class="card"><h2 class="disp">${k.sec.text}</h2><p class="note">${k.englishOnly}</p>
+   ${dfield(j.fieldName,o.isNew?"":v("pkg","en"),{ph:o.isNew})}${dfield(j.fieldTagline,o.isNew?"":v("tag","en"))}
+   <div class="fgrid">${dfield(j.fieldDuration,o.isNew?"":v("dur","en"))}${dfield(j.fieldIdealForLabel,o.isNew?"":v("idealL","en"))}</div>${dfield(j.fieldIdealFor,o.isNew?"":v("ideal","en"))}${dfield(j.fieldBody,o.isNew?"":v("body","en"),{area:1})}</section>`;
+  const photo=`<section class="card"><h2 class="disp">${k.sec.photo}</h2>${o.isNew?`<div class="ph-img one">${j.fieldPhoto}</div>`:`<div class="one"><img class="ph-img" src="${IMG1}" alt=""></div>`}</section>`;
+  const price=`<section class="card"><h2 class="disp">${k.sec.price}</h2>${dfield(j.fieldPrice,o.isNew?"":v("price","en"),{hint:j.priceHint,ph:o.isNew})}</section>`;
+  const addr=`<section class="card ${pub1?"":"newbadge"}"><h2 class="disp">${j.fieldSlug}</h2>${slug}</section>`;
+  const head=`<div>${back(j.title)}<div class="head"><div><h1 class="disp lh1">${o.isNew?d.newPackage:v("pkg","en")}</h1><div class="meta">${chip(pub1?k.published:k.draft,pub1?"ok":"off")}</div></div><div class="acts"><span class="btn p">${k.save}</span>${o.isNew?`<span class="btn o dis">${k.publish}</span>`:`<span class="btn o">${pub1?k.unpublish:k.publish}</span>`}</div></div></div>`;
+  const mainCol=`<div>${text}${o.legs===false?"":legsCard(l,!o.isNew)}${o.addons===false?"":(o.isNew?"":addonsCard(l))}</div>`;
+  const side=`<div>${addr}${photo}${price}${settings}</div>`;
+  const dlg=o.confirm?`<div class="scrim" role="dialog" aria-modal="true"><div class="dialog"><h2 class="disp">${fill(d.deleteTitle,{name:v("pkg",l)})}</h2><p style="margin:0">${d.deleteText}</p><div class="acts"><span class="btn p" style="background:var(--color-error);border-color:var(--color-error)">${d.deletePkg}</span><span class="btn o">${k.cancel}</span></div></div></div>`:"";
+  return shell(l,w,head+`<div class="cols">${mainCol}${side}</div>`,dlg);}
+function list(l,w){const d=D[l],k=K[l],j=J[l];
+  const rows=[[1,1],[2,1],[3,0]].map(([n,on],i)=>`<tr class="${on?"":"hid"}"><td class="t wide">${v("pkg",l)} ${n}</td><td>${v("price",l)}</td><td>${chip(on?k.published:k.draft,on?"ok":"off")}</td><td><div class="mv">${mvb(ICON.up,k.moveUp,i===0)}${mvb(ICON.dn,k.moveDown,i===2)}</div></td></tr>`).join("");
+  return shell(l,w,`<div class="head" style="border:0;padding:0"><div><h1 class="lh1 disp">${j.title}</h1><p class="note" style="margin:8px 0 0">${d.intro}</p></div><div class="acts"><span class="btn p newbadge">${d.newPackage}</span></div></div>
+   <section class="card"><table class="tbl"><thead><tr><th>${j.colName}</th><th>${j.colPrice}</th><th>${j.colShown}</th><th>${k.order}</th></tr></thead><tbody>${rows}</tbody></table></section>`);}
+// ---------- scenes ----------
+const S={};const ORDER={site:[],ops:[]};
+const add=(grp,id,what,draw)=>{S[id]={what,draw,grp};ORDER[grp].push(id);};
+add("site","home-cards","Home, Choose Your Journey: same place, same order, each card now opens its package page. Heading is the link (gold underline) and \"See this journey\" is a text link at the card's end; one of the two is hidden from screen readers so each card has one link target (decision 2). Cards keep the price line as typed.",(l,w)=>homeCards(l,w,"A"));
+add("site","package-full","Package page: photo with name and your price line, description, duration and ideal-for, Your route (three cities in order, one with a suggested stay linked to its stay page, the nights line), the Included panel (check marks, no price, no remove), Request this journey form, and \"Something else? Ask on WhatsApp\" as a text link at the end.",(l,w)=>pkgPage(l,w,{req:"idle"}));
+add("site","package-no-legs","A package without cities: the route section is gone and the form has no Cities field. Everything else is the same.",(l,w)=>pkgPage(l,w,{noLegs:true,req:"idle"}));
+add("site","request-errors","Every field error at once: leave before arrive, 0 guests, no name, a broken email, a bad phone. Each sits under its field; the first is focused.",(l,w)=>pkgPage(l,w,{req:"errors"}));
+add("site","request-sending","Filled; Send request shows Sending… and is off.",(l,w)=>pkgPage(l,w,{req:"sending"}));
+add("site","request-sent","Sent: the form is replaced by the received line (focus moves to it). It says ALMAR replies by email or WhatsApp. No amount, no pay button.",(l,w)=>pkgPage(l,w,{req:"sent"}));
+add("site","request-failed","The send failed or was refused: the line says it was not sent and offers WhatsApp; what the guest typed stays. The received line never shows here.",(l,w)=>pkgPage(l,w,{req:"failed"}));
+add("site","request-limited","Too many requests from this address: the limited line above the form; what the guest typed stays.",(l,w)=>pkgPage(l,w,{req:"limited"}));
+add("ops","journeys-list","Dashboard, Catalog, Packages: the list gains New package (dashed). Order arrows and the Shown chip are as today. The intro line no longer says \"three\".",(l,w)=>list(l,w));
+add("ops","journey-new","New package: an empty editor. Web address is typed here (hint under it), no cities or add-ons until the first Save, Publish is off, no Delete.",(l,w)=>editor(l,w,{isNew:true}));
+add("ops","journey-editor-legs","A hidden package: Cities on this journey. Each city has Destination, an optional Suggested stay (only that destination's stays; \"No suggested stay\" is a real choice), a Nights line, Move up and Move down (off at the ends) and Remove. Add a city at the end. Delete sits in Settings.",(l,w)=>editor(l,w,{published:false}));
+add("ops","journey-editor-addons","Included in this package: what is connected (with order and Remove) and a picker over the catalog (search, square tick boxes, Connect selected). Guests see these as included and cannot remove them.",(l,w)=>editor(l,w,{published:false,legs:false}));
+add("ops","journey-published-locked","A shown package: the Web address is shown as locked with its note; Delete is off with \"A shown package cannot be deleted. Hide it first.\"",(l,w)=>editor(l,w,{published:true}));
+add("ops","journey-delete","Delete while hidden asks first: the package and its cities go, the photo stays in Media.",(l,w)=>editor(l,w,{published:false,confirm:true}));
+// ---------- decisions (each option drawn; recommended first) ----------
+function miniBar(word){return `<div class="addr">almarprivatejourney.com/en/<b>${word}</b>/${V.slug}</div>`;}
+const DECS=[];
+DECS.push(`<div class="decision"><h2 style="margin:0 0 4px;font:400 20px var(--face-display);color:var(--color-teal)">Decision 1 · The word in the address</h2><p style="margin:0">Every package page lives at <code>/&lt;language&gt;/&lt;word&gt;/&lt;web address&gt;</code>. The word is the same in English, Arabic and Spanish. Any word other than <code>journeys</code> also changes the nav-target path (<code>lib/site-nav.ts</code>). Recommended: A.</p>
+ <div class="opts"><div class="opt rec"><h4>A · journeys<span class="tag">recommended</span></h4>${miniBar("journeys")}<span class="note">Matches "Choose Your Journey" and "Request this journey". No change to the nav file.</span></div>
+ <div class="opt"><h4>B · packages</h4>${miniBar("packages")}<span class="note">Matches the dashboard word "Packages". Guests never see that word on the site.</span></div>
+ <div class="opt"><h4>C · trips</h4>${miniBar("trips")}<span class="note">Shorter. Matches nothing else on the site.</span></div></div></div>`);
+DECS.push(`<div class="decision"><h2 style="margin:0 0 4px;font:400 20px var(--face-display);color:var(--color-teal)">Decision 2 · How a home card opens its page</h2><p style="margin:0">One link target per card for keyboard and screen readers in every option. Recommended: A.</p>
+ <div class="opts">${["A","B","C"].map((f,i)=>`<div class="opt${i===0?" rec":""}"><h4>${f} · ${["Heading is the link, plus \"See this journey\" text link<span class=tag>recommended</span>","Whole card is one link (stretched), \"See this journey\" as its hint","Heading plain, a teal outline button \"See this journey\""][i]}</h4><div class="pub" dir="ltr" style="width:340px;max-width:100%;border:0">${homeCard("en",0,f)}</div></div>`).join("")}</div></div>`);
+DECS.push(`<div class="decision"><h2 style="margin:0 0 4px;font:400 20px var(--face-display);color:var(--color-teal)">Decision 3 · Cities on the request form</h2><p style="margin:0">Which cities the guest wants. Recommended: A (ticked boxes, all ticked at the start, from the package's own cities; never round radio dots).</p>
+ <div class="opts"><div class="opt rec"><h4>A · Ticked boxes<span class="tag">recommended</span></h4><div class="pub" dir="ltr" style="border:0;min-height:0;padding:8px"><div class="field"><label>${P.en.cities}</label><div class="cbs">${cbx(v("d1","en"),1)}${cbx(v("d2","en"),1)}${cbx(v("d3","en"),0)}</div></div></div></div>
+ <div class="opt"><h4>B · One free-text line</h4><div class="pub" dir="ltr" style="border:0;min-height:0;padding:8px">${field(P.en.cities,"",{ph:1})}</div><span class="note">The guest types; the server cannot check it against the route.</span></div>
+ <div class="opt"><h4>C · No Cities field</h4><div class="pub" dir="ltr" style="border:0;min-height:0;padding:8px"><p class="hint" style="margin:0">(Nothing drawn: the request is for the whole route.)</p></div><span class="note">Simplest. A guest who wants fewer cities writes it in Notes.</span></div></div></div>`);
+DECS.push(`<div class="decision"><h2 style="margin:0 0 4px;font:400 20px var(--face-display);color:var(--color-teal)">Decision 4 · Where the request form sits on a wide screen</h2><p style="margin:0">Phone and tablet are the same either way (form after the route). Recommended: A.</p>
+ <div class="opts"><div class="opt rec"><h4>A · After the route and Included, full width<span class="tag">recommended</span></h4><div class="wireframe"><div class="wf" style="min-height:70px">photo, name, price line</div><div class="wf">description</div><div class="wf" style="min-height:60px">Your route</div><div class="wf">Included</div><div class="wf" style="min-height:90px;border-color:var(--color-teal)">Request this journey (form)</div><div class="wf">Ask on WhatsApp</div></div></div>
+ <div class="opt"><h4>B · A side panel beside the route (stays in view)</h4><div class="wireframe"><div class="wf" style="min-height:70px">photo, name, price line</div><div style="display:grid;grid-template-columns:2fr 1fr;gap:8px"><div class="wireframe" style="padding:6px"><div class="wf" style="min-height:50px">description</div><div class="wf" style="min-height:60px">Your route</div><div class="wf">Included</div></div><div class="wf" style="min-height:150px;border-color:var(--color-teal)">form</div></div><div class="wf">Ask on WhatsApp</div></div></div></div></div>`);
+DECS.push(`<div class="decision"><h2 style="margin:0 0 4px;font:400 20px var(--face-display);color:var(--color-teal)">Decision 5 · Where Delete lives in the dashboard</h2><p style="margin:0">Delete works only while the package is hidden. Recommended: A (as Team does).</p>
+ <div class="opts"><div class="opt rec"><h4>A · In the editor, under Settings<span class="tag">recommended</span></h4><div class="frame" dir="ltr" style="min-height:0;display:block;padding:12px;width:100%"><div class="card"><h2 class="disp">Settings</h2><div class="switch"><span>Draft</span><span class="sw"></span></div><div class="acts"><span class="btn o" style="color:var(--color-error);border-color:var(--color-error)">${D.en.deletePkg}</span></div></div></div></div>
+ <div class="opt"><h4>B · A Delete button on each hidden row of the list</h4><div class="frame" dir="ltr" style="min-height:0;display:block;padding:12px;width:100%"><table class="tbl"><tbody><tr class="hid"><td class="t">${v("pkg","en")} 3</td><td>${chip("Draft","off")}</td><td><span class="btn o" style="color:var(--color-error);border-color:var(--color-error)">${K.en.delete}</span></td></tr></tbody></table></div><span class="note">Faster, but one tap from the list to a delete question.</span></div></div></div>`);
+DECS.push(`<div class="decision"><h2 style="margin:0 0 4px;font:400 20px var(--face-display);color:var(--color-teal)">Decision 6 · The title of the Included panel</h2><p style="margin:0">The panel is the one the stay pages already use. Recommended: A (no change to the stay pages).</p>
+ <div class="opts"><div class="opt rec"><h4>A · The existing words<span class="tag">recommended</span></h4><div class="pub" dir="ltr" style="border:0;min-height:0;padding:8px"><div class="incl"><div class="hd2"><h2>${INC.en.title}</h2><span>${INC.en.note}</span></div><ul><li>${ICON.check}<span>${v("a1","en")}</span></li></ul></div></div></div>
+ <div class="opt"><h4>B · The plan's one word "Included", no note</h4><div class="pub" dir="ltr" style="border:0;min-height:0;padding:8px"><div class="incl"><div class="hd2"><h2>Included</h2></div><ul><li>${ICON.check}<span>${v("a1","en")}</span></li></ul></div></div><span class="note">Needs a copy change in the shared inclusions panel.</span></div></div></div>`);
+document.getElementById("decisions").innerHTML=`<h2 style="font:400 32px var(--face-display);color:var(--color-teal);margin:16px 0 0">Decisions for you</h2>`+DECS.join("");
+// draft strings table
+{const rows=[];
+ for(const k of Object.keys(P.en)){ if(k==="err")continue; rows.push(["public",k,P.en[k],P.ar[k],P.es[k]]);}
+ for(const k of Object.keys(P.en.err)) rows.push(["public",`err.${k}`,P.en.err[k],P.ar.err[k],P.es.err[k]]);
+ for(const k of Object.keys(D.en)) rows.push(["dashboard",k,D.en[k],D[("ar")][k],D.es[k]]);
+ let t='<table class="tbl" style="width:100%;border-collapse:collapse;font-size:13px"><tr><th align="start">where</th><th align="start">key</th><th align="start">EN</th><th align="start">AR <span class="draft">draft for signature</span></th><th align="start">ES <span class="draft">draft for signature</span></th></tr>';
+ for(const r of rows) t+=`<tr style="border-top:1px solid var(--color-line);vertical-align:top"><td>${r[0]}</td><td><code>${r[1]}</code></td><td>${esc(r[2])}</td><td dir="rtl" style="font-family:'Noto Sans Arabic',sans-serif">${esc(r[3])}</td><td>${esc(r[4])}</td></tr>`;
+ document.getElementById("table").innerHTML=t+"</table>";}
+// ---------- render ----------
+const ALL=[...ORDER.site,...ORDER.ops];
+const sel=document.getElementById("scene");
+sel.innerHTML=`<option value="all">All (${ALL.length})</option><optgroup label="public (${ORDER.site.length})">${ORDER.site.map(s=>`<option>${s}</option>`).join("")}</optgroup><optgroup label="dashboard (${ORDER.ops.length})">${ORDER.ops.map(s=>`<option>${s}</option>`).join("")}</optgroup>`;
+let html="";
+for(const grp of ["site","ops"]){
+  html+=`<h2 style="font:400 32px var(--face-display);color:var(--color-teal);margin:32px 0 16px" data-grp="${grp}">${grp==="site"?"Public site":"Dashboard (Catalog, Packages)"}</h2>`;
+  for(const s of ORDER[grp]){
+    const sc=S[s];
+    html+=`<section class="st" data-st="${s}"><h2>${s}</h2><p>${sc.what}</p>`;
+    for(const l of ["en","ar","es"]) for(const w of [390,834,1440])
+      html+=`<div class="shot" data-l="${l}" data-w="${w}"><p class="cap">${s}-${l}-${w} ${l!=="en"?'<span class="rv">'+l.toUpperCase()+': draft for signature</span>':""}</p><div class="scroller"><div class="scaler" data-w="${w}">${sc.draw(l,w)}</div></div></div>`;
+    html+=`</section>`;
+  }
+}
+document.getElementById("shots").innerHTML=html;
+const f={l:"all",w:"all",z:"fit",s:"all"};
+try{const h=location.hash.slice(1);if(S[h]){f.s=h;sel.value=h;}}catch(e){}
+function apply(){
+  document.querySelectorAll(".st").forEach(e=>{e.hidden=!(f.s==="all"||e.dataset.st===f.s);});
+  document.querySelectorAll("[data-grp]").forEach(e=>{e.hidden=f.s!=="all";});
+  document.querySelectorAll(".shot").forEach(e=>{e.hidden=!((f.l==="all"||e.dataset.l===f.l)&&(f.w==="all"||e.dataset.w===f.w));});
+  document.querySelectorAll(".st:not([hidden]) .shot:not([hidden]) .scaler").forEach(e=>{const w=+e.dataset.w;const avail=e.parentElement.clientWidth-4;const k=f.z==="fit"?Math.min(1,avail/(w+2)):1;e.style.transform=`scale(${k})`;e.parentElement.style.height=(e.firstElementChild.offsetHeight*k+8)+"px";e.parentElement.style.overflowX=k<1?"hidden":"auto";});
+}
+sel.addEventListener("change",()=>{f.s=sel.value;history.replaceState(null,"","#"+(f.s==="all"?"":f.s));apply();});
+document.querySelectorAll("#top button").forEach(b=>b.addEventListener("click",()=>{
+  const k=Object.keys(b.dataset)[0];f[k]=b.dataset[k];document.querySelectorAll(`#top button[data-${k}]`).forEach(x=>x.setAttribute("aria-pressed",x===b));apply();
+}));
+addEventListener("resize",apply);document.fonts?.ready.then(apply);addEventListener("load",apply);apply();
+</script>
+</body></html>

@@ -15,8 +15,8 @@
 import { ROOT_REDIRECT_HEADERS, legacyLocaleTarget, rootLocaleTarget } from "../lib/locale-redirect.ts";
 
 /**
- * Review fix (PR #16 round 1): the byte caps of the two public form handlers, the same numbers as
- * INQUIRY_LIMITS.body (lib/contact-inquiry.ts) and MAX_BODY_BYTES (app/newsletter/route.ts); tests/server-runtime.test.mjs
+ * Review fix (PR #16 round 1): the byte caps of the public form handlers, the same numbers as
+ * INQUIRY_LIMITS.body (lib/contact-inquiry.ts), MAX_BODY_BYTES (app/newsletter/route.ts) and SITE_REQUEST_BODY_LIMIT; tests/server-runtime.test.mjs
  * pins them. OpenNext reads a POST body whole before the route runs, so a POST whose Content-Length is above its
  * route's cap is answered 413 here, before Next, with the route's own 413 (JSON {"ok":false}, no-store, noindex). A
  * missing or non-numeric Content-Length (a chunked upload) goes on to the route, whose own cap still applies while it
@@ -25,7 +25,23 @@ import { ROOT_REDIRECT_HEADERS, legacyLocaleTarget, rootLocaleTarget } from "../
 export const FORM_BODY_CAPS = new Map([
   ["/api/contact", 16384],
   ["/newsletter", 8192],
+  // Plan 06-05: SITE_REQUEST_BODY_LIMIT (lib/site-requests/validate.ts).
+  ["/api/requests", 16384],
+  ["/api/consult/book", 16384],
+  // Plan 06-07: SAVED_STAYS_BODY_LIMIT (lib/saved-stays/route.ts).
+  ["/api/saved-stays", 256],
 ]);
+
+/**
+ * Plan 06-04 (SITE-11): the three headers of every Worker answer, the same as the /* block of the repo-root _headers. Never
+ * no-referrer here: it sends Origin: null and breaks server actions. A route's own value stays (the auth hand-off sets
+ * no-referrer on its redirect). tests/server-runtime.test.mjs pins these against _headers.
+ */
+export const SECURITY_HEADERS = {
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "permissions-policy": "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+};
 
 /** The declared length of a form POST is above its route's cap. */
 function declaredTooLarge(request, pathname) {
@@ -46,15 +62,15 @@ export async function handle(request, env, ctx, { serverPaths, nextFetch, rootRe
   const { pathname, search } = new URL(request.url);
   if (rootRedirect && pathname === "/" && (request.method === "GET" || request.method === "HEAD")) {
     const location = `${rootLocaleTarget(request.headers.get("cookie"))}${search}`;
-    return new Response(null, { status: 302, headers: { location, ...ROOT_REDIRECT_HEADERS } });
+    return new Response(null, { status: 302, headers: { location, ...ROOT_REDIRECT_HEADERS, ...SECURITY_HEADERS } });
   }
   // The old unprefixed pages are 301s in public/_redirects (asset layer). Should one reach the Worker anyway (a path
   // added to run_worker_first, or the asset layer not keeping a query), it gets the same 301 here, query kept.
   const legacy = rootRedirect && (request.method === "GET" || request.method === "HEAD") ? legacyLocaleTarget(pathname) : null;
-  if (legacy) return new Response(null, { status: 301, headers: { location: `${legacy}${search}` } });
+  if (legacy) return new Response(null, { status: 301, headers: { location: `${legacy}${search}`, ...SECURITY_HEADERS } });
   if (!serverPaths.has(pathname)) return env.ASSETS.fetch(request);
   if (declaredTooLarge(request, pathname)) {
-    return Response.json({ ok: false }, { status: 413, headers: { "cache-control": "no-store", "x-robots-tag": "noindex" } });
+    return Response.json({ ok: false }, { status: 413, headers: { "cache-control": "no-store", "x-robots-tag": "noindex", ...SECURITY_HEADERS } });
   }
 
   // Next trusts these two headers (OpenNext copies x-forwarded-host into Host, and reads the client address from
@@ -73,5 +89,8 @@ export async function handle(request, env, ctx, { serverPaths, nextFetch, rootRe
   // A server answer is never a page to index, on either host.
   const out = new Headers(response.headers);
   out.set("x-robots-tag", "noindex");
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    if (!out.has(name)) out.set(name, value);
+  }
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers: out });
 }

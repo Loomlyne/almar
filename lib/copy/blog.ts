@@ -21,6 +21,13 @@ export type BlogCopy = {
     /** The page h1 (board k20). */
     heading: string;
     empty: string;
+    /** The search box over the cards (plan 06-03, signed 2026-10-27). */
+    searchLabel: string;
+    searchClear: string;
+    /** `{q}` is the query as typed. */
+    searchNoMatch: string;
+    /** The result line: "#" is the number of stories shown. */
+    searchCount: PluralForms;
   };
   post: {
     /** The kicker over the title in the hero. */
@@ -61,6 +68,10 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
       kicker: "Blog / News",
       heading: "Travel Insights",
       empty: "No stories yet.",
+      searchLabel: "Search stories",
+      searchClear: "Clear",
+      searchNoMatch: "No story matches “{q}”.",
+      searchCount: { one: "# story", other: "# stories" },
     },
     post: {
       kicker: "ALMAR Journal",
@@ -92,6 +103,10 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
       kicker: "المدونة / الأخبار",
       heading: "رؤى السفر",
       empty: "لا توجد حكايات بعد.",
+      searchLabel: "ابحثوا في الحكايات",
+      searchClear: "مسح",
+      searchNoMatch: "لا توجد حكاية تطابق «{q}».",
+      searchCount: { one: "حكاية واحدة", two: "حكايتان", few: "# حكايات", many: "# حكاية", other: "# حكاية" },
     },
     post: {
       kicker: "مجلة ALMAR",
@@ -129,6 +144,10 @@ export const BLOG_COPY: Record<BlogLocale, BlogCopy> = {
       kicker: "Blog / Noticias",
       heading: "Guías de viaje",
       empty: "Aún no hay historias.",
+      searchLabel: "Buscar historias",
+      searchClear: "Borrar",
+      searchNoMatch: "Ninguna historia coincide con «{q}».",
+      searchCount: { one: "# historia", other: "# historias" },
     },
     post: {
       kicker: "Diario ALMAR",

@@ -117,9 +117,13 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
         "/api/booking/request",
         "/api/booking/view",
         "/api/booking/withdraw",
+        "/api/consult/book",
+        "/api/consult/slots",
         "/api/contact",
         "/api/health",
         "/api/preferences",
+        "/api/requests",
+        "/api/saved-stays",
         ...JOB02_SERVER_PATHS,
         "/newsletter",
       ].sort(),
@@ -392,7 +396,7 @@ test.describe(`server runtime on ${CONFIG} (${FOLDER}/)`, () => {
   test("10. review fix (PR #16): a form POST declaring more than its route's cap is 413 from the Worker, before Next", async ({ request }) => {
     // No Origin: Next would answer 403 first, so a 413 here can only come from worker/handle.mjs. At the cap the same
     // post reaches the route (403), so the guard turns away only what is too large.
-    for (const [path, cap] of [["/api/contact", 16384], ["/newsletter", 8192]] as const) {
+    for (const [path, cap] of [["/api/contact", 16384], ["/newsletter", 8192], ["/api/requests", 16384], ["/api/consult/book", 16384]] as const) {
       const post = (bytes: number) =>
         request.post(path, { data: "x".repeat(bytes), headers: { "content-type": "application/x-www-form-urlencoded" }, maxRedirects: 0 });
       const big = await post(cap + 1);

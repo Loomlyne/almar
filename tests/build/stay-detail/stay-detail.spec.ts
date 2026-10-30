@@ -752,7 +752,7 @@ for (const slug of FOCUS) {
           const c = await context(locale, slug);
           const watched = await load(page, c, size);
           const related = await getRelatedStays(locale, slug, { limit: 3 });
-          const cards = page.locator("#related ul a");
+          const cards = page.locator("#related ul a[href*='/private-stays/']");
           await expect(cards).toHaveCount(related.length);
           expect(related.length).toBe(3);
           const shown = await cards.evaluateAll((els) => els.filter((el) => el.getClientRects().length > 0).length);

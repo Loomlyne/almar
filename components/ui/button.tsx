@@ -14,7 +14,7 @@ const button = cva(
         secondary:
           "uppercase tracking-kicker ar:normal-case ar:tracking-normal bg-transparent text-teal border-teal hover:bg-teal-tint active:bg-teal-tint active:border-teal-press",
         ghost:
-          "bg-transparent text-teal border-transparent hover:underline decoration-gold decoration-1 underline-offset-4",
+          "bg-transparent text-teal border-transparent hover:bg-teal-tint active:bg-teal-tint",
         danger: "bg-transparent text-ink border-error hover:bg-line active:bg-line",
         // The Framer pages' buttons: gold is the 1px border only. 14px on a phone, 16px from md.
         outline: "bg-transparent text-teal border-gold hover:bg-teal-tint md:text-body",
@@ -30,7 +30,7 @@ const button = cva(
       journey: {
         true: "",
         false:
-          "disabled:bg-ivory disabled:border-line disabled:text-muted disabled:no-underline",
+          "disabled:bg-ivory disabled:border-line disabled:text-muted",
       },
     },
     defaultVariants: { variant: "primary", size: "md", journey: false },
@@ -54,7 +54,7 @@ type LinkButtonProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
 /** A link with the Button look: always live, no disabled state. Use it for navigation and wa.me links. */
 export function LinkButton({ href, variant = "primary", size, className, children, ...rest }: LinkButtonProps) {
   return (
-    <a href={href} className={cn(buttonClass({ variant, size }), "no-underline", className)} {...rest}>
+    <a href={href} className={cn(buttonClass({ variant, size }), className)} {...rest}>
       {children}
     </a>
   );

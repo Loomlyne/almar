@@ -40,6 +40,8 @@ export type StayForm = {
   gallery: MediaRef[];
   /** Experiences and services connected to this stay, in the order guests see them. */
   connected: string[];
+  /** The Arabic and Spanish fields the owner fixed by hand (I18N-04, plan 06-01): saved as `locked_fields`. */
+  locked: Record<Target, string[]>;
 };
 
 export type FactKey = keyof StayFacts;
@@ -70,6 +72,7 @@ export function emptyStayForm(): StayForm {
     hero: null,
     gallery: [],
     connected: [],
+    locked: { ar: [], es: [] },
   };
 }
 
@@ -103,6 +106,10 @@ export function stayForm(stay: StayDetail): StayForm {
     hero: stay.hero,
     gallery: [...stay.gallery],
     connected: [...stay.experience_ids, ...stay.service_ids],
+    locked: {
+      ar: [...(stay.translations.ar?.locked_fields ?? [])].sort(),
+      es: [...(stay.translations.es?.locked_fields ?? [])].sort(),
+    },
   };
 }
 
@@ -222,8 +229,11 @@ export function stayPayload(
     const next = record(now);
     if (locale !== "en" && next.title === "") continue;
     const status = publish || live[locale] ? "published" : "draft";
-    const changed = !same(next, record(before)) || (status === "published" && !live[locale]);
-    if (create ? locale === "en" || changed : changed) translations[locale] = { ...next, status };
+    // I18N-04: a lock set or taken off is a change of that language too; its record carries the whole list (set, not merged).
+    const locks = locale === "en" ? null : form.locked[locale];
+    const lockChanged = locale !== "en" && !same(form.locked[locale], saved.locked[locale]);
+    const changed = !same(next, record(before)) || lockChanged || (status === "published" && !live[locale]);
+    if (create ? locale === "en" || changed : changed) translations[locale] = locks ? { ...next, status, locked_fields: [...locks] } : { ...next, status };
   }
 
   const item: Record<string, unknown> = {

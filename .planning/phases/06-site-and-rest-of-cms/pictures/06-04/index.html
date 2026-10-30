@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAR 06-04 pictures: legal and cookies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+Arabic:wght@400;600&family=Noto+Naskh+Arabic&display=swap">
+<style>
+/* Tokens copied from tokens.json (2026-10-27). Square corners everywhere; gold is a line only; teal is the primary. */
+:root{
+  --color-ivory:#fffaf0;--color-surface:#ffffff;--color-teal:#1f3b40;--color-teal-tint:#d1dfe0;--color-gold:#d4ba8a;
+  --color-ink:#262626;--color-muted:#63615f;--color-line:rgb(38 38 38 / 0.16);--color-error:#8f2d2d;
+  --control:44px;--sidebar:240px;
+  --face-display:Georgia,"Times New Roman",serif;
+  --face-body:"Lato",Arial,sans-serif;
+  --shadow-selected:inset 0 0 0 2px var(--color-teal);
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;background:#ece8df;color:var(--color-ink);font-family:var(--face-body);font-size:14px}
+/* ---------- review page chrome (not product UI) ---------- */
+#top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 20px;background:var(--color-teal);color:var(--color-ivory)}
+#top h1{font:400 18px var(--face-display);margin:0;margin-inline-end:auto}
+#top .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#top .grp span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-inline-end:4px}
+#top button,#top select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid rgba(255,250,240,.5);background:transparent;color:var(--color-ivory);cursor:pointer}
+#top select option{color:#000}
+#top button[aria-pressed=true]{background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)}
+#main{padding:20px 24px 80px}
+.banner{background:var(--color-ivory);border:1px solid var(--color-gold);padding:12px 16px;margin-bottom:24px;font-size:14px;line-height:1.55;max-width:1100px}
+.banner ol{margin:6px 0 0;padding-inline-start:20px}
+.banner code{font:13px ui-monospace,Menlo,monospace}
+.decision{border:2px solid var(--color-teal);background:#fff;padding:12px 16px;margin:12px 0 0}
+.st{margin:0 0 48px}
+.st>h2{font:400 22px var(--face-display);color:var(--color-teal);margin:0 0 4px}
+.st>p{margin:0 0 12px;max-width:900px;line-height:1.5}
+.shot{margin:0 0 28px}
+.shot .cap{font:600 13px ui-monospace,Menlo,monospace;margin:0 0 6px}
+.scroller{overflow-x:auto;padding-bottom:6px}
+.scaler{transform-origin:top left}
+.rv{font:12px ui-monospace,Menlo,monospace;background:#fff3c4;color:#4a3b00;padding:2px 6px;display:inline-block;direction:ltr}
+.newbadge{outline:2px dashed var(--color-gold);outline-offset:4px}
+/* ---------- dashboard frame ---------- */
+.frame{background:var(--color-ivory);color:var(--color-ink);font:14px/1.43 var(--face-body);border:1px solid var(--color-line);display:flex;min-height:640px;position:relative}
+.frame[dir=rtl],.pub[dir=rtl]{font-family:"Noto Sans Arabic",var(--face-body);line-height:1.63}
+.frame[dir=rtl] .disp,.pub[dir=rtl] .disp{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.4}
+.rail{width:var(--sidebar);flex:none;border-inline-end:1px solid var(--color-line);padding:20px 16px;display:flex;flex-direction:column;gap:2px}
+.rail .mark{font:400 20px var(--face-display);letter-spacing:.06em;margin-bottom:20px}
+.rail a{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:40px;padding:0 12px;color:var(--color-ink);text-decoration:none}
+.rail a.sub{padding-inline-start:28px}
+.rail a.on{box-shadow:inset 3px 0 0 var(--color-teal);background:var(--color-surface);color:var(--color-teal)}
+.frame[dir=rtl] .rail a.on{box-shadow:inset -3px 0 0 var(--color-teal)}
+.rail .soon{font-size:12px;color:var(--color-muted);border:1px solid var(--color-line);padding:0 6px}
+.bar{display:none;align-items:center;justify-content:space-between;height:56px;padding:0 16px;border-bottom:1px solid var(--color-line)}
+.bar .mark{font:400 18px var(--face-display);letter-spacing:.06em}
+.bar .menu{min-height:var(--control);min-width:var(--control);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-teal)}
+.col{flex:1;min-width:0;display:flex;flex-direction:column}
+.page{padding:24px 32px 48px;display:flex;flex-direction:column;gap:24px;max-width:1240px}
+.narrow .rail{display:none}.narrow .bar{display:flex}.narrow .page{padding:16px 16px 40px}
+.back{display:inline-flex;align-items:center;gap:4px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;width:max-content}
+.back svg{transform:rotate(180deg)}.frame[dir=rtl] .back svg{transform:none}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid var(--color-line);padding-bottom:16px}
+.head h1,.lh1{margin:0;font:400 32px/1.2 var(--face-display);color:var(--color-teal)}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border:1px solid var(--color-teal);color:var(--color-teal);font-size:12px;white-space:nowrap}
+.chip.off{border-color:var(--color-line);color:var(--color-muted)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{min-height:var(--control);padding:0 20px;font:inherit;border:1px solid var(--color-teal);display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.o{background:var(--color-surface);color:var(--color-teal)}
+.btn.p{background:var(--color-teal);color:#fff}
+.btn.dis{opacity:.45}
+.btn.sq{padding:0;width:var(--control);justify-content:center}
+.card{border:1px solid var(--color-line);background:var(--color-surface);padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.narrow .card{padding:16px}
+.card h2{margin:0;font:400 20px/1.3 var(--face-display);color:var(--color-teal)}
+.note{margin:0;color:var(--color-muted)}
+.cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}
+.cols>div{display:flex;flex-direction:column;gap:24px;min-width:0}
+.narrow .cols{grid-template-columns:1fr}
+.field{display:grid;gap:8px;min-width:0}
+.input{min-height:var(--control);border:1px solid var(--color-ink);background:var(--color-surface);padding:8px 16px;font:inherit;color:var(--color-ink);width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+.input.area{min-height:96px}
+.input.bad{border-color:var(--color-error);box-shadow:inset 0 0 0 1px var(--color-error)}
+.input.ph{color:var(--color-muted)}
+.input.sel{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.input.ro{border-color:var(--color-line);background:var(--color-ivory)}
+.err{margin:0;border-inline-start:2px solid var(--color-error);padding-inline-start:8px;color:var(--color-ink)}
+.link{display:inline-flex;align-items:center;gap:8px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-decoration-thickness:1px;text-underline-offset:4px;background:none;border:0;padding:0;font:inherit;width:max-content}
+.link.red{color:var(--color-error);text-decoration-color:var(--color-error)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:var(--control)}
+.sw{width:44px;height:24px;border:1px solid var(--color-ink);background:var(--color-surface);position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:16px;height:16px;background:var(--color-muted)}
+.sw.on{background:var(--color-teal);border-color:var(--color-teal)}.sw.on::after{inset-inline-start:23px;background:#fff}
+.fixed{display:flex;gap:8px;align-items:flex-start;color:var(--color-muted)}
+.fixed svg{flex:none;margin-top:2px}
+/* tables (ListTable) */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-weight:400;color:var(--color-muted);text-align:start;padding:8px 12px;border-bottom:1px solid var(--color-line);font-size:12px}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--color-line);vertical-align:middle}
+.tbl td.t{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px}
+.tbl tr.hid td.t{color:var(--color-muted)}
+.tbl tr.fix td{color:var(--color-muted)}
+.tbl .mv{display:flex;gap:4px;justify-content:flex-end}
+.narrow:not(.mid) .tbl thead{display:none}
+.narrow:not(.mid) .tbl tr{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 0;border-bottom:1px solid var(--color-line)}
+.narrow:not(.mid) .tbl td{border:0;padding:0}
+.narrow:not(.mid) .tbl td.wide{grid-column:1/-1}
+.narrow:not(.mid) .tbl .mv{justify-content:flex-start}
+/* media */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+.tile{display:flex;flex-direction:column;gap:4px}
+.tile img,.ph-img{width:100%;aspect-ratio:3/2;object-fit:cover;display:block;background:var(--color-teal-tint)}
+.ph-img{display:flex;align-items:center;justify-content:center;color:var(--color-muted);border:1px dashed var(--color-line)}
+.one{max-width:320px}
+/* toggle cards (never radio) */
+.tcards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.narrow:not(.mid) .tcards{grid-template-columns:1fr}
+.tcard{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;min-height:var(--control);display:flex;flex-direction:column;gap:4px}
+.tcard.on{box-shadow:var(--shadow-selected);border-color:var(--color-teal)}
+.tcard b{font-weight:700;color:var(--color-ink)}
+/* lock line (06-01, signed) */
+.lockline{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 16px;color:var(--color-muted);margin-top:-4px}
+.narrow:not(.mid) .lockline{grid-template-columns:1fr}
+.lockline .txt{display:flex;align-items:flex-start;gap:6px}
+.boxes{display:grid;gap:16px;grid-template-columns:1fr 1fr}.narrow:not(.mid) .boxes{grid-template-columns:1fr}
+.lang{border:1px solid var(--color-line);background:var(--color-ivory);padding:16px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.lang h3{margin:0;font-weight:400;color:var(--color-muted)}
+/* dialog */
+.scrim{position:absolute;inset:0;background:rgb(38 38 38 / .45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}
+.dialog{background:var(--color-surface);border:1px solid var(--color-line);padding:24px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:16px}
+.dialog h2{margin:0;font:400 20px var(--face-display);color:var(--color-teal)}
+/* ---------- public frame ---------- */
+.pub{background:var(--color-ivory);color:var(--color-ink);font:16px/1.5 var(--face-body);border:1px solid var(--color-line);min-height:640px}
+.phd{display:flex;align-items:center;gap:28px;padding:16px 40px;border-bottom:1px solid var(--color-line);background:var(--color-ivory)}
+.phd img.wm{height:44px;display:block}
+.phd nav{display:flex;gap:24px;margin-inline-end:auto}
+.phd a{color:var(--color-ink);text-decoration:none;white-space:nowrap}
+.phd .tools{display:flex;gap:16px;align-items:center;color:var(--color-ink)}
+.phd .login{border:1px solid var(--color-teal);color:var(--color-teal);padding:8px 16px}
+.pnarrow .phd{padding:12px 16px}.pnarrow .phd nav,.pnarrow .phd .tools{display:none}
+.pnarrow .phd .burger{display:inline-flex;margin-inline-start:auto}
+.phd .burger{display:none;width:44px;height:44px;border:1px solid var(--color-line);align-items:center;justify-content:center;color:var(--color-teal)}
+.hero{position:relative;min-height:520px;display:flex;align-items:flex-end;color:#fff}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgb(0 0 0 / .55),rgb(0 0 0 / 0) 60%)}
+.hero .in{position:relative;z-index:1;padding:48px 40px;display:flex;flex-direction:column;gap:12px;width:100%}
+.pnarrow .hero{min-height:420px}.pnarrow .hero .in{padding:24px 16px}
+.hero h1{margin:0;font:400 64px/1.1 var(--face-display)}.pnarrow .hero h1{font-size:40px}
+.kick{font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.pub[dir=rtl] .kick{letter-spacing:0}
+.booker{background:var(--color-surface);border:1px solid var(--color-line);min-height:64px;display:grid;grid-template-columns:repeat(3,1fr) auto;max-width:880px}
+.booker span{border-inline-end:1px solid var(--color-line)}.booker b{background:var(--color-teal);width:120px}
+.pnarrow .booker{grid-template-columns:1fr;min-height:56px}.pnarrow .booker span{display:none}.pnarrow .booker b{width:100%}
+.vid{position:absolute;top:16px;inset-inline-end:16px;z-index:2}
+.sec{padding:64px 40px;display:flex;flex-direction:column;gap:16px;max-width:1240px;margin:0 auto}
+.pnarrow .sec{padding:40px 16px}
+.sec h2{margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)}.pnarrow .sec h2{font-size:32px}
+.sec p{margin:0;max-width:640px}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.pnarrow .cards3{grid-template-columns:1fr}.pmid .cards3{grid-template-columns:1fr 1fr}
+.cards3 img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.cards3 h3{margin:12px 0 0;font:400 20px var(--face-display)}
+.ghost{height:140px;background:repeating-linear-gradient(135deg,transparent 0 10px,rgb(38 38 38 / .05) 10px 11px);border-top:1px solid var(--color-line)}
+.band{width:100%;aspect-ratio:16/6;object-fit:cover;display:block}.pnarrow .band{aspect-ratio:4/3}
+.pfoot{background:var(--color-teal);color:var(--color-ivory);padding:48px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.pnarrow .pfoot{grid-template-columns:1fr;padding:32px 16px}
+.pfoot h4{margin:0 0 12px;font-weight:400;font-size:12px;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+.pub[dir=rtl] .pfoot h4{letter-spacing:0}
+.pfoot a{display:flex;align-items:center;gap:6px;color:var(--color-ivory);text-decoration:none;min-height:32px}
+.sr{font-size:11px;opacity:.7}
+/* ---------- 06-04 additions ---------- */
+.vp{position:relative;overflow:hidden;background:var(--color-ivory);border:1px solid var(--color-line)}
+.vp .hero{min-height:0;height:100%}
+.float{position:absolute;inset-inline-end:16px;bottom:16px;width:44px;height:44px;background:#25D366;color:var(--color-ink);display:flex;align-items:center;justify-content:center;z-index:3}
+.cb{position:absolute;inset-inline:16px;bottom:76px;max-width:720px;background:var(--color-surface);border:1px solid var(--color-line);border-top:1px solid var(--color-gold);padding:20px 24px;display:flex;flex-direction:column;gap:12px;z-index:4;color:var(--color-ink)}
+.pnarrow .cb{padding:16px}
+.cb h2{margin:0;font:400 20px/1.3 var(--face-display);color:var(--color-teal)}
+.cb p{margin:0}
+.cb .row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.pnarrow .cb .row .btn{flex:1 1 100%;justify-content:center}
+.plink{display:inline-flex;align-items:center;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-decoration-thickness:1px;text-underline-offset:4px}
+.vp .scrim{z-index:5;align-items:center}
+.sheet{background:var(--color-surface);border:1px solid var(--color-line);border-top:1px solid var(--color-gold);padding:24px;max-width:520px;width:100%;display:flex;flex-direction:column;gap:16px;color:var(--color-ink)}
+.pnarrow .sheet{padding:16px}
+.sheet .top{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.sheet h2{margin:0;font:400 20px/1.3 var(--face-display);color:var(--color-teal)}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-top:1px solid var(--color-line);padding-top:16px}
+.crow b{display:block;font-weight:700}
+.crow .ctl{display:flex;align-items:center;gap:12px;flex:none;min-height:var(--control)}
+.crow .ctl .note{font-size:14px}
+.sw.dis{opacity:.55}
+.urlbar{font:13px ui-monospace,Menlo,monospace;direction:ltr;text-align:left;background:#fff;border:1px solid var(--color-line);padding:6px 12px;margin:0 0 8px;width:max-content;max-width:100%}
+.art{max-width:760px}
+.art h1{margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)}.pnarrow .art h1{font-size:32px}
+.art h2{margin:16px 0 0;font:400 32px/1.2 var(--face-display);color:var(--color-teal)}.pnarrow .art h2{font-size:20px}
+.art blockquote{margin:0;border-inline-start:1px solid var(--color-gold);padding-inline-start:20px;font:400 20px/1.5 var(--face-display);color:var(--color-teal)}
+.lf{background:var(--color-ivory);color:var(--color-ink);padding:0 32px 48px}
+.lf .div{display:flex;align-items:center;gap:12px;margin:0 0 48px}.lf .div i{flex:1;height:1px;background:var(--color-teal-tint)}.lf .div b{width:12px;height:12px;transform:rotate(45deg);border:1px solid var(--color-gold);background:var(--color-ivory)}
+.lf .wmk{display:block;margin:0 auto;height:48px}
+.lf .cols3{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:32px}
+.fnarrow .cols3{grid-template-columns:1fr}
+.lf h4,.df h4{margin:0 0 8px;font-weight:400;font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.pub[dir=rtl] .lf h4,.pub[dir=rtl] .df h4{letter-spacing:0}
+.fl{display:flex;align-items:center;min-height:44px;color:inherit;text-decoration:none}
+.fl:hover{text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px}
+.fl.ul{text-decoration:underline;text-decoration-color:var(--color-gold);text-decoration-thickness:1px;text-underline-offset:4px}
+.legalrow{margin-top:32px;border-top:1px solid var(--color-teal-tint);padding-top:8px;display:flex;flex-wrap:wrap;gap:0 24px;align-items:center}
+.legalrow h4{margin:0;margin-inline-end:8px}
+.lf .bot{margin-top:8px;border-top:1px solid var(--color-teal-tint);padding-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:center;font-size:14px}
+.fnarrow .lf .bot,.fnarrow .df .bot{grid-template-columns:1fr}
+.lf .bot .mid{text-align:center}.fnarrow .lf .bot .mid{text-align:start}.lf .bot .end{justify-self:end}.fnarrow .lf .bot .end{justify-self:start}
+.df{background:var(--color-teal);color:var(--color-ivory);padding:48px 32px;border-top:1px solid var(--color-ivory)}
+.df .logo{font:400 32px/1.2 var(--face-display);letter-spacing:.16em;padding-bottom:24px;margin-bottom:32px;border-bottom:1px solid var(--color-ivory)}
+.df .cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}.fnarrow .df .cols3{grid-template-columns:1fr}
+.df .legalrow{border-top-color:var(--color-ivory)}
+.df .bot{margin-top:8px;border-top:1px solid var(--color-ivory);padding-top:16px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:center;font-size:14px}
+.df .legalrow+.bot{margin-top:0;border-top:0;padding-top:8px}
+.tone{font:12px ui-monospace,Menlo,monospace;background:#fff3c4;color:#4a3b00;padding:2px 6px;display:inline-block;margin:8px 0 4px;direction:ltr}
+.tconfirm{border:1px solid var(--color-gold);background:#fff;padding:8px 12px;margin-top:8px}
+.lockedbox{border-inline-start:1px solid var(--color-gold);padding-inline-start:12px}
+</style></head>
+<body>
+<div id="top">
+  <h1>06-04 · Cookie banner, legal pages, footer and Legal editor · pictures for signature</h1>
+  <div class="grp"><span>Scene</span><select id="scene"></select></div>
+  <div class="grp"><span>Language</span><button data-l="all" aria-pressed="true">All</button><button data-l="en">EN</button><button data-l="ar">AR</button><button data-l="es">ES</button></div>
+  <div class="grp"><span>Width</span><button data-w="all" aria-pressed="true">All</button><button data-w="390">390</button><button data-w="834">834</button><button data-w="1440">1440</button></div>
+  <div class="grp"><span>Size</span><button data-z="fit" aria-pressed="true">Fit</button><button data-z="1">100%</button></div>
+</div>
+<div id="main">
+  <div class="banner">
+    <strong>What this adds.</strong> A cookie banner on the public site (first visit only, at the bottom, above the WhatsApp button), a
+    Cookie settings sheet, five legal pages the owner writes in the dashboard (Privacy policy, Terms of use, Booking terms, Waiver,
+    Disclaimer), their links and a Cookie settings link in the footer, and Dashboard → Content → <em>Legal</em> to write them and the banner.
+    <strong>No legal or cookie wording is drawn.</strong> Every owner text is a <code>[bracketed stand-in]</code>; every other word on the page is a UI label.
+    Footer links appear only for pages that are published in all three languages; with none published the footer is today's footer.
+    <p style="margin:8px 0 0">Your checks, in order:</p>
+    <ol>
+      <li><code>banner-first-visit-en-390</code>: a bottom sheet with your banner title and text (bracketed stand-ins), "Accept analytics" (teal), "Necessary only", "Cookie settings"; square corners; the WhatsApp button still reachable (the sheet sits above it).</li>
+      <li><code>settings-open-ar-834</code>: right to left; Necessary with a switch that is on and cannot be changed ("Always on"); Analytics with a switch that is off; no round radio buttons.</li>
+      <li><code>legal-page-es-1440</code>: the address word is <code>/es/legal/privacy</code> (say if you want another word); the page is your text only.</li>
+      <li><code>footer-links-en-1440</code> and <code>footer-none-en-1440</code>: with pages published, their titles and "Cookie settings" in the bottom row; with nothing published, today's footer.</li>
+      <li><code>legal-edit-banner-en-1440</code> and <code>legal-list-es-834</code>: the six kinds, the four banner fields, Spanish in usted.</li>
+      <li>Confirm the cookie lifetime (to confirm): <strong>[180 days]</strong>.</li>
+    </ol>
+    <div class="tconfirm"><strong>To confirm.</strong> Cookie lifetime of the visitor's choice: <strong>[180 days]</strong>. URL word: <code>/&lt;locale&gt;/legal/&lt;slug&gt;</code> (for example <code>/en/legal/booking-terms</code>).</div>
+    <p style="margin:8px 0 0">Every UI word is new copy (lib/copy/cookie-consent.ts, lib/copy/ops-legal.ts, two keys in lib/copy/site-footer.ts): English is ours, Arabic and Spanish are
+    <strong>draft for signature</strong> (dashboard Spanish uses <em>usted</em>; the public site keeps its own voice). Change any word in your reply.
+    The banner is drawn above the floating WhatsApp button (it keeps its place bottom corner; the sheet sits 76 px up). The rail shows Pages, Blog and Navigation without Soon because 06-02 and 06-03 land first.
+    Scene names are the picture file names.</p>
+  </div>
+  <div id="shots"></div>
+</div>
+<script>
+const M="https://media.almarprivatejourney.com/";
+const WM="https://framerusercontent.com/images/RX7lhKpzXFpv2KTvbxNSm3UZz8.svg";
+const ICON={
+ chev:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
+ down:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+ up:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>',
+ menu:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+ lock:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="10.5" width="12" height="8.5"/><path d="M8.5 10.5V8.2a3.5 3.5 0 0 1 7 0v2.3"/></svg>',
+ ext:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M17 14v5H5V7h5"/></svg>',
+ spin:'<span style="width:14px;height:14px;border:2px solid var(--color-teal-tint);border-top-color:var(--color-teal);display:inline-block"></span>'
+};
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const fill=(s,o)=>s.replace(/\{(\w+)\}/g,(_,k)=>o[k]);
+const U={
+ en:{dir:"ltr",rail:{home:"Home",bookings:"Bookings",customers:"Customers",calendar:"Calendar",catalog:"Catalog",destinations:"Destinations",stays:"Stays",experiences:"Experiences & Services",packages:"Packages",content:"Content",pages:"Pages",blog:"Blog",team:"Team",legal:"Legal",media:"Media",navigation:"Navigation and footer",settings:"Settings",profile:"Profile"},soon:"Soon",
+   save:"Save",publish:"Publish",delete:"Delete",cancel:"Cancel",moveUp:"Move up",moveDown:"Move down",unsaved:"Unsaved changes",
+   sec:{text:"Text",photo:"Photo",settings:"Settings"},englishOnly:"Write in English. Arabic and Spanish are added when you save.",
+   editTr:"Edit translations",hideTr:"Hide translations",trNote:"Arabic and Spanish were filled in from the English. Change a word only if you need to.",
+   langs:{ar:"Arabic",es:"Spanish"},lockedNote:"Your own text. A change to the English will not replace it.",translateAgain:"Translate again",
+   updating:"Updating",saveHint:"Saving updates the public site in a few minutes",translating:"Adding Arabic and Spanish…",
+   nav:{destinations:"Destinations",experiences:"Experiences",about:"About",contact:"Contact",currency:"Currency",language:"Language",login:"Login"},
+   foot:{pages:"Pages",contact:"Contact",instagram:"Instagram",newTab:"(opens in a new tab)"}},
+ ar:{dir:"rtl",rail:{home:"الرئيسية",bookings:"الحجوزات",customers:"العملاء",calendar:"التقويم",catalog:"الكتالوج",destinations:"الوجهات",stays:"الإقامات",experiences:"التجارب والخدمات",packages:"الباقات",content:"المحتوى",pages:"الصفحات",blog:"المدونة",team:"الفريق",legal:"القانوني",media:"الوسائط",navigation:"التنقل والتذييل",settings:"الإعدادات",profile:"الملف"},soon:"قريبًا",
+   save:"حفظ",publish:"نشر",delete:"حذف",cancel:"إلغاء",moveUp:"تحريك لأعلى",moveDown:"تحريك لأسفل",unsaved:"تغييرات غير محفوظة",
+   sec:{text:"النص",photo:"الصورة",settings:"الإعدادات"},englishOnly:"اكتب بالإنجليزية. تُضاف العربية والإسبانية عند الحفظ.",
+   editTr:"تعديل الترجمات",hideTr:"إخفاء الترجمات",trNote:"تمت كتابة العربية والإسبانية تلقائيًا من النص الإنجليزي. غيّر كلمة فقط عند الحاجة.",
+   langs:{ar:"العربية",es:"الإسبانية"},lockedNote:"نصّك الخاص. لن يستبدله أي تغيير في النص الإنجليزي.",translateAgain:"ترجمة من جديد",
+   updating:"جارٍ التحديث",saveHint:"الحفظ يحدّث الموقع العام خلال دقائق قليلة",translating:"جارٍ إضافة العربية والإسبانية…",
+   nav:{destinations:"الوجهات",experiences:"التجارب",about:"عنّا",contact:"تواصل",currency:"العملة",language:"اللغة",login:"دخول"},
+   foot:{pages:"الصفحات",contact:"تواصل",instagram:"Instagram",newTab:"(يفتح في تبويب جديد)"}},
+ es:{dir:"ltr",rail:{home:"Inicio",bookings:"Reservas",customers:"Clientes",calendar:"Calendario",catalog:"Catálogo",destinations:"Destinos",stays:"Estancias",experiences:"Experiencias y servicios",packages:"Paquetes",content:"Contenido",pages:"Páginas",blog:"Blog",team:"Equipo",legal:"Legal",media:"Medios",navigation:"Navegación y pie",settings:"Ajustes",profile:"Perfil"},soon:"Pronto",
+   save:"Guardar",publish:"Publicar",delete:"Eliminar",cancel:"Cancelar",moveUp:"Subir",moveDown:"Bajar",unsaved:"Cambios sin guardar",
+   sec:{text:"Texto",photo:"Foto",settings:"Ajustes"},englishOnly:"Escriba en inglés. El árabe y el español se añaden al guardar.",
+   editTr:"Editar traducciones",hideTr:"Ocultar traducciones",trNote:"El árabe y el español se completaron a partir del inglés. Cambie una palabra solo si lo necesita.",
+   langs:{ar:"árabe",es:"español"},lockedNote:"Su propio texto. Un cambio en el inglés no lo reemplazará.",translateAgain:"Traducir de nuevo",
+   updating:"Actualizando",saveHint:"Al guardar, el sitio público se actualiza en unos minutos",translating:"Añadiendo árabe y español…",
+   nav:{destinations:"Destinos",experiences:"Experiencias",about:"Nosotros",contact:"Contacto",currency:"Moneda",language:"Idioma",login:"Entrar"},
+   foot:{pages:"Páginas",contact:"Contacto",instagram:"Instagram",newTab:"(se abre en una pestaña nueva)"}}
+};
+ICON.x='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+ICON.wa='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 4.5a7.5 7.5 0 0 0-6.5 11.2L4.5 19.5l3.9-1A7.5 7.5 0 1 0 12 4.5z"/><path fill="currentColor" stroke="none" d="M9 9.3c0-.4.4-.7.8-.7h.6c.3 0 .6.2.7.5l.5 1.3c.1.3 0 .6-.2.8l-.6.6c.4 1 1.2 1.8 2.2 2.2l.6-.6c.2-.2.5-.3.8-.2l1.3.5c.3.1.5.4.5.7v.6c0 .4-.3.8-.7.8-3 .2-6-2.8-5.8-5.8z"/></svg>';
+const st=t=>`<bdi dir="ltr">[${t}]</bdi>`;
+// ---- NEW public copy: lib/copy/cookie-consent.ts + two keys of lib/copy/site-footer.ts. EN ours, AR/ES draft for signature.
+const C={
+ en:{acceptAnalytics:"Accept analytics",necessaryOnly:"Necessary only",settings:"Cookie settings",save:"Save my choice",close:"Close",alwaysOn:"Always on",privacyLink:"Privacy policy",legal:"Legal"},
+ ar:{acceptAnalytics:"قبول التحليلات",necessaryOnly:"الضرورية فقط",settings:"إعدادات ملفات الارتباط",save:"حفظ اختياري",close:"إغلاق",alwaysOn:"مفعّلة دائمًا",privacyLink:"سياسة الخصوصية",legal:"قانوني"},
+ es:{acceptAnalytics:"Aceptar analítica",necessaryOnly:"Solo las necesarias",settings:"Ajustes de cookies",save:"Guardar mi elección",close:"Cerrar",alwaysOn:"Siempre activas",privacyLink:"Política de privacidad",legal:"Legal"}
+};
+// ---- NEW dashboard copy: lib/copy/ops-legal.ts. EN ours, AR/ES draft for signature (Spanish: usted).
+const O={
+ en:{title:"Legal",colTitle:"Page",colStatus:"Status",
+  kinds:{privacy:"Privacy policy",terms:"Terms of use",booking_terms:"Booking terms",waiver:"Waiver",disclaimer:"Disclaimer",cookie_banner:"Cookie banner"},
+  status:{none:"Not written",draft:"Draft",published:"Published"},
+  f:{title:"Title",seoTitle:"SEO title",seoDescription:"SEO description",blocks:"Text blocks",addHeading:"Add heading",addParagraph:"Add paragraph",addQuote:"Add quote",remove:"Remove block",necLabel:"Necessary label",necText:"Necessary text",anLabel:"Analytics label",anText:"Analytics text"},
+  bk:{heading:"Heading",paragraph:"Paragraph",quote:"Quote"},
+  empty:"No text yet. This page is not on the site until you publish it.",bookingNote:"When published, guests accept this text before paying."},
+ ar:{title:"القانوني",colTitle:"الصفحة",colStatus:"الحالة",
+  kinds:{privacy:"سياسة الخصوصية",terms:"شروط الاستخدام",booking_terms:"شروط الحجز",waiver:"إقرار إخلاء المسؤولية",disclaimer:"إخلاء المسؤولية",cookie_banner:"لافتة ملفات الارتباط"},
+  status:{none:"غير مكتوبة",draft:"مسودة",published:"منشورة"},
+  f:{title:"العنوان",seoTitle:"عنوان SEO",seoDescription:"وصف SEO",blocks:"أجزاء النص",addHeading:"إضافة عنوان فرعي",addParagraph:"إضافة فقرة",addQuote:"إضافة اقتباس",remove:"حذف الجزء",necLabel:"عنوان الضرورية",necText:"نص الضرورية",anLabel:"عنوان التحليلات",anText:"نص التحليلات"},
+  bk:{heading:"عنوان فرعي",paragraph:"فقرة",quote:"اقتباس"},
+  empty:"لا يوجد نص بعد. هذه الصفحة ليست على الموقع حتى تنشرها.",bookingNote:"عند النشر، يوافق الضيوف على هذا النص قبل الدفع."},
+ es:{title:"Legal",colTitle:"Página",colStatus:"Estado",
+  kinds:{privacy:"Política de privacidad",terms:"Términos de uso",booking_terms:"Condiciones de reserva",waiver:"Exención de responsabilidad",disclaimer:"Aviso legal",cookie_banner:"Banner de cookies"},
+  status:{none:"Sin redactar",draft:"Borrador",published:"Publicada"},
+  f:{title:"Título",seoTitle:"Título SEO",seoDescription:"Descripción SEO",blocks:"Bloques de texto",addHeading:"Añadir encabezado",addParagraph:"Añadir párrafo",addQuote:"Añadir cita",remove:"Eliminar bloque",necLabel:"Título de las necesarias",necText:"Texto de las necesarias",anLabel:"Título de analítica",anText:"Texto de analítica"},
+  bk:{heading:"Encabezado",paragraph:"Párrafo",quote:"Cita"},
+  empty:"Aún no hay texto. Esta página no está en el sitio hasta que la publique.",bookingNote:"Una vez publicada, los huéspedes aceptan este texto antes de pagar."}
+};
+const EXTRA={
+ en:{seo:"Search engines",optional:"optional",headline:"Colombia, Privately Yours",copyright:"© 2026 ALMAR Private Journeys. All rights reserved.",madeBy:"Made by",langs:["English","العربية","Español"],cookieSettingsCard:"Cookie settings"},
+ ar:{seo:"محركات البحث",optional:"اختياري",headline:"كولومبيا، لكم بخصوصية",copyright:"© 2026 المار للرحلات الخاصة. كل الحقوق محفوظة.",madeBy:"صُمّم بواسطة",langs:["English","العربية","Español"],cookieSettingsCard:"إعدادات ملفات الارتباط"},
+ es:{seo:"Buscadores",optional:"opcional",headline:"Colombia, en privado",copyright:"© 2026 ALMAR Private Journeys. Todos los derechos reservados.",madeBy:"Hecho por",langs:["English","العربية","Español"],cookieSettingsCard:"Ajustes de cookies"}
+};
+const CONTACT={email:"inquiries@almarprivatejourney.com",phone:"+971 56 388 3302"};
+const HEADER=["destinations","experiences","about","contact"];
+const LOCALES=["en","ar","es"];
+// ---------- pieces (same method as 06-03) ----------
+function shell(l,w,active,inner,overlay=""){
+  const u=U[l],r=u.rail,cls=w<1024?(w<768?"narrow":"narrow mid"):"";
+  const items=[["home"],["bookings"],["customers"],["calendar"],["catalog"],["destinations",1],["stays",1],["experiences",1],["packages",1],["content"],["pages",1],["blog",1],["team",1],["legal",1],["media",1],["navigation",1],["settings"],["profile"]];
+  const rail=items.map(([k,sub])=>`<a class="${sub?"sub ":""}${k===active?"on":""}"><span>${r[k]}</span></a>`).join("");
+  return `<div class="frame ${cls}" dir="${u.dir}" lang="${l}" style="width:${w}px"><nav class="rail"><div class="mark">ALMAR</div>${rail}</nav>
+   <div class="col"><div class="bar"><span class="mark">ALMAR</span><span class="menu">${ICON.menu}</span></div><div class="page">${inner}</div></div>${overlay}</div>`;
+}
+const field=(label,val,o={})=>`<div class="field"><label>${label}${o.req?" *":""}</label><div class="input${o.area?" area":""}${o.ph?" ph":""}" dir="${o.dir||"ltr"}">${val===""?"&nbsp;":val}</div>${o.after||""}</div>`;
+const sw=(on,dis)=>`<span class="sw${on?" on":""}${dis?" dis":""}" role="switch" aria-checked="${on}"${dis?' aria-disabled="true"':""}></span>`;
+const chip=(t,off)=>`<span class="chip${off?" off":""}">${t}</span>`;
+const head=(l,back,title,chipHtml,actions,status)=>`<div><a class="back">${ICON.chev}${back}</a><div class="head"><div><h1 class="disp">${title}</h1><div class="meta">${chipHtml||""}${status||""}</div></div><div class="acts">${actions}</div></div></div>`;
+function pubHeader(l){const u=U[l];
+  return `<header class="phd"><img class="wm" src="${WM}" alt="ALMAR"><nav>${HEADER.map(k=>`<a>${u.nav[k]}</a>`).join("")}</nav><div class="tools"><span>AED ${ICON.down}</span><span>${l.toUpperCase()} ${ICON.down}</span><span class="login">${u.nav.login}</span></div><span class="burger">${ICON.menu}</span></header>`;}
+const pcls=w=>w<1024?(w<768?"pnarrow":"pmid"):"";
+const pub=(l,w,inner,extra="")=>`<div class="pub ${pcls(w)} ${w<768?"fnarrow":""}" dir="${U[l].dir}" lang="${l}" style="width:${w}px;${extra}">${inner}</div>`;
+// ---------- public: home viewport with banner or sheet ----------
+const vpH=w=>w<768?780:w<1024?880:860;
+function viewport(l,w,overlay){
+  const e=EXTRA[l];
+  return pub(l,w,`${pubHeader(l)}<section class="hero" style="flex:1;min-height:0;height:auto"><img src="${M}home/hero/poster.webp" alt=""><div class="in"><span class="kick">ALMAR</span><h1 class="disp">${e.headline}</h1></div></section>
+   <a class="float" aria-label="WhatsApp">${ICON.wa}</a>${overlay}`,`height:${vpH(w)}px;display:flex;flex-direction:column;position:relative;overflow:hidden`);
+}
+function banner(l){const c=C[l];
+  return `<div class="cb" role="dialog" aria-label="${c.settings}"><h2 class="disp">${st("Banner title")}</h2><p>${st("Banner text, two or three lines")} <a class="plink" style="min-height:0">${c.privacyLink}</a></p>
+   <div class="row"><span class="btn p">${c.acceptAnalytics}</span><span class="btn o">${c.necessaryOnly}</span><a class="plink">${c.settings}</a></div></div>`;}
+function settings(l,analytics){const c=C[l];
+  return `<div class="scrim"><div class="sheet" role="dialog" aria-label="${c.settings}"><div class="top"><h2 class="disp">${c.settings}</h2><span class="btn o sq" aria-label="${c.close}">${ICON.x}</span></div>
+   <div class="crow"><div><b>${st("Necessary label")}</b>${st("Necessary text")}</div><div class="ctl"><span class="note">${c.alwaysOn}</span>${sw(true,true)}</div></div>
+   <div class="crow"><div><b>${st("Analytics label")}</b>${st("Analytics text")}</div><div class="ctl">${sw(analytics,false)}</div></div>
+   <div class="acts"><span class="btn p">${c.save}</span><a class="plink">${c.privacyLink}</a></div></div></div>`;}
+// ---------- public: footer (real light and teal footers + the new legal row) ----------
+const LEGAL_TITLES=["Privacy policy title","Terms of use title","Booking terms title"];
+function legalRow(l,show){if(!show) return "";const c=C[l];
+  return `<nav class="legalrow newbadge" aria-label="${c.legal}">${LEGAL_TITLES.map(t=>`<a class="fl">${st(t)}</a>`).join("")}<a class="fl">${c.settings}</a></nav>`;}
+function contactCol(l){const u=U[l];return `<div><h4>${u.foot.contact}</h4><a class="fl" dir="ltr">${CONTACT.email}</a><a class="fl" dir="ltr">${CONTACT.phone}</a><a class="fl">${u.foot.instagram}</a></div>`;}
+function pagesCol(l){const u=U[l];return `<div><h4>${u.foot.pages}</h4>${HEADER.map(k=>`<a class="fl">${u.nav[k]}</a>`).join("")}</div>`;}
+function langRow(l){const e=EXTRA[l];return `<div>${e.langs.map((n,i)=>`<a class="fl ${LOCALES[i]===l?"ul":""}" style="display:inline-flex">${n}</a>`).join(" · ")}</div>`;}
+function lightFooter(l,show){const e=EXTRA[l];
+  return `<footer class="lf"><div class="div"><i></i><b></b><i></i></div><img class="wmk" src="${WM}" alt="ALMAR"><div class="cols3">${pagesCol(l)}${contactCol(l)}</div>${legalRow(l,show)}
+   <div class="bot"><div>${langRow(l)}</div><p class="mid" style="margin:0">${e.copyright}</p><p class="end" style="margin:0">${e.madeBy} <a class="fl ul" style="display:inline-flex">Koussay</a></p></div></footer>`;}
+function darkFooter(l,show){const e=EXTRA[l];
+  return `<footer class="df"><div class="logo">ALMAR</div><div class="cols3">${pagesCol(l)}${contactCol(l)}<div></div></div>${legalRow(l,show)}
+   <div class="bot">${langRow(l)}<p style="margin:0">${e.copyright}</p></div></footer>`;}
+function footers(l,w,show){
+  return pub(l,w,`<div class="tone">Light footer (the public site)</div>${lightFooter(l,show)}<div class="tone">Teal footer (the other pages)</div>${darkFooter(l,show)}`,"min-height:0;padding-bottom:8px");}
+// ---------- public: legal page ----------
+function legalPage(l,w){
+  return `<p class="urlbar">/${l}/legal/privacy &nbsp;·&nbsp; pattern: /&lt;locale&gt;/legal/&lt;slug&gt;</p>`+pub(l,w,`${pubHeader(l)}<article class="sec art"><h1 class="disp">${st("Privacy policy title")}</h1><h2 class="disp">${st("Legal heading")}</h2>
+   <p>${st("Legal paragraph one")}</p><p>${st("Legal paragraph two")}</p><blockquote class="disp">${st("Legal quote")}</blockquote><p>${st("Legal paragraph three")}</p></article>${lightFooter(l,true)}`);}
+// ---------- dashboard ----------
+function blockRow(l,i,n,kind,val){const o=O[l],u=U[l];
+  const ctl=`<div class="mv" style="justify-content:flex-start"><span class="btn o sq${i===0?" dis":""}" aria-label="${u.moveUp}">${ICON.up}</span><span class="btn o sq${i===n-1?" dis":""}" aria-label="${u.moveDown}">${ICON.down}</span><span class="link red">${o.f.remove}</span></div>`;
+  return `<div style="display:flex;flex-direction:column;gap:8px;padding:16px 0;border-bottom:1px solid var(--color-line)"><label>${o.bk[kind]} ${i+1}</label><div class="input${kind==="heading"?"":" area"}" dir="ltr">${st(val)}</div>${ctl}</div>`;}
+function addRow(l,kinds){const o=O[l].f;const m={heading:o.addHeading,paragraph:o.addParagraph,quote:o.addQuote};
+  return `<div class="acts" style="margin-top:16px">${kinds.map(k=>`<span class="btn o">${m[k]}</span>`).join("")}</div>`;}
+function blocksCard(l,list,o={}){const t=O[l];
+  const body=list.length?list.map((x,i)=>blockRow(l,i,list.length,x[0],x[1])).join("")+addRow(l,o.kinds||["heading","paragraph","quote"]):`<p class="note">${t.empty}</p>${addRow(l,o.kinds||["heading","paragraph","quote"])}`;
+  return `<section class="card"><h2 class="disp">${t.f.blocks}</h2>${o.note?`<p class="fixed new" style="border-inline-start:1px solid var(--color-gold);padding-inline-start:12px">${ICON.lock}<span>${o.note}</span></p>`:""}${body}</section>`;}
+function seoCard(l,filled){const t=O[l],e=EXTRA[l];
+  return `<section class="card"><h2 class="disp">${e.seo} <span class="note" style="font:inherit;font-size:14px">(${e.optional})</span></h2>${field(t.f.seoTitle,filled?st("SEO title"):"")}${field(t.f.seoDescription,filled?st("SEO description"):"",{area:1})}</section>`;}
+function trBoxes(l){const u=U[l],t=O[l];
+  const box=x=>`<div class="lang" lang="${x}" dir="${x==="ar"?"rtl":"ltr"}"><h3>${u.langs[x]}</h3>${field(t.f.title+" · "+x.toUpperCase(),st("Privacy policy title, "+x),{dir:x==="ar"?"rtl":"ltr",after:x==="ar"?`<div class="lockline" dir="${u.dir}"><span class="txt">${ICON.lock}<span>${u.lockedNote}</span></span><span class="link">${u.translateAgain}</span></div>`:""})}${field(t.bk.paragraph+" 2 · "+x.toUpperCase(),st("Legal paragraph, "+x),{area:1,dir:x==="ar"?"rtl":"ltr"})}</div>`;
+  return `<div style="display:flex;flex-direction:column;gap:16px"><button class="link">${ICON.chev.replace('<path','<path transform="rotate(-90 12 12)"')}${u.hideTr}</button><p class="note">${u.trNote}</p><div class="boxes">${box("ar")}${box("es")}</div></div>`;}
+function editor(l,w,o){const u=U[l],t=O[l],e=EXTRA[l];const kind=o.kind;
+  const titleCard=`<section class="card"><h2 class="disp">${u.sec.text}</h2><p class="note">${u.englishOnly}</p>${field(t.f.title,o.title?st(o.title):"",{req:1,ph:!o.title})}${o.tr||`<button class="link">${ICON.chev}${u.editTr}</button>`}</section>`;
+  const bannerCard=kind==="cookie_banner"?`<section class="card new"><h2 class="disp">${e.cookieSettingsCard}</h2>${field(t.f.necLabel,st("Necessary label"))}${field(t.f.necText,st("Necessary text"),{area:1})}${field(t.f.anLabel,st("Analytics label"))}${field(t.f.anText,st("Analytics text"),{area:1})}</section>`:"";
+  const blocks=blocksCard(l,o.blocks,{note:o.note,kinds:kind==="cookie_banner"?["paragraph"]:null});
+  const acts=`<span class="btn o">${u.save}</span><span class="btn p${o.noPublish?" dis":""}">${u.publish}</span>`;
+  const st2=o.dirty?`<span>${u.unsaved}</span>`:"";
+  const inner=head(l,t.title,t.kinds[kind],chip(t.status[o.status],o.status!=="published"),acts,st2)+
+   `<div class="cols"><div>${titleCard}${blocks}${bannerCard}</div><div>${kind==="cookie_banner"?"":seoCard(l,o.seo)}</div></div>`;
+  return shell(l,w,"legal",inner);}
+function list(l,w){const t=O[l];const rows=[["privacy","published"],["terms","draft"],["booking_terms","published"],["waiver","none"],["disclaimer","none"],["cookie_banner","draft"]];
+  const tr=rows.map(([k,s])=>`<tr><td class="t wide">${t.kinds[k]}</td><td>${chip(t.status[s],s!=="published")}</td></tr>`).join("");
+  return shell(l,w,"legal",`<div class="head" style="border:0;padding:0"><h1 class="lh1 disp">${t.title}</h1></div><section class="card"><table class="tbl"><thead><tr><th>${t.colTitle}</th><th>${t.colStatus}</th></tr></thead><tbody>${tr}</tbody></table></section>`);}
+// ---------- scenes ----------
+const S={};
+S["banner-first-visit"]={what:"First visit: a bottom sheet over the home page with the owner's title and text (stand-ins), Accept analytics as the teal primary, Necessary only as the secondary, Cookie settings as a text link (gold underline on hover), and the Privacy policy link when that page is published. It sits 76 px up, above the floating WhatsApp button, which stays reachable in its corner. Square corners, one gold line on top.",draw:(l,w)=>viewport(l,w,banner(l))};
+S["settings-open"]={what:"Cookie settings sheet over the dimmed page: Necessary row with its switch on and disabled plus Always on; Analytics row with a switch, off; Save my choice (teal primary); Close; Privacy policy link. Switches, never radio controls.",draw:(l,w)=>viewport(l,w,settings(l,false))};
+S["settings-on"]={what:"Same sheet with the Analytics switch turned on.",draw:(l,w)=>viewport(l,w,settings(l,true))};
+S["legal-page"]={what:"A legal page at /<locale>/legal/<slug> (here /<locale>/legal/privacy): the owner's title, heading, paragraphs and quote, nothing else, on the public header and the light footer with its legal row.",draw:legalPage};
+S["footer-links"]={what:"Footer with three legal pages published in all three languages: their titles, then Cookie settings, in a row under Pages and Contact (dashed outline marks the new row). Light tone and teal tone.",draw:(l,w)=>footers(l,w,true)};
+S["footer-none"]={what:"Nothing published: today's footer, no legal row and no Cookie settings. Light tone and teal tone.",draw:(l,w)=>footers(l,w,false)};
+S["legal-list"]={what:"Dashboard → Content → Legal: the six kinds, each with its status: Not written, Draft or Published. Legal has no Soon chip.",draw:list};
+S["legal-edit-empty"]={what:"A kind with no text yet: empty Title, the empty line, the three Add buttons; Publish waits.",draw:(l,w)=>editor(l,w,{kind:"privacy",status:"none",blocks:[],noPublish:true})};
+S["legal-edit-blocks"]={what:"A written page: Title, three text blocks (heading, paragraph, quote) with Move up, Move down and Remove block, the translation boxes open with one Arabic field locked (06-01's lock line), and the optional search engine fields.",draw:(l,w)=>editor(l,w,{kind:"privacy",status:"draft",title:"Privacy policy title",tr:trBoxes(l),dirty:true,seo:true,blocks:[["heading","Legal heading"],["paragraph","Legal paragraph one"],["quote","Legal quote"]]})};
+S["legal-edit-banner"]={what:"The Cookie banner: Title, text blocks, then the four banner fields (Necessary label and text, Analytics label and text). The banner is never a page, so there are no search engine fields.",draw:(l,w)=>editor(l,w,{kind:"cookie_banner",status:"draft",title:"Banner title",blocks:[["paragraph","Banner text"]]})};
+S["legal-booking-terms"]={what:"Booking terms carry the note “When published, guests accept this text before paying.” above the blocks.",draw:(l,w)=>editor(l,w,{kind:"booking_terms",status:"published",title:"Booking terms title",note:O[l].bookingNote,seo:true,blocks:[["heading","Legal heading"],["paragraph","Legal paragraph one"]]})};
+const ORDER=["banner-first-visit","settings-open","settings-on","legal-page","footer-links","footer-none","legal-list","legal-edit-empty","legal-edit-blocks","legal-edit-banner","legal-booking-terms"];
+const PREFIX="";
+// ---------- render ----------
+const sel=document.getElementById("scene");
+sel.innerHTML=`<option value="all">All (${ORDER.length})</option>`+ORDER.map(s=>`<option>${s}</option>`).join("");
+const locs=["en","ar","es"],widths=[390,834,1440];
+let html="";
+for(const s of ORDER){
+  html+=`<section class="st" data-st="${s}"><h2>${PREFIX}${s}</h2><p>${S[s].what}</p>`;
+  for(const l of locs) for(const w of widths)
+    html+=`<div class="shot" data-l="${l}" data-w="${w}"><p class="cap">${PREFIX}${s}-${l}-${w}</p><div class="scroller"><div class="scaler" data-w="${w}">${S[s].draw(l,w)}</div></div></div>`;
+  html+=`</section>`;
+}
+document.getElementById("shots").innerHTML=html;
+const f={l:"all",w:"all",z:"fit",s:"all"};
+try{const h=location.hash.slice(1);if(S[h]){f.s=h;sel.value=h;}}catch(e){}
+function apply(){
+  document.querySelectorAll(".st").forEach(e=>{e.hidden=!(f.s==="all"||e.dataset.st===f.s);});
+  document.querySelectorAll(".shot").forEach(e=>{e.hidden=!((f.l==="all"||e.dataset.l===f.l)&&(f.w==="all"||e.dataset.w===f.w));});
+  document.querySelectorAll(".st:not([hidden]) .shot:not([hidden]) .scaler").forEach(e=>{const w=+e.dataset.w;const avail=e.parentElement.clientWidth-4;const k=f.z==="fit"?Math.min(1,avail/(w+2)):1;e.style.transform=`scale(${k})`;e.parentElement.style.height=(e.firstElementChild.offsetHeight*k+8)+"px";e.parentElement.style.overflowX=k<1?"hidden":"auto";});
+}
+sel.addEventListener("change",()=>{f.s=sel.value;history.replaceState(null,"","#"+(f.s==="all"?"":f.s));apply();});
+document.querySelectorAll("#top button").forEach(b=>b.addEventListener("click",()=>{
+  const k=Object.keys(b.dataset)[0];f[k]=b.dataset[k];document.querySelectorAll(`#top button[data-${k}]`).forEach(x=>x.setAttribute("aria-pressed",x===b));apply();
+}));
+addEventListener("resize",apply);document.fonts?.ready.then(apply);addEventListener("load",apply);apply();
+</script>
+</body></html>

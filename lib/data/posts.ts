@@ -1,15 +1,16 @@
 // lib/data/posts.ts
 //
-// Server only: reads the fixtures at build time. Phase 3.2 swaps readFixture for a Supabase query here.
-// Storage shape A: base rows in posts.json, one text record per post per locale in post-translations.json.
+// Server only, build time. Storage shape A: base rows in posts.json, one text record per post per locale in
+// post-translations.json. Since plan 06-01 both are read through ./source: the fixture files, or the published views
+// api_posts / api_post_translations in supabase mode (same columns, same order).
 
 import { getDestinations } from "./destinations";
 import { getCatalogItems } from "./experiences";
 import { dateLabel, parseBody, readingMinutes } from "./post-body";
-import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
-import { loadSource } from "./source";
+import { image, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { loadSource, readSource } from "./source";
 import { getStays } from "./stays";
-import type { Locale, Post, PostBlock } from "./types";
+import type { Locale, Post, PostBodyBlock } from "./types";
 
 type PostBase = {
   id: string;
@@ -42,17 +43,47 @@ export function isLive(row: { is_published: boolean; published_at: string }, now
 }
 
 function liveBase(): PostBase[] {
-  return readFixture<PostBase[]>("posts")
+  return readSource<PostBase[]>("posts")
     .filter((p) => isLive(p))
     .sort((a, b) => b.published_at.localeCompare(a.published_at));
 }
 
+/** A stored photo (the view's `{ id, media_key, … }`) as an image with its alt text in `locale`. */
+const photoIn = (locale: Locale) => (raw: unknown) => image(raw as RawImage, locale);
+
+/**
+ * The records the page may use (plan 06-03): an Arabic or Spanish record whose body does not parse, or whose blocks are
+ * not the English ones in kind and order (Sonnet review 06-03: a count alone let a paragraph stand where the photo is),
+ * is treated as absent, so resolveRow falls back to English ("English only" on
+ * the page) and the build goes on; one log line names the post and the language. A bad English body still fails the
+ * build (C-03: the live site stays).
+ */
+function usableRecords(base: PostBase, own: readonly PostTranslation[], locale: Locale): PostTranslation[] {
+  const en = own.find((t) => t.locale === "en");
+  const kindsOf = (body: unknown) => (Array.isArray(body) ? body.map((block) => String((block as { type?: unknown } | null)?.type)).join(",") : null);
+  const enKinds = en ? kindsOf(en.body) : null;
+  return own.filter((t) => {
+    if (t.locale === "en") return true;
+    try {
+      parseBody(t.body, photoIn(locale));
+      if (enKinds !== null && kindsOf(t.body) !== enKinds) throw new Error("blocks differ from English in kind or order");
+      return true;
+    } catch (error) {
+      if (t.locale === locale) console.warn(`post ${base.slug}: ${t.locale} body left out, English shown (${(error as Error).message})`);
+      return false;
+    }
+  });
+}
+
 async function resolvePost(base: PostBase, locale: Locale): Promise<Post> {
-  // The post stays a fixture block (C-21), but its cover's alt text comes through image(), which reads the shared source.
   await loadSource();
-  const own = readFixture<PostTranslation[]>("post-translations").filter((t) => t.post_id === base.id);
+  const own = usableRecords(
+    base,
+    readSource<PostTranslation[]>("post-translations").filter((t) => t.post_id === base.id),
+    locale,
+  );
   const row = resolveRow(base, own, locale);
-  const body: PostBlock[] = parseBody(row.body);
+  const body: PostBodyBlock[] = parseBody(row.body, photoIn(locale));
 
   const dest = base.destination_id
     ? ((await getDestinations(locale, { includeEmpty: true })).find((d) => d.id === base.destination_id) ?? null)
@@ -93,23 +124,27 @@ async function resolvePost(base: PostBase, locale: Locale): Promise<Post> {
 }
 
 export async function getPosts(locale: Locale, opts?: { limit?: number }): Promise<Post[]> {
+  await loadSource();
   const rows = liveBase();
   const picked = opts?.limit !== undefined ? rows.slice(0, opts.limit) : rows;
   return Promise.all(picked.map((b) => resolvePost(b, locale)));
 }
 
 export async function getPost(locale: Locale, slug: string): Promise<Post | null> {
+  await loadSource();
   const base = liveBase().find((p) => p.slug === slug);
   return base ? resolvePost(base, locale) : null;
 }
 
 /** No locale: slugs do not translate. For generateStaticParams. Newest first. */
 export async function getPostSlugs(): Promise<string[]> {
+  await loadSource();
   return liveBase().map((p) => p.slug);
 }
 
 /** Other posts: the same destination first, then newest. Never the post asked about. */
 export async function getRelatedPosts(locale: Locale, slug: string, opts?: { limit?: number }): Promise<Post[]> {
+  await loadSource();
   const rows = liveBase();
   const current = rows.find((p) => p.slug === slug);
   const others = rows.filter((p) => p.slug !== slug);

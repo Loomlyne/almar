@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAR 06-02 pictures: Pages and Navigation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+Arabic:wght@400;600&family=Noto+Naskh+Arabic&display=swap">
+<style>
+/* Tokens copied from tokens.json (2026-10-27). Square corners everywhere; gold is a line only; teal is the primary. */
+:root{
+  --color-ivory:#fffaf0;--color-surface:#ffffff;--color-teal:#1f3b40;--color-teal-tint:#d1dfe0;--color-gold:#d4ba8a;
+  --color-ink:#262626;--color-muted:#63615f;--color-line:rgb(38 38 38 / 0.16);--color-error:#8f2d2d;
+  --control:44px;--sidebar:240px;
+  --face-display:Georgia,"Times New Roman",serif;
+  --face-body:"Lato",Arial,sans-serif;
+  --shadow-selected:inset 0 0 0 2px var(--color-teal);
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;background:#ece8df;color:var(--color-ink);font-family:var(--face-body);font-size:14px}
+/* ---------- review page chrome (not product UI) ---------- */
+#top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 20px;background:var(--color-teal);color:var(--color-ivory)}
+#top h1{font:400 18px var(--face-display);margin:0;margin-inline-end:auto}
+#top .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#top .grp span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-inline-end:4px}
+#top button,#top select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid rgba(255,250,240,.5);background:transparent;color:var(--color-ivory);cursor:pointer}
+#top select option{color:#000}
+#top button[aria-pressed=true]{background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)}
+#main{padding:20px 24px 80px}
+.banner{background:var(--color-ivory);border:1px solid var(--color-gold);padding:12px 16px;margin-bottom:24px;font-size:14px;line-height:1.55;max-width:1100px}
+.banner ol{margin:6px 0 0;padding-inline-start:20px}
+.banner code{font:13px ui-monospace,Menlo,monospace}
+.decision{border:2px solid var(--color-teal);background:#fff;padding:12px 16px;margin:12px 0 0}
+.st{margin:0 0 48px}
+.st>h2{font:400 22px var(--face-display);color:var(--color-teal);margin:0 0 4px}
+.st>p{margin:0 0 12px;max-width:900px;line-height:1.5}
+.shot{margin:0 0 28px}
+.shot .cap{font:600 13px ui-monospace,Menlo,monospace;margin:0 0 6px}
+.scroller{overflow-x:auto;padding-bottom:6px}
+.scaler{transform-origin:top left}
+.rv{font:12px ui-monospace,Menlo,monospace;background:#fff3c4;color:#4a3b00;padding:2px 6px;display:inline-block;direction:ltr}
+.newbadge{outline:2px dashed var(--color-gold);outline-offset:4px}
+/* ---------- dashboard frame ---------- */
+.frame{background:var(--color-ivory);color:var(--color-ink);font:14px/1.43 var(--face-body);border:1px solid var(--color-line);display:flex;min-height:640px;position:relative}
+.frame[dir=rtl],.pub[dir=rtl]{font-family:"Noto Sans Arabic",var(--face-body);line-height:1.63}
+.frame[dir=rtl] .disp,.pub[dir=rtl] .disp{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.4}
+.rail{width:var(--sidebar);flex:none;border-inline-end:1px solid var(--color-line);padding:20px 16px;display:flex;flex-direction:column;gap:2px}
+.rail .mark{font:400 20px var(--face-display);letter-spacing:.06em;margin-bottom:20px}
+.rail a{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:40px;padding:0 12px;color:var(--color-ink);text-decoration:none}
+.rail a.sub{padding-inline-start:28px}
+.rail a.on{box-shadow:inset 3px 0 0 var(--color-teal);background:var(--color-surface);color:var(--color-teal)}
+.frame[dir=rtl] .rail a.on{box-shadow:inset -3px 0 0 var(--color-teal)}
+.rail .soon{font-size:12px;color:var(--color-muted);border:1px solid var(--color-line);padding:0 6px}
+.bar{display:none;align-items:center;justify-content:space-between;height:56px;padding:0 16px;border-bottom:1px solid var(--color-line)}
+.bar .mark{font:400 18px var(--face-display);letter-spacing:.06em}
+.bar .menu{min-height:var(--control);min-width:var(--control);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-teal)}
+.col{flex:1;min-width:0;display:flex;flex-direction:column}
+.page{padding:24px 32px 48px;display:flex;flex-direction:column;gap:24px;max-width:1240px}
+.narrow .rail{display:none}.narrow .bar{display:flex}.narrow .page{padding:16px 16px 40px}
+.back{display:inline-flex;align-items:center;gap:4px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;width:max-content}
+.back svg{transform:rotate(180deg)}.frame[dir=rtl] .back svg{transform:none}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid var(--color-line);padding-bottom:16px}
+.head h1,.lh1{margin:0;font:400 32px/1.2 var(--face-display);color:var(--color-teal)}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border:1px solid var(--color-teal);color:var(--color-teal);font-size:12px;white-space:nowrap}
+.chip.off{border-color:var(--color-line);color:var(--color-muted)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{min-height:var(--control);padding:0 20px;font:inherit;border:1px solid var(--color-teal);display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.o{background:var(--color-surface);color:var(--color-teal)}
+.btn.p{background:var(--color-teal);color:#fff}
+.btn.dis{opacity:.45}
+.btn.sq{padding:0;width:var(--control);justify-content:center}
+.card{border:1px solid var(--color-line);background:var(--color-surface);padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.narrow .card{padding:16px}
+.card h2{margin:0;font:400 20px/1.3 var(--face-display);color:var(--color-teal)}
+.note{margin:0;color:var(--color-muted)}
+.cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}
+.cols>div{display:flex;flex-direction:column;gap:24px;min-width:0}
+.narrow .cols{grid-template-columns:1fr}
+.field{display:grid;gap:8px;min-width:0}
+.input{min-height:var(--control);border:1px solid var(--color-ink);background:var(--color-surface);padding:8px 16px;font:inherit;color:var(--color-ink);width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+.input.area{min-height:96px}
+.input.bad{border-color:var(--color-error);box-shadow:inset 0 0 0 1px var(--color-error)}
+.input.ph{color:var(--color-muted)}
+.input.sel{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.input.ro{border-color:var(--color-line);background:var(--color-ivory)}
+.err{margin:0;border-inline-start:2px solid var(--color-error);padding-inline-start:8px;color:var(--color-ink)}
+.link{display:inline-flex;align-items:center;gap:8px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-decoration-thickness:1px;text-underline-offset:4px;background:none;border:0;padding:0;font:inherit;width:max-content}
+.link.red{color:var(--color-error);text-decoration-color:var(--color-error)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:var(--control)}
+.sw{width:44px;height:24px;border:1px solid var(--color-ink);background:var(--color-surface);position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:16px;height:16px;background:var(--color-muted)}
+.sw.on{background:var(--color-teal);border-color:var(--color-teal)}.sw.on::after{inset-inline-start:23px;background:#fff}
+.fixed{display:flex;gap:8px;align-items:flex-start;color:var(--color-muted)}
+.fixed svg{flex:none;margin-top:2px}
+/* tables (ListTable) */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-weight:400;color:var(--color-muted);text-align:start;padding:8px 12px;border-bottom:1px solid var(--color-line);font-size:12px}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--color-line);vertical-align:middle}
+.tbl td.t{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px}
+.tbl tr.hid td.t{color:var(--color-muted)}
+.tbl tr.fix td{color:var(--color-muted)}
+.tbl .mv{display:flex;gap:4px;justify-content:flex-end}
+.narrow:not(.mid) .tbl thead{display:none}
+.narrow:not(.mid) .tbl tr{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 0;border-bottom:1px solid var(--color-line)}
+.narrow:not(.mid) .tbl td{border:0;padding:0}
+.narrow:not(.mid) .tbl td.wide{grid-column:1/-1}
+.narrow:not(.mid) .tbl .mv{justify-content:flex-start}
+/* media */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+.tile{display:flex;flex-direction:column;gap:4px}
+.tile img,.ph-img{width:100%;aspect-ratio:3/2;object-fit:cover;display:block;background:var(--color-teal-tint)}
+.ph-img{display:flex;align-items:center;justify-content:center;color:var(--color-muted);border:1px dashed var(--color-line)}
+.one{max-width:320px}
+/* toggle cards (never radio) */
+.tcards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.narrow:not(.mid) .tcards{grid-template-columns:1fr}
+.tcard{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;min-height:var(--control);display:flex;flex-direction:column;gap:4px}
+.tcard.on{box-shadow:var(--shadow-selected);border-color:var(--color-teal)}
+.tcard b{font-weight:700;color:var(--color-ink)}
+/* lock line (06-01, signed) */
+.lockline{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 16px;color:var(--color-muted);margin-top:-4px}
+.narrow:not(.mid) .lockline{grid-template-columns:1fr}
+.lockline .txt{display:flex;align-items:flex-start;gap:6px}
+.boxes{display:grid;gap:16px;grid-template-columns:1fr 1fr}.narrow:not(.mid) .boxes{grid-template-columns:1fr}
+.lang{border:1px solid var(--color-line);background:var(--color-ivory);padding:16px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.lang h3{margin:0;font-weight:400;color:var(--color-muted)}
+/* dialog */
+.scrim{position:absolute;inset:0;background:rgb(38 38 38 / .45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}
+.dialog{background:var(--color-surface);border:1px solid var(--color-line);padding:24px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:16px}
+.dialog h2{margin:0;font:400 20px var(--face-display);color:var(--color-teal)}
+/* ---------- public frame ---------- */
+.pub{background:var(--color-ivory);color:var(--color-ink);font:16px/1.5 var(--face-body);border:1px solid var(--color-line);min-height:640px}
+.phd{display:flex;align-items:center;gap:28px;padding:16px 40px;border-bottom:1px solid var(--color-line);background:var(--color-ivory)}
+.phd img.wm{height:44px;display:block}
+.phd nav{display:flex;gap:24px;margin-inline-end:auto}
+.phd a{color:var(--color-ink);text-decoration:none;white-space:nowrap}
+.phd .tools{display:flex;gap:16px;align-items:center;color:var(--color-ink)}
+.phd .login{border:1px solid var(--color-teal);color:var(--color-teal);padding:8px 16px}
+.pnarrow .phd{padding:12px 16px}.pnarrow .phd nav,.pnarrow .phd .tools{display:none}
+.pnarrow .phd .burger{display:inline-flex;margin-inline-start:auto}
+.phd .burger{display:none;width:44px;height:44px;border:1px solid var(--color-line);align-items:center;justify-content:center;color:var(--color-teal)}
+.hero{position:relative;min-height:520px;display:flex;align-items:flex-end;color:#fff}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgb(0 0 0 / .55),rgb(0 0 0 / 0) 60%)}
+.hero .in{position:relative;z-index:1;padding:48px 40px;display:flex;flex-direction:column;gap:12px;width:100%}
+.pnarrow .hero{min-height:420px}.pnarrow .hero .in{padding:24px 16px}
+.hero h1{margin:0;font:400 64px/1.1 var(--face-display)}.pnarrow .hero h1{font-size:40px}
+.kick{font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.pub[dir=rtl] .kick{letter-spacing:0}
+.booker{background:var(--color-surface);border:1px solid var(--color-line);min-height:64px;display:grid;grid-template-columns:repeat(3,1fr) auto;max-width:880px}
+.booker span{border-inline-end:1px solid var(--color-line)}.booker b{background:var(--color-teal);width:120px}
+.pnarrow .booker{grid-template-columns:1fr;min-height:56px}.pnarrow .booker span{display:none}.pnarrow .booker b{width:100%}
+.vid{position:absolute;top:16px;inset-inline-end:16px;z-index:2}
+.sec{padding:64px 40px;display:flex;flex-direction:column;gap:16px;max-width:1240px;margin:0 auto}
+.pnarrow .sec{padding:40px 16px}
+.sec h2{margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)}.pnarrow .sec h2{font-size:32px}
+.sec p{margin:0;max-width:640px}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.pnarrow .cards3{grid-template-columns:1fr}.pmid .cards3{grid-template-columns:1fr 1fr}
+.cards3 img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.cards3 h3{margin:12px 0 0;font:400 20px var(--face-display)}
+.ghost{height:140px;background:repeating-linear-gradient(135deg,transparent 0 10px,rgb(38 38 38 / .05) 10px 11px);border-top:1px solid var(--color-line)}
+.band{width:100%;aspect-ratio:16/6;object-fit:cover;display:block}.pnarrow .band{aspect-ratio:4/3}
+.pfoot{background:var(--color-teal);color:var(--color-ivory);padding:48px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.pnarrow .pfoot{grid-template-columns:1fr;padding:32px 16px}
+.pfoot h4{margin:0 0 12px;font-weight:400;font-size:12px;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+.pub[dir=rtl] .pfoot h4{letter-spacing:0}
+.pfoot a{display:flex;align-items:center;gap:6px;color:var(--color-ivory);text-decoration:none;min-height:32px}
+.sr{font-size:11px;opacity:.7}
+</style></head>
+<body>
+<div id="top">
+  <h1>06-02 · Pages and Navigation · pictures for signature</h1>
+  <div class="grp"><span>Scene</span><select id="scene"></select></div>
+  <div class="grp"><span>Language</span><button data-l="all" aria-pressed="true">All</button><button data-l="en">EN</button><button data-l="ar">AR</button><button data-l="es">ES</button></div>
+  <div class="grp"><span>Width</span><button data-w="all" aria-pressed="true">All</button><button data-w="390">390</button><button data-w="834">834</button><button data-w="1440">1440</button></div>
+  <div class="grp"><span>Size</span><button data-z="fit" aria-pressed="true">Fit</button><button data-z="1">100%</button></div>
+</div>
+<div id="main">
+  <div class="banner">
+    <strong>What this adds.</strong> Two dashboard screens under Content, built from the editor you already use:
+    <em>Pages</em> (pick Home, About, Destinations, Experiences or Contact; edit a section's English text and photos; show or hide it;
+    a video address on each page's hero; About's cards) and <em>Navigation and footer</em> (the header and footer links: label, where it goes,
+    show or hide, move, add, delete; Currency, Language and Login stay fixed; the contact details stay fixed). Then the public pages that change:
+    a hidden section disappears, a hero photo on Experiences and Contact, a hero video on About and Destinations, an edited header and footer.
+    Real texts and photos from the site; <code>[brackets]</code> mark a sample value. Section order on every page stays the site's own.
+    <ol>
+      <li><code>home-sections-en-1440</code>: Home's sections in the site's order, Gallery marked Hidden, no move buttons.</li>
+      <li>Decision below (hero shown always, or hideable).</li>
+      <li><code>section-hero-url-error-ar-390</code>: an http address refused with the https line, right to left.</li>
+      <li><code>nav-lists-es-834</code>: header links, then Currency, Language and Login fixed with no controls; footer links and the fixed email, phone and Instagram.</li>
+      <li><code>link-editor-web-en-1440</code>: "A page on this site" / "A web address" as two cards (no round buttons), the https field, Show on site.</li>
+      <li><code>home-gallery-hidden-en-1440</code> and <code>header-footer-edited-ar-1440</code>: Welcome followed by the stays, no gallery; the hidden header link gone, Login last.</li>
+      <li><code>experiences-hero-photo-es-1440</code> and <code>contact-hero-photo-en-390</code>: the hero photo above the heading; without a photo the page stays as today.</li>
+      <li><code>about-hero-video-en-1440</code> and <code>destinations-hero-video-ar-834</code>: the video in place of the still photo (the photo is its first frame), heading unchanged.</li>
+      <li><code>link-editor-unavailable-en-1440</code>: a link to List with us marked "not on the site yet"; it appears on the site only once that page exists.</li>
+    </ol>
+    <div class="decision"><strong>Decision: page heroes.</strong>
+      <b>A (recommended)</b>: each page's hero (Home with the booking bar, and the main heading of About, Destinations, Experiences, Contact) is always shown; it has the line
+      "This section is the page's main heading, so it is always shown." in place of the switch (scene <code>section-hero-fixed</code>).
+      <b>B</b>: every section, heroes too, has Show on site (scene <code>section-hero-home</code>). Why A: hiding Home's hero removes the booking bar,
+      and a page with its hero hidden has no main heading.</div>
+    <p style="margin:8px 0 0">Every dashboard word here is new copy: English is ours, Arabic and Spanish are drafts for you (dashboard Spanish uses <em>usted</em>);
+    change any word in your reply. No public text is new: the site's words are unchanged. A yellow tag like <span class="rv">video</span> is a review note, not on the screen.</p>
+  </div>
+  <div id="shots"></div>
+</div>
+<script>
+const M="https://media.almarprivatejourney.com/";
+const WM="https://framerusercontent.com/images/RX7lhKpzXFpv2KTvbxNSm3UZz8.svg";
+const ICON={
+ chev:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
+ down:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+ up:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>',
+ menu:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+ lock:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="10.5" width="12" height="8.5"/><path d="M8.5 10.5V8.2a3.5 3.5 0 0 1 7 0v2.3"/></svg>',
+ ext:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M17 14v5H5V7h5"/></svg>',
+ spin:'<span style="width:14px;height:14px;border:2px solid var(--color-teal-tint);border-top-color:var(--color-teal);display:inline-block"></span>'
+};
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const fill=(s,o)=>s.replace(/\{(\w+)\}/g,(_,k)=>o[k]);
+// ---- existing words (lib/copy: dashboard.ts rail, ops-content.ts, ops-kit.ts, ops-site-status.ts, home.ts nav, site-footer.ts)
+const U={
+ en:{dir:"ltr",rail:{home:"Home",bookings:"Bookings",customers:"Customers",calendar:"Calendar",catalog:"Catalog",destinations:"Destinations",stays:"Stays",experiences:"Experiences & Services",packages:"Packages",content:"Content",pages:"Pages",blog:"Blog",team:"Team",legal:"Legal",media:"Media",navigation:"Navigation and footer",settings:"Settings",profile:"Profile"},soon:"Soon",
+   save:"Save",publish:"Publish",delete:"Delete",cancel:"Cancel",moveUp:"Move up",moveDown:"Move down",unsaved:"Unsaved changes",
+   sec:{text:"Text",photo:"Photo",settings:"Settings"},englishOnly:"Write in English. Arabic and Spanish are added when you save.",
+   editTr:"Edit translations",hideTr:"Hide translations",trNote:"Arabic and Spanish were filled in from the English. Change a word only if you need to.",
+   langs:{ar:"Arabic",es:"Spanish"},lockedNote:"Your own text. A change to the English will not replace it.",translateAgain:"Translate again",
+   updating:"Updating",saveHint:"Saving updates the public site in a few minutes",translating:"Adding Arabic and Spanish…",
+   nav:{destinations:"Destinations",experiences:"Experiences",about:"About",contact:"Contact",currency:"Currency",language:"Language",login:"Login"},
+   foot:{pages:"Pages",contact:"Contact",instagram:"Instagram",newTab:"(opens in a new tab)"}},
+ ar:{dir:"rtl",rail:{home:"الرئيسية",bookings:"الحجوزات",customers:"العملاء",calendar:"التقويم",catalog:"الكتالوج",destinations:"الوجهات",stays:"الإقامات",experiences:"التجارب والخدمات",packages:"الباقات",content:"المحتوى",pages:"الصفحات",blog:"المدونة",team:"الفريق",legal:"القانوني",media:"الوسائط",navigation:"التنقل والتذييل",settings:"الإعدادات",profile:"الملف"},soon:"قريبًا",
+   save:"حفظ",publish:"نشر",delete:"حذف",cancel:"إلغاء",moveUp:"تحريك لأعلى",moveDown:"تحريك لأسفل",unsaved:"تغييرات غير محفوظة",
+   sec:{text:"النص",photo:"الصورة",settings:"الإعدادات"},englishOnly:"اكتب بالإنجليزية. تُضاف العربية والإسبانية عند الحفظ.",
+   editTr:"تعديل الترجمات",hideTr:"إخفاء الترجمات",trNote:"تمت كتابة العربية والإسبانية تلقائيًا من النص الإنجليزي. غيّر كلمة فقط عند الحاجة.",
+   langs:{ar:"العربية",es:"الإسبانية"},lockedNote:"نصّك الخاص. لن يستبدله أي تغيير في النص الإنجليزي.",translateAgain:"ترجمة من جديد",
+   updating:"جارٍ التحديث",saveHint:"الحفظ يحدّث الموقع العام خلال دقائق قليلة",translating:"جارٍ إضافة العربية والإسبانية…",
+   nav:{destinations:"الوجهات",experiences:"التجارب",about:"عنّا",contact:"تواصل",currency:"العملة",language:"اللغة",login:"دخول"},
+   foot:{pages:"الصفحات",contact:"تواصل",instagram:"Instagram",newTab:"(يفتح في تبويب جديد)"}},
+ es:{dir:"ltr",rail:{home:"Inicio",bookings:"Reservas",customers:"Clientes",calendar:"Calendario",catalog:"Catálogo",destinations:"Destinos",stays:"Estancias",experiences:"Experiencias y servicios",packages:"Paquetes",content:"Contenido",pages:"Páginas",blog:"Blog",team:"Equipo",legal:"Legal",media:"Medios",navigation:"Navegación y pie",settings:"Ajustes",profile:"Perfil"},soon:"Pronto",
+   save:"Guardar",publish:"Publicar",delete:"Eliminar",cancel:"Cancelar",moveUp:"Subir",moveDown:"Bajar",unsaved:"Cambios sin guardar",
+   sec:{text:"Texto",photo:"Foto",settings:"Ajustes"},englishOnly:"Escriba en inglés. El árabe y el español se añaden al guardar.",
+   editTr:"Editar traducciones",hideTr:"Ocultar traducciones",trNote:"El árabe y el español se completaron a partir del inglés. Cambie una palabra solo si lo necesita.",
+   langs:{ar:"árabe",es:"español"},lockedNote:"Su propio texto. Un cambio en el inglés no lo reemplazará.",translateAgain:"Traducir de nuevo",
+   updating:"Actualizando",saveHint:"Al guardar, el sitio público se actualiza en unos minutos",translating:"Añadiendo árabe y español…",
+   nav:{destinations:"Destinos",experiences:"Experiencias",about:"Nosotros",contact:"Contacto",currency:"Moneda",language:"Idioma",login:"Entrar"},
+   foot:{pages:"Páginas",contact:"Contacto",instagram:"Instagram",newTab:"(se abre en una pestaña nueva)"}}
+};
+// ---- NEW copy: lib/copy/ops-pages.ts (P) and lib/copy/ops-nav.ts (N). EN ours, AR/ES drafts.
+const P={
+ en:{pageNames:{home:"Home",about:"About",destinations:"Destinations",experiences:"Experiences",contact:"Contact"},
+   colPage:"Page",colShown:"On the site",shownOf:"{n} of {m} sections shown",colSection:"Section",orderNote:"Sections appear on the site in this order.",
+   sections:{home:{hero:"Hero and booking bar",welcome:"Welcome letter",gallery:"Photo gallery",stays:"Private stays",services:"Services",moments:"Destination moments",journeys:"Journeys",stories:"Stories",begin:"Begin your journey",team:"Team"},
+     about:{hero:"Hero",intro:"Introduction and photos",story:"Our story cards",values:"Values cards",team:"Team",get_in_touch:"Get in touch"},
+     destinations:{hero:"Hero photos"},experiences:{hero:"Hero"},contact:{title:"Title and hero",confidence:"Travel with confidence",team:"Team"}},
+   fields:{kicker:"Small line above the heading",heading:"Heading",headline:"Main heading",intro:"Introduction",salutation:"Greeting",paragraph:"Paragraph {n}",sign_off:"Closing line",signer:"Signed by",signer_role:"Signer's role",statement:"Statement",body:"Text",cta_label:"Button label",title:"Title"},
+   showOnSite:"Show on site",hiddenNote:"Hidden on the site",shown:"Shown",hidden:"Hidden",photo:"Photo",photos:"Photos",signature:"Signature",choosePhoto:"Choose photo",addPhotos:"Add photos",remove:"Remove",
+   videoSec:"Hero video",video:"Hero video (https address)",videoBad:"Use an address that starts with https://",decorative:"Decorative: no description is read on the site",
+   heroFixed:"This section is the page's main heading, so it is always shown.",
+   cards:"Cards",addCard:"Add card",deleteCard:"Delete card",deleteCardTitle:"Delete this card?",deleteCardText:"It is removed from the site after the update."},
+ ar:{pageNames:{home:"الرئيسية",about:"عنّا",destinations:"الوجهات",experiences:"التجارب",contact:"تواصل"},
+   colPage:"الصفحة",colShown:"على الموقع",shownOf:"{n} من {m} أقسام ظاهرة",colSection:"القسم",orderNote:"تظهر الأقسام على الموقع بهذا الترتيب.",
+   sections:{home:{hero:"الواجهة وشريط الحجز",welcome:"رسالة الترحيب",gallery:"معرض الصور",stays:"الإقامات الخاصة",services:"الخدمات",moments:"لحظات الوجهات",journeys:"الرحلات",stories:"الحكايات",begin:"ابدأ رحلتك",team:"الفريق"},
+     about:{hero:"الواجهة",intro:"المقدمة والصور",story:"بطاقات قصتنا",values:"بطاقات القيم",team:"الفريق",get_in_touch:"تواصل معنا"},
+     destinations:{hero:"صور الواجهة"},experiences:{hero:"الواجهة"},contact:{title:"العنوان والواجهة",confidence:"سافر بثقة",team:"الفريق"}},
+   fields:{kicker:"السطر الصغير فوق العنوان",heading:"العنوان",headline:"العنوان الرئيسي",intro:"المقدمة",salutation:"التحية",paragraph:"الفقرة {n}",sign_off:"عبارة الختام",signer:"التوقيع باسم",signer_role:"صفة الموقِّع",statement:"العبارة",body:"النص",cta_label:"نص الزر",title:"العنوان"},
+   showOnSite:"إظهار على الموقع",hiddenNote:"مخفي على الموقع",shown:"ظاهر",hidden:"مخفي",photo:"الصورة",photos:"الصور",signature:"التوقيع",choosePhoto:"اختيار صورة",addPhotos:"إضافة صور",remove:"إزالة",
+   videoSec:"فيديو الواجهة",video:"فيديو الواجهة (عنوان https)",videoBad:"استخدم عنوانًا يبدأ بـ https://",decorative:"زخرفية: لا يُقرأ لها وصف على الموقع",
+   heroFixed:"هذا القسم هو العنوان الرئيسي للصفحة، لذلك يظهر دائمًا.",
+   cards:"البطاقات",addCard:"إضافة بطاقة",deleteCard:"حذف البطاقة",deleteCardTitle:"حذف هذه البطاقة؟",deleteCardText:"تُزال من الموقع بعد التحديث."},
+ es:{pageNames:{home:"Inicio",about:"Nosotros",destinations:"Destinos",experiences:"Experiencias",contact:"Contacto"},
+   colPage:"Página",colShown:"En el sitio",shownOf:"{n} de {m} secciones visibles",colSection:"Sección",orderNote:"Las secciones aparecen en el sitio en este orden.",
+   sections:{home:{hero:"Portada y barra de reserva",welcome:"Carta de bienvenida",gallery:"Galería de fotos",stays:"Estancias privadas",services:"Servicios",moments:"Momentos de destino",journeys:"Viajes",stories:"Historias",begin:"Comience su viaje",team:"Equipo"},
+     about:{hero:"Portada",intro:"Introducción y fotos",story:"Tarjetas de nuestra historia",values:"Tarjetas de valores",team:"Equipo",get_in_touch:"Contacto"},
+     destinations:{hero:"Fotos de portada"},experiences:{hero:"Portada"},contact:{title:"Título y portada",confidence:"Viaje con confianza",team:"Equipo"}},
+   fields:{kicker:"Línea pequeña sobre el título",heading:"Título",headline:"Título principal",intro:"Introducción",salutation:"Saludo",paragraph:"Párrafo {n}",sign_off:"Despedida",signer:"Firmado por",signer_role:"Cargo de quien firma",statement:"Frase",body:"Texto",cta_label:"Texto del botón",title:"Título"},
+   showOnSite:"Mostrar en el sitio",hiddenNote:"Oculta en el sitio",shown:"Visible",hidden:"Oculta",photo:"Foto",photos:"Fotos",signature:"Firma",choosePhoto:"Elegir foto",addPhotos:"Añadir fotos",remove:"Quitar",
+   videoSec:"Video de portada",video:"Video de portada (dirección https)",videoBad:"Use una dirección que empiece por https://",decorative:"Decorativa: en el sitio no se lee ninguna descripción",
+   heroFixed:"Esta sección es el título principal de la página, por eso siempre se muestra.",
+   cards:"Tarjetas",addCard:"Añadir tarjeta",deleteCard:"Eliminar tarjeta",deleteCardTitle:"¿Eliminar esta tarjeta?",deleteCardText:"Se quita del sitio después de la actualización."}
+};
+const N={
+ en:{header:"Header",footer:"Footer",addLink:"Add link",label:"Label",linkTo:"Link to",onSite:"A page on this site",onSiteHint:"Opens in the same tab.",web:"A web address",webHint:"Opens in a new tab on the site.",
+   page:"Page",webField:"Web address (https)",webBad:"Use an address that starts with https://",showOnSite:"Show on site",colLabel:"Label",colTo:"Goes to",colShown:"On the site",edit:"Edit",
+   deleteLink:"Delete link",deleteTitle:"Delete this link?",deleteText:"It is removed from the site after the update.",
+   targets:{home:"Home",private_stays:"Private stays",destinations:"Destinations",experiences:"Experiences",about:"About",contact:"Contact",blog:"Blog",plan_with_us:"Plan with us",list_with_us:"List with us",privacy:"Privacy policy",terms:"Terms and conditions",booking_terms:"Booking terms",waiver:"Liability waiver",disclaimer:"Disclaimer",package:"Package: {name}"},
+   notYet:"(not on the site yet)",notYetLine:"This page is not on the site yet. The link appears once it is.",
+   loginFixed:"Always last. It cannot be hidden or moved.",toolsFixed:"Fixed: currency and language are always in the header.",contactFixed:"Fixed contact details. They are not edited here.",
+   email:"Email",phone:"Phone",newLink:"New link"},
+ ar:{header:"الترويسة",footer:"التذييل",addLink:"إضافة رابط",label:"النص",linkTo:"يربط إلى",onSite:"صفحة في هذا الموقع",onSiteHint:"يفتح في التبويب نفسه.",web:"عنوان ويب",webHint:"يفتح في تبويب جديد على الموقع.",
+   page:"الصفحة",webField:"عنوان الويب (https)",webBad:"استخدم عنوانًا يبدأ بـ https://",showOnSite:"إظهار على الموقع",colLabel:"النص",colTo:"يذهب إلى",colShown:"على الموقع",edit:"تعديل",
+   deleteLink:"حذف الرابط",deleteTitle:"حذف هذا الرابط؟",deleteText:"يُزال من الموقع بعد التحديث.",
+   targets:{home:"الرئيسية",private_stays:"الإقامات الخاصة",destinations:"الوجهات",experiences:"التجارب",about:"عنّا",contact:"تواصل",blog:"المدونة",plan_with_us:"خطّط معنا",list_with_us:"أدرِج عقارك معنا",privacy:"سياسة الخصوصية",terms:"الشروط والأحكام",booking_terms:"شروط الحجز",waiver:"إقرار إخلاء المسؤولية",disclaimer:"إخلاء المسؤولية",package:"باقة: {name}"},
+   notYet:"(ليست على الموقع بعد)",notYetLine:"هذه الصفحة ليست على الموقع بعد. يظهر الرابط عندما تُنشر.",
+   loginFixed:"دائمًا في الأخير. لا يمكن إخفاؤه أو تحريكه.",toolsFixed:"ثابت: العملة واللغة دائمًا في الترويسة.",contactFixed:"بيانات تواصل ثابتة. لا تُعدَّل هنا.",
+   email:"البريد",phone:"الهاتف",newLink:"رابط جديد"},
+ es:{header:"Encabezado",footer:"Pie de página",addLink:"Añadir enlace",label:"Texto",linkTo:"Enlace a",onSite:"Una página de este sitio",onSiteHint:"Se abre en la misma pestaña.",web:"Una dirección web",webHint:"Se abre en una pestaña nueva en el sitio.",
+   page:"Página",webField:"Dirección web (https)",webBad:"Use una dirección que empiece por https://",showOnSite:"Mostrar en el sitio",colLabel:"Texto",colTo:"Lleva a",colShown:"En el sitio",edit:"Editar",
+   deleteLink:"Eliminar enlace",deleteTitle:"¿Eliminar este enlace?",deleteText:"Se quita del sitio después de la actualización.",
+   targets:{home:"Inicio",private_stays:"Estancias privadas",destinations:"Destinos",experiences:"Experiencias",about:"Nosotros",contact:"Contacto",blog:"Blog",plan_with_us:"Planifique con nosotros",list_with_us:"Publique su propiedad",privacy:"Política de privacidad",terms:"Términos y condiciones",booking_terms:"Condiciones de reserva",waiver:"Exención de responsabilidad",disclaimer:"Aviso legal",package:"Paquete: {name}"},
+   notYet:"(aún no está en el sitio)",notYetLine:"Esta página aún no está en el sitio. El enlace aparece cuando lo esté.",
+   loginFixed:"Siempre al final. No se puede ocultar ni mover.",toolsFixed:"Fijo: la moneda y el idioma siempre están en el encabezado.",contactFixed:"Datos de contacto fijos. No se editan aquí.",
+   email:"Correo",phone:"Teléfono",newLink:"Nuevo enlace"}
+};
+const CONTACT={email:"inquiries@almarprivatejourney.com",phone:"+971 56 388 3302"};
+// ---- site texts (lib/data/fixtures, lib/copy/*-page.ts): unchanged
+const T={
+ en:{headline:"Colombia, Privately Yours",welcome:{kicker:"Welcome to ALMAR",heading:"Where Safety Meets Bespoke Luxury",salutation:"Dear Traveler,",paragraphs:["ALMAR is built for travellers in the UAE and GCC who want a considered private journey through Colombia, planned around their dates, interests, and preferred pace.","Each journey is personalised with stays, transport, and experiences confirmed for your group. Any additional arrangements are discussed individually and secured only once availability is confirmed.","Our aim is simple: make Colombia easier to experience with a private journey that is clear, personal, and built around what matters to you."],sign_off:"Warmest regards,",signer:"ALMAR Private Journeys",signer_role:"Founder & Director"},
+   gallery:"Colombia, Beautifully Captured",stays:["Private Stays","Private Stays, Fully Vetted"],stayNames:["Getsemaní Colonial House","Getsemaní Courtyard Residence","Cartagena Historic Center House"],
+   values:{heading:"Our Values",intro:"What we believe in shapes every stay.",cards:["Intentional Hospitality","Bilingual Trip Support","Privacy & Discreet Coordination"],body:"We believe great service should feel natural, never forced. Every team member is empowered to create moments that matter — from a warm greeting to a handwritten note."},
+   about:{kicker:"Our Story",headline:"Your Private Colombia"},exp:"Experiences and services",dest:{kicker:"Destinations",heading:"Colombia’s most extraordinary cities"},
+   contact:{kicker:"Private Journeys",heading:"Plan Your Journey",intro:"Your private Colombia journey begins with a message. Share your vision and our team will craft every detail."}},
+ ar:{headline:"كولومبيا، لكم بخصوصية",welcome:{kicker:"أهلاً بكم في ALMAR",heading:"حيث يلتقي الأمان بالفخامة المفصّلة",salutation:"عزيزي المسافر،",paragraphs:["بُنيت ALMAR للمسافرين من الإمارات والخليج الذين يريدون رحلة خاصة مدروسة في كولومبيا، تُخطَّط حول تواريخهم واهتماماتهم وإيقاعهم.","كل رحلة تُفصَّل بإقامات وتنقّل وتجارب مؤكدة لمجموعتكم. أي ترتيبات إضافية تُناقَش على حدة ولا تُثبَّت إلا بعد تأكيد التوفر.","هدفنا بسيط: أن نجعل تجربة كولومبيا أسهل عبر رحلة خاصة واضحة وشخصية، مبنية حول ما يهمكم."],sign_off:"مع أطيب التحيات،",signer:"المار للرحلات الخاصة",signer_role:"المؤسِّسة والمديرة"},
+   gallery:"كولومبيا، في أبهى صورها",stays:["إقامات خاصة","إقامات خاصة، موثّقة بالكامل"],stayNames:["بيت خيتسيماني الاستعماري","إقامة فناء خيتسيماني","بيت المركز التاريخي في كارتاخينا"],
+   values:{heading:"قيمنا",intro:"ما نؤمن به يصوغ كل إقامة.",cards:["ضيافة مدروسة","دعم ثنائي اللغة للرحلة","الخصوصية والتنسيق بتكتّم"],body:"نؤمن بأن الخدمة الرائعة تبدو طبيعية لا متكلّفة. كل فرد في فريقنا مخوّل لصنع لحظات ذات معنى، من ترحيب دافئ إلى رسالة بخط اليد."},
+   about:{kicker:"قصتنا",headline:"كولومبيا الخاصة بك"},exp:"التجارب والخدمات",dest:{kicker:"الوجهات",heading:"أروع مدن كولومبيا"},
+   contact:{kicker:"رحلات خاصة",heading:"خطط لرحلتك",intro:"تبدأ رحلتكم الخاصة في كولومبيا برسالة. شاركونا رؤيتكم وسيعتني فريقنا بكل تفصيل."}},
+ es:{headline:"Colombia, en privado",welcome:{kicker:"Bienvenido a ALMAR",heading:"Donde la seguridad se encuentra con el lujo a medida",salutation:"Estimado viajero,",paragraphs:["ALMAR está pensada para viajeros de Emiratos y el Golfo que quieren un viaje privado, cuidadosamente planificado por Colombia, según sus fechas, intereses y ritmo preferido.","Cada viaje se personaliza con estancias, traslados y experiencias confirmadas para tu grupo. Cualquier arreglo adicional se trata por separado y solo se asegura una vez confirmada la disponibilidad.","Nuestro objetivo es simple: hacer que Colombia sea más fácil de vivir, con un viaje privado claro, personal y construido alrededor de lo que te importa."],sign_off:"Un cordial saludo,",signer:"ALMAR Private Journeys",signer_role:"Fundadora y directora"},
+   gallery:"Colombia, bellamente retratada",stays:["Estancias privadas","Estancias privadas, totalmente verificadas"],stayNames:["Casa colonial de Getsemaní","Residencia con patio en Getsemaní","Casa del centro histórico de Cartagena"],
+   values:{heading:"Nuestros valores",intro:"Lo que creemos da forma a cada estancia.",cards:["Hospitalidad con propósito","Apoyo bilingüe durante el viaje","Privacidad y coordinación discreta"],body:"Creemos que un gran servicio debe sentirse natural, nunca forzado. Cada miembro del equipo tiene la libertad de crear momentos que importan, desde un saludo cálido hasta una nota escrita a mano."},
+   about:{kicker:"Nuestra historia",headline:"Tu Colombia privada"},exp:"Experiencias y servicios",dest:{kicker:"Destinos",heading:"Las ciudades más extraordinarias de Colombia"},
+   contact:{kicker:"Viajes privados",heading:"Planifica tu viaje",intro:"Tu viaje privado por Colombia comienza con un mensaje. Comparte tu visión y nuestro equipo cuidará cada detalle."}}
+};
+const IMG={poster:"home/hero/poster.webp",sig:"home/welcome/signature.webp",welcome:[1,2,3,4,5].map(n=>`home/gallery/0${n}.webp`),
+ stays:["stays/getsemani-colonial-house/hero.webp","stays/getsemani-courtyard-residence/hero.webp","stays/cartagena-historic-center-house/hero.webp"],
+ values:["about/values/intentional-hospitality.webp","about/values/bilingual-trip-support.webp","about/values/privacy-and-discreet-coordination.webp"],
+ about:"about/hero.webp",dest:"destinations/page/hero-2.webp",exp:"home/gallery/02.webp",contact:"home/gallery/04.webp"};
+const HOME_ORDER=["hero","welcome","gallery","stays","services","moments","journeys","stories","begin","team"];
+const SAMPLE_VIDEO="https://[video address]";
+// ---------- dashboard pieces ----------
+function shell(l,w,active,inner,overlay=""){
+  const u=U[l],r=u.rail,cls=w<1024?(w<768?"narrow":"narrow mid"):"";
+  const items=[["home"],["bookings"],["customers"],["calendar"],["catalog"],["destinations",1],["stays",1],["experiences",1],["packages",1],["content"],["pages",1],["blog",1,1],["team",1],["legal",1,1],["media",1],["navigation",1],["settings"],["profile"]];
+  const rail=items.map(([k,sub,soon])=>`<a class="${sub?"sub ":""}${k===active?"on":""}"><span>${r[k]}</span>${soon?`<span class="soon">${u.soon}</span>`:""}</a>`).join("");
+  return `<div class="frame ${cls}" dir="${u.dir}" lang="${l}" style="width:${w}px"><nav class="rail"><div class="mark">ALMAR</div>${rail}</nav>
+   <div class="col"><div class="bar"><span class="mark">ALMAR</span><span class="menu">${ICON.menu}</span></div><div class="page">${inner}</div></div>${overlay}</div>`;
+}
+const field=(label,val,o={})=>`<div class="field"><label>${label}${o.req?" *":""}</label><div class="input${o.area?" area":""}${o.bad?" bad":""}${o.ph?" ph":""}${o.sel?" sel":""}${o.ro?" ro":""}" dir="${o.dir||"ltr"}">${val===""?"&nbsp;":esc(val)}${o.sel?ICON.down:""}</div>${o.bad?`<p class="err">${o.bad}</p>`:""}${o.after||""}</div>`;
+const sw=(label,on)=>`<div class="switch"><span>${label}</span><span class="sw${on?" on":""}" role="switch" aria-checked="${on}"></span></div>`;
+const head=(l,back,title,chip,o={})=>{const u=U[l];return `<div><a class="back">${ICON.chev}${back}</a><div class="head"><div><h1 class="disp">${esc(title)}</h1><div class="meta">${chip||""}${o.status||""}</div></div>
+  <div class="acts">${o.actions??`<span class="btn o${o.busy?" dis":""}">${u.save}</span>`}</div></div></div>`};
+const chip=(t,off)=>`<span class="chip${off?" off":""}">${t}</span>`;
+const tiles=(keys,l,o={})=>`<div class="tiles">${keys.map(k=>`<div class="tile"><img src="${M+k}" alt=""><span class="link">${P[l].remove}</span></div>`).join("")}</div>`;
+function sectionEditor(l,w,o){
+  const u=U[l],p=P[l];
+  const page=o.page||"home",sec=o.section;
+  const title=p.sections[page][sec];
+  const text=`<section class="card"><h2 class="disp">${u.sec.text}</h2><p class="note">${u.englishOnly}</p>${o.text}
+    ${o.tr?o.tr:`<button class="link">${ICON.chev}${u.editTr}</button>`}</section>`;
+  const side=[];
+  if(o.media) side.push(`<section class="card"><h2 class="disp">${o.mediaTitle||p.photos}</h2>${o.media}</section>`);
+  if(o.video!==undefined) side.push(`<section class="card new"><h2 class="disp">${p.videoSec}</h2>${field(p.video,o.video,{bad:o.videoBad?p.videoBad:"",ph:o.video===""})}</section>`);
+  side.push(`<section class="card"><h2 class="disp">${u.sec.settings}</h2>${o.fixed?`<p class="fixed new">${ICON.lock}<span>${p.heroFixed}</span></p>`:sw(p.showOnSite,o.shown!==false)}</section>`);
+  const status=o.saving?`<span class="chip" style="gap:6px">${ICON.spin}${u.updating}</span><span class="note">${u.saveHint}</span>`:(o.dirty?`<span>${u.unsaved}</span>`:"");
+  const inner=head(l,p.pageNames[page],title,chip(o.shown===false?p.hidden:p.shown,o.shown===false),{status,busy:o.saving})+
+    `<div class="cols"><div>${text}${o.extra||""}</div><div>${side.join("")}</div></div>`;
+  return shell(l,w,"pages",inner,o.overlay||"");
+}
+const enField=(l,k,v,o={})=>field(fill(P[l].fields[k]||k,o.vars||{}),v,o);
+function welcomeText(l){const W=T.en.welcome,f=P[l].fields;
+  return [enField(l,"kicker",W.kicker),enField(l,"heading",W.heading,{req:1}),enField(l,"salutation",W.salutation),
+   ...W.paragraphs.map((x,i)=>field(fill(f.paragraph,{n:i+1}),x,{area:1})),enField(l,"sign_off",W.sign_off),enField(l,"signer",W.signer),enField(l,"signer_role",W.signer_role)].join("");}
+function welcomeMedia(l){const p=P[l];return `<div class="field"><label>${p.signature}</label><div class="one"><img src="${M+IMG.sig}" alt="" style="width:100%;background:#fff;border:1px solid var(--color-line)"></div><span class="link">${p.choosePhoto}</span></div>
+  <div class="field"><label>${p.photos}</label>${tiles(IMG.welcome,l)}<span class="btn o">${p.addPhotos}</span></div>`;}
+// ---------- scenes ----------
+const S={};
+S["pages-list"]={what:"Content → Pages: the five pages with how many sections are shown.",draw(l,w){const p=P[l],u=U[l];
+  const rows=[["home",9,10],["about",6,6],["destinations",1,1],["experiences",1,1],["contact",3,3]].map(([k,n,m])=>`<tr><td class="t wide">${p.pageNames[k]}</td><td>${fill(p.shownOf,{n,m})}</td></tr>`).join("");
+  return shell(l,w,"pages",`<h1 class="lh1 disp">${u.rail.pages}</h1><section class="card"><table class="tbl"><thead><tr><th>${p.colPage}</th><th>${p.colShown}</th></tr></thead><tbody>${rows}</tbody></table></section>`);}};
+S["home-sections"]={what:"Home's sections in the site's order. Gallery is hidden. No move control: the order is the site's.",draw(l,w){const p=P[l],u=U[l];
+  const rows=HOME_ORDER.map(k=>{const off=k==="gallery";return `<tr class="${off?"hid":""}"><td class="t wide">${p.sections.home[k]}</td><td>${chip(off?p.hidden:p.shown,off)}</td></tr>`}).join("");
+  return shell(l,w,"pages",`<div><a class="back">${ICON.chev}${u.rail.pages}</a><h1 class="lh1 disp">${p.pageNames.home}</h1></div><section class="card"><p class="note">${p.orderNote}</p><table class="tbl"><thead><tr><th>${p.colSection}</th><th>${p.colShown}</th></tr></thead><tbody>${rows}</tbody></table></section>`);}};
+S["section-welcome"]={what:"One section open: the welcome letter's English texts (one box per paragraph), the signature and five photos, Show on site.",draw(l,w){
+  return sectionEditor(l,w,{section:"welcome",text:welcomeText(l),media:welcomeMedia(l)});}};
+const heroText=l=>enField(l,"headline",T.en.headline,{req:1});
+const heroMedia=l=>`<div class="field"><label>${P[l].photo}</label><div class="one"><img src="${M+IMG.poster}" alt="" style="width:100%"></div><span class="link">${P[l].choosePhoto}</span></div>`;
+S["section-hero-home"]={what:"Option B: Home's hero with its photo, a video address, and Show on site like every other section.",draw(l,w){
+  return sectionEditor(l,w,{section:"hero",text:heroText(l),media:heroMedia(l),mediaTitle:P[l].photo,video:SAMPLE_VIDEO});}};
+S["section-hero-fixed"]={what:"Option A (recommended): the same hero; in place of the switch, the line that it is always shown.",draw(l,w){
+  return sectionEditor(l,w,{section:"hero",text:heroText(l),media:heroMedia(l),mediaTitle:P[l].photo,video:SAMPLE_VIDEO,fixed:true});}};
+S["section-hero-url-error"]={what:"An http address is refused on Save, with the line that says why.",draw(l,w){
+  return sectionEditor(l,w,{section:"hero",text:heroText(l),media:heroMedia(l),mediaTitle:P[l].photo,video:"http://[video address]",videoBad:true,dirty:true});}};
+S["section-about-values"]={what:"About → Values cards: the section's texts and its three cards, each with Move up, Move down; Add card.",draw(l,w){const p=P[l],u=U[l];
+  const rows=T.en.values.cards.map((c,i)=>`<tr><td class="wide"><img src="${M+IMG.values[i]}" alt="" style="width:64px;aspect-ratio:3/2;object-fit:cover;display:block"></td><td class="t">${c}</td><td>${chip(p.shown)}</td><td><div class="mv"><span class="btn o sq${i===0?" dis":""}" aria-label="${u.moveUp}, ${c}">${ICON.up}</span><span class="btn o sq${i===2?" dis":""}" aria-label="${u.moveDown}, ${c}">${ICON.down}</span></div></td></tr>`).join("");
+  const cards=`<section class="card new"><h2 class="disp">${p.cards}</h2><table class="tbl"><tbody>${rows}</tbody></table><span class="btn o">${p.addCard}</span></section>`;
+  return sectionEditor(l,w,{page:"about",section:"values",text:enField(l,"heading",T.en.values.heading,{req:1})+enField(l,"intro",T.en.values.intro,{area:1}),extra:cards});}};
+S["card-editor"]={what:"One About card open: title, text, photo, Show on site, Delete card.",draw(l,w){const p=P[l],u=U[l];
+  const inner=head(l,p.sections.about.values,T.en.values.cards[0],chip(p.shown))+`<div class="cols"><div><section class="card"><h2 class="disp">${u.sec.text}</h2><p class="note">${u.englishOnly}</p>${enField(l,"title",T.en.values.cards[0],{req:1})}${enField(l,"body",T.en.values.body,{area:1})}<button class="link">${ICON.chev}${u.editTr}</button></section></div>
+   <div><section class="card"><h2 class="disp">${p.photo}</h2><div class="one"><img src="${M+IMG.values[0]}" alt="" style="width:100%"></div><span class="link">${p.choosePhoto}</span></section>
+   <section class="card"><h2 class="disp">${u.sec.settings}</h2>${sw(p.showOnSite,true)}<span class="link red">${p.deleteCard}</span></section></div></div>`;
+  return shell(l,w,"pages",inner);}};
+S["section-saving"]={what:"After Save: the site update is running (the same status line every published editor shows).",draw(l,w){
+  return sectionEditor(l,w,{section:"welcome",text:welcomeText(l),media:welcomeMedia(l),saving:true});}};
+S["section-locked-ar"]={what:"Translations open on the welcome letter: the Arabic heading was typed by hand and carries the signed lock line.",draw(l,w){const u=U[l],f=P[l].fields,W=T;
+  const box=t=>`<div class="lang" lang="${t}" dir="${t==="ar"?"rtl":"ltr"}"><h3>${u.langs[t]}</h3>${field(f.kicker+" · "+t.toUpperCase(),W[t].welcome.kicker,{dir:t==="ar"?"rtl":"ltr"})}${field(f.heading+" · "+t.toUpperCase(),t==="ar"?"[حيث يلتقي الأمان بالفخامة]":W[t].welcome.heading,{dir:t==="ar"?"rtl":"ltr",after:t==="ar"?`<div class="lockline" dir="${u.dir}"><span class="txt">${ICON.lock}<span>${u.lockedNote}</span></span><span class="link">${u.translateAgain}</span></div>`:""})}${field(fill(f.paragraph,{n:1})+" · "+t.toUpperCase(),W[t].welcome.paragraphs[0],{area:1,dir:t==="ar"?"rtl":"ltr"})}</div>`;
+  const tr=`<div style="display:flex;flex-direction:column;gap:16px"><button class="link">${ICON.chev.replace('<path','<path transform="rotate(-90 12 12)"')}${u.hideTr}</button><p class="note">${u.trNote}</p><div class="boxes">${box("ar")}${box("es")}</div></div>`;
+  return sectionEditor(l,w,{section:"welcome",text:enField(l,"kicker",T.en.welcome.kicker)+enField(l,"heading",T.en.welcome.heading,{req:1})+field(fill(f.paragraph,{n:1}),T.en.welcome.paragraphs[0],{area:1}),tr,media:welcomeMedia(l),dirty:true});}};
+S["section-experiences-hero-empty"]={what:"Experiences' hero today: no photo and no video yet. Left empty, the page stays as it is now.",draw(l,w){const p=P[l];
+  return sectionEditor(l,w,{page:"experiences",section:"hero",text:enField(l,"heading",T.en.exp,{req:1}),mediaTitle:p.photo,media:`<div class="ph-img one">&nbsp;</div><span class="btn o">${p.choosePhoto}</span>`,video:""});}};
+// ---- navigation
+const HEADER=["destinations","experiences","about","contact"];
+function linkRows(l,keys,o={}){const u=U[l],n=N[l];
+  return keys.map((k,i)=>{const off=(o.hidden||[]).includes(k);const ext=k==="ext";const label=ext?"[Partner site]":U.en.nav[k];const to=ext?"https://[address]":n.targets[k];
+   return `<tr class="${off?"hid":""}"><td class="t">${label}</td><td>${ext?ICON.ext+" ":""}${esc(to)}</td><td>${chip(off?P[l].hidden:P[l].shown,off)}</td><td class="wide"><div class="mv"><span class="btn o sq${i===0?" dis":""}" aria-label="${u.moveUp}, ${label}">${ICON.up}</span><span class="btn o sq${i===keys.length-1?" dis":""}" aria-label="${u.moveDown}, ${label}">${ICON.down}</span><span class="link">${n.edit}</span></div></td></tr>`}).join("");}
+function navLists(l,w,o={}){const u=U[l],n=N[l];
+  const fixHead=[[u.nav.currency,n.toolsFixed],[u.nav.language,n.toolsFixed],[u.nav.login,n.loginFixed]].map(([a,b])=>`<tr class="fix"><td>${a}</td><td colspan="3" class="wide"><span class="fixed">${ICON.lock}<span>${b}</span></span></td></tr>`).join("");
+  const fixFoot=[[n.email,CONTACT.email],[n.phone,CONTACT.phone],[u.foot.instagram,"instagram.com/almarprivatejourney"]].map(([a,b])=>`<tr class="fix"><td>${a}</td><td colspan="3" class="wide" dir="ltr">${b}</td></tr>`).join("");
+  const th=`<thead><tr><th>${n.colLabel}</th><th>${n.colTo}</th><th>${n.colShown}</th><th></th></tr></thead>`;
+  return shell(l,w,"navigation",`<h1 class="lh1 disp">${u.rail.navigation}</h1>
+   <section class="card"><h2 class="disp">${n.header}</h2><table class="tbl">${th}<tbody>${linkRows(l,HEADER,o)}${fixHead}</tbody></table><span class="btn o">${n.addLink}</span></section>
+   <section class="card"><h2 class="disp">${n.footer}</h2><table class="tbl">${th}<tbody>${linkRows(l,o.footer||HEADER)}</tbody></table><span class="btn o">${n.addLink}</span><p class="fixed">${ICON.lock}<span>${n.contactFixed}</span></p><table class="tbl"><tbody>${fixFoot}</tbody></table></section>`,o.overlay||"");}
+S["nav-lists"]={what:"Content → Navigation and footer: today's links. Under Header, Currency, Language and Login are fixed rows with no controls; under Footer, the fixed contact details.",draw:(l,w)=>navLists(l,w)};
+S["nav-hidden-row"]={what:"The About link hidden in the header: it stays in the list, marked Hidden.",draw:(l,w)=>navLists(l,w,{hidden:["about"]})};
+function linkEditor(l,w,o){const u=U[l],n=N[l],p=P[l];
+  const web=o.kind==="web";
+  const linkTo=`<section class="card new"><h2 class="disp">${n.linkTo}</h2><div class="tcards"><div class="tcard${web?"":" on"}"><b>${n.onSite}</b><span class="note">${n.onSiteHint}</span></div><div class="tcard${web?" on":""}"><b>${n.web}</b><span class="note">${n.webHint}</span></div></div>
+    ${web?field(n.webField,o.url,{bad:o.bad?n.webBad:""}):field(n.page,o.page,{sel:1,after:o.unavailable?`<p class="note">${n.notYetLine}</p>`:""})}</section>`;
+  const inner=head(l,U[l].rail.navigation,o.title,o.isNew?"":chip(p.shown),{status:o.dirty?`<span>${u.unsaved}</span>`:""})+
+   `<div class="cols"><div><section class="card"><h2 class="disp">${n.label}</h2><p class="note">${u.englishOnly}</p>${field(n.label,o.label,{req:1})}<button class="link">${ICON.chev}${u.editTr}</button></section>${linkTo}</div>
+    <div><section class="card"><h2 class="disp">${u.sec.settings}</h2>${sw(n.showOnSite,true)}<span class="link red">${n.deleteLink}</span></section></div></div>`;
+  return shell(l,w,"navigation",inner,o.overlay||"");}
+S["link-editor-page"]={what:"A header link open: label, Link to as two cards (A page on this site chosen), the page picker, Show on site.",draw:(l,w)=>linkEditor(l,w,{title:U.en.nav.about,label:U.en.nav.about,page:N[l].targets.about})};
+S["link-editor-web"]={what:"A footer link to a web address: the https field; on the site it opens in a new tab.",draw:(l,w)=>linkEditor(l,w,{kind:"web",title:"[Partner site]",label:"[Partner site]",url:"https://[address]"})};
+S["link-editor-url-error"]={what:"An http address refused, with the line that says why.",draw:(l,w)=>linkEditor(l,w,{kind:"web",title:"[Partner site]",label:"[Partner site]",url:"http://[address]",bad:true,dirty:true})};
+S["link-delete-confirm"]={what:"Delete link asks first.",draw(l,w){const u=U[l],n=N[l];
+  return linkEditor(l,w,{title:U.en.nav.about,label:U.en.nav.about,page:n.targets.about,overlay:`<div class="scrim"><div class="dialog" role="alertdialog"><h2 class="disp">${n.deleteTitle}</h2><p class="note">${n.deleteText}</p><div class="acts"><span class="btn o">${u.cancel}</span><span class="btn p">${u.delete}</span></div></div></div>`});}};
+S["link-editor-unavailable"]={what:"A new link to List with us before that page exists: the picker marks it, and the link waits off the site until the page is there.",draw(l,w){const n=N[l];
+  return linkEditor(l,w,{isNew:true,title:n.newLink,label:"List with us",page:n.targets.list_with_us+" "+n.notYet,unavailable:true,dirty:true});}};
+// ---- public pages
+function pubHeader(l,o={}){const u=U[l];const keys=HEADER.filter(k=>!(o.hide||[]).includes(k));
+  return `<header class="phd"><img class="wm" src="${WM}" alt="ALMAR"><nav>${keys.map(k=>`<a>${u.nav[k]}</a>`).join("")}</nav><div class="tools"><span>AED ${ICON.down}</span><span>${l.toUpperCase()} ${ICON.down}</span><span class="login">${u.nav.login}</span></div><span class="burger">${ICON.menu}</span></header>`;}
+function pubFooter(l,o={}){const u=U[l];const links=HEADER.map(k=>`<a>${u.nav[k]}</a>`);if(o.ext) links.push(`<a class="new">[Partner site] ${ICON.ext}<span class="sr">${u.foot.newTab}</span></a>`);
+  return `<footer class="pfoot"><div><img src="${WM}" alt="ALMAR" style="height:44px;filter:invert(1) brightness(2)"></div><div><h4>${u.foot.pages}</h4>${links.join("")}</div><div><h4>${u.foot.contact}</h4><a dir="ltr">${CONTACT.email}</a><a dir="ltr">${CONTACT.phone}</a><a>${u.foot.instagram}</a></div></footer>`;}
+const pub=(l,w,inner)=>`<div class="pub ${w<1024?(w<768?"pnarrow":"pmid"):""}" dir="${U[l].dir}" lang="${l}" style="width:${w}px">${inner}</div>`;
+const vidTag=`<span class="vid rv">video plays here; this is its first frame</span>`;
+function homeTop(l){const t=T[l];return `<div class="hero"><img src="${M+IMG.poster}" alt=""><div class="in"><h1 class="disp">${t.headline}</h1><div class="booker"><span></span><span></span><span></span><b></b></div></div></div>`;}
+function welcomeSec(l){const W=T[l].welcome;return `<section class="sec"><span class="kick" style="color:var(--color-muted)">${W.kicker}</span><h2 class="disp">${W.heading}</h2><p>${W.salutation}</p><p>${W.paragraphs[0]}</p><p>…</p></section>`;}
+function staysSec(l){const t=T[l];return `<section class="sec new"><span class="kick" style="color:var(--color-muted)">${t.stays[0]}</span><h2 class="disp">${t.stays[1]}</h2><div class="cards3">${IMG.stays.map((k,i)=>`<div><img src="${M+k}" alt=""><h3 class="disp">${t.stayNames[i]}</h3></div>`).join("")}</div></section>`;}
+S["home-gallery-hidden"]={pub:1,what:"Public Home with Gallery hidden: the welcome letter is followed straight by the stays. Every other section keeps its place.",draw:(l,w)=>pub(l,w,pubHeader(l)+homeTop(l)+welcomeSec(l)+staysSec(l)+`<div class="ghost"></div>`)};
+S["experiences-hero-photo"]={pub:1,what:"Public Experiences with a hero photo above its heading. With no photo the page is exactly as today.",draw(l,w){
+  return pub(l,w,pubHeader(l)+`<img class="band new" src="${M+IMG.exp}" alt=""><section class="sec"><h1 class="disp" style="margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)">${T[l].exp}</h1></section><div class="ghost"></div>`);}};
+S["contact-hero-photo"]={pub:1,what:"Public Contact with a hero photo above its title. Email and phone unchanged.",draw(l,w){const c=T[l].contact;
+  return pub(l,w,pubHeader(l)+`<img class="band new" src="${M+IMG.contact}" alt=""><section class="sec"><span class="kick" style="color:var(--color-muted)">${c.kicker}</span><h1 class="disp" style="margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)">${c.heading}</h1><p>${c.intro}</p><p dir="ltr" style="text-align:start">${CONTACT.email} · ${CONTACT.phone}</p></section><div class="ghost"></div>`);}};
+S["about-hero-video"]={pub:1,what:"Public About with a hero video: it plays where the still photo was (the photo is its first frame); kicker and heading unchanged.",draw(l,w){const a=T[l].about;
+  return pub(l,w,pubHeader(l)+`<div class="hero new">${vidTag}<img src="${M+IMG.about}" alt=""><div class="in"><span class="kick">${a.kicker}</span><h1 class="disp">${a.headline}</h1></div></div><div class="ghost"></div>`);}};
+S["destinations-hero-video"]={pub:1,what:"Public Destinations with a hero video in place of the photo slider (the first photo is its first frame); heading unchanged.",draw(l,w){const d=T[l].dest;
+  return pub(l,w,pubHeader(l)+`<div class="hero new">${vidTag}<img src="${M+IMG.dest}" alt=""><div class="in"><span class="kick">${d.kicker}</span><h1 class="disp">${d.heading}</h1></div></div><div class="ghost"></div>`);}};
+S["header-footer-edited"]={pub:1,what:"About hidden in the header (Login still last); a footer link to a web address with the new-tab mark.",draw:(l,w)=>pub(l,w,pubHeader(l,{hide:["about"]})+homeTop(l)+`<div class="ghost"></div>`+pubFooter(l,{ext:true}))};
+// ---------- render ----------
+const ORDER=["pages-list","home-sections","section-welcome","section-hero-home","section-hero-fixed","section-hero-url-error","section-about-values","card-editor","section-saving","section-locked-ar","section-experiences-hero-empty",
+ "nav-lists","nav-hidden-row","link-editor-page","link-editor-web","link-editor-url-error","link-delete-confirm","link-editor-unavailable",
+ "home-gallery-hidden","experiences-hero-photo","contact-hero-photo","about-hero-video","destinations-hero-video","header-footer-edited"];
+const sel=document.getElementById("scene");
+sel.innerHTML=`<option value="all">All (${ORDER.length})</option>`+ORDER.map(s=>`<option>${s}</option>`).join("");
+const locs=["en","ar","es"],widths=[390,834,1440];
+let html="";
+for(const s of ORDER){
+  html+=`<section class="st" data-st="${s}"><h2>${s}</h2><p>${S[s].what}</p>`;
+  for(const l of locs) for(const w of widths)
+    html+=`<div class="shot" data-l="${l}" data-w="${w}"><p class="cap">${s}-${l}-${w}</p><div class="scroller"><div class="scaler" data-w="${w}">${S[s].draw(l,w)}</div></div></div>`;
+  html+=`</section>`;
+}
+document.getElementById("shots").innerHTML=html;
+const f={l:"all",w:"all",z:"fit",s:"all"};
+try{const h=location.hash.slice(1);if(S[h]){f.s=h;sel.value=h;}}catch(e){}
+function apply(){
+  document.querySelectorAll(".st").forEach(e=>{e.hidden=!(f.s==="all"||e.dataset.st===f.s);});
+  document.querySelectorAll(".shot").forEach(e=>{e.hidden=!((f.l==="all"||e.dataset.l===f.l)&&(f.w==="all"||e.dataset.w===f.w));});
+  document.querySelectorAll(".st:not([hidden]) .shot:not([hidden]) .scaler").forEach(e=>{const w=+e.dataset.w;const avail=e.parentElement.clientWidth-4;const k=f.z==="fit"?Math.min(1,avail/(w+2)):1;e.style.transform=`scale(${k})`;e.parentElement.style.height=(e.firstElementChild.offsetHeight*k+8)+"px";e.parentElement.style.overflowX=k<1?"hidden":"auto";});
+}
+sel.addEventListener("change",()=>{f.s=sel.value;history.replaceState(null,"","#"+(f.s==="all"?"":f.s));apply();});
+document.querySelectorAll("#top button").forEach(b=>b.addEventListener("click",()=>{
+  const k=Object.keys(b.dataset)[0];f[k]=b.dataset[k];document.querySelectorAll(`#top button[data-${k}]`).forEach(x=>x.setAttribute("aria-pressed",x===b));apply();
+}));
+addEventListener("resize",apply);document.fonts?.ready.then(apply);addEventListener("load",apply);apply();
+</script>
+</body></html>

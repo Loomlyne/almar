@@ -101,6 +101,10 @@ export const PUBLIC_PAGES = [
   // Plan 04-03 (Q-06): the trip page, in every locale, noindex and out of the sitemap (scripts/crawl-files.mjs NOT_PUBLIC).
   "/booking/trip",
   "/bookings/trip", // Plan 04-05 (Task 5): the guest's booking page, noindex and out of the sitemap (NOT_PUBLIC has bookings).
+  "/legal/[legal]", // Plan 06-04: a legal page exists only once published in all three languages (lib/data/legal.ts).
+  "/plan-with-us", // Plan 06-05 (SITE-04): linked from the home Begin section and Contact.
+  "/list-with-us", // Plan 06-05 (SITE-05): linked from the footer only.
+  "/journeys/[journey]", // Plan 06-06 (CMS-03, BOOK-05): one page per published package, opened from its home card.
 ] as const;
 
 /**

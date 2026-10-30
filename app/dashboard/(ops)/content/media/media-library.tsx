@@ -54,12 +54,12 @@ export function MediaLibrary({ send }: { send?: Send } = {}) {
    * One save_alt. `publish`: Arabic and Spanish go live with the English (no review step, owner 2026-10-14). Without it
    * a language already published stays published, the others are drafts.
    */
-  async function persist(next: AltText, publish: boolean): Promise<boolean> {
+  async function persist(next: AltText, publish: boolean, locked?: SavePayload["locked"]): Promise<boolean> {
     if (!open) return false;
     setBusy(true);
     setPanelError(null);
     const live = { ar: open.alt_status.ar === "published", es: open.alt_status.es === "published" };
-    const body = buildSaveAlt(open.id, next, publish, live);
+    const body = buildSaveAlt(open.id, next, publish, live, locked);
     const reply = await opsSend<{ id: string; affects_site: boolean }>(PATH, body);
     setBusy(false);
     if (!reply.ok) {
@@ -76,7 +76,7 @@ export function MediaLibrary({ send }: { send?: Send } = {}) {
   /** The kit's Save: the English as typed and the Arabic and Spanish the kit filled. Live languages stay live. */
   function onSave(payload: SavePayload, intent: SaveIntent): Promise<boolean> {
     const next = { en: alt.en, ar: textOf(payload.translations.ar[ALT_FIELD]), es: textOf(payload.translations.es[ALT_FIELD]) };
-    return persist(next, intent === "publish");
+    return persist(next, intent === "publish", payload.locked);
   }
 
   async function onDelete() {

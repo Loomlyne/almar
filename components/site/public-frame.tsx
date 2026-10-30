@@ -2,10 +2,14 @@
 
 import { useEffect, useState, type ComponentProps, type ReactNode } from "react";
 import { SiteFooter, type FooterCopy } from "../ui/footer";
+import { CookieConsent, openCookieSettings } from "./cookie-consent";
 import { MotionController } from "./motion-controller";
 import { applyAccountSync, hasSignedInHint } from "./account-sync";
 import { SiteNav, type NavLabels } from "../ui/nav";
 import { WhatsApp } from "../ui/whatsapp";
+import { footerPageLinks } from "./page-links";
+import { CF_WEB_ANALYTICS_TOKEN } from "../../lib/analytics-config";
+import type { SiteLegalChrome } from "../../lib/data/types";
 import type { SelectedCurrency } from "../../lib/fx/rates";
 import { NEWSLETTER_HONEYPOT_FIELDS, subscribeToNewsletter } from "../../lib/newsletter";
 import {
@@ -24,13 +28,14 @@ import {
 
 // and supply their own <main id="content"> (the skip link in the root document points at it).
 
-// Every held control is off here, so a page cannot show one by accident: no cart, no "List with us" column. Login is
+// Every held control is off here, so a page cannot show one by accident: no cart. "List with us" is in the footer since plan
+// 06-05 (the page exists; its label is footerCopy.listWithUs, and no header link goes there). Login is
 // on since job 21 (owner, 2026-10-21, decision #5): the last item of the header, /<locale>/login, or Account
 // (/<locale>/account) once this browser carries the sign-in hint. Currency is off unless a page passes the state its own amounts use.
 // The newsletter is ON (plan 03.3-27, design 11.2 and 12.1 row 8): the end column of job 11's light footer, posting
 // to /newsletter through lib/newsletter.ts, with the strings of footerCopy.newsletter (SITE_FOOTER_COPY[locale]).
 
-export type PublicFrameLink = { label: string; href: string };
+export type PublicFrameLink = { label: string; href: string; external?: true };
 
 type NavTone = "solid" | "on-image";
 
@@ -80,6 +85,7 @@ export function PublicFrame({
   currency = false,
   whatsappClassName,
   whatsapp = true,
+  legal,
   children,
 }: {
   locale: Locale;
@@ -87,8 +93,8 @@ export function PublicFrame({
   currentPath: string;
   /** Nav links, already localised by siteHref(locale, ...). */
   links: PublicFrameLink[];
-  /** Footer page links, already localised. */
-  footerLinks: PublicFrameLink[];
+  /** Footer page links, already localised. Omitted: the footer links the owner set (nav snapshot, 06-02). */
+  footerLinks?: PublicFrameLink[];
   /** The footer's string table, in this page's language. */
   footerCopy: FooterCopy;
   /** The page in each language. Defaults to localeHrefs(currentPath) when currentPath is a public page. */
@@ -106,6 +112,11 @@ export function PublicFrame({
   whatsappClassName?: string;
   /** The green WhatsApp float. false: none, for a page whose own button already is the one WhatsApp action. */
   whatsapp?: boolean;
+  /**
+   * The legal chrome (plan 06-04, lib/data/legal.ts getSiteLegalChrome): the footer's legal row and the cookie banner. Absent,
+   * or nothing published: no legal row, no Cookie settings, no banner and no beacon.
+   */
+  legal?: SiteLegalChrome;
   children: ReactNode;
 }) {
   // Plan 02-05: right after sign-in, her saved currency becomes this browser's choice. This child effect runs before
@@ -136,6 +147,7 @@ export function PublicFrame({
     reveal: true,
   };
   if (currency !== false) nav.onCurrency = currency.onChange;
+  const banner = legal?.banner && CF_WEB_ANALYTICS_TOKEN ? legal.banner : null;
 
   return (
     <>
@@ -143,7 +155,7 @@ export function PublicFrame({
       {children}
       <SiteFooter
         copy={footerCopy}
-        links={footerLinks}
+        links={footerLinks ?? footerPageLinks(locale)}
         contact={SITE_CONTACT}
         languageLinks={
           hrefs
@@ -158,8 +170,12 @@ export function PublicFrame({
         {...PUBLIC_NEWSLETTER}
         tone="light"
         madeBy={{ label: footerCopy.madeBy ?? "", name: MADE_BY.name, href: MADE_BY.href }}
+        listWithUs={footerCopy.listWithUs ? { label: footerCopy.listWithUs, href: localePath(locale, "/list-with-us") } : undefined}
+        legalLinks={legal?.links}
+        cookieSettings={banner ? { label: footerCopy.cookieSettings ?? "", onOpen: openCookieSettings } : undefined}
       />
       {whatsapp ? whatsappClassName ? <WhatsApp className={whatsappClassName} /> : <WhatsApp /> : null}
+      {banner ? <CookieConsent locale={locale} banner={banner} privacyHref={legal?.privacyHref ?? null} /> : null}
       <MotionController />
     </>
   );

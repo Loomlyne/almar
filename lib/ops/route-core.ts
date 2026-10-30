@@ -270,6 +270,8 @@ export async function runOps<O, B = unknown>(options: {
   nodeEnv: string | undefined;
   /** 03.2-05: requestSiteUpdate in production (lib/ops/route.ts); runs only for writes with affects_site: true. */
   afterWrite?: (owner: O) => Promise<unknown>;
+  /** POST only: the body cap in bytes, read after the owner and Origin checks. Default OPS_BODY_LIMIT (64 KiB). */
+  bodyLimit?: number;
 }): Promise<Response> {
   const { method, request, nodeEnv } = options;
 
@@ -294,7 +296,7 @@ export async function runOps<O, B = unknown>(options: {
 
   let raw: unknown;
   if (method === "POST") {
-    const read = await readJsonBody(request);
+    const read = await readJsonBody(request, options.bodyLimit ?? OPS_BODY_LIMIT);
     if (!read.ok) return read.response;
     raw = read.value;
   }

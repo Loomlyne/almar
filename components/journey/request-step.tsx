@@ -1,10 +1,13 @@
 import { Fragment, useId, type ReactNode } from "react";
 import type { DepositBlock } from "../../lib/money/booking-price";
 import type { Airport, BookingReason } from "../../lib/booking/types";
+import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import type { BookingTermsLink } from "../../lib/data/types";
+import { fill } from "../../lib/journey-format";
 import { AlertCircleIcon, CheckIcon } from "../icons/icons";
 import { Button, LinkButton } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
-import { Link } from "../ui/link";
+import { Link, LINK_IN_SENTENCE } from "../ui/link";
 import { ToggleCardGroup } from "../ui/toggle-card";
 import { BookingReasons, type BookingReasonLinks } from "./booking-reasons";
 import { HoldTimer } from "./hold-timer";
@@ -32,6 +35,8 @@ export type RequestChoicesProps = {
   errors: { plan?: boolean; airport?: boolean; terms?: boolean };
   copy: JourneyCopy;
   locale: Locale;
+  /** The published booking terms (lib/data/legal.ts); null: the label as it was, no link. */
+  termsLink?: BookingTermsLink | null;
 };
 
 const AIRPORTS: Airport[] = ["DXB", "AUH", "SHJ"];
@@ -62,6 +67,22 @@ function ErrorLine({ id, children }: { id?: string; children: ReactNode }) {
   );
 }
 
+/**
+ * The terms words, signed 2026-10-30: the owner's title links to the page in a new tab, so what the guest typed stays on
+ * this tab. A link inside the checkbox's label does not tick the box.
+ */
+function termsWords(copy: JourneyCopy, locale: Locale, link: BookingTermsLink | null | undefined): ReactNode {
+  if (!link) return copy.request.terms;
+  return fillNodes(copy.request.termsAccept, {
+    title: (
+      <a href={link.href} target="_blank" rel="noopener noreferrer" className={LINK_IN_SENTENCE}>
+        {link.title}
+        <span className="sr-only"> {SITE_FOOTER_COPY[locale].newTab}</span>
+      </a>
+    ),
+  });
+}
+
 export function RequestChoices({
   plan,
   onPlan,
@@ -74,6 +95,8 @@ export function RequestChoices({
   onTerms,
   errors,
   copy,
+  locale,
+  termsLink,
 }: RequestChoicesProps) {
   const r = copy.request;
   const ids = useId();
@@ -121,7 +144,7 @@ export function RequestChoices({
       </div>
       <div>
         <Checkbox
-          label={r.terms}
+          label={termsWords(copy, locale, termsLink)}
           checked={terms}
           onChange={(e) => onTerms(e.target.checked)}
           aria-invalid={errors.terms || undefined}
@@ -135,6 +158,8 @@ export function RequestChoices({
 }
 
 export type RequestStepProps = {
+  /** The published booking terms; null: the label as it was, no link. */
+  termsLink?: BookingTermsLink | null;
   plan: TripPlanChoice | null;
   deposit: RequestChoicesProps["deposit"];
   full: RequestChoicesProps["full"];
@@ -243,6 +268,7 @@ function Held({
   onEnd,
   copy,
   locale,
+  termsLink,
 }: RequestStepProps & { held: NonNullable<RequestStepProps["held"]> }) {
   const r = copy.request;
   const steps: ReactNode[] = [
@@ -280,12 +306,12 @@ function Held({
             <span>{airport ? r.airports[airport] : null}</span>
             <span className="text-label text-muted">{r.returnSame}</span>
           </dd>
-          <dt className="sr-only">{r.terms}</dt>
+          <dt className="sr-only">{termsLink ? fill(r.termsAccept, { title: termsLink.title }) : r.terms}</dt>
           <dd className="m-0 flex items-center gap-2 text-ink @lg:col-span-2 @lg:col-start-2">
             <span aria-hidden="true" className="inline-grid size-5 shrink-0 place-items-center bg-teal text-ivory">
               <CheckIcon size={16} />
             </span>
-            <span>{r.terms}</span>
+            <span>{termsWords(copy, locale, termsLink)}</span>
           </dd>
         </dl>
       </div>

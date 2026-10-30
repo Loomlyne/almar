@@ -155,6 +155,8 @@ export type SaveAltAction = {
   id: string;
   alt: { en: string } & Partial<Record<OtherLocale, string | null>>;
   status?: Partial<Record<OtherLocale, AltStatus>>;
+  /** I18N-04 (plan 06-01): true = that alt is the owner's own text (locked), false = unlocked. Never en. */
+  locked?: Partial<Record<OtherLocale, boolean>>;
 };
 export type DeleteMediaAction = { action: "delete"; id: string };
 export type MediaPost = SaveAltAction | DeleteMediaAction;
@@ -162,7 +164,8 @@ export type MediaPost = SaveAltAction | DeleteMediaAction;
 const OTHER: readonly OtherLocale[] = ["ar", "es"];
 
 /**
- * `{ action: "save_alt", id, alt: { en, ar?, es? }, status?: { ar?, es? } }` or `{ action: "delete", id }`.
+ * `{ action: "save_alt", id, alt: { en, ar?, es? }, status?: { ar?, es? }, locked?: { ar?, es? } }` or
+ * `{ action: "delete", id }`. `locked` (I18N-04): a boolean per language, ar and es only.
  * English is required (trimmed, 1..300 characters). Arabic or Spanish: a string (trimmed; empty = null) or null, and
  * null deletes that record (ops_save_image_alts). Status: "published" | "draft" for ar / es only. Unknown keys refused.
  */
@@ -174,7 +177,7 @@ export function parseMediaPost(value: unknown): MediaPost {
   }
   if (body.action !== "save_alt") throw new OpsInvalid("action");
 
-  onlyKeys(body, ["action", "id", "alt", "status"]);
+  onlyKeys(body, ["action", "id", "alt", "status", "locked"]);
   const id = uuid(body.id, "id");
   const altIn = record(body.alt, "alt");
   onlyKeys(altIn, ["en", "ar", "es"], "alt.");
@@ -198,6 +201,17 @@ export function parseMediaPost(value: unknown): MediaPost {
       status[locale] = s;
     }
     out.status = status;
+  }
+  if (has(body, "locked")) {
+    const lockedIn = record(body.locked, "locked");
+    onlyKeys(lockedIn, ["ar", "es"], "locked.");
+    const locked: Partial<Record<OtherLocale, boolean>> = {};
+    for (const locale of OTHER) {
+      if (!has(lockedIn, locale)) continue;
+      if (typeof lockedIn[locale] !== "boolean") throw new OpsInvalid(`locked.${locale}`, locale);
+      locked[locale] = lockedIn[locale] as boolean;
+    }
+    out.locked = locked;
   }
   return out;
 }

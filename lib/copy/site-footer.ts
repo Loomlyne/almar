@@ -25,6 +25,10 @@
 //                               dismiss                = lib/copy/framer-source.ts "Close" (the toast's close button)
 //                               sending, success, failed  signed new lines (the busy button, the toast, the failed line)
 //                             No consent or privacy line (owner: Phase 6).
+//   legal, cookieSettings     DRAFTED UI COPY, signed with the 06-04 pictures (decisions/2026-10-30-06-04-06-05-06-07-pictures-signed.md,
+//                             the page's `legal` and `settings`): the name of the legal links row and the link that opens
+//                             the cookie settings sheet. AR and ES are his approved drafts.
+//   listWithUs                the footer link of plan 06-05, the canvas PublicContact dictionary's words, verbatim (signed 2026-10-30).
 
 export type SiteFooterLocale = "en" | "ar" | "es";
 
@@ -69,6 +73,12 @@ export type SiteFooterCopy = {
   madeBy: string;
   /** The footer newsletter (plan 27). */
   newsletter: SiteFooterNewsletterCopy;
+  /** Accessible name of the legal links row (plan 06-04). */
+  legal: string;
+  /** The link that opens the cookie settings sheet (plan 06-04). */
+  cookieSettings: string;
+  /** The link to /<locale>/list-with-us (plan 06-05). */
+  listWithUs: string;
 };
 
 export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
@@ -92,6 +102,9 @@ export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
       failed: "You were not added. Please try again, or write to inquiries@almarprivatejourney.com.",
       dismiss: "Close",
     },
+    legal: "Legal",
+    cookieSettings: "Cookie settings",
+    listWithUs: "List with us",
   },
   ar: {
     pages: "الصفحات",
@@ -113,6 +126,9 @@ export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
       failed: "لم تتم إضافتكم. حاولوا مرة أخرى، أو راسلونا على inquiries@almarprivatejourney.com.",
       dismiss: "إغلاق",
     },
+    legal: "قانوني",
+    cookieSettings: "إعدادات ملفات الارتباط",
+    listWithUs: "أدرجوا عقاركم",
   },
   es: {
     pages: "Páginas",
@@ -134,5 +150,8 @@ export const SITE_FOOTER_COPY: Record<SiteFooterLocale, SiteFooterCopy> = {
       failed: "No te agregamos. Inténtalo de nuevo o escribe a inquiries@almarprivatejourney.com.",
       dismiss: "Cerrar",
     },
+    legal: "Legal",
+    cookieSettings: "Ajustes de cookies",
+    listWithUs: "Publica con nosotros",
   },
 };

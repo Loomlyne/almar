@@ -1,6 +1,9 @@
 import { BedIcon, GuestIcon } from "../../icons/icons";
 import { LinkButton } from "../../ui/button";
-import { PortraitCard } from "../../ui/card";
+import { SITE_FOOTER_COPY } from "../../../lib/copy/site-footer";
+import { DEFAULT_LOCALE, isLocale } from "../../../lib/locale-path";
+import { SaveStayNotices } from "../../ui/save-stay";
+import { SavedPortraitCard } from "../../ui/save-stay-card";
 import { Reveal } from "../../ui/reveal";
 import { Section } from "../../ui/section";
 
@@ -31,6 +34,9 @@ export function HomeStays({
   listHref: string;
   copy: { kicker: string; heading: string; intro: string; viewAll: string };
 }) {
+  // The list address starts with this page's language (localePath); the heart's sign-in link needs it.
+  const prefix = listHref.split("/")[1];
+  const locale = isLocale(prefix) ? prefix : DEFAULT_LOCALE;
   return (
     <Section
       id="stays"
@@ -48,7 +54,9 @@ export function HomeStays({
         <ul className="m-0 grid list-none grid-cols-1 gap-6 p-0 md:grid-cols-3">
           {stays.map((stay, index) => (
             <li key={stay.slug} className={index >= 2 ? "hidden min-w-0 md:block" : "min-w-0"}>
-              <PortraitCard
+              <SavedPortraitCard
+                slug={stay.slug}
+                locale={locale}
                 href={stay.href}
                 image={stay.image}
                 title={stay.title}
@@ -61,6 +69,7 @@ export function HomeStays({
           ))}
         </ul>
       </Reveal>
+      <SaveStayNotices dismissLabel={SITE_FOOTER_COPY[locale].newsletter.dismiss} />
     </Section>
   );
 }

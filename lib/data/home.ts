@@ -2,11 +2,13 @@
 //
 // Server only. The home page's own blocks: hero, welcome letter, gallery, the three journey tiers and the
 // ALMAR Stories cards. Since plan 03.2-02 the three journey tiers (C-15) are read through ./source (fixtures or the
-// Supabase views); hero, begin, welcome and gallery stay fixture blocks until the Pages editor (C-21, v1.1).
+// Supabase views); since plan 06-01 hero, begin, welcome and gallery come from ./page-blocks (the same fixture files, or
+// the page-section views in supabase mode), in the same shapes.
 
 import { mediaUrl } from "./media";
 import { getPosts } from "./posts";
-import { image, readFixture, resolveRow, type RawImage, type StoredStatus } from "./resolve";
+import { pageFixture, pageFixtureTranslations } from "./page-blocks";
+import { image, resolveRow, type RawImage, type StoredStatus } from "./resolve";
 import { loadSource, readSource } from "./source";
 import type { HomeBlocks, HomeStory, JourneyTier, Locale } from "./types";
 
@@ -27,12 +29,14 @@ type TierBase = RowBase & {
   is_featured: boolean;
 };
 type HomeFixture = {
-  /** `video_key` is a media key (the owner's upload) or null; the data layer turns it into a URL. */
-  hero: { poster: RawImage | null; video_key: string | null };
-  begin: { poster: RawImage | null; video_key: string | null };
+  /**
+   * `video_key` is a media key (the owner's upload) or null; the data layer turns it into a URL. `video_url` is the hero
+   * video the owner stored in the Pages editor (supabase mode only); it wins when set.
+   */
+  hero: { poster: RawImage | null; video_key: string | null; video_url?: string | null };
+  begin: { poster: RawImage | null; video_key: string | null; video_url?: string | null };
   welcome: { signature: RawImage | null; images: RawImage[] };
   gallery: { images: RawImage[] };
-  tiers: TierBase[];
 };
 type Rec = { locale: Locale; status: StoredStatus };
 type HomeTranslations = {
@@ -66,14 +70,22 @@ type HomeTranslations = {
 /** A media key becomes the media-host URL; null stays null (the owner's videos are not uploaded yet). */
 const videoUrl = (key: string | null): string | null => (key ? mediaUrl(key) : null);
 
-const home = () => readFixture<HomeFixture>("home");
-const homeT = () => readFixture<HomeTranslations>("home-translations");
+const home = () => pageFixture<HomeFixture>("home");
+const homeT = () => pageFixtureTranslations<Omit<HomeTranslations, "tiers">>("home");
 
 /** A block's text for one locale, falling back to English. */
 function block<T extends Rec>(records: readonly T[], locale: Locale): T {
   const r = records.find((x) => x.locale === locale) ?? records.find((x) => x.locale === "en");
   if (!r) throw new Error(`home block has no "${locale}" or "en" record`);
   return r;
+}
+
+/**
+ * A block the owner may hide (Welcome, Gallery; plan 06-02): hidden, it has no records in supabase mode, and its words
+ * come back empty (the page does not draw the section). The hero is always shown, so it keeps the strict read.
+ */
+function hideable<T extends Rec>(records: readonly T[], locale: Locale, empty: Omit<T, keyof Rec>): Omit<T, keyof Rec> {
+  return records.length === 0 ? empty : block(records, locale);
 }
 
 export async function getJourneyTiers(locale: Locale): Promise<JourneyTier[]> {
@@ -117,17 +129,17 @@ export async function getHomeBlocks(locale: Locale): Promise<HomeBlocks> {
   await loadSource(); // the blocks' pictures take their alt texts from the same source as every other picture
   const h = home();
   const t = homeT();
-  const welcome = block(t.welcome, locale);
-  const gallery = block(t.gallery, locale);
+  const welcome = hideable(t.welcome, locale, { kicker: "", heading: "", salutation: "", paragraphs: [], sign_off: "", signer: "", signer_role: "" });
+  const gallery = hideable(t.gallery, locale, { kicker: "", heading: "" });
   return {
     hero: {
       headline: block(t.hero, locale).headline,
       poster: image(h.hero.poster, locale),
-      video_url: videoUrl(h.hero.video_key),
+      video_url: h.hero.video_url ?? videoUrl(h.hero.video_key),
     },
     begin: {
       poster: image(h.begin.poster, locale),
-      video_url: videoUrl(h.begin.video_key),
+      video_url: h.begin.video_url ?? videoUrl(h.begin.video_key),
     },
     welcome: {
       kicker: welcome.kicker,

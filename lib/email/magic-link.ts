@@ -88,7 +88,7 @@ export function renderMagicLinkEmail({
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;text-align:${dir === "rtl" ? "right" : "left"}" dir="${dir}">
 <tr><td style="padding:0 0 24px;font-family:${titleFont};font-size:24px;color:${TEAL}">${masthead}</td></tr>
 <tr><td style="padding:0 0 24px;font-size:16px;line-height:1.5">${escapeHtml(copy.intro)}</td></tr>
-<tr><td style="padding:0 0 24px"><a href="${safeHref}" style="display:inline-block;padding:16px 24px;background:${TEAL};color:${WHITE};font-size:14px;text-decoration:none;border-radius:0">${escapeHtml(copy.button)}</a></td></tr>
+<tr><td style="padding:0 0 24px"><a href="${safeHref}" style="display:inline-block;padding:16px 24px;background:${TEAL};color:${WHITE};font-size:14px;font-weight:700;text-decoration:none;border-radius:0">${escapeHtml(copy.button)}</a></td></tr>
 <tr><td style="padding:0;font-size:12px;line-height:1.5;color:${MUTED}">${escapeHtml(copy.ignore)}</td></tr>
 </table>
 </td></tr>

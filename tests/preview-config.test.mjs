@@ -107,7 +107,11 @@ test("the repo-root _headers (served by production) carries no robots header", (
 });
 
 test("the preview-only header block and robots file live in deploy/preview/ and nowhere else", () => {
-  assert.equal(readFileSync("deploy/preview/_headers", "utf8"), "/*\n  X-Robots-Tag: noindex, nofollow\n");
+  // Plan 06-04: wrangler keeps one rule per path, so this block replaces the root's /* block and carries its three headers too.
+  assert.equal(
+    readFileSync("deploy/preview/_headers", "utf8"),
+    "/*\n  X-Robots-Tag: noindex, nofollow\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: camera=(), microphone=(), geolocation=(), browsing-topics=()\n",
+  );
   assert.equal(readFileSync("deploy/preview/robots.txt", "utf8"), "User-agent: *\nDisallow: /\n");
   assert.equal(readFileSync("deploy/production/robots.txt", "utf8"), "User-agent: *\nAllow: /\n\nSitemap: https://almarprivatejourney.com/sitemap.xml\n");
   assert.equal(/noindex|x-robots-tag/i.test(readFileSync("deploy/production/robots.txt", "utf8")), false);

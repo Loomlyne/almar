@@ -136,7 +136,24 @@ test("matchPublicPage matches the five patterns and one [a-z0-9-] segment", () =
     "/experiences",
     "/booking/trip",
     "/bookings/trip",
+    "/legal/[legal]",
+    "/plan-with-us",
+    "/list-with-us",
+    "/journeys/[journey]",
   ]);
+});
+
+test("a package page is a public page in every locale (plan 06-06)", () => {
+  assert.equal(matchPublicPage("/journeys/the-explorer"), "/journeys/[journey]");
+  assert.equal(matchPublicPage("/journeys"), null);
+  assert.equal(siteHref("ar", "/journeys/the-explorer"), "/ar/journeys/the-explorer");
+});
+
+test("a legal page is a public page in every locale (plan 06-04)", () => {
+  assert.equal(matchPublicPage("/legal/privacy"), "/legal/[legal]");
+  assert.equal(matchPublicPage("/legal/booking-terms"), "/legal/[legal]");
+  assert.equal(matchPublicPage("/legal"), null);
+  assert.equal(siteHref("es", "/legal/privacy"), "/es/legal/privacy");
 });
 
 test("/bookings/trip is a public page in every locale (plan 04-05 Task 5); /bookings itself stays a guest page", () => {

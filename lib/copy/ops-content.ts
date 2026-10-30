@@ -1,4 +1,4 @@
-// Copy for the Content sections that stay out of v1 (Pages, Blog, Legal, Navigation and footer: "Coming soon") and the
+// Copy for the Content sections that stay out of v1 (Pages, Legal, Navigation and footer: "Coming soon"; Blog left with plan 06-03) and the
 // rail words they add (the Soon chip, the Navigation and footer entry), phase 3.2 plan 12. New file; the shared
 // lib/copy/dashboard.ts is not edited. Imported directly; deliberately not registered in lib/copy/index.ts.
 //
@@ -12,7 +12,7 @@
 // policy wording. AR and ES for those two are drafts the owner accepted.
 
 export type OpsContentLocale = "en" | "ar" | "es";
-export type ComingSoonKind = "pages" | "blog" | "legal" | "navigation";
+export type ComingSoonKind = "pages" | "legal" | "navigation";
 
 export type ComingSoonBlock = {
   /** The card heading, e.g. "Page editing is coming soon". */
@@ -52,18 +52,6 @@ export const OPS_CONTENT_COPY: Record<OpsContentLocale, OpsContentCopy> = {
           "Add new pages",
         ],
       },
-      blog: {
-        title: "The blog editor is coming soon",
-        line: "Writing and publishing posts from the dashboard arrives in a later phase.",
-        list: [
-          "Rich text editor in three languages",
-          "Cover image and alt text",
-          "Destination tag and reading time",
-          "Featured stay and experience cards",
-          "Schedule or publish",
-          "Search title and description",
-        ],
-      },
       legal: {
         title: "Legal pages are coming soon",
         line: "For now the legal pages are edited outside the dashboard. Editing them here, with versions, arrives in a later phase.",
@@ -93,18 +81,6 @@ export const OPS_CONTENT_COPY: Record<OpsContentLocale, OpsContentCopy> = {
           "إضافة صفحات جديدة",
         ],
       },
-      blog: {
-        title: "محرر المدونة قريبًا",
-        line: "كتابة المقالات ونشرها من لوحة التحكم تصل في مرحلة لاحقة.",
-        list: [
-          "محرر نصوص غني بثلاث لغات",
-          "صورة الغلاف والنص البديل",
-          "وسم الوجهة ووقت القراءة",
-          "بطاقات إقامة وتجربة مميزتين",
-          "الجدولة أو النشر",
-          "عنوان ووصف البحث",
-        ],
-      },
       legal: {
         title: "الصفحات القانونية قريبًا",
         line: "تُحرَّر الصفحات القانونية حاليًا خارج لوحة التحكم. يصل تحريرها هنا، مع الإصدارات، في مرحلة لاحقة.",
@@ -132,18 +108,6 @@ export const OPS_CONTENT_COPY: Record<OpsContentLocale, OpsContentCopy> = {
           "Título y descripción de búsqueda por página",
           "Vista previa antes de publicar",
           "Añadir páginas nuevas",
-        ],
-      },
-      blog: {
-        title: "El editor del blog llega pronto",
-        line: "Escribir y publicar entradas desde el panel llega en una fase posterior.",
-        list: [
-          "Editor de texto enriquecido en tres idiomas",
-          "Imagen de portada y texto alternativo",
-          "Etiqueta de destino y tiempo de lectura",
-          "Tarjetas de estancia y experiencia destacadas",
-          "Programar o publicar",
-          "Título y descripción de búsqueda",
         ],
       },
       legal: {

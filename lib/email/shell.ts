@@ -183,7 +183,7 @@ function blockHtml(block: EmailBlock, look: Look): string {
     case "rule":
       return `<tr><td style="padding:8px 0 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-top:1px solid ${GOLD};font-size:0;line-height:0;height:1px">&nbsp;</td></tr></table></td></tr>`;
     case "button":
-      return `<tr><td style="padding:8px 0 24px"><a href="${escapeHtml(checkHref(block.href))}" style="display:inline-block;padding:16px 24px;background:${look.teal};color:${look.ivory};font-size:14px;text-decoration:none;border-radius:0">${escapeHtml(oneLine(block.label))}</a></td></tr>`;
+      return `<tr><td style="padding:8px 0 24px"><a href="${escapeHtml(checkHref(block.href))}" style="display:inline-block;padding:16px 24px;background:${look.teal};color:${look.ivory};font-size:14px;font-weight:700;text-decoration:none;border-radius:0">${escapeHtml(oneLine(block.label))}</a></td></tr>`;
     case "rows": {
       // The key column sits at the start side: the left in a left-to-right mail, the right in an Arabic one.
       const keyPad = rtl ? "6px 0 6px 12px" : "6px 12px 6px 0";

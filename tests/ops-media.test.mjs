@@ -253,7 +253,7 @@ test("the Media screen is on the kit's editor page: no drawer, no language tabs,
   // Publish sends ar/es published with the English (no review step, owner 2026-10-14).
   assert.match(library, /onPublish=\{\(\) => persist\(alt, true\)\}/);
   // A Save keeps each live language live, and the page knows which are live and whether the photo is used.
-  assert.match(library, /buildSaveAlt\(open\.id, next, publish, live\)/);
+  assert.match(library, /buildSaveAlt\(open\.id, next, publish, live, locked\)/);
   assert.match(screen, /liveTranslations=\{open \? liveAlt\(open\) : \{\}\}/);
   assert.match(screen, /holdOnFailure=\{kept\}/);
 });

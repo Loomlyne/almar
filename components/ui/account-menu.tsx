@@ -24,7 +24,7 @@ export type AccountMenuLabels = {
 };
 
 const ITEM =
-  "flex min-h-control cursor-pointer items-center px-4 font-body text-label text-ink no-underline outline-none data-highlighted:bg-ivory";
+  "flex min-h-control cursor-pointer items-center px-4 font-body text-label text-ink outline-none data-highlighted:bg-ivory";
 
 /** Canvas page 6, board 6e: the signed-in trigger shows her name; the menu lists what works. */
 export function AccountMenu({
@@ -48,7 +48,7 @@ export function AccountMenu({
         aria-label={`${labels.menuLabel}: ${account.name}`}
         className={cn(
           "inline-flex h-control max-w-60 cursor-pointer items-center gap-2 rounded-none border pe-3 ps-4 font-body text-label",
-          tone === "on-image" ? "border-ivory/70 bg-transparent text-ivory" : "border-muted bg-surface text-ink",
+          tone === "on-image" ? "border-ivory/70 bg-transparent text-ivory focus-visible:outline-ivory" : "border-muted bg-surface text-ink",
         )}
       >
         <bdi className="truncate">{account.name}</bdi>

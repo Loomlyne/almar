@@ -23,7 +23,15 @@ function firstPostSlug(): string {
   return live[0].slug;
 }
 
-const SAMPLE_PARAMS: Record<string, () => string> = { "[stay]": () => FOCUS[0], "[post]": firstPostSlug };
+/** The first published package, as lib/data/journeys.ts decides from the fixtures. */
+function firstPackageSlug(): string {
+  const home = JSON.parse(fs.readFileSync("lib/data/fixtures/home.json", "utf8")) as { tiers: Array<{ slug: string; is_published?: boolean }> };
+  const live = home.tiers.filter((tier) => tier.is_published !== false);
+  if (live.length === 0) throw new Error("no published package in lib/data/fixtures/home.json");
+  return live[0]!.slug;
+}
+
+const SAMPLE_PARAMS: Record<string, () => string> = { "[stay]": () => FOCUS[0], "[post]": firstPostSlug, "[journey]": firstPackageSlug };
 
 type Doc = { locale: Locale; pattern: string; url: string };
 

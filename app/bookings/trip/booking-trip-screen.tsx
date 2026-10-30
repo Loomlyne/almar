@@ -17,6 +17,7 @@ import { useSearchParams } from "next/navigation";
 import { bookingPagePath, isTestHost } from "../../../lib/booking/origin";
 import { isBookingRef } from "../../../lib/booking/ref";
 import { BOOKING_PAGE_COPY } from "../../../lib/copy/booking-page";
+import type { SiteLegalChrome } from "../../../lib/data/types";
 import type { Locale } from "../../../lib/locale-path";
 import { bookingPageModel, type WithdrawControl, type WithdrawUi } from "./booking-page-model";
 import { BookingPageView, type BookingPageState } from "./booking-page-view";
@@ -59,7 +60,7 @@ function stateOf(answer: ViewAnswer, signIn: boolean): BookingPageState {
   return { kind: "unavailable" };
 }
 
-export function BookingTripScreen({ locale }: { locale: Locale }) {
+export function BookingTripScreen({ locale, legal }: { locale: Locale; legal?: SiteLegalChrome }) {
   const params = useSearchParams();
   const ref = params.get("ref") ?? "";
   const rawT = params.get("t");
@@ -157,6 +158,7 @@ export function BookingTripScreen({ locale }: { locale: Locale }) {
       onRetry={() => void load(false)}
       showBackLink={t === undefined && state.kind === "ready"}
       withdraw={withdraw}
+      legal={legal}
     />
   );
 }

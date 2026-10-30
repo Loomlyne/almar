@@ -172,7 +172,7 @@ export function CatalogItemsScreen({ send }: { send?: Send } = {}) {
 
   function onSave(payload: SavePayload, intent: SaveIntent): Promise<boolean> {
     if (!open) return Promise.resolve(false);
-    return persist(withTranslations(open.form, payload.translations), intent === "publish");
+    return persist(withTranslations(open.form, payload.translations, payload.locked), intent === "publish");
   }
 
   async function onUnpublish() {

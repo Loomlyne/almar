@@ -8,6 +8,7 @@
 // ids come from the query (GET) or the parsed body (POST), never from the path.
 
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
+import type { JourneyDetailWithLegs, JourneyLeg, JourneyLegText, Locale3, Translations } from "../../components/ops/api-types";
 import { errorBody, type OpsOutcome, type OpsResult } from "./route-core";
 import * as shape from "./shape";
 import {
@@ -21,8 +22,6 @@ import {
   type EntityAction,
   type PublishEntity,
   type RateAction,
-  type ReorderAction,
-  type SaveAction,
 } from "./validate-catalog";
 
 /** What a handler needs of requireOwner()'s owner: the profile id (blocks record who made them) and the admin client. */
@@ -225,7 +224,9 @@ export async function getStayAccess({ owner, url }: GetCtx): Promise<OpsOutcome>
   if (!stay.found) return notFound();
   const { data, error } = await owner.admin
     .from("stay_access")
-    .select("address, wifi_name, wifi_password, door_code, notes, notes_ar, notes_es, updated_at")
+    // Every column (the shape keeps only the card's): notes_locked exists only once 20261025120000 is applied, and a named
+    // column would fail this read on a database without it.
+    .select("*")
     .eq("stay_id", stayId)
     .maybeSingle();
   if (error) return { dbError: error };
@@ -260,15 +261,43 @@ export function postTeam({ owner, body }: PostCtx<EntityAction>): Promise<OpsOut
   return entityPost(owner, "team_member", "ops_save_team_member", body);
 }
 
-// ---- 5.8 journeys (existing ids only; show/hide is /api/ops/publish) -----------------------------------------------------
+// ---- 5.8 journeys (create, edit, legs, add-ons, delete while hidden, reorder; show/hide is /api/ops/publish) ------------------
 
-export function getJourneys({ owner, url }: GetCtx): Promise<OpsOutcome> {
-  return listOrDetail(owner, "journey_tier", parseIdQuery(url.searchParams), shape.journeySummary, shape.journeyDetail);
+/** A leg's language records as ops_get holds them, keeping only the contract's keys. */
+function legTranslations(value: unknown): Translations<JourneyLegText> {
+  const all = isRow(value) ? value : {};
+  const one = (locale: Locale3): Translations<JourneyLegText>[Locale3] => {
+    const rec = all[locale];
+    if (!isRow(rec)) return null;
+    const locked = Array.isArray(rec.locked_fields) ? rec.locked_fields.filter((x): x is string => typeof x === "string") : [];
+    return {
+      nights_label: typeof rec.nights_label === "string" ? rec.nights_label : null,
+      status: rec.status === "published" ? "published" : "draft",
+      ...(locale === "en" ? {} : { locked_fields: locked }),
+    };
+  };
+  return { en: one("en"), ar: one("ar"), es: one("es") };
 }
 
-export function postJourneys({ owner, body }: PostCtx<SaveAction | ReorderAction>): Promise<OpsOutcome> {
-  if (body.action === "save") return save(owner, "ops_save_journey_tier", body.item);
-  return reorder(owner, "journey_tier", body.ids);
+/** The detail reply with the legs and included add-ons ops_get answers since migration 20261025120000 (none before it). */
+function journeyDetail(r: Row): JourneyDetailWithLegs {
+  const legs: JourneyLeg[] = rows(r.legs).map((leg) => ({
+    id: String(leg.id),
+    position: typeof leg.position === "number" ? leg.position : 0,
+    destination_id: String(leg.destination_id),
+    stay_id: typeof leg.stay_id === "string" ? leg.stay_id : null,
+    translations: legTranslations(leg.translations),
+  }));
+  const addons = Array.isArray(r.addon_ids) ? r.addon_ids.filter((id): id is string => typeof id === "string") : [];
+  return { ...shape.journeyDetail(r), legs, addon_ids: addons };
+}
+
+export function getJourneys({ owner, url }: GetCtx): Promise<OpsOutcome> {
+  return listOrDetail(owner, "journey_tier", parseIdQuery(url.searchParams), shape.journeySummary, journeyDetail);
+}
+
+export function postJourneys({ owner, body }: PostCtx<EntityAction>): Promise<OpsOutcome> {
+  return entityPost(owner, "journey_tier", "ops_save_journey_tier", body);
 }
 
 // ---- 5.9 publish -----------------------------------------------------------------------------------------------------

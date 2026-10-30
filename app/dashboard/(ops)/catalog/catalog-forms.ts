@@ -39,6 +39,8 @@ export type DestinationForm = {
   text: Record<Locale3, DestinationText>;
   /** Arabic and Spanish go live with the English on Publish (owner, 2026-10-14); English is always published text. */
   status: Record<Locale3, TextStatus>;
+  /** The Arabic and Spanish fields the owner fixed by hand (I18N-04, plan 06-01): saved as `locked_fields`. */
+  locked: Locks;
 };
 
 export type CatalogItemForm = {
@@ -56,13 +58,24 @@ export type CatalogItemForm = {
   stay_ids: string[];
   text: Record<Locale3, CatalogItemText>;
   status: Record<Locale3, TextStatus>;
+  locked: Locks;
 };
+
+/** Per language, the fields the owner fixed by hand (I18N-04): a translation record's `locked_fields`. */
+export type Locks = Record<Target, string[]>;
+
+export const noLocks = (): Locks => ({ ar: [], es: [] });
+
+/** The stored locks of a detail's translations (absent before migration 20261025120000: none). */
+export function locksOf(translations: Record<Locale3, { locked_fields?: string[] } | null>): Locks {
+  return { ar: [...(translations.ar?.locked_fields ?? [])].sort(), es: [...(translations.es?.locked_fields ?? [])].sort() };
+}
 
 const emptyStatus = (): Record<Locale3, TextStatus> => ({ en: "published", ar: "draft", es: "draft" });
 
 export function emptyDestinationForm(): DestinationForm {
   const blank = (): DestinationText => ({ name: "", short_line: "", region: "", summary: "", nights_label: "" });
-  return { id: null, slug: "", published: false, hero: null, inset: null, text: { en: blank(), ar: blank(), es: blank() }, status: emptyStatus() };
+  return { id: null, slug: "", published: false, hero: null, inset: null, text: { en: blank(), ar: blank(), es: blank() }, status: emptyStatus(), locked: noLocks() };
 }
 
 export function emptyCatalogItemForm(): CatalogItemForm {
@@ -81,6 +94,7 @@ export function emptyCatalogItemForm(): CatalogItemForm {
     stay_ids: [],
     text: { en: blank(), ar: blank(), es: blank() },
     status: emptyStatus(),
+    locked: noLocks(),
   };
 }
 
@@ -175,6 +189,7 @@ export function destinationFormOf(detail: DestinationDetail): DestinationForm {
       es: textFrom(DESTINATION_TEXT_FIELDS, t.es),
     },
     status: statusFrom(t),
+    locked: locksOf(t),
   };
 }
 
@@ -198,14 +213,19 @@ export function catalogItemFormOf(detail: CatalogDetail): CatalogItemForm {
       es: textFrom(CATALOG_TEXT_FIELDS, t.es),
     },
     status: statusFrom(t),
+    locked: locksOf(t),
   };
 }
 
-/** The Arabic and Spanish the kit handed back on Save, put into the form (every value a string). */
-export function withTranslations<T extends Record<string, string>, F extends { text: Record<Locale3, T> }>(form: F, translations: Record<Target, Fields>): F {
+/**
+ * The Arabic and Spanish the kit handed back on Save, put into the form (every value a string), with the kit's lock
+ * lists (SavePayload.locked) when given: the form sends them as `locked_fields` (I18N-04).
+ */
+export function withTranslations<T extends Record<string, string>, F extends { text: Record<Locale3, T> }>(form: F, translations: Record<Target, Fields>, locked?: Locks): F {
   const fields = Object.keys(form.text.en);
   const pick = (target: Target): T => ({ ...form.text[target], ...textFrom(fields, translations[target] as TextRecord) });
-  return { ...form, text: { ...form.text, ar: pick("ar"), es: pick("es") } };
+  const next = { ...form, text: { ...form.text, ar: pick("ar"), es: pick("es") } };
+  return locked ? { ...next, locked: { ar: [...locked.ar], es: [...locked.es] } } : next;
 }
 
 /** Two forms hold the same content (the editor's "unsaved changes"). */
@@ -231,7 +251,7 @@ export function normalisePrice(raw: string): { ok: true; value: string | null } 
 
 // ---- form -> save payload -----------------------------------------------------------------------------------------
 
-type SentRecord = Record<string, string | null>;
+type SentRecord = Record<string, string | null | string[]>;
 
 /**
  * One language's record for a save. English: always sent, published, optional fields empty -> null. Arabic and
@@ -252,12 +272,20 @@ function recordFor(text: Record<string, string>, status: TextStatus, english: bo
 const statusFor = (form: { status: Record<Locale3, TextStatus> }, target: Target, publish: boolean): TextStatus =>
   publish || form.status[target] === "published" ? "published" : "draft";
 
-/** The `translations` of a save (shared with Content -> Team and Packages, plan 03.2-08). */
-export function translationsFor(form: { text: Record<Locale3, Record<string, string>>; status: Record<Locale3, TextStatus> }, publish: boolean) {
+/**
+ * The `translations` of a save (shared with Content -> Team and Packages, plan 03.2-08). An Arabic or Spanish record
+ * that is sent carries the form's lock list as `locked_fields` (I18N-04), unchanged ones too: the server sets the list
+ * it is sent and never merges. English never carries one.
+ */
+export function translationsFor(
+  form: { text: Record<Locale3, Record<string, string>>; status: Record<Locale3, TextStatus>; locked?: Locks },
+  publish: boolean,
+) {
   const out: Record<string, SentRecord | null> = {};
   out.en = recordFor(form.text.en, "published", true) as SentRecord;
   for (const target of ["ar", "es"] as const) {
     const record = recordFor(form.text[target], statusFor(form, target, publish), false);
+    if (record && form.locked) record.locked_fields = form.locked[target].filter((field) => field in form.text[target]);
     if (record !== undefined) out[target] = record;
   }
   return out;

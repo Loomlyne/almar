@@ -32,7 +32,17 @@ export function opsGet(handler: OpsGetHandler): (request: Request) => Promise<Re
     });
 }
 
-export function opsPost<B>(parse: (body: unknown) => B, handler: OpsPostHandler<B>): (request: Request) => Promise<Response> {
+/**
+ * `bodyLimit` (plan 06-03): a larger cap for one route, read after requireOwner and the Origin check like the default.
+ * Only /api/ops/posts (POSTS_BODY_LIMIT, 256 KiB: a post's body blocks) and /api/ops/legal (LEGAL_BODY_LIMIT, the same) pass one;
+ * every other route keeps 64 KiB.
+ * OpenNext reads a non-GET body whole on Workers whatever this cap says, so a larger cap means more CPU per request.
+ */
+export function opsPost<B>(
+  parse: (body: unknown) => B,
+  handler: OpsPostHandler<B>,
+  options: { bodyLimit?: number } = {},
+): (request: Request) => Promise<Response> {
   return (request) =>
     runOps<OwnerContext, B>({
       method: "POST",
@@ -42,6 +52,7 @@ export function opsPost<B>(parse: (body: unknown) => B, handler: OpsPostHandler<
       parse,
       handler,
       afterWrite,
+      bodyLimit: options.bodyLimit,
     });
 }
 

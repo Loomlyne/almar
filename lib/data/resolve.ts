@@ -4,8 +4,9 @@
 // this file (tests/data-boundary.test.mjs). It is the one place the storage shape (one record per
 // language, owner answer 2) is turned into the single-language rows the rest of the app sees (design 3.1.2).
 // Plan 03.2-02: the catalogue entities (destinations, stays, catalogue, team, journeys and the alt texts of their
-// pictures) are read through ./source (JSON fixtures or the Supabase api_* views, decided there); the page blocks
-// that stay in fixtures (home hero and the rest, about, contact, posts, C-21) still use readFixture below.
+// pictures) are read through ./source (JSON fixtures or the Supabase api_* views, decided there). Since plan 06-01 the
+// page blocks (home, about, /destinations hero) go through ./page-blocks and the posts through ./source; only contact
+// details (contact.json, SITE-13, fixed in code) still use readFixture below.
 // resolveRow and resolveImage are unchanged.
 
 import { mediaUrl } from "./media";
@@ -72,9 +73,8 @@ const imageAltCache = new Map<string, readonly ImageTranslation[]>();
 let imageAltFrom: readonly ImageTranslation[] | null = null;
 
 /**
- * The alt-text records for one image (cached by image id): the fixture file in fixtures mode; in supabase mode every
- * database record plus the fixture records of images the database does not know (see ./source). Every module that calls
- * image() awaits loadSource() first.
+ * The alt-text records for one image (cached by image id): the fixture file in fixtures mode; in supabase mode the
+ * database records (see ./source). Every module that calls image() awaits loadSource() first.
  */
 export function imageTranslationsFor(imageId: string): readonly ImageTranslation[] {
   const records = readSource<ImageTranslation[]>("image-translations");

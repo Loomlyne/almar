@@ -3,7 +3,7 @@
 // is asked for, and this decides what the save sends and what the card shows after it. A language the AI did not fill
 // is left out of the save, so the server keeps what it had (owner rule: the English and the other fields still save).
 
-import { TARGETS, planTranslation, sendable, type Target } from "../../../../../components/ops/auto-translate";
+import { TARGETS, planTranslation, sendable, touchKey, type Target } from "../../../../../components/ops/auto-translate";
 import { MAX_ACCESS_CHARS } from "./rates-forms";
 
 export type Notes = Record<Target, string>;
@@ -50,3 +50,13 @@ export function notesForSave(input: {
   return { send, after, asked, failed };
 }
 
+
+/** I18N-04 (plan 06-01): the stored `notes_locked` as the kit's lock set (touchKey format, field "notes"). */
+export function notesLockSet(stored: readonly string[] | null | undefined): Set<string> {
+  return new Set(TARGETS.filter((target) => (stored ?? []).includes(target)).map((target) => touchKey(target, "notes")));
+}
+
+/** The lock set back as the `notes_locked` the save sends: every language, sorted, sent whole (the server sets it). */
+export function notesLockedList(locked: ReadonlySet<string>): Target[] {
+  return TARGETS.filter((target) => locked.has(touchKey(target, "notes")));
+}

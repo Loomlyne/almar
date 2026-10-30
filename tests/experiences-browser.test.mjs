@@ -106,7 +106,7 @@ for (const locale of LOCALES) {
     assert.equal(sections.length, 2, "two groups");
     const copy = EXPERIENCES_PAGE_COPY[locale];
     const names = (section) =>
-      [...section.matchAll(/<button\b[^>]*aria-haspopup="dialog"[^>]*>([^<]*)<\/button>/g)].map((m) => m[1]);
+      [...section.matchAll(/<button\b[^>]*aria-haspopup="dialog"[^>]*><span[^>]*>([^<]*)<\/span><svg\b[\s\S]*?<\/svg><\/button>/g)].map((m) => m[1]);
     assert.deepEqual(names(sections[0]), items.filter((i) => i.kind === "experience").map((i) => escape(i.name)));
     assert.deepEqual(names(sections[1]), items.filter((i) => i.kind === "service").map((i) => escape(i.name)));
     assert.equal(names(sections[0]).length, 35);
@@ -206,7 +206,7 @@ for (const locale of LOCALES) {
     assert.ok(!html.includes("line-clamp"), "no clamp in the overlay");
     assert.ok(html.includes(`>${heritage.copy.overlay.duration}<`), "Duration row");
     assert.ok(html.includes(escape(heritage.item.duration_label)));
-    const links = [...html.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/g)];
+    const links = [...html.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([^<]*)<svg\b[\s\S]*?<\/svg><\/a>/g)];
     assert.equal(links.length, heritage.item.stay_slugs.length);
     assert.deepEqual(links.map((m) => m[1]), heritage.item.stay_slugs.map((s) => heritage.stayHrefs[s]));
     assert.deepEqual(links.map((m) => m[2]), heritage.item.stay_slugs.map((s) => escape(heritage.stayNames[s])));

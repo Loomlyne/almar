@@ -7,6 +7,7 @@ import { blogFrameLinks } from "./blog/frame-links";
 import { JourneyChoiceProvider } from "./home/journey-choice";
 import { blogPostingJsonLd } from "../site/blog-posting-json-ld";
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
+import { footerPageLinks } from "../site/page-links";
 import { PublicFrame } from "../site/public-frame";
 import { LinkButton } from "../ui/button";
 import { PortraitCard } from "../ui/card";
@@ -15,10 +16,13 @@ import { Link } from "../ui/link";
 import { OnThisPage } from "../ui/on-this-page";
 import { PageShell } from "../ui/page-shell";
 import { Reveal } from "../ui/reveal";
-import { RichText } from "../ui/rich-text";
+import { RichText, type RichTextBlock } from "../ui/rich-text";
+import { SaveStayNotices } from "../ui/save-stay";
+import { SavedPortraitCard } from "../ui/save-stay-card";
 import { BLOG_COPY } from "../../lib/copy/blog";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { getSiteLegalChrome } from "../../lib/data/legal";
 import { getDestinations } from "../../lib/data/destinations";
 import { getCatalogItem } from "../../lib/data/experiences";
 import { getPost, getPostSlugs, getRelatedPosts } from "../../lib/data/posts";
@@ -103,15 +107,24 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
 
   const url = absoluteLocaleUrl(locale, `/blog/${slug}`);
   const cover = { src: post.cover_image.url, alt: post.cover_image.alt };
-  const headings = post.body.flatMap((block) => (block.type === "heading" ? [{ id: block.id, text: block.text }] : []));
+  // Photo blocks (plan 06-03) go to RichText as their address and alt; the headings list and the lead rule skip them.
+  const body = post.body;
+  const blocks: RichTextBlock[] = body.map((block) =>
+    block.type === "photo"
+      ? { type: "photo", src: block.image.url, alt: block.image.alt, width: block.image.width, height: block.image.height }
+      : block,
+  );
+  const headings = body.flatMap((block) => (block.type === "heading" ? [{ id: block.id, text: block.text }] : []));
   // One paragraph reads as a lead and is centred; from the second block on the body is start-aligned.
-  const lead = post.body.length === 1 && post.body[0].type === "paragraph";
+  const lead = body.length === 1 && body[0].type === "paragraph";
   const fallback = post.translation_status === "fallback";
 
   const stayCard =
     stay && stay.hero_image ? (
       <li className="min-w-0">
-        <PortraitCard
+        <SavedPortraitCard
+          slug={stay.slug}
+          locale={locale}
           href={localePath(locale, `/private-stays/${stay.slug}`)}
           image={{ src: stay.hero_image.url, alt: stay.hero_image.alt }}
           title={stay.title}
@@ -139,7 +152,7 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
       {headings.length >= 2 ? (
         <OnThisPage label={copy.onThisPage} items={headings} className="w-full text-start" />
       ) : null}
-      <RichText blocks={post.body} className={lead ? "justify-items-center text-center" : "w-full justify-items-start text-start"} />
+      <RichText blocks={blocks} className={lead ? "justify-items-center text-center" : "w-full justify-items-start text-start"} />
     </article>
   );
 
@@ -152,8 +165,9 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
           locale={locale}
           currentPath={`/blog/${slug}`}
           links={links}
-          footerLinks={links}
+          footerLinks={footerPageLinks(locale)}
           footerCopy={SITE_FOOTER_COPY[locale]}
+          legal={await getSiteLegalChrome(locale)}
           labels={nav}
           navTone="on-image"
         >
@@ -181,13 +195,13 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
                   {copy.cta}
                 </LinkButton>
                 <nav aria-label={copy.links.back} className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                  <Link href={localePath(locale, "/blog")} inline>
+                  <Link href={localePath(locale, "/blog")}>
                     {copy.links.back}
                   </Link>
-                  <Link href={localePath(locale, "/")} inline>
+                  <Link href={localePath(locale, "/")}>
                     {copy.links.home}
                   </Link>
-                  <Link href={siteHref(locale, "/destinations")} inline>
+                  <Link href={siteHref(locale, "/destinations")}>
                     {copy.links.destinations}
                   </Link>
                 </nav>
@@ -205,6 +219,7 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
                   {stayCard}
                   {experienceCard}
                 </CardRow>
+                {stayCard ? <SaveStayNotices dismissLabel={SITE_FOOTER_COPY[locale].newsletter.dismiss} /> : null}
               </PageShell>
             ) : null}
             {related.length > 0 ? (

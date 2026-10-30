@@ -24,7 +24,18 @@ const LEAD = "mx-auto block max-w-100";
  * One photo and no dots: an automatic slideshow would need a pause button (design 12.1). A1 brings the photo in on load,
  * A3 the headline, A10 fades the photo as the page scrolls away. The header sits over the top of it (nav tone on-image).
  */
-export function AboutHero({ kicker, headline, image }: { kicker: string; headline: string; image: ImageRef | null }) {
+export function AboutHero({
+  kicker,
+  headline,
+  image,
+  videoUrl = null,
+}: {
+  kicker: string;
+  headline: string;
+  image: ImageRef | null;
+  /** The hero video the owner set in Content -> Pages (plan 06-02): plays over the photo, which stays the poster. */
+  videoUrl?: string | null;
+}) {
   return (
     <section
       aria-labelledby={HERO_ID}
@@ -32,7 +43,7 @@ export function AboutHero({ kicker, headline, image }: { kicker: string; headlin
     >
       <div data-scroll="fade" className="absolute inset-0 -z-20">
         <Reveal kind="photo" className="absolute inset-0">
-          <BackgroundMedia poster={image ? { src: image.url, alt: image.alt } : null} />
+          <BackgroundMedia poster={image ? { src: image.url, alt: image.alt } : null} videoUrl={videoUrl} />
         </Reveal>
       </div>
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-ink/35" />

@@ -1,10 +1,11 @@
 "use client";
 
 import { useId } from "react";
-import { CheckIcon, ChevronIcon, CloseIcon } from "../../../../components/icons/icons";
+import { CheckIcon, CloseIcon } from "../../../../components/icons/icons";
 import { Button } from "../../../../components/ui/button";
 import { Dialog } from "../../../../components/ui/dialog";
 import { Field } from "../../../../components/ui/field";
+import { DisclosureChevron, LINK_BUTTON } from "../../../../components/ui/link";
 import { Select, type SelectOption } from "../../../../components/ui/select";
 import { BANK_TEXT_LIMITS, formatIban, isValidIban } from "../../../../lib/booking/bank";
 import { fillCopy } from "../../../../lib/copy/ops-kit";
@@ -216,10 +217,10 @@ export function MoneySection({
           aria-expanded={showTranslations}
           aria-controls={showTranslations ? regionId : undefined}
           onClick={onToggleTranslations}
-          className="inline-flex min-h-control cursor-pointer items-center gap-2 border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4"
+          className={LINK_BUTTON}
         >
-          <ChevronIcon size={16} className={showTranslations ? "-rotate-90" : "rotate-90"} aria-hidden="true" />
-          {showTranslations ? copy.hideTranslations : copy.editTranslations}
+          <span className="min-w-0 break-words">{showTranslations ? copy.hideTranslations : copy.editTranslations}</span>
+          <DisclosureChevron open={showTranslations} />
         </button>
         {showTranslations ? (
           <div id={regionId} className="grid w-full min-w-0 gap-4 md:grid-cols-2">

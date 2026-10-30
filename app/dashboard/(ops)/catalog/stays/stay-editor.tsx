@@ -443,6 +443,7 @@ export function StayEditor({
       english={english}
       savedEnglish={savedEnglish}
       translations={form.translations}
+      locked={form.locked}
       translationFields={translationFields}
       onTranslationChange={(target, name, value) =>
         onFormChange({ ...form, translations: { ...form.translations, [target]: { ...form.translations[target], [name]: value } } })

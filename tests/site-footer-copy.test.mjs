@@ -13,13 +13,13 @@ import { STAY_DETAIL_COPY } from "../lib/copy/stay-detail.ts";
 // stays list and the stay page all read. Before, each page file carried its own copy and the Arabic drifted.
 
 const LOCALES = ["en", "ar", "es"];
-const KEYS = ["brand", "contact", "copyright", "instagram", "language", "madeBy", "newTab", "pages"];
+const KEYS = ["brand", "contact", "cookieSettings", "copyright", "instagram", "language", "legal", "listWithUs", "madeBy", "newTab", "pages"];
 // Plan 27: the newsletter block, an object of nine strings.
 const NEWSLETTER_KEYS = ["description", "dismiss", "email", "failed", "invalid", "sending", "subscribe", "success", "title"];
 const LIVE_COPYRIGHT = "© 2026 ALMAR Private Journeys. All rights reserved.";
 const SIGNED = JSON.parse(readFileSync(".planning/phases/03.3-public-site-in-react/s3-pictures/partb-states.json", "utf8"));
 
-test("one table, three locales, the same eight non-empty strings and the newsletter block in each", () => {
+test("one table, three locales, the same ten non-empty strings and the newsletter block in each", () => {
   assert.deepEqual(Object.keys(SITE_FOOTER_COPY).sort(), ["ar", "en", "es"]);
   for (const locale of LOCALES) {
     assert.deepEqual(Object.keys(SITE_FOOTER_COPY[locale]).sort(), [...KEYS, "newsletter"].sort(), locale);
@@ -96,6 +96,17 @@ test("plan 41 keys: brand (the wordmark's alt) and madeBy; the English is the li
   assert.match(header, /brand/);
   assert.match(header, /madeBy/);
   assert.match(header, /draft/i);
+});
+
+test("plan 06-05 key: listWithUs is the canvas PublicContact wording", () => {
+  assert.deepEqual(LOCALES.map((l) => SITE_FOOTER_COPY[l].listWithUs), ["List with us", "أدرجوا عقاركم", "Publica con nosotros"]);
+});
+
+test("plan 06-04 keys: legal and cookieSettings are the signed words (drafted UI copy, pictures 06-04)", () => {
+  assert.deepEqual(LOCALES.map((l) => SITE_FOOTER_COPY[l].legal), ["Legal", "قانوني", "Legal"]);
+  assert.deepEqual(LOCALES.map((l) => SITE_FOOTER_COPY[l].cookieSettings), ["Cookie settings", "إعدادات ملفات الارتباط", "Ajustes de cookies"]);
+  const header = readFileSync("lib/copy/site-footer.ts", "utf8").split("export type")[0];
+  assert.match(header, /legal, cookieSettings\s+DRAFTED UI COPY, signed with the 06-04 pictures/);
 });
 
 test("no page copy file has a footer of its own any more", () => {

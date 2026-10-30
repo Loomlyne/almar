@@ -8,7 +8,7 @@ import { LOCALES, isLocale, localePath, matchPublicPage, stripLocale } from "../
 import { opsPathsFrom } from "../lib/ops-routes.ts";
 import { assertAnonKey } from "../lib/data/anon-key.ts";
 import { isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
-import { assertPublicClean, assertTargetFiles, outDirNameFor, parseTarget, writeTargetFiles } from "./crawl-files.mjs";
+import { assertPublicClean, assertSitemapCovers, assertTargetFiles, outDirNameFor, parseTarget, writeTargetFiles } from "./crawl-files.mjs";
 import { assertMediaReady } from "./media-guard.mjs";
 import { assertWorkerSize } from "./worker-size.mjs";
 import { BRAND_FILES, DEFAULT_SITE_SETTINGS, brandStyle, fetchSiteSettings, logoPath, parseSiteSettingsRow } from "../lib/site-settings.ts";
@@ -537,6 +537,55 @@ export function applySiteSettings({ outDir, pages, settings, logo, repoRoot = ro
 
 
 /**
+ * Runs scripts/write-site-nav.mjs with the build's env, then reads the file back. A failed read or write stops the
+ * assemble with the script's own error (execFileSync throws on a non-zero exit), and a snapshot without a header and a
+ * footer list for every language is refused, so a build never ships a silent empty or half-written nav (controller,
+ * 2026-10-28). Links the owner hid are simply not in the lists; Login, currency and language are drawn in code.
+ */
+export function writeNavSnapshot(env, run = execFileSync) {
+  run(process.execPath, [path.join(root, "scripts/write-site-nav.mjs")], { cwd: root, stdio: "inherit", env });
+  const file = path.join(root, "lib/data/site-nav.snapshot.json");
+  let snapshot;
+  try {
+    snapshot = JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch (error) {
+    throw new Error(`site-nav: ${file} could not be read after write-site-nav.mjs (${error.message}); the build stops`);
+  }
+  for (const area of ["header", "footer"]) {
+    for (const locale of LOCALES) {
+      if (!Array.isArray(snapshot?.[area]?.[locale])) {
+        throw new Error(`site-nav: the snapshot has no ${area} list for ${locale}; the build stops`);
+      }
+    }
+  }
+  return snapshot;
+}
+
+/**
+ * Plan 06-04: the public paths the published rows say must be pages, read by scripts/expected-public-paths.mjs with the
+ * build's own env (the same source as the pages), in the English form. A failed read stops the assemble with the script's
+ * own error (execFileSync throws on a non-zero exit), and so does an answer that is not a list of paths.
+ */
+export function expectedPublicPaths(source, env = process.env, run = execFileSync) {
+  const out = run(process.execPath, [path.join(root, "scripts/expected-public-paths.mjs")], {
+    cwd: root,
+    stdio: ["ignore", "pipe", "inherit"],
+    encoding: "utf8",
+    env: nextBuildEnv(env, source),
+  });
+  let paths;
+  try {
+    paths = JSON.parse(out);
+  } catch (error) {
+    throw new Error(`expected public paths: unreadable answer (${error.message}); the build stops`);
+  }
+  if (!Array.isArray(paths) || !paths.every((p) => typeof p === "string" && p.startsWith("/"))) {
+    throw new Error("expected public paths: not a list of paths; the build stops");
+  }
+  return paths;
+}
+
+/**
  * node scripts/assemble-cloudflare.mjs [--target=local|preview|production|ops]
  *
  *   local (default)  out/          production crawl files; no media check, so the check set can build
@@ -568,16 +617,28 @@ async function main(argv = process.argv.slice(2)) {
   // Job 10: OpenNext runs the project's `next build` (standalone) and bundles the server into .open-next/. The
   // prerendered pages below come from that same build, so the static folder and the Worker script always match.
   const config = target === "preview" ? "wrangler.preview.toml" : target === "ops" ? "wrangler.ops.toml" : "wrangler.toml";
+  // Plan 06-04: only these two targets have a sitemap.
+  const hasSitemap = target === "production" || target === "local";
+  let expectedPaths = [];
   // 03.2-02b: for preview and production the publish sequence is read before and after the build, outside Next.
   await guardPublishSequence({
     target,
     source,
-    build: () =>
+    build: () => {
+      // Plan 06-02 (CMS-09): the header and footer links are baked from the same source as the pages, inside the
+      // publish-sequence window. The ops build draws no public page and keeps the committed snapshot.
+      if (target !== "ops") writeNavSnapshot(nextBuildEnv(process.env, source));
+      // Plan 06-04: the booking terms version this build saw; the request gate opens only on the same version. Its one
+      // line says which version or that none was baked. Only a file that cannot be written stops here. The ops build reads
+      // fixtures, so it writes none: no earlier public build's version stays in its bundle.
+      execFileSync(process.execPath, [path.join(root, "scripts/write-booking-terms.mjs")], { cwd: root, stdio: "inherit", env: nextBuildEnv(process.env, source) });
+      if (hasSitemap) expectedPaths = expectedPublicPaths(source);
       execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
         cwd: root,
         stdio: "inherit",
         env: nextBuildEnv(process.env, source),
-      }),
+      });
+    },
   });
   assertNoBundledEnv(path.join(root, ".open-next/cloudflare/next-env.mjs"));
   const folder = outDirNameFor(target);
@@ -598,7 +659,11 @@ async function main(argv = process.argv.slice(2)) {
     .filter((f) => f.rel.endsWith(".html"))
     .map((f) => f.rel);
   writeTargetFiles({ outDir, target, root, htmlFiles });
+  // Plan 06-04: the dashboard's Money row reads this file to know what the public Worker was built with (lib/ops/money-settings.ts).
+  if (target !== "ops") fs.copyFileSync(path.join(root, "lib/booking/baked-terms.snapshot.json"), path.join(outDir, "booking-terms-version.json"));
   assertTargetFiles(outDir, target, { root });
+  // A published post or legal page with no page file stops the build, naming the URL (the live site stays as it was).
+  if (hasSitemap) assertSitemapCovers(fs.readFileSync(path.join(outDir, "sitemap.xml"), "utf8"), expectedPaths);
   const pathArgs = {
     manifestFile: path.join(root, ".next/server/app-paths-manifest.json"),
     openNextDir: path.join(root, ".open-next"),

@@ -6,7 +6,7 @@ import test from "node:test";
 import { HELD_PATHS, OPS_API_PREFIX, SERVER_PATHS_OUTSIDE_API, isHeldPath, serverPathsFrom } from "../lib/server-routes.ts";
 import { JOB02_SERVER_PATHS } from "../lib/auth/server-paths.ts";
 import { assembleOut, assertNoBundledEnv, assertNoPublicEnv, writeServerPaths } from "../scripts/assemble-cloudflare.mjs";
-import { FORM_BODY_CAPS, handle } from "../worker/handle.mjs";
+import { FORM_BODY_CAPS, SECURITY_HEADERS, handle } from "../worker/handle.mjs";
 
 // Job 10 (plan 02-20): what may run on the server, and the Worker's request router. No build and no wrangler here;
 // the built Worker is proven by tests/build/server-runtime.spec.ts.
@@ -343,7 +343,14 @@ test("handle (review fix, PR #16): a form POST whose Content-Length is above its
 });
 
 test("handle (review fix, PR #16): the Worker's caps are the routes' caps", () => {
-  assert.deepEqual([...FORM_BODY_CAPS.keys()].sort(), ["/api/contact", "/newsletter"]);
+  assert.deepEqual([...FORM_BODY_CAPS.keys()].sort(), ["/api/consult/book", "/api/contact", "/api/requests", "/api/saved-stays", "/newsletter"]);
+  // Plan 06-05: the two site-request POST paths share one cap.
+  const requests = readFileSync(new URL("../lib/site-requests/validate.ts", import.meta.url), "utf8");
+  const requestCap = Number(/^export const SITE_REQUEST_BODY_LIMIT = (\d+);$/m.exec(requests)?.[1]);
+  assert.equal(FORM_BODY_CAPS.get("/api/requests"), requestCap);
+  assert.equal(FORM_BODY_CAPS.get("/api/consult/book"), requestCap);
+  const saved = readFileSync(new URL("../lib/saved-stays/route.ts", import.meta.url), "utf8");
+  assert.equal(FORM_BODY_CAPS.get("/api/saved-stays"), Number(/SAVED_STAYS_BODY_LIMIT = (\d+)/.exec(saved)?.[1]));
   const contact = readFileSync(new URL("../lib/contact-inquiry.ts", import.meta.url), "utf8");
   assert.equal(FORM_BODY_CAPS.get("/api/contact"), Number(/body: (\d+) \} as const;/.exec(contact)?.[1]));
   const newsletter = readFileSync(new URL("../app/newsletter/route.ts", import.meta.url), "utf8");
@@ -630,3 +637,37 @@ for (const [name, Make] of [
     assert.equal(seen[0].aborted, true, "the route sees the visitor go");
   });
 }
+
+// ---- plan 06-04: the three security headers on every server answer ---------------------------------------------------
+
+const answering = (headers) =>
+  handle(new Request("https://almarprivatejourney.com/api/health"), { ASSETS: { fetch: async () => new Response("asset") } }, {}, {
+    serverPaths: new Set(["/api/health"]),
+    nextFetch: async () => new Response("{}", { status: 200, headers }),
+  });
+
+test("handle: a server answer gains the three headers", async () => {
+  const res = await answering({});
+  assert.equal(res.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(res.headers.get("referrer-policy"), "strict-origin-when-cross-origin");
+  assert.equal(res.headers.get("permissions-policy"), "camera=(), microphone=(), geolocation=(), browsing-topics=()");
+  assert.equal(res.headers.get("x-robots-tag"), "noindex");
+});
+
+test("handle: a route's own Referrer-Policy stays (the auth hand-off's no-referrer on its redirect)", async () => {
+  const res = await answering({ "referrer-policy": "no-referrer" });
+  assert.equal(res.headers.get("referrer-policy"), "no-referrer");
+  assert.equal(res.headers.get("x-content-type-options"), "nosniff");
+});
+
+test("handle: the static assets answer with their own _headers: nothing is added here", async () => {
+  const res = await handle(new Request("https://almarprivatejourney.com/en/about"), { ASSETS: { fetch: async () => new Response("asset") } }, {}, { serverPaths: new Set(), nextFetch: async () => new Response("") });
+  assert.equal(res.headers.get("x-content-type-options"), null);
+});
+
+test("the Worker's three values are the root _headers' three values; both Workers use this handler", () => {
+  const headers = readFileSync("_headers", "utf8");
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) assert.ok(headers.toLowerCase().includes(`${name}: ${value}`.toLowerCase()), name);
+  assert.match(readFileSync("worker/almar.mjs", "utf8"), /import \{ handle \} from "\.\/handle\.mjs"/);
+  assert.match(readFileSync("worker/almar-ops.mjs", "utf8"), /import \{ handle \} from "\.\/handle\.mjs"/);
+});

@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAR 06-03 pictures: Blog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+Arabic:wght@400;600&family=Noto+Naskh+Arabic&display=swap">
+<style>
+/* Tokens copied from tokens.json (2026-10-27). Square corners everywhere; gold is a line only; teal is the primary. */
+:root{
+  --color-ivory:#fffaf0;--color-surface:#ffffff;--color-teal:#1f3b40;--color-teal-tint:#d1dfe0;--color-gold:#d4ba8a;
+  --color-ink:#262626;--color-muted:#63615f;--color-line:rgb(38 38 38 / 0.16);--color-error:#8f2d2d;
+  --control:44px;--sidebar:240px;
+  --face-display:Georgia,"Times New Roman",serif;
+  --face-body:"Lato",Arial,sans-serif;
+  --shadow-selected:inset 0 0 0 2px var(--color-teal);
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;background:#ece8df;color:var(--color-ink);font-family:var(--face-body);font-size:14px}
+/* ---------- review page chrome (not product UI) ---------- */
+#top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 20px;background:var(--color-teal);color:var(--color-ivory)}
+#top h1{font:400 18px var(--face-display);margin:0;margin-inline-end:auto}
+#top .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#top .grp span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-inline-end:4px}
+#top button,#top select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid rgba(255,250,240,.5);background:transparent;color:var(--color-ivory);cursor:pointer}
+#top select option{color:#000}
+#top button[aria-pressed=true]{background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)}
+#main{padding:20px 24px 80px}
+.banner{background:var(--color-ivory);border:1px solid var(--color-gold);padding:12px 16px;margin-bottom:24px;font-size:14px;line-height:1.55;max-width:1100px}
+.banner ol{margin:6px 0 0;padding-inline-start:20px}
+.banner code{font:13px ui-monospace,Menlo,monospace}
+.decision{border:2px solid var(--color-teal);background:#fff;padding:12px 16px;margin:12px 0 0}
+.st{margin:0 0 48px}
+.st>h2{font:400 22px var(--face-display);color:var(--color-teal);margin:0 0 4px}
+.st>p{margin:0 0 12px;max-width:900px;line-height:1.5}
+.shot{margin:0 0 28px}
+.shot .cap{font:600 13px ui-monospace,Menlo,monospace;margin:0 0 6px}
+.scroller{overflow-x:auto;padding-bottom:6px}
+.scaler{transform-origin:top left}
+.rv{font:12px ui-monospace,Menlo,monospace;background:#fff3c4;color:#4a3b00;padding:2px 6px;display:inline-block;direction:ltr}
+.newbadge{outline:2px dashed var(--color-gold);outline-offset:4px}
+/* ---------- dashboard frame ---------- */
+.frame{background:var(--color-ivory);color:var(--color-ink);font:14px/1.43 var(--face-body);border:1px solid var(--color-line);display:flex;min-height:640px;position:relative}
+.frame[dir=rtl],.pub[dir=rtl]{font-family:"Noto Sans Arabic",var(--face-body);line-height:1.63}
+.frame[dir=rtl] .disp,.pub[dir=rtl] .disp{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.4}
+.rail{width:var(--sidebar);flex:none;border-inline-end:1px solid var(--color-line);padding:20px 16px;display:flex;flex-direction:column;gap:2px}
+.rail .mark{font:400 20px var(--face-display);letter-spacing:.06em;margin-bottom:20px}
+.rail a{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:40px;padding:0 12px;color:var(--color-ink);text-decoration:none}
+.rail a.sub{padding-inline-start:28px}
+.rail a.on{box-shadow:inset 3px 0 0 var(--color-teal);background:var(--color-surface);color:var(--color-teal)}
+.frame[dir=rtl] .rail a.on{box-shadow:inset -3px 0 0 var(--color-teal)}
+.rail .soon{font-size:12px;color:var(--color-muted);border:1px solid var(--color-line);padding:0 6px}
+.bar{display:none;align-items:center;justify-content:space-between;height:56px;padding:0 16px;border-bottom:1px solid var(--color-line)}
+.bar .mark{font:400 18px var(--face-display);letter-spacing:.06em}
+.bar .menu{min-height:var(--control);min-width:var(--control);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-teal)}
+.col{flex:1;min-width:0;display:flex;flex-direction:column}
+.page{padding:24px 32px 48px;display:flex;flex-direction:column;gap:24px;max-width:1240px}
+.narrow .rail{display:none}.narrow .bar{display:flex}.narrow .page{padding:16px 16px 40px}
+.back{display:inline-flex;align-items:center;gap:4px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;width:max-content}
+.back svg{transform:rotate(180deg)}.frame[dir=rtl] .back svg{transform:none}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid var(--color-line);padding-bottom:16px}
+.head h1,.lh1{margin:0;font:400 32px/1.2 var(--face-display);color:var(--color-teal)}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border:1px solid var(--color-teal);color:var(--color-teal);font-size:12px;white-space:nowrap}
+.chip.off{border-color:var(--color-line);color:var(--color-muted)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{min-height:var(--control);padding:0 20px;font:inherit;border:1px solid var(--color-teal);display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.o{background:var(--color-surface);color:var(--color-teal)}
+.btn.p{background:var(--color-teal);color:#fff}
+.btn.dis{opacity:.45}
+.btn.sq{padding:0;width:var(--control);justify-content:center}
+.card{border:1px solid var(--color-line);background:var(--color-surface);padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.narrow .card{padding:16px}
+.card h2{margin:0;font:400 20px/1.3 var(--face-display);color:var(--color-teal)}
+.note{margin:0;color:var(--color-muted)}
+.cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}
+.cols>div{display:flex;flex-direction:column;gap:24px;min-width:0}
+.narrow .cols{grid-template-columns:1fr}
+.field{display:grid;gap:8px;min-width:0}
+.input{min-height:var(--control);border:1px solid var(--color-ink);background:var(--color-surface);padding:8px 16px;font:inherit;color:var(--color-ink);width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+.input.area{min-height:96px}
+.input.bad{border-color:var(--color-error);box-shadow:inset 0 0 0 1px var(--color-error)}
+.input.ph{color:var(--color-muted)}
+.input.sel{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.input.ro{border-color:var(--color-line);background:var(--color-ivory)}
+.err{margin:0;border-inline-start:2px solid var(--color-error);padding-inline-start:8px;color:var(--color-ink)}
+.link{display:inline-flex;align-items:center;gap:8px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-decoration-thickness:1px;text-underline-offset:4px;background:none;border:0;padding:0;font:inherit;width:max-content}
+.link.red{color:var(--color-error);text-decoration-color:var(--color-error)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:var(--control)}
+.sw{width:44px;height:24px;border:1px solid var(--color-ink);background:var(--color-surface);position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:16px;height:16px;background:var(--color-muted)}
+.sw.on{background:var(--color-teal);border-color:var(--color-teal)}.sw.on::after{inset-inline-start:23px;background:#fff}
+.fixed{display:flex;gap:8px;align-items:flex-start;color:var(--color-muted)}
+.fixed svg{flex:none;margin-top:2px}
+/* tables (ListTable) */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-weight:400;color:var(--color-muted);text-align:start;padding:8px 12px;border-bottom:1px solid var(--color-line);font-size:12px}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--color-line);vertical-align:middle}
+.tbl td.t{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px}
+.tbl tr.hid td.t{color:var(--color-muted)}
+.tbl tr.fix td{color:var(--color-muted)}
+.tbl .mv{display:flex;gap:4px;justify-content:flex-end}
+.narrow:not(.mid) .tbl thead{display:none}
+.narrow:not(.mid) .tbl tr{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 0;border-bottom:1px solid var(--color-line)}
+.narrow:not(.mid) .tbl td{border:0;padding:0}
+.narrow:not(.mid) .tbl td.wide{grid-column:1/-1}
+.narrow:not(.mid) .tbl .mv{justify-content:flex-start}
+/* media */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+.tile{display:flex;flex-direction:column;gap:4px}
+.tile img,.ph-img{width:100%;aspect-ratio:3/2;object-fit:cover;display:block;background:var(--color-teal-tint)}
+.ph-img{display:flex;align-items:center;justify-content:center;color:var(--color-muted);border:1px dashed var(--color-line)}
+.one{max-width:320px}
+/* toggle cards (never radio) */
+.tcards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.narrow:not(.mid) .tcards{grid-template-columns:1fr}
+.tcard{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;min-height:var(--control);display:flex;flex-direction:column;gap:4px}
+.tcard.on{box-shadow:var(--shadow-selected);border-color:var(--color-teal)}
+.tcard b{font-weight:700;color:var(--color-ink)}
+/* lock line (06-01, signed) */
+.lockline{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 16px;color:var(--color-muted);margin-top:-4px}
+.narrow:not(.mid) .lockline{grid-template-columns:1fr}
+.lockline .txt{display:flex;align-items:flex-start;gap:6px}
+.boxes{display:grid;gap:16px;grid-template-columns:1fr 1fr}.narrow:not(.mid) .boxes{grid-template-columns:1fr}
+.lang{border:1px solid var(--color-line);background:var(--color-ivory);padding:16px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.lang h3{margin:0;font-weight:400;color:var(--color-muted)}
+/* dialog */
+.scrim{position:absolute;inset:0;background:rgb(38 38 38 / .45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}
+.dialog{background:var(--color-surface);border:1px solid var(--color-line);padding:24px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:16px}
+.dialog h2{margin:0;font:400 20px var(--face-display);color:var(--color-teal)}
+/* ---------- public frame ---------- */
+.pub{background:var(--color-ivory);color:var(--color-ink);font:16px/1.5 var(--face-body);border:1px solid var(--color-line);min-height:640px}
+.phd{display:flex;align-items:center;gap:28px;padding:16px 40px;border-bottom:1px solid var(--color-line);background:var(--color-ivory)}
+.phd img.wm{height:44px;display:block}
+.phd nav{display:flex;gap:24px;margin-inline-end:auto}
+.phd a{color:var(--color-ink);text-decoration:none;white-space:nowrap}
+.phd .tools{display:flex;gap:16px;align-items:center;color:var(--color-ink)}
+.phd .login{border:1px solid var(--color-teal);color:var(--color-teal);padding:8px 16px}
+.pnarrow .phd{padding:12px 16px}.pnarrow .phd nav,.pnarrow .phd .tools{display:none}
+.pnarrow .phd .burger{display:inline-flex;margin-inline-start:auto}
+.phd .burger{display:none;width:44px;height:44px;border:1px solid var(--color-line);align-items:center;justify-content:center;color:var(--color-teal)}
+.hero{position:relative;min-height:520px;display:flex;align-items:flex-end;color:#fff}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgb(0 0 0 / .55),rgb(0 0 0 / 0) 60%)}
+.hero .in{position:relative;z-index:1;padding:48px 40px;display:flex;flex-direction:column;gap:12px;width:100%}
+.pnarrow .hero{min-height:420px}.pnarrow .hero .in{padding:24px 16px}
+.hero h1{margin:0;font:400 64px/1.1 var(--face-display)}.pnarrow .hero h1{font-size:40px}
+.kick{font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.pub[dir=rtl] .kick{letter-spacing:0}
+.booker{background:var(--color-surface);border:1px solid var(--color-line);min-height:64px;display:grid;grid-template-columns:repeat(3,1fr) auto;max-width:880px}
+.booker span{border-inline-end:1px solid var(--color-line)}.booker b{background:var(--color-teal);width:120px}
+.pnarrow .booker{grid-template-columns:1fr;min-height:56px}.pnarrow .booker span{display:none}.pnarrow .booker b{width:100%}
+.vid{position:absolute;top:16px;inset-inline-end:16px;z-index:2}
+.sec{padding:64px 40px;display:flex;flex-direction:column;gap:16px;max-width:1240px;margin:0 auto}
+.pnarrow .sec{padding:40px 16px}
+.sec h2{margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)}.pnarrow .sec h2{font-size:32px}
+.sec p{margin:0;max-width:640px}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.pnarrow .cards3{grid-template-columns:1fr}.pmid .cards3{grid-template-columns:1fr 1fr}
+.cards3 img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.cards3 h3{margin:12px 0 0;font:400 20px var(--face-display)}
+.ghost{height:140px;background:repeating-linear-gradient(135deg,transparent 0 10px,rgb(38 38 38 / .05) 10px 11px);border-top:1px solid var(--color-line)}
+.band{width:100%;aspect-ratio:16/6;object-fit:cover;display:block}.pnarrow .band{aspect-ratio:4/3}
+.pfoot{background:var(--color-teal);color:var(--color-ivory);padding:48px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.pnarrow .pfoot{grid-template-columns:1fr;padding:32px 16px}
+.pfoot h4{margin:0 0 12px;font-weight:400;font-size:12px;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+.pub[dir=rtl] .pfoot h4{letter-spacing:0}
+.pfoot a{display:flex;align-items:center;gap:6px;color:var(--color-ivory);text-decoration:none;min-height:32px}
+.sr{font-size:11px;opacity:.7}
+</style></head>
+<body>
+<div id="top">
+  <h1>06-03 · Blog editor and blog search · pictures for signature</h1>
+  <div class="grp"><span>Scene</span><select id="scene"></select></div>
+  <div class="grp"><span>Language</span><button data-l="all" aria-pressed="true">All</button><button data-l="en">EN</button><button data-l="ar">AR</button><button data-l="es">ES</button></div>
+  <div class="grp"><span>Width</span><button data-w="all" aria-pressed="true">All</button><button data-w="390">390</button><button data-w="834">834</button><button data-w="1440">1440</button></div>
+  <div class="grp"><span>Size</span><button data-z="fit" aria-pressed="true">Fit</button><button data-z="1">100%</button></div>
+</div>
+<div id="main">
+  <div class="banner">
+    <strong>What this adds.</strong> Dashboard → Content → <em>Blog</em> replaces its Coming soon page: the list of posts with a search box,
+    and the editor you already use with a <em>Body</em> made of blocks (heading, paragraph, photo, quote) that you add, move and delete.
+    English only; Arabic and Spanish are filled on Save, and a block you fix by hand stays locked. On the public blog, a search box above
+    the stories, and a photo can sit inside a post. The three imported posts are the real ones; <code>[brackets]</code> mark a sample value.
+    <ol>
+      <li><code>blog-list-en-1440</code>: Blog heading, New post, Search posts, three rows (title, Published, date), newest first, no Soon chip.</li>
+      <li><code>blog-blocks-ar-390</code>: right to left; one heading, paragraph, photo (with its alt line) and quote, each with Move up, Move down and Delete; the four Add buttons under them; square corners.</li>
+      <li><code>blog-imported-published-en-834</code>: the address is a fixed line with "The address is fixed once the post has been published."; the Arabic title shows the lock line and Translate again.</li>
+      <li><code>blog-publish-missing-es-1440</code>: Publish waits; the list names the cover photo and the Spanish text of block 2 (usted wording).</li>
+      <li><code>blog-search-match-en-390</code> and <code>blog-search-none-ar-834</code>: the box above the cards; a match leaves only matching stories with a count; no match says so with Clear.</li>
+      <li><code>blog-photo-block-es-1440</code>: the photo in the text column between paragraph and quote, square, no caption.</li>
+    </ol>
+    <p style="margin:8px 0 0">Every dashboard word is new copy (lib/copy/ops-blog.ts): English is ours, Arabic and Spanish are drafts for you (dashboard Spanish uses <em>usted</em>).
+    The four public search lines (lib/copy/blog.ts) are new too; the public site keeps its own voice (Spanish <em>tú</em>). Change any word in your reply.
+    The rail entries Pages and Navigation show Soon here because this page is drawn on its own; Blog loses its Soon.</p>
+  </div>
+  <div id="shots"></div>
+</div>
+<script>
+const M="https://media.almarprivatejourney.com/";
+const WM="https://framerusercontent.com/images/RX7lhKpzXFpv2KTvbxNSm3UZz8.svg";
+const ICON={
+ chev:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
+ down:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+ up:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>',
+ menu:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+ lock:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="10.5" width="12" height="8.5"/><path d="M8.5 10.5V8.2a3.5 3.5 0 0 1 7 0v2.3"/></svg>',
+ ext:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M17 14v5H5V7h5"/></svg>',
+ spin:'<span style="width:14px;height:14px;border:2px solid var(--color-teal-tint);border-top-color:var(--color-teal);display:inline-block"></span>'
+};
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const fill=(s,o)=>s.replace(/\{(\w+)\}/g,(_,k)=>o[k]);
+// ---- existing words (lib/copy: dashboard.ts rail, ops-content.ts, ops-kit.ts, ops-site-status.ts, home.ts nav, site-footer.ts)
+const U={
+ en:{dir:"ltr",rail:{home:"Home",bookings:"Bookings",customers:"Customers",calendar:"Calendar",catalog:"Catalog",destinations:"Destinations",stays:"Stays",experiences:"Experiences & Services",packages:"Packages",content:"Content",pages:"Pages",blog:"Blog",team:"Team",legal:"Legal",media:"Media",navigation:"Navigation and footer",settings:"Settings",profile:"Profile"},soon:"Soon",
+   save:"Save",publish:"Publish",delete:"Delete",cancel:"Cancel",moveUp:"Move up",moveDown:"Move down",unsaved:"Unsaved changes",
+   sec:{text:"Text",photo:"Photo",settings:"Settings"},englishOnly:"Write in English. Arabic and Spanish are added when you save.",
+   editTr:"Edit translations",hideTr:"Hide translations",trNote:"Arabic and Spanish were filled in from the English. Change a word only if you need to.",
+   langs:{ar:"Arabic",es:"Spanish"},lockedNote:"Your own text. A change to the English will not replace it.",translateAgain:"Translate again",
+   updating:"Updating",saveHint:"Saving updates the public site in a few minutes",translating:"Adding Arabic and Spanish…",
+   nav:{destinations:"Destinations",experiences:"Experiences",about:"About",contact:"Contact",currency:"Currency",language:"Language",login:"Login"},
+   foot:{pages:"Pages",contact:"Contact",instagram:"Instagram",newTab:"(opens in a new tab)"}},
+ ar:{dir:"rtl",rail:{home:"الرئيسية",bookings:"الحجوزات",customers:"العملاء",calendar:"التقويم",catalog:"الكتالوج",destinations:"الوجهات",stays:"الإقامات",experiences:"التجارب والخدمات",packages:"الباقات",content:"المحتوى",pages:"الصفحات",blog:"المدونة",team:"الفريق",legal:"القانوني",media:"الوسائط",navigation:"التنقل والتذييل",settings:"الإعدادات",profile:"الملف"},soon:"قريبًا",
+   save:"حفظ",publish:"نشر",delete:"حذف",cancel:"إلغاء",moveUp:"تحريك لأعلى",moveDown:"تحريك لأسفل",unsaved:"تغييرات غير محفوظة",
+   sec:{text:"النص",photo:"الصورة",settings:"الإعدادات"},englishOnly:"اكتب بالإنجليزية. تُضاف العربية والإسبانية عند الحفظ.",
+   editTr:"تعديل الترجمات",hideTr:"إخفاء الترجمات",trNote:"تمت كتابة العربية والإسبانية تلقائيًا من النص الإنجليزي. غيّر كلمة فقط عند الحاجة.",
+   langs:{ar:"العربية",es:"الإسبانية"},lockedNote:"نصّك الخاص. لن يستبدله أي تغيير في النص الإنجليزي.",translateAgain:"ترجمة من جديد",
+   updating:"جارٍ التحديث",saveHint:"الحفظ يحدّث الموقع العام خلال دقائق قليلة",translating:"جارٍ إضافة العربية والإسبانية…",
+   nav:{destinations:"الوجهات",experiences:"التجارب",about:"عنّا",contact:"تواصل",currency:"العملة",language:"اللغة",login:"دخول"},
+   foot:{pages:"الصفحات",contact:"تواصل",instagram:"Instagram",newTab:"(يفتح في تبويب جديد)"}},
+ es:{dir:"ltr",rail:{home:"Inicio",bookings:"Reservas",customers:"Clientes",calendar:"Calendario",catalog:"Catálogo",destinations:"Destinos",stays:"Estancias",experiences:"Experiencias y servicios",packages:"Paquetes",content:"Contenido",pages:"Páginas",blog:"Blog",team:"Equipo",legal:"Legal",media:"Medios",navigation:"Navegación y pie",settings:"Ajustes",profile:"Perfil"},soon:"Pronto",
+   save:"Guardar",publish:"Publicar",delete:"Eliminar",cancel:"Cancelar",moveUp:"Subir",moveDown:"Bajar",unsaved:"Cambios sin guardar",
+   sec:{text:"Texto",photo:"Foto",settings:"Ajustes"},englishOnly:"Escriba en inglés. El árabe y el español se añaden al guardar.",
+   editTr:"Editar traducciones",hideTr:"Ocultar traducciones",trNote:"El árabe y el español se completaron a partir del inglés. Cambie una palabra solo si lo necesita.",
+   langs:{ar:"árabe",es:"español"},lockedNote:"Su propio texto. Un cambio en el inglés no lo reemplazará.",translateAgain:"Traducir de nuevo",
+   updating:"Actualizando",saveHint:"Al guardar, el sitio público se actualiza en unos minutos",translating:"Añadiendo árabe y español…",
+   nav:{destinations:"Destinos",experiences:"Experiencias",about:"Nosotros",contact:"Contacto",currency:"Moneda",language:"Idioma",login:"Entrar"},
+   foot:{pages:"Páginas",contact:"Contacto",instagram:"Instagram",newTab:"(se abre en una pestaña nueva)"}}
+};
+// ---- NEW copy: lib/copy/ops-pages.ts (P) and lib/copy/ops-nav.ts (N). EN ours, AR/ES drafts.
+const P={
+ en:{pageNames:{home:"Home",about:"About",destinations:"Destinations",experiences:"Experiences",contact:"Contact"},
+   colPage:"Page",colShown:"On the site",shownOf:"{n} of {m} sections shown",colSection:"Section",orderNote:"Sections appear on the site in this order.",
+   sections:{home:{hero:"Hero and booking bar",welcome:"Welcome letter",gallery:"Photo gallery",stays:"Private stays",services:"Services",moments:"Destination moments",journeys:"Journeys",stories:"Stories",begin:"Begin your journey",team:"Team"},
+     about:{hero:"Hero",intro:"Introduction and photos",story:"Our story cards",values:"Values cards",team:"Team",get_in_touch:"Get in touch"},
+     destinations:{hero:"Hero photos"},experiences:{hero:"Hero"},contact:{title:"Title and hero",confidence:"Travel with confidence",team:"Team"}},
+   fields:{kicker:"Small line above the heading",heading:"Heading",headline:"Main heading",intro:"Introduction",salutation:"Greeting",paragraph:"Paragraph {n}",sign_off:"Closing line",signer:"Signed by",signer_role:"Signer's role",statement:"Statement",body:"Text",cta_label:"Button label",title:"Title"},
+   showOnSite:"Show on site",hiddenNote:"Hidden on the site",shown:"Shown",hidden:"Hidden",photo:"Photo",photos:"Photos",signature:"Signature",choosePhoto:"Choose photo",addPhotos:"Add photos",remove:"Remove",
+   videoSec:"Hero video",video:"Hero video (https address)",videoBad:"Use an address that starts with https://",decorative:"Decorative: no description is read on the site",
+   heroFixed:"This section is the page's main heading, so it is always shown.",
+   cards:"Cards",addCard:"Add card",deleteCard:"Delete card",deleteCardTitle:"Delete this card?",deleteCardText:"It is removed from the site after the update."},
+ ar:{pageNames:{home:"الرئيسية",about:"عنّا",destinations:"الوجهات",experiences:"التجارب",contact:"تواصل"},
+   colPage:"الصفحة",colShown:"على الموقع",shownOf:"{n} من {m} أقسام ظاهرة",colSection:"القسم",orderNote:"تظهر الأقسام على الموقع بهذا الترتيب.",
+   sections:{home:{hero:"الواجهة وشريط الحجز",welcome:"رسالة الترحيب",gallery:"معرض الصور",stays:"الإقامات الخاصة",services:"الخدمات",moments:"لحظات الوجهات",journeys:"الرحلات",stories:"الحكايات",begin:"ابدأ رحلتك",team:"الفريق"},
+     about:{hero:"الواجهة",intro:"المقدمة والصور",story:"بطاقات قصتنا",values:"بطاقات القيم",team:"الفريق",get_in_touch:"تواصل معنا"},
+     destinations:{hero:"صور الواجهة"},experiences:{hero:"الواجهة"},contact:{title:"العنوان والواجهة",confidence:"سافر بثقة",team:"الفريق"}},
+   fields:{kicker:"السطر الصغير فوق العنوان",heading:"العنوان",headline:"العنوان الرئيسي",intro:"المقدمة",salutation:"التحية",paragraph:"الفقرة {n}",sign_off:"عبارة الختام",signer:"التوقيع باسم",signer_role:"صفة الموقِّع",statement:"العبارة",body:"النص",cta_label:"نص الزر",title:"العنوان"},
+   showOnSite:"إظهار على الموقع",hiddenNote:"مخفي على الموقع",shown:"ظاهر",hidden:"مخفي",photo:"الصورة",photos:"الصور",signature:"التوقيع",choosePhoto:"اختيار صورة",addPhotos:"إضافة صور",remove:"إزالة",
+   videoSec:"فيديو الواجهة",video:"فيديو الواجهة (عنوان https)",videoBad:"استخدم عنوانًا يبدأ بـ https://",decorative:"زخرفية: لا يُقرأ لها وصف على الموقع",
+   heroFixed:"هذا القسم هو العنوان الرئيسي للصفحة، لذلك يظهر دائمًا.",
+   cards:"البطاقات",addCard:"إضافة بطاقة",deleteCard:"حذف البطاقة",deleteCardTitle:"حذف هذه البطاقة؟",deleteCardText:"تُزال من الموقع بعد التحديث."},
+ es:{pageNames:{home:"Inicio",about:"Nosotros",destinations:"Destinos",experiences:"Experiencias",contact:"Contacto"},
+   colPage:"Página",colShown:"En el sitio",shownOf:"{n} de {m} secciones visibles",colSection:"Sección",orderNote:"Las secciones aparecen en el sitio en este orden.",
+   sections:{home:{hero:"Portada y barra de reserva",welcome:"Carta de bienvenida",gallery:"Galería de fotos",stays:"Estancias privadas",services:"Servicios",moments:"Momentos de destino",journeys:"Viajes",stories:"Historias",begin:"Comience su viaje",team:"Equipo"},
+     about:{hero:"Portada",intro:"Introducción y fotos",story:"Tarjetas de nuestra historia",values:"Tarjetas de valores",team:"Equipo",get_in_touch:"Contacto"},
+     destinations:{hero:"Fotos de portada"},experiences:{hero:"Portada"},contact:{title:"Título y portada",confidence:"Viaje con confianza",team:"Equipo"}},
+   fields:{kicker:"Línea pequeña sobre el título",heading:"Título",headline:"Título principal",intro:"Introducción",salutation:"Saludo",paragraph:"Párrafo {n}",sign_off:"Despedida",signer:"Firmado por",signer_role:"Cargo de quien firma",statement:"Frase",body:"Texto",cta_label:"Texto del botón",title:"Título"},
+   showOnSite:"Mostrar en el sitio",hiddenNote:"Oculta en el sitio",shown:"Visible",hidden:"Oculta",photo:"Foto",photos:"Fotos",signature:"Firma",choosePhoto:"Elegir foto",addPhotos:"Añadir fotos",remove:"Quitar",
+   videoSec:"Video de portada",video:"Video de portada (dirección https)",videoBad:"Use una dirección que empiece por https://",decorative:"Decorativa: en el sitio no se lee ninguna descripción",
+   heroFixed:"Esta sección es el título principal de la página, por eso siempre se muestra.",
+   cards:"Tarjetas",addCard:"Añadir tarjeta",deleteCard:"Eliminar tarjeta",deleteCardTitle:"¿Eliminar esta tarjeta?",deleteCardText:"Se quita del sitio después de la actualización."}
+};
+const N={
+ en:{header:"Header",footer:"Footer",addLink:"Add link",label:"Label",linkTo:"Link to",onSite:"A page on this site",onSiteHint:"Opens in the same tab.",web:"A web address",webHint:"Opens in a new tab on the site.",
+   page:"Page",webField:"Web address (https)",webBad:"Use an address that starts with https://",showOnSite:"Show on site",colLabel:"Label",colTo:"Goes to",colShown:"On the site",edit:"Edit",
+   deleteLink:"Delete link",deleteTitle:"Delete this link?",deleteText:"It is removed from the site after the update.",
+   targets:{home:"Home",private_stays:"Private stays",destinations:"Destinations",experiences:"Experiences",about:"About",contact:"Contact",blog:"Blog",plan_with_us:"Plan with us",list_with_us:"List with us",privacy:"Privacy policy",terms:"Terms and conditions",booking_terms:"Booking terms",waiver:"Liability waiver",disclaimer:"Disclaimer",package:"Package: {name}"},
+   notYet:"(not on the site yet)",notYetLine:"This page is not on the site yet. The link appears once it is.",
+   loginFixed:"Always last. It cannot be hidden or moved.",toolsFixed:"Fixed: currency and language are always in the header.",contactFixed:"Fixed contact details. They are not edited here.",
+   email:"Email",phone:"Phone",newLink:"New link"},
+ ar:{header:"الترويسة",footer:"التذييل",addLink:"إضافة رابط",label:"النص",linkTo:"يربط إلى",onSite:"صفحة في هذا الموقع",onSiteHint:"يفتح في التبويب نفسه.",web:"عنوان ويب",webHint:"يفتح في تبويب جديد على الموقع.",
+   page:"الصفحة",webField:"عنوان الويب (https)",webBad:"استخدم عنوانًا يبدأ بـ https://",showOnSite:"إظهار على الموقع",colLabel:"النص",colTo:"يذهب إلى",colShown:"على الموقع",edit:"تعديل",
+   deleteLink:"حذف الرابط",deleteTitle:"حذف هذا الرابط؟",deleteText:"يُزال من الموقع بعد التحديث.",
+   targets:{home:"الرئيسية",private_stays:"الإقامات الخاصة",destinations:"الوجهات",experiences:"التجارب",about:"عنّا",contact:"تواصل",blog:"المدونة",plan_with_us:"خطّط معنا",list_with_us:"أدرِج عقارك معنا",privacy:"سياسة الخصوصية",terms:"الشروط والأحكام",booking_terms:"شروط الحجز",waiver:"إقرار إخلاء المسؤولية",disclaimer:"إخلاء المسؤولية",package:"باقة: {name}"},
+   notYet:"(ليست على الموقع بعد)",notYetLine:"هذه الصفحة ليست على الموقع بعد. يظهر الرابط عندما تُنشر.",
+   loginFixed:"دائمًا في الأخير. لا يمكن إخفاؤه أو تحريكه.",toolsFixed:"ثابت: العملة واللغة دائمًا في الترويسة.",contactFixed:"بيانات تواصل ثابتة. لا تُعدَّل هنا.",
+   email:"البريد",phone:"الهاتف",newLink:"رابط جديد"},
+ es:{header:"Encabezado",footer:"Pie de página",addLink:"Añadir enlace",label:"Texto",linkTo:"Enlace a",onSite:"Una página de este sitio",onSiteHint:"Se abre en la misma pestaña.",web:"Una dirección web",webHint:"Se abre en una pestaña nueva en el sitio.",
+   page:"Página",webField:"Dirección web (https)",webBad:"Use una dirección que empiece por https://",showOnSite:"Mostrar en el sitio",colLabel:"Texto",colTo:"Lleva a",colShown:"En el sitio",edit:"Editar",
+   deleteLink:"Eliminar enlace",deleteTitle:"¿Eliminar este enlace?",deleteText:"Se quita del sitio después de la actualización.",
+   targets:{home:"Inicio",private_stays:"Estancias privadas",destinations:"Destinos",experiences:"Experiencias",about:"Nosotros",contact:"Contacto",blog:"Blog",plan_with_us:"Planifique con nosotros",list_with_us:"Publique su propiedad",privacy:"Política de privacidad",terms:"Términos y condiciones",booking_terms:"Condiciones de reserva",waiver:"Exención de responsabilidad",disclaimer:"Aviso legal",package:"Paquete: {name}"},
+   notYet:"(aún no está en el sitio)",notYetLine:"Esta página aún no está en el sitio. El enlace aparece cuando lo esté.",
+   loginFixed:"Siempre al final. No se puede ocultar ni mover.",toolsFixed:"Fijo: la moneda y el idioma siempre están en el encabezado.",contactFixed:"Datos de contacto fijos. No se editan aquí.",
+   email:"Correo",phone:"Teléfono",newLink:"Nuevo enlace"}
+};
+const CONTACT={email:"inquiries@almarprivatejourney.com",phone:"+971 56 388 3302"};
+// ---- site texts (lib/data/fixtures, lib/copy/*-page.ts): unchanged
+const T={
+ en:{headline:"Colombia, Privately Yours",welcome:{kicker:"Welcome to ALMAR",heading:"Where Safety Meets Bespoke Luxury",salutation:"Dear Traveler,",paragraphs:["ALMAR is built for travellers in the UAE and GCC who want a considered private journey through Colombia, planned around their dates, interests, and preferred pace.","Each journey is personalised with stays, transport, and experiences confirmed for your group. Any additional arrangements are discussed individually and secured only once availability is confirmed.","Our aim is simple: make Colombia easier to experience with a private journey that is clear, personal, and built around what matters to you."],sign_off:"Warmest regards,",signer:"ALMAR Private Journeys",signer_role:"Founder & Director"},
+   gallery:"Colombia, Beautifully Captured",stays:["Private Stays","Private Stays, Fully Vetted"],stayNames:["Getsemaní Colonial House","Getsemaní Courtyard Residence","Cartagena Historic Center House"],
+   values:{heading:"Our Values",intro:"What we believe in shapes every stay.",cards:["Intentional Hospitality","Bilingual Trip Support","Privacy & Discreet Coordination"],body:"We believe great service should feel natural, never forced. Every team member is empowered to create moments that matter — from a warm greeting to a handwritten note."},
+   about:{kicker:"Our Story",headline:"Your Private Colombia"},exp:"Experiences and services",dest:{kicker:"Destinations",heading:"Colombia’s most extraordinary cities"},
+   contact:{kicker:"Private Journeys",heading:"Plan Your Journey",intro:"Your private Colombia journey begins with a message. Share your vision and our team will craft every detail."}},
+ ar:{headline:"كولومبيا، لكم بخصوصية",welcome:{kicker:"أهلاً بكم في ALMAR",heading:"حيث يلتقي الأمان بالفخامة المفصّلة",salutation:"عزيزي المسافر،",paragraphs:["بُنيت ALMAR للمسافرين من الإمارات والخليج الذين يريدون رحلة خاصة مدروسة في كولومبيا، تُخطَّط حول تواريخهم واهتماماتهم وإيقاعهم.","كل رحلة تُفصَّل بإقامات وتنقّل وتجارب مؤكدة لمجموعتكم. أي ترتيبات إضافية تُناقَش على حدة ولا تُثبَّت إلا بعد تأكيد التوفر.","هدفنا بسيط: أن نجعل تجربة كولومبيا أسهل عبر رحلة خاصة واضحة وشخصية، مبنية حول ما يهمكم."],sign_off:"مع أطيب التحيات،",signer:"المار للرحلات الخاصة",signer_role:"المؤسِّسة والمديرة"},
+   gallery:"كولومبيا، في أبهى صورها",stays:["إقامات خاصة","إقامات خاصة، موثّقة بالكامل"],stayNames:["بيت خيتسيماني الاستعماري","إقامة فناء خيتسيماني","بيت المركز التاريخي في كارتاخينا"],
+   values:{heading:"قيمنا",intro:"ما نؤمن به يصوغ كل إقامة.",cards:["ضيافة مدروسة","دعم ثنائي اللغة للرحلة","الخصوصية والتنسيق بتكتّم"],body:"نؤمن بأن الخدمة الرائعة تبدو طبيعية لا متكلّفة. كل فرد في فريقنا مخوّل لصنع لحظات ذات معنى، من ترحيب دافئ إلى رسالة بخط اليد."},
+   about:{kicker:"قصتنا",headline:"كولومبيا الخاصة بك"},exp:"التجارب والخدمات",dest:{kicker:"الوجهات",heading:"أروع مدن كولومبيا"},
+   contact:{kicker:"رحلات خاصة",heading:"خطط لرحلتك",intro:"تبدأ رحلتكم الخاصة في كولومبيا برسالة. شاركونا رؤيتكم وسيعتني فريقنا بكل تفصيل."}},
+ es:{headline:"Colombia, en privado",welcome:{kicker:"Bienvenido a ALMAR",heading:"Donde la seguridad se encuentra con el lujo a medida",salutation:"Estimado viajero,",paragraphs:["ALMAR está pensada para viajeros de Emiratos y el Golfo que quieren un viaje privado, cuidadosamente planificado por Colombia, según sus fechas, intereses y ritmo preferido.","Cada viaje se personaliza con estancias, traslados y experiencias confirmadas para tu grupo. Cualquier arreglo adicional se trata por separado y solo se asegura una vez confirmada la disponibilidad.","Nuestro objetivo es simple: hacer que Colombia sea más fácil de vivir, con un viaje privado claro, personal y construido alrededor de lo que te importa."],sign_off:"Un cordial saludo,",signer:"ALMAR Private Journeys",signer_role:"Fundadora y directora"},
+   gallery:"Colombia, bellamente retratada",stays:["Estancias privadas","Estancias privadas, totalmente verificadas"],stayNames:["Casa colonial de Getsemaní","Residencia con patio en Getsemaní","Casa del centro histórico de Cartagena"],
+   values:{heading:"Nuestros valores",intro:"Lo que creemos da forma a cada estancia.",cards:["Hospitalidad con propósito","Apoyo bilingüe durante el viaje","Privacidad y coordinación discreta"],body:"Creemos que un gran servicio debe sentirse natural, nunca forzado. Cada miembro del equipo tiene la libertad de crear momentos que importan, desde un saludo cálido hasta una nota escrita a mano."},
+   about:{kicker:"Nuestra historia",headline:"Tu Colombia privada"},exp:"Experiencias y servicios",dest:{kicker:"Destinos",heading:"Las ciudades más extraordinarias de Colombia"},
+   contact:{kicker:"Viajes privados",heading:"Planifica tu viaje",intro:"Tu viaje privado por Colombia comienza con un mensaje. Comparte tu visión y nuestro equipo cuidará cada detalle."}}
+};
+const IMG={poster:"home/hero/poster.webp",sig:"home/welcome/signature.webp",welcome:[1,2,3,4,5].map(n=>`home/gallery/0${n}.webp`),
+ stays:["stays/getsemani-colonial-house/hero.webp","stays/getsemani-courtyard-residence/hero.webp","stays/cartagena-historic-center-house/hero.webp"],
+ values:["about/values/intentional-hospitality.webp","about/values/bilingual-trip-support.webp","about/values/privacy-and-discreet-coordination.webp"],
+ about:"about/hero.webp",dest:"destinations/page/hero-2.webp",exp:"home/gallery/02.webp",contact:"home/gallery/04.webp"};
+const HOME_ORDER=["hero","welcome","gallery","stays","services","moments","journeys","stories","begin","team"];
+const SAMPLE_VIDEO="https://[video address]";
+// ---------- dashboard pieces ----------
+function shell(l,w,active,inner,overlay=""){
+  const u=U[l],r=u.rail,cls=w<1024?(w<768?"narrow":"narrow mid"):"";
+  const items=[["home"],["bookings"],["customers"],["calendar"],["catalog"],["destinations",1],["stays",1],["experiences",1],["packages",1],["content"],["pages",1,1],["blog",1],["team",1],["legal",1,1],["media",1],["navigation",1,1],["settings"],["profile"]];
+  const rail=items.map(([k,sub,soon])=>`<a class="${sub?"sub ":""}${k===active?"on":""}"><span>${r[k]}</span>${soon?`<span class="soon">${u.soon}</span>`:""}</a>`).join("");
+  return `<div class="frame ${cls}" dir="${u.dir}" lang="${l}" style="width:${w}px"><nav class="rail"><div class="mark">ALMAR</div>${rail}</nav>
+   <div class="col"><div class="bar"><span class="mark">ALMAR</span><span class="menu">${ICON.menu}</span></div><div class="page">${inner}</div></div>${overlay}</div>`;
+}
+const field=(label,val,o={})=>`<div class="field"><label>${label}${o.req?" *":""}</label><div class="input${o.area?" area":""}${o.bad?" bad":""}${o.ph?" ph":""}${o.sel?" sel":""}${o.ro?" ro":""}" dir="${o.dir||"ltr"}">${val===""?"&nbsp;":esc(val)}${o.sel?ICON.down:""}</div>${o.bad?`<p class="err">${o.bad}</p>`:""}${o.after||""}</div>`;
+const sw=(label,on)=>`<div class="switch"><span>${label}</span><span class="sw${on?" on":""}" role="switch" aria-checked="${on}"></span></div>`;
+const head=(l,back,title,chip,o={})=>{const u=U[l];return `<div><a class="back">${ICON.chev}${back}</a><div class="head"><div><h1 class="disp">${esc(title)}</h1><div class="meta">${chip||""}${o.status||""}</div></div>
+  <div class="acts">${o.actions??`<span class="btn o${o.busy?" dis":""}">${u.save}</span>`}</div></div></div>`};
+const chip=(t,off)=>`<span class="chip${off?" off":""}">${t}</span>`;
+const tiles=(keys,l,o={})=>`<div class="tiles">${keys.map(k=>`<div class="tile"><img src="${M+k}" alt=""><span class="link">${P[l].remove}</span></div>`).join("")}</div>`;
+function sectionEditor(l,w,o){
+  const u=U[l],p=P[l];
+  const page=o.page||"home",sec=o.section;
+  const title=p.sections[page][sec];
+  const text=`<section class="card"><h2 class="disp">${u.sec.text}</h2><p class="note">${u.englishOnly}</p>${o.text}
+    ${o.tr?o.tr:`<button class="link">${ICON.chev}${u.editTr}</button>`}</section>`;
+  const side=[];
+  if(o.media) side.push(`<section class="card"><h2 class="disp">${o.mediaTitle||p.photos}</h2>${o.media}</section>`);
+  if(o.video!==undefined) side.push(`<section class="card new"><h2 class="disp">${p.videoSec}</h2>${field(p.video,o.video,{bad:o.videoBad?p.videoBad:"",ph:o.video===""})}</section>`);
+  side.push(`<section class="card"><h2 class="disp">${u.sec.settings}</h2>${o.fixed?`<p class="fixed new">${ICON.lock}<span>${p.heroFixed}</span></p>`:sw(p.showOnSite,o.shown!==false)}</section>`);
+  const status=o.saving?`<span class="chip" style="gap:6px">${ICON.spin}${u.updating}</span><span class="note">${u.saveHint}</span>`:(o.dirty?`<span>${u.unsaved}</span>`:"");
+  const inner=head(l,p.pageNames[page],title,chip(o.shown===false?p.hidden:p.shown,o.shown===false),{status,busy:o.saving})+
+    `<div class="cols"><div>${text}${o.extra||""}</div><div>${side.join("")}</div></div>`;
+  return shell(l,w,"pages",inner,o.overlay||"");
+}
+const enField=(l,k,v,o={})=>field(fill(P[l].fields[k]||k,o.vars||{}),v,o);
+function welcomeText(l){const W=T.en.welcome,f=P[l].fields;
+  return [enField(l,"kicker",W.kicker),enField(l,"heading",W.heading,{req:1}),enField(l,"salutation",W.salutation),
+   ...W.paragraphs.map((x,i)=>field(fill(f.paragraph,{n:i+1}),x,{area:1})),enField(l,"sign_off",W.sign_off),enField(l,"signer",W.signer),enField(l,"signer_role",W.signer_role)].join("");}
+function welcomeMedia(l){const p=P[l];return `<div class="field"><label>${p.signature}</label><div class="one"><img src="${M+IMG.sig}" alt="" style="width:100%;background:#fff;border:1px solid var(--color-line)"></div><span class="link">${p.choosePhoto}</span></div>
+  <div class="field"><label>${p.photos}</label>${tiles(IMG.welcome,l)}<span class="btn o">${p.addPhotos}</span></div>`;}
+// ---- public frame pieces (same as 06-02)
+const HEADER=["destinations","experiences","about","contact"];
+function pubHeader(l,o={}){const u=U[l];const keys=HEADER.filter(k=>!(o.hide||[]).includes(k));
+  return `<header class="phd"><img class="wm" src="${WM}" alt="ALMAR"><nav>${keys.map(k=>`<a>${u.nav[k]}</a>`).join("")}</nav><div class="tools"><span>AED ${ICON.down}</span><span>${l.toUpperCase()} ${ICON.down}</span><span class="login">${u.nav.login}</span></div><span class="burger">${ICON.menu}</span></header>`;}
+function pubFooter(l,o={}){const u=U[l];const links=HEADER.map(k=>`<a>${u.nav[k]}</a>`);if(o.ext) links.push(`<a class="new">[Partner site] ${ICON.ext}<span class="sr">${u.foot.newTab}</span></a>`);
+  return `<footer class="pfoot"><div><img src="${WM}" alt="ALMAR" style="height:44px;filter:invert(1) brightness(2)"></div><div><h4>${u.foot.pages}</h4>${links.join("")}</div><div><h4>${u.foot.contact}</h4><a dir="ltr">${CONTACT.email}</a><a dir="ltr">${CONTACT.phone}</a><a>${u.foot.instagram}</a></div></footer>`;}
+const pub=(l,w,inner)=>`<div class="pub ${w<1024?(w<768?"pnarrow":"pmid"):""}" dir="${U[l].dir}" lang="${l}" style="width:${w}px">${inner}</div>`;
+// ---- NEW copy: lib/copy/ops-blog.ts (B) and lib/copy/blog.ts list.search* (BS). EN ours, AR/ES drafts.
+const B={
+ en:{newPost:"New post",search:"Search posts",colTitle:"Title",colStatus:"Status",colDate:"Date",empty:"No posts yet.",noMatch:"No post matches “{q}”.",
+   sec:{basics:"Basics",cover:"Cover photo",body:"Body",linked:"Linked to",seo:"Search engines"},optional:"optional",
+   f:{title:"Title",address:"Web address",addressLocked:"The address is fixed once the post has been published.",cover:"Cover photo",date:"Date",excerpt:"Excerpt",seoTitle:"Search engine title",seoDescription:"Search engine description",destination:"Destination",stay:"Featured stay",experience:"Featured experience",none:"None"},
+   kinds:{heading:"Heading",paragraph:"Paragraph",photo:"Photo",quote:"Quote"},add:{heading:"Add a heading",paragraph:"Add a paragraph",photo:"Add a photo",quote:"Add a quote"},
+   deleteBlock:"Delete block",alt:"Alt text (from the media library)",blockLabel:"{kind} {n}",
+   missingAr:"Arabic text of block {n}",missingEs:"Spanish text of block {n}",futureDate:"The date cannot be later than today."},
+ ar:{newPost:"منشور جديد",search:"ابحث في المنشورات",colTitle:"العنوان",colStatus:"الحالة",colDate:"التاريخ",empty:"لا توجد منشورات بعد.",noMatch:"لا يوجد منشور يطابق «{q}».",
+   sec:{basics:"الأساسيات",cover:"صورة الغلاف",body:"المتن",linked:"مرتبط بـ",seo:"محركات البحث"},optional:"اختياري",
+   f:{title:"العنوان",address:"عنوان الويب",addressLocked:"يثبت العنوان بعد نشر المنشور.",cover:"صورة الغلاف",date:"التاريخ",excerpt:"المقتطف",seoTitle:"العنوان في محركات البحث",seoDescription:"الوصف في محركات البحث",destination:"الوجهة",stay:"الإقامة المميزة",experience:"التجربة المميزة",none:"لا شيء"},
+   kinds:{heading:"عنوان فرعي",paragraph:"فقرة",photo:"صورة",quote:"اقتباس"},add:{heading:"إضافة عنوان فرعي",paragraph:"إضافة فقرة",photo:"إضافة صورة",quote:"إضافة اقتباس"},
+   deleteBlock:"حذف الجزء",alt:"النص البديل (من مكتبة الوسائط)",blockLabel:"{kind} {n}",
+   missingAr:"النص العربي للجزء {n}",missingEs:"النص الإسباني للجزء {n}",futureDate:"لا يمكن أن يكون التاريخ بعد اليوم."},
+ es:{newPost:"Nueva entrada",search:"Buscar entradas",colTitle:"Título",colStatus:"Estado",colDate:"Fecha",empty:"Aún no hay entradas.",noMatch:"Ninguna entrada coincide con «{q}».",
+   sec:{basics:"Datos básicos",cover:"Foto de portada",body:"Cuerpo",linked:"Vinculada a",seo:"Buscadores"},optional:"opcional",
+   f:{title:"Título",address:"Dirección web",addressLocked:"La dirección queda fija una vez publicada la entrada.",cover:"Foto de portada",date:"Fecha",excerpt:"Extracto",seoTitle:"Título para buscadores",seoDescription:"Descripción para buscadores",destination:"Destino",stay:"Estancia destacada",experience:"Experiencia destacada",none:"Ninguno"},
+   kinds:{heading:"Encabezado",paragraph:"Párrafo",photo:"Foto",quote:"Cita"},add:{heading:"Añadir un encabezado",paragraph:"Añadir un párrafo",photo:"Añadir una foto",quote:"Añadir una cita"},
+   deleteBlock:"Eliminar bloque",alt:"Texto alternativo (de la biblioteca de medios)",blockLabel:"{kind} {n}",
+   missingAr:"Texto en árabe del bloque {n}",missingEs:"Texto en español del bloque {n}",futureDate:"La fecha no puede ser posterior a hoy."}
+};
+const BS={
+ en:{label:"Search stories",clear:"Clear",noMatch:"No story matches “{q}”.",count:n=>n===1?"1 story":`${n} stories`},
+ ar:{label:"ابحثوا في الحكايات",clear:"مسح",noMatch:"لا توجد حكاية تطابق «{q}».",count:n=>n===1?"حكاية واحدة":n===2?"حكايتان":n<=10?`${n} حكايات`:`${n} حكاية`},
+ es:{label:"Buscar historias",clear:"Borrar",noMatch:"Ninguna historia coincide con «{q}».",count:n=>n===1?"1 historia":`${n} historias`}
+};
+// ---- existing words (ops-kit.ts, blog.ts, home-page.ts) and the three imported posts (lib/data/fixtures)
+const K={en:{published:"Published",draft:"Draft",needs:"Publish needs:"},ar:{published:"منشور",draft:"مسودة",needs:"للنشر يلزم:"},es:{published:"Publicado",draft:"Borrador",needs:"Para publicar falta:"}};
+const BLOG={en:{kicker:"Blog / News",heading:"Travel Insights",intro:"Discover Colombia through our eyes, destination guides, local tips, and insider insights from our team on the ground."},
+ ar:{kicker:"المدونة / الأخبار",heading:"رؤى السفر",intro:"اكتشفوا كولومبيا بعيوننا: أدلة الوجهات ونصائح محلية ورؤى من فريقنا على الأرض."},
+ es:{kicker:"Blog / Noticias",heading:"Guías de viaje",intro:"Descubre Colombia a través de nuestros ojos: guías de destinos, consejos locales y perspectivas de nuestro equipo sobre el terreno."}};
+const POSTS=[
+ {slug:"discovering-cartagenas-hidden-colonial-courtyards",date:"2025-06-01",cover:"home/stories/discovering-cartagenas-hidden-colonial-courtyards.webp",dest:"Cartagena",
+  t:{en:["Discovering Cartagena's Hidden Colonial Courtyards","A private guide to the walled city's most intimate spaces — sun-dappled patios, bougainvillea-draped balconies, and the quiet stories they hold."],
+     ar:["اكتشاف الأفنية الاستعمارية المخفية في كارتاخينا","دليل خاص إلى أكثر أماكن المدينة المسوّرة حميمية: أفنية تتخللها الشمس، وشرفات تكسوها الجهنمية، والحكايات الهادئة التي تحتفظ بها."],
+     es:["Descubrir los patios coloniales ocultos de Cartagena","Una guía privada por los espacios más íntimos de la ciudad amurallada: patios bañados por el sol, balcones cubiertos de buganvilla y las historias silenciosas que guardan."]},
+  alt:{en:"Colonial courtyard in Cartagena's walled city with colourful facades and bougainvillea",ar:"فناء استعماري في المدينة المسوّرة في كارتاخينا مع واجهات ملوّنة وأزهار الجهنمية",es:"Patio colonial en la ciudad amurallada de Cartagena, con fachadas de color y buganvilla"},
+  body:{en:"Beyond the bustling plazas of the walled city lie Cartagena’s hidden colonial courtyards — flower-filled patios, private plazas, and centuries of quiet history. ALMAR opens doors that stay closed to most travelers, with private access and expert local guides who know every stone and story.",
+   ar:"خلف الساحات الصاخبة في المدينة المسوّرة تختبئ الأفنية الاستعمارية الخفية في كارتاخينا: باحات تملؤها الزهور، وساحات خاصة، وقرون من التاريخ الهادئ. تفتح ALMAR أبوابًا تبقى مغلقة أمام معظم المسافرين، بدخول خاص ومرشدين محليين خبراء يعرفون كل حجر وكل حكاية.",
+   es:"Más allá de las concurridas plazas de la ciudad amurallada se esconden los patios coloniales de Cartagena: patios llenos de flores, plazas privadas y siglos de historia silenciosa. ALMAR abre puertas que permanecen cerradas para la mayoría de los viajeros, con acceso privado y guías locales expertos que conocen cada piedra y cada historia."}},
+ {slug:"why-medellin-is-redefining-luxury-travel",date:"2025-05-28",cover:"home/stories/why-medellin-is-redefining-luxury-travel.webp",
+  t:{en:["Why Medellín Is Redefining Luxury Travel in Latin America","How the City of Eternal Spring evolved from a troubled past into one of South America's most compelling destinations for discerning travellers."],
+     ar:["لماذا تعيد ميديلين تعريف السفر الفاخر في أمريكا اللاتينية","كيف تحوّلت مدينة الربيع الدائم من ماضٍ مضطرب إلى واحدة من أكثر وجهات أمريكا الجنوبية جاذبية للمسافرين أصحاب الذوق الرفيع."],
+     es:["Por qué Medellín está redefiniendo el viaje de lujo en América Latina","Cómo la Ciudad de la Eterna Primavera pasó de un pasado difícil a convertirse en uno de los destinos más atractivos de Sudamérica para el viajero exigente."]}},
+ {slug:"colombias-coffee-triangle-eje-cafetero",date:"2025-05-24",cover:"home/stories/colombias-coffee-triangle-eje-cafetero.webp",
+  t:{en:["Colombia's Coffee Triangle: A Journey Through Eje Cafetero","Coffee estates draped in mist, valleys of wax palms, and the unhurried art of tasting coffee at origin — this is Colombia's most sensory journey."],
+     ar:["مثلث القهوة في كولومبيا: رحلة عبر إيخي كافيتيرو","مزارع قهوة يكسوها الضباب، ووديان من نخيل الشمع، وفنّ تذوّق القهوة بلا عجلة عند منبعها: هذه أكثر رحلات كولومبيا إثارةً للحواس."],
+     es:["El Triángulo del Café de Colombia: un viaje por el Eje Cafetero","Fincas cafeteras envueltas en niebla, valles de palmas de cera y el arte pausado de probar café en origen: este es el viaje más sensorial de Colombia."]}}
+];
+const TAGS={en:"en-US",ar:"ar-AE-u-nu-latn",es:"es"};
+const dateLabel=(iso,l)=>new Intl.DateTimeFormat(TAGS[l],{year:"numeric",month:"short",day:"numeric",timeZone:"UTC"}).format(new Date(iso+"T00:00:00Z"));
+const QUERY={match:{en:"cartagena",ar:"كارتاخينا",es:"cartagena"},none:{en:"[word]",ar:"[كلمة]",es:"[palabra]"}};
+// ---------- dashboard pieces ----------
+const searchBox=(label,q)=>`<div class="field" style="max-width:420px"><label>${label}</label><div class="input${q?"":" ph"}" dir="ltr">${q?esc(q):"&nbsp;"}</div></div>`;
+function list(l,w,o={}){const b=B[l],u=U[l],k=K[l];
+  const rows=(o.rows??POSTS).map(p=>`<tr><td class="t wide">${esc(p.t.en[0])}</td><td>${chip(k.published)}</td><td>${dateLabel(p.date,l)}</td></tr>`).join("");
+  const body=o.empty?`<p class="note">${b.empty}</p>`:o.none?`<p class="note">${fill(b.noMatch,{q:o.q})}</p>`:`<table class="tbl"><thead><tr><th>${b.colTitle}</th><th>${b.colStatus}</th><th>${b.colDate}</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return shell(l,w,"blog",`<div class="head" style="border:0;padding:0"><h1 class="lh1 disp">${u.rail.blog}</h1><span class="btn p">${b.newPost}</span></div>
+   <section class="card">${o.empty?"":searchBox(b.search,o.q)}${body}</section>`);}
+function blockRow(l,i,n,kind,val,o={}){const b=B[l],u=U[l];const name=b.kinds[kind];
+  const ctl=`<div class="mv"><span class="btn o sq${i===0?" dis":""}" aria-label="${u.moveUp}, ${name} ${i+1}">${ICON.up}</span><span class="btn o sq${i===n-1?" dis":""}" aria-label="${u.moveDown}, ${name} ${i+1}">${ICON.down}</span><span class="link red">${b.deleteBlock}</span></div>`;
+  const input=kind==="photo"?`<div class="one"><img src="${M+val.key}" alt="" style="width:100%"></div><p class="note" style="margin:0"><span>${b.alt}: </span><span dir="ltr">${esc(val.alt)}</span></p>`
+   :`<div class="input${kind==="heading"?"":" area"}${val===""?" bad":""}" dir="ltr">${val===""?"&nbsp;":esc(val)}</div>`;
+  return `<div style="display:flex;flex-direction:column;gap:8px;padding:16px 0;border-bottom:1px solid var(--color-line)"><label>${fill(b.blockLabel,{kind:name,n:i+1})}</label>${input}${ctl}</div>`;}
+function blocks(l,list){const b=B[l];
+  return `<div class="new">${list.map((x,i)=>blockRow(l,i,list.length,x[0],x[1])).join("")}<div class="acts" style="margin-top:16px">${["heading","paragraph","photo","quote"].map(k=>`<span class="btn o">${b.add[k]}</span>`).join("")}</div></div>`;}
+const SAMPLE_BLOCKS=[["heading","[Heading]"],["paragraph",POSTS[0].body.en],["photo",{key:POSTS[0].cover,alt:POSTS[0].alt.en}],["quote","[Quote]"]];
+function editor(l,w,o){const b=B[l],u=U[l],k=K[l],f=b.f;const p=o.post;
+  const address=o.published?`<dl class="field" style="margin:0"><dt>${f.address}</dt><dd dir="ltr" style="margin:0">${p.slug}</dd><dd class="note" style="margin:0">${f.addressLocked}</dd></dl>`:field(f.address,o.isNew?"":p.slug,{ph:o.isNew});
+  const basics=`<section class="card"><h2 class="disp">${b.sec.basics}</h2><p class="note">${u.englishOnly}</p>${field(f.title,o.isNew?"":p.t.en[0],{req:1})}${address}${field(f.date,o.isNew?"":dateLabel(p.date,"en"))}${field(f.excerpt,o.isNew?"":p.t.en[1],{area:1})}${o.tr||`<button class="link">${ICON.chev}${u.editTr}</button>`}</section>`;
+  const body=`<section class="card"><h2 class="disp">${b.sec.body}</h2>${o.blocks?blocks(l,o.blocks):`<div class="acts">${["heading","paragraph","photo","quote"].map(x=>`<span class="btn o">${b.add[x]}</span>`).join("")}</div>`}</section>`;
+  const cover=`<section class="card"><h2 class="disp">${b.sec.cover}</h2>${o.noCover||o.isNew?`<div class="ph-img one">&nbsp;</div><span class="btn o">${P[l].choosePhoto}</span>`:`<div class="one"><img src="${M+p.cover}" alt="" style="width:100%"></div><span class="link">${P[l].choosePhoto}</span>`}</section>`;
+  const linked=`<section class="card"><h2 class="disp">${b.sec.linked}</h2>${field(f.destination,o.isNew||!p.dest?f.none:p.dest,{sel:1})}${field(f.stay,f.none,{sel:1})}${field(f.experience,f.none,{sel:1})}</section>`;
+  const seo=`<section class="card"><h2 class="disp">${b.sec.seo} <span class="note" style="font:inherit;font-size:14px">(${b.optional})</span></h2>${field(f.seoTitle,"")}${field(f.seoDescription,"",{area:1})}</section>`;
+  const needs=o.missing?`<div class="card" style="gap:8px;border-color:var(--color-line)"><p style="margin:0">${k.needs}</p><ul style="margin:0;padding-inline-start:20px">${o.missing.map(m=>`<li>${m}</li>`).join("")}</ul></div>`:"";
+  const acts=`<span class="btn o">${u.save}</span><span class="btn p${o.missing?" dis":""}">${u.publish}</span>`;
+  const title=o.isNew?b.newPost:p.t.en[0];
+  const inner=head(l,u.rail.blog,title,o.isNew?"":chip(o.published?k.published:k.draft,!o.published),{actions:acts,status:o.dirty?`<span>${u.unsaved}</span>`:""})+needs+
+   `<div class="cols"><div>${basics}${body}</div><div>${cover}${linked}${seo}</div></div>`;
+  return shell(l,w,"blog",inner);}
+// ---------- public pieces ----------
+function blogPage(l,w,o={}){const bl=BLOG[l],s=BS[l];
+  const shown=o.q?POSTS.filter(p=>o.q===QUERY.match[l]&&p.slug.includes("cartagena")):POSTS;
+  const cards=shown.map(p=>`<div><img src="${M+p.cover}" alt="" style="width:100%;aspect-ratio:3/2;object-fit:cover;display:block"><h3 class="disp" style="margin:12px 0 4px;font:400 20px var(--face-display)">${p.t[l][0]}</h3><span style="font-size:12px;color:var(--color-muted)">${dateLabel(p.date,l)}</span><p style="margin:8px 0 0">${p.t[l][1]}</p></div>`).join("");
+  const box=`<div class="new" style="display:flex;flex-direction:column;gap:8px;max-width:480px"><label>${s.label}</label><div class="input${o.q?"":" ph"}" ${l==="ar"?'dir="rtl"':""}>${o.q?esc(o.q):"&nbsp;"}</div>
+   ${o.q?(shown.length?`<p class="note" role="status" style="margin:0">${s.count(shown.length)}</p>`:`<p role="status" style="margin:0">${fill(s.noMatch,{q:o.q})} <span class="link">${s.clear}</span></p>`):""}</div>`;
+  return pub(l,w,pubHeader(l)+`<section class="sec"><span class="kick" style="color:var(--color-muted)">${bl.kicker}</span><h1 class="disp" style="margin:0;font:400 64px/1.1 var(--face-display);color:var(--color-teal)">${bl.heading}</h1><p>${bl.intro}</p>${box}<div class="cards3">${cards}</div></section>`);}
+function photoBlock(l,w){const p=POSTS[0];
+  return pub(l,w,pubHeader(l)+`<article class="sec" style="max-width:760px"><h1 class="disp" style="margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)">${p.t[l][0]}</h1><p style="max-width:none">${p.body[l]}</p>
+   <figure class="new" style="margin:8px 0"><img src="${M+p.cover}" alt="${esc(p.alt[l])}" width="1600" height="1067" style="width:100%;height:auto;display:block"></figure>
+   <blockquote style="margin:0;border-inline-start:1px solid var(--color-gold);padding-inline-start:20px;font:400 24px/1.4 var(--face-display);color:var(--color-teal)">[Quote]</blockquote></article>`);}
+// ---------- scenes ----------
+const S={};
+S["list"]={what:"Content → Blog: heading, New post, Search posts, the three imported posts newest first (Title, Status, Date). No Soon chip.",draw:(l,w)=>list(l,w)};
+S["list-search-none"]={what:"A search with no match says so.",draw:(l,w)=>list(l,w,{q:QUERY.none.en,none:true})};
+S["list-empty"]={what:"No posts at all.",draw:(l,w)=>list(l,w,{empty:true})};
+S["new"]={what:"New post: empty editor. Basics, Body (the four Add buttons), Cover photo, Linked to (None), Search engines (optional).",draw:(l,w)=>editor(l,w,{isNew:true,post:POSTS[0]})};
+S["imported-published"]={what:"An imported, published post: the address is fixed with its note; translations open, the Arabic title typed by hand carries the lock line.",draw(l,w){const u=U[l],f=B[l].f,p=POSTS[0];
+  const box=t=>`<div class="lang" lang="${t}" dir="${t==="ar"?"rtl":"ltr"}"><h3>${u.langs[t]}</h3>${field(f.title+" · "+t.toUpperCase(),t==="ar"?"[الأفنية الاستعمارية في كارتاخينا]":p.t[t][0],{dir:t==="ar"?"rtl":"ltr",after:t==="ar"?`<div class="lockline" dir="${u.dir}"><span class="txt">${ICON.lock}<span>${u.lockedNote}</span></span><span class="link">${u.translateAgain}</span></div>`:""})}${field(f.excerpt+" · "+t.toUpperCase(),p.t[t][1],{area:1,dir:t==="ar"?"rtl":"ltr"})}</div>`;
+  const tr=`<div style="display:flex;flex-direction:column;gap:16px"><button class="link">${ICON.chev.replace('<path','<path transform="rotate(-90 12 12)"')}${u.hideTr}</button><p class="note">${u.trNote}</p><div class="boxes">${box("ar")}${box("es")}</div></div>`;
+  return editor(l,w,{post:p,published:true,tr,blocks:[["paragraph",p.body.en]],dirty:true});}};
+S["blocks"]={what:"The body: one heading, paragraph, photo (with its alt line from the media library) and quote, each with Move up, Move down and Delete; the four Add buttons below. Move up is off on the first block, Move down on the last.",draw:(l,w)=>editor(l,w,{post:POSTS[0],published:true,blocks:SAMPLE_BLOCKS})};
+S["publish-missing"]={what:"Publish waits: no cover photo and the Spanish text of block 2 is empty; the editor lists both.",draw(l,w){const b=B[l];
+  return editor(l,w,{post:POSTS[0],noCover:true,blocks:SAMPLE_BLOCKS,missing:[b.f.cover,fill(b.missingEs,{n:2})]});}};
+S["search-idle"]={pub:1,what:"Public blog: the search box above the cards. Without script the box is not drawn and every story shows.",draw:(l,w)=>blogPage(l,w)};
+S["search-match"]={pub:1,what:"A query leaves only the matching stories, with a count.",draw:(l,w)=>blogPage(l,w,{q:QUERY.match[l]})};
+S["search-none"]={pub:1,what:"No match: the line says so, with Clear.",draw:(l,w)=>blogPage(l,w,{q:QUERY.none[l]})};
+S["photo-block"]={pub:1,what:"A post with a photo block: the photo sits in the text column between the paragraph and the quote, square corners, no caption.",draw:(l,w)=>photoBlock(l,w)};
+const ORDER=["list","list-search-none","new","imported-published","blocks","publish-missing","list-empty","search-idle","search-match","search-none","photo-block"];
+const PREFIX="blog-";
+// ---------- render ----------
+const sel=document.getElementById("scene");
+sel.innerHTML=`<option value="all">All (${ORDER.length})</option>`+ORDER.map(s=>`<option>${s}</option>`).join("");
+const locs=["en","ar","es"],widths=[390,834,1440];
+let html="";
+for(const s of ORDER){
+  html+=`<section class="st" data-st="${s}"><h2>${PREFIX}${s}</h2><p>${S[s].what}</p>`;
+  for(const l of locs) for(const w of widths)
+    html+=`<div class="shot" data-l="${l}" data-w="${w}"><p class="cap">${PREFIX}${s}-${l}-${w}</p><div class="scroller"><div class="scaler" data-w="${w}">${S[s].draw(l,w)}</div></div></div>`;
+  html+=`</section>`;
+}
+document.getElementById("shots").innerHTML=html;
+const f={l:"all",w:"all",z:"fit",s:"all"};
+try{const h=location.hash.slice(1);if(S[h]){f.s=h;sel.value=h;}}catch(e){}
+function apply(){
+  document.querySelectorAll(".st").forEach(e=>{e.hidden=!(f.s==="all"||e.dataset.st===f.s);});
+  document.querySelectorAll(".shot").forEach(e=>{e.hidden=!((f.l==="all"||e.dataset.l===f.l)&&(f.w==="all"||e.dataset.w===f.w));});
+  document.querySelectorAll(".st:not([hidden]) .shot:not([hidden]) .scaler").forEach(e=>{const w=+e.dataset.w;const avail=e.parentElement.clientWidth-4;const k=f.z==="fit"?Math.min(1,avail/(w+2)):1;e.style.transform=`scale(${k})`;e.parentElement.style.height=(e.firstElementChild.offsetHeight*k+8)+"px";e.parentElement.style.overflowX=k<1?"hidden":"auto";});
+}
+sel.addEventListener("change",()=>{f.s=sel.value;history.replaceState(null,"","#"+(f.s==="all"?"":f.s));apply();});
+document.querySelectorAll("#top button").forEach(b=>b.addEventListener("click",()=>{
+  const k=Object.keys(b.dataset)[0];f[k]=b.dataset[k];document.querySelectorAll(`#top button[data-${k}]`).forEach(x=>x.setAttribute("aria-pressed",x===b));apply();
+}));
+addEventListener("resize",apply);document.fonts?.ready.then(apply);addEventListener("load",apply);apply();
+</script>
+</body></html>

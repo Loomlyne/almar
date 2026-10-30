@@ -8,27 +8,30 @@
 // (the same plan and request the kit page uses, no new pipeline), with "Edit translations" for a fix. If the AI fails,
 // the English and the other fields still save and the Arabic and Spanish stay as they were. The other fields are
 // literal values and are never translated.
+// Plan 06-01 (I18N-04, pictures signed 2026-10-27): an Arabic or Spanish note the owner fixes by hand is locked and saved
+// as `notes_locked`; the same lock line and Translate again as the kit's boxes (LockLine from edit-page.tsx).
 
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { TARGETS, planTranslation, requestTranslations, touchKey, type Send, type Target } from "../../../../../components/ops/auto-translate";
+import { TARGETS, planTranslation, requestTranslations, retranslatePlan, sendable, touchKey, type Send, type Target } from "../../../../../components/ops/auto-translate";
+import { LockLine } from "../../../../../components/ops/edit-page";
 import { errorText } from "../../../../../components/ops/error-text";
 import { opsFetch, opsSend } from "../../../../../components/ops/ops-client";
 import type { Locale3, StayAccessView } from "../../../../../components/ops/api-types";
-import { ChevronIcon } from "../../../../../components/icons/icons";
 import { Button } from "../../../../../components/ui/button";
 import { Field } from "../../../../../components/ui/field";
+import { DisclosureChevron, LINK_BUTTON } from "../../../../../components/ui/link";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
 import { OPS_STAY_TABS_COPY } from "../../../../../lib/copy/ops-stay-tabs";
-import { blankToEmpty, notesForSave, type Notes } from "./access-notes";
+import { blankToEmpty, notesForSave, notesLockSet, notesLockedList, type Notes } from "./access-notes";
 import { MAX_ACCESS_CHARS, accessPayload, type AccessInput } from "./rates-forms";
 
 const PATH = "/api/ops/stay-access";
 const BLANK: AccessInput = { address: "", wifi_name: "", wifi_password: "", door_code: "", notes: "" };
 const NO_NOTES: Notes = { ar: "", es: "" };
 
-function fromView(view: StayAccessView): { access: AccessInput; notes: Notes } {
+function fromView(view: StayAccessView): { access: AccessInput; notes: Notes; locked: Set<string> } {
   const access = view.access;
-  if (!access) return { access: BLANK, notes: NO_NOTES };
+  if (!access) return { access: BLANK, notes: NO_NOTES, locked: new Set() };
   return {
     access: {
       address: access.address ?? "",
@@ -38,6 +41,7 @@ function fromView(view: StayAccessView): { access: AccessInput; notes: Notes } {
       notes: access.notes ?? "",
     },
     notes: { ar: access.notes_ar ?? "", es: access.notes_es ?? "" },
+    locked: notesLockSet(access.notes_locked),
   };
 }
 
@@ -64,8 +68,11 @@ export function StayAccessSection({
   // The English the stored Arabic and Spanish were made from. It moves only when the AI filled both, so after a failed
   // translation the card stays saveable and the next Save asks again.
   const [translatedFrom, setTranslatedFrom] = useState("");
-  // Arabic or Spanish typed by the owner since the last save: the AI leaves those alone.
-  const [touched, setTouched] = useState<ReadonlySet<string>>(() => new Set());
+  // The locked notes (I18N-04): stored, plus every language typed by the owner; the AI leaves those alone.
+  const [locked, setLocked] = useState<ReadonlySet<string>>(() => new Set());
+  const [savedLocked, setSavedLocked] = useState<ReadonlySet<string>>(() => new Set());
+  // Translate again per language: waiting for the AI, or the AI did not answer.
+  const [again, setAgain] = useState<Partial<Record<Target, "busy" | "failed">>>({});
   const [showTranslations, setShowTranslations] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [phase, setPhase] = useState<"idle" | "translating" | "saving">("idle");
@@ -73,6 +80,10 @@ export function StayAccessSection({
   const [failed, setFailed] = useState<string | null>(null);
   const [translationFailed, setTranslationFailed] = useState(false);
   const [done, setDone] = useState<"saved" | "translated" | null>(null);
+
+  // The stay this card is for now: a Translate again answer for another stay is dropped.
+  const stayNow = useRef(stayId);
+  stayNow.current = stayId;
 
   const load = useCallback(async () => {
     setLoadError(false);
@@ -86,6 +97,9 @@ export function StayAccessSection({
     setTyped(values.access);
     setSavedNotes(values.notes);
     setNotes(values.notes);
+    setLocked(values.locked);
+    setSavedLocked(values.locked);
+    setAgain({});
     setTranslatedFrom(values.access.notes);
   }, [stayId]);
 
@@ -93,7 +107,8 @@ export function StayAccessSection({
     void load();
   }, [load]);
 
-  const dirty = saved !== null && (!same(saved, typed) || TARGETS.some((target) => notes[target] !== savedNotes[target]));
+  const lockChanged = notesLockedList(locked).join() !== notesLockedList(savedLocked).join();
+  const dirty = saved !== null && (!same(saved, typed) || lockChanged || TARGETS.some((target) => notes[target] !== savedNotes[target]));
   const retry = saved !== null && translatedFrom !== typed.notes;
   // Told only when it changes; the latest callback is kept in a ref so an inline one cannot loop. A layout effect, so the
   // page's own state (its "Unsaved changes" and its Escape and Back guard, a document listener re-set in a passive effect)
@@ -125,17 +140,21 @@ export function StayAccessSection({
     setTranslationFailed(false);
     setDone(null);
 
-    const plan = planTranslation({ notes: typed.notes }, { notes: translatedFrom }, { ar: { notes: notes.ar }, es: { notes: notes.es } }, touched);
+    const plan = planTranslation({ notes: typed.notes }, { notes: translatedFrom }, { ar: { notes: notes.ar }, es: { notes: notes.es } }, locked);
     let replies: Partial<Record<Target, unknown>> = {};
     if (TARGETS.some((target) => "notes" in plan.send[target])) {
       setPhase("translating");
       replies = await requestTranslations(plan, send);
     }
-    const result = notesForSave({ english: typed.notes, savedEnglish: translatedFrom, notes, savedNotes, touched, replies });
+    const result = notesForSave({ english: typed.notes, savedEnglish: translatedFrom, notes, savedNotes, touched: locked, replies });
 
     setPhase("saving");
     // The reply carries no row (contract 5.5), so the card keeps what it sent: blanks as empty, the rest as typed.
-    const reply = await opsSend<object>(PATH, { action: "save", stay_id: stayId, access: { ...payload.value, ...result.send } });
+    const reply = await opsSend<object>(PATH, {
+      action: "save",
+      stay_id: stayId,
+      access: { ...payload.value, ...result.send, notes_locked: notesLockedList(locked) },
+    });
     setPhase("idle");
     if (!reply.ok) {
       setFailed(errorText(kit, reply.error));
@@ -147,7 +166,9 @@ export function StayAccessSection({
     setTyped(keptAccess);
     setSavedNotes(result.after);
     setNotes(result.after);
-    setTouched(new Set());
+    // The locks were saved: they stay (a reload reads them back as notes_locked).
+    setSavedLocked(locked);
+    setAgain({});
     if (!result.failed) setTranslatedFrom(keptAccess.notes);
     setTranslationFailed(result.failed);
     setDone(result.asked.length > 0 && !result.failed ? "translated" : "saved");
@@ -173,7 +194,40 @@ export function StayAccessSection({
     );
   }
 
-  const working = phase !== "idle";
+  const working = phase !== "idle" || Object.values(again).includes("busy");
+
+  /** Translate again: unlock that language, empty it, ask the AI for it; a failure leaves it empty for the next Save. */
+  async function translateAgain(target: Target) {
+    if (working) return;
+    const key = touchKey(target, "notes");
+    setLocked((was) => {
+      const next = new Set(was);
+      next.delete(key);
+      return next;
+    });
+    setNotes((was) => ({ ...was, [target]: "" }));
+    setDone(null);
+    const one = retranslatePlan({ notes: typed.notes }, target, "notes");
+    if (!("notes" in one.send[target])) {
+      setAgain((was) => ({ ...was, [target]: undefined }));
+      return;
+    }
+    setAgain((was) => ({ ...was, [target]: "busy" }));
+    const asked = stayId;
+    const replies = await requestTranslations(one, send);
+    if (stayNow.current !== asked) return;
+    const reply = replies[target];
+    const got = reply?.ok === true ? reply.fields.notes : undefined;
+    if (typeof got === "string" && sendable(got) && [...got].length <= MAX_ACCESS_CHARS) {
+      setNotes((was) => ({ ...was, [target]: got }));
+      setAgain((was) => ({ ...was, [target]: undefined }));
+    } else {
+      setAgain((was) => ({ ...was, [target]: "failed" }));
+    }
+    // The box was off while the AI worked, so focus left it: put it back once the box is on again.
+    const boxId = `${id}-notes-${target}`;
+    requestAnimationFrame(() => document.getElementById(boxId)?.focus());
+  }
   const field = (key: keyof AccessInput) => ({
     id: `${id}-${key}`,
     value: typed[key],
@@ -209,20 +263,23 @@ export function StayAccessSection({
           aria-expanded={showTranslations}
           aria-controls={showTranslations ? `${id}-notes-translations` : undefined}
           onClick={() => setShowTranslations((was) => !was)}
-          className="inline-flex min-h-control cursor-pointer items-center gap-2 border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4"
+          className={LINK_BUTTON}
         >
-          <ChevronIcon size={16} className={showTranslations ? "-rotate-90" : "rotate-90"} aria-hidden="true" />
-          {showTranslations ? kit.editor.hideTranslations : kit.editor.editTranslations}
+          <span className="min-w-0 break-words">{showTranslations ? kit.editor.hideTranslations : kit.editor.editTranslations}</span>
+          <DisclosureChevron open={showTranslations} />
         </button>
         {showTranslations ? (
           // Full width like Notes above (the column's items-start would shrink each box to its text).
           <div id={`${id}-notes-translations`} className="flex w-full min-w-0 flex-col gap-4">
             <p className="m-0 text-label text-muted">{kit.editor.translationsNote}</p>
-            {TARGETS.map((target) => (
+            {TARGETS.map((target) => {
+              const line = again[target] ?? (locked.has(touchKey(target, "notes")) ? "locked" : null);
+              const label = `${copy.access.notes} · ${kit.languages[target]}`;
+              return (
+              <div key={target} className="flex min-w-0 flex-col gap-2">
               <Field
-                key={target}
                 id={`${id}-notes-${target}`}
-                label={`${copy.access.notes} · ${kit.languages[target]}`}
+                label={label}
                 className="max-w-none"
                 multiline
                 lang={target}
@@ -230,14 +287,42 @@ export function StayAccessSection({
                 disabled={working}
                 error={tooLong === target ? copy.access.tooLong : undefined}
                 value={notes[target]}
+                {...(line
+                  ? {
+                      // Field's own error id stays with the lock line's (the spread replaces Field's aria-describedby).
+                      "aria-describedby": [tooLong === target ? `${id}-notes-${target}-message` : null, `${id}-notes-${target}-lock`]
+                        .filter(Boolean)
+                        .join(" "),
+                    }
+                  : {})}
                 onChange={(event) => {
                   const value = event.target.value;
                   setNotes((was) => ({ ...was, [target]: value }));
-                  setTouched((was) => new Set(was).add(touchKey(target, "notes")));
+                  // A note typed in is locked; one emptied by hand is not (the next Save fills it from the English).
+                  setLocked((was) => {
+                    const next = new Set(was);
+                    if (value.trim() === "") next.delete(touchKey(target, "notes"));
+                    else next.add(touchKey(target, "notes"));
+                    return next;
+                  });
+                  setAgain((was) => ({ ...was, [target]: undefined }));
                   setDone(null);
                 }}
               />
-            ))}
+              {line ? (
+                <LockLine
+                  id={`${id}-notes-${target}-lock`}
+                  copy={kit}
+                  locale={locale}
+                  state={line}
+                  fieldLabel={label}
+                  disabled={working}
+                  onTranslateAgain={() => void translateAgain(target)}
+                />
+              ) : null}
+              </div>
+              );
+            })}
           </div>
         ) : null}
       </div>

@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAR pictures: no underlined text on the site</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+Arabic:wght@400;600;700&family=Noto+Naskh+Arabic&display=swap">
+<style>
+/* Tokens copied from tokens.json (2026-10-30). Square corners everywhere; gold is a line only; teal is the primary. */
+:root{
+  --color-ivory:#fffaf0;--color-surface:#ffffff;--color-teal:#1f3b40;--color-teal-hover:#1b3438;--color-teal-press:#182d31;--color-teal-tint:#d1dfe0;--color-gold:#d4ba8a;
+  --color-ink:#262626;--color-muted:#63615f;--color-line:rgb(38 38 38 / 0.16);--color-error:#8f2d2d;
+  --control:44px;
+  --face-display:Georgia,"Times New Roman",serif;
+  --face-body:"Lato",Arial,sans-serif;
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;background:#ece8df;color:var(--color-ink);font-family:var(--face-body);font-size:14px}
+/* ---------- review page chrome (not product UI) ---------- */
+#top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 20px;background:var(--color-teal);color:var(--color-ivory)}
+#top h1{font:400 18px var(--face-display);margin:0;margin-inline-end:auto}
+#top .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#top .grp span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-inline-end:4px}
+#top button,#top select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid rgba(255,250,240,.5);background:transparent;color:var(--color-ivory);cursor:pointer}
+#top select option{color:#000}
+#top button[aria-pressed=true]{background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)}
+#main{padding:20px 24px 80px}
+.banner{background:var(--color-ivory);border:1px solid var(--color-gold);padding:12px 16px;margin-bottom:24px;font-size:14px;line-height:1.55;max-width:1100px}
+.banner ol,.banner ul{margin:6px 0 0;padding-inline-start:20px}
+.banner code,.st code{font:13px ui-monospace,Menlo,monospace}
+.decision{border:2px solid var(--color-teal);background:#fff;padding:12px 16px;margin:12px 0 0;max-width:1100px;line-height:1.55}
+.decision p{margin:0 0 6px}
+.decision ul{margin:4px 0 0;padding-inline-start:20px}
+.rec{display:inline-block;background:var(--color-teal);color:var(--color-ivory);font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:1px 8px;margin-inline-start:6px;vertical-align:middle}
+.st{margin:0 0 56px}
+.st>h2{font:400 26px var(--face-display);color:var(--color-teal);margin:0 0 4px}
+.st>p{margin:0 0 12px;max-width:900px;line-height:1.5}
+.opt{margin:24px 0 0;padding-top:12px;border-top:1px solid var(--color-line)}
+.opt>h3{font:400 20px var(--face-display);margin:0 0 6px;color:var(--color-teal)}
+.how{max-width:1100px;line-height:1.55;margin:0 0 10px;background:#fff;border:1px solid var(--color-line);padding:8px 12px}
+.how p{margin:0 0 4px}
+.how table{border-collapse:collapse;font-size:13px;margin:6px 0}
+.how td,.how th{border-top:1px solid var(--color-line);padding:3px 12px 3px 0;text-align:start;vertical-align:top}
+.how td.n{font:600 13px ui-monospace,Menlo,monospace;white-space:nowrap}
+.shot{margin:0 0 24px}
+.shot .cap{font:600 13px ui-monospace,Menlo,monospace;margin:0 0 6px}
+.scroller{overflow-x:auto;padding-bottom:6px}
+.scaler{transform-origin:top left}
+.rv,.draft{font:12px ui-monospace,Menlo,monospace;background:#fff3c4;color:#4a3b00;padding:1px 6px;display:inline-block;direction:ltr}
+.sum{border-collapse:collapse;width:100%;max-width:1240px;background:#fff;font-size:13px;line-height:1.5}
+.sum th,.sum td{border:1px solid var(--color-line);padding:8px 10px;text-align:start;vertical-align:top}
+.sum th{background:var(--color-teal-tint)}
+
+/* ================= drawn product ================= */
+.pub{background:var(--color-ivory);color:var(--color-ink);font:16px/1.5 var(--face-body);border:1px solid var(--color-line);padding:24px;position:relative}
+.pub.pnarrow{padding:16px}
+.pub[dir=rtl]{font-family:"Noto Sans Arabic",var(--face-body);line-height:1.7}
+.pub[dir=rtl] .disp{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.5}
+.cells{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(240px,320px));align-items:start}
+.pnarrow .cells{grid-template-columns:1fr}
+.cell{min-width:0;display:grid;gap:8px;align-content:start}
+.cl{font:600 12px ui-monospace,Menlo,monospace;color:var(--color-muted);direction:ltr;text-align:start}
+.pub[dir=rtl] .cl{text-align:right}
+.sl{font-size:12px;color:var(--color-muted)}
+.ai{flex:none;display:inline-block;vertical-align:-3px;transition:translate .16s}
+.pub[dir=rtl] .ai{transform:scaleX(-1)}
+.bkc{flex:none}
+.pub[dir=rtl] .bkc{transform:scaleX(-1)}
+.f,a:focus-visible,button:focus-visible{outline:2px solid var(--color-teal);outline-offset:2px}
+a{text-decoration:none}
+.surf{padding:12px;display:grid;gap:4px}
+.surf.iv{background:var(--color-ivory);border:1px solid var(--color-line)}
+.surf.tl{background:var(--color-teal);color:var(--color-ivory)}
+.lr{display:flex;flex-wrap:wrap;gap:4px 8px}
+.pnarrow .lr{flex-direction:column;align-items:stretch}
+
+/* ---- Kind 1: footer and nav ---- */
+.nl,.fl{display:inline-flex;align-items:center;min-height:var(--control);cursor:pointer}
+.nl{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--color-ink);padding:0 12px}
+.pub[dir=rtl] .nl{letter-spacing:0;text-transform:none;font-size:14px}
+.fl{font-size:16px;color:var(--color-ivory);padding:0 12px}
+.k1a .nl:hover,.k1a .nl.h{background:var(--color-teal-tint);color:var(--color-teal)}
+.k1a .nl.cur{font-weight:700;color:var(--color-teal);border-inline-start:2px solid var(--color-gold);padding-inline-start:10px}
+.k1a .fl:hover,.k1a .fl.h{background:rgb(255 250 240 / .14)}
+.k1a .fl.cur{font-weight:700;border-inline-start:2px solid var(--color-gold);padding-inline-start:10px}
+.k1a .nl:active,.k1a .nl.p{background:var(--color-teal-tint)}
+.k1a .fl:active,.k1a .fl.p{background:rgb(255 250 240 / .14)}
+.surf.tl .f,.surf.tl a:focus-visible{outline-color:var(--color-ivory)}
+.k1b .nl{border:1px solid var(--color-teal);color:var(--color-teal)}
+.k1b .nl:hover,.k1b .nl.h,.k1b .nl:active,.k1b .nl.p{background:var(--color-teal);color:var(--color-ivory)}
+.k1b .nl.cur{background:var(--color-teal-tint);font-weight:700}
+.k1b .fl{border:1px solid rgb(255 250 240 / .5)}
+.k1b .fl:hover,.k1b .fl.h,.k1b .fl:active,.k1b .fl.p{background:var(--color-ivory);color:var(--color-teal)}
+.k1b .fl.cur{background:rgb(255 250 240 / .14);font-weight:700}
+
+/* ---- Kind 2: cards ---- */
+.cw{position:relative;min-width:0}
+.cw.f,.cw:has(a:focus-visible){outline:2px solid var(--color-teal);outline-offset:2px}
+.cw a:focus-visible{outline:0}
+.pc{position:relative;aspect-ratio:2/3;overflow:hidden;color:var(--color-ivory)}
+.pc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .24s,filter .16s}
+.pc .veil{position:absolute;inset:0;background:linear-gradient(to top,rgb(38 38 38 / .7),rgb(38 38 38 / .1) 55%,transparent)}
+.pc .txt{position:absolute;inset-inline:0;bottom:0;padding:24px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.pc h3{margin:0;font:400 32px/1.2 var(--face-display)}
+.pub[dir=rtl] .pc h3{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.4}
+.pc .facts{font-size:14px}
+.mc{display:grid;gap:12px;align-content:start}
+.mc .im{overflow:hidden;outline:1px solid var(--color-line);outline-offset:-1px}
+.mc img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;transition:transform .24s,filter .16s}
+.mc .t{font:400 20px/1.3 var(--face-display);color:var(--color-teal);display:inline-flex;gap:8px;align-items:center}
+.pub[dir=rtl] .mc .t{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.5}
+.mc .d{color:var(--color-muted);font-size:14px;display:block;margin-top:4px}
+.pc h3 a{display:inline-flex;gap:8px;align-items:center;color:var(--color-ivory)}
+.k2a .cw:hover img,.k2a .cw.h img{transform:scale(1.04)}
+.k2a .cw:hover .t,.k2a .cw.h .t{color:var(--color-teal-hover)}
+.k2a .cw:hover .ai,.k2a .cw.h .ai{translate:4px 0}
+.pub[dir=rtl].k2a .cw:hover .ai,.pub[dir=rtl].k2a .cw.h .ai{translate:-4px 0}
+.k2a .cw:hover .veil,.k2a .cw.h .veil{background:linear-gradient(to top,rgb(38 38 38 / .82),rgb(38 38 38 / .25) 55%,transparent)}
+.k2a .cw:active img,.k2a .cw.p img{filter:brightness(.88)}
+.k2a .cw:active .t,.k2a .cw.p .t{color:var(--color-teal-press)}
+.bt{display:inline-flex;align-items:center;justify-content:center;min-height:var(--control);padding:0 24px;font-size:14px;text-transform:uppercase;letter-spacing:.16em;border:1px solid var(--color-gold);color:var(--color-teal);cursor:pointer;width:max-content}
+.pub[dir=rtl] .bt{text-transform:none;letter-spacing:0}
+.bt.out{background:transparent}.bt.ivb{background:var(--color-ivory)}
+.k2b .bt.out:hover,.k2b .cw.h .bt.out,.k2b .bt.out:active,.k2b .cw.p .bt.out{background:var(--color-teal-tint)}
+.k2b .bt.ivb:hover,.k2b .cw.h .bt.ivb,.k2b .bt.ivb:active,.k2b .cw.p .bt.ivb{background:var(--color-surface)}
+.k2b .cw.f .bt,.k2b .cw:has(.bt:focus-visible) .bt{outline:2px solid var(--color-teal);outline-offset:2px}
+.k2b .cw.f,.k2b .cw:has(a:focus-visible){outline:0}
+.k2b .cw.f .bt.ivb{outline-color:var(--color-ivory)}
+.k2b .cw:has(.ivb a:focus-visible){outline:0}
+
+/* ---- Kind 3: stand-alone text links ---- */
+.tl3{display:inline-flex;align-items:center;gap:8px;min-height:var(--control);cursor:pointer;color:var(--color-teal);font-size:16px;width:max-content}
+.tl3.dash{font-size:14px}
+.k3a .tl3{padding:0 8px;margin-inline-start:-8px}
+.k3a .tl3:hover,.k3a .tl3.h,.k3a .tl3:active,.k3a .tl3.p{background:var(--color-teal-tint)}
+.k3a .tl3:hover .ai,.k3a .tl3.h .ai{translate:4px 0}
+.pub[dir=rtl].k3a .tl3:hover .ai,.pub[dir=rtl].k3a .tl3.h .ai{translate:-4px 0}
+.k3b .tl3{padding:0 24px;border:1px solid var(--color-gold);font-size:14px;text-transform:uppercase;letter-spacing:.16em}
+.pub[dir=rtl].k3b .tl3{text-transform:none;letter-spacing:0}
+.k3b .tl3:hover,.k3b .tl3.h,.k3b .tl3:active,.k3b .tl3.p{background:var(--color-teal-tint)}
+.ctx{font-size:12px;color:var(--color-muted);margin-top:4px}
+
+/* ---- Kind 4: link inside a sentence ---- */
+.sent{margin:0;max-width:60ch}
+.chk{display:flex;gap:12px;align-items:flex-start}
+.chk i{flex:none;width:24px;height:24px;border:1px solid var(--color-ink);background:var(--color-surface);margin-top:2px}
+.sent a{color:var(--color-teal);font-weight:700;cursor:pointer;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.k4a .sent a:hover,.k4a .sent a.h{background:var(--color-teal-tint)}
+.k4a .sent a:hover .ai,.k4a .sent a.h .ai{translate:3px 0}
+.pub[dir=rtl].k4a .sent a:hover .ai,.pub[dir=rtl].k4a .sent a.h .ai{translate:-3px 0}
+.k4a .sent .ai{margin-inline-start:4px}
+.k4b .sent a{background:var(--color-teal-tint);padding:0 4px}
+.k4b .sent a:hover,.k4b .sent a.h{background:var(--color-teal);color:var(--color-ivory)}
+
+/* ---- Kind 5: dashboard ---- */
+.dash{background:var(--color-ivory);display:grid;gap:4px;font-size:14px}
+.dl{display:inline-flex;align-items:center;gap:4px;min-height:var(--control);cursor:pointer;font-size:14px;color:var(--color-teal);width:max-content}
+.dl.err{color:var(--color-error)}
+.trow{display:flex;gap:16px;align-items:center;border-top:1px solid var(--color-line);border-bottom:1px solid var(--color-line);padding:0 8px;background:var(--color-surface);justify-content:space-between}
+.trow .c{color:var(--color-muted)}
+.k5a .dl{padding:0 8px;margin-inline-start:-8px}
+.k5a .dl:hover,.k5a .dl.h,.k5a .dl:active,.k5a .dl.p{background:var(--color-teal-tint)}
+.k5a .dl.err:hover,.k5a .dl.err.h,.k5a .dl.err:active,.k5a .dl.err.p{background:rgb(143 45 45 / .1)}
+.k5a .dl.rowt{font-weight:700;margin-inline-start:0}
+.k5b .dl{padding:0 16px;border:1px solid var(--color-teal);text-transform:uppercase;letter-spacing:.16em}
+.pub[dir=rtl].k5b .dl{text-transform:none;letter-spacing:0}
+.k5b .dl:hover,.k5b .dl.h,.k5b .dl:active,.k5b .dl.p{background:var(--color-teal-tint)}
+.k5b .dl.err{color:var(--color-ink);border-color:var(--color-error)}
+.k5b .dl.err:hover,.k5b .dl.err.h,.k5b .dl.err:active,.k5b .dl.err.p{background:var(--color-line)}
+.k5b .rowt{font-weight:700;color:var(--color-ink);border:0;padding:0}
+.k5b .rowt:hover,.k5b .rowt.h{background:none}
+.k5b .rb{padding:0 16px}
+</style></head>
+<body>
+<div id="top">
+  <h1>No underlined text on the site · pictures for signature</h1>
+  <div class="grp"><span>Kind</span><select id="scene"></select></div>
+  <div class="grp"><span>Language</span><button data-l="all" aria-pressed="true">All</button><button data-l="en">EN</button><button data-l="ar">AR</button></div>
+  <div class="grp"><span>Width</span><button data-w="all" aria-pressed="true">All</button><button data-w="390">390</button><button data-w="1440">1440</button></div>
+  <div class="grp"><span>Size</span><button data-z="fit" aria-pressed="true">Fit</button><button data-z="1">100%</button></div>
+</div>
+<div id="main">
+  <div class="banner">
+    <strong>What is being decided.</strong> You said you do not like anything underlined, link or not: a link must be a button, or change colour or show an effect on hover. This page asks it for the five kinds of link on the site.
+    Each kind has one decision box and two options, recommended one first. Every option is drawn at rest, on hover, with keyboard focus (the real 2px outline), and a pressed state for touch, in English and Arabic, at phone (390) and desktop (1440).
+    Nothing drawn here has an underline, at rest or on hover. Gold appears only as a line beside a whole control, never as text, icon or fill.
+    <p style="margin:8px 0 0"><strong>What changes when you sign.</strong> The old rule "link hover is a gold underline" is replaced by your choices below, and today's underlines (gold, teal and red, listed in each box) are removed everywhere.</p>
+    <p style="margin:8px 0 0">Arabic that is not existing site copy is marked <span class="draft">draft for signature</span>. Words in square brackets are placeholders: the real word is the owner's or is not written yet. The sample sentences in Kind 4 only place links on real words to show how they read; they are not site copy.</p>
+  </div>
+  <div id="shots"></div>
+  <div class="banner" style="margin-top:24px"><strong>Summary of the five kinds</strong>
+    <div id="table" style="overflow-x:auto"></div></div>
+</div>
+<script>
+const M="https://media.almarprivatejourney.com/";
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+// ---- contrast from the real token colours
+const TOK={teal:"#1f3b40",ink:"#262626",ivory:"#fffaf0",surface:"#ffffff",tint:"#d1dfe0",hover:"#1b3438",error:"#8f2d2d"};
+const lum=h=>{const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));return .2126*c[0]+.7152*c[1]+.0722*c[2];};
+const cr=(a,b)=>{const x=lum(TOK[a]),y=lum(TOK[b]);return ((Math.max(x,y)+.05)/(Math.min(x,y)+.05)).toFixed(2);};
+const ICON={
+ arrow:'<svg class="ai" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+ back:'<svg class="bkc" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
+ down:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+ x:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+};
+// ---- words: existing site copy unless marked (lib/copy/site-footer.ts, home-page.ts, ops-kit.ts, cookie-consent.ts, journey.ts, contact-page.ts, post-translations.json)
+const T={
+ en:{dir:"ltr",dest:"Destinations",exp:"Experiences",about:"About",cookie:"Cookie settings",privacy:"Privacy policy",
+   stay:"Getsemaní Colonial House",guests:"Up to 10 Guests",city:"Cartagena",
+   post:"Discovering Cartagena's Hidden Colonial Courtyards",
+   journey:"See this journey",wa:"WhatsApp",edit:"Edit translations",
+   viewStay:"[View stay]",readPost:"[Read post]",
+   terms:["I accept the ","[Booking terms]",""],
+   legal:["[Legal text, written in Content → Legal.] Read the ","Privacy policy",", the ","Booking terms"," and ","Cookie settings","."],
+   blog:["A private guide to the ","walled city's"," most intimate spaces — sun-dappled patios, bougainvillea-draped balconies, and the ","quiet stories"," they hold."],
+   back:"Back",remove:"Remove",open:"[Open]",
+   lblSent:"Sample sentence: link positions placed for the picture"},
+ ar:{dir:"rtl",dest:"الوجهات",exp:"التجارب",about:"عنّا",cookie:"إعدادات ملفات الارتباط",privacy:"سياسة الخصوصية",
+   stay:"بيت خيتسيماني الاستعماري",guests:"حتى 10 ضيوف",city:"كارتاخينا",
+   post:"اكتشاف الأفنية الاستعمارية المخفية في كارتاخينا",
+   journey:"اطّلعوا على هذه الرحلة",wa:"واتساب",edit:"تعديل الترجمات",
+   viewStay:"[عرض الإقامة]",readPost:"[قراءة المقال]",
+   terms:["أوافق على ","[شروط الحجز]",""],
+   legal:["[نص قانوني يكتبه المالك في المحتوى ← القانونية.] اقرأ ","سياسة الخصوصية","، و","شروط الحجز"," و","إعدادات ملفات الارتباط","."],
+   blog:["دليل خاص إلى أكثر أماكن ","المدينة المسوّرة"," حميمية: أفنية تتخللها الشمس، وشرفات تكسوها الجهنمية، و","الحكايات الهادئة"," التي تحتفظ بها."],
+   back:"رجوع",remove:"إزالة",open:"[فتح]",
+   lblSent:"جملة نموذجية: مواضع الروابط وُضعت لأجل الصورة"}
+};
+const IMG_STAY=M+"stays/getsemani-colonial-house/hero.webp";
+const IMG_POST=M+"home/stories/discovering-cartagenas-hidden-colonial-courtyards.webp";
+const STATES=[["Rest",""],["Hover","h"],["Focus-visible","f"],["Pressed (touch)","p"]];
+const cells=a=>`<div class="cells">${a.map(c=>`<div class="cell"><div class="cl">${c[0]}</div>${c[1]}</div>`).join("")}</div>`;
+const frame=(l,w,o,inner)=>`<div class="pub ${o} ${w<768?"pnarrow":""}" dir="${T[l].dir}" lang="${l}" style="width:${w}px">${inner}</div>`;
+const drawAr=l=>l==="ar"?' <span class="rv">draft for signature</span>':"";
+// ---------------- Kind 1 ----------------
+function k1(l,w,o){const u=T[l],links=[u.dest,u.exp,u.about];
+  const row=(cls,st)=>`<div class="lr">${links.map((t,i)=>{const on=(st==="cur"?i===0:i===1)&&st!=="";let c=cls;if(on)c+=" "+st;
+    const fo=st==="f"&&on?" f":"";return `<a class="${c.replace(" f","")}${fo}"${on&&st==="cur"?' aria-current="page"':""}>${t}</a>`;}).join("")}</div>`;
+  const S=[["Rest",""],["Hover","h"],["Focus-visible","f"],["Current page","cur"]];
+  const c=S.map(([n,s])=>[n,`<div class="surf iv"><span class="sl">Nav</span>${row("nl",s)}</div><div class="surf tl"><span class="sl" style="color:inherit;opacity:.8">Footer</span>${row("fl",s)}</div>`]);
+  return frame(l,w,"k1"+o,cells(c));}
+// ---------------- Kind 2 ----------------
+function k2(l,w,o){const u=T[l],A=o==="a";
+  const pc=s=>`<div class="cw ${s}"><div class="pc"><img src="${IMG_STAY}" alt=""><span class="veil"></span><div class="txt"><h3>${A?`<a>${u.stay}${ICON.arrow}</a>`:u.stay}</h3><span class="facts">${u.guests}</span>${A?"":`<a class="bt ivb">${u.viewStay}</a>`}</div></div></div>`;
+  const mc=s=>`<div class="cw ${s}"><div class="mc"><div class="im"><img src="${IMG_POST}" alt=""></div><div>${A?`<a class="t">${u.post}${ICON.arrow}</a>`:`<span class="t">${u.post}</span>`}<span class="d">${u.city}</span></div>${A?"":`<a class="bt out">${u.readPost}</a>`}</div></div>`;
+  const c=STATES.map(([n,s])=>[n,pc(s)+`<div style="height:20px"></div>`+mc(s)]);
+  return frame(l,w,"k2"+o,cells(c));}
+// ---------------- Kind 3 ----------------
+function k3(l,w,o){const u=T[l],A=o==="a";
+  const lk=(t,s,dash)=>A?`<a class="tl3 ${dash?"dash":""} ${s}">${t}${ICON.arrow}</a>`:`<a class="tl3 ${dash?"dash":""} ${s}">${t}</a>`;
+  const c=STATES.map(([n,s])=>[n,
+    `<div><div class="ctx">${l==="en"?"Home, journey card":"الرئيسية، بطاقة الرحلة"}</div>${lk(u.journey,s)}</div>`+
+    `<div><div class="ctx">${l==="en"?"Contact details":"بيانات التواصل"}</div>${lk(u.wa,s)}</div>`+
+    `<div><div class="ctx">${l==="en"?"Dashboard editor":"لوحة التحكم، المحرر"}</div>${lk(u.edit,s,true)}</div>`]);
+  return frame(l,w,"k3"+o,cells(c));}
+// ---------------- Kind 4 ----------------
+function k4(l,w,o){const u=T[l],A=o==="a";
+  const lk=(t,on)=>`<a class="${on||""}">${t}${A?ICON.arrow:""}</a>`;
+  const c=[["Rest",""],["Hover","h"],["Focus-visible","f"]].map(([n,s])=>{
+    const f=s==="f"?"f":s;
+    const L=u.legal,B=u.blog;
+    const terms=`<p class="sent chk"><i></i><span>${u.terms[0]}${lk(u.terms[1],f)}</span></p>`;
+    const legal=`<p class="sent">${L[0]}${lk(L[1],"")}${L[2]}${lk(L[3],f)}${L[4]}${lk(L[5],"")}${L[6]}</p>`;
+    const blog=`<p class="sent">${B[0]}${lk(B[1],"")}${B[2]}${lk(B[3],f)}${B[4]}</p>`;
+    return [n,`<div class="ctx">${l==="en"?"Booking request, terms line":"طلب الحجز، سطر الشروط"}</div>${terms}<div class="ctx">${l==="en"?"Legal text":"نص قانوني"} · ${u.lblSent}</div>${legal}<div class="ctx">${l==="en"?"Blog text":"نص المدونة"} · ${u.lblSent}</div>${blog}`];});
+  return frame(l,w,"k4"+o,cells(c));}
+// ---------------- Kind 5 ----------------
+function k5(l,w,o){const u=T[l],A=o==="a";
+  const c=STATES.map(([n,s])=>{
+    const back=A?`<a class="dl ${s}">${ICON.back}${u.back}</a>`:`<a class="dl ${s}">${ICON.back}${u.back}</a>`;
+    const ed=`<a class="dl ${s}">${u.edit}${ICON.down}</a>`;
+    const row=A?`<div class="trow"><a class="dl rowt ${s}">${u.stay}</a><span class="c">${u.city}</span></div>`
+      :`<div class="trow"><span class="dl rowt" style="cursor:default">${u.stay}</span><span class="c">${u.city}</span><a class="dl rb ${s}">${u.open}</a></div>`;
+    const rm=`<a class="dl err ${s}">${ICON.x}${u.remove}</a>`;
+    return [n,`<div class="dash">${back}${ed}${row}${rm}</div>`];});
+  return frame(l,w,"k5"+o,cells(c));}
+// ---------------- kinds ----------------
+const R=(a,b)=>cr(a,b);
+const K=[
+ {id:"kind-1-footer-and-nav",title:"Kind 1 · Footer and nav links",build:k1,
+  today:"Nav and footer links get a gold underline on hover; the current page has a thick underline (components/ui/nav.tsx line 45 and 271, components/ui/footer.tsx lines 13, 17 and 403).",
+  q:"When she moves over a nav or footer link, what happens?",
+  opts:[
+   {n:"A",name:"A tile on hover",rec:true,line:"The link gets a filled tile behind the whole link (teal tint in the header, a soft ivory tile in the footer); the current page is bold with a short gold line at the start edge of its tile.",
+    how:`<p><strong>Focus-visible:</strong> the real 2px teal outline, 2px away (ivory on the teal footer, because teal on teal cannot be seen; this is the one place the colour differs).</p>
+      <p><strong>Phone (no hover):</strong> the header collapses into the menu list; each row is a 44px tile. Nothing needs hover: a press shows the same tile, and the current page keeps its bold and gold line.</p>
+      <p><strong>Not colour alone:</strong> the current page is bold and carries a line; hover is a tile. Link text keeps the colours it has today: ink on ivory ${R("ink","ivory")}:1, ivory on teal ${R("ivory","teal")}:1, hover teal on tint ${R("teal","tint")}:1.</p>`},
+   {n:"B",name:"Every link is a button",rec:false,line:"Each link is a square outlined button at rest; on hover it fills (teal in the header, ivory in the footer). The current page is a tint button in bold.",
+    how:`<p><strong>Focus-visible:</strong> the same real 2px outline, 2px away (ivory in the footer).</p>
+      <p><strong>Phone:</strong> the menu list is a column of outlined buttons; clear tap targets, heavier look. On desktop four outlined buttons in the header crowd the wordmark and the cart/language tools.</p>
+      <p><strong>Not colour alone:</strong> the border is the cue. Ink text is on ivory ${R("ink","ivory")}:1, hover ivory on teal ${R("ivory","teal")}:1, hover teal on ivory ${R("teal","ivory")}:1.</p>`}]},
+ {id:"kind-2-card-titles",title:"Kind 2 · Stay card and blog titles",build:k2,
+  today:"The card's title link shows a gold underline on hover (components/ui/card.tsx lines 38 to 40, components/pages/private-stays/stay-browser.tsx line 165). The whole card is the click target.",
+  q:"When she moves over a stay card or blog card, what shows that it is a link?",
+  opts:[
+   {n:"A",name:"The photo zooms and an arrow follows the title",rec:true,line:"The photo grows a little (clipped inside its frame) and the arrow after the title slides toward the reading direction; the title goes to the hover teal. The arrow is there at rest too.",
+    how:`<p><strong>Focus-visible:</strong> the real 2px teal outline, 2px outside the whole card (not under the title), so the card's whole area reads as focused.</p>
+      <p><strong>Phone (no hover):</strong> the arrow after the title is already there at rest; a press dims the photo and darkens the title. Nothing relies on hover.</p>
+      <p><strong>Not colour alone:</strong> the arrow (teal on ivory ${R("teal","ivory")}:1, ivory on the photo veil) and the zoom. The title colour change alone is small (teal ${R("teal","ivory")}:1 to hover teal ${R("hover","ivory")}:1) and is not relied on. In Arabic the arrow points left and slides left.</p>`},
+   {n:"B",name:"A button under the title",rec:false,line:"The title stops being a link. A real button sits at the card's end (outline on a light card, ivory on a photo card); the whole card still opens when tapped.",
+    how:`<p><strong>Focus-visible:</strong> the real 2px outline around the button (teal on ivory, ivory on the photo).</p>
+      <p><strong>Phone:</strong> the button is visible at rest; a press fills it like hover does.</p>
+      <p><strong>Not colour alone:</strong> the button's border. Button text is teal on ivory ${R("teal","ivory")}:1. This adds a button to every card in lists of many cards, so the page gets busier. The button words are placeholders: the real word is not written yet.</p>`}]},
+ {id:"kind-3-standalone-links",title:"Kind 3 · Text links that stand alone",build:k3,
+  today:"See this journey has a gold underline at rest (components/pages/home/home-journeys.tsx lines 90 and 102); Edit translations is teal with a gold underline at rest (components/ops/edit-page.tsx line 591); the footer's Cookie settings too (components/site/cookie-consent.tsx line 18).",
+  q:"For a link that is alone on its line (See this journey, WhatsApp, Edit translations), what is it?",
+  opts:[
+   {n:"A",name:"Teal text with an arrow, a tile on hover",rec:true,line:"Teal text with a small arrow after it at rest. On hover a teal-tint tile appears behind it and the arrow moves 4px.",
+    how:`<p><strong>Focus-visible:</strong> the real 2px teal outline, 2px away from the tile.</p>
+      <p><strong>Phone:</strong> the arrow shows at rest, so the link is recognised without hover; a press shows the tile.</p>
+      <p><strong>Not colour alone:</strong> the arrow (teal on ivory ${R("teal","ivory")}:1; hover teal on tint ${R("teal","tint")}:1). In Arabic the arrow points left and moves left. The 44px tile also keeps the tap target.</p>`},
+   {n:"B",name:"An outlined button",rec:false,line:"The real outline button: teal text, 1px gold border (a gold line around the whole control), tint fill on hover.",
+    how:`<p><strong>Focus-visible:</strong> the real 2px teal outline, 2px outside the gold border.</p>
+      <p><strong>Phone:</strong> the border shows at rest; a press fills it.</p>
+      <p><strong>Not colour alone:</strong> the border. Teal on ivory ${R("teal","ivory")}:1; hover teal on tint ${R("teal","tint")}:1. Three buttons with the same weight on one page compete with the primary teal button.</p>`}]},
+ {id:"kind-4-link-in-a-sentence",title:"Kind 4 · A link inside a sentence",build:k4,
+  today:"The terms checkbox line, legal text and blog text have teal links with a gold underline (components/journey/request-step.tsx line 70, components/ui/link.tsx lines 10 to 12). This is the one kind with a real accessibility rule: a link inside a sentence must not be recognised by colour alone (WCAG 1.4.1).",
+  q:"Inside a sentence, what marks a word as a link now that there is no underline?",
+  opts:[
+   {n:"A",name:"Bold teal with a small arrow after the words",rec:true,line:"The words are bold teal with a 16px arrow after them. Hover puts a teal-tint highlight behind the words and moves the arrow 3px. No line under the words.",
+    how:`<p><strong>Focus-visible:</strong> the real 2px teal outline, 2px away, around the whole link (words and arrow).</p>
+      <p><strong>Phone (no hover):</strong> bold and the arrow are on at rest, so nothing needs hover; a press shows the highlight.</p>
+      <p><strong>How it meets "not colour alone" (1.4.1):</strong> the link teal #1f3b40 against body ink #262626 is only <b>${R("teal","ink")}:1</b>, below the 3:1 that colour alone would need, so colour is not relied on. Two other cues carry it: <b>weight</b> (700 against 400) and the <b>arrow</b> (teal on ivory <b>${R("teal","ivory")}:1</b>, above the 3:1 non-text rule). Text: teal on ivory ${R("teal","ivory")}:1 (body ink on ivory ${R("ink","ivory")}:1); hover teal on tint ${R("teal","tint")}:1.</p>
+      <p><strong>English:</strong> bold Lato 700 against 400 reads clearly, and the arrow adds a second cue. <strong>Arabic:</strong> Noto Sans Arabic 700 against 400 is visible but gentler because letters join; the arrow carries more here, and it is mirrored: it points left (the reading direction) and moves left on hover.</p>
+      <p><strong>Why it is recommended:</strong> in a legal paragraph with three links the arrows are light and the line stays even; each link is still clear when you scan.</p>`},
+   {n:"B",name:"Bold teal on a tint highlight",rec:false,line:"The words are bold teal on a teal-tint block, always on. Hover turns the block teal with ivory words. No line, no arrow.",
+    how:`<p><strong>Focus-visible:</strong> the real 2px teal outline, 2px away, around the block.</p>
+      <p><strong>Phone:</strong> the block is on at rest; a press shows the hover fill.</p>
+      <p><strong>How it meets "not colour alone" (1.4.1):</strong> the link teal against body ink is only <b>${R("teal","ink")}:1</b>, so colour is not relied on. Cues: <b>weight</b> (700 against 400) and the <b>filled block</b> behind the words. Honest note: the block is quiet against the page (tint #d1dfe0 on ivory is only <b>${R("tint","ivory")}:1</b>, below 3:1 for a shape cue), so weight is the cue that really counts. Text: teal on tint <b>${R("teal","tint")}:1</b>; hover ivory on teal <b>${R("ivory","teal")}:1</b>.</p>
+      <p><strong>English / Arabic:</strong> the block works the same in both and does not mirror. In Arabic the block cuts across joined letters and the bold is gentler, so with the pale block it carries less than in English.</p>
+      <p><strong>Against A:</strong> several tinted blocks in a legal paragraph make it look spotted, and a wrapped link breaks into two blocks.</p>`}]},
+ {id:"kind-5-dashboard",title:"Kind 5 · Dashboard links",build:k5,
+  today:"Back, Edit translations, the row title in lists, Remove and Discard-style actions all have an underline at rest (components/ops/edit-page.tsx lines 529, 591, 774, 819; components/ops/list-table.tsx line 40; app/dashboard/(ops)/requests/request-detail.tsx lines 115 and 151). The left rail has none today (it uses a tile on hover and a tint for the current page), so it is not redrawn and does not change.",
+  q:"For links in the dashboard, what shows that they are links?",
+  opts:[
+   {n:"A",name:"Teal text, a tile on hover (same as Kinds 1 and 3)",rec:true,line:"Back and Edit translations keep their chevron. The row title is bold teal. Remove is red text with a small x, with a soft red tile on hover. All others get a teal-tint tile on hover.",
+    how:`<p><strong>Focus-visible:</strong> the real 2px teal outline, 2px away from the tile.</p>
+      <p><strong>Phone:</strong> the dashboard is narrow, no hover; chevrons, bold row title and the x mark the links at rest, and a press shows the tile.</p>
+      <p><strong>Not colour alone:</strong> chevron, bold and x. Teal on ivory ${R("teal","ivory")}:1; red #8f2d2d on ivory ${R("error","ivory")}:1; hover teal on tint ${R("teal","tint")}:1; red on the soft red tile stays above 7:1.</p>`},
+   {n:"B",name:"Real buttons",rec:false,line:"Back and Edit translations become outlined (secondary) buttons; Remove becomes the real danger button (ink text, red border); the row title is plain bold text with an Open button at its end.",
+    how:`<p><strong>Focus-visible:</strong> the real 2px teal outline, 2px away.</p>
+      <p><strong>Phone:</strong> buttons show at rest; 44px rows get taller in the dense table.</p>
+      <p><strong>Not colour alone:</strong> the border. Teal on ivory ${R("teal","ivory")}:1; ink on ivory ${R("ink","ivory")}:1. Many buttons in a dense list make the page heavy, and the Open word is a placeholder: the real word is not written yet.</p>`}]}
+];
+// ---------------- render ----------------
+const sel=document.getElementById("scene");
+sel.innerHTML=`<option value="all">All (5)</option>`+K.map(k=>`<option value="${k.id}">${k.title}</option>`).join("");
+let html="";
+for(const k of K){
+  html+=`<section class="st" data-st="${k.id}"><h2>${k.title}</h2><p><strong>Today:</strong> ${k.today}</p>`;
+  html+=`<div class="decision"><p><strong>Decision:</strong> ${k.q}</p><ul>${k.opts.map(o=>`<li><strong>Option ${o.n}</strong>${o.rec?' <span class="rec">Recommended</span>':""} · ${o.name}. ${o.line}</li>`).join("")}</ul></div>`;
+  for(const o of k.opts){
+    html+=`<div class="opt"><h3>Option ${o.n} · ${o.name}${o.rec?' <span class="rec">Recommended</span>':""}</h3><div class="how">${o.how}</div>`;
+    for(const l of ["en","ar"]) for(const w of [390,1440])
+      html+=`<div class="shot" data-l="${l}" data-w="${w}"><p class="cap">nu-k${k.id.split("-")[1]}-${o.n.toLowerCase()}-${l}-${w}${drawAr(l)}</p><div class="scroller"><div class="scaler" data-w="${w}">${k.build(l,w,o.n.toLowerCase())}</div></div></div>`;
+    html+=`</div>`;
+  }
+  html+=`</section>`;
+}
+document.getElementById("shots").innerHTML=html;
+// summary table
+document.getElementById("table").innerHTML=`<table class="sum"><tr><th>Kind</th><th>Recommended</th><th>Focus-visible</th><th>Not colour alone</th></tr>
+<tr><td>1 · Footer and nav links</td><td>A · tile on hover; current page bold with a gold line at the start edge</td><td>Real 2px outline, 2px away (ivory on the teal footer)</td><td>Tile on hover and bold plus line for current; links are plain nav items, not in a sentence</td></tr>
+<tr><td>2 · Stay card and blog titles</td><td>A · photo zoom and arrow after the title (arrow shown at rest)</td><td>Real 2px outline around the whole card</td><td>Arrow ${cr("teal","ivory")}:1 on ivory; title colour is not relied on</td></tr>
+<tr><td>3 · Stand-alone text links</td><td>A · teal text with an arrow, tile on hover</td><td>Real 2px outline, 2px away from the tile</td><td>Arrow at rest; teal ${cr("teal","ivory")}:1 on ivory</td></tr>
+<tr><td>4 · A link inside a sentence</td><td>A · bold teal with a small arrow (mirrored in Arabic)</td><td>Real 2px outline around words and arrow</td><td>Teal against ink only ${cr("teal","ink")}:1, so weight 700 plus the arrow (${cr("teal","ivory")}:1) carry it; B (tint block, tint on ivory ${cr("tint","ivory")}:1) leans on weight alone</td></tr>
+<tr><td>5 · Dashboard links</td><td>A · teal text with chevron, bold row title, red x for Remove, tile on hover</td><td>Real 2px outline, 2px away</td><td>Chevron, bold and x at rest; teal ${cr("teal","ivory")}:1, red ${cr("error","ivory")}:1</td></tr></table>`;
+// ---------------- filters ----------------
+const f={l:"all",w:"all",z:"fit",s:"all"};
+function apply(){
+  document.querySelectorAll(".st").forEach(e=>{e.hidden=!(f.s==="all"||e.dataset.st===f.s);});
+  document.querySelectorAll(".shot").forEach(e=>{e.hidden=!((f.l==="all"||e.dataset.l===f.l)&&(f.w==="all"||e.dataset.w===f.w));});
+  document.querySelectorAll(".st:not([hidden]) .shot:not([hidden]) .scaler").forEach(e=>{const w=+e.dataset.w;const avail=e.parentElement.clientWidth-4;const k=f.z==="fit"?Math.min(1,avail/(w+2)):1;e.style.transform=`scale(${k})`;e.parentElement.style.height=(e.firstElementChild.offsetHeight*k+8)+"px";e.parentElement.style.overflowX=k<1?"hidden":"auto";});
+}
+sel.addEventListener("change",()=>{f.s=sel.value;apply();});
+document.querySelectorAll("#top button").forEach(b=>b.addEventListener("click",()=>{
+  const k=Object.keys(b.dataset)[0];f[k]=b.dataset[k];document.querySelectorAll(`#top button[data-${k}]`).forEach(x=>x.setAttribute("aria-pressed",x===b));apply();
+}));
+addEventListener("resize",apply);document.fonts?.ready.then(apply);addEventListener("load",apply);apply();
+</script>
+<section style="padding:16px 24px 48px;max-width:1100px">
+  <h2>Three more words to sign (06-06, not about links)</h2>
+  <p>These were written during the build and are not on the signed 06-06 page. Each is the exact text in the code today.</p>
+  <div class="decision">
+    <p><strong>1. WhatsApp message from a package page, Arabic.</strong> The English is the plan's; {name} is the package's name.</p>
+    <p lang="ar" dir="rtl">مرحبًا ALMAR، أتصفّح رحلة {name} وأودّ الاستفسار عن أمر آخر.</p>
+    <p lang="en"><em>English for comparison:</em> Hello ALMAR, I am looking at the {name} journey and would like to ask about something else.</p>
+  </div>
+  <div class="decision">
+    <p><strong>2. The same message, Spanish.</strong></p>
+    <p lang="es">Hola, ALMAR: estoy viendo el viaje {name} y me gustaría preguntar por otra cosa.</p>
+  </div>
+  <div class="decision">
+    <p><strong>3. Two labels in the email to inquiries@ when a package request arrives.</strong> English only: only the team reads this email.</p>
+    <p lang="en"><code>Package name: [the package's name]</code><br><code>Page: [the package page's address]</code></p>
+  </div>
+</section>
+</body></html>

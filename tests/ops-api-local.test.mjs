@@ -434,7 +434,7 @@ test("local stack: the owner API end to end on the imported catalogue", { timeou
     assert.equal((await T.get()).body.items.length, 1);
   });
 
-  await t.test("journeys: the EN price label is parsed; no id is 400; publish and unpublish toggle", async () => {
+  await t.test("journeys: the EN price label is parsed; no id and no slug is 400; publish and unpublish toggle", async () => {
     const onRequest = await J.post({ action: "save", item: { id: EXPLORER.id, translations: { en: { name: "The Explorer", price_label: "Price on request" } } } });
     assert.equal(onRequest.status, 200, JSON.stringify(onRequest.body));
     assert.equal(onRequest.body.affects_site, true);
@@ -452,7 +452,7 @@ test("local stack: the owner API end to end on the imported catalogue", { timeou
 
     const noId = await J.post({ action: "save", item: { translations: { en: { name: "x", price_label: "y" } } } });
     assert.equal(noId.status, 400);
-    assert.equal(noId.body.error.field, "id");
+    assert.equal(noId.body.error.field, "slug");
 
     assert.equal((await publish("journey_tier", EXPLORER.id, false)).body.is_published, false);
     assert.equal((await J.get()).body.items.find((j) => j.id === EXPLORER.id).is_published, false);

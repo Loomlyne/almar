@@ -8,6 +8,7 @@ import {
   SITE_ORIGIN,
   TARGETS,
   assertPublicClean,
+  assertSitemapCovers,
   assertTargetFiles,
   buildSitemap,
   htmlFileToPath,
@@ -398,4 +399,76 @@ test("sitemap: a path is XML-escaped", () => {
 
 test("sitemap: two files for one address throw", () => {
   assert.throws(() => buildSitemap(["en.html", "en/index.html", "ar/index.html", "es/index.html"]), /en/);
+});
+
+// ---- plan 06-04: robots, headers and the sitemap guard --------------------------------------------------------------
+
+const REQUIRED_DISALLOWS = ["/api/", "/auth/", "/en/account", "/en/bookings", "/ar/account", "/ar/bookings", "/es/account", "/es/bookings"];
+
+test("production robots.txt disallows the private paths and still allows the public ones", () => {
+  const { read } = written("production");
+  const lines = read("robots.txt").split("\n");
+  for (const path of [...REQUIRED_DISALLOWS, "/account", "/bookings"]) assert.ok(lines.includes(`Disallow: ${path}`), path);
+  assert.ok(lines.includes("Allow: /"));
+});
+
+for (const path of REQUIRED_DISALLOWS) {
+  test(`production robots.txt without Disallow: ${path} is refused`, () => {
+    refuses(
+      "production",
+      (out, root) => {
+        const without = readFileSync(join(root, "deploy/production/robots.txt"), "utf8").replace(`Disallow: ${path}\n`, "");
+        writeFileSync(join(out, "robots.txt"), without);
+        writeFileSync(join(root, "deploy/production/robots.txt"), without);
+      },
+      new RegExp(`robots\\.txt.*Disallow: ${path}`),
+    );
+  });
+}
+
+test("the root _headers has the /* block with the three headers, and never no-referrer", () => {
+  const headers = readFileSync("_headers", "utf8");
+  assert.match(headers, /^\/\*\n {2}X-Content-Type-Options: nosniff\n {2}Referrer-Policy: strict-origin-when-cross-origin\n {2}Permissions-Policy: camera=\(\), microphone=\(\), geolocation=\(\), browsing-topics=\(\)$/m);
+  assert.doesNotMatch(headers, /Referrer-Policy:\s*no-referrer\s*$/im);
+  assert.doesNotMatch(headers, /payment=/, "payment is not restricted: Stripe");
+});
+
+test("a _headers without the three headers, or with no-referrer, is refused on production", () => {
+  refuses("production", (out) => writeFileSync(join(out, "_headers"), "/assets/*\n  Cache-Control: public\n"), /_headers.*no \/\* block/);
+  refuses("production", (out) => writeFileSync(join(out, "_headers"), "/*\n  X-Content-Type-Options: nosniff\n"), /_headers.*must hold/);
+  refuses("production", (out) => writeFileSync(join(out, "_headers"), readFileSync(join(out, "_headers"), "utf8") + "/en/*\n  Referrer-Policy: no-referrer\n"), /_headers.*no-referrer/);
+});
+
+test("preview and ops: the served /* block (the appended one) carries the three headers too", () => {
+  for (const target of ["preview", "ops"]) {
+    const { outDir, root } = written(target);
+    assertTargetFiles(outDir, target, { root });
+    refuses(target, (out) => {
+      const block = "/*\n  X-Robots-Tag: noindex, nofollow\n";
+      writeFileSync(join(out, "_headers"), `/*\n  X-Content-Type-Options: nosniff\n\n${block}`);
+    }, /_headers/);
+  }
+});
+
+const COVERED = buildSitemap(["en/blog/a.html", "ar/blog/a.html", "es/blog/a.html", "en/legal/privacy.html", "ar/legal/privacy.html", "es/legal/privacy.html"]);
+
+test("assertSitemapCovers: passes when each path is there in three languages with the four alternates", () => {
+  assertSitemapCovers(COVERED, ["/blog/a", "/legal/privacy"]);
+  assertSitemapCovers(COVERED, []);
+});
+
+test("assertSitemapCovers: names the first missing URL", () => {
+  assert.throws(() => assertSitemapCovers(COVERED, ["/blog/a", "/legal/terms"]), /https:\/\/almarprivatejourney\.com\/en\/legal\/terms/);
+});
+
+test("assertSitemapCovers: a URL without its alternates is refused", () => {
+  const stripped = COVERED.replace('hreflang="x-default" href="https://almarprivatejourney.com/en/blog/a"', "");
+  assert.throws(() => assertSitemapCovers(stripped, ["/blog/a"]), /x-default/);
+  // English-only: one entry and no alternates, so the other two languages are missing.
+  assert.throws(() => assertSitemapCovers(buildSitemap(["en/blog/b.html"]), ["/blog/b"]), /\/en\/blog\/b|\/ar\/blog\/b/);
+});
+
+test("a legal page is public: it is in the sitemap, with its alternates", () => {
+  assert.equal(isSitemapExcluded("en/legal/privacy.html"), false);
+  assert.equal(isSitemapExcluded("ar/legal/booking-terms.html"), false);
 });

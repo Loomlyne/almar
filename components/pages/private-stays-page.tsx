@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import { HOME_COPY } from "../../lib/copy/home";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
+import { saveHeartCopy } from "../../lib/copy/saved-stays";
 import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
+import { getSiteLegalChrome } from "../../lib/data/legal";
 import { STAYS_LIST_COPY } from "../../lib/copy/stays-list";
 import { getDestinations } from "../../lib/data/destinations";
 import { getStays } from "../../lib/data/stays";
-import { pageLinks } from "../site/page-links";
+import { footerPageLinks, pageLinks } from "../site/page-links";
 import { absoluteLocaleUrl, localeAlternates, localePath, type Locale } from "../../lib/locale-path";
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
 import { PublicFrame, type PublicFrameLink } from "../site/public-frame";
 import { PageShell } from "../ui/page-shell";
+import { SaveStayNotices } from "../ui/save-stay";
 import { SectionHead } from "../ui/section";
 import { StayBrowser, type ListStay } from "./private-stays/stay-browser";
 
@@ -50,8 +53,9 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
       locale={locale}
       currentPath={PATH}
       links={links}
-      footerLinks={links}
+      footerLinks={footerPageLinks(locale)}
       footerCopy={SITE_FOOTER_COPY[locale]}
+      legal={await getSiteLegalChrome(locale)}
       labels={nav}
     >
       <script {...ORGANIZATION_JSON_LD_SCRIPT} />
@@ -71,8 +75,10 @@ export async function PrivateStaysPage({ locale }: { locale: Locale }) {
             copy={copy}
             journeyCopy={JOURNEY_COPY[locale]}
             datesNote={stays.some((s) => s.sample_fields.includes("blocked_dates")) ? STAY_DETAIL_COPY[locale].sampleDatesNote : null}
+            saveCopy={saveHeartCopy(locale)}
           />
         </PageShell>
+        <SaveStayNotices dismissLabel={SITE_FOOTER_COPY[locale].newsletter.dismiss} />
       </main>
     </PublicFrame>
   );

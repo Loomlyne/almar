@@ -24,6 +24,7 @@ import { guestsText, stayDaysText } from "../../../lib/booking/display-text";
 import { formatBp, formatIsoDate, uaeDateTime } from "../../../lib/booking/trip-format";
 import type { BookingView, StayAccess, TransferInstructions } from "../../../lib/booking/types";
 import type { BookingPageCopy } from "../../../lib/copy/booking-page";
+import type { SiteLegalChrome } from "../../../lib/data/types";
 import { HOME_COPY } from "../../../lib/copy/home";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { SITE_FOOTER_COPY } from "../../../lib/copy/site-footer";
@@ -85,6 +86,7 @@ export function BookingPageView({
   onRetry,
   showBackLink,
   withdraw,
+  legal,
 }: {
   locale: Locale;
   copy: BookingPageCopy;
@@ -99,6 +101,8 @@ export function BookingPageView({
   showBackLink: boolean;
   /** Absent: no Withdraw section, no dialog and no notice (a control is drawn only where it is wired). */
   withdraw?: WithdrawControl;
+  /** The footer's legal row (plan 06-04, signed 2026-10-30); absent or nothing published: none. */
+  legal?: SiteLegalChrome;
 }) {
   const nav = HOME_COPY[locale].nav;
   const links: PublicFrameLink[] = PAGE_LINKS.map(({ key, path }) => ({ label: nav[key], href: siteHref(locale, path) }));
@@ -117,6 +121,7 @@ export function BookingPageView({
           labels={nav}
           currency={false}
           whatsapp={false}
+          legal={legal}
         >
           <main id="content" className="mx-auto box-border flex w-full max-w-column flex-col gap-4 px-4 py-12 md:px-8 lg:px-16">
             {isTest ? (
@@ -279,7 +284,7 @@ function Ready({
   return (
     <>
       {backLink ? (
-        <Link href={localePath(locale, "/bookings")} className="self-start print:hidden" data-print-hidden="">
+        <Link href={localePath(locale, "/bookings")} arrow={false} className="self-start print:hidden" data-print-hidden="">
           {`‹ ${copy.backToBookings}`}
         </Link>
       ) : null}

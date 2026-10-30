@@ -2,22 +2,28 @@
 
 import { Fragment, useEffect, useRef, useState, type FormEvent } from "react";
 import polyBlack from "../../brand/Logo Typography/Poly_Black.svg";
+import { cn } from "../../lib/cn";
 import { Button } from "./button";
 import { Divider } from "./divider";
+import { LINK_CURRENT, TILE_ON_LIGHT, TILE_ON_TEAL } from "./link";
 import { ToastProvider, useToast } from "./toast";
 import { postPreferences } from "../site/account-sync";
 import { isPlainEmail } from "../../lib/email-address";
 import { isDocumentLocale } from "../../lib/set-document-locale";
 
-const LINK =
-  "inline-flex min-h-control max-w-full items-center break-words font-body text-body text-ivory underline decoration-1 underline-offset-4";
+// Each link is a tile on hover; the negative margin keeps its words in line with the column's heading.
+const LINK = cn("inline-flex min-h-control max-w-full items-center -ms-3 px-3 break-words font-body text-body text-ivory", TILE_ON_TEAL);
 const HEAD = "mb-2 block font-body text-caption uppercase tracking-kicker text-ivory ar:normal-case ar:tracking-normal";
-// The light footer: ink on ivory, the gold underline on hover as the nav's links have it.
-const LIGHT_LINK =
-  "inline-flex min-h-control max-w-full items-center break-words font-body text-body text-ink no-underline decoration-gold decoration-1 underline-offset-4 hover:underline";
+// The light footer: ink on ivory, the tint tile on hover as the nav's links have it.
+const LIGHT_LINK = cn("inline-flex min-h-control max-w-full items-center -ms-3 px-3 break-words font-body text-body text-ink", TILE_ON_LIGHT);
+// The language row's links sit between dots: the tile is even on both sides, and only the first pulls back to the column.
+const LANGUAGE = "ms-0 px-2 first:-ms-2";
 const LIGHT_HEAD = "mb-2 block font-body text-caption uppercase tracking-kicker text-ink ar:normal-case ar:tracking-normal";
 
-export type FooterLink = { label: string; href: string };
+/** `external`: a link the owner set to another site (06-02 Navigation): a new tab, with the screen-reader suffix. */
+export type FooterLink = { label: string; href: string; external?: true };
+
+const NEW_TAB = { target: "_blank", rel: "noopener noreferrer" } as const;
 
 export type FooterLanguageLink = {
   label: string;
@@ -46,6 +52,12 @@ export type FooterCopy = {
   madeBy?: string;
   /** Needed only when `newsletter` is true. */
   newsletter?: FooterNewsletterCopy;
+  /** Accessible name of the legal row. Needed only with `legalLinks` or `cookieSettings`. */
+  legal?: string;
+  /** The label of the Cookie settings link (the frame hands it to `cookieSettings`). */
+  cookieSettings?: string;
+  /** The label of the List with us link (the frame hands it to `listWithUs`). */
+  listWithUs?: string;
 };
 
 /** The newsletter column's strings (lib/copy/site-footer.ts SiteFooterNewsletterCopy is one). */
@@ -246,13 +258,44 @@ function offerLanguage(item: FooterLanguageLink) {
   postPreferences({ locale: item.lang });
 }
 
+/** The legal row (plan 06-04, pictures signed 2026-10-30): under Pages and Contact, the published titles then Cookie settings. */
+function LegalRow({
+  name,
+  links,
+  cookieSettings,
+  rowClass,
+  linkClass,
+}: {
+  name?: string;
+  links: FooterLink[];
+  cookieSettings?: { label: string; onOpen: () => void };
+  rowClass: string;
+  linkClass: string;
+}) {
+  return (
+    <nav aria-label={name} className={`mt-8 flex flex-wrap items-center gap-x-6 border-t pt-2 ${rowClass}`}>
+      {links.map((link) => (
+        <a key={link.href} className={linkClass} href={link.href}>
+          {link.label}
+        </a>
+      ))}
+      {cookieSettings ? (
+        <button type="button" className={`${linkClass} cursor-pointer border-0 bg-transparent py-0`} onClick={cookieSettings.onOpen}>
+          {cookieSettings.label}
+        </button>
+      ) : null}
+    </nav>
+  );
+}
+
 /**
  * The public footer. Every string arrives through `copy`; the contact details default to the
  * owner's. There is no newsletter form unless `newsletter` is true AND an `onSubscribe` handler is
  * given: a form that does nothing is a fake control. The form mounts only in the browser (none with
  * JavaScript off), sends the honeypots named in `honeypotFields`, and tells the visitor what the
  * handler did: the success toast when it resolves, the failed line when it rejects. The "List with us"
- * slot renders nothing until it has an href. The language row is plain links that work with JavaScript off.
+ * slot renders nothing until it has an href. The language row is plain links that work with JavaScript off. `legalLinks` and
+ * `cookieSettings` add the legal row; without them the footer is what it always was.
  */
 export function SiteFooter({
   copy,
@@ -265,6 +308,8 @@ export function SiteFooter({
   listWithUs,
   tone = "teal",
   madeBy,
+  legalLinks = [],
+  cookieSettings,
 }: {
   copy: FooterCopy;
   links: FooterLink[];
@@ -279,15 +324,20 @@ export function SiteFooter({
   /**
    * "teal" (the default) is the footer as it always was. "light" is the public site's footer (job 11): ivory ground, the
    * divider, the wordmark, pages and contact (and, plan 27, the newsletter as the end column), then the language links,
-   * the copyright and the studio credit. It has no "List with us" slot.
+   * the copyright and the studio credit. "List with us" is last in its Pages column (plan 06-05, as signed).
    */
   tone?: "teal" | "light";
   /** The studio credit, light tone only. */
   madeBy?: FooterMadeBy;
+  /** The legal pages published in all three languages (plan 06-04). */
+  legalLinks?: FooterLink[];
+  /** Cookie settings, a button that opens the settings sheet (plan 06-04): only with published banner words and a token. */
+  cookieSettings?: { label: string; onOpen: () => void };
 }) {
   const [emailName, emailHost] = contact.email.split("@");
   const showNewsletter = newsletter && Boolean(onSubscribe) && Boolean(copy.newsletter);
   const listHref = listWithUs?.href;
+  const hasLegal = legalLinks.length > 0 || Boolean(cookieSettings);
 
   if (tone === "light") {
     const src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(polyBlack)}`;
@@ -300,11 +350,17 @@ export function SiteFooter({
         >
           <nav className="grid content-start justify-items-start" aria-label={copy.pages}>
             <p className={LIGHT_HEAD}>{copy.pages}</p>
-            {links.map((link) => (
-              <a key={link.href} className={LIGHT_LINK} href={link.href}>
+            {links.map((link, index) => (
+              <a key={`${index}-${link.href}`} className={LIGHT_LINK} href={link.href} {...(link.external ? NEW_TAB : {})}>
                 {link.label}
+                {link.external ? <span className="sr-only"> {copy.newTab}</span> : null}
               </a>
             ))}
+            {listWithUs && listHref ? (
+              <a className={LIGHT_LINK} href={listHref}>
+                {listWithUs.label}
+              </a>
+            ) : null}
           </nav>
           <address className="grid content-start justify-items-start not-italic">
             <p className={LIGHT_HEAD}>{copy.contact}</p>
@@ -335,9 +391,10 @@ export function SiteFooter({
             />
           ) : null}
         </div>
-        <div className="mt-8 grid items-center gap-4 border-t border-teal-tint pt-6 @2xl:grid-cols-3">
+        {hasLegal ? <LegalRow name={copy.legal} links={legalLinks} cookieSettings={cookieSettings} rowClass="border-teal-tint" linkClass={LIGHT_LINK} /> : null}
+        <div className={hasLegal ? "mt-2 grid items-center gap-4 border-t border-teal-tint pt-4 @2xl:grid-cols-3" : "mt-8 grid items-center gap-4 border-t border-teal-tint pt-6 @2xl:grid-cols-3"}>
           {languageLinks && languageLinks.length > 0 ? (
-            <nav aria-label={copy.language} className="flex flex-wrap items-center gap-x-2">
+            <nav aria-label={copy.language} className="flex flex-wrap items-center">
               {languageLinks.map((item, index) => (
                 <Fragment key={item.lang}>
                   {index > 0 ? (
@@ -346,7 +403,7 @@ export function SiteFooter({
                     </span>
                   ) : null}
                   <a
-                    className={`${LIGHT_LINK} ${item.current ? "underline decoration-2" : ""}`}
+                    className={cn(LIGHT_LINK, LANGUAGE, item.current && LINK_CURRENT, item.current && "text-teal")}
                     href={item.href}
                     hrefLang={item.lang}
                     lang={item.lang}
@@ -386,9 +443,10 @@ export function SiteFooter({
       <div className="grid min-w-0 grid-cols-1 items-start gap-8 @2xl:grid-cols-3">
         <nav className="grid content-start justify-items-start" aria-label={copy.pages}>
           <p className={HEAD}>{copy.pages}</p>
-          {links.map((link) => (
-            <a key={link.href} className={LINK} href={link.href}>
+          {links.map((link, index) => (
+            <a key={`${index}-${link.href}`} className={LINK} href={link.href} {...(link.external ? NEW_TAB : {})}>
               {link.label}
+              {link.external ? <span className="sr-only"> {copy.newTab}</span> : null}
             </a>
           ))}
           {listWithUs && listHref ? (
@@ -415,9 +473,10 @@ export function SiteFooter({
           <NewsletterColumn copy={copy.newsletter!} onSubscribe={onSubscribe!} honeypotFields={honeypotFields} light={false} />
         ) : null}
       </div>
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-ivory pt-6">
+      {hasLegal ? <LegalRow name={copy.legal} links={legalLinks} cookieSettings={cookieSettings} rowClass="border-ivory" linkClass={LINK} /> : null}
+      <div className={hasLegal ? "flex flex-wrap items-center justify-between gap-4 pt-2" : "mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-ivory pt-6"}>
         {languageLinks && languageLinks.length > 0 ? (
-          <nav aria-label={copy.language} className="flex flex-wrap items-center gap-x-2">
+          <nav aria-label={copy.language} className="flex flex-wrap items-center">
             {languageLinks.map((item, index) => (
               <Fragment key={item.lang}>
                 {index > 0 ? (
@@ -426,7 +485,7 @@ export function SiteFooter({
                   </span>
                 ) : null}
                 <a
-                  className={`${LINK} ${item.current ? "decoration-2" : ""}`}
+                  className={cn(LINK, LANGUAGE, item.current && LINK_CURRENT)}
                   href={item.href}
                   hrefLang={item.lang}
                   lang={item.lang}

@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALMAR 06-05 pictures: Requests and Consultation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Noto+Sans+Arabic:wght@400;600&family=Noto+Naskh+Arabic&display=swap">
+<style>
+/* Tokens copied from tokens.json (2026-10-27). Square corners everywhere; gold is a line only; teal is the primary. */
+:root{
+  --color-ivory:#fffaf0;--color-surface:#ffffff;--color-teal:#1f3b40;--color-teal-tint:#d1dfe0;--color-gold:#d4ba8a;
+  --color-ink:#262626;--color-muted:#63615f;--color-line:rgb(38 38 38 / 0.16);--color-error:#8f2d2d;
+  --control:44px;--sidebar:240px;
+  --face-display:Georgia,"Times New Roman",serif;
+  --face-body:"Lato",Arial,sans-serif;
+  --shadow-selected:inset 0 0 0 2px var(--color-teal);
+}
+*{box-sizing:border-box;border-radius:0}
+html,body{margin:0;background:#ece8df;color:var(--color-ink);font-family:var(--face-body);font-size:14px}
+/* ---------- review page chrome (not product UI) ---------- */
+#top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:10px 20px;background:var(--color-teal);color:var(--color-ivory)}
+#top h1{font:400 18px var(--face-display);margin:0;margin-inline-end:auto}
+#top .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#top .grp span{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-inline-end:4px}
+#top button,#top select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid rgba(255,250,240,.5);background:transparent;color:var(--color-ivory);cursor:pointer}
+#top select option{color:#000}
+#top button[aria-pressed=true]{background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)}
+#main{padding:20px 24px 80px}
+.banner{background:var(--color-ivory);border:1px solid var(--color-gold);padding:12px 16px;margin-bottom:24px;font-size:14px;line-height:1.55;max-width:1100px}
+.banner ol{margin:6px 0 0;padding-inline-start:20px}
+.banner code{font:13px ui-monospace,Menlo,monospace}
+.decision{border:2px solid var(--color-teal);background:#fff;padding:12px 16px;margin:12px 0 0}
+.st{margin:0 0 48px}
+.st>h2{font:400 22px var(--face-display);color:var(--color-teal);margin:0 0 4px}
+.st>p{margin:0 0 12px;max-width:900px;line-height:1.5}
+.shot{margin:0 0 28px}
+.shot .cap{font:600 13px ui-monospace,Menlo,monospace;margin:0 0 6px}
+.scroller{overflow-x:auto;padding-bottom:6px}
+.scaler{transform-origin:top left}
+.rv{font:12px ui-monospace,Menlo,monospace;background:#fff3c4;color:#4a3b00;padding:2px 6px;display:inline-block;direction:ltr}
+.newbadge{outline:2px dashed var(--color-gold);outline-offset:4px}
+/* ---------- dashboard frame ---------- */
+.frame{background:var(--color-ivory);color:var(--color-ink);font:14px/1.43 var(--face-body);border:1px solid var(--color-line);display:flex;min-height:640px;position:relative}
+.frame[dir=rtl],.pub[dir=rtl]{font-family:"Noto Sans Arabic",var(--face-body);line-height:1.63}
+.frame[dir=rtl] .disp,.pub[dir=rtl] .disp{font-family:"Noto Naskh Arabic",var(--face-display);line-height:1.4}
+.rail{width:var(--sidebar);flex:none;border-inline-end:1px solid var(--color-line);padding:20px 16px;display:flex;flex-direction:column;gap:2px}
+.rail .mark{font:400 20px var(--face-display);letter-spacing:.06em;margin-bottom:20px}
+.rail a{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:40px;padding:0 12px;color:var(--color-ink);text-decoration:none}
+.rail a.sub{padding-inline-start:28px}
+.rail a.on{box-shadow:inset 3px 0 0 var(--color-teal);background:var(--color-surface);color:var(--color-teal)}
+.frame[dir=rtl] .rail a.on{box-shadow:inset -3px 0 0 var(--color-teal)}
+.rail .soon{font-size:12px;color:var(--color-muted);border:1px solid var(--color-line);padding:0 6px}
+.bar{display:none;align-items:center;justify-content:space-between;height:56px;padding:0 16px;border-bottom:1px solid var(--color-line)}
+.bar .mark{font:400 18px var(--face-display);letter-spacing:.06em}
+.bar .menu{min-height:var(--control);min-width:var(--control);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-teal)}
+.col{flex:1;min-width:0;display:flex;flex-direction:column}
+.page{padding:24px 32px 48px;display:flex;flex-direction:column;gap:24px;max-width:1240px}
+.narrow .rail{display:none}.narrow .bar{display:flex}.narrow .page{padding:16px 16px 40px}
+.back{display:inline-flex;align-items:center;gap:4px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px;width:max-content}
+.back svg{transform:rotate(180deg)}.frame[dir=rtl] .back svg{transform:none}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid var(--color-line);padding-bottom:16px}
+.head h1,.lh1{margin:0;font:400 32px/1.2 var(--face-display);color:var(--color-teal)}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border:1px solid var(--color-teal);color:var(--color-teal);font-size:12px;white-space:nowrap}
+.chip.off{border-color:var(--color-line);color:var(--color-muted)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{min-height:var(--control);padding:0 20px;font:inherit;border:1px solid var(--color-teal);display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.o{background:var(--color-surface);color:var(--color-teal)}
+.btn.p{background:var(--color-teal);color:#fff}
+.btn.dis{opacity:.45}
+.btn.sq{padding:0;width:var(--control);justify-content:center}
+.card{border:1px solid var(--color-line);background:var(--color-surface);padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.narrow .card{padding:16px}
+.card h2{margin:0;font:400 20px/1.3 var(--face-display);color:var(--color-teal)}
+.note{margin:0;color:var(--color-muted)}
+.cols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}
+.cols>div{display:flex;flex-direction:column;gap:24px;min-width:0}
+.narrow .cols{grid-template-columns:1fr}
+.field{display:grid;gap:8px;min-width:0}
+.input{min-height:var(--control);border:1px solid var(--color-ink);background:var(--color-surface);padding:8px 16px;font:inherit;color:var(--color-ink);width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+.input.area{min-height:96px}
+.input.bad{border-color:var(--color-error);box-shadow:inset 0 0 0 1px var(--color-error)}
+.input.ph{color:var(--color-muted)}
+.input.sel{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.input.ro{border-color:var(--color-line);background:var(--color-ivory)}
+.err{margin:0;border-inline-start:2px solid var(--color-error);padding-inline-start:8px;color:var(--color-ink)}
+.link{display:inline-flex;align-items:center;gap:8px;min-height:var(--control);color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-decoration-thickness:1px;text-underline-offset:4px;background:none;border:0;padding:0;font:inherit;width:max-content}
+.link.red{color:var(--color-error);text-decoration-color:var(--color-error)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:var(--control)}
+.sw{width:44px;height:24px;border:1px solid var(--color-ink);background:var(--color-surface);position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:16px;height:16px;background:var(--color-muted)}
+.sw.on{background:var(--color-teal);border-color:var(--color-teal)}.sw.on::after{inset-inline-start:23px;background:#fff}
+.fixed{display:flex;gap:8px;align-items:flex-start;color:var(--color-muted)}
+.fixed svg{flex:none;margin-top:2px}
+/* tables (ListTable) */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-weight:400;color:var(--color-muted);text-align:start;padding:8px 12px;border-bottom:1px solid var(--color-line);font-size:12px}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--color-line);vertical-align:middle}
+.tbl td.t{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px}
+.tbl tr.hid td.t{color:var(--color-muted)}
+.tbl tr.fix td{color:var(--color-muted)}
+.tbl .mv{display:flex;gap:4px;justify-content:flex-end}
+.narrow:not(.mid) .tbl thead{display:none}
+.narrow:not(.mid) .tbl tr{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 0;border-bottom:1px solid var(--color-line)}
+.narrow:not(.mid) .tbl td{border:0;padding:0}
+.narrow:not(.mid) .tbl td.wide{grid-column:1/-1}
+.narrow:not(.mid) .tbl .mv{justify-content:flex-start}
+/* media */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+.tile{display:flex;flex-direction:column;gap:4px}
+.tile img,.ph-img{width:100%;aspect-ratio:3/2;object-fit:cover;display:block;background:var(--color-teal-tint)}
+.ph-img{display:flex;align-items:center;justify-content:center;color:var(--color-muted);border:1px dashed var(--color-line)}
+.one{max-width:320px}
+/* toggle cards (never radio) */
+.tcards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.narrow:not(.mid) .tcards{grid-template-columns:1fr}
+.tcard{border:1px solid var(--color-line);background:var(--color-surface);padding:16px;min-height:var(--control);display:flex;flex-direction:column;gap:4px}
+.tcard.on{box-shadow:var(--shadow-selected);border-color:var(--color-teal)}
+.tcard b{font-weight:700;color:var(--color-ink)}
+/* lock line (06-01, signed) */
+.lockline{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 16px;color:var(--color-muted);margin-top:-4px}
+.narrow:not(.mid) .lockline{grid-template-columns:1fr}
+.lockline .txt{display:flex;align-items:flex-start;gap:6px}
+.boxes{display:grid;gap:16px;grid-template-columns:1fr 1fr}.narrow:not(.mid) .boxes{grid-template-columns:1fr}
+.lang{border:1px solid var(--color-line);background:var(--color-ivory);padding:16px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.lang h3{margin:0;font-weight:400;color:var(--color-muted)}
+/* dialog */
+.scrim{position:absolute;inset:0;background:rgb(38 38 38 / .45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}
+.dialog{background:var(--color-surface);border:1px solid var(--color-line);padding:24px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:16px}
+.dialog h2{margin:0;font:400 20px var(--face-display);color:var(--color-teal)}
+/* ---------- public frame ---------- */
+.pub{background:var(--color-ivory);color:var(--color-ink);font:16px/1.5 var(--face-body);border:1px solid var(--color-line);min-height:640px}
+.phd{display:flex;align-items:center;gap:28px;padding:16px 40px;border-bottom:1px solid var(--color-line);background:var(--color-ivory)}
+.phd img.wm{height:44px;display:block}
+.phd nav{display:flex;gap:24px;margin-inline-end:auto}
+.phd a{color:var(--color-ink);text-decoration:none;white-space:nowrap}
+.phd .tools{display:flex;gap:16px;align-items:center;color:var(--color-ink)}
+.phd .login{border:1px solid var(--color-teal);color:var(--color-teal);padding:8px 16px}
+.pnarrow .phd{padding:12px 16px}.pnarrow .phd nav,.pnarrow .phd .tools{display:none}
+.pnarrow .phd .burger{display:inline-flex;margin-inline-start:auto}
+.phd .burger{display:none;width:44px;height:44px;border:1px solid var(--color-line);align-items:center;justify-content:center;color:var(--color-teal)}
+.hero{position:relative;min-height:520px;display:flex;align-items:flex-end;color:#fff}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgb(0 0 0 / .55),rgb(0 0 0 / 0) 60%)}
+.hero .in{position:relative;z-index:1;padding:48px 40px;display:flex;flex-direction:column;gap:12px;width:100%}
+.pnarrow .hero{min-height:420px}.pnarrow .hero .in{padding:24px 16px}
+.hero h1{margin:0;font:400 64px/1.1 var(--face-display)}.pnarrow .hero h1{font-size:40px}
+.kick{font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.pub[dir=rtl] .kick{letter-spacing:0}
+.booker{background:var(--color-surface);border:1px solid var(--color-line);min-height:64px;display:grid;grid-template-columns:repeat(3,1fr) auto;max-width:880px}
+.booker span{border-inline-end:1px solid var(--color-line)}.booker b{background:var(--color-teal);width:120px}
+.pnarrow .booker{grid-template-columns:1fr;min-height:56px}.pnarrow .booker span{display:none}.pnarrow .booker b{width:100%}
+.vid{position:absolute;top:16px;inset-inline-end:16px;z-index:2}
+.sec{padding:64px 40px;display:flex;flex-direction:column;gap:16px;max-width:1240px;margin:0 auto}
+.pnarrow .sec{padding:40px 16px}
+.sec h2{margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)}.pnarrow .sec h2{font-size:32px}
+.sec p{margin:0;max-width:640px}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.pnarrow .cards3{grid-template-columns:1fr}.pmid .cards3{grid-template-columns:1fr 1fr}
+.cards3 img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.cards3 h3{margin:12px 0 0;font:400 20px var(--face-display)}
+.ghost{height:140px;background:repeating-linear-gradient(135deg,transparent 0 10px,rgb(38 38 38 / .05) 10px 11px);border-top:1px solid var(--color-line)}
+.band{width:100%;aspect-ratio:16/6;object-fit:cover;display:block}.pnarrow .band{aspect-ratio:4/3}
+.pfoot{background:var(--color-teal);color:var(--color-ivory);padding:48px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.pnarrow .pfoot{grid-template-columns:1fr;padding:32px 16px}
+.pfoot h4{margin:0 0 12px;font-weight:400;font-size:12px;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+.pub[dir=rtl] .pfoot h4{letter-spacing:0}
+.pfoot a{display:flex;align-items:center;gap:6px;color:var(--color-ivory);text-decoration:none;min-height:32px}
+.sr{font-size:11px;opacity:.7}
+/* ---------- 06-05 additions (same tokens; no new colours) ---------- */
+.pub .input{font-size:16px;min-height:48px}
+.pub .btn{min-height:48px;font-size:16px}
+.pub label{font-size:14px}
+.tb{font:inherit;min-height:var(--control);padding:0 16px;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.tb[aria-pressed=true]{box-shadow:var(--shadow-selected);border-color:var(--color-teal);color:var(--color-teal);font-weight:700}
+.tbs{display:flex;flex-wrap:wrap;gap:8px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pnarrow .fgrid,.narrow:not(.mid) .fgrid{grid-template-columns:1fr}
+.fcard{border:1px solid var(--color-line);background:var(--color-surface);padding:32px;display:flex;flex-direction:column;gap:16px;max-width:880px}
+.pnarrow .fcard{padding:16px}
+.msg{margin:0;padding:12px 16px;border:1px solid var(--color-line);border-inline-start:3px solid var(--color-teal);background:var(--color-surface)}
+.msg.bad{border-inline-start-color:var(--color-error)}
+.msg a,.lnk{color:var(--color-teal);text-decoration:underline;text-decoration-color:var(--color-gold);text-underline-offset:4px}
+.nopay{margin:0;color:var(--color-muted);border-top:1px solid var(--color-gold);padding-top:12px}
+.hint{color:var(--color-muted);font-size:14px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:420px}
+.cal .wd{font-size:12px;color:var(--color-muted);text-align:center;padding:4px 0}
+.day{min-height:44px;border:1px solid transparent;background:transparent;color:var(--color-muted);font:inherit;text-align:center;display:flex;align-items:center;justify-content:center}
+.day.free{background:var(--color-surface);border-color:var(--color-line);color:var(--color-ink);box-shadow:inset 0 -3px 0 var(--color-teal)}
+.day[aria-pressed=true]{box-shadow:var(--shadow-selected);background:var(--color-teal-tint);border-color:var(--color-teal);font-weight:700}
+.calhd{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:420px}
+.calhd b{font:400 20px var(--face-display);color:var(--color-teal)}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+.slot{border:1px solid var(--color-line);background:var(--color-surface);min-height:56px;padding:6px 12px;display:flex;flex-direction:column;justify-content:center;font:inherit;color:var(--color-ink);text-align:start}
+.slot small{font-size:12px;color:var(--color-muted)}
+.slot[aria-pressed=true]{box-shadow:var(--shadow-selected);border-color:var(--color-teal);color:var(--color-teal)}
+.cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:start}
+.pnarrow .cgrid,.pmid .cgrid{grid-template-columns:1fr}
+.begin{background:var(--color-teal-tint);padding:64px 40px;display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.pnarrow .begin{padding:40px 16px}
+.begin h2{margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)}.pnarrow .begin h2{font-size:32px}
+.begin p{margin:0;max-width:640px}
+.begin .acts .btn{text-decoration:none}
+/* emails */
+.mailwrap{background:#fff;border:1px solid var(--color-line);font:16px/1.5 var(--face-body);color:var(--color-ink)}
+.mailwrap[dir=rtl]{font-family:"Noto Sans Arabic",var(--face-body);line-height:1.63}
+.mmeta{background:var(--color-ivory);border-bottom:1px solid var(--color-line);padding:12px 16px;font-size:14px;display:grid;gap:2px;direction:ltr;text-align:start}
+.mmeta div{display:flex;gap:8px}.mmeta span{color:var(--color-muted);min-width:64px}
+.mbody{padding:0}
+.mband{background:var(--color-teal);padding:20px 24px}
+.mtxt{padding:24px;display:flex;flex-direction:column;gap:16px}
+.mtxt h1{margin:0;font:400 32px/1.2 var(--face-display);color:var(--color-teal)}
+.mrows{border-top:1px solid var(--color-gold);border-bottom:1px solid var(--color-gold)}
+.mrows div{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--color-line)}.mrows div:last-child{border:0}
+.mrows span{color:var(--color-muted)}
+.mbtn{display:inline-block;background:var(--color-teal);color:#fff;padding:12px 24px;text-decoration:none;align-self:flex-start}
+.att{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--color-line);padding:8px 12px;font-size:14px;align-self:flex-start}
+pre.plain{margin:0;padding:24px;font:14px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:start;background:#fff}
+/* dashboard */
+.filters{display:flex;flex-direction:column;gap:12px}
+.frow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.frow>span{color:var(--color-muted);min-width:64px}
+.dl{display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:12px 24px;margin:0}
+.dl dt{color:var(--color-muted)}.dl dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.narrow:not(.mid) .dl{grid-template-columns:1fr;gap:2px}.narrow:not(.mid) .dl dd{margin-bottom:12px}
+.hrow{display:grid;grid-template-columns:140px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--color-line);align-items:start}
+.narrow:not(.mid) .hrow{grid-template-columns:1fr}
+.rng{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.rng .input{width:120px}
+.rngs{display:flex;flex-direction:column;gap:8px}
+.mini{min-height:var(--control);display:inline-flex;align-items:center;color:var(--color-muted)}
+.chip.ok{background:var(--color-teal-tint)}
+.nw{display:inline-block}
+</style></head>
+<body>
+<div id="top">
+  <h1>06-05 · Plan with us, List with us, Consultation, Requests · pictures for signature</h1>
+  <div class="grp"><span>Scene</span><select id="scene"></select></div>
+  <div class="grp"><span>Language</span><button data-l="all" aria-pressed="true">All</button><button data-l="en">EN</button><button data-l="ar">AR</button><button data-l="es">ES</button></div>
+  <div class="grp"><span>Width</span><button data-w="all" aria-pressed="true">All</button><button data-w="390">390</button><button data-w="834">834</button><button data-w="1440">1440</button><button data-w="600">600 (email)</button></div>
+  <div class="grp"><span>Size</span><button data-z="fit" aria-pressed="true">Fit</button><button data-z="1">100%</button></div>
+</div>
+<div id="main">
+  <div class="banner">
+    <strong>What this adds.</strong> Three things on the public site and two in the dashboard. Public: a <em>Plan with us</em> page (its own page, linked from the
+    home Begin section and from Contact), a <em>List with us</em> page (linked from the footer only), and a 30-minute <em>Consultation</em> calendar on Contact
+    (times shown in the guest's own time zone with the Dubai time beside each). Dashboard: <em>Requests</em> (every Plan, List, Package and Consultation, with filters and
+    Handled / Not handled) and Content → <em>Consultation</em> (weekly Dubai hours, days off, minimum notice, booking horizon). Three emails: the guest's confirmation,
+    the request email to inquiries@ and the consultation email to inquiries@. Every form email goes to the inbox with the guest as reply-to.
+    <strong>Owner's checks (from Task 2):</strong>
+    <ol>
+      <li><code>home-begin-en-1440</code>: Begin Your Journey with two buttons, "Request Consultation" (goes to the call on Contact) and "Plan with us" (its own page).</li>
+      <li><code>plan-idle-ar-390</code>: right to left; Destination, Dates, Guests, Budget, Arriving at (Dubai, Abu Dhabi, Sharjah, Not decided), Trip notes, Name, Email, Phone; the line "Nothing is paid on this page."; no price, no card field.</li>
+      <li><code>footer-list-link-es-834</code> and <code>list-idle-es-834</code>: "Publiquen con nosotros" only in the footer; the form has name, email, phone, property type, city, message; no login.</li>
+      <li><code>consult-month-en-1440</code>: days with free times marked, slot buttons such as "11:00 · Dubai 14:00" (guest in Madrid); square, no round radio dots.</li>
+      <li><code>consult-closed-en-390</code>: "Booking a call is not open yet" with the WhatsApp link, no calendar and no numbers.</li>
+      <li><code>consult-booked-ar-834</code> and <code>email-guest-ar-600</code>: the booked line and the Arabic email with both times, the WhatsApp call line and "reply to cancel"; an invitation file is named.</li>
+      <li><code>requests-list-es-1440</code>, <code>request-consult-detail-en-1440</code> and <code>consult-editor-filled-en-1440</code>: filters by kind and Handled / Not handled, Mark handled, Cancel consultation; weekly Dubai hours in 30-minute steps, days off, notice [24] and horizon [30] in brackets (the real numbers are yours to type).</li>
+    </ol>
+    <p style="margin:8px 0 0"><strong>Also decide at signature:</strong> Plan with us placement (F-10); which fields are required (drawn: Name and Email on Plan; Name, Email, Property type, City, Message on List; Name, Email, Phone on Consultation); Consultation under Content (F-04); the rail position of Requests (drawn after Bookings); and the notice and horizon numbers, which you type yourself. Hours, days off and dates in the pictures are sample values; <code>[brackets]</code> are stand-ins, never real people.
+    The guest zone in every consultation picture is Europe/Madrid (UTC+1 after 25 Oct, Dubai is UTC+4), so the two times differ.</p>
+    <div class="decision">AR and ES on this page are <strong>draft for signature</strong> (marked on each picture). Public Spanish uses <em>tú</em>, dashboard Spanish uses <em>usted</em>; Arabic is the respectful plural. The footer link words are the canvas words, verbatim. Contact details come from code (INQUIRY_ADDRESS, SITE_CONTACT), not from this copy. Owner emails are English only (your inbox). The guest email is drawn from the signed copy through the template (the renderer is written in Task 3, after your signature). No prices, no legal text.</div>
+  </div>
+  <div id="shots"></div>
+</div>
+<script>
+const M="https://media.almarprivatejourney.com/";
+const WM="https://framerusercontent.com/images/RX7lhKpzXFpv2KTvbxNSm3UZz8.svg";
+const ICON={
+ chev:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
+ down:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+ menu:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+ clip:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M20 11l-8 8a5 5 0 0 1-7-7l8-8a3.5 3.5 0 0 1 5 5l-8 8a2 2 0 0 1-3-3l7-7"/></svg>',
+ spin:'<span style="width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;display:inline-block"></span>'
+};
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const fill=(s,o)=>s.replace(/\{(\w+)\}/g,(_,k)=>o[k]);
+const CONTACT={email:"inquiries@almarprivatejourney.com",phone:"+971 56 388 3302"}; // INQUIRY_ADDRESS / SITE_CONTACT in code
+const TAGS={en:"en-GB",ar:"ar-AE-u-nu-latn",es:"es"};
+const GUEST_TZ="Europe/Madrid";
+const tm=(ms,tz,l)=>new Intl.DateTimeFormat(TAGS[l],{hour:"2-digit",minute:"2-digit",hourCycle:"h23",timeZone:tz}).format(ms);
+const dt=(ms,tz,l,o)=>new Intl.DateTimeFormat(TAGS[l],Object.assign({timeZone:tz},o)).format(ms);
+// ---- existing words (lib/copy: dashboard.ts rail, ops-kit.ts, home.ts nav, site-footer.ts, home-page.ts begin, contact-page.ts)
+const U={
+ en:{dir:"ltr",rail:{home:"Home",bookings:"Bookings",requests:"Requests",customers:"Customers",calendar:"Calendar",catalog:"Catalog",destinations:"Destinations",stays:"Stays",experiences:"Experiences & Services",packages:"Packages",content:"Content",pages:"Pages",blog:"Blog",team:"Team",legal:"Legal",media:"Media",navigation:"Navigation and footer",consultation:"Consultation",settings:"Settings",profile:"Profile"},soon:"Soon",save:"Save",cancel:"Cancel",
+   nav:{destinations:"Destinations",experiences:"Experiences",about:"About",contact:"Contact",login:"Login"},foot:{pages:"Pages",contact:"Contact",instagram:"Instagram"},
+   begin:{heading:"Begin Your Journey",intro:"Your private Colombia journey begins with a conversation, share your vision and our team will design the rest.",cta:"Request Consultation"},
+   kicker:"Private Journeys",cHeading:"Plan Your Journey",cIntro:"Your private Colombia journey begins with a message. Share your vision and our team will craft every detail.",wa:"Message on WhatsApp"},
+ ar:{dir:"rtl",rail:{home:"الرئيسية",bookings:"الحجوزات",requests:"الطلبات",customers:"العملاء",calendar:"التقويم",catalog:"الكتالوج",destinations:"الوجهات",stays:"الإقامات",experiences:"التجارب والخدمات",packages:"الباقات",content:"المحتوى",pages:"الصفحات",blog:"المدونة",team:"الفريق",legal:"القانوني",media:"الوسائط",navigation:"التنقل والتذييل",consultation:"الاستشارة",settings:"الإعدادات",profile:"الملف الشخصي"},soon:"قريبًا",save:"حفظ",cancel:"إلغاء",
+   nav:{destinations:"الوجهات",experiences:"التجارب",about:"عنّا",contact:"تواصل",login:"دخول"},foot:{pages:"الصفحات",contact:"تواصل",instagram:"Instagram"},
+   begin:{heading:"ابدأوا رحلتكم",intro:"تبدأ رحلتكم الخاصة في كولومبيا بمحادثة: شاركونا رؤيتكم وسيصمّم فريقنا الباقي.",cta:"اطلبوا استشارة"},
+   kicker:"رحلات خاصة",cHeading:"خطط لرحلتك",cIntro:"تبدأ رحلتكم الخاصة في كولومبيا برسالة. شاركونا رؤيتكم وسيعتني فريقنا بكل تفصيل.",wa:"راسلونا على واتساب"},
+ es:{dir:"ltr",rail:{home:"Inicio",bookings:"Reservas",requests:"Solicitudes",customers:"Clientes",calendar:"Calendario",catalog:"Catálogo",destinations:"Destinos",stays:"Estancias",experiences:"Experiencias y servicios",packages:"Paquetes",content:"Contenido",pages:"Páginas",blog:"Blog",team:"Equipo",legal:"Legal",media:"Medios",navigation:"Navegación y pie",consultation:"Consulta",settings:"Ajustes",profile:"Perfil"},soon:"Pronto",save:"Guardar",cancel:"Cancelar",
+   nav:{destinations:"Destinos",experiences:"Experiencias",about:"Nosotros",contact:"Contacto",login:"Entrar"},foot:{pages:"Páginas",contact:"Contacto",instagram:"Instagram"},
+   begin:{heading:"Comienza tu viaje",intro:"Tu viaje privado por Colombia comienza con una conversación: comparte tu visión y nuestro equipo diseñará el resto.",cta:"Solicita una consulta"},
+   kicker:"Viajes privados",cHeading:"Planifica tu viaje",cIntro:"Tu viaje privado por Colombia comienza con un mensaje. Comparte tu visión y nuestro equipo cuidará cada detalle.",wa:"Escríbenos por WhatsApp"}
+};
+// ---- NEW public copy: lib/copy/site-requests.ts. EN ours (the plan's verbatim lines), AR/ES drafts for signature.
+const SC={
+ en:{
+  plan:{title:"Plan with us",intro:"Tell us when you would like to travel and what you have in mind. We reply by email or WhatsApp.",destination:"Destination",notSure:"Not sure yet",dates:"Dates",from:"From",to:"To",guests:"Guests",budget:"Budget",budgetHint:"in your own words, optional",airport:"Arriving at",airports:["Dubai International (DXB)","Abu Dhabi (AUH)","Sharjah (SHJ)","Not decided"],notes:"Trip notes",name:"Name",email:"Email",phone:"Phone / WhatsApp",send:"Send",sending:"Sending…",sent:"Thank you. We will reply by email or WhatsApp.",noPay:"Nothing is paid on this page.",
+   err:{name:"Enter your name.",email:"Enter your email address.",emailBad:"Check the email address.",phone:"Check the phone number.",guests:"Enter a number of guests from 1 to 99.",dates:"The end date must be after the start date."}},
+  list:{title:"List with us",intro:"Do you have a property in Colombia that would suit our guests? Tell us about it.",name:"Name",email:"Email",phone:"Phone / WhatsApp",propType:"Property type",city:"City",message:"Tell us about the property",send:"Send",sending:"Sending…",sent:"Thank you. We will be in touch by email.",
+   err:{name:"Enter your name.",email:"Enter your email address.",emailBad:"Check the email address.",phone:"Check the phone number.",propType:"Enter the property type.",city:"Enter the city.",message:"Write a few words about the property."}},
+  failed:"It did not send. Write to {email} or message us on {whatsapp}.",whatsappWord:"WhatsApp",
+  footList:"List with us",planBtn:"Plan with us",planLine:"Planning a whole journey?",
+  c:{heading:"Book a 30-minute call",intro:"Choose a day and a time. We will call you on WhatsApp.",zone:"Times shown in {zone}",dubai:"Dubai {time}",chooseDay:"Choose a day",noTimes:"No free times this month",prev:"Previous month",next:"Next month",yourTime:"your time",name:"Name",email:"Email",phone:"Phone / WhatsApp",message:"Anything we should know? (optional)",book:"Book the call",selected:"Your call",
+   booked:"Booked: {date} at {local} your time ({dubai} Dubai). We emailed you an invitation and will call you on WhatsApp at {phone}. To cancel, reply to that email.",
+   emailFailed:"Your call is booked, but the confirmation email could not be sent. We will message you on WhatsApp.",taken:"That time was just taken. Please choose another.",
+   closed:"Booking a call is not open yet. Message us on WhatsApp and we will find a time.",slotName:"{local} your time, {dubai} Dubai time"}},
+ ar:{
+  plan:{title:"خطّطوا معنا",intro:"أخبرونا متى تودّون السفر وما تفكّرون فيه. نردّ عليكم بالبريد الإلكتروني أو واتساب.",destination:"الوجهة",notSure:"لم نقرّر بعد",dates:"التواريخ",from:"من",to:"إلى",guests:"عدد الضيوف",budget:"الميزانية",budgetHint:"بكلماتكم، اختياري",airport:"الوصول إلى",airports:["مطار دبي الدولي (DXB)","أبوظبي (AUH)","الشارقة (SHJ)","لم يُحدَّد بعد"],notes:"ملاحظات الرحلة",name:"الاسم",email:"البريد الإلكتروني",phone:"الهاتف / واتساب",send:"إرسال",sending:"جارٍ الإرسال…",sent:"شكرًا لكم. سنردّ عليكم بالبريد الإلكتروني أو واتساب.",noPay:"لا يُدفع أي مبلغ في هذه الصفحة.",
+   err:{name:"أدخلوا اسمكم.",email:"أدخلوا بريدكم الإلكتروني.",emailBad:"تحقّقوا من البريد الإلكتروني.",phone:"تحقّقوا من رقم الهاتف.",guests:"أدخلوا عدد ضيوف من 1 إلى 99.",dates:"يجب أن يكون تاريخ النهاية بعد تاريخ البداية."}},
+  list:{title:"أدرجوا عقاركم",intro:"هل لديكم عقار في كولومبيا يناسب ضيوفنا؟ حدّثونا عنه.",name:"الاسم",email:"البريد الإلكتروني",phone:"الهاتف / واتساب",propType:"نوع العقار",city:"المدينة",message:"حدّثونا عن العقار",send:"إرسال",sending:"جارٍ الإرسال…",sent:"شكرًا لكم. سنتواصل معكم بالبريد الإلكتروني.",
+   err:{name:"أدخلوا اسمكم.",email:"أدخلوا بريدكم الإلكتروني.",emailBad:"تحقّقوا من البريد الإلكتروني.",phone:"تحقّقوا من رقم الهاتف.",propType:"أدخلوا نوع العقار.",city:"أدخلوا المدينة.",message:"اكتبوا بضع كلمات عن العقار."}},
+  failed:"لم تُرسَل الرسالة. راسلونا على {email} أو على {whatsapp}.",whatsappWord:"واتساب",
+  footList:"أدرجوا عقاركم",planBtn:"خطّطوا معنا",planLine:"تخطّطون لرحلة كاملة؟",
+  c:{heading:"احجزوا مكالمة مدتها 30 دقيقة",intro:"اختاروا يومًا ووقتًا. سنتصل بكم على واتساب.",zone:"الأوقات بتوقيت {zone}",dubai:"دبي {time}",chooseDay:"اختاروا يومًا",noTimes:"لا توجد أوقات متاحة هذا الشهر",prev:"الشهر السابق",next:"الشهر التالي",yourTime:"بتوقيتكم",name:"الاسم",email:"البريد الإلكتروني",phone:"الهاتف / واتساب",message:"هل من شيء نعرفه؟ (اختياري)",book:"احجزوا المكالمة",selected:"مكالمتكم",
+   booked:"تم الحجز: {date} الساعة {local} بتوقيتكم ({dubai} بتوقيت دبي). أرسلنا إليكم دعوة بالبريد الإلكتروني وسنتصل بكم على واتساب على الرقم {phone}. للإلغاء، ردّوا على تلك الرسالة.",
+   emailFailed:"تم حجز مكالمتكم، لكن تعذّر إرسال رسالة التأكيد. سنراسلكم على واتساب.",taken:"هذا الوقت حُجز للتوّ. اختاروا وقتًا آخر.",
+   closed:"حجز المكالمات غير متاح بعد. راسلونا على واتساب وسنجد وقتًا مناسبًا.",slotName:"{local} بتوقيتكم، {dubai} بتوقيت دبي"}},
+ es:{
+  plan:{title:"Planifica con nosotros",intro:"Cuéntanos cuándo quieres viajar y qué tienes en mente. Respondemos por correo o por WhatsApp.",destination:"Destino",notSure:"Aún no lo sé",dates:"Fechas",from:"Desde",to:"Hasta",guests:"Viajeros",budget:"Presupuesto",budgetHint:"con tus palabras, opcional",airport:"Llegada a",airports:["Dubái Internacional (DXB)","Abu Dabi (AUH)","Sharjah (SHJ)","Sin decidir"],notes:"Notas del viaje",name:"Nombre",email:"Correo electrónico",phone:"Teléfono / WhatsApp",send:"Enviar",sending:"Enviando…",sent:"Gracias. Te responderemos por correo o por WhatsApp.",noPay:"En esta página no se paga nada.",
+   err:{name:"Escribe tu nombre.",email:"Escribe tu correo electrónico.",emailBad:"Revisa el correo electrónico.",phone:"Revisa el número de teléfono.",guests:"Escribe un número de viajeros del 1 al 99.",dates:"La fecha final debe ser posterior a la inicial."}},
+  list:{title:"Publiquen con nosotros",intro:"¿Tienes una propiedad en Colombia que encaje con nuestros huéspedes? Cuéntanos sobre ella.",name:"Nombre",email:"Correo electrónico",phone:"Teléfono / WhatsApp",propType:"Tipo de propiedad",city:"Ciudad",message:"Cuéntanos sobre la propiedad",send:"Enviar",sending:"Enviando…",sent:"Gracias. Nos pondremos en contacto por correo.",
+   err:{name:"Escribe tu nombre.",email:"Escribe tu correo electrónico.",emailBad:"Revisa el correo electrónico.",phone:"Revisa el número de teléfono.",propType:"Escribe el tipo de propiedad.",city:"Escribe la ciudad.",message:"Escribe unas palabras sobre la propiedad."}},
+  failed:"No se envió. Escribe a {email} o escríbenos por {whatsapp}.",whatsappWord:"WhatsApp",
+  footList:"Publiquen con nosotros",planBtn:"Planifica con nosotros",planLine:"¿Planeas un viaje completo?",
+  c:{heading:"Reserva una llamada de 30 minutos",intro:"Elige un día y una hora. Te llamaremos por WhatsApp.",zone:"Horas en {zone}",dubai:"Dubái {time}",chooseDay:"Elige un día",noTimes:"No hay horas libres este mes",prev:"Mes anterior",next:"Mes siguiente",yourTime:"tu hora",name:"Nombre",email:"Correo electrónico",phone:"Teléfono / WhatsApp",message:"¿Algo que debamos saber? (opcional)",book:"Reservar la llamada",selected:"Tu llamada",
+   booked:"Reservada: {date} a las {local} tu hora ({dubai} hora de Dubái). Te enviamos una invitación por correo y te llamaremos por WhatsApp al {phone}. Para cancelar, responde a ese correo.",
+   emailFailed:"Tu llamada está reservada, pero no pudimos enviar el correo de confirmación. Te escribiremos por WhatsApp.",taken:"Ese horario acaba de ocuparse. Elige otro, por favor.",
+   closed:"La reserva de llamadas aún no está abierta. Escríbenos por WhatsApp y encontraremos una hora.",slotName:"{local} tu hora, {dubai} hora de Dubái"}}
+};
+// guest email copy (lib/copy/site-requests.ts guestEmail)
+const G={
+ en:{subject:"Your call with ALMAR is booked",greet:"Hello [Guest name],",lead:"Your 30-minute call is booked.",yours:"Your time ({zone})",dubai:"Dubai time",wa:"We will call you on WhatsApp at {phone}. You can also message us on WhatsApp at {whatsapp}.",cancel:"To cancel, reply to this email.",ics:"The invitation is attached (.ics).",btn:"Message us on WhatsApp",sign:"ALMAR Private Journey"},
+ ar:{subject:"تم حجز مكالمتكم مع ALMAR",greet:"مرحبًا [اسم الضيف]،",lead:"تم حجز مكالمتكم التي تستغرق 30 دقيقة.",yours:"بتوقيتكم ({zone})",dubai:"بتوقيت دبي",wa:"سنتصل بكم على واتساب على الرقم {phone}. ويمكنكم مراسلتنا على واتساب على {whatsapp}.",cancel:"للإلغاء، ردّوا على هذه الرسالة.",ics:"الدعوة مرفقة (ملف .ics).",btn:"راسلونا على واتساب",sign:"ALMAR Private Journey"},
+ es:{subject:"Tu llamada con ALMAR está reservada",greet:"Hola [Guest name],",lead:"Tu llamada de 30 minutos está reservada.",yours:"Tu hora ({zone})",dubai:"Hora de Dubái",wa:"Te llamaremos por WhatsApp al {phone}. También puedes escribirnos por WhatsApp al {whatsapp}.",cancel:"Para cancelar, responde a este correo.",ics:"La invitación va adjunta (.ics).",btn:"Escríbenos por WhatsApp",sign:"ALMAR Private Journey"}
+};
+// ---- NEW dashboard copy: lib/copy/ops-requests.ts. EN ours, AR/ES drafts (dashboard Spanish: usted).
+const OR={
+ en:{title:"Requests",kindAll:"All kinds",kinds:{plan:"Plan",list:"List",package:"Package",consultation:"Consultation"},statusL:"Status",kindL:"Kind",st:{not:"Not handled",yes:"Handled",all:"All"},
+   cols:{received:"Received (Dubai time)",kind:"Kind",name:"Name",email:"Email",summary:"Summary"},empty:"No requests yet.",
+   d:{name:"Name",email:"Email",phone:"Phone / WhatsApp",destination:"Destination",dates:"Dates",guests:"Guests",budget:"Budget",airport:"Arriving at",notes:"Trip notes",propType:"Property type",city:"City",message:"About the property",slot:"Consultation slot",tz:"Guest time zone",received:"Received"},
+   markHandled:"Mark handled",markNot:"Mark not handled",handledBy:"Handled {date} by you",reply:"Reply by email",wa:"Open WhatsApp",slotLine:"{dubai} Dubai time",
+   cancelC:"Cancel consultation",cancelTitle:"Cancel this consultation?",cancelText:"The slot becomes free again. Tell the guest yourself.",keep:"Keep the call",
+   ctitle:"Consultation",cintro:"Times are Dubai time (GMT+4)",days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],closed:"Closed",addHours:"Add hours",remove:"Remove",from:"From",to:"To",daysOff:"Days off",addOff:"Add a day off",
+   notice:"Minimum notice (hours)",horizon:"Booking horizon (days)",closedNote:"The calendar on Contact is closed until notice and horizon are filled.",saved:"Saved",hours:"Weekly hours",limits:"Notice and horizon",
+   err:{overlap:"These hours overlap.",start:"The start must be before the end.",num:"Enter a whole number."}},
+ ar:{title:"الطلبات",kindAll:"كل الأنواع",kinds:{plan:"تخطيط",list:"إدراج",package:"باقة",consultation:"استشارة"},statusL:"الحالة",kindL:"النوع",st:{not:"لم تُعالَج",yes:"تمت المعالجة",all:"الكل"},
+   cols:{received:"الاستلام (بتوقيت دبي)",kind:"النوع",name:"الاسم",email:"البريد",summary:"الملخص"},empty:"لا توجد طلبات بعد.",
+   d:{name:"الاسم",email:"البريد الإلكتروني",phone:"الهاتف / واتساب",destination:"الوجهة",dates:"التواريخ",guests:"عدد الضيوف",budget:"الميزانية",airport:"الوصول إلى",notes:"ملاحظات الرحلة",propType:"نوع العقار",city:"المدينة",message:"عن العقار",slot:"موعد الاستشارة",tz:"المنطقة الزمنية للضيف",received:"تاريخ الاستلام"},
+   markHandled:"تعليم كمُعالَج",markNot:"تعليم كغير مُعالَج",handledBy:"عولج في {date} بواسطتك",reply:"الرد بالبريد",wa:"فتح واتساب",slotLine:"{dubai} بتوقيت دبي",
+   cancelC:"إلغاء الاستشارة",cancelTitle:"إلغاء هذه الاستشارة؟",cancelText:"يعود الموعد متاحًا. أبلغ الضيف بنفسك.",keep:"إبقاء المكالمة",
+   ctitle:"الاستشارة",cintro:"الأوقات بتوقيت دبي (GMT+4)",days:["الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت","الأحد"],closed:"مغلق",addHours:"إضافة ساعات",remove:"إزالة",from:"من",to:"إلى",daysOff:"أيام الإجازة",addOff:"إضافة يوم إجازة",
+   notice:"الحد الأدنى للإشعار (ساعات)",horizon:"أفق الحجز (أيام)",closedNote:"تقويم صفحة «تواصل» مغلق حتى تُملأ مدة الإشعار والأفق.",saved:"تم الحفظ",hours:"الساعات الأسبوعية",limits:"الإشعار والأفق",
+   err:{overlap:"هذه الساعات متداخلة.",start:"يجب أن تسبق البداية النهاية.",num:"أدخل عددًا صحيحًا."}},
+ es:{title:"Solicitudes",kindAll:"Todos los tipos",kinds:{plan:"Plan",list:"Propiedad",package:"Paquete",consultation:"Consulta"},statusL:"Estado",kindL:"Tipo",st:{not:"Pendientes",yes:"Atendidas",all:"Todas"},
+   cols:{received:"Recibida (hora de Dubái)",kind:"Tipo",name:"Nombre",email:"Correo",summary:"Resumen"},empty:"Aún no hay solicitudes.",
+   d:{name:"Nombre",email:"Correo electrónico",phone:"Teléfono / WhatsApp",destination:"Destino",dates:"Fechas",guests:"Viajeros",budget:"Presupuesto",airport:"Llegada a",notes:"Notas del viaje",propType:"Tipo de propiedad",city:"Ciudad",message:"Sobre la propiedad",slot:"Hora de la consulta",tz:"Zona horaria del huésped",received:"Recibida"},
+   markHandled:"Marcar como atendida",markNot:"Marcar como pendiente",handledBy:"Atendida el {date} por usted",reply:"Responder por correo",wa:"Abrir WhatsApp",slotLine:"{dubai} hora de Dubái",
+   cancelC:"Cancelar consulta",cancelTitle:"¿Cancelar esta consulta?",cancelText:"El horario queda libre de nuevo. Avise usted al huésped.",keep:"Mantener la llamada",
+   ctitle:"Consulta",cintro:"Las horas son hora de Dubái (GMT+4)",days:["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"],closed:"Cerrado",addHours:"Añadir horario",remove:"Quitar",from:"Desde",to:"Hasta",daysOff:"Días libres",addOff:"Añadir día libre",
+   notice:"Aviso mínimo (horas)",horizon:"Plazo de reserva (días)",closedNote:"El calendario de Contacto está cerrado hasta que complete el aviso y el plazo.",saved:"Guardado",hours:"Horario semanal",limits:"Aviso y plazo",
+   err:{overlap:"Estos horarios se superponen.",start:"El inicio debe ser anterior al final.",num:"Escriba un número entero."}}
+};
+// ---------- shared pieces ----------
+const V={name:"[Guest name]",email:"[guest email]",phone:"[Guest phone]",dest:"Cartagena",notes:"[Trip notes]",budget:"[budget in your own words]",ptype:"[Property type]",city:"[City]",msg:"[Message]"};
+const field=(label,val,o={})=>`<div class="field"><label>${label}${o.req?" *":""}${o.hint?` <span class="hint">(${o.hint})</span>`:""}</label><div class="input${o.area?" area":""}${o.bad?" bad":""}${o.ph?" ph":""}${o.sel?" sel":""}" dir="${o.dir||"auto"}">${val===""||val==null?"&nbsp;":esc(val)}${o.sel?ICON.down:""}</div>${o.bad?`<p class="err" role="alert">${o.bad}</p>`:""}</div>`;
+const btnP=(t,o={})=>`<span class="btn p${o.dis?" dis":""}${o.cls?" "+o.cls:""}">${o.spin?ICON.spin:""}${t}</span>`;
+const links=(l,s)=>fill(s,{email:`<a dir="ltr">${CONTACT.email}</a>`,whatsapp:`<a>${SC[l].whatsappWord}</a>`});
+function pubHeader(l){const u=U[l];
+  return `<header class="phd"><img class="wm" src="${WM}" alt="ALMAR"><nav>${["destinations","experiences","about","contact"].map(k=>`<a>${u.nav[k]}</a>`).join("")}</nav><div class="tools"><span>AED ${ICON.down}</span><span>${l.toUpperCase()} ${ICON.down}</span><span class="login">${u.nav.login}</span></div><span class="burger">${ICON.menu}</span></header>`;}
+function pubFooter(l){const u=U[l];
+  return `<footer class="pfoot"><div><img src="${WM}" alt="ALMAR" style="height:44px;filter:invert(1) brightness(2)"></div><div><h4>${u.foot.pages}</h4>${["destinations","experiences","about","contact"].map(k=>`<a>${u.nav[k]}</a>`).join("")}<a class="newbadge" id="lw">${SC[l].footList}</a></div><div><h4>${u.foot.contact}</h4><a dir="ltr">${CONTACT.email}</a><a dir="ltr">${CONTACT.phone}</a><a>${u.foot.instagram}</a></div></footer>`;}
+const pub=(l,w,inner)=>`<div class="pub ${w<1024?(w<768?"pnarrow":"pmid"):""}" dir="${U[l].dir}" lang="${l}" style="width:${w}px">${inner}</div>`;
+const H1=t=>`<h1 class="disp" style="margin:0;font:400 48px/1.15 var(--face-display);color:var(--color-teal)">${t}</h1>`;
+const page=(l,w,inner)=>pub(l,w,pubHeader(l)+`<section class="sec" style="gap:24px">${inner}</section>`+pubFooter(l));
+const kick=(l,t)=>`<span class="kick" style="color:var(--color-muted)">${t}</span>`;
+const hd=(l,t,i)=>`${kick(l,U[l].kicker)}${H1(t)}<p>${i}</p>`;
+const dFmt=(l,d,m,y)=>dt(Date.UTC(y,m,d),"UTC",l,{day:"numeric",month:"short",year:"numeric"});
+// ---------- Plan with us ----------
+function planPage(l,w,st){const s=SC[l],p=s.plan;
+  const filled=st==="sending"||st==="failed";
+  const e=st==="errors";
+  const dest=filled?V.dest:p.notSure;
+  const from=filled?dFmt(l,12,11,2026):e?dFmt(l,12,11,2026):"",to=filled?dFmt(l,19,11,2026):e?dFmt(l,5,11,2026):"";
+  const form=`<form class="fcard" aria-label="${p.title}">
+   ${field(p.destination,dest,{sel:1,ph:!filled})}
+   <div class="field"><label>${p.dates}</label><div class="fgrid">${field(p.from,from,{ph:!from})}${field(p.to,to,{ph:!to,bad:e?p.err.dates:""})}</div></div>
+   <div class="fgrid">${field(p.guests,filled?"2":e?"0":"",{bad:e?p.err.guests:""})}${field(p.budget,filled?V.budget:"",{hint:p.budgetHint})}</div>
+   ${field(p.airport,filled?p.airports[0]:p.airports[3],{sel:1,ph:!filled})}
+   ${field(p.notes,filled?V.notes:"",{area:1})}
+   <div class="fgrid">${field(p.name,filled?V.name:"",{req:1,bad:e?p.err.name:""})}${field(p.email,filled?V.email:e?"guest@":"",{req:1,bad:e?p.err.emailBad:"",dir:"ltr"})}</div>
+   ${field(p.phone,filled?V.phone:"",{dir:"ltr"})}
+   <p class="nopay">${p.noPay}</p>
+   <div>${btnP(st==="sending"?p.sending:p.send,{dis:st==="sending",spin:st==="sending"})}</div></form>`;
+  let top="";
+  if(st==="sent") return page(l,w,hd(l,p.title,p.intro)+`<p class="msg" role="status">${p.sent}</p><p class="nopay" style="max-width:640px">${p.noPay}</p>`);
+  if(st==="failed") top=`<p class="msg bad" role="alert">${links(l,s.failed)}</p>`;
+  return page(l,w,hd(l,p.title,p.intro)+top+form);}
+// ---------- List with us ----------
+function listPage(l,w,st){const s=SC[l],p=s.list;const filled=st==="failed";const e=st==="errors";
+  const form=`<form class="fcard" aria-label="${p.title}">
+   <div class="fgrid">${field(p.name,filled?V.name:"",{req:1,bad:e?p.err.name:""})}${field(p.email,filled?V.email:e?"guest@":"",{req:1,bad:e?p.err.emailBad:"",dir:"ltr"})}</div>
+   ${field(p.phone,filled?V.phone:e?"12ab":"",{dir:"ltr",bad:e?p.err.phone:""})}
+   <div class="fgrid">${field(p.propType,filled?V.ptype:"",{req:1,bad:e?p.err.propType:""})}${field(p.city,filled?V.city:"",{req:1,bad:e?p.err.city:""})}</div>
+   ${field(p.message,filled?V.msg:"",{req:1,area:1,bad:e?p.err.message:""})}
+   <div>${btnP(p.send)}</div></form>`;
+  const kk=hd(l,p.title,p.intro);
+  if(st==="sent") return page(l,w,kk+`<p class="msg" role="status">${p.sent}</p>`);
+  return page(l,w,kk+(st==="failed"?`<p class="msg bad" role="alert">${links(l,s.failed)}</p>`:"")+form);}
+// ---------- Home Begin ----------
+function homeBegin(l,w){const u=U[l],s=SC[l];
+  return pub(l,w,pubHeader(l)+`<section class="begin" style="position:relative;isolation:isolate;background:var(--color-teal);color:var(--color-ivory);align-items:center;text-align:center;min-height:${w<768?360:600}px;justify-content:center;overflow:hidden">
+   <img src="${M}home/hero/poster.webp" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2"><div style="position:absolute;inset:0;background:rgb(38 38 38 / .3);z-index:-1"></div>
+   <h2 class="disp" style="color:var(--color-ivory)">${u.begin.heading}</h2><p>${u.begin.intro}</p>
+   <div class="acts" style="justify-content:center;margin-top:8px"><span class="btn" style="background:var(--color-ivory);color:var(--color-teal);border-color:var(--color-ivory)">${u.begin.cta}</span><span class="btn newbadge" style="background:transparent;color:var(--color-ivory);border-color:var(--color-ivory)">${s.planBtn}</span></div></section>`+pubFooter(l));}
+// ---------- Contact ----------
+function contactTop(l,w){const u=U[l],s=SC[l];
+  return `<section class="sec" style="padding-bottom:0">${kick(l,u.kicker)}${H1(u.cHeading)}<p>${u.cIntro}</p>
+   <p class="newbadge" style="align-self:flex-start;margin-top:4px">${s.planLine} <a class="lnk">${s.planBtn}</a></p></section>`;}
+function contactPage(l,w,inner,o={}){return pub(l,w,pubHeader(l)+(o.noTop?"":contactTop(l,w))+inner+pubFooter(l));}
+// ---------- Consultation ----------
+const DAY0=Date.UTC(2026,10,3,10,0); // Tue 3 Nov 2026 14:00 Dubai = 11:00 Madrid
+const slotMs=i=>DAY0+i*1800000;
+const dubaiOf=(ms,l)=>tm(ms,"Asia/Dubai",l), localOf=(ms,l)=>tm(ms,GUEST_TZ,l);
+function calendar(l,year,month,o={}){const c=SC[l].c;
+  const first=new Date(Date.UTC(year,month,1)),dow=(first.getUTCDay()+6)%7,n=new Date(Date.UTC(year,month+1,0)).getUTCDate();
+  const wd=[...Array(7)].map((_,i)=>`<span class="wd">${dt(Date.UTC(2026,10,2+i),"UTC",l,{weekday:"short"})}</span>`).join("");
+  let cells="".padEnd(0);for(let i=0;i<dow;i++)cells+=`<span></span>`;
+  for(let d=1;d<=n;d++){const wk=new Date(Date.UTC(year,month,d)).getUTCDay();const free=!o.none&&month===10&&wk>=1&&wk<=4&&d>=2&&d<=26&&d!==17;
+    cells+=`<button type="button" class="day${free?" free":""}" ${free?"":"disabled"} aria-pressed="${d===o.chosen}">${d}</button>`;}
+  return `<div style="display:flex;flex-direction:column;gap:12px"><div class="calhd"><button class="btn o sq" aria-label="${c.prev}" style="transform:${U[l].dir==="rtl"?"none":"scaleX(-1)"}">${ICON.chev}</button><b class="disp">${dt(Date.UTC(year,month,1),"UTC",l,{month:"long",year:"numeric"})}</b><button class="btn o sq" aria-label="${c.next}" style="transform:${U[l].dir==="rtl"?"scaleX(-1)":"none"}">${ICON.chev}</button></div><div class="cal" role="group" aria-label="${c.chooseDay}">${wd}${cells}</div></div>`;}
+function slots(l,pressed,skip){const c=SC[l].c;
+  return `<div style="display:flex;flex-direction:column;gap:12px"><p class="hint" style="margin:0">${dt(DAY0,GUEST_TZ,l,{weekday:"long",day:"numeric",month:"long"})} · ${fill(c.zone,{zone:GUEST_TZ})}</p><div class="slots">${[...Array(8)].map((_,i)=>i).filter(i=>i!==skip).map(i=>{const ms=slotMs(i);
+    return `<button type="button" class="slot" aria-pressed="${i===pressed}" aria-label="${fill(c.slotName,{local:localOf(ms,l),dubai:dubaiOf(ms,l)})}"><span>${localOf(ms,l)}</span><small>${fill(c.dubai,{time:dubaiOf(ms,l)})}</small></button>`;}).join("")}</div></div>`;}
+function consultForm(l,slot){const c=SC[l].c,ms=slotMs(slot);
+  return `<form class="fcard" style="padding:24px;max-width:none" aria-label="${c.heading}"><p class="msg" style="border-inline-start-color:var(--color-gold)"><b>${c.selected}:</b> ${dt(ms,GUEST_TZ,l,{weekday:"long",day:"numeric",month:"long"})}, ${localOf(ms,l)} ${c.yourTime} · ${fill(c.dubai,{time:dubaiOf(ms,l)})}</p>
+   ${field(c.name,V.name,{req:1})}${field(c.email,V.email,{req:1,dir:"ltr"})}${field(c.phone,V.phone,{req:1,dir:"ltr"})}${field(c.message,V.msg,{area:1})}<div>${btnP(c.book)}</div></form>`;}
+function bookedLine(l,slot){const c=SC[l].c,ms=slotMs(slot);
+  return fill(c.booked,{date:dt(ms,GUEST_TZ,l,{weekday:"long",day:"numeric",month:"long",year:"numeric"}),local:localOf(ms,l),dubai:dubaiOf(ms,l),phone:`<span dir="ltr">${V.phone}</span>`});}
+function consultSection(l,w,inner){const c=SC[l].c;
+  return `<section class="sec" id="consultation" style="gap:24px"><h2 class="disp" style="font-size:${w<768?32:48}px">${c.heading}</h2><p>${c.intro}</p>${inner}</section>`;}
+function consult(l,w,st){const c=SC[l].c;let inner;
+  if(st==="closed") inner=`<p class="msg" role="status">${c.closed}</p><div><span class="btn o">${U[l].wa}</span></div>`;
+  else if(st==="month") inner=`<div class="cgrid">${calendar(l,2026,10,{chosen:3})}${slots(l,-1)}</div>`;
+  else if(st==="form") inner=`<div class="cgrid"><div style="display:flex;flex-direction:column;gap:24px">${calendar(l,2026,10,{chosen:3})}${slots(l,2)}</div>${consultForm(l,2)}</div>`;
+  else if(st==="taken") inner=`<p class="msg bad" role="alert">${c.taken}</p><div class="cgrid">${calendar(l,2026,10,{chosen:3})}${slots(l,-1,2)}</div>`;
+  else if(st==="booked") inner=`<p class="msg" role="status">${bookedLine(l,2)}</p>`;
+  else if(st==="booked-fail") inner=`<p class="msg" role="status">${bookedLine(l,2)}</p><p class="msg bad" role="alert">${c.emailFailed}</p>`;
+  else if(st==="empty") inner=`<div class="cgrid">${calendar(l,2026,11,{none:1})}<div style="display:flex;flex-direction:column;gap:16px"><p class="msg" role="status">${c.noTimes}</p><div><span class="btn o">${c.next}</span></div></div></div>`;
+  return contactPage(l,w,consultSection(l,w,inner));}
+// ---------- emails ----------
+function mailMeta(rows){return `<div class="mmeta">${rows.map(([k,v])=>`<div><span>${k}</span><b style="font-weight:400">${esc(v)}</b></div>`).join("")}</div>`;}
+function mailGuest(l,w){const g=G[l],ms=slotMs(2),dir=U[l].dir;
+  const rows=[[fill(g.yours,{zone:GUEST_TZ}),`${dt(ms,GUEST_TZ,l,{weekday:"long",day:"numeric",month:"long",year:"numeric"})}, ${localOf(ms,l)}`],[g.dubai,`${dt(ms,"Asia/Dubai",l,{weekday:"long",day:"numeric",month:"long",year:"numeric"})}, ${dubaiOf(ms,l)}`]];
+  return `<div class="mailwrap" dir="${dir}" lang="${l}" style="width:${w}px">${mailMeta([["From",CONTACT.email],["To",V.email],["Subject",g.subject],["Attached","consultation.ics [file name]"]])}
+   <div class="mbody"><div class="mband"><img src="${WM}" alt="ALMAR" style="height:36px;filter:invert(1) brightness(2);display:block"></div>
+   <div class="mtxt"><h1 class="disp">${g.subject}</h1><p style="margin:0">${g.greet}</p><p style="margin:0">${g.lead}</p>
+   <div class="mrows">${rows.map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join("")}</div>
+   <p style="margin:0">${fill(g.wa,{phone:`<span dir="ltr">${V.phone}</span>`,whatsapp:`<span dir="ltr">${CONTACT.phone}</span>`})}</p>
+   <a class="mbtn">${g.btn}</a><p style="margin:0">${g.cancel}</p><span class="att">${ICON.clip}<span dir="ltr">consultation.ics</span></span><p class="hint" style="margin:0">${g.ics}</p><p style="margin:0">${g.sign}</p></div></div></div>`;}
+function mailOwnerRequest(l,w){const ms=slotMs(0);
+  const body=`Plan with us request
+
+Name: ${V.name}
+Email: ${V.email}
+Phone / WhatsApp: ${V.phone}
+Destination: ${V.dest}
+Dates: 12 Dec 2026 to 19 Dec 2026
+Guests: 2
+Budget: ${V.budget}
+Arriving at: Dubai International (DXB)
+Trip notes: ${V.notes}
+
+Language of the page: EN
+Saved in the dashboard under Requests (id [request id]).
+Reply to this email to answer the guest.`;
+  return `<div class="mailwrap" style="width:${w}px">${mailMeta([["From",CONTACT.email],["To",CONTACT.email],["Reply-to",V.email],["Subject","Plan with us: [Guest name]"]])}<pre class="plain">${esc(body)}</pre></div>`;}
+function mailOwnerConsult(l,w){const ms=slotMs(2);
+  const body=`Consultation booked
+
+Name: ${V.name}
+Email: ${V.email}
+Phone / WhatsApp: ${V.phone}
+Dubai time: ${dt(ms,"Asia/Dubai","en",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}, ${dubaiOf(ms,"en")}
+Guest time: ${dt(ms,GUEST_TZ,"en",{weekday:"long",day:"numeric",month:"long"})}, ${localOf(ms,"en")} (${GUEST_TZ})
+Message: ${V.msg}
+
+Call the guest on WhatsApp at the time above.
+Saved in the dashboard under Requests (id [request id]). Cancel it there to free the slot.`;
+  return `<div class="mailwrap" style="width:${w}px">${mailMeta([["From",CONTACT.email],["To",CONTACT.email],["Reply-to",V.email],["Subject",`Consultation: [Guest name], ${dt(ms,"Asia/Dubai","en",{day:"numeric",month:"short"})} ${dubaiOf(ms,"en")} Dubai`],["Attached","consultation.ics [file name]"]])}<pre class="plain">${esc(body)}</pre><div style="padding:0 24px 24px"><span class="att">${ICON.clip}<span dir="ltr">consultation.ics</span></span></div></div>`;}
+// ---------- dashboard ----------
+function shell(l,w,active,inner,overlay=""){
+  const u=U[l],r=u.rail,cls=w<1024?(w<768?"narrow":"narrow mid"):"";
+  const items=[["home"],["bookings"],["requests"],["customers"],["calendar"],["catalog"],["destinations",1],["stays",1],["experiences",1],["packages",1],["content"],["pages",1],["blog",1],["team",1],["legal",1,1],["media",1],["navigation",1],["consultation",1],["settings"],["profile"]];
+  const rail=items.map(([k,sub,soon])=>`<a class="${sub?"sub ":""}${k===active?"on":""}${k==="requests"||k==="consultation"?" newbadge":""}"><span>${r[k]}</span>${soon?`<span class="soon">${u.soon}</span>`:""}</a>`).join("");
+  return `<div class="frame ${cls}" dir="${u.dir}" lang="${l}" style="width:${w}px"><nav class="rail"><div class="mark">ALMAR</div>${rail}</nav>
+   <div class="col"><div class="bar"><span class="mark">ALMAR</span><span class="menu">${ICON.menu}</span></div><div class="page">${inner}</div></div>${overlay}</div>`;
+}
+const chip=(t,o="")=>`<span class="chip ${o}">${t}</span>`;
+const back=(t)=>`<a class="back">${ICON.chev}${t}</a>`;
+const dfield=(label,val,o={})=>`<div class="field"><label>${label}</label><div class="input${o.bad?" bad":""}${o.sel?" sel":""}${o.ph?" ph":""}" dir="ltr" ${o.w?`style="width:${o.w}"`:""}>${val===""?"&nbsp;":esc(val)}${o.sel?ICON.down:""}</div>${o.bad?`<p class="err" role="alert">${o.bad}</p>`:""}</div>`;
+const tg=(t,on)=>`<button type="button" class="tb" aria-pressed="${on}">${t}</button>`;
+const recv=(ms,l)=>dt(ms,"Asia/Dubai",l,{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
+const RECV=Date.UTC(2026,9,28,7,20); // 28 Oct 2026 11:20 Dubai
+const ROWS=l=>{const o=OR[l];const ms=slotMs(2);return [
+ {k:"consultation",t:RECV,sum:fill(o.slotLine,{dubai:`${dt(ms,"Asia/Dubai",l,{day:"numeric",month:"short"})}, ${dubaiOf(ms,l)}`}),h:false},
+ {k:"plan",t:RECV-3600e3*5,sum:`Cartagena · 2`,h:false},
+ {k:"list",t:RECV-3600e3*26,sum:`${V.ptype} · ${V.city}`,h:true},
+ {k:"package",t:RECV-3600e3*50,sum:`[Package name] · 3`,h:true}];};
+function requestsList(l,w,o={}){const r=OR[l],u=U[l];
+  const rows=o.empty?"":ROWS(l).map(x=>`<tr><td class="t wide">${V.name}</td><td>${chip(r.kinds[x.k])}</td><td>${recv(x.t,l)}</td><td dir="ltr">${V.email}</td><td>${esc(x.sum)}</td><td>${chip(x.h?r.st.yes:r.st.not,x.h?"off":"")}</td></tr>`).join("");
+  const tbl=o.empty?`<p class="note">${r.empty}</p>`:`<table class="tbl"><thead><tr><th>${r.cols.name}</th><th>${r.cols.kind}</th><th>${r.cols.received}</th><th>${r.cols.email}</th><th>${r.cols.summary}</th><th>${r.statusL}</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return shell(l,w,"requests",`<div class="head" style="border:0;padding:0"><h1 class="lh1 disp">${r.title}</h1></div>
+   <section class="card"><div class="filters"><div class="frow"><span>${r.kindL}</span>${tg(r.kindAll,true)}${["plan","list","package","consultation"].map(k=>tg(r.kinds[k],false)).join("")}</div>
+   <div class="frow"><span>${r.statusL}</span>${tg(r.st.not,true)}${tg(r.st.yes,false)}${tg(r.st.all,false)}</div></div>${tbl}</section>`);}
+function detail(l,w,kind,o={}){const r=OR[l],u=U[l],d=r.d,ms=slotMs(2);
+  const rowsPlan=[[d.destination,V.dest],[d.dates,`${dFmt(l,12,11,2026)} – ${dFmt(l,19,11,2026)}`],[d.guests,"2"],[d.budget,V.budget],[d.airport,SC[l].plan.airports[0]],[d.notes,V.notes]];
+  const rowsCons=[[d.slot,fill(r.slotLine,{dubai:`${dt(ms,"Asia/Dubai",l,{weekday:"long",day:"numeric",month:"long",year:"numeric"})}, ${dubaiOf(ms,l)}`})],[d.tz,`${GUEST_TZ} · ${localOf(ms,l)}`],["",""]].slice(0,2).concat([[d.notes,V.msg]]);
+  const rows=(kind==="plan"?rowsPlan:rowsCons).concat([[d.name,V.name],[d.email,V.email],[d.phone,V.phone],[d.received,recv(RECV,l)]]);
+  const handled=kind!=="plan";
+  const acts=`<span class="btn ${handled?"o":"p"}">${handled?r.markNot:r.markHandled}</span><span class="btn o">${r.reply}</span><span class="btn o">${r.wa}</span>${kind==="consultation"?`<span class="link red">${r.cancelC}</span>`:""}`;
+  const inner=`<div>${back(r.title)}<div class="head"><div><h1 class="disp lh1">${V.name}</h1><div class="meta">${chip(r.kinds[kind])}${chip(handled?r.st.yes:r.st.not,handled?"off":"")}${handled?`<span class="note">${fill(r.handledBy,{date:recv(RECV+3600e3,l)})}</span>`:""}</div></div><div class="acts">${acts}</div></div></div>
+   <section class="card"><dl class="dl">${rows.map(([k,v])=>`<dt>${k}</dt><dd ${/@|\+|\[/.test(v)?'dir="ltr"':""}>${esc(v)}</dd>`).join("")}</dl></section>`;
+  const dlg=o.confirm?`<div class="scrim" role="dialog" aria-modal="true"><div class="dialog"><h2 class="disp">${r.cancelTitle}</h2><p style="margin:0">${r.cancelText}</p><div class="acts"><span class="btn p">${r.cancelC}</span><span class="btn o">${r.keep}</span></div></div></div>`:"";
+  return shell(l,w,"requests",inner,dlg);}
+function hoursRow(l,i,ranges,errs={}){const r=OR[l];
+  const rs=ranges.length?`<div class="rngs">${ranges.map((x,j)=>`<div><div class="rng">${dfield(r.from,x[0],{sel:1,w:"120px",bad:""})}${dfield(r.to,x[1],{sel:1,w:"120px"})}<span class="link red">${r.remove}</span></div>${errs[j]?`<p class="err" role="alert" style="margin-top:8px">${errs[j]}</p>`:""}</div>`).join("")}<span class="link">${r.addHours}</span></div>`
+   :`<div class="rngs"><span class="note">${r.closed}</span><span class="link">${r.addHours}</span></div>`;
+  return `<div class="hrow"><b>${r.days[i]}</b>${rs}</div>`;}
+function editor(l,w,o){const r=OR[l],u=U[l];
+  const H=o.hours||[[],[],[],[],[],[],[]];
+  const off=(o.off||[]).map(d=>`<div class="rng">${dfield("",d,{w:"180px",sel:0})}<span class="link red">${r.remove}</span></div>`).join("");
+  const inner=`<div class="head" style="border:0;padding:0"><div><h1 class="lh1 disp">${r.ctitle}</h1><p class="note" style="margin:8px 0 0">${r.cintro}</p></div><div class="acts"><span class="btn p">${u.save}</span></div></div>
+   <section class="card"><h2 class="disp">${r.hours}</h2>${H.map((x,i)=>hoursRow(l,i,x,(o.errs||{})[i]||{})).join("")}</section>
+   <section class="card"><h2 class="disp">${r.daysOff}</h2>${off}<div><span class="btn o">${r.addOff}</span></div></section>
+   <section class="card"><h2 class="disp">${r.limits}</h2>${o.closedNote?`<p class="msg">${r.closedNote}</p>`:""}<div class="fgrid">${dfield(r.notice,o.notice||"",{bad:o.noticeErr?r.err.num:""})}${dfield(r.horizon,o.horizon||"",{bad:o.horizonErr?r.err.num:""})}</div></section>`;
+  return shell(l,w,"consultation",inner);}
+// ---------- scenes ----------
+const S={};const ORDER={site:[],ops:[]};
+const add=(grp,id,what,draw,o={})=>{S[id]=Object.assign({what,draw,grp},o);ORDER[grp].push(id);};
+add("site","plan-idle","Plan with us, empty. Destination (Not sure yet), Dates, Guests, Budget (in your own words, optional), Arriving at (Dubai, Abu Dhabi, Sharjah, Not decided), Trip notes, Name, Email, Phone / WhatsApp. Required: Name and Email. The line \"Nothing is paid on this page.\" sits above Send; no price, no card field. A hidden honeypot field is not drawn.",(l,w)=>planPage(l,w,"idle"));
+add("site","plan-errors","Plan with us, every error at once: no name, a broken email, 0 guests, an end date before the start date.",(l,w)=>planPage(l,w,"errors"));
+add("site","plan-sending","Plan with us, filled; Send shows Sending… and is off.",(l,w)=>planPage(l,w,"sending"));
+add("site","plan-sent","Plan with us, sent: \"Thank you. We will reply by email or WhatsApp.\"; the form is replaced.",(l,w)=>planPage(l,w,"sent"));
+add("site","plan-failed","Plan with us, the send failed: the line names inquiries@ and WhatsApp; the guest's words stay in the form.",(l,w)=>planPage(l,w,"failed"));
+add("site","list-idle","List with us, empty. Name, Email, Phone (optional), Property type, City, Tell us about the property. No login, no partner area. The page is reached from the footer only.",(l,w)=>listPage(l,w,"idle"));
+add("site","list-errors","List with us, every error at once.",(l,w)=>listPage(l,w,"errors"));
+add("site","list-sent","List with us, sent.",(l,w)=>listPage(l,w,"sent"));
+add("site","list-failed","List with us, the send failed (inquiries@ and WhatsApp named).",(l,w)=>listPage(l,w,"failed"));
+add("site","footer-list-link","The footer of every public page with the new link \"List with us\" (dashed outline = new) last in the Pages column. It is the only place that links to List with us.",(l,w)=>pub(l,w,pubFooter(l)));
+add("site","home-begin","Home, Begin Your Journey: the existing Request Consultation button (goes to the call on Contact) and the new second button \"Plan with us\" (its own page).",(l,w)=>homeBegin(l,w));
+add("site","contact-plan-line","Contact, under the intro: \"Planning a whole journey? Plan with us\" (dashed outline = new). The consultation calendar follows below on this page.",(l,w)=>contactPage(l,w,`<section class="sec" style="gap:12px"><span class="kick" style="color:var(--color-muted)">…</span><p class="hint">${U[l].wa} · ${CONTACT.email} · ${CONTACT.phone}</p></section>`));
+add("site","consult-closed","Consultation while the owner has not filled notice and horizon: no calendar, no numbers, a WhatsApp button.",(l,w)=>consult(l,w,"closed"));
+add("site","consult-month","Consultation: November 2026 as a sample. Days with free times are marked with a teal line under the number; a chosen day (3) lists 30-minute slot buttons with the guest's time (Madrid) and Dubai time beside. Slots are toggle buttons (aria-pressed), square, no radio dots. Mon to Thu, with a day off on the 17th. Only the sample hours of the owner show.",(l,w)=>consult(l,w,"month"));
+add("site","consult-form","A slot is chosen (pressed): a summary line with both times, then Name, Email, Phone / WhatsApp (required) and an optional message, Book the call.",(l,w)=>consult(l,w,"form"));
+add("site","consult-taken","Someone booked the slot first: \"That time was just taken. Please choose another.\" The taken slot is gone from the list. The same line is used when a time is too soon, too far or outside hours.",(l,w)=>consult(l,w,"taken"));
+add("site","consult-booked","Booked: the line with both times, the invitation by email, the WhatsApp call number, and how to cancel (reply to the email).",(l,w)=>consult(l,w,"booked"));
+add("site","consult-booked-email-failed","Booked but the confirmation email could not be sent: the booking line plus the WhatsApp fallback line.",(l,w)=>consult(l,w,"booked-fail"));
+add("site","consult-empty-month","A month with no free times (here December, past the horizon): \"No free times this month\" and Next month.",(l,w)=>consult(l,w,"empty"));
+add("site","email-guest","Guest confirmation email (HTML). Drawn from the signed copy through the same template as the real renderer (renderConsultationGuestEmail is written after your signature). Both times, the WhatsApp call line with the number from code, a teal button with white text, reply-to-cancel, the .ics named as attached. Gold only as lines. The file name is a stand-in.",(l,w)=>mailGuest(l,w),{w:[600,390]});
+add("site","email-owner-request","Email to inquiries@ for a Plan, List or Package request: plain text only, no HTML, guest as reply-to. English only (the owner's inbox). Plan shown; List lists its own fields the same way.",(l,w)=>mailOwnerRequest(l,w),{l:["en"],w:[600,390]});
+add("site","email-owner-consult","Email to inquiries@ for a booked consultation: plain text, both times, the .ics attached. English only.",(l,w)=>mailOwnerConsult(l,w),{l:["en"],w:[600,390]});
+add("ops","requests-list","Dashboard → Requests (rail entry after Bookings, dashed = new): kind filter (All kinds default, Plan, List, Package, Consultation) and status filter (Not handled default, Handled, All), both toggle buttons. Columns: name, kind, received (Dubai time), email, summary, status. Newest first.",(l,w)=>requestsList(l,w));
+add("ops","requests-empty","Requests with nothing yet.",(l,w)=>requestsList(l,w,{empty:true}));
+add("ops","request-plan-detail","A Plan request, not handled: every field the guest sent, Mark handled, Reply by email, Open WhatsApp.",(l,w)=>detail(l,w,"plan"));
+add("ops","request-consult-detail","A consultation, already handled: slot in Dubai time and the guest's zone, \"Handled … by you\", Mark not handled, Cancel consultation.",(l,w)=>detail(l,w,"consultation"));
+add("ops","request-cancel-confirm","Cancel consultation asks first: the slot becomes free again and you tell the guest yourself (no email goes out).",(l,w)=>detail(l,w,"consultation",{confirm:true}));
+add("ops","consult-editor-closed","Content → Consultation (dashed = new), nothing filled: every day Closed, no days off, notice and horizon empty, with the note that the calendar on Contact stays closed.",(l,w)=>editor(l,w,{closedNote:true}));
+add("ops","consult-editor-filled","Filled with sample values only: Monday to Thursday 14:00 to 18:00 Dubai in 30-minute steps, two days off, notice [24] hours and horizon [30] days as bracketed samples. The real numbers are yours to type.",(l,w)=>{const rg=[["14:00","18:00"]];return editor(l,w,{hours:[rg,rg,rg,rg,[],[],[]],off:[dFmt(l,17,10,2026),dFmt(l,24,11,2026)],notice:"[24]",horizon:"[30]"});});
+add("ops","consult-editor-error","Overlapping ranges on Tuesday, a start after the end on Wednesday, and a horizon that is not a number; each error sits under its own row. Save stays available.",(l,w)=>editor(l,w,{hours:[[["14:00","18:00"]],[["14:00","18:00"],["17:00","19:00"]],[["18:00","14:00"]],[["14:00","18:00"]],[],[],[]],errs:{1:{1:OR[l].err.overlap},2:{0:OR[l].err.start}},off:[dFmt(l,17,10,2026)],notice:"[24]",horizon:"abc",horizonErr:true}));
+// ---------- render ----------
+const ALL=[...ORDER.site,...ORDER.ops];
+const sel=document.getElementById("scene");
+sel.innerHTML=`<option value="all">All (${ALL.length})</option><optgroup label="site-requests (${ORDER.site.length})">${ORDER.site.map(s=>`<option>${s}</option>`).join("")}</optgroup><optgroup label="ops-requests (${ORDER.ops.length})">${ORDER.ops.map(s=>`<option>${s}</option>`).join("")}</optgroup>`;
+let html="";
+for(const grp of ["site","ops"]){
+  html+=`<h2 style="font:400 32px var(--face-display);color:var(--color-teal);margin:32px 0 16px" data-grp="${grp}">${grp==="site"?"site-requests (public site and emails)":"ops-requests (dashboard)"}</h2>`;
+  for(const s of ORDER[grp]){
+    const sc=S[s],ls=sc.l||["en","ar","es"],ws=sc.w||[390,834,1440];
+    html+=`<section class="st" data-st="${s}"><h2>${s}</h2><p>${sc.what}</p>`;
+    for(const l of ls) for(const w of ws)
+      html+=`<div class="shot" data-l="${l}" data-w="${w}"><p class="cap">${s}-${l}-${w} ${l!=="en"?'<span class="rv">'+l.toUpperCase()+': draft for signature</span>':""}</p><div class="scroller"><div class="scaler" data-w="${w}">${sc.draw(l,w)}</div></div></div>`;
+    html+=`</section>`;
+  }
+}
+document.getElementById("shots").innerHTML=html;
+const f={l:"all",w:"all",z:"fit",s:"all"};
+try{const h=location.hash.slice(1);if(S[h]){f.s=h;sel.value=h;}}catch(e){}
+function apply(){
+  document.querySelectorAll(".st").forEach(e=>{e.hidden=!(f.s==="all"||e.dataset.st===f.s);});
+  document.querySelectorAll("[data-grp]").forEach(e=>{e.hidden=f.s!=="all";});
+  document.querySelectorAll(".shot").forEach(e=>{e.hidden=!((f.l==="all"||e.dataset.l===f.l)&&(f.w==="all"||e.dataset.w===f.w));});
+  document.querySelectorAll(".st:not([hidden]) .shot:not([hidden]) .scaler").forEach(e=>{const w=+e.dataset.w;const avail=e.parentElement.clientWidth-4;const k=f.z==="fit"?Math.min(1,avail/(w+2)):1;e.style.transform=`scale(${k})`;e.parentElement.style.height=(e.firstElementChild.offsetHeight*k+8)+"px";e.parentElement.style.overflowX=k<1?"hidden":"auto";});
+}
+sel.addEventListener("change",()=>{f.s=sel.value;history.replaceState(null,"","#"+(f.s==="all"?"":f.s));apply();});
+document.querySelectorAll("#top button").forEach(b=>b.addEventListener("click",()=>{
+  const k=Object.keys(b.dataset)[0];f[k]=b.dataset[k];document.querySelectorAll(`#top button[data-${k}]`).forEach(x=>x.setAttribute("aria-pressed",x===b));apply();
+}));
+addEventListener("resize",apply);document.fonts?.ready.then(apply);addEventListener("load",apply);apply();
+</script>
+</body></html>

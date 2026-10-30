@@ -31,8 +31,41 @@ export function sendable(value: FieldValue | undefined): value is string | strin
 
 const same = (a: FieldValue | undefined, b: FieldValue | undefined) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
-/** `${target}:${field}`: a translation the owner typed herself since the last save; the AI leaves it alone. */
+/**
+ * `${target}:${field}`: a translation the owner fixed by hand (I18N-04, F-14). It is locked: stored with the row
+ * (`locked_fields`), and the AI leaves it alone on every later Save until she presses Translate again.
+ */
 export const touchKey = (target: Target, field: string) => `${target}:${field}`;
+
+/** The stored locks of a row, per target (a translation record's `locked_fields`). */
+export type LockedLists = Partial<Record<Target, readonly string[] | null | undefined>>;
+
+/** The lock set (touchKey format) from the row's stored lists. */
+export function lockedFrom(locked: LockedLists | undefined): Set<string> {
+  const out = new Set<string>();
+  for (const target of TARGETS) for (const field of locked?.[target] ?? []) out.add(touchKey(target, field));
+  return out;
+}
+
+/** The lock set back as the lists a save sends, sorted, one per target (empty lists included: the server sets, never merges). */
+export function lockedLists(locked: ReadonlySet<string>): Record<Target, string[]> {
+  const out: Record<Target, string[]> = { ar: [], es: [] };
+  for (const key of locked) {
+    const [target, ...rest] = key.split(":");
+    if (target === "ar" || target === "es") out[target].push(rest.join(":"));
+  }
+  out.ar.sort();
+  out.es.sort();
+  return out;
+}
+
+/** Translate again on one box: asks for that one field in that one language; a blank English asks nothing. */
+export function retranslatePlan(english: Fields, target: Target, field: string): TranslationPlan {
+  const plan: TranslationPlan = { send: { ar: {}, es: {} }, clear: { ar: [], es: [] } };
+  const value = english[field];
+  if (sendable(value)) plan.send[target][field] = value;
+  return plan;
+}
 
 export type TranslationPlan = {
   /** What is sent per target. A target with no field is not asked. */
@@ -42,16 +75,17 @@ export type TranslationPlan = {
 };
 
 /**
- * What one Save asks for. A field is sent for a target when its English has text, the owner did not type that
- * translation herself, and either the English changed since the last save or the translation is empty (a new item, an
- * earlier failure, a row that never had one). An English emptied since the last save empties its translations too.
+ * What one Save asks for. A field is sent for a target when its English has text, that translation is not locked (the
+ * owner's own text, stored or typed in this session), and either the English changed since the last save or the
+ * translation is empty (a new item, an earlier failure, a row that never had one). An English emptied since the last
+ * save empties its unlocked translations too; a locked one is never sent and never cleared (F-14).
  */
-export function planTranslation(english: Fields, savedEnglish: Fields, translations: Record<Target, Fields>, touched: ReadonlySet<string>): TranslationPlan {
+export function planTranslation(english: Fields, savedEnglish: Fields, translations: Record<Target, Fields>, locked: ReadonlySet<string>): TranslationPlan {
   const plan: TranslationPlan = { send: { ar: {}, es: {} }, clear: { ar: [], es: [] } };
   for (const [name, value] of Object.entries(english)) {
     const changed = !same(value, savedEnglish[name]);
     for (const target of TARGETS) {
-      if (touched.has(touchKey(target, name))) continue;
+      if (locked.has(touchKey(target, name))) continue;
       const current = translations[target][name];
       if (sendable(value)) {
         if (changed || isBlank(current)) plan.send[target][name] = value;

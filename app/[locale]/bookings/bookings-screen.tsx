@@ -8,7 +8,6 @@ import { GUEST_BOOKINGS_COPY } from "../../../lib/copy/guest-bookings";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import { pageLinks } from "../../../components/site/page-links";
 import { SiteNav } from "../../../components/ui/nav";
-import { Link } from "../../../components/ui/link";
 import { Button, LinkButton } from "../../../components/ui/button";
 import { WhatsApp } from "../../../components/ui/whatsapp";
 import { HOME_COPY } from "../../../lib/copy/home";
@@ -74,7 +73,7 @@ export function BookingsScreen({
     body = (
       <>
         <p className="m-0 text-pretty text-body text-ink">{copy.noBookingsYet}</p>
-        <Link href={localePath(locale, "/")} className="h-control justify-center border border-teal px-6 uppercase tracking-kicker ar:normal-case ar:tracking-normal no-underline hover:bg-teal-tint hover:no-underline">{copy.startATrip}</Link>
+        <LinkButton variant="secondary" href={localePath(locale, "/")}>{copy.startATrip}</LinkButton>
       </>
     );
   } else {

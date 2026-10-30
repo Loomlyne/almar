@@ -356,6 +356,8 @@ export type HoldContext = {
   isTest: boolean;
   /** The transfer window the request will get (the open gate's window), sent back in the ok answer. */
   transferWindowMinutes: number;
+  /** The terms version that opened the gate (requestGateAndTerms). Absent: the closed fallback, BOOKING_TERMS_VERSION. */
+  termsVersion?: string;
   now?: Date;
 };
 
@@ -431,7 +433,7 @@ export async function createWebHold(db: BookingDb, input: HoldRequest, ctx: Hold
     phone: contact.phone,
     locale: input.locale,
     airport: input.airport,
-    terms_version: BOOKING_TERMS_VERSION,
+    terms_version: ctx.termsVersion ?? BOOKING_TERMS_VERSION,
     is_test: ctx.isTest,
     travellers,
   };

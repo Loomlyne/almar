@@ -1,4 +1,4 @@
-// Dashboard copy for Content -> Team and Catalog -> Packages (the three home journeys), plan 03.2-08, EN / AR / ES.
+// Dashboard copy for Content -> Team and Catalog -> Packages, plans 03.2-08 and 06-06 (signed pictures/06-06), EN / AR / ES.
 // CANVAS = verbatim from the design canvas board DashTeamLegal (its Arabic and Spanish too, except that dashboard
 // Spanish is usted, owner 2026-10-14). Every other line is a draft for the owner's signature. No legal wording, no
 // price, no person's name. The screens are on the kit editor page: English only, Arabic and Spanish are added on Save.
@@ -92,8 +92,31 @@ export type OpsTeamCopy = {
     readingNone: string;
     /** Under the reading: it is the saved line's. */
     readingSaved: string;
-    /** Shown on the editor instead of a Delete: there is none. */
-    noDelete: string;
+    /** Under the Delete of a shown package, which is off. */
+    cannotDelete: string;
+    newPackage: string;
+    fieldSlug: string;
+    slugHint: string;
+    slugLocked: string;
+    /** The card of the legs. */
+    legs: string;
+    addCity: string;
+    /** Beside Add a city once there are six: a request form takes at most six cities. */
+    destination: string;
+    stay: string;
+    noStay: string;
+    nights: string;
+    removeCity: string;
+    /** `{n}`: the heading of a leg. */
+    city: string;
+    /** The card of the included add-ons. */
+    addons: string;
+    addonsSearch: string;
+    addonsHint: string;
+    deletePkg: string;
+    /** `{name}`. */
+    deleteTitle: string;
+    deleteText: string;
     /** The page title while the English name is empty. */
     untitled: string;
     /** `{languages}`: after a save, a stored translation whose price line was empty kept its saved line. */
@@ -146,7 +169,7 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
     },
     journeys: {
       title: "Packages",
-      intro: "These are the three journeys on the home page. Guests ask for them on WhatsApp.",
+      intro: "These are your journeys. Each has a page on the site where guests can request it.",
       caption: "Home journeys",
       colName: "Name",
       colPrice: "Price line",
@@ -160,13 +183,31 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       fieldBody: "Description",
       fieldPhoto: "Photo",
       fieldPrice: "Price line",
-      priceHint: "Shown on the home page exactly as you write it.",
+      priceHint: "Shown on the home page and the package page exactly as you write it.",
       readingFrom: "How the site reads it: from {currency} {amount}",
       readingRange: "How the site reads it: {currency} {low} to {high}",
       readingOpen: "How the site reads it: from {currency} {low}",
       readingNone: "The site cannot read a price from this line; it shows the line as typed.",
       readingSaved: "Read from the price line as last saved.",
-      noDelete: "The three journeys stay. Unpublish one to hide it from the home page.",
+      cannotDelete: "A shown package cannot be deleted. Hide it first.",
+      newPackage: "New package",
+      fieldSlug: "Web address",
+      slugHint: "Lowercase letters, numbers and dashes. It cannot change once the package is published.",
+      slugLocked: "The web address cannot change after publishing.",
+      legs: "Cities on this journey",
+      addCity: "Add a city",
+      destination: "Destination",
+      stay: "Suggested stay",
+      noStay: "No suggested stay",
+      nights: "Nights",
+      removeCity: "Remove city",
+      city: "City {n}",
+      addons: "Included in this package",
+      addonsSearch: "Search the catalog",
+      addonsHint: "Shown as included. Guests cannot remove them.",
+      deletePkg: "Delete package",
+      deleteTitle: "Delete {name}?",
+      deleteText: "The package and its cities are deleted. The photo stays in Media.",
       untitled: "Journey",
       priceKept: "{languages}: the price line was empty, so the saved one is kept.",
       priceHeld: "{languages}: not saved, because a new translation needs a price line. Add it under Edit translations, then save again.",
@@ -212,7 +253,7 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
     },
     journeys: {
       title: "الباقات",
-      intro: "هذه هي الرحلات الثلاث في الصفحة الرئيسية. يطلبها الضيوف عبر واتساب.",
+      intro: "هذه هي رحلاتك. لكل رحلة صفحة في الموقع يستطيع الضيوف طلبها منها.",
       caption: "رحلات الصفحة الرئيسية",
       colName: "الاسم",
       colPrice: "سطر السعر",
@@ -226,13 +267,31 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       fieldBody: "الوصف",
       fieldPhoto: "الصورة",
       fieldPrice: "سطر السعر",
-      priceHint: "يظهر في الصفحة الرئيسية كما تكتبه تمامًا.",
+      priceHint: "يظهر في الصفحة الرئيسية وصفحة الباقة كما تكتبه تمامًا.",
       readingFrom: "كيف يقرؤه الموقع: ابتداءً من {currency} {amount}",
       readingRange: "كيف يقرؤه الموقع: {currency} {low} إلى {high}",
       readingOpen: "كيف يقرؤه الموقع: ابتداءً من {currency} {low}",
       readingNone: "لا يستطيع الموقع قراءة سعر من هذا السطر؛ يعرضه كما كُتب.",
       readingSaved: "مقروء من سطر السعر كما حُفظ آخر مرة.",
-      noDelete: "تبقى الرحلات الثلاث. ألغِ نشر إحداها لإخفائها من الصفحة الرئيسية.",
+      cannotDelete: "لا يمكن حذف باقة ظاهرة. أخفِها أولًا.",
+      newPackage: "باقة جديدة",
+      fieldSlug: "عنوان الويب",
+      slugHint: "أحرف لاتينية صغيرة وأرقام وشرطات. لا يمكن تغييره بعد نشر الباقة.",
+      slugLocked: "لا يمكن تغيير عنوان الويب بعد النشر.",
+      legs: "المدن في هذه الرحلة",
+      addCity: "إضافة مدينة",
+      destination: "الوجهة",
+      stay: "الإقامة المقترحة",
+      noStay: "بلا إقامة مقترحة",
+      nights: "عدد الليالي",
+      removeCity: "إزالة المدينة",
+      city: "المدينة {n}",
+      addons: "المشمول في هذه الباقة",
+      addonsSearch: "ابحث في الكتالوج",
+      addonsHint: "تظهر كمشمولة. لا يستطيع الضيوف إزالتها.",
+      deletePkg: "حذف الباقة",
+      deleteTitle: "حذف {name}؟",
+      deleteText: "تُحذف الباقة ومدنها. تبقى الصورة في الوسائط.",
       untitled: "رحلة",
       priceKept: "{languages}: كان سطر السعر فارغًا، لذلك يبقى السطر المحفوظ.",
       priceHeld: "{languages}: لم يُحفظ، لأن الترجمة الجديدة تحتاج إلى سطر سعر. أضفه في تعديل الترجمات، ثم احفظ مرة أخرى.",
@@ -278,7 +337,7 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
     },
     journeys: {
       title: "Paquetes",
-      intro: "Estos son los tres viajes de la página de inicio. Los huéspedes los piden por WhatsApp.",
+      intro: "Estos son sus viajes. Cada uno tiene una página en el sitio donde los huéspedes pueden solicitarlo.",
       caption: "Viajes de la página de inicio",
       colName: "Nombre",
       colPrice: "Línea de precio",
@@ -292,13 +351,31 @@ export const OPS_TEAM_COPY: Record<OpsTeamLocale, OpsTeamCopy> = {
       fieldBody: "Descripción",
       fieldPhoto: "Foto",
       fieldPrice: "Línea de precio",
-      priceHint: "Se muestra en la página de inicio tal como usted la escribe.",
+      priceHint: "Se muestra en la página de inicio y en la página del paquete tal como usted la escribe.",
       readingFrom: "Cómo la lee el sitio: desde {currency} {amount}",
       readingRange: "Cómo la lee el sitio: {currency} {low} a {high}",
       readingOpen: "Cómo la lee el sitio: desde {currency} {low}",
       readingNone: "El sitio no puede leer un precio en esta línea; la muestra tal como se escribió.",
       readingSaved: "Leído de la línea de precio guardada por última vez.",
-      noDelete: "Los tres viajes se mantienen. Deje de publicar uno para ocultarlo de la página de inicio.",
+      cannotDelete: "No se puede eliminar un paquete visible. Primero ocúltelo.",
+      newPackage: "Nuevo paquete",
+      fieldSlug: "Dirección web",
+      slugHint: "Minúsculas, números y guiones. No se puede cambiar una vez publicado el paquete.",
+      slugLocked: "La dirección web no se puede cambiar después de publicar.",
+      legs: "Ciudades de este viaje",
+      addCity: "Añadir una ciudad",
+      destination: "Destino",
+      stay: "Estancia sugerida",
+      noStay: "Sin estancia sugerida",
+      nights: "Noches",
+      removeCity: "Quitar la ciudad",
+      city: "Ciudad {n}",
+      addons: "Incluido en este paquete",
+      addonsSearch: "Buscar en el catálogo",
+      addonsHint: "Se muestra como incluido. Los huéspedes no pueden quitarlo.",
+      deletePkg: "Eliminar paquete",
+      deleteTitle: "¿Eliminar {name}?",
+      deleteText: "Se eliminan el paquete y sus ciudades. La foto permanece en Medios.",
       untitled: "Viaje",
       priceKept: "{languages}: la línea de precio estaba vacía, así que se mantiene la guardada.",
       priceHeld: "{languages}: no se guardó, porque una traducción nueva necesita una línea de precio. Agréguela en Editar traducciones y vuelva a guardar.",

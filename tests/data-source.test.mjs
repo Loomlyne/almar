@@ -69,6 +69,11 @@ const VIEW_NAMES = [
   "api_destinations", "api_destination_translations", "api_stays", "api_stay_translations", "api_catalog",
   "api_catalog_translations", "api_team", "api_team_translations", "api_journey_tiers", "api_journey_tier_translations",
   "api_image_translations",
+  // Phase 6 (plan 06-01): page blocks and posts from the database; nav, legal and package legs named up front.
+  "api_page_sections", "api_page_section_translations", "api_page_section_media", "api_page_items",
+  "api_page_item_translations", "api_posts", "api_post_translations", "api_nav_links", "api_nav_link_translations",
+  "api_legal_pages", "api_legal_page_translations", "api_journey_tier_legs", "api_journey_tier_leg_translations",
+  "api_journey_tier_addons",
 ];
 
 const rowsOf = (n, make = (i) => ({ id: `row-${i}` })) => Array.from({ length: n }, (_, i) => make(i));
@@ -149,6 +154,20 @@ test("SOURCE_VIEWS maps every fixture name to its api_* view, and nothing else",
     "journey-tiers": "api_journey_tiers",
     "journey-tier-translations": "api_journey_tier_translations",
     "image-translations": "api_image_translations",
+    "page-sections": "api_page_sections",
+    "page-section-translations": "api_page_section_translations",
+    "page-section-media": "api_page_section_media",
+    "page-items": "api_page_items",
+    "page-item-translations": "api_page_item_translations",
+    posts: "api_posts",
+    "post-translations": "api_post_translations",
+    "nav-links": "api_nav_links",
+    "nav-link-translations": "api_nav_link_translations",
+    "legal-pages": "api_legal_pages",
+    "legal-page-translations": "api_legal_page_translations",
+    "journey-tier-legs": "api_journey_tier_legs",
+    "journey-tier-leg-translations": "api_journey_tier_leg_translations",
+    "journey-tier-addons": "api_journey_tier_addons",
   });
 });
 
@@ -317,17 +336,29 @@ for (const missing of ["en", "ar", "es"]) {
 
 test("supabase mode: a blank alt counts as missing, for pictures of every database-read entity", async () => {
   const blank = altsOf("p1").map((r) => (r.locale === "ar" ? { ...r, alt: "  " } : r));
-  const entities = { api_stays: "stays", api_destinations: "cover", api_catalog: "image", api_team: "photo", api_journey_tiers: "image" };
+  const entities = {
+    api_stays: "stays",
+    api_destinations: "cover",
+    api_catalog: "image",
+    api_team: "photo",
+    api_journey_tiers: "image",
+    api_page_section_media: "image",
+    api_page_items: "image",
+    api_posts: "cover_image",
+  };
   for (const [view, key] of Object.entries(entities)) {
     const { result } = await loadedWith({ [view]: [{ id: "x", [key]: pictureOf("p1") }], api_image_translations: blank });
     assert.match(result.message, /p1 \(ar\)/, view);
   }
 });
 
-test("supabase mode: pictures of the fixture-kept page blocks are not checked here (their alts come from the fixtures)", async () => {
-  const database = altsOf("p1");
-  const { result } = await loadedWith({ api_stays: [{ id: "s1", images: [pictureOf("p1")] }], api_image_translations: database });
-  assert.equal(result, "ok");
+test("supabase mode: a decorative page photo (About collage, Get In Touch still) needs no alt; a non-decorative one does (plan 06-01)", async () => {
+  const media = (is_decorative) => [{ section_id: "sec-1", slot: "images", position: 1, is_decorative, image: pictureOf("p9") }];
+  const decorative = await loadedWith({ api_page_section_media: media(true), api_image_translations: altsOf("p1") });
+  assert.equal(decorative.result, "ok");
+  const shown = await loadedWith({ api_page_section_media: media(false), api_image_translations: altsOf("p1") });
+  assert.ok(shown.result instanceof Error);
+  assert.match(shown.result.message, /p9 \(en\)/);
 });
 
 // 03.2-02b finding 1: assembled builds read the live project only -------------------------------------------------------
@@ -467,67 +498,13 @@ test("importing source.ts in supabase mode starts the load without rejecting the
 
 // image-translations in supabase mode -----------------------------------------------------------------------------
 
-/** The ids of every image object ({ id, media_key }) inside a fixture value: the test's own copy of the rule. */
-const imageIdsIn = (value, into = new Set()) => {
-  if (Array.isArray(value)) value.forEach((v) => imageIdsIn(v, into));
-  else if (value && typeof value === "object") {
-    if (typeof value.id === "string" && typeof value.media_key === "string") into.add(value.id);
-    Object.values(value).forEach((v) => imageIdsIn(v, into));
-  }
-  return into;
-};
-
-test("image-translations in supabase mode: database records, plus fixture records only of the fixture-kept blocks' images the database does not know", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "almar-image-merge-"));
-  const img = (id) => ({ id, media_key: `blocks/${id}.webp`, width: 1, height: 1, position: 1 });
-  // A and B are block images (home, posts); T is a tier image inside home (tiers come from the database); C, S are not in
-  // any block (a stay's or catalogue item's picture).
-  writeFileSync(join(dir, "home.json"), JSON.stringify({ hero: { image: img("A") }, tiers: [{ id: "tier-1", image: img("T") }] }));
-  writeFileSync(join(dir, "about.json"), JSON.stringify({ hero: {} }));
-  writeFileSync(join(dir, "posts.json"), JSON.stringify([{ id: "post-1", cover_image: img("B") }]));
-  writeFileSync(join(dir, "destinations-page.json"), JSON.stringify({ hero: [] }));
-  const fixtureRecords = [
-    { image_id: "A", locale: "en", alt: "fixture A en", status: "published" },
-    { image_id: "A", locale: "ar", alt: "fixture A ar", status: "published" },
-    { image_id: "B", locale: "en", alt: "fixture B en", status: "published" },
-    { image_id: "B", locale: "es", alt: "fixture B es", status: "draft" },
-    { image_id: "C", locale: "en", alt: "fixture C en", status: "published" },
-    { image_id: "S", locale: "en", alt: "fixture S en", status: "published" },
-    { image_id: "T", locale: "en", alt: "fixture T en", status: "published" },
-  ];
-  writeFileSync(join(dir, "image-translations.json"), JSON.stringify(fixtureRecords));
-  const database = [
-    { image_id: "A", locale: "en", alt: "database A en", status: "published" },
-    { image_id: "C", locale: "ar", alt: "database C ar", status: "draft" },
-  ];
+test("image-translations in supabase mode: the database records only; no fixture file is read in this mode (plan 06-01)", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "almar-image-db-only-"));
+  // An empty fixture folder: any fixture read in supabase mode would throw ENOENT.
+  const database = [{ image_id: "database-only", locale: "en", alt: "x", status: "published" }];
   const { mod, result } = await loadedWith({ api_image_translations: database }, undefined, { ...SUPABASE_ENV, ALMAR_FIXTURE_DIR: dir });
   assert.equal(result, "ok");
-  await withEnv({ ...SUPABASE_ENV, ALMAR_FIXTURE_DIR: dir }, () => {
-    const merged = mod.readSource("image-translations");
-    assert.deepEqual(
-      merged.map((r) => `${r.image_id}:${r.locale}:${r.alt}`),
-      ["A:en:database A en", "C:ar:database C ar", "B:en:fixture B en", "B:es:fixture B es"],
-    );
-    const keys = merged.map((r) => `${r.image_id}:${r.locale}`);
-    assert.equal(new Set(keys).size, keys.length);
-  });
-});
-
-test("image-translations in supabase mode: the real fixtures add only the alts of home (without tiers), about, posts and destinations-page", async () => {
-  const database = [{ image_id: "database-only", locale: "en", alt: "x", status: "published" }];
-  const { mod, result } = await loadedWith({ api_image_translations: database });
-  assert.equal(result, "ok");
-  const blocks = new Set();
-  imageIdsIn({ ...fixture("home"), tiers: undefined }, blocks);
-  for (const name of ["about", "posts", "destinations-page"]) imageIdsIn(fixture(name), blocks);
-  assert.ok(blocks.size > 0, "the fixture-kept blocks have images");
-  const expected = fixture("image-translations").filter((r) => blocks.has(r.image_id));
-  assert.ok(expected.length < fixture("image-translations").length, "some fixture alts belong to database content");
-  await withEnv(SUPABASE_ENV, () => assert.deepEqual(mod.readSource("image-translations"), [...database, ...expected]));
-  const stayImages = imageIdsIn(fixture("stays"));
-  await withEnv(SUPABASE_ENV, () =>
-    assert.equal(mod.readSource("image-translations").filter((r) => stayImages.has(r.image_id)).length, 0, "no fixture alt of a stay picture"),
-  );
+  await withEnv({ ...SUPABASE_ENV, ALMAR_FIXTURE_DIR: dir }, () => assert.deepEqual(mod.readSource("image-translations"), database));
 });
 
 test("image-translations in supabase mode: no database alt record while stays exist throws (never a silent fixture fall back)", async () => {

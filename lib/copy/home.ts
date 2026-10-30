@@ -400,7 +400,7 @@ export const HOME_COPY: Record<HomeLocale, HomeCopy> = {
     team: [],
     footerBrand: "ALMAR",
     pages: "Páginas",
-    listTitle: "Publiquen con nosotros",
+    listTitle: "Publica con nosotros",
     listIntro: "Cuéntennos de una casa. Nada de esta página se envía.",
     newsletter: "Boletín",
     subscribe: "Suscribirse",

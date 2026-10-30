@@ -10,6 +10,7 @@ import { signOutEverywhere } from "../actions";
 import { DASHBOARD_COPY, type DashboardCopy } from "../../../lib/copy/dashboard";
 import { OPS_CONTENT_COPY } from "../../../lib/copy/ops-content";
 import { OPS_MEDIA_COPY } from "../../../lib/copy/ops-media";
+import { OPS_REQUESTS_COPY } from "../../../lib/copy/ops-requests";
 import { OPS_SITE_STATUS_COPY } from "../../../lib/copy/ops-site-status";
 import { SiteStatusLine } from "../../../components/ops/site-status-line";
 import { isDocumentLocale, setDocumentLocale, type DocumentLocale } from "../../../lib/set-document-locale";
@@ -17,8 +18,9 @@ import { SoonChip } from "./content/coming-soon";
 import charcoalLogo from "../../../brand/Logo Typography/Stacked_Charcoal.svg";
 
 // "media" takes its label from the Media screen's own copy (plan 03.2-09) and "navigation" from lib/copy/ops-content.ts
-// (plan 03.2-12), so the shared dashboard copy is not edited. `soon` adds the Soon chip: the section is a Coming soon page.
-type RailKey = keyof DashboardCopy["rail"] | "media" | "navigation";
+// (plan 03.2-12), "requests" and "consultation" from lib/copy/ops-requests.ts (plan 06-05), so the shared dashboard copy is not
+// edited. `soon` adds the Soon chip: the section is a Coming soon page.
+type RailKey = keyof DashboardCopy["rail"] | "media" | "navigation" | "requests" | "consultation";
 type RailLink = { key: RailKey; label: string; href: string; soon?: true };
 type RailGroup = { key: RailKey; label: string; children: RailLink[] };
 type RailItem = RailLink | RailGroup;
@@ -26,6 +28,7 @@ type RailItem = RailLink | RailGroup;
 const RAIL: RailItem[] = [
   { key: "home", label: "Home", href: "/dashboard/home" },
   { key: "bookings", label: "Bookings", href: "/dashboard/bookings" },
+  { key: "requests", label: "Requests", href: "/dashboard/requests" },
   { key: "customers", label: "Customers", href: "/dashboard/customers" },
   { key: "calendar", label: "Calendar", href: "/dashboard/calendar" },
   {
@@ -42,12 +45,13 @@ const RAIL: RailItem[] = [
     key: "content",
     label: "Content",
     children: [
-      { key: "pages", label: "Pages", href: "/dashboard/content/pages", soon: true },
-      { key: "blog", label: "Blog", href: "/dashboard/content/blog", soon: true },
+      { key: "pages", label: "Pages", href: "/dashboard/content/pages" },
+      { key: "blog", label: "Blog", href: "/dashboard/content/blog" },
       { key: "team", label: "Team", href: "/dashboard/content/team" },
-      { key: "legal", label: "Legal", href: "/dashboard/content/legal", soon: true },
+      { key: "legal", label: "Legal", href: "/dashboard/content/legal" },
       { key: "media", label: "Media", href: "/dashboard/content/media" },
-      { key: "navigation", label: "Navigation and footer", href: "/dashboard/content/navigation", soon: true },
+      { key: "navigation", label: "Navigation and footer", href: "/dashboard/content/navigation" },
+      { key: "consultation", label: "Consultation", href: "/dashboard/content/consultation" },
     ],
   },
   { key: "settings", label: "Settings", href: "/dashboard/settings" },
@@ -55,7 +59,7 @@ const RAIL: RailItem[] = [
 ];
 
 const RAIL_ITEM =
-  "flex min-h-control w-full items-center justify-between gap-2 px-2 text-start font-body text-label no-underline transition-colors duration-fast ease-standard";
+  "flex min-h-control w-full items-center justify-between gap-2 px-2 text-start font-body text-label transition-colors duration-fast ease-standard";
 const MENU_BUTTON =
   "inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border border-line bg-surface p-0 text-teal xl:hidden";
 
@@ -106,7 +110,7 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
   const copy = DASHBOARD_COPY[locale];
   const content = OPS_CONTENT_COPY[locale];
   const railLabel = (key: RailKey) =>
-    key === "media" ? OPS_MEDIA_COPY[locale].media : key === "navigation" ? content.rail.navigation : copy.rail[key];
+    key === "requests" ? OPS_REQUESTS_COPY[locale].title : key === "consultation" ? OPS_REQUESTS_COPY[locale].ctitle : key === "media" ? OPS_MEDIA_COPY[locale].media : key === "navigation" ? content.rail.navigation : copy.rail[key];
 
   useEffect(() => {
     const next = readLocale();
@@ -278,7 +282,7 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
         {copy.skip}
       </a>
       <header ref={headerRef} className="sticky top-0 z-50 flex min-h-control flex-wrap items-center justify-between gap-2 border-b border-line bg-ivory px-4 py-1">
-        <Link className="flex min-h-control min-w-0 items-center gap-2 text-teal no-underline" href={mode === "ops" ? "/" : "/dashboard/home"}>
+        <Link className="flex min-h-control min-w-0 items-center gap-2 text-teal" href={mode === "ops" ? "/" : "/dashboard/home"}>
           <img className="block aspect-2/1 h-auto w-35 max-w-full object-contain object-left" alt="ALMAR" src={logoSrc ?? charcoalLogo.src} />
           <span className="hidden whitespace-nowrap font-display text-label uppercase tracking-kicker xl:inline ar:normal-case ar:tracking-normal">
             {copy.dashboardName}

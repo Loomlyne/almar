@@ -258,6 +258,7 @@ export function mediaItem(row: Row): MediaItem | null {
     alt[locale] = typeof altIn[locale] === "string" ? (altIn[locale] as string) : null;
     status[locale] = altStatus(statusIn[locale]);
   }
+  const lockedIn = isRow(row.alt_locked) ? row.alt_locked : {};
   const ref = mediaRef({ id: row.id, key: row.key, width: row.width, height: row.height, alt_en: alt.en });
   if (!ref) return null;
   return {
@@ -266,6 +267,7 @@ export function mediaItem(row: Row): MediaItem | null {
     source: row.source === "import" ? "import" : "upload",
     alt,
     alt_status: status,
+    alt_locked: { ar: lockedIn.ar === true, es: lockedIn.es === true },
     used_by: typeof row.used_by === "number" && Number.isFinite(row.used_by) ? row.used_by : 0,
   };
 }
@@ -300,7 +302,7 @@ export async function listMedia({
 // ---- POST --------------------------------------------------------------------------------------------------------------
 
 /**
- * POST save_alt -> ops_save_image_alts({id, alt, status}) -> `{ ok, id, affects_site }`; delete -> ops_delete_media
+ * POST save_alt -> ops_save_image_alts({id, alt, status, locked}) -> `{ ok, id, affects_site }`; delete -> ops_delete_media
  * (the R2 object is kept) -> `{ ok, id, affects_site: false }`. A used or imported photo is the database's 23503,
  * which the wrapper maps to 409 in_use.
  */
@@ -310,7 +312,7 @@ export async function postMedia({
   deleteMedia,
 }: {
   body: MediaPost;
-  saveAlts: (p: { id: string; alt: Record<string, string | null>; status?: Record<string, string> }) => PromiseLike<RpcReply>;
+  saveAlts: (p: { id: string; alt: Record<string, string | null>; status?: Record<string, string>; locked?: Record<string, boolean> }) => PromiseLike<RpcReply>;
   deleteMedia: (id: string) => PromiseLike<RpcReply>;
 }): Promise<OpsOutcome> {
   if (body.action === "delete") {
@@ -319,8 +321,9 @@ export async function postMedia({
     // Only an unused photo can be deleted, so nothing on the public site changes.
     return { body: { ok: true, id: body.id, affects_site: false } };
   }
-  const p: { id: string; alt: Record<string, string | null>; status?: Record<string, string> } = { id: body.id, alt: body.alt };
+  const p: { id: string; alt: Record<string, string | null>; status?: Record<string, string>; locked?: Record<string, boolean> } = { id: body.id, alt: body.alt };
   if (body.status) p.status = body.status;
+  if (body.locked) p.locked = body.locked;
   const { data, error } = await saveAlts(p);
   if (error) return { dbError: error };
   const out = isRow(data) ? data : {};

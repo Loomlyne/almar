@@ -55,7 +55,8 @@ const PARAGRAPH_LIST = { kind: "list", max: CAPS.paragraph } as const;
 
 export const DESTINATION_TEXT: TextSpec = {
   required: ["name"],
-  fields: { name: NAME, short_line: NAME, region: NAME, summary: PARAGRAPH, nights_label: LABEL },
+  // Name at 120, not 160: it is a ticked city on a package's request form, whose `cities` cap is 120 (06-06).
+  fields: { name: LABEL, short_line: NAME, region: NAME, summary: PARAGRAPH, nights_label: LABEL },
 };
 
 export const STAY_TEXT: TextSpec = {
@@ -366,11 +367,12 @@ export function parseBlocksQuery(query: URLSearchParams): { from: string; to: st
 
 const ACCESS_MAX = 2000;
 
-export type AccessSave = { action: "save"; stay_id: string; access: Record<string, string | null> };
+export type AccessSave = { action: "save"; stay_id: string; access: Record<string, string | null | Array<"ar" | "es">> };
 
 /**
  * Address, wifi name and the notes (English, and the Arabic and Spanish the AI fills, 03.2-15) are trimmed; the wifi
- * password and the door code are kept exactly as typed.
+ * password and the door code are kept exactly as typed. `notes_locked` (I18N-04, plan 06-01): the languages of the notes
+ * the owner fixed by hand, a list of distinct "ar" / "es".
  */
 export function parseAccessSave(value: unknown): AccessSave {
   const body = bodyOf(value);
@@ -378,13 +380,23 @@ export function parseAccessSave(value: unknown): AccessSave {
   onlyKeys(body, ["action", "stay_id", "access"]);
   const stay = uuid(body.stay_id, "stay_id");
   const access = record(body.access, "access");
-  onlyKeys(access, ["address", "wifi_name", "wifi_password", "door_code", "notes", "notes_ar", "notes_es"], "access.");
-  const out: Record<string, string | null> = {};
+  onlyKeys(access, ["address", "wifi_name", "wifi_password", "door_code", "notes", "notes_ar", "notes_es", "notes_locked"], "access.");
+  const out: AccessSave["access"] = {};
   for (const key of ["address", "wifi_name", "notes", "notes_ar", "notes_es"] as const) {
     if (has(access, key)) out[key] = text(access[key], `access.${key}`, { max: ACCESS_MAX });
   }
   for (const key of ["wifi_password", "door_code"] as const) {
     if (has(access, key)) out[key] = rawText(access[key], `access.${key}`, { max: ACCESS_MAX });
+  }
+  if (has(access, "notes_locked")) {
+    const raw = access.notes_locked;
+    if (!Array.isArray(raw)) throw new OpsInvalid("access.notes_locked");
+    const langs = new Set<"ar" | "es">();
+    for (const item of raw) {
+      if ((item !== "ar" && item !== "es") || langs.has(item)) throw new OpsInvalid("access.notes_locked");
+      langs.add(item);
+    }
+    out.notes_locked = [...langs];
   }
   return { action: "save", stay_id: stay, access: out };
 }
@@ -480,22 +492,49 @@ export function parseTeamAction(value: unknown): EntityAction {
 
 // ---- 5.8 journeys ----------------------------------------------------------------------------------------------------
 
+export const JOURNEY_LEG_TEXT: TextSpec = {
+  required: ["nights_label"],
+  fields: { nights_label: LABEL },
+};
+
+/** The caps of ops_save_journey_tier (migration 20261025120000). */
+const MAX_JOURNEY_LEGS = 50;
+// A guard against malformed payloads, not a limit for the owner (2026-10-30); ops_save_journey_tier holds the same number.
+const MAX_JOURNEY_ADDONS = 500;
+
+/** Plan 06-06: a package's cities, replaced whole. English is required per leg, and each leg's lock rides with its Arabic and Spanish. */
+function journeyLegs(value: unknown): Payload[] {
+  if (!Array.isArray(value) || value.length > MAX_JOURNEY_LEGS) throw new OpsInvalid("legs");
+  return value.map((entry, i) => {
+    const leg = record(entry, `legs.${i}`);
+    onlyKeys(leg, ["destination_id", "stay_id", "translations"], `legs.${i}.`);
+    return {
+      destination_id: uuid(leg.destination_id, `legs.${i}.destination_id`),
+      stay_id: has(leg, "stay_id") ? uuidOrNull(leg.stay_id, `legs.${i}.stay_id`) : null,
+      translations: translations(leg.translations, JOURNEY_LEG_TEXT, { create: true }),
+    };
+  });
+}
+
 /**
- * Existing ids only (C-15: no create, no delete in v1). When the English record is sent it carries both the name and
- * the price label, and the five structured price columns are re-derived from that label (lib/ops/journey-price.ts);
- * a save without English leaves them as they are, so they always agree with the stored label.
+ * Plan 06-06 (F-02, CMS-03): the owner adds and deletes packages (the database lets only an unpublished one go). No id creates: a
+ * slug and the English name and price line are needed; the slug locks once published, in the database. `legs` and `addon_ids` are
+ * replaced whole when sent. When the English record is sent it carries both the name and the price label, and the five structured
+ * price columns are re-derived from that label (lib/ops/journey-price.ts); a save without English leaves them as they are, so they
+ * always agree with the stored label. The price line is the owner's own text: that reading is the dashboard's, never a shown amount.
  */
-export function parseJourneyAction(value: unknown): SaveAction | ReorderAction {
+export function parseJourneyAction(value: unknown): EntityAction {
   const body = bodyOf(value);
-  const kind = action(body, ["save", "reorder"] as const);
+  const kind = action(body, ["save", "delete", "reorder"] as const);
+  if (kind === "delete") return deleteAction(body);
   if (kind === "reorder") return reorderAction(body);
-  onlyKeys(body, ["action", "item"]);
-  const item = record(body.item, "item");
-  onlyKeys(item, ["id", "is_featured", "media_id", "translations"]);
-  const out: Payload = { id: uuid(item.id, "id") };
+  const { item, out, create } = saveItem(body, ["slug", "is_featured", "media_id", "translations", "legs", "addon_ids"]);
+  slugField(item, out, create);
   if (has(item, "is_featured")) out.is_featured = bool(item.is_featured, "is_featured");
   mediaField(item, out, "media_id");
-  const tr = translationsField(item, out, JOURNEY_TEXT, false);
+  if (has(item, "legs")) out.legs = journeyLegs(item.legs);
+  if (has(item, "addon_ids")) out.addon_ids = uuidList(item.addon_ids, "addon_ids", { max: MAX_JOURNEY_ADDONS });
+  const tr = translationsField(item, out, JOURNEY_TEXT, create);
   const en = tr?.en;
   if (en) {
     for (const key of JOURNEY_TEXT.required) {
@@ -513,7 +552,9 @@ export function parseJourneyAction(value: unknown): SaveAction | ReorderAction {
 
 // ---- 5.9 publish -----------------------------------------------------------------------------------------------------
 
-export const PUBLISH_ENTITIES = ["destination", "stay", "catalog_item", "team_member", "journey_tier"] as const;
+// Plan 06-01: `post` (06-03) and `legal_page` (06-04, the cookie banner is a legal_page kind) are accepted here once, so
+// those plans never edit this list. ops_publish in migration 20261025120000 holds their publish rules.
+export const PUBLISH_ENTITIES = ["destination", "stay", "catalog_item", "team_member", "journey_tier", "post", "legal_page"] as const;
 export type PublishEntity = (typeof PUBLISH_ENTITIES)[number];
 
 export function parsePublish(value: unknown): { entity: PublishEntity; id: string; published: boolean } {

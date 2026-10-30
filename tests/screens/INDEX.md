@@ -34,7 +34,7 @@ Diff ratio: share of pixels that differ (0 = identical, 1 = different size or fu
 ## Intended differences for owner UAT
 
 - Primary buttons and headings are teal (was the old blue-teal); gold is lines only.
-- Link hover shows a 1px gold underline.
+- No underlined text: each kind of link is a tile, an arrow or a tint block (components/ui/link.tsx).
 - Corners are square everywhere (radius 0).
 - The /account language select is a working control (was broken).
 - Nav: stacked charcoal logo from brand/, currency and language selects, no monogram.

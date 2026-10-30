@@ -14,6 +14,7 @@ export function StayHero({
   eyebrow,
   title,
   subtitle,
+  actions,
   children,
 }: {
   image: { url: string; alt: string; width: number | null; height: number | null } | null;
@@ -22,6 +23,8 @@ export function StayHero({
   title: string;
   /** The stay's neighbourhood; omitted when null. */
   subtitle: string | null;
+  /** Save and Share (plan 06-07): a row under the title block. */
+  actions?: ReactNode;
   /** The booking bar. */
   children: ReactNode;
 }) {
@@ -54,6 +57,7 @@ export function StayHero({
           </p>
           <h1 className="m-0 font-display text-hero tracking-display text-ivory text-balance">{title}</h1>
           {subtitle ? <p className="m-0 font-display text-title text-ivory">{subtitle}</p> : null}
+          {actions ? <div className="pointer-events-auto mt-2 flex flex-wrap justify-center gap-3">{actions}</div> : null}
         </Reveal>
       </div>
       <div />

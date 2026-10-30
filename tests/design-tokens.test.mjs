@@ -17,6 +17,7 @@ const FONT_BOLD_ALLOWLIST = [
   "date-range-panel.tsx",
   "journey-bar.tsx",
   "journey-sheet.tsx",
+  "link.tsx",
 ];
 const BANNED = ["Bricolage", "Philosopher", "#f9f6f3", "#183e43", "#a98e58", "#0f677d"];
 const LAYER_ORDER = "@layer theme, base, components, utilities;";

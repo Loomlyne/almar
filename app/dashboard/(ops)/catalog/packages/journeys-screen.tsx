@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { LockIcon } from "../../../../../components/icons/icons";
 import type { Send } from "../../../../../components/ops/auto-translate";
 import { EditPage, type EditSection, type SaveIntent, type SavePayload } from "../../../../../components/ops/edit-page";
 import { ListTable, type Column } from "../../../../../components/ops/list-table";
@@ -9,27 +10,52 @@ import { missingForPublish } from "../../../../../components/ops/publish-check";
 import { missingLine } from "../../../../../components/ops/error-text";
 import { StatusChip } from "../../../../../components/ops/status-chip";
 import { useDashboardLocale } from "../../../../../components/ops/use-dashboard-locale";
-import type { DetailReply, JourneyDetail, JourneySummary, ListReply, Locale3, OpsError, PublishResult } from "../../../../../components/ops/api-types";
+import type {
+  CatalogSummary,
+  DestinationSummary,
+  DetailReply,
+  JourneyDetailWithLegs,
+  JourneySummary,
+  ListReply,
+  Locale3,
+  OpsError,
+  PublishResult,
+  StaySummary,
+  WriteResult,
+} from "../../../../../components/ops/api-types";
 import { errorText } from "../../../../../components/ops/error-text";
 import { opsFetch, opsSend } from "../../../../../components/ops/ops-client";
+import { Button } from "../../../../../components/ui/button";
+import { ConfirmDialog } from "../../../../../components/ui/confirm-dialog";
 import { Field } from "../../../../../components/ui/field";
 import { OPS_CATALOG_COPY, fillCatalogCopy } from "../../../../../lib/copy/ops-catalog";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
-import { afterSave, liveGaps, movedIds, sameForm, withTranslations } from "../catalog-forms";
+import { afterSave, liveGaps, movedIds, sameForm } from "../catalog-forms";
+import { LockedAddress } from "../locked-address";
 import { saveThenPublish } from "../persist";
 import { focusMovedRow } from "../move-focus";
+import { JourneyAddons, type AddonOption } from "./journey-addons";
 import {
   JOURNEY_TEXT_FIELDS,
+  blankJourneyForm,
+  journeyFields,
   journeyForm,
+  journeyLocks,
   journeyPayload,
+  legGapNames,
   journeyPriceGaps,
+  journeySlugOk,
+  journeyWithTranslations,
+  legsReady,
   liveJourneyFields,
   priceReading,
   type JourneyForm,
+  type JourneyLegForm,
   type JourneyText,
   type JourneyTextField,
   type PriceGaps,
 } from "./journey-forms";
+import { JourneyLegs, type LegOption } from "./journey-legs";
 import { OPS_TEAM_COPY, fillTeamCopy } from "../../../../../lib/copy/ops-team";
 
 export type JourneyRow = { id: string; name: string; priceLine: string; published: boolean };
@@ -38,6 +64,14 @@ export type JourneyPanel = {
   form: JourneyForm;
   /** The text of the three languages as last saved: what the kit compares the English with, and what is live. */
   saved: Record<Locale3, JourneyText>;
+  /** The legs as last saved, for the same two questions on each nights line. */
+  savedLegs: JourneyLegForm[];
+  /** Every destination, for a leg's select. */
+  destinations: LegOption[];
+  /** Each destination's stays, for a leg's Suggested stay. */
+  staysByDestination: Record<string, LegOption[]>;
+  /** The catalog's items that are not the home pickup, for Included in this package. */
+  addons: AddonOption[];
   onForm: (next: JourneyForm) => void;
   dirty: boolean;
   busy: boolean;
@@ -45,6 +79,7 @@ export type JourneyPanel = {
   onSave: (payload: SavePayload, intent: SaveIntent) => Promise<boolean>;
   onPublish: () => void | Promise<unknown>;
   onUnpublish: () => void;
+  onDelete: () => void;
   onClose: () => void;
   /** After the last save: Arabic or Spanish text whose empty price line was kept as saved, or that could not be saved. */
   priceGaps?: PriceGaps | null;
@@ -53,12 +88,13 @@ export type JourneyPanel = {
 };
 
 /**
- * Catalog -> Packages: the three journeys of the home page (C-15; not drawn on the canvas, so pictures first). Driven
- * entirely by props. The list reorders; there is no New, no Delete and no booking. Show and hide are the kit's Publish
- * and Unpublish. The price line is the owner's own text, stored as typed; the editor only says how the site reads it.
+ * Catalog -> Packages (plan 06-06, CMS-03, signed pictures/06-06). Driven entirely by props. The list reorders and has New
+ * package; there is no booking. Show and hide are the kit's Publish and Unpublish. The price line is the owner's own text, stored
+ * as typed; the editor only says how the site reads it.
  */
 export function JourneysView({
   rows,
+  onNew,
   onOpen,
   onMove,
   onDropOrder,
@@ -67,6 +103,7 @@ export function JourneysView({
   notice,
 }: {
   rows: JourneyRow[];
+  onNew: () => void;
   onOpen: (id: string) => void;
   /** Takes a move; false when the screen refused it (an order is already on its way). */
   onMove: (id: string, by: -1 | 1) => boolean | void;
@@ -107,8 +144,13 @@ export function JourneysView({
 
   const list = (
     <div ref={listRef} className="flex min-w-0 flex-col gap-6" aria-busy={reordering || undefined}>
-      <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.title}</h1>
-      <p className="m-0 max-w-prose text-pretty text-label text-ink">{copy.intro}</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 flex-col gap-2">
+          <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.title}</h1>
+          <p className="m-0 max-w-prose text-pretty text-label text-ink">{copy.intro}</p>
+        </div>
+        <Button onClick={onNew}>{copy.newPackage}</Button>
+      </div>
       {notice}
       <ListTable
         caption={copy.caption}
@@ -131,20 +173,25 @@ export function JourneysView({
   return <JourneyEditor panel={panel} list={list} />;
 }
 
-const englishOf = (text: JourneyText) => Object.fromEntries(JOURNEY_TEXT_FIELDS.map((field) => [field, text[field]]));
-
 /**
- * The journey's editor page (kit EditPage): Text and Photo on the left; Price on the right with the English price line
- * and how the site reads the saved line; one column on a phone. No Delete (C-15): the kit shows none.
+ * The package's editor page (kit EditPage), as signed: Text, Cities on this journey and Included in this package on the left; Web
+ * address, Photo, Price (the English line and how the site reads the saved line) and Settings on the right; one column on a phone.
+ * A new package has no add-ons yet (its first Save makes it); its web address is typed here and locks once published. Delete sits
+ * under Settings: a shown package cannot be deleted, and a hidden one asks first.
  */
 function JourneyEditor({ panel, list }: { panel: JourneyPanel | null; list: ReactNode }) {
   const loc = useDashboardLocale();
   const copy = OPS_TEAM_COPY[loc].journeys;
   const kit = OPS_KIT_COPY[loc];
   const idBase = useId();
+  const [asking, setAsking] = useState(false);
 
   const form = panel?.form ?? null;
-  const title = form?.text.en.name.trim() || copy.untitled;
+  const isNew = form?.id === null;
+  const title = form?.text.en.name.trim() || (isNew ? copy.newPackage : copy.untitled);
+  const slugBad = form ? !form.published && form.slug.trim() !== "" && !journeySlugOk(form.slug) : false;
+  const slugTaken = panel?.error?.field === "slug" && panel.error.code !== "invalid";
+  const slugError = slugTaken ? kit.errors.slug_taken : slugBad ? kit.errors.invalid : undefined;
   const fieldLabels: Record<JourneyTextField, string> = {
     name: copy.fieldName,
     price_label: copy.fieldPrice,
@@ -189,8 +236,46 @@ function JourneyEditor({ panel, list }: { panel: JourneyPanel | null; list: Reac
         ),
       },
       {
+        key: "legs",
+        title: copy.legs,
+        content: <JourneyLegs legs={form.legs} destinations={panel.destinations} staysByDestination={panel.staysByDestination} onChange={(legs) => onForm({ ...form, legs })} idBase={idBase} />,
+      },
+      ...(form.id === null
+        ? []
+        : [
+            {
+              key: "addons",
+              title: copy.addons,
+              content: <JourneyAddons options={panel.addons} connected={form.addon_ids} onChange={(addon_ids) => onForm({ ...form, addon_ids })} />,
+            },
+          ]),
+      {
+        key: "address",
+        title: copy.fieldSlug,
+        column: "side",
+        content: form.published ? (
+          <LockedAddress label={copy.fieldSlug} value={form.slug} note={copy.slugLocked} />
+        ) : (
+          <Field
+            id={`${idBase}-slug`}
+            label={copy.fieldSlug}
+            className="max-w-none"
+            dir="ltr"
+            autoComplete="off"
+            spellCheck={false}
+            maxLength={80}
+            required
+            value={form.slug}
+            hint={copy.slugHint}
+            error={slugError}
+            onChange={(event) => onForm({ ...form, slug: event.target.value })}
+          />
+        ),
+      },
+      {
         key: "photo",
         title: kit.editor.sections.photo,
+        column: "side",
         content: <MediaField id={`${idBase}-photo`} label={copy.fieldPhoto} required value={form.media} onChange={(media) => onForm({ ...form, media })} locale={loc} />,
       },
       {
@@ -211,13 +296,36 @@ function JourneyEditor({ panel, list }: { panel: JourneyPanel | null; list: Reac
         key: "settings",
         title: kit.editor.sections.settings,
         column: "side",
-        content: <p className="m-0 text-pretty text-label text-muted">{copy.noDelete}</p>,
+        content: (
+          <>
+            <p className="m-0 text-label text-ink">{form.published ? kit.published : kit.draft}</p>
+            {form.id === null ? null : (
+              <div className="flex flex-col items-start gap-2">
+                <Button variant="danger" className="text-error" disabled={form.published} onClick={() => setAsking(true)}>
+                  {copy.deletePkg}
+                </Button>
+                {form.published ? (
+                  <p className="m-0 flex items-start gap-2 text-label text-muted">
+                    <LockIcon size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+                    <span>{copy.cannotDelete}</span>
+                  </p>
+                ) : null}
+              </div>
+            )}
+          </>
+        ),
       },
     ];
   }
 
   const missing = form ? missingForPublish("journey_tier", { translations: form.text, media_id: form.media?.id ?? null }) : [];
-  const fieldLabel = (field: string) => (field in fieldLabels ? fieldLabels[field as JourneyTextField] : undefined);
+  const legLabels: Record<string, string> = Object.fromEntries(
+    (form?.legs ?? []).flatMap((leg, index) => {
+      const city = fillTeamCopy(copy.city, { n: index + 1 });
+      return [[leg.key, `${city}: ${copy.nights}`], [`dest_${leg.key}`, `${city}: ${copy.destination}`]];
+    }),
+  );
+  const fieldLabel = (field: string) => (field === "slug" ? copy.fieldSlug.toLocaleLowerCase(loc) : field in fieldLabels ? fieldLabels[field as JourneyTextField] : legLabels[field]);
   // A shown journey cannot be saved without what Publish needs (its photo, its English): the server's save does not
   // check it, so it would stay on the home page without it. The catalog's line says so, as on Destinations.
   const live = liveGaps(form?.published ?? false, missing);
@@ -239,38 +347,65 @@ function JourneyEditor({ panel, list }: { panel: JourneyPanel | null; list: Reac
       </div>
     ) : null;
 
+  const canSave = form
+    ? form.text.en.name.trim() !== "" && form.text.en.price_label.trim() !== "" && live.length === 0 && (form.published || journeySlugOk(form.slug)) && legsReady(form.legs)
+    : false;
+
   return (
-    <EditPage
-      openKey={panel && form ? form.id : null}
-      list={list}
-      backLabel={copy.title}
-      onClose={() => panel?.onClose()}
-      title={title}
-      isPublished={form?.published ?? false}
-      dirty={panel?.dirty ?? false}
-      busy={panel?.busy ?? false}
-      canSave={form ? form.text.en.name.trim() !== "" && form.text.en.price_label.trim() !== "" && live.length === 0 : false}
-      notice={liveNote}
-      missing={missing}
-      error={panel?.error ?? null}
-      fieldLabel={fieldLabel}
-      english={form ? englishOf(form.text.en) : {}}
-      savedEnglish={panel ? englishOf(panel.saved.en) : {}}
-      translations={form ? { ar: englishOf(form.text.ar), es: englishOf(form.text.es) } : { ar: {}, es: {} }}
-      translationFields={JOURNEY_TEXT_FIELDS.map((field) => ({ name: field, label: fieldLabels[field], multiline: field === "body" }))}
-      onTranslationChange={(target, name, value) => {
-        if (!panel || !form) return;
-        const text = Array.isArray(value) ? value.join(" ") : value;
-        panel.onForm({ ...form, text: { ...form.text, [target]: { ...form.text[target], [name]: text } } });
-      }}
-      onSave={(payload, intent) => (panel ? panel.onSave(payload, intent) : Promise.resolve(false))}
-      onPublish={() => panel?.onPublish()}
-      onUnpublish={() => panel?.onUnpublish()}
-      liveTranslations={panel && form ? liveJourneyFields(form.published, form.status, panel.saved) : {}}
-      holdOnFailure={form?.published ?? false}
-      send={panel?.send}
-      sections={panel && form ? sections(panel, form) : []}
-    />
+    <>
+      <EditPage
+        openKey={panel && form ? (form.id ?? "new") : null}
+        list={list}
+        backLabel={copy.title}
+        onClose={() => panel?.onClose()}
+        title={title}
+        isNew={isNew}
+        isPublished={form?.published ?? false}
+        dirty={panel?.dirty ?? false}
+        busy={panel?.busy ?? false}
+        canSave={canSave}
+        notice={liveNote}
+        missing={missing}
+        error={slugTaken || !panel?.error ? null : legGapNames(panel.error, form?.legs ?? [])}
+        fieldLabel={fieldLabel}
+        english={form ? journeyFields(form, "en") : {}}
+        savedEnglish={panel ? journeyFields({ text: panel.saved, legs: panel.savedLegs }, "en") : {}}
+        translations={form ? { ar: journeyFields(form, "ar"), es: journeyFields(form, "es") } : { ar: {}, es: {} }}
+        locked={form ? journeyLocks(form) : undefined}
+        translationFields={[
+          ...JOURNEY_TEXT_FIELDS.map((field) => ({ name: field, label: fieldLabels[field], multiline: field === "body" })),
+          ...(form?.legs ?? []).map((leg) => ({ name: leg.key, label: legLabels[leg.key] ?? copy.nights, maxLength: 120 })),
+        ]}
+        onTranslationChange={(target, name, value) => {
+          if (!panel || !form) return;
+          const text = Array.isArray(value) ? value.join(" ") : value;
+          if (form.legs.some((leg) => leg.key === name)) {
+            panel.onForm({ ...form, legs: form.legs.map((leg) => (leg.key === name ? { ...leg, text: { ...leg.text, [target]: text } } : leg)) });
+            return;
+          }
+          panel.onForm({ ...form, text: { ...form.text, [target]: { ...form.text[target], [name]: text } } });
+        }}
+        onSave={(payload, intent) => (panel ? panel.onSave(payload, intent) : Promise.resolve(false))}
+        onPublish={() => panel?.onPublish()}
+        onUnpublish={() => panel?.onUnpublish()}
+        liveTranslations={panel && form ? liveJourneyFields(form.published, form.status, panel.saved, panel.savedLegs) : {}}
+        holdOnFailure={form?.published ?? false}
+        send={panel?.send}
+        sections={panel && form ? sections(panel, form) : []}
+      />
+      <ConfirmDialog
+        open={asking}
+        onOpenChange={setAsking}
+        title={fillTeamCopy(copy.deleteTitle, { name: title })}
+        description={copy.deleteText}
+        confirmLabel={copy.deletePkg}
+        cancelLabel={kit.cancel}
+        onConfirm={() => {
+          setAsking(false);
+          panel?.onDelete();
+        }}
+      />
+    </>
   );
 }
 
@@ -279,16 +414,22 @@ const PATH = "/api/ops/journeys";
 type Open = { form: JourneyForm; saved: JourneyForm };
 
 /**
- * Catalog -> Packages, connected (plan 03.2-08 Task 4): the three home journeys, their order and each one's editor
- * page (Save, Publish, Unpublish; automatic Arabic and Spanish through the kit), through the kit client (contract 5.8,
- * 5.9). No create and no delete (C-15). After a Save the editor is read again, so "How the site reads it" is the
- * server's reading of the line just saved. `send` is the test seam for the translate request; the page passes nothing.
+ * Catalog -> Packages, connected (plans 03.2-08, 06-06): the packages, their order and each one's editor page (New, Save, Publish,
+ * Unpublish, Delete while hidden; automatic Arabic and Spanish through the kit, the legs' nights lines too), through the kit client
+ * (contract 5.8, 5.9). After a Save the editor is read again, so "How the site reads it" is the server's reading of the line just
+ * saved. The destinations, stays and catalog items are read once, for the legs' selects and the add-on picker. `send` is the test
+ * seam for the translate request; the page passes nothing.
  */
 export function JourneysScreen({ send }: { send?: Send } = {}) {
   const locale = useDashboardLocale();
   const kit = OPS_KIT_COPY[locale];
 
   const [rows, setRows] = useState<JourneySummary[]>([]);
+  const [destinations, setDestinations] = useState<DestinationSummary[]>([]);
+  const [stays, setStays] = useState<StaySummary[]>([]);
+  const [items, setItems] = useState<CatalogSummary[]>([]);
+  // The catalog as last read, null until a read has worked.
+  const catalog = useRef<CatalogSummary[] | null>(null);
   const [listError, setListError] = useState<OpsError | null>(null);
   const [open, setOpen] = useState<Open | null>(null);
   const [busy, setBusy] = useState(false);
@@ -307,15 +448,44 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
     return refusal;
   }
 
+  /** What the legs' selects and the add-on picker offer. A refusal stays on the list; openDetail reads the catalog again if it must. */
+  async function loadOptions() {
+    const [d, s, c] = await Promise.all([
+      opsFetch<ListReply<DestinationSummary>>("/api/ops/destinations"),
+      opsFetch<ListReply<StaySummary>>("/api/ops/stays"),
+      opsFetch<ListReply<CatalogSummary>>("/api/ops/catalog"),
+    ]);
+    if (d.ok) setDestinations(d.items);
+    if (s.ok) setStays(s.items);
+    if (c.ok) {
+      catalog.current = c.items;
+      setItems(c.items);
+    }
+    const failed = [d, s, c].find((reply) => !reply.ok);
+    if (failed && !failed.ok) setListError(failed.error);
+  }
+
   useEffect(() => {
     void loadList();
+    void loadOptions();
   }, []);
 
-  /** Loads one journey into the editor (its saved state and price reading are the server's). */
-  async function openDetail(id: string): Promise<OpsError | null> {
-    const reply = await opsFetch<DetailReply<JourneyDetail>>(PATH, { id });
+  /**
+   * Loads one journey into the editor (its saved state and price reading are the server's). `legKeys`: the keys of the legs just
+   * saved, in order, so the kit's locks stay on their legs after a read-back (a save gives every leg a new id).
+   */
+  async function openDetail(id: string, legKeys: readonly string[] = []): Promise<OpsError | null> {
+    const reply = await opsFetch<DetailReply<JourneyDetailWithLegs>>(PATH, { id });
     if (!reply.ok) return reply.error;
-    const form = journeyForm(reply.item);
+    // Every connected add-on needs its name in the editor: a failed first read, or an item added since, is read again before it opens.
+    const held = catalog.current;
+    if (!held || reply.item.addon_ids.some((addon) => !held.some((item) => item.id === addon))) {
+      const fresh = await opsFetch<ListReply<CatalogSummary>>("/api/ops/catalog");
+      if (!fresh.ok) return fresh.error;
+      catalog.current = fresh.items;
+      setItems(fresh.items);
+    }
+    const form = journeyForm(reply.item, legKeys);
     setOpen({ form, saved: form });
     return null;
   }
@@ -328,6 +498,14 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
     const refusal = await openDetail(id);
     setBusy(false);
     if (refusal) setListError(refusal);
+  }
+
+  function onNew() {
+    if (busy) return;
+    const form = blankJourneyForm();
+    setError(null);
+    setPriceGaps(null);
+    setOpen({ form, saved: form });
   }
 
   /** One save, and on `publish` the publish call after it; then the editor and the list are read again. */
@@ -345,7 +523,7 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
       setError(result.error);
       return false;
     }
-    const reread = await openDetail(result.id);
+    const reread = await openDetail(result.id, form.legs.map((leg) => leg.key));
     // Saved but not read back: the editor keeps what was sent (and, after a taken Publish, published); the price
     // reading stays the last one read until the next open.
     if (reread) {
@@ -371,19 +549,34 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
 
   function onSave(payload: SavePayload, intent: SaveIntent): Promise<boolean> {
     if (!open) return Promise.resolve(false);
-    return persist(withTranslations(open.form, payload.translations), intent === "publish");
+    return persist(journeyWithTranslations(open.form, payload.translations, payload.locked), intent === "publish");
   }
 
   async function onUnpublish() {
-    if (!open || busy) return;
+    const id = open?.form.id;
+    if (!open || !id || busy) return;
     setBusy(true);
     setError(null);
-    const reply = await opsSend<PublishResult>("/api/ops/publish", { entity: "journey_tier", id: open.form.id, published: false });
+    const reply = await opsSend<PublishResult>("/api/ops/publish", { entity: "journey_tier", id, published: false });
     if (!reply.ok) setError(reply.error);
     else {
-      setError(await openDetail(open.form.id));
+      setError(await openDetail(id, open.saved.legs.map((leg) => leg.key)));
       await loadList();
     }
+    setBusy(false);
+  }
+
+  /** Only a hidden package: the database refuses a shown one. */
+  async function onDelete() {
+    const id = open?.form.id;
+    if (!id || busy) return;
+    setBusy(true);
+    setError(null);
+    const reply = await opsSend<WriteResult>(PATH, { action: "delete", id });
+    if (reply.ok) {
+      setOpen(null);
+      await loadList();
+    } else setError(reply.error);
     setBusy(false);
   }
 
@@ -409,9 +602,19 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
     .sort((a, b) => a.position - b.position)
     .map((row) => ({ id: row.id, name: row.name_en, priceLine: row.price_label_en, published: row.is_published }));
 
+  const sortedOptions = <T extends { position: number }>(list: readonly T[]) => list.slice().sort((a, b) => a.position - b.position);
+  const nameOf = (row: DestinationSummary) => (locale === "ar" ? row.name_ar : locale === "es" ? row.name_es : null) ?? row.name_en;
+  const legDestinations: LegOption[] = sortedOptions(destinations).map((row) => ({ id: row.id, name: nameOf(row) }));
+  const staysByDestination: Record<string, LegOption[]> = {};
+  for (const stay of sortedOptions(stays)) (staysByDestination[stay.destination_id] ??= []).push({ id: stay.id, name: stay.title_en });
+  const addons: AddonOption[] = sortedOptions(items)
+    .filter((item) => !item.is_home_pickup)
+    .map((item) => ({ id: item.id, label: item.name_en }));
+
   return (
     <JourneysView
       rows={shown}
+      onNew={onNew}
       onOpen={(id) => void onOpen(id)}
       onMove={(id, by) => reorder(movedIds(rows, id, by))}
       onDropOrder={(ids) => {
@@ -430,6 +633,10 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
           ? {
               form: open.form,
               saved: open.saved.text,
+              savedLegs: open.saved.legs,
+              destinations: legDestinations,
+              staysByDestination,
+              addons,
               onForm: (form) => {
                 setError(null);
                 setPriceGaps(null);
@@ -441,6 +648,7 @@ export function JourneysScreen({ send }: { send?: Send } = {}) {
               onSave,
               onPublish: () => persist(open.form, true),
               onUnpublish: () => void onUnpublish(),
+              onDelete: () => void onDelete(),
               onClose: () => {
                 if (busy) return;
                 setOpen(null);
