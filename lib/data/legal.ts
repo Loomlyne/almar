@@ -6,11 +6,12 @@
 // records are all published; a half-translated page has no address in any language (it never falls back to English,
 // legal text is not shown in a language it was not published in).
 
-import type { FooterLink } from "../../components/ui/footer";
 import { LEGAL_PAGE_KINDS, LEGAL_SLUGS, legalPath, type LegalPageKind } from "../legal/kinds";
 import type { StoredStatus } from "./resolve";
 import { loadSource, readSource } from "./source";
-import type { CookieBannerText, LegalKind, LegalPage, Locale, Timestamp, Uuid } from "./types";
+import type { CookieBannerText, LegalKind, LegalPage, Locale, SiteLegalChrome, Timestamp, Uuid } from "./types";
+
+export type { SiteLegalChrome };
 
 type PageRow = { id: Uuid; kind: LegalKind; updated_at: Timestamp };
 type TextBlock = { type: "heading" | "paragraph" | "quote"; text: string };
@@ -42,6 +43,9 @@ function publishedRecords(page: PageRow): Record<Locale, TranslationRow> | null 
   return out;
 }
 
+/** The record's blocks in order; a block with no text in this language is not drawn. */
+const blocksOf = (record: TranslationRow) => (record.body ?? []).filter((block): block is TextBlock => typeof block.text === "string" && block.text.trim() !== "");
+
 const pageOf = (kind: LegalKind) => readSource<PageRow[]>("legal-pages").find((p) => p.kind === kind) ?? null;
 
 /** The page kinds with an address, in footer order. */
@@ -64,7 +68,7 @@ export async function getLegalPage(locale: Locale, kind: LegalPageKind): Promise
     title: record.title,
     seo_title: record.seo_title,
     seo_description: record.seo_description,
-    body: record.body ?? [],
+    body: blocksOf(record),
     updated_at: page.updated_at,
     locale,
     translation_status: "published",
@@ -82,7 +86,7 @@ async function bannerText(locale: Locale): Promise<CookieBannerText | null> {
   if (!record || !record.title || !record.necessary_label || !record.analytics_label) return null;
   return {
     title: record.title,
-    body: record.body ?? [],
+    body: blocksOf(record),
     necessary_label: record.necessary_label,
     necessary_body: record.necessary_body,
     analytics_label: record.analytics_label,
@@ -92,13 +96,11 @@ async function bannerText(locale: Locale): Promise<CookieBannerText | null> {
   };
 }
 
-export type SiteLegalChrome = { links: FooterLink[]; banner: CookieBannerText | null; privacyHref: string | null };
-
 /** What every public page's frame needs: the footer's legal links, the banner's words, and where the banner links. */
 export async function getSiteLegalChrome(locale: Locale): Promise<SiteLegalChrome> {
   await loadSource();
   const kinds = await getPublishedLegalKinds();
-  const links: FooterLink[] = [];
+  const links: SiteLegalChrome["links"] = [];
   for (const kind of kinds) {
     const page = await getLegalPage(locale, kind);
     if (page) links.push({ label: page.title, href: legalPath(locale, kind) });

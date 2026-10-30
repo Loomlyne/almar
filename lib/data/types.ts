@@ -474,6 +474,9 @@ export type CookieBannerText = {
   translation_status: TranslationStatus;
 };
 
+/** What every public page's frame needs (06-04): the footer's legal links, the banner's words, where the banner links. */
+export type SiteLegalChrome = { links: Array<{ label: string; href: string }>; banner: CookieBannerText | null; privacyHref: string | null };
+
 /** One city of a package (F-02): the destination, an optional suggested stay and the owner's nights line. */
 export type PackageLeg = {
   id: Uuid;
