@@ -3,6 +3,7 @@ import { bookingPageMetadata } from "../../../bookings/trip/booking-page-meta";
 import { BookingPageView } from "../../../bookings/trip/booking-page-view";
 import { BookingTripScreen } from "../../../bookings/trip/booking-trip-screen";
 import { BOOKING_PAGE_COPY } from "../../../../lib/copy/booking-page";
+import { getSiteLegalChrome } from "../../../../lib/data/legal";
 
 // Plan 04-05 (Task 5): the guest booking page, static and noindex (same-origin referrer: F-02). The screen reads
 // ref and t in the browser; the static HTML is the loading state. Shared code lives in app/bookings/trip/; every page
@@ -13,7 +14,8 @@ export function generateMetadata() {
   return bookingPageMetadata("es");
 }
 
-export default function Page() {
+export default async function Page() {
+  const legal = await getSiteLegalChrome("es");
   return (
     <Suspense
       fallback={
@@ -23,10 +25,11 @@ export default function Page() {
           state={{ kind: "loading" }}
           isTest={false}
           showBackLink={false}
+          legal={legal}
         />
       }
     >
-      <BookingTripScreen locale="es" />
+      <BookingTripScreen locale="es" legal={legal} />
     </Suspense>
   );
 }

@@ -9,7 +9,8 @@
 import { LEGAL_PAGE_KINDS, LEGAL_SLUGS, legalPath, type LegalPageKind } from "../legal/kinds";
 import type { StoredStatus } from "./resolve";
 import { loadSource, readSource } from "./source";
-import type { CookieBannerText, LegalKind, LegalPage, Locale, SiteLegalChrome, Timestamp, Uuid } from "./types";
+import { BAKED_TERMS_VERSION } from "../booking/terms";
+import type { BookingTermsLink, CookieBannerText, LegalKind, LegalPage, Locale, SiteLegalChrome, Timestamp, Uuid } from "./types";
 
 export type { SiteLegalChrome };
 
@@ -94,6 +95,16 @@ async function bannerText(locale: Locale): Promise<CookieBannerText | null> {
     locale,
     translation_status: "published",
   };
+}
+
+/**
+ * The request step's link to the booking terms, as signed 2026-10-30: only when this build baked a terms version (the gate
+ * can open on this text) and the page exists. Otherwise null: the label stays as it was, with no link.
+ */
+export async function getBookingTermsLink(locale: Locale): Promise<BookingTermsLink | null> {
+  if (BAKED_TERMS_VERSION === null) return null;
+  const page = await getLegalPage(locale, "booking_terms");
+  return page ? { title: page.title, href: legalPath(locale, "booking_terms") } : null;
 }
 
 /** What every public page's frame needs: the footer's legal links, the banner's words, and where the banner links. */

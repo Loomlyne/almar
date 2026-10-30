@@ -462,6 +462,9 @@ export type LegalPage = {
   translation_status: TranslationStatus;
 };
 
+/** The published booking terms as the request step links them: the owner's title and the page's address. */
+export type BookingTermsLink = { title: string; href: string };
+
 /** The cookie banner's words (legal kind `cookie_banner`), one language. */
 export type CookieBannerText = {
   title: string;

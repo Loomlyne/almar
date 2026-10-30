@@ -117,3 +117,10 @@ test("a block with no text in this language is not drawn", async () => {
     assert.deepEqual((await mod.getLegalPage("en", "privacy")).body, [{ type: "paragraph", text: "[one]" }]);
   });
 });
+
+test("getBookingTermsLink: published terms but no baked version (the committed snapshot): no link, the label stays", async () => {
+  await withViews([page("t", "booking_terms")], whole("t", { body: [{ type: "paragraph", text: "[one]" }] }), async (mod) => {
+    assert.ok(await mod.getLegalPage("en", "booking_terms"));
+    assert.equal(await mod.getBookingTermsLink("en"), null);
+  });
+});
