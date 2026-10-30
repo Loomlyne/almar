@@ -1,6 +1,6 @@
 // The one private-stay detail template for all 12 stays in EN, AR and ES (phase 3.3 plans 06 and 45, design 1.3).
 // A server component: every value is read through lib/data and every string through lib/copy. The only client
-// parts are the booking island (state for the bar, the sheet and the dock), the page frame and the slideshow.
+// parts are the booking island (state for the bar, the sheet and the dock), the page frame, the slideshow, the hearts and Share.
 //
 // What this page never does (design 3.9, 4.3):
 //  - show an amount or a minimum stay: those fields are not read here, and the island never gets a Stay;
@@ -13,12 +13,15 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { StayBooking, StayBookingBar, StayBookingDock } from "./stay-detail/booking";
 import { StayHero } from "./stay-detail/hero";
+import { StayShare } from "./stay-detail/share";
 import { AMENITY_ICONS, BedIcon, GuestIcon } from "../icons/icons";
 import { LinkButton } from "../ui/button";
-import { MediaCard, PortraitCard } from "../ui/card";
+import { MediaCard } from "../ui/card";
 import { FactList, type Fact } from "../ui/fact-list";
 import { PageShell } from "../ui/page-shell";
 import { Reveal } from "../ui/reveal";
+import { SaveStayButton, SaveStayNotices } from "../ui/save-stay";
+import { SavedPortraitCard } from "../ui/save-stay-card";
 import { Section } from "../ui/section";
 import { Slider } from "../ui/slider";
 import { ORGANIZATION_JSON_LD_SCRIPT } from "../site/organization-json-ld";
@@ -31,6 +34,7 @@ import type { CatalogItem, Locale } from "../../lib/data/types";
 import { HOME_COPY } from "../../lib/copy/home";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { pickStayJourneyCopy } from "./stay-detail/booking-value";
+import { saveHeartCopy, stayShareCopy } from "../../lib/copy/saved-stays";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
 import { getSiteLegalChrome } from "../../lib/data/legal";
 import { STAY_DETAIL_COPY } from "../../lib/copy/stay-detail";
@@ -199,14 +203,23 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
           legal={await getSiteLegalChrome(locale)}
         >
           <main id="content">
-            <StayHero
-              image={stay.hero_image}
-              eyebrow={stay.destination_name}
-              title={stay.title}
-              subtitle={stay.neighborhood}
-            >
-              <StayBookingBar />
-            </StayHero>
+            {/* Outside the hero, which is its own stacking context: the toasts of Save and Copy link stay above the page and the dock. */}
+            <SaveStayNotices dismissLabel={SITE_FOOTER_COPY[locale].newsletter.dismiss}>
+              <StayHero
+                image={stay.hero_image}
+                eyebrow={stay.destination_name}
+                title={stay.title}
+                subtitle={stay.neighborhood}
+                actions={
+                  <>
+                    <SaveStayButton slug={slug} title={stay.title} locale={locale} tone="on-surface" copy={saveHeartCopy(locale)} showWord />
+                    <StayShare url={absoluteLocaleUrl(locale, pagePath)} title={stay.title} copy={stayShareCopy(locale)} />
+                  </>
+                }
+              >
+                <StayBookingBar />
+              </StayHero>
+            </SaveStayNotices>
 
             <PageShell>
               <SplitSection id="about" heading={copy.about}>
@@ -328,7 +341,9 @@ export async function StayDetailPage({ locale, slug }: { locale: Locale; slug: s
                         .filter((other) => other.hero_image)
                         .map((other, index) => (
                           <li key={other.slug} className={cardItem(index)}>
-                            <PortraitCard
+                            <SavedPortraitCard
+                              slug={other.slug}
+                              locale={locale}
                               href={localePath(locale, `/private-stays/${other.slug}`)}
                               image={{ src: other.hero_image!.url, alt: other.hero_image!.alt }}
                               title={other.title}

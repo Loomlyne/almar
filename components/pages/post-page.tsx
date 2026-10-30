@@ -17,6 +17,8 @@ import { OnThisPage } from "../ui/on-this-page";
 import { PageShell } from "../ui/page-shell";
 import { Reveal } from "../ui/reveal";
 import { RichText, type RichTextBlock } from "../ui/rich-text";
+import { SaveStayNotices } from "../ui/save-stay";
+import { SavedPortraitCard } from "../ui/save-stay-card";
 import { BLOG_COPY } from "../../lib/copy/blog";
 import { JOURNEY_COPY } from "../../lib/copy/journey";
 import { SITE_FOOTER_COPY } from "../../lib/copy/site-footer";
@@ -120,7 +122,9 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
   const stayCard =
     stay && stay.hero_image ? (
       <li className="min-w-0">
-        <PortraitCard
+        <SavedPortraitCard
+          slug={stay.slug}
+          locale={locale}
           href={localePath(locale, `/private-stays/${stay.slug}`)}
           image={{ src: stay.hero_image.url, alt: stay.hero_image.alt }}
           title={stay.title}
@@ -215,6 +219,7 @@ export async function PostPage({ locale, slug }: { locale: Locale; slug: string 
                   {stayCard}
                   {experienceCard}
                 </CardRow>
+                {stayCard ? <SaveStayNotices dismissLabel={SITE_FOOTER_COPY[locale].newsletter.dismiss} /> : null}
               </PageShell>
             ) : null}
             {related.length > 0 ? (

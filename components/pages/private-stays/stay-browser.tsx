@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { JourneyCopy } from "../../../lib/copy/journey";
+import type { SaveHeartCopy } from "../../../lib/copy/saved-stays";
 import type { StaysListCopy } from "../../../lib/copy/stays-list";
 import { formatPlural } from "../../../lib/journey-format";
 import { filterStays, parseStayQuery } from "../../../lib/data/stay-filter";
@@ -9,6 +10,7 @@ import type { Stay } from "../../../lib/data/types";
 import { Button } from "../../ui/button";
 import { MediaCard } from "../../ui/card";
 import { ResultCount } from "../../ui/result-count";
+import { SaveStayButton } from "../../ui/save-stay";
 import {
   EMPTY_STATE,
   isFiltered,
@@ -59,6 +61,7 @@ export function StayBrowser({
   copy,
   journeyCopy,
   datesNote,
+  saveCopy,
 }: {
   locale: "en" | "ar" | "es";
   stays: readonly ListStay[];
@@ -72,6 +75,8 @@ export function StayBrowser({
   journeyCopy: JourneyCopy;
   /** "Blocked dates here are examples." while the blocked dates are sample data; null otherwise. */
   datesNote: string | null;
+  /** The heart's words (plan 06-07). Absent: the cards carry no heart. */
+  saveCopy?: SaveHeartCopy;
 }) {
   const [state, setState] = useState<ListState>(EMPTY_STATE);
 
@@ -139,28 +144,36 @@ export function StayBrowser({
       />
       {results.length > 0 ? (
         <ul role="list" className={GRID}>
-          {results.map((stay) => (
-            <li key={stay.slug} className="min-w-0">
-              {stay.image ? (
-                <MediaCard
-                  href={hrefs[stay.slug]}
-                  image={stay.image}
-                  title={stay.title}
-                  detail={detailOf(stay)}
-                />
-              ) : (
-                <a
-                  href={hrefs[stay.slug]}
-                  className="group grid min-w-0 content-start gap-1 border-t border-line pt-3 text-ink no-underline"
-                >
-                  <span className="font-display text-title text-teal decoration-gold decoration-1 underline-offset-4 group-hover:underline">
-                    {stay.title}
-                  </span>
-                  <span className="text-label text-muted">{detailOf(stay)}</span>
-                </a>
-              )}
-            </li>
-          ))}
+          {results.map((stay) => {
+            const heart = saveCopy ? <SaveStayButton slug={stay.slug} title={stay.title} locale={locale} tone="on-surface" copy={saveCopy} /> : undefined;
+            return (
+              <li key={stay.slug} className="min-w-0">
+                {stay.image ? (
+                  <MediaCard
+                    href={hrefs[stay.slug]}
+                    image={stay.image}
+                    title={stay.title}
+                    detail={detailOf(stay)}
+                    action={heart}
+                    underlineTitle
+                  />
+                ) : (
+                  <div className="flex items-start justify-between gap-3 border-t border-line pt-3">
+                    <a
+                      href={hrefs[stay.slug]}
+                      className="group grid min-w-0 content-start gap-1 text-ink no-underline"
+                    >
+                      <span className="font-display text-title text-teal decoration-gold decoration-1 underline-offset-4 group-hover:underline">
+                        {stay.title}
+                      </span>
+                      <span className="text-label text-muted">{detailOf(stay)}</span>
+                    </a>
+                    {heart}
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <div className="grid justify-items-start gap-3 border-t border-line pt-6">
