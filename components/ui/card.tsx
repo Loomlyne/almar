@@ -21,6 +21,8 @@ type MediaCardBase = {
    * "none" (default), "sm" 1.02x, "md" 1.05x.
    */
   zoom?: "none" | "sm" | "md";
+  /** The title underlined in gold at rest, not only on hover (the signed stay cards with a control, 06-07). With href and action only. */
+  underlineTitle?: boolean;
   className?: string;
 };
 
@@ -59,6 +61,7 @@ export function MediaCard({
   titleSize = "title",
   align = "start",
   zoom = "none",
+  underlineTitle = false,
   className,
 }: MediaCardProps) {
   const TITLE = cn("font-display", titleSize === "heading" ? "text-heading" : "text-title", TITLE_REST);
@@ -134,7 +137,7 @@ export function MediaCard({
         {picture}
         <div className="flex items-start justify-between gap-3">
           <span className={lineBox}>
-            <a href={href} className={cn(TITLE, "no-underline after:absolute after:inset-0")}>
+            <a href={href} className={cn(TITLE, underlineTitle ? "underline" : "no-underline", "after:absolute after:inset-0")}>
               {title}
             </a>
             {detail ? <span className="text-label text-muted">{detail}</span> : null}
@@ -171,6 +174,8 @@ export type PortraitCardProps = {
   ratio?: "portrait" | "square";
   /** Capitals for a Latin-script title. A title in Arabic script is never transformed. */
   uppercase?: boolean;
+  /** A 44x44 control at the card's top end corner (the heart). It sits beside the link, never inside it. */
+  action?: ReactNode;
   className?: string;
 };
 
@@ -179,9 +184,9 @@ const ARABIC_SCRIPT = /[֐-ࣿ]/;
 /**
  * The Framer stay card: one link, a 2:3 photo, the title and an icon facts row on the photo over a dark gradient.
  * The photo zooms 1.05x on hover over the hover duration with the reveal ease (not under reduced motion).
- * Without href it is an article with no zoom; `kicker`, `ratio` and `uppercase` are opt-in and change nothing when absent.
+ * Without href it is an article with no zoom; `kicker`, `ratio`, `uppercase` and `action` are opt-in and change nothing when absent.
  */
-export function PortraitCard({ href, image, title, facts = [], kicker, ratio = "portrait", uppercase = false, className }: PortraitCardProps) {
+export function PortraitCard({ href, image, title, facts = [], kicker, ratio = "portrait", uppercase = false, action, className }: PortraitCardProps) {
   const shape = ratio === "square" ? "aspect-7/12 md:aspect-square" : "aspect-2/3";
   const capitals = uppercase && !ARABIC_SCRIPT.test(title);
   const body = (
@@ -206,12 +211,18 @@ export function PortraitCard({ href, image, title, facts = [], kicker, ratio = "
       </span>
     </>
   );
-  if (!href) {
-    return <article className={cn("relative block", shape, "min-w-0 overflow-hidden text-ivory", className)}>{body}</article>;
-  }
-  return (
+  const card = !href ? (
+    <article className={cn("relative block", shape, "min-w-0 overflow-hidden text-ivory", className)}>{body}</article>
+  ) : (
     <a href={href} className={cn("group relative block", shape, "min-w-0 overflow-hidden text-ivory no-underline", className)}>
       {body}
     </a>
+  );
+  if (!action) return card;
+  return (
+    <div className="relative min-w-0">
+      {card}
+      <span className="absolute end-4 top-4 z-10">{action}</span>
+    </div>
   );
 }
