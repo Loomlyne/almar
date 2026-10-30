@@ -148,16 +148,16 @@ export function AccountScreen({ profile, account, savedStays = [] }: { profile: 
           <div className="grid gap-6 lg:w-70 lg:shrink-0">
             <nav aria-label={hub.menuLabel} className="grid border border-line bg-surface py-2">
               <span className="px-4 pb-1 pt-3 text-caption uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">{hub.personal}</span>
-              <a className="flex min-h-control items-center px-4 text-label text-ink no-underline hover:bg-ivory" href="#profile">{hub.profile}</a>
-              <a className="flex min-h-control items-center px-4 text-label text-ink no-underline hover:bg-ivory" href="#saved">{savedCopy.savedStays}</a>
+              <a className="flex min-h-control items-center px-4 text-label text-ink hover:bg-ivory" href="#profile">{hub.profile}</a>
+              <a className="flex min-h-control items-center px-4 text-label text-ink hover:bg-ivory" href="#saved">{savedCopy.savedStays}</a>
               <span className="px-4 pb-1 pt-3 text-caption uppercase tracking-kicker text-muted ar:normal-case ar:tracking-normal">{hub.settings}</span>
-              <a className="flex min-h-control items-center px-4 text-label text-ink no-underline hover:bg-ivory" href="#preferences">{hub.preferences}</a>
-              <a className="flex min-h-control items-center px-4 text-label text-ink no-underline hover:bg-ivory" href="#security">{hub.signInSecurity}</a>
+              <a className="flex min-h-control items-center px-4 text-label text-ink hover:bg-ivory" href="#preferences">{hub.preferences}</a>
+              <a className="flex min-h-control items-center px-4 text-label text-ink hover:bg-ivory" href="#security">{hub.signInSecurity}</a>
             </nav>
             <section className={CARD} aria-labelledby="help-title">
               <h2 id="help-title" className={CARD_TITLE}>{hub.needHelp}</h2>
               <p className="m-0 text-label text-ink">{hub.needHelpLine}</p>
-              <a href="https://wa.me/971563883302" aria-label="WhatsApp" className="inline-flex min-h-control w-max items-center gap-3 bg-whatsapp px-4 text-label text-ink no-underline" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/971563883302" aria-label="WhatsApp" className="inline-flex min-h-control w-max items-center gap-3 bg-whatsapp px-4 text-label text-ink" target="_blank" rel="noopener noreferrer">
                 <bdi>WhatsApp</bdi>
                 <bdi className="text-caption">wa.me/971563883302</bdi>
               </a>

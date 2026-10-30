@@ -15,7 +15,7 @@ export type SaveStayState = "signed-out" | "off" | "on";
 export type SaveStayTone = "on-image" | "on-surface";
 
 const ROOT =
-  "inline-flex min-h-control min-w-control cursor-pointer items-center justify-center gap-2 rounded-none text-label uppercase tracking-kicker no-underline ar:normal-case ar:tracking-normal";
+  "inline-flex min-h-control min-w-control cursor-pointer items-center justify-center gap-2 rounded-none text-label uppercase tracking-kicker ar:normal-case ar:tracking-normal";
 const TONE: Record<SaveStayTone, string> = {
   "on-image": "border-0 bg-ink/45 text-ivory hover:bg-ink/60",
   "on-surface": "border border-line bg-ivory text-teal hover:bg-surface",

@@ -59,7 +59,7 @@ const RAIL: RailItem[] = [
 ];
 
 const RAIL_ITEM =
-  "flex min-h-control w-full items-center justify-between gap-2 px-2 text-start font-body text-label no-underline transition-colors duration-fast ease-standard";
+  "flex min-h-control w-full items-center justify-between gap-2 px-2 text-start font-body text-label transition-colors duration-fast ease-standard";
 const MENU_BUTTON =
   "inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border border-line bg-surface p-0 text-teal xl:hidden";
 
@@ -282,7 +282,7 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
         {copy.skip}
       </a>
       <header ref={headerRef} className="sticky top-0 z-50 flex min-h-control flex-wrap items-center justify-between gap-2 border-b border-line bg-ivory px-4 py-1">
-        <Link className="flex min-h-control min-w-0 items-center gap-2 text-teal no-underline" href={mode === "ops" ? "/" : "/dashboard/home"}>
+        <Link className="flex min-h-control min-w-0 items-center gap-2 text-teal" href={mode === "ops" ? "/" : "/dashboard/home"}>
           <img className="block aspect-2/1 h-auto w-35 max-w-full object-contain object-left" alt="ALMAR" src={logoSrc ?? charcoalLogo.src} />
           <span className="hidden whitespace-nowrap font-display text-label uppercase tracking-kicker xl:inline ar:normal-case ar:tracking-normal">
             {copy.dashboardName}

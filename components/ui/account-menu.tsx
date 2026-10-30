@@ -24,7 +24,7 @@ export type AccountMenuLabels = {
 };
 
 const ITEM =
-  "flex min-h-control cursor-pointer items-center px-4 font-body text-label text-ink no-underline outline-none data-highlighted:bg-ivory";
+  "flex min-h-control cursor-pointer items-center px-4 font-body text-label text-ink outline-none data-highlighted:bg-ivory";
 
 /** Canvas page 6, board 6e: the signed-in trigger shows her name; the menu lists what works. */
 export function AccountMenu({
