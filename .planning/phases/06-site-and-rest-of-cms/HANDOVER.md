@@ -329,3 +329,35 @@ Sonnet (`jev-review`: deep, "touches security"; Fable deferred to the whole PR, 
 7. Repeat one form in Arabic and Spanish. Expected: RTL with Arabic text; Spanish with tú.
 
 Jev: fits later as a triage score on incoming requests (likely spam or not), logged and advisory; not added. Automation: a daily unattended digest to the owner of the next day's calls and any request not handled after 48 hours (proposal only).
+
+# 06-07 executed: hand-over (job 26)
+
+Commits: see `06-07-SUMMARY.md`. Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test). **Migration unchanged: 3,378 lines, sha256 `9f917461e8e532d660ab0c374ddc275c96a8e508f3f924eddd720751b91fa77d`.** No SQL gaps.
+
+## Reviews
+Sonnet (no Fable per plan, the owner's decision). Verdict "fix first"; all three answered, no re-review:
+1. Notices on home and post pages landed against `PageShell` (its `@container` holds fixed children), often off-screen: `SaveStayNotices` with no children now renders into the body, so `home-page.tsx` needs no slot.
+2. The saved heart read "Remove X, pressed": `aria-pressed` dropped, the name carries the state; `tests/saved-stays.spec.ts` follows.
+3. A read returning during a tap could flip the heart back: hearts still being saved keep what she tapped.
+
+## Slots needed (existing tests the hearts will break; not edited)
+1. `tests/build/private-stays/private-stays.spec.ts:138`: `cardLinks` finds 0, cards are now `article` with the link nested. Use `main ul[role='list'] > li a[href*='/private-stays/']`; recheck its Tab-order test (527-567), each card gains a stop.
+2. `tests/build/stay-detail/stay-detail.spec.ts:755`: `#related ul a` also counts hearts. Use `a[href*='/private-stays/']`.
+3. `tests/build/server-runtime.spec.ts:125`: add `"/api/saved-stays"`.
+Optional: `worker/handle.mjs` `FORM_BODY_CAPS` `["/api/saved-stays", 256]` plus its pin, otherwise a large POST is read whole before it is refused, as `/api/preferences` today.
+
+## Open
+- **Owner's look:** the gold title underline at rest changes the /private-stays list. One prop to remove if the drawing meant hover only.
+- Look first on a phone: the hero's three controls wrap to two rows at 390 and may touch the booking bar on short screens.
+- Signed in, first paint shows the sign-in link until the read returns, then the heart flips; Share appears after mount, so the row shifts.
+- Never run: save under RLS through PostgREST (`upsert` with `ignoreDuplicates`; reviewer read it as fine), and the `[&_button]` overrides on Copy link.
+- Baselines shift: `tests/account-select.spec.ts` (`guest-account`).
+
+## Owner's check (after the migration and a preview build)
+1. Signed out, open a stay and click Save. Expected: sign-in page; after signing in, back on the stay with "Saved" and the filled heart, and the saved notice.
+2. On /en/private-stays click a heart on another card. Expected: it fills, no notice; reload and it is still filled.
+3. Account › Saved stays. Expected: both stays listed; click Remove on one. Expected: it goes, with the removed notice; the heart on that stay is outline again.
+4. On a phone, stay page, click Share. Expected: the phone's share sheet. On a computer: Copy link and Share on WhatsApp, the address has no extra query.
+5. Repeat 1-3 in Arabic and Spanish. Expected: RTL with Arabic words; Spanish with tú.
+
+Jev: none fits (a plain saved list, no judgment). Automation: a weekly unattended email to the owner of the most-saved stays, as a demand signal (proposal only).
