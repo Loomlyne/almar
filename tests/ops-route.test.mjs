@@ -248,7 +248,7 @@ test("text/plain is 415 wrong_type; a 70,000-byte body is 413 too_large; invalid
   assert.equal((await run(post(atLimit))).status, 200, "exactly 64 KiB passes");
 });
 
-test("bodyLimit (06-03): a larger cap is read after the owner check; without it 64 KiB stays; only /api/ops/posts passes one", async () => {
+test("bodyLimit (06-03): a larger cap is read after the owner check; without it 64 KiB stays; only /api/ops/posts and /api/ops/legal pass one", async () => {
   const body = JSON.stringify({ t: "a".repeat(200_000) });
   const handler = async () => ({ body: { ok: true } });
   const run = (request, extra = {}) => runOps({ method: "POST", request, decide: async () => OWNER, parse: (b) => b, handler, nodeEnv: "production", ...extra });
@@ -263,7 +263,7 @@ test("bodyLimit (06-03): a larger cap is read after the owner check; without it 
   for (const file of walk(join("app", "api", "ops"))) {
     const src = readFileSync(file, "utf8");
     const passes = /bodyLimit/.test(src);
-    assert.equal(passes, file === join("app", "api", "ops", "posts", "route.ts"), `${file}: bodyLimit only on posts`);
+    assert.equal(passes, file === join("app", "api", "ops", "posts", "route.ts") || file === join("app", "api", "ops", "legal", "route.ts"), `${file}: bodyLimit only on posts and legal`);
   }
 });
 
@@ -535,6 +535,7 @@ const EXPECTED_ROUTES = [
   "catalog",
   "destinations",
   "journeys",
+  "legal",
   "money",
   "nav",
   "page-items",

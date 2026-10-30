@@ -10,11 +10,11 @@ const TEAM_SCREEN = `${CONTENT_DIR}/team/team-screen.tsx`;
 const TEAM_PAGE = `${CONTENT_DIR}/team/page.tsx`;
 
 const COMING_SOON = `${CONTENT_DIR}/coming-soon.tsx`;
-// Plan 03.2-12 made pages, blog, legal and navigation Coming soon pages; 06-02 wired pages and navigation and 06-03 blog
-// (tests/ops-pages.spec.ts, ops-nav.spec.ts, ops-blog.spec.ts). Legal stays until 06-04.
-const KINDS = ["legal"];
+// Plan 03.2-12 made pages, blog, legal and navigation Coming soon pages; 06-02 wired pages and navigation, 06-03 blog and
+// 06-04 legal (tests/ops-pages.spec.ts, ops-nav.spec.ts, ops-blog.spec.ts, ops-legal.spec.ts). No page is left.
+const KINDS = [];
 // The copy keeps the pages and navigation blocks until the last Phase 6 content plan lands (controller, 2026-10-28).
-const COPY_KINDS = ["pages", "legal", "navigation"];
+const COPY_KINDS = ["pages", "legal", "navigation"]; // "legal" too: the controller removes the dead block (plan 06-04).
 const PAGES = KINDS.map((kind) => ({ path: `${CONTENT_DIR}/${kind}/page.tsx`, kind, screen: "coming-soon" }));
 
 test("each content page has no page gate (02-04 owner gate in the layout), is noindex and delegates to its screen with its kind", () => {
@@ -37,6 +37,16 @@ test("the team page has no page gate, is noindex and renders the wired Team scre
   assert.match(text, /from ["']\.\/team-screen["']/);
   assert.match(text, /<TeamScreen \/>/);
   assert.equal(existsSync(`${CONTENT_DIR}/content-screen.tsx`), false);
+});
+
+test("the legal page has no page gate, is noindex and renders the wired Legal screen", () => {
+  const text = readFileSync(`${CONTENT_DIR}/legal/page.tsx`, "utf8");
+  assert.equal(text.includes("use client"), false);
+  assert.equal(/NODE_ENV|notFound\(\)/.test(text), false);
+  assert.match(text, /robots: \{ index: false, follow: false \}/);
+  assert.match(text, /from ["']\.\/legal-screen["']/);
+  assert.match(text, /<LegalScreen \/>/);
+  assert.equal(text.includes("ComingSoonScreen"), false);
 });
 
 test("coming-soon.tsx has no control: no Field, Button, input, button, link or onClick", () => {

@@ -45,7 +45,7 @@ const RAIL: RailItem[] = [
       { key: "pages", label: "Pages", href: "/dashboard/content/pages" },
       { key: "blog", label: "Blog", href: "/dashboard/content/blog" },
       { key: "team", label: "Team", href: "/dashboard/content/team" },
-      { key: "legal", label: "Legal", href: "/dashboard/content/legal", soon: true },
+      { key: "legal", label: "Legal", href: "/dashboard/content/legal" },
       { key: "media", label: "Media", href: "/dashboard/content/media" },
       { key: "navigation", label: "Navigation and footer", href: "/dashboard/content/navigation" },
     ],

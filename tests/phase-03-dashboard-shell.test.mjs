@@ -114,12 +114,12 @@ test("sidebar is a Radix dialog with title and Close, docked with end-0 and no J
   assert.equal(text.includes("KitDialog"), false);
 });
 
-test("Content rail: Pages, Blog, Team, Legal, Media, Navigation and footer in canvas order; four Soon chips; none on Packages, Team or Media", () => {
+test("Content rail: Pages, Blog, Team, Legal, Media, Navigation and footer in canvas order; no Soon chip is left (06-02, 06-03, 06-04)", () => {
   const text = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
   const content = text.slice(text.indexOf('key: "content"'), text.indexOf('key: "settings"'));
   const rows = [...content.matchAll(/\{ key: "([a-z]+)", label: "[^"]+", href: "([^"]+)"(, soon: true)? \}/g)].map((m) => ({ key: m[1], href: m[2], soon: Boolean(m[3]) }));
   assert.deepEqual(rows.map((r) => r.key), ["pages", "blog", "team", "legal", "media", "navigation"]);
-  assert.deepEqual(rows.filter((r) => r.soon).map((r) => r.key), ["pages", "blog", "legal", "navigation"]);
+  assert.deepEqual(rows.filter((r) => r.soon).map((r) => r.key), []);
   assert.equal(text.slice(text.indexOf('key: "catalog"'), text.indexOf('key: "content"')).includes("soon: true"), false, "Packages carries no chip");
   // The chip and the accessible name ", soon" come from lib/copy/ops-content.ts, not from the shared dashboard copy.
   assert.match(text, /OPS_CONTENT_COPY\[locale\]/);
