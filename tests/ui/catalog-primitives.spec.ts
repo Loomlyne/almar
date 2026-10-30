@@ -283,15 +283,15 @@ for (const viewport of WIDTHS) {
       const expected = rtl ? "/ar/experiences" : locale === "es" ? "/es/experiences" : "/experiences";
 
       for (const state of ["english-path", "localised-path"]) {
-        test(`${state}: exactly one link is current and it is underlined`, async ({ page }) => {
+        test(`${state}: exactly one link is current and it is bold, with no line`, async ({ page }) => {
           await open(page, "site-nav-localised", state, locale, viewport);
           if (viewport !== "desktop") await page.locator("header button[aria-controls]").first().click();
           const current = page.locator('header a[aria-current="page"]');
           await expect(current).toHaveCount(1);
           await expect(current).toHaveAttribute("href", expected);
           await expect(current).toBeVisible();
-          expect(await style(current, "text-decoration-line")).toContain("underline");
-          expect(await style(current, "text-decoration-thickness")).toBe("2px");
+          expect(await style(current, "text-decoration-line")).toBe("none");
+          expect(await style(current, "font-weight")).toBe("700");
         });
       }
 

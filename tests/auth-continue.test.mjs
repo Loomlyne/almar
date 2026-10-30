@@ -224,5 +224,5 @@ test("Continue screen: a no-JavaScript wrong-email answer keeps what she typed; 
   const screen = readFileSync("app/auth/confirm/continue-screen.tsx", "utf8");
   assert.match(screen, /useState\(state\.status === "wrong-email" \? state\.email : initialEmail\)/);
   // The page URL holds token_hash: the link back to sign-in must not carry it as Referer.
-  assert.match(screen, /<a href=\{signInHref\} rel="noreferrer"/);
+  assert.match(screen, /<Link href=\{signInHref\} rel="noreferrer"/);
 });

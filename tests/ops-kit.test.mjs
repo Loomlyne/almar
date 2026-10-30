@@ -1059,16 +1059,16 @@ test("EditPage: cards in two columns from lg (main spans two of three), the side
 test("EditPage: the English card says Write in English and carries the Edit translations link, closed", () => {
   const html = page(pageProps);
   assert.match(html, /Write in English\. Arabic and Spanish are added when you save\./);
-  assert.match(html, /aria-expanded="false"[^>]*>[\s\S]*?Edit translations<\/button>/);
+  assert.match(html, /aria-expanded="false"[^>]*><span[^>]*>Edit translations<\/span><svg\b[\s\S]*?<\/svg><\/button>/, "the chevron follows the words, inside one row");
   assert.equal(html.includes("[AR]"), false, "the boxes open only on the link");
 });
 
 test("EditPage: Delete is a link-style button after the side cards; off on a published item with Unpublish first", () => {
   const html = page(pageProps);
-  assert.match(html, /text-error underline[^"]*"[^>]*>Delete<\/button>|>Delete<\/button>/);
+  assert.match(html, /<button type="button"[^>]*class="[^"]*text-error[^"]*"[^>]*><svg\b[\s\S]*?<\/svg>Delete<\/button>/, "red, with the small x before the word");
   assert.ok(html.indexOf("SIDE-BODY") < html.indexOf(">Delete<"));
   const live = page({ ...pageProps, isPublished: true });
-  assert.match(live, /<button type="button" disabled=""[^>]*>Delete<\/button>/);
+  assert.match(live, /<button type="button" disabled=""[^>]*><svg\b[\s\S]*?<\/svg>Delete<\/button>/);
   assert.match(live, />Unpublish first</);
   assert.match(live, />Save and update site</);
   assert.equal(page({ ...pageProps, isNew: true }).includes(">Delete<"), false, "a new item has nothing to delete");

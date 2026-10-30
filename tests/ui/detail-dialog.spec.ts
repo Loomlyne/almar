@@ -77,7 +77,7 @@ for (const viewport of WIDTHS) {
         await expect(page.getByTestId("open-calls")).toHaveText("5");
       });
 
-      test("openRef receives the button; focus ring, hover underline and the title at the inline start", async ({ page }) => {
+      test("openRef receives the button; the focus ring is around the whole card, no underline on hover, and the title at the inline start", async ({ page }) => {
         await open(page, "media-card-open", "open", locale, viewport);
         const card = page.locator("article");
         const button = card.getByRole("button", { name: "[Title]" });
@@ -86,15 +86,14 @@ for (const viewport of WIDTHS) {
         await page.getByRole("button", { name: "[focus card]" }).focus();
         await page.keyboard.press("Shift+Tab");
         await expect(button).toBeFocused();
-        expect(await style(button, "outline-style")).toBe("solid");
-        expect(await style(button, "outline-width")).toBe("2px");
-        expect(await style(button, "outline-color")).toBe(await token(page, "teal"));
+        const ring = (prop: string) => button.evaluate((el, name) => getComputedStyle(el, "::after").getPropertyValue(name), prop);
+        expect(await ring("outline-style")).toBe("solid");
+        expect(await ring("outline-width")).toBe("2px");
+        expect(await ring("outline-color")).toBe(await token(page, "teal"));
         await page.mouse.move(0, 0);
         const over = await centre(page, card.locator("img"));
         await page.mouse.move(over.x, over.y);
-        expect(await style(button, "text-decoration-line")).toContain("underline");
-        expect(await style(button, "text-decoration-thickness")).toBe("1px");
-        expect(await style(button, "text-decoration-color")).toBe(await token(page, "gold"));
+        expect(await style(button, "text-decoration-line")).toBe("none");
         const c = await box(card);
         const t = await textBox(button);
         if (rtl) expect(Math.abs(c.x + c.width - t.right)).toBeLessThanOrEqual(2);

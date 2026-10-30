@@ -49,14 +49,25 @@ for (const viewport of WIDTHS) {
         expect(await style(img, "border-radius")).toBe("0px");
       });
 
-      test("hover draws a gold 1px underline on the title", async ({ page }) => {
+      test("hover has no underline: the title's arrow is there at rest and slides the reading way, and the photo zooms", async ({ page }) => {
         await open(page, "media-card", "link", locale, viewport);
         const title = page.getByText("[Title]");
+        const link = page.getByTestId("harness-card").getByRole("link");
+        const arrow = link.locator("svg");
+        await expect(arrow).toBeVisible();
         expect(await style(title, "text-decoration-line")).toBe("none");
-        await page.getByTestId("harness-card").getByRole("link").hover();
-        expect(await style(title, "text-decoration-line")).toBe("underline");
-        expect(await style(title, "text-decoration-thickness")).toBe("1px");
-        expect(await style(title, "text-decoration-color")).toBe(await token(page, "gold"));
+        const before = await arrow.boundingBox();
+        await link.hover();
+        expect(await style(title, "text-decoration-line")).toBe("none");
+        await expect
+          .poll(async () => parseFloat(await style(link.locator("img"), "scale")))
+          .toBeCloseTo(1.05, 2);
+        await expect
+          .poll(async () => {
+            const after = await arrow.boundingBox();
+            return (after!.x - before!.x) * (locale === "ar" ? -1 : 1);
+          })
+          .toBeGreaterThan(3);
       });
 
       test("keyboard reaches the card and the focus ring is the 2px teal outline", async ({ page }) => {

@@ -34,15 +34,22 @@ test("button: teal primary, ivory label, hover and press steps, cva sizes (D-13)
   assert.match(s, /from "\.\.\/\.\.\/lib\/cn"/);
 });
 
-test("link: teal, gold 1px underline on hover only (D-14)", () => {
+test("link: the five signed kinds, no line under text, nothing turns gold (pictures/no-underlines)", () => {
   const s = read("components/ui/link.tsx");
-  assert.ok(s.includes("hover:underline"));
-  assert.ok(s.includes("decoration-gold"));
-  assert.ok(s.includes("decoration-1"));
-  assert.ok(s.includes("underline-offset-4"));
-  assert.doesNotMatch(s, /hover:text-gold/);
-  assert.match(s, /inline/);
-  assert.ok(s.includes("decoration-teal"));
+  assert.doesNotMatch(s, /[\s":]underline\b|decoration-(?!clone)/);
+  assert.doesNotMatch(s, /(?:bg|text)-gold/);
+  // Kind 1: a tile on hover; ivory focus on the teal footer; the current page is bold with no line.
+  assert.ok(s.includes("hover:bg-ivory/14") && s.includes("focus-visible:outline-ivory"));
+  assert.match(s, /LINK_CURRENT = "font-bold"/);
+  // Kind 3: the row never wraps; the arrow never shrinks and mirrors in RTL.
+  assert.match(s, /LINK_ALONE =\s*"group\/link inline-flex[^"]*hover:bg-teal-tint/);
+  assert.ok(s.includes("shrink-0 rtl:-scale-x-100"));
+  assert.ok(s.includes("ltr:motion-safe:group-hover/link:translate-x-1") && s.includes("rtl:motion-safe:group-hover/link:-translate-x-1"));
+  // Kind 4: bold teal on an always-on tint block that keeps its shape on each wrapped line; no arrow.
+  assert.match(s, /LINK_IN_SENTENCE =\s*"[^"]*bg-teal-tint[^"]*font-bold[^"]*box-decoration-clone[^"]*hover:bg-teal hover:text-ivory/);
+  // Kind 5: Remove is red with its x.
+  assert.match(s, /LINK_BUTTON_DANGER =\s*"[^"]*text-error[^"]*hover:bg-error\/10/);
+  assert.match(s, /export function RemoveMark/);
 });
 
 test("toggle-card: pressed buttons in a labelled group with an alert line (D-17)", () => {
