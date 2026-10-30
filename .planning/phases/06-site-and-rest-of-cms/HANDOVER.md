@@ -328,4 +328,4 @@ Sonnet (`jev-review`: deep, "touches security"; Fable deferred to the whole PR, 
 6. Send Plan with us and List with us from `/en/plan-with-us` and `/en/list-with-us`. Expected: thank-you line, both in Requests; Mark handled moves them; WhatsApp shows only for a `+` number.
 7. Repeat one form in Arabic and Spanish. Expected: RTL with Arabic text; Spanish with tú.
 
-Jev: fits later as a triage score on incoming requests (likely spam or not), logged and advisory; not added. Automation: a daily unattended check that reads upcoming bookings and emails the owner any whose guest email failed (proposal only).
+Jev: fits later as a triage score on incoming requests (likely spam or not), logged and advisory; not added. Automation: a daily unattended digest to the owner of the next day's calls and any request not handled after 48 hours (proposal only).
