@@ -126,7 +126,7 @@ export async function handleSiteRequestPost(
 
 // ---- Consultation ---------------------------------------------------------------------------------------------------
 
-export type ConsultRefusalReason = "slot_taken" | "closed" | "unavailable" | "invalid" | "error";
+export type ConsultRefusalReason = "slot_taken" | "closed" | "unavailable" | "limit" | "invalid" | "error";
 
 export type BookConsultationResult =
   | { ok: true; request_id: string; booking_id: string; slot_start: string; emailed: boolean }
@@ -142,6 +142,8 @@ function bookingRefusal(message: string | null | undefined): { status: number; r
     case "almar:slot_too_soon":
     case "almar:slot_too_far":
       return { status: 409, reason: "unavailable" };
+    case "almar:slot_limit":
+      return { status: 429, reason: "limit" };
     case "almar:invalid":
       return { status: 400, reason: "invalid" };
     default:
@@ -161,7 +163,8 @@ function invitation(locale: Locale, bookingId: string, start: string, phone: str
 
 /**
  * Saves through book_consultation (its lock and the partial unique index settle two guests on one slot), then the guest's and
- * the owner's emails, each with the .ics. A failed email never undoes the booking; `emailed` is the guest's.
+ * the owner's emails, each with the .ics. A failed email never undoes the booking; `emailed` is the guest's. Each email has its
+ * own try: a saved brand that cannot be read costs the guest's email, never the owner's word of the call.
  */
 export async function bookConsultation(deps: SiteRequestDeps, input: { locale: Locale; payload: RequestPayload }): Promise<BookConsultationResult> {
   if (!deps.admin) return { ok: false, status: 503, reason: "error" };
@@ -177,9 +180,9 @@ export async function bookConsultation(deps: SiteRequestDeps, input: { locale: L
   const phone = String(payload.phone ?? "");
   const timeZone = String(payload.time_zone ?? "");
 
+  const attachments = invitation(input.locale, booking_id, slot_start, phone, deps.now());
   let emailed = false;
   try {
-    const attachments = invitation(input.locale, booking_id, slot_start, phone, deps.now());
     const guest = renderConsultationGuestEmail({
       locale: input.locale,
       name,
@@ -195,12 +198,16 @@ export async function bookConsultation(deps: SiteRequestDeps, input: { locale: L
       { from: INQUIRY_ADDRESS, to: String(payload.email), replyTo: INQUIRY_ADDRESS, subject: guest.subject, html: guest.html, text: guest.text, attachments },
       { idempotencyKey: `consult-guest/${booking_id}` },
     );
+  } catch {
+    // The booking stands; the guest is told the email failed.
+  }
+  try {
     await deps.send(
       { ...composeConsultationOwnerEmail({ payload, requestId: request_id, startIso: slot_start, timeZone }), attachments },
       { idempotencyKey: `consult-owner/${booking_id}` },
     );
   } catch {
-    // The booking stands; the guest is told the email failed.
+    // The booking stands and shows in the dashboard.
   }
   return { ok: true, request_id, booking_id, slot_start, emailed };
 }
@@ -238,12 +245,10 @@ export async function handleConsultSlotsGet(url: URL, deps: Pick<SiteRequestDeps
   const to = dayMs(url.searchParams.get("to"));
   if (from === null || to === null || to < from || (to - from) / 86400000 > MAX_RANGE_DAYS) return refused(400);
   if (!deps.admin) return refused(503);
-  const setup = await deps.admin.rpc("ops_get_consult");
+  const setup = await deps.admin.rpc("consult_is_open");
   if (setup.error) return refused(503);
-  const held = (setup.data ?? {}) as { notice_hours?: unknown; horizon_days?: unknown };
-  const open = typeof held.notice_hours === "number" && typeof held.horizon_days === "number";
   const closed: ConsultSlotsReply & { ok: true; open: boolean } = { ok: true, open: false, slots: [], time_zone: "Asia/Dubai" };
-  if (!open) return formReply(closed, 200);
+  if (setup.data !== true) return formReply(closed, 200);
   const { data, error } = await deps.admin.rpc("consult_slots", { p_from: url.searchParams.get("from"), p_to: url.searchParams.get("to") });
   if (error) return refused(503);
   const rows = Array.isArray(data) ? (data as Array<{ slot_start?: unknown }>) : [];

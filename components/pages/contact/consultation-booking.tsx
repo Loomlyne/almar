@@ -119,7 +119,8 @@ export function ConsultationBooking({ locale, copy, whatsappCta, tooLong, email,
 
   async function load(month: Month): Promise<void> {
     const mine = ++reading.current;
-    const answer = await readMonth(month);
+    // One quiet second try: a blip must not read as "not open yet".
+    const answer = (await readMonth(month)) ?? (await readMonth(month));
     if (mine !== reading.current) return;
     if (!answer || !answer.open) {
       setStatus("closed");

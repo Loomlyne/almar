@@ -4,7 +4,7 @@
 -- use the zz6 prefix and ids ending in 6xx.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(232);
+select plan(241);
 
 -- Helpers -------------------------------------------------------------------------------------------------------------
 -- The refusal's message and detail, or 'saved' when the call returns.
@@ -208,6 +208,7 @@ select throws_ok($$select locked_fields from public.image_translations$$, '42501
 select throws_ok($$insert into public.site_requests (kind, locale, name, email) values ('plan', 'en', 'x', 'x@example.com')$$, '42501', null, 'anon cannot write a request');
 select throws_ok($$select public.submit_site_request('plan', 'en', '{}'::jsonb)$$, '42501', null, 'anon cannot call submit_site_request');
 select throws_ok($$select public.book_consultation('en', '{}'::jsonb)$$, '42501', null, 'anon cannot call book_consultation');
+select throws_ok($$select public.consult_is_open()$$, '42501', null, 'anon cannot call consult_is_open');
 select throws_ok($$select public.stay_is_published('00000000-0000-4000-8000-0000000006e1')$$, '42501', null, 'anon cannot call stay_is_published');
 select lives_ok($$select public.booking_terms_current()$$, 'anon can call booking_terms_current (the build bakes its version with the anon key)');
 select throws_ok($$select public.import_site_content('{}'::jsonb)$$, '42501', null, 'anon cannot call import_site_content');
@@ -275,6 +276,7 @@ select set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000
 select throws_ok($$select * from public.site_requests$$, '42501', null, 'a signed-in guest cannot read site_requests');
 select throws_ok($$select public.submit_site_request('plan', 'en', '{}'::jsonb)$$, '42501', null, 'a signed-in guest cannot call submit_site_request');
 select throws_ok($$select public.book_consultation('en', '{}'::jsonb)$$, '42501', null, 'a signed-in guest cannot call book_consultation');
+select throws_ok($$select public.consult_is_open()$$, '42501', null, 'a signed-in guest cannot call consult_is_open');
 select throws_ok($$select public.booking_terms_current()$$, '42501', null, 'a signed-in guest cannot call booking_terms_current');
 select is(public.stay_is_published('00000000-0000-4000-8000-0000000006e1'), true, 'stay_is_published answers a signed-in guest');
 select lives_ok($$insert into public.saved_stays (user_id, stay_id) values ('00000000-0000-4000-8000-000000000651', '00000000-0000-4000-8000-0000000006e1')$$,
@@ -485,6 +487,7 @@ select is((public.ops_set_request_handled((select (v ->> 'id')::uuid from t6 whe
 select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('3 days')))$$),
   'almar:consult_closed {}', 'closed while notice and horizon are unset');
 select is((select count(*)::int from public.consult_slots(current_date, current_date + 7)), 0, 'consult_slots is empty while closed');
+select is(public.consult_is_open(), false, 'consult_is_open: closed');
 select is(pg_temp.outcome($$select public.ops_save_consult('{"hours": [{"weekday": 1, "starts": "09:00", "ends": "12:00"}, {"weekday": 1, "starts": "11:00", "ends": "13:00"}]}'::jsonb)$$),
   'almar:invalid {"field": "hours", "locale": null}', 'overlapping hours on one weekday are refused');
 select is(pg_temp.outcome($$select public.ops_save_consult('{"hours": [{"weekday": 1, "starts": "09:15", "ends": "10:00"}]}'::jsonb)$$),
@@ -514,6 +517,8 @@ select is(pg_temp.outcome($$select public.consult_slots(current_date, current_da
 select lives_ok($$select public.ops_save_consult(jsonb_build_object(
     'hours', (select jsonb_agg(jsonb_build_object('weekday', d, 'starts', '00:00', 'ends', '24:00')) from generate_series(1, 7) as d)))$$,
   'hours all day every day (the day off and the settings stay)');
+select is(public.consult_is_open(), true, 'consult_is_open: open');
+select is(public.ops_get_consult() -> 'hours' -> 0 ->> 'ends', '24:00', 'an end of 24:00 reads back as 24:00, so the editor can save it again');
 select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('1 hour')))$$),
   'almar:slot_too_soon {}', 'a slot inside the notice is refused');
 select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('31 days')))$$),
@@ -523,8 +528,10 @@ select is((select v ->> 'slot_start' from t6 where k = 'b1'), pg_temp.iso_ms(pg_
 select is((select array[r.kind, r.locale, r.email, b.status] from public.consult_bookings b join public.site_requests r on r.id = b.request_id
            where b.id = (select (v ->> 'booking_id')::uuid from t6 where k = 'b1')),
   array['consultation', 'ar', 'zz6-guest@example.com', 'booked'], 'with its request in the same transaction');
-select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('2 days')))$$),
+select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('2 days')) || '{"email": "zz6-other@example.com"}'::jsonb)$$),
   'almar:slot_taken {}', 'the same slot cannot be booked twice');
+select is(public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('2 days'))) ->> 'booking_id', (select v ->> 'booking_id' from t6 where k = 'b1'),
+  'the same email on the same start gets its booking back (a lost reply, retried)');
 select ok(not exists (select 1 from public.consult_slots(current_date, current_date + 5) s where s.slot_start = pg_temp.next_slot('2 days')),
   'consult_slots no longer offers the booked slot');
 select ok(exists (select 1 from public.consult_slots(current_date, current_date + 5) s where s.slot_start = pg_temp.next_slot('2 days') + interval '30 minutes'),
@@ -540,6 +547,12 @@ select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consul
 select is((select count(*)::int from public.consult_bookings where slot_start = pg_temp.next_slot('2 days')), 2, 'one cancelled and one booked row on that start');
 select throws_ok($$insert into public.consult_bookings (slot_start, request_id) values (pg_temp.next_slot('2 days'), (select request_id from public.consult_bookings limit 1))$$,
   '23505', null, 'the database itself refuses a second booked row on one start');
+select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('2 days') + interval '30 minutes'))$$),
+  'saved', 'a second upcoming call for one email is booked');
+select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('2 days') + interval '60 minutes'))$$),
+  'almar:slot_limit {}', 'a third upcoming call for one email is refused');
+select is(pg_temp.outcome($$select public.book_consultation('en', pg_temp.consult(pg_temp.next_slot('2 days') + interval '60 minutes') || '{"phone": "-------"}'::jsonb)$$),
+  'almar:invalid {"field": "payload", "locale": null}', 'a phone with no digits is refused');
 select is(pg_temp.outcome($$select public.book_consultation('en', jsonb_build_object('name', 'Zz6', 'email', 'zz6@example.com', 'slot_start', 'tomorrow', 'time_zone', 'Asia/Dubai'))$$),
   'almar:invalid {"field": "payload", "locale": null}', 'a malformed slot start is refused');
 

@@ -182,7 +182,19 @@ test("bookConsultation: the refusals", async () => {
   assert.deepEqual(await refused("slot_taken"), { ok: false, status: 409, reason: "slot_taken" });
   assert.deepEqual(await refused("consult_closed"), { ok: false, status: 409, reason: "closed" });
   for (const code of ["slot_outside_hours", "slot_too_soon", "slot_too_far"]) assert.deepEqual(await refused(code), { ok: false, status: 409, reason: "unavailable" });
+  assert.deepEqual(await refused("slot_limit"), { ok: false, status: 429, reason: "limit" });
   assert.deepEqual(await refused("invalid"), { ok: false, status: 400, reason: "invalid" });
+});
+
+test("bookConsultation: a brand that cannot be read costs the guest's email, never the owner's", async () => {
+  const d = { ...deps(fakeAdmin(booked)), brand: async () => { throw new Error("no settings"); } };
+  const out = await bookConsultation(d, {
+    locale: "en",
+    payload: { name: "Ana", email: "ana@example.com", phone: "+34 600 000 000", slot_start: "2026-11-03T11:00:00.000Z", time_zone: "Europe/Madrid" },
+  });
+  assert.equal(out.ok, true);
+  assert.equal(out.emailed, false);
+  assert.deepEqual(d.sent.map((s) => s.options.idempotencyKey), ["consult-owner/b-9"]);
 });
 
 test("handleConsultBookPost: a failed mail keeps the booking, emailed false; a taken slot answers its reason; no key 503", async () => {
@@ -207,15 +219,15 @@ test("handleConsultSlotsGet: a bad date or a range over 31 days is 400, before a
 });
 
 test("handleConsultSlotsGet: closed while notice or horizon is null; no slot read, no setting leaves", async () => {
-  const admin = fakeAdmin({ ops_get_consult: { data: { notice_hours: 24, horizon_days: null, hours: [{ weekday: 1 }] }, error: null } });
+  const admin = fakeAdmin({ consult_is_open: { data: false, error: null } });
   const res = await handleConsultSlotsGet(slotsUrl("2026-11-01", "2026-11-30"), { admin });
   assert.deepEqual(await res.json(), { ok: true, open: false, slots: [], time_zone: "Asia/Dubai" });
-  assert.deepEqual(admin.calls.map((c) => c.name), ["ops_get_consult"]);
+  assert.deepEqual(admin.calls.map((c) => c.name), ["consult_is_open"]);
 });
 
 test("handleConsultSlotsGet: open answers ISO starts only, no-store; no admin 503", async () => {
   const admin = fakeAdmin({
-    ops_get_consult: { data: { notice_hours: 1, horizon_days: 2, upcoming: [{ name: "Secret" }] }, error: null },
+    consult_is_open: { data: true, error: null },
     consult_slots: { data: [{ slot_start: "2026-11-03T10:00:00+00:00" }], error: null },
   });
   const res = await handleConsultSlotsGet(slotsUrl("2026-11-01", "2026-12-02"), { admin });

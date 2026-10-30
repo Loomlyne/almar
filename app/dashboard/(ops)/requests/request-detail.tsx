@@ -137,7 +137,8 @@ export function RequestDetail({
                 {copy.reply}
               </LinkButton>
             ) : null}
-            {digits.length >= 7 ? (
+            {/* wa.me needs the country code; a number typed without one opens no chat. */}
+            {digits.length >= 7 && text(request.payload.phone).trim().startsWith("+") ? (
               <LinkButton variant="secondary" href={`https://wa.me/${digits}`} target="_blank" rel="noopener noreferrer">
                 {copy.wa}
               </LinkButton>

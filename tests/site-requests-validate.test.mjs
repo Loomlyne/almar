@@ -30,6 +30,7 @@ test("plan: refuses from >= to, guests 0 or 100, an airport not listed, budget o
   assert.equal(errors({ [F.from]: "2026-02-31" }).from, "invalid");
   assert.equal(errors({ [F.guests]: "0" }).guests, "invalid");
   assert.equal(errors({ [F.guests]: "100" }).guests, "invalid");
+  assert.equal(errors({ [F.phone]: "-------" }).phone, "invalid");
   assert.equal(errors({ [F.airport]: "CDG" }).airport, "invalid");
   assert.equal(errors({ [F.budget]: "x".repeat(121) }).budget, "tooLong");
   assert.equal(errors({ [F.tripNotes]: "x".repeat(2001) }).notes, "tooLong");

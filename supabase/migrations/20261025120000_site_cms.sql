@@ -540,7 +540,8 @@ begin
     return false;
   end if;
   if p ? 'phone' and jsonb_typeof(p -> 'phone') <> 'null'
-     and (jsonb_typeof(p -> 'phone') <> 'string' or (p ->> 'phone') !~ '^\+?[0-9 ()-]{7,20}$') then
+     and (jsonb_typeof(p -> 'phone') <> 'string' or (p ->> 'phone') !~ '^\+?[0-9 ()-]{7,20}$'
+          or char_length(regexp_replace(p ->> 'phone', '\D', '', 'g')) < 7) then
     return false;
   end if;
 
@@ -2872,10 +2873,25 @@ $$;
 revoke execute on function public.consult_slots(date, date, timestamptz) from public, anon, authenticated;
 grant execute on function public.consult_slots(date, date, timestamptz) to service_role;
 
+-- Whether the calendar is open, for the public slots read: nothing else leaves (ops_get_consult carries the bookings).
+create or replace function public.consult_is_open()
+returns boolean
+language sql
+stable
+set search_path = ''
+as $$
+  select coalesce((select s.notice_hours is not null and s.horizon_days is not null from public.consult_settings s where s.id = 1), false)
+$$;
+
+revoke execute on function public.consult_is_open() from public, anon, authenticated;
+grant execute on function public.consult_is_open() to service_role;
+
 -- Books one slot (T-06-03): the payload is a consultation request (slot_start, time_zone, name, email, phone?,
--- notes?); an advisory lock on the slot's epoch serialises two guests on the same start; then the refusals of
--- consult_slot_refusal at now(); then the request and the booking in this transaction (a unique violation from the
--- partial index is slot_taken too). Returns {request_id, booking_id, slot_start (ISO UTC)}.
+-- notes?); advisory locks on the email and on the slot's epoch serialise a guest's bookings and two guests on the same
+-- start; the same email on a start it already holds gets that booking back (a retry whose reply was lost); then the
+-- refusals of consult_slot_refusal at now(); then at most two upcoming booked calls per email (slot_limit: one script
+-- cannot make ALMAR mail one address over and over); then the request and the booking in this transaction (a unique
+-- violation from the partial index is slot_taken too). Returns {request_id, booking_id, slot_start (ISO UTC)}.
 create or replace function public.book_consultation(p_locale text, p_payload jsonb)
 returns jsonb
 language plpgsql
@@ -2887,6 +2903,7 @@ declare
   v_code text;
   v_request uuid;
   v_booking uuid;
+  v_email text;
 begin
   if p_locale is null or p_locale not in ('en', 'ar', 'es') then
     perform public.catalog_invalid('locale');
@@ -2895,14 +2912,30 @@ begin
     perform public.catalog_invalid('payload');
   end if;
   v_slot := (p_payload ->> 'slot_start')::timestamptz;
+  v_email := lower(p_payload ->> 'email');
+  -- Always email, then slot: the same order for everyone.
+  perform pg_advisory_xact_lock(hashtextextended('almar-consult-email:' || v_email, 0));
   perform pg_advisory_xact_lock(hashtextextended('almar-consult:' || floor(extract(epoch from v_slot))::bigint::text, 0));
+  if v_slot > now() then
+    select b.id, b.request_id into v_booking, v_request
+    from public.consult_bookings b join public.site_requests r on r.id = b.request_id
+    where b.slot_start = v_slot and b.status = 'booked' and r.email = v_email;
+    if found then
+      return jsonb_build_object('request_id', v_request, 'booking_id', v_booking,
+        'slot_start', to_char(v_slot at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'));
+    end if;
+  end if;
   v_code := public.consult_slot_refusal(v_slot, now());
   if v_code is not null then
     perform public.catalog_fail(v_code);
   end if;
+  if (select count(*) from public.consult_bookings b join public.site_requests r on r.id = b.request_id
+      where b.status = 'booked' and b.slot_start > now() and r.email = v_email) >= 2 then
+    perform public.catalog_fail('slot_limit');
+  end if;
   begin
     insert into public.site_requests (kind, locale, name, email, payload)
-    values ('consultation', p_locale, btrim(p_payload ->> 'name', E' \t\r\n'), lower(p_payload ->> 'email'), p_payload)
+    values ('consultation', p_locale, btrim(p_payload ->> 'name', E' \t\r\n'), v_email, p_payload)
     returning id into v_request;
     insert into public.consult_bookings (slot_start, request_id)
     values (v_slot, v_request)

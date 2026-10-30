@@ -84,7 +84,7 @@ const opt = (cap: Cap): FieldCap => ({ ...cap, required: false });
 const CONTACT = {
   name: req({ kind: "text", min: 1, max: 120 }),
   email: req({ kind: "email", max: 254 }),
-  phone: opt({ kind: "phone", pattern: /^\+?[0-9 ()-]{7,20}$/ }),
+  phone: opt({ kind: "phone", pattern: /^(?=(?:\D*\d){7})\+?[0-9 ()-]{7,20}$/ }),
   notes: opt({ kind: "text", min: 0, max: 2000 }),
 } as const;
 

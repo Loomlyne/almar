@@ -202,7 +202,8 @@ export function ConsultationScreen() {
 
     const body: Record<string, unknown> = { action: "save" };
     if (hoursChanged) body.hours = hoursBody(form);
-    if (offChanged) body.days_off = form.daysOff;
+    // Past days are hidden and no use: they leave here, so the list never fills up with days she cannot see.
+    if (offChanged) body.days_off = form.daysOff.filter((day) => day >= dubaiToday());
     if (noticeChanged) body.notice_hours = notice;
     if (horizonChanged) body.horizon_days = horizon;
 
