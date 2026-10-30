@@ -20,14 +20,6 @@ const LOCALES: readonly Locale3[] = ["en", "ar", "es"];
 
 export const LEGAL_KIND_ORDER: readonly LegalKind[] = ["privacy", "terms", "booking_terms", "waiver", "disclaimer", "cookie_banner"];
 
-/**
- * Whether the cookie banner keeps text blocks. The signed picture (legal-edit-banner) draws one paragraph block, but
- * ops_save_legal_page refuses `blocks` on cookie_banner (migration 20261025120000, pgTAP "the cookie banner takes no blocks"),
- * so a Save with them could never succeed: a control that cannot work is not shown. Flip this once that refusal is gone:
- * the card, the save body and the Publish check follow, and the public banner already draws them.
- */
-export const BANNER_TAKES_BLOCKS: boolean = false;
-
 const PAGE_FIELDS = ["title", "seo_title", "seo_description"] as const;
 const BANNER_FIELDS = ["title", "necessary_label", "necessary_body", "analytics_label", "analytics_body"] as const;
 export type LegalTextField = (typeof PAGE_FIELDS)[number] | (typeof BANNER_FIELDS)[number];
@@ -38,8 +30,8 @@ export const legalTextFields = (kind: LegalKind): readonly LegalTextField[] => (
 
 /** The block kinds a kind offers; none: no blocks card. */
 export function legalBlockKinds(kind: LegalKind): readonly TextBlockKind[] {
-  if (kind !== "cookie_banner") return ["heading", "paragraph", "quote"];
-  return BANNER_TAKES_BLOCKS ? ["paragraph"] : [];
+  // The banner's text is paragraph blocks (signed picture legal-edit-banner).
+  return kind === "cookie_banner" ? ["paragraph"] : ["heading", "paragraph", "quote"];
 }
 
 const takesBlocks = (kind: LegalKind) => legalBlockKinds(kind).length > 0;

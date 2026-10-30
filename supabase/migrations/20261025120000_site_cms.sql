@@ -2440,7 +2440,8 @@ revoke execute on function public.ops_save_post(jsonb) from public, anon, authen
 grant execute on function public.ops_save_post(jsonb) to service_role;
 
 -- p = {kind, translations?, blocks?: [{kind, translations}]} (06-04, F-07). The six rows exist. The banner columns
--- (necessary_*, analytics_*) are refused on every kind but cookie_banner, and the banner takes no blocks. blocks (at
+-- (necessary_*, analytics_*) are refused on every kind but cookie_banner. The banner's text is blocks too (signed picture,
+-- 2026-10-30). blocks (at
 -- most 300) is replaced whole when present: heading / paragraph / quote with the English text required. A published
 -- page keeps at least one block; a published banner keeps its English labels. Nothing is written by us (F-07).
 create or replace function public.ops_save_legal_page(p jsonb)
@@ -2485,9 +2486,6 @@ begin
     end loop;
   end if;
   if p ? 'blocks' then
-    if v_kind = 'cookie_banner' then
-      perform public.catalog_invalid('blocks');
-    end if;
     v_blocks := coalesce(nullif(p -> 'blocks', 'null'::jsonb), '[]'::jsonb);
     if jsonb_typeof(v_blocks) <> 'array' or jsonb_array_length(v_blocks) > 300 then
       perform public.catalog_invalid('blocks');

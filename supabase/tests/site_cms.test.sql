@@ -425,8 +425,8 @@ select is((public.ops_get('post', '00000000-0000-4000-8000-000000000621') -> 'bl
 select is(public.booking_terms_current(), '{"published": false}'::jsonb, 'booking terms: unpublished');
 select is(pg_temp.outcome($$select public.ops_save_legal_page('{"kind": "privacy", "translations": {"en": {"title": "Privacy", "necessary_label": "Necessary"}}}'::jsonb)$$),
   'almar:invalid {"field": "translations.en.necessary_label", "locale": "en"}', 'banner columns are refused on another kind');
-select is(pg_temp.outcome($$select public.ops_save_legal_page('{"kind": "cookie_banner", "blocks": []}'::jsonb)$$),
-  'almar:invalid {"field": "blocks", "locale": null}', 'the cookie banner takes no blocks');
+select lives_ok($$select public.ops_save_legal_page('{"kind": "cookie_banner", "blocks": []}'::jsonb)$$,
+  'the cookie banner takes blocks (its text, signed picture 2026-10-30)');
 select is((public.ops_publish('legal_page', pg_temp.legal('privacy'), true)) ->> 'code', 'publish_incomplete', 'a legal page with no text does not publish');
 select is(pg_temp.outcome($$select public.ops_save_legal_page('{"kind": "booking_terms", "translations": {"en": {"title": "Terms", "status": "published"}, "ar": {"title": "الشروط", "status": "draft"}, "es": {"title": "Términos", "status": "published"}}, "blocks": [{"kind": "paragraph", "translations": {"en": {"text": "One"}, "ar": {"text": "واحد"}, "es": {"text": "Uno"}}}]}'::jsonb)$$),
   'saved', 'the booking terms are written');

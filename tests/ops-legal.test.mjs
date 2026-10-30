@@ -195,12 +195,11 @@ test("legalPayload: a language with nothing written is null", () => {
   assert.equal(body.translations.es, null);
 });
 
-test("cookie banner: only its own fields; no blocks while ops_save_legal_page refuses them", () => {
-  assert.equal(f.BANNER_TAKES_BLOCKS, false, "when this flips, the migration's refusal and its pgTAP case go in the same change");
+test("cookie banner: only its own fields; its text is paragraph blocks", () => {
   const form = f.legalForm(detail("cookie_banner"));
-  assert.deepEqual([...f.legalBlockKinds("cookie_banner")], []);
+  assert.deepEqual([...f.legalBlockKinds("cookie_banner")], ["paragraph"]);
   const { body } = f.legalPayload(form, { publish: false });
-  assert.equal("blocks" in body, false);
+  assert.equal("blocks" in body, true);
   assert.equal("seo_title" in body.translations.en, false);
   assert.equal("necessary_label" in body.translations.en, true);
   assert.equal("necessary_label" in f.legalPayload(f.legalForm(detail("terms")), { publish: false }).body.translations.en, false);
