@@ -188,7 +188,7 @@ export function renderConsultationGuestEmail({
 <tr><td style="padding:16px 24px 0;font-size:16px;line-height:1.5">${escapeHtml(copy.lead)}</td></tr>
 <tr><td style="padding:16px 24px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:16px;line-height:1.5;text-align:${align}" dir="${dir}">${rowsHtml}</table></td></tr>
 <tr><td style="padding:16px 24px 0;font-size:16px;line-height:1.5">${waHtml}</td></tr>
-<tr><td style="padding:16px 24px 0"><a href="${escapeHtml(whatsappHref)}" style="display:inline-block;padding:12px 24px;background:${b.teal};color:${b.white};font-size:16px;text-decoration:none;border-radius:0">${escapeHtml(copy.btn)}</a></td></tr>
+<tr><td style="padding:16px 24px 0"><a href="${escapeHtml(whatsappHref)}" style="display:inline-block;padding:12px 24px;background:${b.teal};color:${b.white};font-size:16px;font-weight:700;text-decoration:none;border-radius:0">${escapeHtml(copy.btn)}</a></td></tr>
 <tr><td style="padding:16px 24px 0;font-size:16px;line-height:1.5">${escapeHtml(copy.cancel)}</td></tr>
 <tr><td style="padding:16px 24px 0;font-size:14px;line-height:1.5;color:#63615f">${escapeHtml(copy.ics)}</td></tr>
 <tr><td style="padding:16px 24px 24px;font-size:16px;line-height:1.5">${escapeHtml(copy.sign)}</td></tr>

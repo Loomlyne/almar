@@ -57,6 +57,10 @@ const FACE: Record<MaintenanceLocale, { display: string; body: string }> = {
 const SAFE_PATH = /^(\/brand\/[a-z]+|https:\/\/media\.almarprivatejourney\.com\/[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_.-]*)*)\.(svg|webp|png|jpg)$/;
 const SAFE_STYLE = /^(<style id="almar-brand">:root\{[^<]*\}<\/style>)?$/;
 
+/** The arrow after a stand-alone link (components/ui/link.tsx, kind 3), drawn inline: this page loads no script and no icon file. */
+const ARROW =
+  '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.5 12h15M13.5 6l6 6-6 6"/></svg>';
+
 /**
  * The closed page for one locale. `logoSrc` is a same-origin /brand/ file (lib/site-settings.ts logoPath) or the saved
  * logo's media URL (lib/site-settings-read.ts logoMediaUrl); `brandStyle`
@@ -82,25 +86,29 @@ export function renderMaintenancePage(locale: MaintenanceLocale, { logoSrc, bran
 <style>
   @font-face { font-family: Questa; src: url("/brand/questa.woff") format("woff"); font-weight: 400; font-display: swap; }
   @font-face { font-family: Lato; src: url("/brand/lato.ttf") format("truetype"); font-weight: 400; font-display: swap; }
-  :root { --color-teal: #1f3b40; --color-ink: #262626; --color-gold: #d4ba8a; --color-ivory: #fffaf0; --color-surface: #ffffff; }
+  :root { --color-teal: #1f3b40; --color-ink: #262626; --color-gold: #d4ba8a; --color-ivory: #fffaf0; --color-surface: #ffffff; --color-teal-tint: #d1dfe0; }
   * { box-sizing: border-box; border-radius: 0; }
   body { margin: 0; background: var(--color-ivory); color: var(--color-ink); font: 16px/1.5 ${face.body}; }
-  a { color: var(--color-teal); text-decoration: underline; text-decoration-color: var(--color-gold); text-underline-offset: 4px; }
+  a { color: var(--color-teal); text-decoration: none; }
+  nav a:hover, nav a:active, .contact a:hover, .contact a:active { background: var(--color-teal-tint); }
   .skip { position: absolute; inset-inline-start: 16px; top: 8px; padding: 8px; background: var(--color-surface); }
   .skip:not(:focus) { clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; white-space: nowrap; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; flex-wrap: wrap; }
   header img { display: block; width: 112px; height: 56px; object-fit: contain; object-position: left; }
   html[dir="rtl"] header img { object-position: right; }
   nav { display: flex; gap: 4px; font-size: 14px; }
-  nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; text-decoration: none; }
-  nav a[aria-current] { text-decoration: underline; text-decoration-color: var(--color-gold); }
+  nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; }
+  nav a[aria-current] { font-weight: 700; }
   main { min-height: calc(100vh - 200px); display: grid; place-items: center; padding: 32px 16px 64px; }
   .inner { max-width: 640px; width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 24px; }
   h1 { margin: 0; font: 400 32px/1.2 ${face.display}; color: var(--color-teal); text-wrap: balance; }
   html[lang="ar"] h1 { line-height: 1.4; }
   .rule { width: 64px; height: 1px; background: var(--color-gold); }
   .contact { display: flex; flex-direction: column; gap: 8px; align-items: center; }
-  .contact a { display: inline-flex; align-items: center; min-height: 44px; }
+  .contact a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 8px; }
+  .contact svg { flex: none; }
+  html[dir="rtl"] .contact svg { transform: scaleX(-1); }
+  html[dir="rtl"] .contact .num { flex-direction: row-reverse; }
   .num { direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums; }
   @media (min-width: 768px) { header { padding: 24px 32px; } header img { width: 140px; height: 70px; } .contact { flex-direction: row; gap: 32px; } }
   @media (min-width: 1280px) { header { padding: 24px 64px; } }
@@ -119,8 +127,8 @@ ${brandStyle}
 <h1>${copy.line}</h1>
 <span class="rule" aria-hidden="true"></span>
 <div class="contact">
-<a class="num" href="${MAINTENANCE_PHONE.href}">${MAINTENANCE_PHONE.label}</a>
-<a href="${MAINTENANCE_EMAIL.href}">${MAINTENANCE_EMAIL.label}</a>
+<a class="num" href="${MAINTENANCE_PHONE.href}">${MAINTENANCE_PHONE.label}${ARROW}</a>
+<a href="${MAINTENANCE_EMAIL.href}">${MAINTENANCE_EMAIL.label}${ARROW}</a>
 </div>
 </div>
 </main>
