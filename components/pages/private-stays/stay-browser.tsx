@@ -155,7 +155,6 @@ export function StayBrowser({
                     title={stay.title}
                     detail={detailOf(stay)}
                     action={heart}
-                    underlineTitle
                   />
                 ) : (
                   <div className="flex items-start justify-between gap-3 border-t border-line pt-3">

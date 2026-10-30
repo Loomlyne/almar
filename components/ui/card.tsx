@@ -21,8 +21,6 @@ type MediaCardBase = {
    * "none" (default), "sm" 1.02x, "md" 1.05x.
    */
   zoom?: "none" | "sm" | "md";
-  /** The title underlined in gold at rest, not only on hover (the signed stay cards with a control, 06-07). With href and action only. */
-  underlineTitle?: boolean;
   className?: string;
 };
 
@@ -61,7 +59,6 @@ export function MediaCard({
   titleSize = "title",
   align = "start",
   zoom = "none",
-  underlineTitle = false,
   className,
 }: MediaCardProps) {
   const TITLE = cn("font-display", titleSize === "heading" ? "text-heading" : "text-title", TITLE_REST);
@@ -137,7 +134,7 @@ export function MediaCard({
         {picture}
         <div className="flex items-start justify-between gap-3">
           <span className={lineBox}>
-            <a href={href} className={cn(TITLE, underlineTitle ? "underline" : "no-underline", "after:absolute after:inset-0")}>
+            <a href={href} className={cn(TITLE, "no-underline after:absolute after:inset-0")}>
               {title}
             </a>
             {detail ? <span className="text-label text-muted">{detail}</span> : null}

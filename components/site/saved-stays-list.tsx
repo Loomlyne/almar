@@ -50,7 +50,7 @@ export function SavedStaysList({
               return (
                 <li key={stay.slug} className="min-w-0">
                   {stay.image ? (
-                    <MediaCard href={stay.href} image={stay.image} title={stay.title} detail={stay.destination} action={remove} underlineTitle />
+                    <MediaCard href={stay.href} image={stay.image} title={stay.title} detail={stay.destination} action={remove} />
                   ) : (
                     <div className="flex items-start justify-between gap-3 border-t border-line pt-3">
                       <span className="flex min-w-0 flex-col gap-1">

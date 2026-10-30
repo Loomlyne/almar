@@ -348,7 +348,7 @@ Sonnet (no Fable per plan, the owner's decision). Verdict "fix first"; all three
 The card link stays first in the DOM, so the Tab-order test's first stop holds; a heart is the next stop after it.
 
 ## Open
-- **Owner's look:** the gold title underline at rest changes the /private-stays list. One prop to remove if the drawing meant hover only.
+- Owner, 2026-10-30: the gold title underline is hover only (removed at rest); the heart on a post's featured stay stays.
 - Look first on a phone: the hero's three controls wrap to two rows at 390 and may touch the booking bar on short screens.
 - Signed in, first paint shows the sign-in link until the read returns, then the heart flips; Share appears after mount, so the row shifts.
 - Never run: save under RLS through PostgREST (`upsert` with `ignoreDuplicates`; reviewer read it as fine), and the `[&_button]` overrides on Copy link.

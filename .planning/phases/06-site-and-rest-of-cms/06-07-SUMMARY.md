@@ -17,7 +17,7 @@
 ## Deviations
 - Outside the plan's list: `components/ui/save-stay-card.tsx` (`SavedPortraitCard`), because `tests/stay-detail-source.test.mjs` refuses `action={<...>}` in the stay page. That test also refuses `<Button` in `stay-detail/*`, so Share is a plain `<button>` with `buttonClass`.
 - Plan files left alone: `lib/preferences-route.ts` (the helpers are already in `lib/ops/route-core.ts`); `lib/supabase/clients.ts` (not granted; `createSupabaseAnon()` is in `lib/saved-stays/server.ts`).
-- Signed page over plan: ivory Save, Share, WhatsApp and Copy link; square busy spinner; `success` tone on the saved notice; Saved stays first under Personal on Account; gold title underline at rest on list and Account cards (`underlineTitle` on `MediaCard`).
+- Signed page over plan: ivory Save, Share, WhatsApp and Copy link; square busy spinner; `success` tone on the saved notice; Saved stays first under Personal on Account; the gold title underline is hover only (owner, 2026-10-30: the at-rest underline first built here is removed).
 - **Signed page not followed, real page kept (treated as schematic):** list card detail stays neighbourhood · guests · price; home and related grids stay as they are; hero frame unchanged; Account "Personal" heading stays, so the card title is `h3`; the post's featured stay has a heart (plan), not drawn.
 - Words not on the signed page, reused, none new: toast close `SITE_FOOTER_COPY.newsletter.dismiss`; a failed Remove says `saveFailed`.
 - Added: 405 for other methods; hearts reload on a back-button restore; a 401 clears the slugs.
