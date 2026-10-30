@@ -124,3 +124,13 @@ test("getBookingTermsLink: published terms but no baked version (the committed s
     assert.equal(await mod.getBookingTermsLink("en"), null);
   });
 });
+
+test("getBookingPageLegal: the footer's links, never the banner (the booking address holds its token)", async () => {
+  const labels = { necessary_label: "[n]", analytics_label: "[a]" };
+  await withViews([page("p", "privacy"), page("b", "cookie_banner")], [...whole("p", { body: [{ type: "paragraph", text: "[one]" }] }), ...whole("b", labels)], async (mod) => {
+    const chrome = await mod.getBookingPageLegal("en");
+    assert.equal(chrome.links.length, 1);
+    assert.equal(chrome.banner, null);
+    assert.equal(chrome.privacyHref, null);
+  });
+});

@@ -144,7 +144,7 @@ function moneyRefusal(error: Parameters<typeof mapBookingRefusal>[0]): OpsOutcom
  */
 export async function fetchPublicTermsVersion(doFetch: typeof fetch = fetch): Promise<string | null> {
   try {
-    const response = await doFetch(`${SITE_ORIGIN}/booking-terms-version.json`, { cache: "no-store", signal: AbortSignal.timeout(3000) });
+    const response = await doFetch(`${SITE_ORIGIN}/booking-terms-version.json`, { signal: AbortSignal.timeout(3000) });
     if (!response.ok) return null;
     const { version } = (await response.json()) as { version?: unknown };
     return typeof version === "string" ? version : null;

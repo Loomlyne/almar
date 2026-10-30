@@ -10,6 +10,8 @@
   Cache-Control: public, max-age=31536000, immutable
 /site-version.json
   Cache-Control: no-store
+/booking-terms-version.json
+  Cache-Control: no-store
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

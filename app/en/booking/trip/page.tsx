@@ -1,6 +1,6 @@
 import { tripMetadata } from "../../../booking/trip/trip-meta";
 import { TripPage } from "../../../booking/trip/trip-screen";
-import { getBookingTermsLink, getSiteLegalChrome } from "../../../../lib/data/legal";
+import { getBookingPageLegal, getBookingTermsLink } from "../../../../lib/data/legal";
 
 // Plan 04-03 (Q-06): the guest's trip, static and noindex; the screen reads the query in the browser.
 export const dynamic = "force-static";
@@ -10,5 +10,5 @@ export function generateMetadata() {
 }
 
 export default async function Page() {
-  return <TripPage locale="en" legal={await getSiteLegalChrome("en")} termsLink={await getBookingTermsLink("en")} />;
+  return <TripPage locale="en" legal={await getBookingPageLegal("en")} termsLink={await getBookingTermsLink("en")} />;
 }

@@ -629,8 +629,9 @@ async function main(argv = process.argv.slice(2)) {
       // publish-sequence window. The ops build draws no public page and keeps the committed snapshot.
       if (target !== "ops") writeNavSnapshot(nextBuildEnv(process.env, source));
       // Plan 06-04: the booking terms version this build saw; the request gate opens only on the same version. Its one
-      // line says which version or that none was baked. Only a file that cannot be written stops here.
-      if (target !== "ops") execFileSync(process.execPath, [path.join(root, "scripts/write-booking-terms.mjs")], { cwd: root, stdio: "inherit", env: nextBuildEnv(process.env, source) });
+      // line says which version or that none was baked. Only a file that cannot be written stops here. The ops build reads
+      // fixtures, so it writes none: no earlier public build's version stays in its bundle.
+      execFileSync(process.execPath, [path.join(root, "scripts/write-booking-terms.mjs")], { cwd: root, stdio: "inherit", env: nextBuildEnv(process.env, source) });
       if (hasSitemap) expectedPaths = expectedPublicPaths(source);
       execFileSync("./node_modules/.bin/opennextjs-cloudflare", ["build", "--config", config], {
         cwd: root,
