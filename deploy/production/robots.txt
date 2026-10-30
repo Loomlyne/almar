@@ -1,4 +1,14 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /en/account
+Disallow: /en/bookings
+Disallow: /ar/account
+Disallow: /ar/bookings
+Disallow: /es/account
+Disallow: /es/bookings
+Disallow: /account
+Disallow: /bookings
 
 Sitemap: https://almarprivatejourney.com/sitemap.xml

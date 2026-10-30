@@ -151,6 +151,29 @@ export function buildSitemap(htmlFiles) {
   return lines.join("\n");
 }
 
+/**
+ * Plan 06-04 (SITE-11): every path the published rows name is in the sitemap in English, Arabic and Spanish, each with its
+ * four alternates. Throws naming the first URL missing, so the build can never silently drop a published page.
+ */
+export function assertSitemapCovers(xml, basePaths) {
+  const blocks = new Map();
+  for (const block of xml.split("<url>").slice(1)) {
+    const loc = /<loc>([^<]*)<\/loc>/.exec(block);
+    if (loc) blocks.set(loc[1], block);
+  }
+  for (const base of basePaths) {
+    for (const locale of LOCALES) {
+      const url = SITE_ORIGIN + localePath(locale, base);
+      const block = blocks.get(escapeXml(url));
+      if (block === undefined) throw new Error(`sitemap.xml: ${url} is published but not in the sitemap (no page file was built for it)`);
+      for (const [hreflang, target] of [...LOCALES.map((l) => [l, l]), ["x-default", "en"]]) {
+        const href = escapeXml(SITE_ORIGIN + localePath(target, base));
+        if (!block.includes(`hreflang="${hreflang}" href="${href}"`)) throw new Error(`sitemap.xml: ${url} has no ${hreflang} alternate ${href}`);
+      }
+    }
+  }
+}
+
 // ---- the folder ---------------------------------------------------------------------------------------------------
 
 /** public/ is copied into the output folder before anything else, so a crawl file there would bypass the target logic. */
@@ -164,6 +187,25 @@ export function assertPublicClean(root = REPO_ROOT) {
 }
 
 const read = (file) => fs.readFileSync(file, "utf8");
+
+/** The three security headers of the /* block (plan 06-04); Permissions-Policy is checked by name, its list may grow. */
+const SECURITY_HEADER_LINES = [/^\s+X-Content-Type-Options: nosniff\s*$/m, /^\s+Referrer-Policy: strict-origin-when-cross-origin\s*$/m, /^\s+Permissions-Policy: \S/m];
+
+/**
+ * The last /* block of a _headers file, or null. The last one is the one served: wrangler keeps one rule per path
+ * (rules[rule.path] in its constructHeaders), so on preview and ops the appended noindex block replaces the root's /* block
+ * instead of adding to it, and must carry the three headers itself.
+ */
+function servedStarBlock(headers) {
+  const parts = headers.split(/^\/\*[ \t]*$/m);
+  if (parts.length < 2) return null;
+  return parts[parts.length - 1].split(/^\S/m)[0];
+}
+
+/** What a robots.txt of the live site must keep out of the index (F-06). */
+function requiredDisallows() {
+  return ["/api/", "/auth/", ...LOCALES.flatMap((locale) => [`/${locale}/account`, `/${locale}/bookings`])];
+}
 
 /**
  * Writes _headers, robots.txt and (not on preview or ops) sitemap.xml into outDir. _headers always starts as the
@@ -201,6 +243,13 @@ export function assertTargetFiles(outDir, target, { root = REPO_ROOT } = {}) {
   const headers = need("_headers");
   const robots = need("robots.txt");
 
+  // Every target: the served /* block has the three headers, and no page gets no-referrer (job 02: it sends Origin: null,
+  // which breaks server actions).
+  const star = servedStarBlock(headers);
+  if (star === null) fail("_headers", "has no /* block");
+  if (!SECURITY_HEADER_LINES.every((line) => line.test(star))) fail("_headers", "the /* block must hold X-Content-Type-Options, Referrer-Policy and Permissions-Policy");
+  if (/^\s*Referrer-Policy:\s*no-referrer\s*$/im.test(headers)) fail("_headers", "carries Referrer-Policy: no-referrer, which breaks server actions");
+
   if (isNoindexTarget(target)) {
     const block = read(path.join(root, "deploy", "preview", "_headers"));
     if (!headers.endsWith(block)) fail("_headers", "does not end with the preview noindex block");
@@ -216,6 +265,9 @@ export function assertTargetFiles(outDir, target, { root = REPO_ROOT } = {}) {
   if (/noindex/i.test(headers) || /x-robots-tag/i.test(headers)) fail("_headers", "carries noindex or X-Robots-Tag, which would de-index the live site");
   if (/^Disallow:\s*\/\s*$/m.test(robots)) fail("robots.txt", "carries a bare Disallow: /, which would de-index the live site");
   if (!robots.split("\n").includes(`Sitemap: ${SITE_ORIGIN}/sitemap.xml`)) fail("robots.txt", "has no Sitemap line");
+  for (const blocked of requiredDisallows()) {
+    if (!robots.split("\n").includes(`Disallow: ${blocked}`)) fail("robots.txt", `has no Disallow: ${blocked}`);
+  }
   const production = path.join(root, "deploy", "production", "robots.txt");
   if (fs.existsSync(production) && robots !== read(production)) fail("robots.txt", "is not deploy/production/robots.txt");
   if (!fs.existsSync(file("sitemap.xml"))) fail("sitemap.xml", "is missing");

@@ -27,6 +27,17 @@ export const FORM_BODY_CAPS = new Map([
   ["/newsletter", 8192],
 ]);
 
+/**
+ * Plan 06-04 (SITE-11): the three headers of every Worker answer, the same as the /* block of the repo-root _headers. Never
+ * no-referrer here: it sends Origin: null and breaks server actions. A route's own value stays (the auth hand-off sets
+ * no-referrer on its redirect). tests/server-runtime.test.mjs pins these against _headers.
+ */
+export const SECURITY_HEADERS = {
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "permissions-policy": "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+};
+
 /** The declared length of a form POST is above its route's cap. */
 function declaredTooLarge(request, pathname) {
   const cap = request.method === "POST" ? FORM_BODY_CAPS.get(pathname) : undefined;
@@ -54,7 +65,7 @@ export async function handle(request, env, ctx, { serverPaths, nextFetch, rootRe
   if (legacy) return new Response(null, { status: 301, headers: { location: `${legacy}${search}` } });
   if (!serverPaths.has(pathname)) return env.ASSETS.fetch(request);
   if (declaredTooLarge(request, pathname)) {
-    return Response.json({ ok: false }, { status: 413, headers: { "cache-control": "no-store", "x-robots-tag": "noindex" } });
+    return Response.json({ ok: false }, { status: 413, headers: { "cache-control": "no-store", "x-robots-tag": "noindex", ...SECURITY_HEADERS } });
   }
 
   // Next trusts these two headers (OpenNext copies x-forwarded-host into Host, and reads the client address from
@@ -73,5 +84,8 @@ export async function handle(request, env, ctx, { serverPaths, nextFetch, rootRe
   // A server answer is never a page to index, on either host.
   const out = new Headers(response.headers);
   out.set("x-robots-tag", "noindex");
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    if (!out.has(name)) out.set(name, value);
+  }
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers: out });
 }
