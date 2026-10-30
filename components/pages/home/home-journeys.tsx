@@ -1,9 +1,12 @@
 "use client";
 
 import { Amount } from "../../ui/amount";
+import { CARD_ZOOM } from "../../ui/card";
 import { Divider } from "../../ui/divider";
+import { CARD_TITLE, CardTitleWords, Link } from "../../ui/link";
 import { Reveal } from "../../ui/reveal";
 import { Section } from "../../ui/section";
+import { cn } from "../../../lib/cn";
 import { formatDate } from "../../../lib/format";
 import type { FxRates } from "../../../lib/fx/rates";
 import { useCurrencyChoice } from "./currency-choice";
@@ -14,7 +17,7 @@ import { useCurrencyChoice } from "./currency-choice";
 // else on the section changes. The rates travel as data attributes so a test can read the same numbers.
 //
 // Plan 06-06, as signed (pictures/06-06 home-cards, decision 2): each card opens its package page, /<locale>/journeys/<slug>.
-// The heading is the link (gold underline); "See this journey" repeats it at the card's end for a pointer only (aria-hidden,
+// The heading is the link (the card title of pictures/no-underlines, kind 2); "See this journey" repeats it at the card's end for a pointer only (aria-hidden,
 // out of the tab order), so each card is one link target for a keyboard and a screen reader. A card holds what the page
 // draws: number, name, price line, tagline. The duration, the ideal-for lines and the description live on the package page.
 
@@ -66,8 +69,8 @@ export function HomeJourneys({
         <Reveal kind="row">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {tiers.map((tier, index) => (
-              <article key={tier.slug} className="grid min-w-0 content-start border border-line bg-surface">
-                <div className="relative">
+              <article key={tier.slug} className="group grid min-w-0 content-start border border-line bg-surface">
+                <div className="relative overflow-hidden">
                   {tier.image ? (
                     <img
                       src={tier.image.src}
@@ -75,7 +78,7 @@ export function HomeJourneys({
                       width={tier.image.width ?? undefined}
                       height={tier.image.height ?? undefined}
                       decoding="async"
-                      className="block aspect-48/35 w-full object-cover"
+                      className={cn("block aspect-48/35 w-full object-cover", CARD_ZOOM.md)}
                     />
                   ) : null}
                   {tier.is_featured ? (
@@ -87,22 +90,17 @@ export function HomeJourneys({
                 <div className="grid gap-3 p-6">
                   <p className="m-0 text-caption text-teal">{String(index + 1).padStart(2, "0")}</p>
                   <h3 className="m-0 font-display text-heading text-teal">
-                    <a href={tier.href} className="text-teal underline decoration-gold decoration-1 underline-offset-4">
-                      {tier.name}
+                    <a href={tier.href} className={CARD_TITLE}>
+                      <CardTitleWords>{tier.name}</CardTitleWords>
                     </a>
                   </h3>
                   <p data-price={tier.slug} className="m-0 text-label text-teal md:text-body">
                     <Amount text={tier.price_label} selected={selected} rates={rates} locale={locale} />
                   </p>
                   {tier.tagline ? <p className="m-0 text-body text-ink">{tier.tagline}</p> : null}
-                  <a
-                    href={tier.href}
-                    aria-hidden="true"
-                    tabIndex={-1}
-                    className="inline-flex min-h-control w-max items-center text-body text-teal underline decoration-gold decoration-1 underline-offset-4"
-                  >
+                  <Link href={tier.href} aria-hidden="true" tabIndex={-1} className="w-max text-body">
                     {copy.open}
-                  </a>
+                  </Link>
                 </div>
               </article>
             ))}

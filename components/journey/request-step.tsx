@@ -7,7 +7,7 @@ import { fill } from "../../lib/journey-format";
 import { AlertCircleIcon, CheckIcon } from "../icons/icons";
 import { Button, LinkButton } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
-import { Link } from "../ui/link";
+import { Link, LINK_IN_SENTENCE } from "../ui/link";
 import { ToggleCardGroup } from "../ui/toggle-card";
 import { BookingReasons, type BookingReasonLinks } from "./booking-reasons";
 import { HoldTimer } from "./hold-timer";
@@ -67,8 +67,6 @@ function ErrorLine({ id, children }: { id?: string; children: ReactNode }) {
   );
 }
 
-const TERMS_LINK = "text-teal underline decoration-gold decoration-1 underline-offset-4";
-
 /**
  * The terms words, signed 2026-10-30: the owner's title links to the page in a new tab, so what the guest typed stays on
  * this tab. A link inside the checkbox's label does not tick the box.
@@ -77,7 +75,7 @@ function termsWords(copy: JourneyCopy, locale: Locale, link: BookingTermsLink | 
   if (!link) return copy.request.terms;
   return fillNodes(copy.request.termsAccept, {
     title: (
-      <a href={link.href} target="_blank" rel="noopener noreferrer" className={TERMS_LINK}>
+      <a href={link.href} target="_blank" rel="noopener noreferrer" className={LINK_IN_SENTENCE}>
         {link.title}
         <span className="sr-only"> {SITE_FOOTER_COPY[locale].newTab}</span>
       </a>

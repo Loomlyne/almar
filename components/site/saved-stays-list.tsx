@@ -1,7 +1,9 @@
+import { cn } from "../../lib/cn";
 import { fill } from "../../lib/journey-format";
 import type { SavedStaysCopy } from "../../lib/copy/saved-stays";
 import { Button, LinkButton } from "../ui/button";
 import { MediaCard } from "../ui/card";
+import { CARD_TITLE, CardTitleWords } from "../ui/link";
 
 /** A saved, published stay as Account shows it. Built by lib/saved-stays/server.ts in the page's language. */
 export type SavedStayCard = {
@@ -54,7 +56,11 @@ export function SavedStaysList({
                   ) : (
                     <div className="flex items-start justify-between gap-3 border-t border-line pt-3">
                       <span className="flex min-w-0 flex-col gap-1">
-                        <a href={stay.href} className="font-display text-title text-teal underline decoration-gold decoration-1 underline-offset-4">{stay.title}</a>
+                        <a href={stay.href} className="group w-max max-w-full">
+                          <span className={cn("font-display text-title", CARD_TITLE)}>
+                            <CardTitleWords>{stay.title}</CardTitleWords>
+                          </span>
+                        </a>
                         <span className="text-label text-muted">{stay.destination}</span>
                       </span>
                       {remove}

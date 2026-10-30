@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { InclusionsList } from "../../journey/inclusions-list";
 import { WhatsAppIcon } from "../../icons/icons";
 import { Amount } from "../../ui/amount";
+import { LINK_ALONE, LINK_IN_SENTENCE, LinkArrow } from "../../ui/link";
 import { cn } from "../../../lib/cn";
 import { JOURNEY_COPY } from "../../../lib/copy/journey";
 import type { PackagePageCopy } from "../../../lib/copy/package-page";
@@ -17,7 +18,6 @@ import { localePath, type Locale } from "../../../lib/locale-path";
 
 const SECTION = "mx-auto flex w-full max-w-column flex-col gap-4 px-4 py-10 md:px-10 md:py-16";
 const H2 = "m-0 font-display text-display font-normal text-teal md:text-heading";
-const LINK = "text-teal underline decoration-gold decoration-1 underline-offset-4";
 
 export function PackageView({
   pkg,
@@ -99,7 +99,7 @@ export function PackageView({
                   {leg.stay_slug && leg.stay_title ? (
                     <p className="m-0 text-label text-muted">
                       {copy.stay}:{" "}
-                      <a href={localePath(locale, `/private-stays/${leg.stay_slug}`)} className={LINK}>
+                      <a href={localePath(locale, `/private-stays/${leg.stay_slug}`)} className={LINK_IN_SENTENCE}>
                         {leg.stay_title}
                       </a>
                     </p>
@@ -128,9 +128,10 @@ export function PackageView({
         <h2 className={H2}>{copy.reqHeading}</h2>
         <p className="m-0 max-w-160 text-body text-ink">{copy.reqIntro}</p>
         <div className="grid max-w-220 gap-6">{form}</div>
-        <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={cn("inline-flex min-h-control w-max max-w-full items-center gap-1 text-body", LINK)}>
+        <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={cn(LINK_ALONE, "w-max text-body")}>
           <WhatsAppIcon size={20} className="shrink-0" aria-hidden="true" />
           {copy.wa}
+          <LinkArrow />
           <span className="sr-only"> {newTabLabel}</span>
         </a>
       </section>

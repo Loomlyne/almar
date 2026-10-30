@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { cn } from "../../../lib/cn";
 import type { JourneyCopy } from "../../../lib/copy/journey";
 import type { SaveHeartCopy } from "../../../lib/copy/saved-stays";
 import type { StaysListCopy } from "../../../lib/copy/stays-list";
@@ -9,6 +10,7 @@ import { filterStays, parseStayQuery } from "../../../lib/data/stay-filter";
 import type { Stay } from "../../../lib/data/types";
 import { Button } from "../../ui/button";
 import { MediaCard } from "../../ui/card";
+import { CARD_TITLE, CardTitleWords } from "../../ui/link";
 import { ResultCount } from "../../ui/result-count";
 import { SaveStayButton } from "../../ui/save-stay";
 import {
@@ -160,10 +162,10 @@ export function StayBrowser({
                   <div className="flex items-start justify-between gap-3 border-t border-line pt-3">
                     <a
                       href={hrefs[stay.slug]}
-                      className="group grid min-w-0 content-start gap-1 text-ink no-underline"
+                      className="group grid min-w-0 content-start gap-1 text-ink"
                     >
-                      <span className="font-display text-title text-teal decoration-gold decoration-1 underline-offset-4 group-hover:underline">
-                        {stay.title}
+                      <span className={cn("font-display text-title", CARD_TITLE)}>
+                        <CardTitleWords>{stay.title}</CardTitleWords>
                       </span>
                       <span className="text-label text-muted">{detailOf(stay)}</span>
                     </a>

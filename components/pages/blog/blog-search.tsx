@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { Field } from "../../ui/field";
+import { LINK_BUTTON } from "../../ui/link";
 import { formatPlural, fill, type PluralForms } from "../../../lib/journey-format";
 import type { Locale } from "../../../lib/locale-path";
 
@@ -25,9 +26,6 @@ export function matchingCards<T extends { text: string }>(cards: readonly T[], q
     return words.every((word) => text.includes(word));
   });
 }
-
-const CLEAR =
-  "m-0 inline-flex min-h-control cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-transparent decoration-1 underline-offset-4 hover:decoration-gold focus-visible:decoration-gold";
 
 export function BlogSearchList({ locale, cards, copy, listClassName }: { locale: Locale; cards: BlogSearchCard[]; copy: BlogSearchCopy; listClassName: string }) {
   const id = useId();
@@ -78,7 +76,7 @@ export function BlogSearchList({ locale, cards, copy, listClassName }: { locale:
       {searching && shown.length === 0 ? (
         <div className="flex flex-wrap items-center gap-4">
           <p className="m-0 text-body text-ink">{fill(copy.searchNoMatch, { q: query.trim() })}</p>
-          <button type="button" className={CLEAR} onClick={clear}>
+          <button type="button" className={LINK_BUTTON} onClick={clear}>
             {copy.searchClear}
           </button>
         </div>

@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Dialog } from "../ui/dialog";
+import { LINK_ALONE, LinkArrow } from "../ui/link";
 import { RichText } from "../ui/rich-text";
 import { Switch } from "../ui/switch";
+import { cn } from "../../lib/cn";
 import { ANALYTICS_HOSTS, CF_WEB_ANALYTICS_TOKEN } from "../../lib/analytics-config";
 import { parseConsent, serializeConsent } from "../../lib/consent";
 import { COOKIE_CONSENT_COPY } from "../../lib/copy/cookie-consent";
@@ -14,8 +16,7 @@ import type { Locale } from "../../lib/locale-path";
 const BEACON_SRC = "https://static.cloudflareinsights.com/beacon.min.js";
 const OPEN_EVENT = "almar:open-cookie-settings";
 
-const TEXT_LINK =
-  "inline-flex min-h-control w-max cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4";
+const TEXT_LINK = cn(LINK_ALONE, "w-max cursor-pointer border-0 bg-transparent py-0 font-body text-label");
 
 /** Opens the settings sheet from anywhere on the page: the footer's Cookie settings. */
 export function openCookieSettings() {
@@ -99,6 +100,7 @@ export function CookieConsent({ locale, banner, privacyHref }: { locale: Locale;
   const privacy = privacyHref ? (
     <a className={TEXT_LINK} href={privacyHref}>
       {copy.privacyLink}
+      <LinkArrow />
     </a>
   ) : null;
 
@@ -125,6 +127,7 @@ export function CookieConsent({ locale, banner, privacyHref }: { locale: Locale;
             </Button>
             <button type="button" className={TEXT_LINK} onClick={openCookieSettings}>
               {copy.settings}
+              <LinkArrow />
             </button>
           </div>
         </div>
