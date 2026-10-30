@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-30 23:14 +0100:** Phase 6 migration 20261025120000 applied and read back; content import applied (191 rows). No deploy yet.
+
 **2026-10-30 23:12 +0100:** Phase 6 landed on main `da90743f` (PR #35) on the owner's Ship; no migration, import or deploy. Tests and build not run (owner). Next: migration and import on his word, then deploys, then Phase 5.
 
 **2026-10-27 21:54 +0100:** Phase 4 live: migration 20261019160000 applied and read back, BOOKING_LINK_SECRET on almar and almar-ops, almar-preview 1ce1873f, almar-ops 9fad3c4e (cron ok), almar 1435e262. Requests closed until booking terms exist. Phase 6 (06-01) next.
