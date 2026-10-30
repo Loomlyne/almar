@@ -63,6 +63,8 @@ function formOf(variant: Exclude<Variant, "list">): JourneyForm {
     stored: { ar: true, es: true },
     price_from: variant === "price-unreadable" ? null : { amount: AMOUNT_PLACEHOLDER, currency: "USD" },
     price_estimate: null,
+    legs: [],
+    addon_ids: [],
   };
 }
 
@@ -75,6 +77,10 @@ function JourneysScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }
     ? {
         form,
         saved: form.text,
+        savedLegs: form.legs,
+        destinations: [],
+        staysByDestination: {},
+        addons: [],
         onForm: setForm,
         dirty: false,
         busy: false,
@@ -82,13 +88,14 @@ function JourneysScene({ ctx, variant }: { ctx: SceneContext; variant: Variant }
         onSave: () => Promise.resolve(false),
         onPublish: noop,
         onUnpublish: noop,
+        onDelete: noop,
         onClose: noop,
       }
     : null;
 
   return (
     <Frame locale={locale}>
-      <JourneysView rows={ROWS} onOpen={noop} onMove={noop} onDropOrder={noop} panel={panel} />
+      <JourneysView rows={ROWS} onNew={noop} onOpen={noop} onMove={noop} onDropOrder={noop} panel={panel} />
     </Frame>
   );
 }
