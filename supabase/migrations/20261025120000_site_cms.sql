@@ -1607,6 +1607,24 @@ begin
     if (select j.media_id from public.journey_tiers j where j.id = p_id) is null then
       v_missing := v_missing || jsonb_build_array(jsonb_build_object('locale', null, 'field', 'media_id'));
     end if;
+    -- Every leg reads in every language and shows to guests: the owner must not see a 5-city route while a guest sees 4.
+    v_missing := v_missing || coalesce((
+      select jsonb_agg(jsonb_build_object('locale', g.locale, 'field', 'legs.' || (l.idx - 1) || '.nights_label') order by l.idx, g.ord)
+      from (select x.id, row_number() over (order by x.position, x.id) as idx
+            from public.journey_tier_legs x where x.tier_id = p_id) l
+      join public.journey_tier_leg_translations en on en.leg_id = l.id and en.locale = 'en'
+      cross join unnest(array['ar', 'es']) with ordinality as g(locale, ord)
+      left join public.journey_tier_leg_translations lt on lt.leg_id = l.id and lt.locale = g.locale
+      where btrim(coalesce(en.nights_label, ''), E' \t\r\n') <> ''
+        and (lt.nights_label is null or btrim(lt.nights_label, E' \t\r\n') = '')
+    ), '[]'::jsonb);
+    v_missing := v_missing || coalesce((
+      select jsonb_agg(jsonb_build_object('locale', null, 'field', 'legs.' || (l.idx - 1) || '.destination_id') order by l.idx)
+      from (select x.destination_id, row_number() over (order by x.position, x.id) as idx
+            from public.journey_tier_legs x where x.tier_id = p_id) l
+      join public.destinations d on d.id = l.destination_id
+      where not d.is_published
+    ), '[]'::jsonb);
   elsif p_entity = 'post' then
     if (select po.cover_media_id from public.posts po where po.id = p_id) is null then
       v_missing := v_missing || jsonb_build_array(jsonb_build_object('locale', null, 'field', 'cover_media_id'));

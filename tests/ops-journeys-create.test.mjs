@@ -65,6 +65,14 @@ test("addon_ids: distinct uuids, at most 500 (a guard only)", () => {
   invalid(() => parse.parseJourneyAction({ action: "save", item: { id: A, addon_ids: many } }), "addon_ids");
 });
 
+test("legGapNames: a leg's gap from ops_publish becomes that leg's own field; other gaps and errors stay", () => {
+  const legs = [{ key: "leg_1" }, { key: "leg_2" }];
+  const error = { code: "publish_incomplete", detail: { missing: [{ locale: "es", field: "legs.0.nights_label" }, { locale: null, field: "legs.1.destination_id" }, { locale: "ar", field: "name" }] } };
+  assert.deepEqual(forms.legGapNames(error, legs).detail.missing, [{ locale: "es", field: "leg_1" }, { locale: null, field: "dest_leg_2" }, { locale: "ar", field: "name" }]);
+  const other = { code: "invalid", field: "legs" };
+  assert.equal(forms.legGapNames(other, legs), other);
+});
+
 test("delete takes an id; any other key is refused", () => {
   assert.deepEqual(parse.parseJourneyAction({ action: "delete", id: A }), { action: "delete", id: A });
   invalid(() => parse.parseJourneyAction({ action: "delete", id: "x" }), "id");

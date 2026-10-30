@@ -42,6 +42,7 @@ import {
   journeyForm,
   journeyLocks,
   journeyPayload,
+  legGapNames,
   journeyPriceGaps,
   journeySlugOk,
   journeyWithTranslations,
@@ -319,7 +320,10 @@ function JourneyEditor({ panel, list }: { panel: JourneyPanel | null; list: Reac
 
   const missing = form ? missingForPublish("journey_tier", { translations: form.text, media_id: form.media?.id ?? null }) : [];
   const legLabels: Record<string, string> = Object.fromEntries(
-    (form?.legs ?? []).map((leg, index) => [leg.key, `${fillTeamCopy(copy.city, { n: index + 1 })}: ${copy.nights}`]),
+    (form?.legs ?? []).flatMap((leg, index) => {
+      const city = fillTeamCopy(copy.city, { n: index + 1 });
+      return [[leg.key, `${city}: ${copy.nights}`], [`dest_${leg.key}`, `${city}: ${copy.destination}`]];
+    }),
   );
   const fieldLabel = (field: string) => (field === "slug" ? copy.fieldSlug.toLocaleLowerCase(loc) : field in fieldLabels ? fieldLabels[field as JourneyTextField] : legLabels[field]);
   // A shown journey cannot be saved without what Publish needs (its photo, its English): the server's save does not
@@ -362,7 +366,7 @@ function JourneyEditor({ panel, list }: { panel: JourneyPanel | null; list: Reac
         canSave={canSave}
         notice={liveNote}
         missing={missing}
-        error={slugTaken ? null : (panel?.error ?? null)}
+        error={slugTaken || !panel?.error ? null : legGapNames(panel.error, form?.legs ?? [])}
         fieldLabel={fieldLabel}
         english={form ? journeyFields(form, "en") : {}}
         savedEnglish={panel ? journeyFields({ text: panel.saved, legs: panel.savedLegs }, "en") : {}}

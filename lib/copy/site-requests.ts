@@ -245,7 +245,7 @@ export const SITE_REQUESTS_COPY: Record<L, SiteRequestsCopy> = {
       },
     },
     list: {
-      title: "Publiquen con nosotros",
+      title: "Publica con nosotros",
       intro: "¿Tienes una propiedad en Colombia que encaje con nuestros huéspedes? Cuéntanos sobre ella.",
       name: "Nombre",
       email: "Correo electrónico",

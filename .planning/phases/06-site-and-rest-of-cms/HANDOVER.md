@@ -293,13 +293,14 @@ Jev: none fits (bounded, deterministic gates only). Automation: a daily unattend
 Commits: see `06-05-SUMMARY.md`; tip of the plan `5c7e4e3f`. Also pushed here: `6a1a43f2` (06-04, the owner's B). Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test).
 
 ## Migration: every change since the 06-04 hand-over
-Final at this hand-over: **3,379 lines, sha256 `8af56ba2977f5567df4b456055e594b5ad1e4c0cc8ad3ce02f7fe205d9694980`**. Add to the four items in the 06-04 section; 5-7 in `5c7e4e3f`, 8-10 after it:
+Final at this hand-over: **3,397 lines, sha256 `ad80f1b7a183c884a8e5817fd335183d4b3ba029ca8068ddf455b053a90d6eab`**. Add to the four items in the 06-04 section; 5-7 in `5c7e4e3f`, 8-11 after it:
 5. `site_request_payload_ok`: a phone needs at least 7 digits (`-------` passed before).
 6. New `consult_is_open()`, service role only: the public slots read no longer loads `ops_get_consult`, which carries every upcoming guest's name and email.
 7. `book_consultation`: an advisory lock on the email, taken before the slot's; the same email on a future start it already holds gets that booking back (a retry whose reply was lost, Resend's idempotency keys hold the emails); a third upcoming call for one email raises `almar:slot_limit` (removed in item 8).
 8. The owner chose no limit on calls per email (2026-10-30): the count check, `slot_limit`, its 429 and its reason are gone; the email lock and the same-email retry stay.
 9. The owner chose no limit on cities (2026-10-30): `site_request_payload_ok` cities 6 -> 50 and `ops_save_journey_tier` legs 12 -> 50, purely as a guard against malformed payloads; their comments. 
-10. Add-ons (controller, 2026-10-30): `ops_save_journey_tier` addon_ids 30 -> 500, a guard only; `ops_get` no longer returns a home-pickup item in `addon_ids`, so the editor can never send it back and be refused. pgTAP plan 244.
+10. Add-ons (controller, 2026-10-30): `ops_save_journey_tier` addon_ids 30 -> 500, a guard only; `ops_get` no longer returns a home-pickup item in `addon_ids`, so the editor can never send it back and be refused.
+11. Fable's one change (PR 35): `ops_publish('journey_tier')` adds to `missing` `legs.<idx>.nights_label` per AR or ES gap where English is filled, and `legs.<idx>.destination_id` for a leg on an unpublished destination. pgTAP plan 246.
 pgTAP: plan 241 (new: `consult_is_open` closed, open, anon, guest; retry; a second and third call for one email booked; phone; 24:00 read-back; "booked twice" now uses a second email). Not run.
 
 `to_char('24:00'::time, 'HH24:MI')` reads back `24:00` on the live database (controller, 2026-10-30).
@@ -367,7 +368,7 @@ Jev: none fits (a plain saved list, no judgment). Automation: a weekly unattende
 
 # 06-06 executed: hand-over (job 26)
 
-Commits: see `06-06-SUMMARY.md`; tip of the plan `aae76387`. Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test). **Migration at this hand-over: 3,379 lines, sha256 `8af56ba2977f5567df4b456055e594b5ad1e4c0cc8ad3ce02f7fe205d9694980` (items 9 and 10).**
+Commits: see `06-06-SUMMARY.md`; tip of the plan `aae76387`. Checks: `tsc` and `tokens:check` pass; nothing else ran (owner: no test). **Migration at this hand-over: 3,379 lines, sha256 `ad80f1b7a183c884a8e5817fd335183d4b3ba029ca8068ddf455b053a90d6eab` (items 9-11).**
 
 ## Reviews
 Sonnet: "ship", three lows. Reviewed `670ab183^..13b1a294`; the slot commits and these fixes were not reviewed. Answered in `aae76387`:
@@ -376,7 +377,7 @@ Sonnet: "ship", three lows. Reviewed `670ab183^..13b1a294`; the slot commits and
 3. `$` in a package name garbled the WhatsApp text: fixed.
 
 ## For the Fable review
-- **`ops_publish` does not check leg translations; the page falls back to English** (controller's request to list it).
+- `ops_publish` checks leg translations and destinations since Fable's review (migration item 11).
 
 ## Owner's answers, 2026-10-30
 - Cities: no limit. Done, migration item 9; `legsFull` removed; a route over 6 cities takes columns on the form at `md` and up. 50 cities of long Arabic names could pass the 16 KB body cap on `/api/requests` ; realistic names fit.
@@ -403,7 +404,7 @@ Jev: fits later as a score on which package a free-text request is closest to, a
 
 # No underlines: hand-over (job 26, owner 2026-10-30)
 
-Signed: `pictures/no-underlines/index.html`, `decisions/2026-10-30-no-underlines-pictures-signed.md`. Commits `85c2a13a`..`e2830ad1`, `1643d317`..`d6e25933`, Sonnet's answers `699d5a4f`. Checks: `tsc` and `tokens:check` pass; **nothing rendered, no test run**. Migration unchanged by this work: **3379 lines, sha256 `8af56ba2977f5567df4b456055e594b5ad1e4c0cc8ad3ce02f7fe205d9694980`**.
+Signed: `pictures/no-underlines/index.html`, `decisions/2026-10-30-no-underlines-pictures-signed.md`. Commits `85c2a13a`..`e2830ad1`, `1643d317`..`d6e25933`, Sonnet's answers `699d5a4f`. Checks: `tsc` and `tokens:check` pass; **nothing rendered, no test run**. Migration unchanged by this work: **3,397 lines, sha256 `ad80f1b7a183c884a8e5817fd335183d4b3ba029ca8068ddf455b053a90d6eab`**.
 
 ## What changed
 - The five kinds live in `components/ui/link.tsx`. Underline and `decoration-*` classes in product code: 0. `no-underline` classes: 0. `line-through` on blocked days stays. New guard: `tests/no-underlines.test.mjs`.

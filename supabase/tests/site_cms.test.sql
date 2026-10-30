@@ -4,7 +4,7 @@
 -- use the zz6 prefix and ids ending in 6xx.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(244);
+select plan(246);
 
 -- Helpers -------------------------------------------------------------------------------------------------------------
 -- The refusal's message and detail, or 'saved' when the call returns.
@@ -584,6 +584,11 @@ select is(pg_temp.outcome(format($$select public.ops_save_journey_tier('{"id": "
   'almar:invalid {"field": "addon_ids", "locale": null}', 'the home pickup is never an included add-on');
 select ok(not coalesce(public.ops_get('journey_tier', '00000000-0000-4000-8000-0000000006f1') -> 'addon_ids' @> '["00000000-0000-4000-8000-0000000006c2"]'::jsonb, false),
   'ops_get never returns the home pickup as an add-on, so the editor cannot send it back');
+insert into t6 select 'tier-legs', public.ops_save_journey_tier('{"slug": "zz6-legs-tier", "media_id": "00000000-0000-4000-8000-0000000006a1", "translations": {"en": {"name": "Legs", "price_label": "On request"}, "ar": {"name": "مراحل", "price_label": "عند الطلب"}, "es": {"name": "Etapas", "price_label": "A consultar"}}, "legs": [{"destination_id": "00000000-0000-4000-8000-0000000006d1", "translations": {"en": {"nights_label": "3 nights"}, "ar": {"nights_label": "٣ ليالٍ"}}}, {"destination_id": "00000000-0000-4000-8000-0000000006d3", "translations": {"en": {"nights_label": "2 nights"}, "ar": {"nights_label": "ليلتان"}, "es": {"nights_label": "2 noches"}}}]}'::jsonb);
+select is(public.ops_publish('journey_tier', (select (v ->> 'id')::uuid from t6 where k = 'tier-legs'), true) -> 'missing',
+  '[{"locale": "es", "field": "legs.0.nights_label"}, {"locale": null, "field": "legs.1.destination_id"}]'::jsonb,
+  'publish lists a leg''s missing translation and a leg on an unpublished destination');
+select is(public.ops_publish('journey_tier', (select (v ->> 'id')::uuid from t6 where k = 'tier-legs'), true) ->> 'code', 'publish_incomplete', 'and refuses');
 select is(pg_temp.outcome(format($$select public.ops_save_journey_tier('{"id": "%s", "addon_ids": ["00000000-0000-4000-8000-0000000006c1", "00000000-0000-4000-8000-0000000006c3"]}'::jsonb)$$, (select v ->> 'id' from t6 where k = 'tier'))),
   'saved', 'add-ons are saved');
 select is((public.ops_get('journey_tier', (select (v ->> 'id')::uuid from t6 where k = 'tier')) -> 'addon_ids'),

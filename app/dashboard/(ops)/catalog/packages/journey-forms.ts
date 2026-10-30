@@ -143,6 +143,21 @@ export function journeyLocks(form: Pick<JourneyForm, "locked" | "legs">): Record
 
 const asLine = (value: Fields[string] | undefined, fallback: string) => (value === undefined ? fallback : Array.isArray(value) ? value.join(" ") : (value ?? ""));
 
+/**
+ * ops_publish names a leg's gap by its place (`legs.1.nights_label`, `legs.1.destination_id`), and the kit's field words read only a
+ * field's last part, so every city would say the same. These become the leg's own field (`leg_<k>`, `dest_<k>`), which the screen labels.
+ */
+export function legGapNames<E extends { code: string; detail?: unknown }>(error: E, legs: readonly { key: string }[]): E {
+  const detail = error.detail as { missing?: unknown } | null | undefined;
+  if (error.code !== "publish_incomplete" || !detail || !Array.isArray(detail.missing)) return error;
+  const missing = detail.missing.map((item: { field?: unknown }) => {
+    const match = typeof item?.field === "string" ? /^legs\.(\d+)\.(nights_label|destination_id)$/.exec(item.field) : null;
+    const leg = match ? legs[Number(match[1])] : undefined;
+    return match && leg ? { ...item, field: match[2] === "nights_label" ? leg.key : `dest_${leg.key}` } : item;
+  });
+  return { ...error, detail: { ...detail, missing } };
+}
+
 /** The Arabic and Spanish the kit handed back, and its lock lists, split back into the package and its legs. */
 export function journeyWithTranslations(form: JourneyForm, translations: Record<Target, Fields>, locked: Record<Target, string[]>): JourneyForm {
   const own = (target: Target) => locked[target].filter((field) => (JOURNEY_TEXT_FIELDS as readonly string[]).includes(field));
