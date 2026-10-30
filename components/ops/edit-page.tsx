@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { CheckIcon, ChevronIcon, LockIcon } from "../icons/icons";
+import { CheckIcon, LockIcon } from "../icons/icons";
 import { ConfirmDialog } from "../ui/confirm-dialog";
 import { Field } from "../ui/field";
+import { BackChevron, DisclosureChevron, LINK_BUTTON, LINK_BUTTON_DANGER, RemoveMark } from "../ui/link";
 import { cn } from "../../lib/cn";
 import { OPS_KIT_COPY, type OpsKitCopy } from "../../lib/copy/ops-kit";
 import type { OpsError, PublishWarningCode } from "./api-types";
@@ -526,8 +527,9 @@ export function EditPage({
         disabled={working || deleteDisabled || isPublished}
         aria-describedby={deleteNote || isPublished ? deleteNoteId : undefined}
         onClick={onDelete}
-        className="inline-flex min-h-control cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-error underline decoration-1 underline-offset-4 disabled:cursor-default disabled:text-muted disabled:no-underline"
+        className={LINK_BUTTON_DANGER}
       >
+        <RemoveMark />
         {deleteLabel ?? copy.delete}
       </button>
       {deleteNote || isPublished ? (
@@ -588,9 +590,9 @@ export function EditPage({
             <button
               type="button"
               onClick={requestClose}
-              className="inline-flex min-h-control w-max cursor-pointer items-center gap-1 border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4"
+              className={LINK_BUTTON}
             >
-              <ChevronIcon size={16} className="rotate-180 rtl:rotate-0" aria-hidden="true" />
+              <BackChevron />
               {backLabel}
             </button>
             <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-4">
@@ -771,7 +773,7 @@ export function LockLine({
         disabled={disabled}
         aria-label={`${copy.editor.translateAgain}: ${fieldLabel}`}
         onClick={onTranslateAgain}
-        className="ms-auto inline-flex min-h-control cursor-pointer items-center whitespace-nowrap border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4 disabled:cursor-default disabled:text-muted disabled:no-underline"
+        className={cn(LINK_BUTTON, "ms-auto whitespace-nowrap")}
       >
         {copy.editor.translateAgain}
       </button>
@@ -816,10 +818,10 @@ function TranslationBoxes({
         aria-expanded={open}
         aria-controls={open ? regionId : undefined}
         onClick={onToggle}
-        className="inline-flex min-h-control cursor-pointer items-center gap-2 border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4"
+        className={LINK_BUTTON}
       >
-        <ChevronIcon size={16} className={open ? "-rotate-90" : "rotate-90"} aria-hidden="true" />
-        {open ? copy.editor.hideTranslations : copy.editor.editTranslations}
+        <span className="min-w-0 break-words">{open ? copy.editor.hideTranslations : copy.editor.editTranslations}</span>
+        <DisclosureChevron open={open} />
       </button>
       {open ? (
         <div id={regionId} className="flex w-full min-w-0 flex-col gap-4">

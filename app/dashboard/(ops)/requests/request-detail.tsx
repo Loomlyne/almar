@@ -4,8 +4,8 @@ import { useState, type ReactNode } from "react";
 import type { Locale3, OpsError, SiteRequestSummary } from "../../../../components/ops/api-types";
 import { errorText } from "../../../../components/ops/error-text";
 import { useDashboardLocale } from "../../../../components/ops/use-dashboard-locale";
-import { ChevronIcon } from "../../../../components/icons/icons";
 import { Button, LinkButton } from "../../../../components/ui/button";
+import { BackChevron, LINK_BUTTON, LINK_BUTTON_DANGER, RemoveMark } from "../../../../components/ui/link";
 import { ConfirmDialog } from "../../../../components/ui/confirm-dialog";
 import { cn } from "../../../../lib/cn";
 import { OPS_BOOKINGS_COPY } from "../../../../lib/copy/ops-bookings";
@@ -112,9 +112,9 @@ export function RequestDetail({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex min-h-control w-max cursor-pointer items-center gap-1 border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4"
+          className={LINK_BUTTON}
         >
-          <ChevronIcon size={16} className="rotate-180 rtl:rotate-0" aria-hidden="true" />
+          <BackChevron />
           {copy.title}
         </button>
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-4">
@@ -148,8 +148,9 @@ export function RequestDetail({
                 type="button"
                 disabled={busy}
                 onClick={() => setAsking(true)}
-                className="inline-flex min-h-control cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-error underline decoration-1 underline-offset-4 disabled:cursor-default disabled:text-muted disabled:no-underline"
+                className={LINK_BUTTON_DANGER}
               >
+                <RemoveMark />
                 {copy.cancelC}
               </button>
             ) : null}

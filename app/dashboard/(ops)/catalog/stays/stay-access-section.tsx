@@ -17,9 +17,9 @@ import { LockLine } from "../../../../../components/ops/edit-page";
 import { errorText } from "../../../../../components/ops/error-text";
 import { opsFetch, opsSend } from "../../../../../components/ops/ops-client";
 import type { Locale3, StayAccessView } from "../../../../../components/ops/api-types";
-import { ChevronIcon } from "../../../../../components/icons/icons";
 import { Button } from "../../../../../components/ui/button";
 import { Field } from "../../../../../components/ui/field";
+import { DisclosureChevron, LINK_BUTTON } from "../../../../../components/ui/link";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
 import { OPS_STAY_TABS_COPY } from "../../../../../lib/copy/ops-stay-tabs";
 import { blankToEmpty, notesForSave, notesLockSet, notesLockedList, type Notes } from "./access-notes";
@@ -263,10 +263,10 @@ export function StayAccessSection({
           aria-expanded={showTranslations}
           aria-controls={showTranslations ? `${id}-notes-translations` : undefined}
           onClick={() => setShowTranslations((was) => !was)}
-          className="inline-flex min-h-control cursor-pointer items-center gap-2 border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4"
+          className={LINK_BUTTON}
         >
-          <ChevronIcon size={16} className={showTranslations ? "-rotate-90" : "rotate-90"} aria-hidden="true" />
-          {showTranslations ? kit.editor.hideTranslations : kit.editor.editTranslations}
+          <span className="min-w-0 break-words">{showTranslations ? kit.editor.hideTranslations : kit.editor.editTranslations}</span>
+          <DisclosureChevron open={showTranslations} />
         </button>
         {showTranslations ? (
           // Full width like Notes above (the column's items-start would shrink each box to its text).

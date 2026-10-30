@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../../lib/cn";
+import { LINK_BUTTON } from "../ui/link";
 import type { OpsSiteStatusCopy } from "../../lib/copy/ops-site-status";
 import type { SiteStatus } from "./api-types";
 import { opsFetch, opsSend } from "./ops-client";
@@ -118,7 +119,7 @@ export function SiteStatusLine({ copy, initial }: { copy: OpsSiteStatusCopy; ini
                 disabled={busy}
                 aria-busy={busy || undefined}
                 onClick={() => void controller.current?.tryAgain()}
-                className="-ms-2 inline-flex min-h-control cursor-pointer items-center border-0 bg-transparent px-2 text-label text-teal underline decoration-gold decoration-1 underline-offset-4 disabled:cursor-default disabled:text-muted"
+                className={LINK_BUTTON}
               >
                 {copy.tryAgain}
               </button>

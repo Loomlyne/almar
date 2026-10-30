@@ -11,6 +11,7 @@ import { Button } from "../../../../../components/ui/button";
 import { CalendarPanel } from "../../../../../components/ui/calendar";
 import { ConfirmDialog } from "../../../../../components/ui/confirm-dialog";
 import { Field } from "../../../../../components/ui/field";
+import { LINK_BUTTON, LINK_BUTTON_DANGER, RemoveMark } from "../../../../../components/ui/link";
 import { Select } from "../../../../../components/ui/select";
 import { asciiDigits } from "../../../../../lib/contact-inquiry";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
@@ -231,8 +232,6 @@ export function ConsultationScreen() {
 
   const today = dubaiToday();
   const closedNote = form.notice.trim() === "" || form.horizon.trim() === "";
-  const removeLink = "inline-flex min-h-control cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-error underline decoration-1 underline-offset-4";
-  const addLink = "inline-flex min-h-control w-max cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4";
   const card = "flex min-w-0 flex-col gap-4 border border-line bg-surface p-4 md:p-6";
   const cardTitle = "m-0 font-display text-title font-normal text-teal";
   const dir = locale === "ar" ? "rtl" : "ltr";
@@ -303,7 +302,8 @@ export function ConsultationScreen() {
                             invalid={Boolean(problem)}
                           />
                         </div>
-                        <button type="button" className={removeLink} onClick={() => setDay(at, day.filter((_, i) => i !== index))}>
+                        <button type="button" className={LINK_BUTTON_DANGER} onClick={() => setDay(at, day.filter((_, i) => i !== index))}>
+                          <RemoveMark />
                           {copy.remove}
                         </button>
                       </div>
@@ -315,7 +315,7 @@ export function ConsultationScreen() {
                     </div>
                   );
                 })}
-                <button type="button" className={addLink} onClick={() => setDay(at, [...day, { key: newKey(), starts: "", ends: "" }])}>
+                <button type="button" className={LINK_BUTTON} onClick={() => setDay(at, [...day, { key: newKey(), starts: "", ends: "" }])}>
                   {copy.addHours}
                 </button>
               </div>
@@ -335,7 +335,8 @@ export function ConsultationScreen() {
               <span className="text-label text-ink">
                 <bdi dir="ltr">{dayIn(day, locale)}</bdi>
               </span>
-              <button type="button" className={removeLink} onClick={() => change({ ...form, daysOff: form.daysOff.filter((other) => other !== day) })}>
+              <button type="button" className={LINK_BUTTON_DANGER} onClick={() => change({ ...form, daysOff: form.daysOff.filter((other) => other !== day) })}>
+                <RemoveMark />
                 {copy.remove}
               </button>
             </div>

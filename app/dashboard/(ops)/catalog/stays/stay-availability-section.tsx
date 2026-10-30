@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
 import { opsFetch } from "../../../../../components/ops/ops-client";
 import type { Block, BlocksView, IsoDay, Locale3 } from "../../../../../components/ops/api-types";
 import { Button } from "../../../../../components/ui/button";
+import { LINK_BUTTON } from "../../../../../components/ui/link";
 import { cn } from "../../../../../lib/cn";
 import { addDays, daysBetween, dubaiToday } from "../../../../../lib/money/dates";
 import { OPS_STAY_TABS_COPY } from "../../../../../lib/copy/ops-stay-tabs";
@@ -174,7 +175,7 @@ export function StayAvailabilitySection({ stayId, locale }: { stayId: string; lo
 
       <a
         href={calendarBlockHref(pathname, stayId)}
-        className="inline-flex min-h-control items-center self-start text-label text-teal underline decoration-gold decoration-1 underline-offset-4 hover:no-underline"
+        className={cn(LINK_BUTTON, "self-start")}
       >
         {copy.availability.blockDates}
       </a>

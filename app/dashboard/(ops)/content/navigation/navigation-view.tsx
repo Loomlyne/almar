@@ -11,6 +11,7 @@ import { SITE_CONTACT } from "../../../../../components/site/public-frame";
 import { Button } from "../../../../../components/ui/button";
 import { ConfirmDialog } from "../../../../../components/ui/confirm-dialog";
 import { Field } from "../../../../../components/ui/field";
+import { LINK_BUTTON_DANGER, RemoveMark } from "../../../../../components/ui/link";
 import { Select } from "../../../../../components/ui/select";
 import { Switch } from "../../../../../components/ui/switch";
 import { ToggleCard } from "../../../../../components/ui/toggle-card";
@@ -225,9 +226,6 @@ const OPS_CONTENT_TITLE: Record<Locale3, string> = {
   es: OPS_CONTENT_COPY.es.rail.navigation,
 };
 
-const DELETE_LINK =
-  "inline-flex min-h-control w-max cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-error underline decoration-1 underline-offset-4 disabled:cursor-default disabled:text-muted disabled:no-underline";
-
 /** One link (kit EditPage): Label (English; the kit fills Arabic and Spanish), Link to, Show on site, Delete link. */
 function LinkEditor({ panel, list, targets, backLabel }: { panel: LinkPanel | null; list: ReactNode; targets: NavTargetOption[]; backLabel: string }) {
   const loc = useDashboardLocale();
@@ -320,7 +318,8 @@ function LinkEditor({ panel, list, targets, backLabel }: { panel: LinkPanel | nu
             <Switch label={copy.showOnSite} checked={form.shown} onCheckedChange={(shown) => onForm({ ...form, shown })} />
             {form.id ? (
               <div className="border-t border-line pt-4">
-                <button type="button" className={DELETE_LINK} disabled={panel.busy} onClick={() => setAsking(true)}>
+                <button type="button" className={LINK_BUTTON_DANGER} disabled={panel.busy} onClick={() => setAsking(true)}>
+                  <RemoveMark />
                   {copy.deleteLink}
                 </button>
               </div>

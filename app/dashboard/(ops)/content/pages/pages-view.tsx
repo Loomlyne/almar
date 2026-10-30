@@ -7,11 +7,12 @@ import { EditPage, type EditSection, type SaveIntent, type SavePayload } from ".
 import { ListTable, type Column } from "../../../../../components/ops/list-table";
 import { MediaField, MediaListField } from "../../../../../components/ops/media-field";
 import { useDashboardLocale } from "../../../../../components/ops/use-dashboard-locale";
-import { ChevronIcon, PlusIcon } from "../../../../../components/icons/icons";
+import { PlusIcon } from "../../../../../components/icons/icons";
 import { Button } from "../../../../../components/ui/button";
 import { Chip } from "../../../../../components/ui/chip";
 import { ConfirmDialog } from "../../../../../components/ui/confirm-dialog";
 import { Field } from "../../../../../components/ui/field";
+import { BackChevron, LINK_BUTTON, LINK_BUTTON_DANGER, RemoveMark } from "../../../../../components/ui/link";
 import { Switch } from "../../../../../components/ui/switch";
 import { PAGE_SECTIONS, type PageKey, type SectionTextColumn } from "../../../../../lib/data/page-sections";
 import { DASHBOARD_COPY } from "../../../../../lib/copy/dashboard";
@@ -141,9 +142,9 @@ export function PagesView({
         <button
           type="button"
           onClick={onBackToPages}
-          className="inline-flex min-h-control w-max cursor-pointer items-center gap-1 border-0 bg-transparent p-0 font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4"
+          className={LINK_BUTTON}
         >
-          <ChevronIcon size={16} className="rotate-180 rtl:rotate-0" aria-hidden="true" />
+          <BackChevron />
           {DASHBOARD_COPY[loc].rail.pages}
         </button>
       ) : null}
@@ -392,9 +393,6 @@ function SectionEditor({ panel, list }: { panel: SectionPanel | null; list: Reac
 
 const cardEnglish = (text: CardText) => Object.fromEntries(CARD_TEXT_FIELDS.map((field) => [field, text[field]]));
 
-const DELETE_LINK =
-  "inline-flex min-h-control w-max cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-error underline decoration-1 underline-offset-4 disabled:cursor-default disabled:text-muted disabled:no-underline";
-
 /** One About card (title, text, photo, Show on site, Delete card), on the kit editor. */
 function CardEditor({ panel, list }: { panel: CardPanel; list: ReactNode }) {
   const loc: Locale3 = useDashboardLocale();
@@ -454,7 +452,8 @@ function CardEditor({ panel, list }: { panel: CardPanel; list: ReactNode }) {
           <Switch label={copy.showOnSite} checked={form.shown} onCheckedChange={(shown) => onForm({ ...form, shown })} />
           {form.id ? (
             <div className="border-t border-line pt-4">
-              <button type="button" className={DELETE_LINK} disabled={panel.busy} onClick={() => setAsking(true)}>
+              <button type="button" className={LINK_BUTTON_DANGER} disabled={panel.busy} onClick={() => setAsking(true)}>
+                <RemoveMark />
                 {copy.deleteCard}
               </button>
             </div>

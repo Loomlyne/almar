@@ -6,6 +6,8 @@ import { MediaField } from "../../../../../components/ops/media-field";
 import { ChevronIcon, PlusIcon } from "../../../../../components/icons/icons";
 import { Button } from "../../../../../components/ui/button";
 import { Field } from "../../../../../components/ui/field";
+import { LINK_BUTTON_DANGER, RemoveMark } from "../../../../../components/ui/link";
+import { cn } from "../../../../../lib/cn";
 import type { OpsBlogCopy } from "../../../../../lib/copy/ops-blog";
 import type { OpsKitCopy } from "../../../../../lib/copy/ops-kit";
 import { BLOCK_MAX, blockName, movedBlocks, newBlock, type FormBlock } from "./post-forms";
@@ -14,9 +16,6 @@ const KINDS: readonly PostBlockKind[] = ["heading", "paragraph", "photo", "quote
 
 const SQUARE =
   "inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border border-line bg-transparent p-0 text-teal transition-colors duration-fast ease-standard hover:bg-teal-tint disabled:cursor-default disabled:text-muted disabled:hover:bg-transparent";
-
-const DELETE =
-  "inline-flex min-h-control cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-error underline decoration-1 underline-offset-4";
 
 /**
  * The body of a post (plan 06-03, F-08; pictures signed 2026-10-27): one row per block in order, each with its kind and
@@ -112,10 +111,11 @@ export function PostBlocksField({
                   </button>
                   <button
                     type="button"
-                    className={`${DELETE} ms-2`}
+                    className={cn(LINK_BUTTON_DANGER, "ms-0")}
                     aria-label={`${copy.deleteBlock}, ${name}`}
                     onClick={() => onChange(blocks.filter((other) => other.key !== block.key))}
                   >
+                    <RemoveMark />
                     {copy.deleteBlock}
                   </button>
                 </div>

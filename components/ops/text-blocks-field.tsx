@@ -4,14 +4,14 @@ import { useEffect, useId, useRef } from "react";
 import { ChevronIcon } from "../icons/icons";
 import { Button } from "../ui/button";
 import { Field } from "../ui/field";
+import { LINK_BUTTON_DANGER, RemoveMark } from "../ui/link";
+import { cn } from "../../lib/cn";
 import type { OpsKitCopy } from "../../lib/copy/ops-kit";
 import { movedTextBlocks, newTextBlock, textBlockName, type TextBlock, type TextBlockKind } from "./text-blocks";
 
 const SQUARE =
   "inline-flex size-control shrink-0 cursor-pointer items-center justify-center rounded-none border border-line bg-transparent p-0 text-teal transition-colors duration-fast ease-standard hover:bg-teal-tint disabled:cursor-default disabled:text-muted disabled:hover:bg-transparent";
 
-const REMOVE =
-  "inline-flex min-h-control cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-error underline decoration-1 underline-offset-4";
 
 export type TextBlocksCopy = {
   /** The list's name for a screen reader. */
@@ -90,7 +90,8 @@ export function TextBlocksField({
                   <button type="button" id={`${id}-down`} className={SQUARE} aria-label={`${kit.moveDown}, ${name}`} disabled={i === blocks.length - 1} onClick={() => move(block.key, 1)}>
                     <ChevronIcon size={20} className="rotate-90" aria-hidden="true" />
                   </button>
-                  <button type="button" className={`${REMOVE} ms-2`} aria-label={`${copy.remove}, ${name}`} onClick={() => onChange(blocks.filter((other) => other.key !== block.key))}>
+                  <button type="button" className={cn(LINK_BUTTON_DANGER, "ms-0")} aria-label={`${copy.remove}, ${name}`} onClick={() => onChange(blocks.filter((other) => other.key !== block.key))}>
+                    <RemoveMark />
                     {copy.remove}
                   </button>
                 </div>

@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { ChevronIcon } from "../icons/icons";
+import { ROW_TITLE } from "../ui/link";
 import { cn } from "../../lib/cn";
 import { OPS_KIT_COPY } from "../../lib/copy/ops-kit";
 import { useDashboardLocale } from "./use-dashboard-locale";
@@ -35,9 +36,6 @@ function Grip() {
 
 const MOVE_BUTTON =
   "inline-flex min-h-control min-w-control cursor-pointer items-center justify-center gap-1 rounded-none border border-line bg-transparent px-2 font-body text-label text-teal transition-colors duration-fast ease-standard hover:bg-teal-tint disabled:cursor-default disabled:text-muted disabled:hover:bg-transparent";
-
-const OPEN_BUTTON =
-  "m-0 inline-flex min-h-control cursor-pointer items-center border-0 bg-transparent p-0 text-start font-body text-label text-teal underline decoration-gold decoration-1 underline-offset-4 hover:no-underline";
 
 /**
  * The list of a dashboard section: a dense table from 768 (design canvas page 7, dense variant), a stack of cards
@@ -187,7 +185,7 @@ export function ListTable<T extends { id: string }>({
                     {column === openColumn ? (
                       <button
                         type="button"
-                        className={OPEN_BUTTON}
+                        className={ROW_TITLE}
                         onClick={(event) => {
                           event.stopPropagation();
                           onOpen(row);
@@ -211,7 +209,7 @@ export function ListTable<T extends { id: string }>({
           <li key={row.id} className="flex flex-col gap-2 border border-line bg-surface p-4">
             {titleColumns.map((column, at) =>
               at === 0 ? (
-                <button key={column.key} type="button" className={OPEN_BUTTON} onClick={() => onOpen(row)}>
+                <button key={column.key} type="button" className={ROW_TITLE} onClick={() => onOpen(row)}>
                   {column.render(row)}
                 </button>
               ) : (

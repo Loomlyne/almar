@@ -5,6 +5,7 @@ import { ArrowIcon, PlusIcon } from "../../../../../components/icons/icons";
 import { useDashboardLocale } from "../../../../../components/ops/use-dashboard-locale";
 import { Button } from "../../../../../components/ui/button";
 import { Field } from "../../../../../components/ui/field";
+import { LINK_BUTTON_DANGER, RemoveMark } from "../../../../../components/ui/link";
 import { Select } from "../../../../../components/ui/select";
 import { OPS_KIT_COPY } from "../../../../../lib/copy/ops-kit";
 import { OPS_TEAM_COPY, fillTeamCopy } from "../../../../../lib/copy/ops-team";
@@ -16,8 +17,6 @@ export type LegOption = { id: string; name: string };
 const NO_STAY = "none";
 
 const SQUARE = "w-control px-0";
-const REMOVE =
-  "inline-flex min-h-control cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-error underline decoration-error decoration-1 underline-offset-4 disabled:cursor-default disabled:text-muted disabled:no-underline";
 
 /**
  * Cities on this journey (pictures/06-06 journey-editor-legs), props only: one block per city with Destination, an optional
@@ -111,13 +110,14 @@ export function JourneyLegs({
                   </Button>
                   <button
                     type="button"
-                    className={REMOVE}
+                    className={LINK_BUTTON_DANGER}
                     aria-label={`${copy.removeCity}: ${name}`}
                     onClick={() => {
                       removed.current = true;
                       onChange(legs.filter((other) => other.key !== leg.key));
                     }}
                   >
+                    <RemoveMark />
                     {copy.removeCity}
                   </button>
                 </div>

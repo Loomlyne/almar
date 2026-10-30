@@ -8,6 +8,7 @@ import { Button } from "../../../../../components/ui/button";
 import { Checkbox } from "../../../../../components/ui/checkbox";
 import { Chip } from "../../../../../components/ui/chip";
 import { Field } from "../../../../../components/ui/field";
+import { LINK_BUTTON_DANGER, RemoveMark } from "../../../../../components/ui/link";
 import { OPS_KIT_COPY, fillCopy } from "../../../../../lib/copy/ops-kit";
 import { OPS_TEAM_COPY } from "../../../../../lib/copy/ops-team";
 import { foldText } from "../../../../../lib/data/stay-filter";
@@ -15,8 +16,6 @@ import { foldText } from "../../../../../lib/data/stay-filter";
 export type AddonOption = { id: string; label: string };
 
 const SQUARE = "w-control px-0";
-const REMOVE =
-  "inline-flex min-h-control cursor-pointer items-center border-0 bg-transparent p-0 font-body text-label text-error underline decoration-error decoration-1 underline-offset-4 disabled:cursor-default disabled:text-muted disabled:no-underline";
 
 /**
  * Included in this package, as signed (pictures/06-06 journey-editor-addons): what is connected first, with its order and Remove,
@@ -85,7 +84,8 @@ export function JourneyAddons({ options, connected, onChange }: { options: Addon
                     <Button variant="secondary" className={SQUARE} data-move="down" aria-label={`${kit.moveDown}: ${label}`} title={kit.moveDown} disabled={!canMove(connected, id, 1)} onClick={() => move(id, 1)}>
                       <ArrowIcon size={16} className="rotate-90" aria-hidden="true" />
                     </Button>
-                    <button type="button" className={REMOVE} aria-label={fillCopy(kit.removeNamed, { name: label })} onClick={() => onChange(connected.filter((other) => other !== id))}>
+                    <button type="button" className={LINK_BUTTON_DANGER} aria-label={fillCopy(kit.removeNamed, { name: label })} onClick={() => onChange(connected.filter((other) => other !== id))}>
+                      <RemoveMark />
                       {kit.remove}
                     </button>
                   </span>
