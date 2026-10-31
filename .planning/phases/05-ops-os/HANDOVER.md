@@ -101,7 +101,7 @@ On `https://dashboard.almarprivatejourney.com`, after the migration and deploy, 
 **The owner's two decisions**
 
 24. New booking with arrival on any date: on Payment set Hold until to the arrival date. Expected: no block. Set it to the day after arrival. Expected: a pale teal block, "This hold ends after the arrival date. You can still continue."; Next still works and the booking creates. On Review, the Test booking hint ends "These nights are really held." Repeat in AR and ES.
-25. New TEST booking, Deposit. Record a bank payment below the deposit, open the guest link. Expected: "Part of the amount has been received. The rest is shown below." Record a refund of the whole amount, reload the guest link. Expected: that line is gone; the Refunds line, the status and the bank-transfer block stay. Home's Outstanding has not changed for a real booking in the same state.
+25. New TEST booking, Deposit. Record a bank payment below the deposit, open the guest link. Expected: "Part of the amount has been received. The rest is shown below." Record a refund of the whole amount, reload the guest link. Expected: that line is gone; the Refunds line, the status and the bank-transfer block stay.
 
 Your "done", "correct" or "working" is a pass.
 
