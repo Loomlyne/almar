@@ -18,7 +18,7 @@ import { uaeDate } from "../../../../lib/ops/booking-rules";
 import { daysBetween } from "../../../../lib/money/dates";
 
 // Plan 05-04 (P5-08, P5-12): the owner's Home. Three numbers (Bookings, Recorded money, Outstanding) for This month, Last 30
-// days or Custom, read from /api/ops/home. Cost, Occupancy, Charts and Reminders are not drawn (v1.1). A number above zero
+// days or Custom, read from /api/ops/home. The v1.1 slots are not drawn. A number above zero
 // links to the plain Bookings list; zero is plain text. The latest-ticket rule of bookings-screen.tsx keeps a slow older
 // answer from replacing a newer one.
 
@@ -27,7 +27,7 @@ const MAX_RANGE_DAYS = 3660;
 const EARLIEST_DAY = "2020-01-01";
 
 const CARD = "flex min-w-0 flex-col gap-1 rounded-none border border-line bg-surface p-4";
-const VALUE = "font-display text-heading text-teal tabular-nums";
+const VALUE = "self-start font-display text-heading text-teal tabular-nums";
 
 type Custom = { first: string | null; last: string | null };
 
@@ -94,6 +94,7 @@ export function HomeScreen() {
     else return; // Custom waits for two good days; the numbers stay on the last answer, with its own dates.
     const ticket = (latest.current += 1);
     setLoading(true);
+    setError(null);
     void opsFetch<HomeNumbers>("/api/ops/home", query).then((reply) => {
       if (ticket !== latest.current) return;
       setLoading(false);
@@ -162,7 +163,7 @@ export function HomeScreen() {
       ) : null}
 
       {answer && links ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3${loading ? " opacity-60" : ""}`} aria-busy={loading}>
           <Card label={copy.bookings} value={answer.bookings} note={copy.bookingsNote} linked={links.bookings} bookingsHref={href} />
           <Card label={copy.recorded} value={signedAed(answer.recorded_fils)} note={copy.recordedNote} linked={links.recorded} bookingsHref={href} />
           <Card label={copy.outstanding} value={signedAed(answer.outstanding_fils)} note={copy.outstandingNote} linked={links.outstanding} bookingsHref={href} />

@@ -47,6 +47,9 @@ async function mockCustomers(page: Page) {
   return queries;
 }
 
+const underlinedCount = (page: Page) =>
+  page.evaluate(() => [...document.querySelectorAll("main *")].filter((el) => getComputedStyle(el).textDecorationLine.includes("underline")).length);
+
 test.describe("Home", () => {
   test.setTimeout(120_000);
 
@@ -107,6 +110,37 @@ test.describe("Home", () => {
     expect(underlined).toBe(0);
   });
 
+
+  test("a range over the cap says so in the field, not as a load failure", async ({ page, baseURL }) => {
+    const queries = await mockHome(page);
+    await openDashboard(page, "/dashboard/home", "desktop", "en", baseURL, DASHBOARD_COPY.en.rail.home);
+    await page.getByRole("button", { name: DASHBOARD_COPY.en.custom, exact: true }).click();
+    await page.locator("#home-range").click();
+    // The calendar's first selectable day is 2020-01-01; the last day is far past 3,661 days from it.
+    const before = queries.length;
+    await page.getByRole("gridcell").filter({ hasText: /^1$/ }).first().click();
+    for (let i = 0; i < 130; i += 1) await page.getByRole("button", { name: /next/i }).first().click();
+    await page.getByRole("gridcell").filter({ hasText: /^1$/ }).first().click();
+    await expect(page.getByText(OPS_HOME_COPY.en.home.rangeTooLong)).toBeVisible();
+    await expect(page.getByText(OPS_HOME_COPY.en.home.failed)).toHaveCount(0);
+    expect(queries.length).toBe(before);
+  });
+
+  test("a failed read shows the sentence and no numbers", async ({ page, baseURL }) => {
+    await answerShell(page);
+    await page.route("**/api/ops/home**", (route) => reply(route, { ok: false, error: { code: "unavailable", field: null, locale: null, detail: null } }, 503));
+    await openDashboard(page, "/dashboard/home", "desktop", "en", baseURL, DASHBOARD_COPY.en.rail.home);
+    await expect(page.getByRole("alert").filter({ hasText: OPS_HOME_COPY.en.home.failed })).toBeVisible();
+    await expect(page.getByText(OPS_HOME_COPY.en.home.recorded, { exact: true })).toHaveCount(0);
+  });
+
+  test("no underline on a hovered linked card", async ({ page, baseURL }) => {
+    await mockHome(page);
+    await openDashboard(page, "/dashboard/home", "desktop", "en", baseURL, DASHBOARD_COPY.en.rail.home);
+    await page.locator("main a[href*='bookings']").first().hover();
+    expect(await underlinedCount(page)).toBe(0);
+  });
+
   for (const locale of LOCALES) {
     for (const size of SIZES) {
       test(`Home in ${locale} at ${VIEWPORTS[size].width}: numbers keep ltr, the page reads ${locale === "ar" ? "rtl" : "ltr"}, no overflow`, async ({ page, baseURL }) => {
@@ -160,6 +194,41 @@ test.describe("Customers", () => {
     expect(page.url()).not.toContain(EMAIL);
   });
 
+  test("a failed read shows the sentence and not the empty line", async ({ page, baseURL }) => {
+    await answerShell(page);
+    await page.route("**/api/ops/customers**", (route) => reply(route, { ok: false, error: { code: "unavailable", field: null, locale: null, detail: null } }, 503));
+    await openDashboard(page, "/dashboard/customers", "desktop", "en", baseURL, DASHBOARD_COPY.en.rail.customers);
+    await expect(page.getByRole("alert").filter({ hasText: OPS_HOME_COPY.en.customers.failed })).toBeVisible();
+    await expect(page.getByText(DASHBOARD_COPY.en.noCustomersYet)).toHaveCount(0);
+  });
+
+  test("no underline on Customers, at rest or on a hovered row", async ({ page, baseURL }) => {
+    await mockCustomers(page);
+    await openDashboard(page, "/dashboard/customers", "desktop", "en", baseURL, DASHBOARD_COPY.en.rail.customers);
+    expect(await underlinedCount(page)).toBe(0);
+    await openRow(page, "Guest 1").hover();
+    expect(await underlinedCount(page)).toBe(0);
+  });
+
+  test("a handed email is not kept: Customers row, a booking, Home, Bookings card gives an empty search box", async ({ page, baseURL }) => {
+    await mockCustomers(page);
+    await mockHome(page);
+    const booking = makeBooking({ ref: REF });
+    await mockBookingsApi(page, [booking], (call) =>
+      call.path === "/api/ops/bookings" && call.query.q === EMAIL ? { status: 200, body: { ok: true, items: [toItem(booking)], next: null } } : undefined,
+    );
+    await openDashboard(page, "/dashboard/customers", "desktop", "en", baseURL, DASHBOARD_COPY.en.rail.customers);
+    await openRow(page, "Guest 1").click();
+    await expect(page.locator("#bookings-search")).toHaveValue(EMAIL);
+    await page.getByText(REF).first().click();
+    await expect(page).toHaveURL(/detail/);
+    // The rail takes the owner to Home (a pathname that is not Bookings clears the handoff), then a card opens Bookings.
+    await page.getByRole("link", { name: DASHBOARD_COPY.en.rail.home, exact: true }).first().click();
+    await expect(page.getByRole("heading", { level: 1, name: DASHBOARD_COPY.en.rail.home })).toBeVisible();
+    await page.locator("main a[href*='bookings']").first().click();
+    await expect(page.locator("#bookings-search")).toHaveValue("");
+  });
+
   for (const locale of LOCALES) {
     for (const size of SIZES) {
       test(`Customers in ${locale} at ${VIEWPORTS[size].width}: words, direction, no overflow`, async ({ page, baseURL }) => {
@@ -190,6 +259,31 @@ test.describe("Profile", () => {
     await expect(page.locator("#profile-name")).not.toBeEditable();
     await expect(page.locator("#profile-email")).not.toBeEditable();
     await expect(page.locator("main#content").getByRole("button", { name: /sign out|logout/i })).toHaveCount(0);
+  });
+
+  test("a name-less account shows the placeholder in the name field", async ({ page, baseURL }) => {
+    await answerShell(page);
+    await page.route("**/api/ops/profile", (route) => reply(route, { ok: true, name: null, email: "owner@example.com" }));
+    await openDashboard(page, "/dashboard/profile", "desktop", "en", baseURL, DASHBOARD_COPY.en.rail.profile);
+    await expect(page.locator("#profile-name")).toHaveValue("");
+    await expect(page.locator("#profile-name")).toHaveAttribute("placeholder", OPS_HOME_COPY.en.profile.noName);
+  });
+
+  test("a failed read shows the sentence and no empty fields", async ({ page, baseURL }) => {
+    await answerShell(page);
+    await page.route("**/api/ops/profile", (route) => reply(route, { ok: false, error: { code: "unavailable", field: null, locale: null, detail: null } }, 503));
+    await openDashboard(page, "/dashboard/profile", "desktop", "en", baseURL, DASHBOARD_COPY.en.rail.profile);
+    await expect(page.getByRole("alert").filter({ hasText: OPS_HOME_COPY.en.profile.failed })).toBeVisible();
+    await expect(page.locator("#profile-name")).toHaveCount(0);
+    await expect(page.locator("#profile-email")).toHaveCount(0);
+  });
+
+  test("no underline on Profile, at rest or on hover", async ({ page, baseURL }) => {
+    await mockProfile(page);
+    await openDashboard(page, "/dashboard/profile", "desktop", "en", baseURL, DASHBOARD_COPY.en.rail.profile);
+    expect(await underlinedCount(page)).toBe(0);
+    await page.locator("#profile-email").hover();
+    expect(await underlinedCount(page)).toBe(0);
   });
 
   for (const locale of LOCALES) {

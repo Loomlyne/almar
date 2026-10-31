@@ -3,7 +3,7 @@
 // EN is ours. AR and ES are model-translated, correctable at UAT, signed only as drawn on the plan-gate pictures
 // (.planning/phases/05-ops-os, owner 2026-10-31). Dashboard Spanish uses usted. A leaf with no imports, not registered in
 // lib/copy/index.ts (the ops-requests.ts pattern). `home.rangeTooLong` is not on the plan's table: it is the field error
-// the plan's range note asks for (ops_home_numbers refuses above 3660 days).
+// the plan's range note asks for (ops_home_numbers refuses a difference above 3660, which is 3,661 days counted inclusively).
 
 export type OpsHomeCopy = {
   home: {
@@ -55,7 +55,7 @@ const EN: OpsHomeCopy = {
     dateRange: "Date range",
     customDates: "Dates",
     pickDates: "Pick the first and the last day.",
-    rangeTooLong: "The range can cover at most 3,660 days.",
+    rangeTooLong: "The range can cover at most 3,661 days.",
     loading: "Loading the numbers…",
     failed: "The numbers could not be loaded. Reload the page.",
   },
@@ -93,7 +93,7 @@ const AR: OpsHomeCopy = {
     dateRange: "نطاق التاريخ",
     customDates: "التواريخ",
     pickDates: "اختر اليوم الأول واليوم الأخير.",
-    rangeTooLong: "يمكن أن يغطي النطاق 3660 يومًا كحد أقصى.",
+    rangeTooLong: "يمكن أن يغطي النطاق 3661 يومًا كحد أقصى.",
     loading: "جارٍ تحميل الأرقام…",
     failed: "تعذّر تحميل الأرقام. أعد تحميل الصفحة.",
   },
@@ -131,7 +131,7 @@ const ES: OpsHomeCopy = {
     dateRange: "Intervalo de fechas",
     customDates: "Fechas",
     pickDates: "Elija el primer y el último día.",
-    rangeTooLong: "El intervalo puede abarcar como máximo 3660 días.",
+    rangeTooLong: "El intervalo puede abarcar como máximo 3661 días.",
     loading: "Cargando las cifras…",
     failed: "No se pudieron cargar las cifras. Recargue la página.",
   },

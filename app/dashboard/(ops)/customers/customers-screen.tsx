@@ -19,7 +19,7 @@ import { customerSearchText } from "../../../../lib/ops/home-rules";
 // Plan 05-04 (P5-09): the owner's Customers, a read-only list grouped by guest email. This file owns the data: a 300 ms wait
 // on the search text, the latest-ticket rule so a slow older answer never replaces a newer one, and Show more. ListTable
 // draws. The search text lives in state only, never in the URL. A row hands its email to Bookings through session storage
-// (lib/ops/bookings-handoff.ts), so the address never carries it. No New customer, no other action.
+// (lib/ops/bookings-handoff.ts), so the address never carries it. Read-only: no create action.
 
 const QUIET_MS = 300;
 
@@ -132,7 +132,7 @@ export function CustomersScreen() {
         </p>
       ) : null}
 
-      {loading && items.length === 0 ? (
+      {error !== null && items.length === 0 ? null : loading && items.length === 0 ? (
         <p className="m-0 text-body text-muted" role="status">
           {words.loading}
         </p>

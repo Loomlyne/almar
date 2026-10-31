@@ -91,4 +91,21 @@ None.
 
 None beyond the plan's register. T-05-04-02 mitigation is in code (storage handoff, `replaceState` leaves the text out) and asserted in the spec on `page.url()`.
 
-Reviewer: pending, run by the orchestrator.
+## Review
+
+Opus reviewer verdict: **fix first**. Findings and fixes:
+
+1. Code comments in `home-screen.tsx` and `customers-screen.tsx` named words the rewritten tests refuse. Comments reworded ("the v1.1 slots are not drawn", "Read-only: no create action").
+2. A handed email could outlive its use. `clearBookingsSearch()` added to `lib/ops/bookings-handoff.ts`; a spec case added (Customers row, a booking, Home, Bookings card, empty search box).
+3. `profile-screen.tsx` effect closed over first-render English copy: it now reads the latest words through a ref.
+4. A failed Customers read also showed "No customers yet": the table renders only when `error === null` or rows exist.
+5. Home: `aria-busy` and reduced opacity on the grid while loading; `error` cleared when a fetch starts.
+6. Home: `self-start` on the value so the number follows the reading side in Arabic.
+7. `rangeTooLong` now says 3,661 days (EN, AR, ES): SQL allows a difference of 3660, which is 3,661 days counted inclusively. The screen's check (`daysBetween > 3660`) already matched.
+8. Spec additions: range over the cap, a failed read on each of the three screens, the Profile name placeholder, underline checks on Customers and Profile plus hover on a linked Home card. The moved sign-out test now sets 1440 wide.
+
+**Known limit (review finding 5, not fixed):** `ops_list_bookings` treats a `q` starting `almar-` as a booking ref. Reported by the controller.
+
+**Shell grant and sign-out:** the controller granted `app/dashboard/(ops)/ops-shell.tsx` for this only. One effect on `pathname` calls `clearBookingsSearch()` whenever the path is not the Bookings list or detail (`/bookings...` or `/dashboard/bookings...`). The rail signs out by a form POST (full-page leave) and by the `signOutEverywhere` server action, so the effect may not run first: `clearBookingsSearch()` is also called in both confirm handlers in the same file. Fully covered inside this file; no other file touched.
+
+Reviewer: Opus, verdict "fix first", findings fixed as above (not re-reviewed).

@@ -39,6 +39,7 @@ test("bookings has no currency control; account still has one", async ({ page })
 
 // Plan 05-04 (P5-10): sign-out lives in the rail only. The Profile page has none, so the test moves to the shell.
 test("sign-out: the rail's form posts to /auth/sign-out and the dialogs use the locked words", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.route("**/api/ops/site-status", (route) =>
     route.fulfill({
       status: 200,

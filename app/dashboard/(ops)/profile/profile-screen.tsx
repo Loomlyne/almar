@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { opsFetch } from "../../../../components/ops/ops-client";
 import { readError } from "../../../../components/ops/read-error";
 import { useDashboardLocale } from "../../../../components/ops/use-dashboard-locale";
@@ -35,6 +35,9 @@ export function ProfileScreen() {
   const title = DASHBOARD_COPY[locale].rail.profile;
   const [profile, setProfile] = useState<{ name: string | null; email: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The sentences are read at answer time from the latest words, not the first render's.
+  const spoken = useRef({ kit, copy });
+  spoken.current = { kit, copy };
 
   // Read once. A language change after mount does not fetch again: the words are read at render.
   useEffect(() => {
@@ -43,7 +46,7 @@ export function ProfileScreen() {
       if (!live) return;
       if (!reply.ok) {
         setProfile(null);
-        setError(readError(kit, reply.error, copy.failed));
+        setError(readError(spoken.current.kit, reply.error, spoken.current.copy.failed));
         return;
       }
       setError(null);
@@ -52,7 +55,6 @@ export function ProfileScreen() {
     return () => {
       live = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (profile) return <ProfileView name={profile.name} email={profile.email} copy={copy} title={title} />;
