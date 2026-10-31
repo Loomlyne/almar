@@ -28,7 +28,7 @@ export function takeBookingsSearch(): string | null {
   }
 }
 
-/** Drop any handed text that was never taken, so a stale search cannot surface later. No caller yet. */
+/** Drop any handed text that was never taken, so a stale search cannot surface later. */
 export function clearBookingsSearch(): void {
   try {
     window.sessionStorage.removeItem(KEY);
