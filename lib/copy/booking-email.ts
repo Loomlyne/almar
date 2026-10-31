@@ -84,6 +84,16 @@ export type BookingEmailCopy = {
     /** "{ref}". */
     intro: string;
     confirmNote: string;
+    /** P5-05: the same mail for a booking the owner made by hand. Its own words, since "your request" is false there. */
+    handMade: {
+      /** "{ref}" only. */
+      subject: string;
+      heading: string;
+      /** "{ref}". */
+      intro: string;
+      /** transfer.lapseRule with "the booking lapses". */
+      lapseRule: string;
+    };
   };
   paymentReceipt: {
     /** "{ref}" only. */
@@ -163,6 +173,13 @@ const EN: BookingEmailCopy = {
     heading: "We have your request",
     intro: "Thank you. Your request {ref} is sent, and your dates are held while we wait for your bank transfer.",
     confirmNote: "We confirm your booking when the money arrives.",
+    handMade: {
+      subject: "Your booking {ref}: how to pay by bank transfer",
+      heading: "Your booking is ready",
+      intro: "Your booking {ref} is ready, and your dates are held while we wait for your bank transfer.",
+      lapseRule:
+        "If no payment at all is recorded by then, the booking lapses and its dates are released. Once part of the amount is recorded, your nights stay held.",
+    },
   },
   paymentReceipt: {
     subject: "Payment received for {ref}",
@@ -240,6 +257,14 @@ const AR: BookingEmailCopy = {
     heading: "وصلنا طلبك",
     intro: "شكرًا لك. أُرسل طلبك {ref}، وتواريخك محجوزة بانتظار تحويلك البنكي.",
     confirmNote: "نؤكد حجزك عند وصول المبلغ.",
+    // Arabic and Spanish of handMade: model-translated drafts (P5-05), like the rest of the plan-05 words; Spanish keeps tú, as this file does.
+    handMade: {
+      subject: "حجزك {ref}: طريقة الدفع بالتحويل البنكي",
+      heading: "حجزك جاهز",
+      intro: "حجزك {ref} جاهز، وتواريخك محجوزة بانتظار تحويلك البنكي.",
+      lapseRule:
+        "إذا لم يُسجَّل أي دفع حتى ذلك الموعد، تنتهي مهلة الحجز وتُتاح تواريخه من جديد. وبمجرد تسجيل جزء من المبلغ، تبقى لياليك محجوزة.",
+    },
   },
   paymentReceipt: {
     subject: "استلمنا دفعة للحجز {ref}",
@@ -310,6 +335,13 @@ const ES: BookingEmailCopy = {
     heading: "Recibimos tu solicitud",
     intro: "Gracias. Tu solicitud {ref} está enviada y tus fechas quedan reservadas mientras esperamos tu transferencia.",
     confirmNote: "Confirmamos tu reserva cuando llegue el dinero.",
+    handMade: {
+      subject: "Tu reserva {ref}: cómo pagar por transferencia bancaria",
+      heading: "Tu reserva está lista",
+      intro: "Tu reserva {ref} está lista y tus fechas quedan reservadas mientras esperamos tu transferencia.",
+      lapseRule:
+        "Si para entonces no se registra ningún pago, la reserva vence y sus fechas se liberan. En cuanto se registre una parte del monto, tus noches siguen reservadas.",
+    },
   },
   paymentReceipt: {
     subject: "Pago recibido para {ref}",

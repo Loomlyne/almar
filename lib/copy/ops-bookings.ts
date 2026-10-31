@@ -201,6 +201,7 @@ export type OpsBookingsCopy = {
     actors: { owner: string; system: string; guest: string };
     by: string;
     created: string;
+    createdAgreed: string;
     status: string;
     hold_expired: string;
     request_sent: string;
@@ -483,6 +484,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       actors: { owner: "Owner", system: "System", guest: "Guest" }, // CANVAS Owner, System
       by: "{action}, by {who}",
       created: "Booking created", // CANVAS
+      createdAgreed: "Booking created with an agreed price of {amount} before VAT. Reason: {reason}",
       status: "Status changed to {status}", // CANVAS, status as a token
       hold_expired: "Expired: the time to pay ran out and the nights were freed",
       request_sent: "Request sent by the guest",
@@ -761,6 +763,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       actors: { owner: "المالك", system: "النظام", guest: "الضيف" },
       by: "{action}، بواسطة {who}",
       created: "أُنشئ الحجز",
+      createdAgreed: "أُنشئ الحجز بسعر متفق عليه قدره {amount} قبل ضريبة القيمة المضافة. السبب: {reason}",
       status: "تغيّرت الحالة إلى {status}",
       hold_expired: "انتهى: انقضى وقت الدفع وحُرّرت الليالي",
       request_sent: "أرسل الضيف الطلب",
@@ -1042,6 +1045,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       actors: { owner: "Propietario", system: "Sistema", guest: "Huésped" },
       by: "{action}, por {who}",
       created: "Reserva creada",
+      createdAgreed: "Reserva creada con un precio acordado de {amount} antes del IVA. Motivo: {reason}",
       status: "Estado cambiado a {status}",
       hold_expired: "Vencida: terminó el tiempo para pagar y las noches quedaron libres",
       request_sent: "Solicitud enviada por el huésped",

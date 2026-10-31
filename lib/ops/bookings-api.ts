@@ -572,7 +572,7 @@ export async function resendMail({ owner, body }: PostCtx<ResendBody>, deps: Boo
     send = guarded(() => notifier.paymentReceipt(job, { idempotencyKey: key }));
   } else {
     if (bookingUrl === null) return refused(503, "unavailable");
-    const job: RequestMailJob = { bookingId: booking.id, view, isTest: booking.is_test, bookingUrl };
+    const job: RequestMailJob = { bookingId: booking.id, view, isTest: booking.is_test, bookingUrl, handMade: booking.source === "ops" };
     send = guarded(() => notifier.requestReceived(job, { idempotencyKey: key }));
   }
 

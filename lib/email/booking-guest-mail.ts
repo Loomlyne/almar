@@ -121,7 +121,7 @@ function transferBlocks(
   t: TransferInstructions,
   c: BookingEmailCopy,
   locale: EmailLocale,
-  options: { lapseRule: boolean; payBy?: boolean },
+  options: { lapseRule: boolean; payBy?: boolean; lapseText?: string },
 ): EmailBlock[] {
   const out: EmailBlock[] = [
     RULE,
@@ -143,7 +143,7 @@ function transferBlocks(
     paragraph(c.transfer.fees),
     paragraph(c.transfer.reply),
   );
-  if (options.lapseRule) out.push(paragraph(c.transfer.lapseRule));
+  if (options.lapseRule) out.push(paragraph(options.lapseText ?? c.transfer.lapseRule));
   out.push(paragraph(c.transfer.alsoOnPage));
   return out;
 }
@@ -161,16 +161,18 @@ export function renderRequestReceivedEmail(job: RequestMailJob, ctx: GuestMailCo
   const { view } = job;
   const c = ctx.copy;
   const locale = emailLocale(view.locale);
-  const subject = bookingSubject(c.requestReceived.subject, view.ref, job.isTest);
+  // P5-05: a booking the owner made by hand has its own subject, heading, first line and lapse sentence.
+  const words = job.handMade ? c.requestReceived.handMade : c.requestReceived;
+  const subject = bookingSubject(words.subject, view.ref, job.isTest);
   const transfer = view.transfer;
   if (!transfer) throw new Error("email: no transfer");
   const href = checkHref(job.bookingUrl);
   const blocks: EmailBlock[] = [
-    heading(c.requestReceived.heading),
+    heading(words.heading),
     greeting(c, view.guest.name),
-    paragraph(fillRich(c.requestReceived.intro, { ref: [ltr(view.ref)] })),
+    paragraph(fillRich(words.intro, { ref: [ltr(view.ref)] })),
     bookingRows(view, c, locale),
-    ...transferBlocks(view.ref, transfer, c, locale, { lapseRule: true }),
+    ...transferBlocks(view.ref, transfer, c, locale, { lapseRule: true, lapseText: job.handMade ? c.requestReceived.handMade.lapseRule : c.transfer.lapseRule }),
   ];
   if (view.plan === "deposit" && view.money.balanceFils > 0 && view.balanceDueDate) {
     blocks.push(balanceLine(c, view.money.balanceFils, view.balanceDueDate));

@@ -107,7 +107,11 @@ function eventLine(copy: OpsBookingsCopy, event: OwnerEvent): string {
   let action: string;
   switch (event.action) {
     case "created":
-      action = h.created;
+      // P5-02: an agreed price shows its amount and reason; only these two named keys are read, never the raw detail.
+      action =
+        typeof detail.agreed_reason === "string" && typeof detail.agreed_nights_fils === "number"
+          ? fillCopy(h.createdAgreed, { amount: aedIn(detail.agreed_nights_fils), reason: detail.agreed_reason })
+          : h.created;
       break;
     case "status": {
       const to = event.to_status;
