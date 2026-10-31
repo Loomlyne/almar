@@ -94,9 +94,23 @@ None beyond the plan's register: both routes go through `opsPost` (owner, Origin
 1. Read the `Worker N KiB gzip` line (was 2,550 against the 2,560 refusal; shared margin with 05-02 and 05-04; this plan estimates 3 to 5 KiB on the server, Arabic compresses poorly, so the limit may be crossed).
 2. `grep -rl "data-booking-refunds" .next/server`: a hit under a server bundle means the chunk was not dropped (it still works; it only costs those bytes).
 
-## Reviewer
+## Review
 
-Reviewer: pending, run by the orchestrator. The money part for the reviewer: `parseRefund`, `recordRefund`, `refundMailFor`, the resend arm, `RecordRefundDialog` and its preview inputs, the `refundedFils` passes, request_id life in the screen, `closedNetFils`, whether any guest surface can show a reference or reason, and every Words sentence for wording that implies the site sends money.
+Verdict (Opus, read-only): fix first; all findings below fixed except 10, which stands.
+
+1. Lost answer, then close and reopen made a new `request_id` over a stale screen: `closeDialog` now re-reads the booking when the dialog held an error; spec case added.
+2. Mail test used an https host that `checkHref` accepts: now `http://evil.example/bookings/trip`.
+3. API test asserted on raw `dbError` text: that line dropped, `"dbError" in out` kept.
+4. Spec clicked a disabled Void button on `refund_first`: the click and reason fill removed, the words are checked on open.
+5. A replay (`refund.first_time` false) now shows only "Refund recorded."
+6. A replay with another day, bank reference or reason was silently dropped: `ops_record_refund` (migration, not applied) now answers `changed` for any of them (trimmed, `is distinct from`); one pgTAP assertion added, plan 146 to 147. The screen shows the existing `changed` words (`RELOAD_CODES`).
+7. The refund-receipt-adjacent payment receipt printed `moneyOnClosed` after a full refund: now only while paid minus refunded is above 0; mail test added.
+8. Stale doubled dialog error: `setDialogError(null)` in the refund dialog's `onChange` and `onBack`.
+9. Reference and email in the refund list, cards and void dialog wrapped in `ltr(...)`.
+10. Not changed: the owner signed the Record refund and two guest email pictures (`.planning/decisions/2026-10-31-phase-5-plan-signed.md`), so "signed" in the comment stands; the pictures are not in the tree.
+11. API tests now assert `d.links` (`isTest`, `locale`, `linkVersion`) in the first-time mail and resend tests.
+
+Deploy order: `booking-detail.tsx` calls `b.refunds.filter` unguarded, so the 05-01 migration must go live before `almar-ops`.
 
 ## Self-Check: PASSED
 

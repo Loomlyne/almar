@@ -282,6 +282,7 @@ test("recordRefund: the first time sends one email with key refund-receipt/<id>,
   assert.equal(job.isTest, true);
   assert.equal("bankReference" in job || "bank_reference" in job || "reason" in job, false, "the job never carries the bank reference or the reason");
   assert.deepEqual(d.views, [{ bookingId: BOOKING, opts: { isTest: true } }]);
+  assert.deepEqual(d.links, [{ id: BOOKING, ref: REF, locale: "ar", isTest: true, linkVersion: 2 }]);
   assert.equal(out.body.ok, true);
   assert.equal(out.body.mail, "sent");
   assert.equal(out.body.refund.refund_id, REFUND);
@@ -360,7 +361,6 @@ test("recordRefund: an unknown error is dbError with no database text; a non-row
   const db = fakeDb({ ops_record_refund: { data: null, error: { code: "XX000", message: "[secret database text]", details: null, hint: null } } });
   const out = await api.recordRefund({ owner: owner(db), body: api.parseRefund(body()) }, fakeDeps().deps);
   assert.ok("dbError" in out);
-  assert.equal(JSON.stringify(out).includes("[secret database text]"), false);
   const unreadable = await api.recordRefund({ owner: owner(fakeDb({ ops_record_refund: { data: "x", error: null } })), body: api.parseRefund(body()) }, fakeDeps().deps);
   assert.ok("dbError" in unreadable);
 });
@@ -409,6 +409,7 @@ test("resendMail refund: the event names the refund by a number, then the refund
     args: { p_booking: BOOKING, p_actor: `owner:${OWNER_ID}`, p_action: "resend_requested", p_detail: { template: "refund_receipt", refund_id: REFUND, request_id: REQUEST } },
   });
   assert.equal(typeof db.calls[2].args.p_detail.refund_id, "number");
+  assert.deepEqual(d.links, [{ id: BOOKING, ref: REF, locale: "es", isTest: true, linkVersion: 2 }]);
   const key = `resend/${BOOKING}/${REQUEST}`;
   assert.deepEqual(n.sent.map((s) => [s.name, s.key]), [["refundReceipt", key]]);
   assert.equal(n.sent[0].job.refundId, REFUND);

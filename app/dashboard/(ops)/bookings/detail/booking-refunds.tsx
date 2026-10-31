@@ -17,7 +17,7 @@ import {
   type OwnerDetail,
   type OwnerRefund,
 } from "../../../../../lib/ops/booking-rules";
-import { aedIn, dayIn, timeIn } from "../bookings-text";
+import { aedIn, dayIn, ltr, timeIn } from "../bookings-text";
 import { ErrorLine, reasonOk, Sentences } from "./booking-dialogs";
 
 // Plan 05-03 (PAY-12, B-31, B-25): the refund list and both refund dialogs on a booking. This file and
@@ -147,8 +147,8 @@ export function RefundsBlock({
               <span>{dayIn(refund.refunded_on)}</span>
               <RefundAmount refund={refund} copy={copy} R={R} />
             </div>
-            <span className="text-caption text-muted">{fillCopy(P.referenceLine, { reference: refund.bank_reference })}</span>
-            {refund.recorded_by_email ? <span className="text-caption text-muted">{fillCopy(P.recordedByLine, { email: refund.recorded_by_email })}</span> : null}
+            <span className="text-caption text-muted">{fillCopy(P.referenceLine, { reference: ltr(refund.bank_reference) })}</span>
+            {refund.recorded_by_email ? <span className="text-caption text-muted">{fillCopy(P.recordedByLine, { email: ltr(refund.recorded_by_email) })}</span> : null}
             <RefundActions booking={booking} refund={refund} copy={copy} R={R} busy={busy} onVoid={onVoid} onResend={onResend} />
           </li>
         ))}
@@ -403,7 +403,7 @@ export function VoidRefundDialog({
           <p className="m-0 flex flex-wrap justify-between gap-2 text-body text-ink">
             <span>
               {dayIn(refund.refunded_on)}
-              {refund.bank_reference ? ` · ${refund.bank_reference}` : ""}
+              {refund.bank_reference ? ` · ${ltr(refund.bank_reference)}` : ""}
             </span>
             <span>{aedIn(refund.amount_fils)}</span>
           </p>

@@ -578,10 +578,8 @@ test("Void payment below what was refunded shows the refund_first words", async 
   const copy = C.en;
   await openDetail(page, "en", [paidBooking({ refunds: [succeededRefund({ id: 5, amount_fils: 100_000 })] })]);
   await page.getByRole("button", { name: copy.actions.void, exact: true }).first().click();
-  const dialog = page.getByRole("dialog");
-  await dialog.getByLabel(copy.void.reason).fill("[Reason]");
-  await dialog.getByRole("button", { name: copy.actions.void, exact: true }).click();
-  await expect(dialog.getByText(copy.errors.refund_first)).toBeVisible();
+  // The Void button is off on refund_first; the words show as soon as the dialog opens.
+  await expect(page.getByRole("dialog").getByText(copy.errors.refund_first)).toBeVisible();
 });
 
 test("in Arabic the refund dialog is right to left with amounts kept left to right", async ({ page }) => {
@@ -607,4 +605,28 @@ test("no button or link is named as if the site sends a refund", async ({ page }
   await expect(page.getByRole("link", { name: bad })).toHaveCount(0);
   await page.getByRole("button", { name: copy.actions.recordRefund }).click();
   await expect(page.getByRole("dialog").getByRole("button", { name: bad })).toHaveCount(0);
+});
+
+test("a lost answer then close: the booking is read again before a retry (plan 05-03)", async ({ page }) => {
+  const copy = C.en;
+  const lazy = OPS_REFUNDS_COPY.en;
+  let fail = true;
+  const api = await openDetail(page, "en", [paidBooking()], {
+    override: (call) => {
+      if (call.path === "/api/ops/booking/refund" && fail) {
+        fail = false;
+        return { status: 503, body: { ok: false, error: { code: "unavailable", field: null, locale: null, detail: null } } };
+      }
+      return undefined;
+    },
+  });
+  await openRefund(page, copy);
+  const dialog = await fillRefund(page, copy, lazy, { date: "2026-10-12" });
+  await dialog.getByRole("button", { name: copy.record.review }).click();
+  await dialog.getByRole("button", { name: copy.actions.recordRefund }).click();
+  await expect(page.getByRole("dialog").getByRole("alert")).toBeVisible();
+  const reads = api.to("/api/ops/booking", "GET").length;
+  await page.getByRole("dialog").getByRole("button", { name: copy.record.back }).first().click();
+  await page.getByRole("dialog").getByRole("button", { name: copy.record.back }).first().click();
+  await expect.poll(() => api.to("/api/ops/booking", "GET").length).toBeGreaterThan(reads);
 });

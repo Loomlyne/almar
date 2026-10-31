@@ -124,7 +124,11 @@ begin
     -- on the lock and then finds the first one's row), and once more after a unique_violation on request_id.
     select x.* into v_old from public.booking_refunds x where x.request_id = v_request;
     if found then
-      if v_old.booking_id <> v_booking or v_old.amount_fils <> v_amount then
+      -- Any other edit of the same request is changed too, so a corrected day, reference or reason is never dropped silently.
+      if v_old.booking_id <> v_booking or v_old.amount_fils <> v_amount
+         or to_char(v_old.refunded_on, 'YYYY-MM-DD') is distinct from (p ->> 'refunded_on')
+         or v_old.bank_reference is distinct from btrim(p ->> 'bank_reference')
+         or v_old.reason is distinct from btrim(p ->> 'reason') then
         perform public.booking_fail('changed');
       end if;
       select e.detail into v_ev from public.booking_events e

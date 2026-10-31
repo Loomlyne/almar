@@ -122,6 +122,8 @@ export function BookingDetailScreen() {
 
   function closeDialog() {
     if (inFlight.current) return;
+    // A lost answer may have landed: read the booking again so a retry never runs over a stale screen.
+    if (dialogError !== null) setReload((n) => n + 1);
     setDialog(null);
     setDialogError(null);
   }
@@ -226,7 +228,7 @@ export function BookingDetailScreen() {
   }
 
   async function confirmRefund() {
-    const reply = await write<{ mail?: MailAnswer }>(
+    const reply = await write<{ mail?: MailAnswer; refund?: { first_time?: boolean } }>(
       "/api/ops/booking/refund",
       {
         booking_id: b.id,
@@ -239,7 +241,8 @@ export function BookingDetailScreen() {
       true,
       sayRefund,
     );
-    if (reply) setNotice(`${copy.payments.refundRecorded} ${refundMailWord(reply.mail)}`);
+    // A replay (first_time false) sent no email: say only that the refund is recorded.
+    if (reply) setNotice(reply.refund?.first_time === false ? copy.payments.refundRecorded : `${copy.payments.refundRecorded} ${refundMailWord(reply.mail)}`);
   }
 
   async function confirmVoidRefund(refund: OwnerRefund) {
@@ -404,9 +407,15 @@ export function BookingDetailScreen() {
           step={step}
           busy={busy}
           error={dialogError}
-          onChange={(patch) => setRefundValues((old) => ({ ...old, ...patch }))}
+          onChange={(patch) => {
+            setDialogError(null);
+            setRefundValues((old) => ({ ...old, ...patch }));
+          }}
           onReview={() => setStep("review")}
-          onBack={() => setStep("form")}
+          onBack={() => {
+            setDialogError(null);
+            setStep("form");
+          }}
           onConfirm={() => void confirmRefund()}
           onClose={closeDialog}
         />

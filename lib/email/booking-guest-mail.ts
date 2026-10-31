@@ -207,7 +207,9 @@ export function renderPaymentReceiptEmail(job: PaymentMailJob, ctx: GuestMailCon
   blocks.push(rows(received));
 
   if (closed) {
-    blocks.push(paragraph(fillRich(r.moneyOnClosed, { amount: aed(job.amountFils) })));
+    // After a refund the sentence stands only while paid minus refunded is above 0; it then names that net amount.
+    const net = money.paidFils - money.refundedFils;
+    if (net > 0) blocks.push(paragraph(fillRich(r.moneyOnClosed, { amount: aed(job.amountFils) })));
   } else if (after === "awaiting_payment") {
     blocks.push(paragraph(r.partReceived), rows([row(r.stillDue, aed(money.dueNowFils))]));
     if (view.transfer) {

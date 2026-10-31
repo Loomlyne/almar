@@ -683,7 +683,7 @@ rtest("refund email: a bad reference and a bad link throw their names", async ()
   const { guest } = await mail();
   const job = refundJob("en");
   assert.throws(() => guest.renderRefundReceiptEmail({ ...job, view: { ...job.view, ref: "ALMAR-OOOOOO" } }, ctx("en")), /email: bad reference/);
-  for (const href of ["javascript:alert(1)", "https://evil.example/bookings/trip"]) {
+  for (const href of ["javascript:alert(1)", "http://evil.example/bookings/trip"]) {
     assert.throws(() => guest.renderRefundReceiptEmail({ ...job, bookingUrl: href }, ctx("en")), /email: bad link/, href);
   }
 });
@@ -731,4 +731,15 @@ test("copy: refundReceipt has the same slots in every language, only {ref} in th
     for (const key of ["heading", "amountRefunded", "refundedOn", "onPage"]) assert.equal(/\{\w+\}/.test(r[key]), false, `${locale}.${key}`);
     assert.equal(/within|business day|خلال|dentro de|días hábiles/i.test(Object.values(r).join(" ")), false, `${locale} promises a time`);
   }
+});
+
+rtest("receipt on a cancelled booking: moneyOnClosed only while paid minus refunded is above 0 (plan 05-03)", async () => {
+  const { guest } = await mail();
+  const base = fx.paymentJobFixture("after-expiry", "en");
+  const cancelled = fx.viewFixture("cancelled", "en");
+  const closed = (refundedFils) => ({ ...base, statusAfter: "cancelled", view: { ...cancelled, money: { ...cancelled.money, paidFils: 200000, refundedFils } } });
+  const phrase = "We will contact you about it.";
+  assert.ok(BOOKING_EMAIL_COPY.en.paymentReceipt.moneyOnClosed.includes(phrase));
+  assert.ok(guest.renderPaymentReceiptEmail(closed(50000), ctx("en")).html.includes(phrase), "a part refund keeps the sentence");
+  assert.equal(guest.renderPaymentReceiptEmail(closed(200000), ctx("en")).html.includes(phrase), false, "a full refund drops it");
 });

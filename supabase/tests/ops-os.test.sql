@@ -8,7 +8,7 @@
 -- Run: node tests/helpers/local-supabase.mjs test supabase/tests/ops-os.test.sql
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(146);
+select plan(147);
 
 -- Helpers (temporary, gone with the transaction; the first group is booking-payments.test.sql's) ------------------------
 create function pg_temp.d(n int) returns date language sql as $$ select ((now() at time zone 'Asia/Dubai')::date + n) $$;
@@ -389,6 +389,8 @@ select is(pg_temp.err(format($$select pg_temp.rfd('rf3', 30001, '{}', %L)$$, (se
           'almar:changed', 'replay: the same request id with another amount is changed');
 select is(pg_temp.err(format($$select pg_temp.rfd('rf1', 30000, '{}', %L)$$, (select (v ->> 'id')::uuid from t_res where k = 'rq3'))),
           'almar:changed', 'replay: the same request id on another booking is changed');
+select is(pg_temp.err(format($$select pg_temp.rfd('rf3', 30000, '{"bank_reference":"[another reference]"}', %L)$$, (select (v ->> 'id')::uuid from t_res where k = 'rq3'))),
+          'almar:changed', 'replay: the same request id with another bank reference is changed');
 select is((pg_temp.b('rf3')).refunded_fils, 30000::bigint, 'replay: and nothing was added');
 
 -- Day edges: today (Dubai) is allowed; the creation day is the earliest.
