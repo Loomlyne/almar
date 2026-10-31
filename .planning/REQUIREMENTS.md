@@ -272,12 +272,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SITE-13 | Phase 3.3 | Pending |
 | OPS-01 | Phase 2 | Pending |
 | OPS-02 | Phase 5 | Pending |
-| OPS-03 | Phase 5 | Pending |
+| OPS-03 | Phase 5 | Narrowed (05-CONTEXT P5-01), built, UAT pending |
 | OPS-04 | Phase 4 | Pending |
 | OPS-05 | Phase 5 | Pending |
 | OPS-06 | Phase 5 | Pending |
 | OPS-07 | Phase 5 | Pending |
-| OPS-08 | Phase 5 | Pending |
+| OPS-08 | Phase 5 | Narrowed (05-CONTEXT P5-01), built, UAT pending |
 | OPS-09 | Phase 3 | Pending |
 | OPS-10 | Phase 4 | Pending |
 | OPS-11 | Phase 5 | Pending |

@@ -277,12 +277,15 @@ Plans:
   3. Settings Publish applies brand tokens site-wide; VAT % and deposit % work; reminders fire for unpaid remainder
   4. Passport/ID is encrypted and opens only after extra owner confirm; guest can change email/phone and delete account (PII stripped)
 
-**Plans:** 4 (05-01 to 05-04, signed 2026-10-31)
+**Plans:** 4 (05-01 to 05-04, signed 2026-10-31). Landed on `main` `d4a11844` (PR #36), live on `almar-preview` and `almar-ops`; UAT not run. Scope as signed: `phases/05-ops-os/05-CONTEXT.md`; what it leaves to v1.1 wins over the criteria above.
 
 Plans:
 
-- [ ] 05-01: Ops shell, bookings, customers, notes, audit, CSV
-- [ ] 05-02: Settings (brand, VAT, deposit, templates, maintenance) + money actions
+- [x] 05-01: Migration, database types, agreed price, refund rules, contracts
+- [x] 05-02: New booking on the dashboard, hand-made email, agreed price in History
+- [x] 05-03: Record refund, Void, resend, refund email, guest page Refunds line
+- [x] 05-04: Home, Customers, Profile wired and live
+- [ ] Owner's UAT: `phases/05-ops-os/HANDOVER.md`
 
 ### Phase 6: Site and rest of CMS
 
