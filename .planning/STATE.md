@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-31 13:40 CET:** almar-ops `8b53bd01` (rollback `9fad3c4e`) live from main `d34e599a` on the owner's word, cron ok. almar still `1435e262`. Controller is now `local_d92ae36f-…`. Phase 5 discuss and plan running in its own session. 04-07 UAT next, waiting on the owner's items (board).
+
 **2026-10-31 00:03 +0100:** almar-preview `a96a64d4` live from main `2a38744c` (alt-check fix on the owner's Ship). almar and almar-ops not deployed. Next: his word on almar-ops, then almar.
 
 **2026-10-30 23:14 +0100:** Phase 6 migration 20261025120000 applied and read back; content import applied (191 rows). No deploy yet.
