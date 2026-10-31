@@ -763,7 +763,7 @@ insert into t_res values ('G', public.ops_get_booking(pg_temp.r('v1', 'ref')));
 select is((select array_agg(k order by k collate "C") from jsonb_object_keys((select v from t_res where k = 'G')) k),
           array['adults', 'airport', 'arrive', 'children', 'created_at', 'deadline', 'destination', 'events', 'flags', 'guest', 'hold_expires_at', 'id',
                 'infants', 'is_test', 'lapse_email', 'leave', 'lines', 'link_version', 'money', 'nights', 'notes', 'payments', 'pickup_address', 'plan',
-                'ref', 'requested_at', 'source', 'status', 'stay', 'terms_accepted_at', 'terms_version', 'travellers', 'updated_at'],
+                'ref', 'refunds', 'requested_at', 'source', 'status', 'stay', 'terms_accepted_at', 'terms_version', 'travellers', 'updated_at'],
           'owner detail: exactly its keys');
 select ok((select p ->> 'status' = 'voided' and p ->> 'void_reason' = 'Typed in error' and p ->> 'voided_by_email' = 'maria@almarprivatejourney.com'
               and p ->> 'recorded_by_email' = 'maria@almarprivatejourney.com' and p ->> 'bank_reference' = 'TEST-v1' and p ->> 'method' = 'bank_transfer'

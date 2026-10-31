@@ -316,7 +316,7 @@ select ok((select pg_get_constraintdef(c.oid) like '%''resend_requested''%' and 
 select is((select (length(d) - length(replace(d, '::text', ''))) / 6
              from (select pg_get_constraintdef(c.oid) as d from pg_constraint c
                     where c.conrelid = 'public.booking_events'::regclass and c.conname = 'booking_events_action_check') x),
-          20, 'constraints: the action check lists 20 actions (email_unknown added after the 04-05 review)');
+          22, 'constraints: the action check lists 22 actions (email_unknown added after the 04-05 review; refund_recorded and refund_voided in 05-01)');
 select ok((select pg_get_constraintdef(c.oid) like '%''deadline_passed_part_paid''%' and pg_get_constraintdef(c.oid) not like '%expired_with_payment%'
              from pg_constraint c where c.conrelid = 'public.bookings'::regclass and c.contype = 'c'
               and pg_get_constraintdef(c.oid) like '%paid_after_expiry%'),
@@ -576,7 +576,7 @@ select is(pg_temp.bv('rq1', null, false), null, 'view: null for a TEST booking a
 select is((select array_agg(k order by k collate "C") from jsonb_object_keys(pg_temp.bv('rq1')) k),
           array['access', 'adults', 'airport', 'arrive', 'balance_due_date', 'children', 'deadline', 'email', 'flags', 'guest_name',
                 'hold_expires_at', 'infants', 'leave', 'lines', 'locale', 'money', 'nights', 'payments', 'pickup_address', 'plan', 'ref',
-                'status', 'stay', 'transfer', 'travellers', 'withdrawable'],
+                'refunds', 'status', 'stay', 'transfer', 'travellers', 'withdrawable'],
           'view: exactly its top-level keys (no id, phone, notes, events, attention, TEST flag or write-off)');
 select is(pg_temp.bv('rq1') #>> '{transfer,amount_fils}', '63000', 'view: an awaiting request shows the transfer for its deposit');
 select ok(pg_temp.bv('rq1') #>> '{transfer,reference}' = pg_temp.r('rq1', 'ref') and pg_temp.bv('rq1') #>> '{transfer,currency}' = 'AED'
