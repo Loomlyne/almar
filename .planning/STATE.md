@@ -25,6 +25,8 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 
 ## Current Position
 
+**2026-10-31 18:05 CET:** almar `f778572e` (rollback `44358a08`) live from main `43b5b260` on the owner's word; Phases 4, 5, 6 on all three Workers. Next: owner's Resend key on preview, Settings, UAT of Phases 4 and 5, booking terms.
+
 **2026-10-31 16:49 CET:** Controller is now `local_fcbc6391-…` on the owner's word. Live checks of Phase 5 signed out pass; cron ok. Live: bank incomplete, balance due days null, 0 rates, 0 bookings, terms not published. Next is unchanged and waits on the owner.
 
 **2026-10-31 16:32 CET:** Phase 5 on main `d4a11844` (PR #36) on the owner's Ship; migration `20261031120000` live; almar-preview `69d13666`, almar-ops `89566d05`; almar still Phase 4 at `44358a08`. Next: owner's Resend key on preview, Settings, then UAT of Phases 4 and 5.
