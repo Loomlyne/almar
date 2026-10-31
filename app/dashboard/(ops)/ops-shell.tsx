@@ -7,6 +7,7 @@ import { ChevronIcon, CloseIcon } from "../../../components/icons/icons";
 import { cn } from "../../../lib/cn";
 import { ConfirmDialog } from "../../../components/ui/confirm-dialog";
 import { signOutEverywhere } from "../actions";
+import { clearBookingsSearch } from "../../../lib/ops/bookings-handoff";
 import { DASHBOARD_COPY, type DashboardCopy } from "../../../lib/copy/dashboard";
 import { OPS_CONTENT_COPY } from "../../../lib/copy/ops-content";
 import { OPS_MEDIA_COPY } from "../../../lib/copy/ops-media";
@@ -117,6 +118,13 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
     setLocale(next);
     setDocumentLocale(next);
   }, []);
+
+  // Plan 05-04: a guest's email handed from Customers to Bookings is dropped as soon as the owner is anywhere but the
+  // Bookings list or detail, so it cannot surface on a later visit.
+  useEffect(() => {
+    const onBookings = pathname !== null && /^(\/dashboard)?\/bookings(\/|$)/.test(pathname);
+    if (!onBookings) clearBookingsSearch();
+  }, [pathname]);
 
   useEffect(() => {
     if (pathname?.startsWith(toHref(mode, "/dashboard/catalog"))) setCatalogOpen(true);
@@ -342,7 +350,11 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
             title={copy.signOut}
             confirmLabel={copy.signOutOfThisSite}
             cancelLabel={copy.staySignedIn}
-            onConfirm={() => signOutForm.current?.submit()}
+            onConfirm={() => {
+              // The handed email must not outlive the session: cleared before the full-page POST leaves.
+              clearBookingsSearch();
+              signOutForm.current?.submit();
+            }}
           />
           <ConfirmDialog
             open={logoutAllOpen}
@@ -350,7 +362,10 @@ export function OpsShell({ children, mode, logoSrc = null }: { children: ReactNo
             title={copy.logoutAll}
             confirmLabel={copy.signOutEverywhere}
             cancelLabel={copy.staySignedIn}
-            onConfirm={() => void signOutEverywhere()}
+            onConfirm={() => {
+              clearBookingsSearch();
+              void signOutEverywhere();
+            }}
           />
         </>
       ) : null}

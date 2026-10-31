@@ -89,6 +89,18 @@ const paymentJob = (over = {}) => ({
   recordedByEmail: null,
   ...over,
 });
+// Plan 05-03: the refund mail job. Symbolic amount in fils, written and not run.
+const REFUND = 7;
+const refundJob = (over = {}) => ({
+  bookingId: BOOKING,
+  refundId: REFUND,
+  view: view(),
+  isTest: false,
+  bookingUrl: null,
+  amountFils: 111111,
+  refundedOn: "2026-10-21",
+  ...over,
+});
 const lapseJob = (over = {}) => ({
   bookingId: BOOKING,
   ref: "ALMAR-TEST22",
@@ -112,6 +124,7 @@ const RENDERERS = [
   "renderRequestOwnerEmail",
   "renderPaymentOwnerEmail",
   "renderWithdrawnOwnerEmail",
+  "renderRefundReceiptEmail",
 ];
 
 /** Fake renderers that record their calls; `throwWith` makes one renderer throw that message. */
@@ -150,8 +163,9 @@ const METHODS = {
   ownerPayment: { job: paymentJob, key: `payment-owner/${PAYMENT}`, renderer: "renderPaymentOwnerEmail", to: INQUIRIES, replyTo: GUEST },
   requestLapsed: { job: lapseJob, key: `lapse/${BOOKING}`, renderer: "renderRequestLapsedEmail", to: GUEST, replyTo: INQUIRIES },
   ownerWithdrawn: { job: requestJob, key: `withdrawn-owner/${BOOKING}`, renderer: "renderWithdrawnOwnerEmail", to: INQUIRIES, replyTo: GUEST },
+  refundReceipt: { job: refundJob, key: `refund-receipt/${REFUND}`, renderer: "renderRefundReceiptEmail", to: GUEST, replyTo: INQUIRIES },
 };
-const VIEW_METHODS = ["requestReceived", "ownerRequest", "paymentReceipt", "ownerPayment", "ownerWithdrawn"];
+const VIEW_METHODS = ["requestReceived", "ownerRequest", "paymentReceipt", "ownerPayment", "ownerWithdrawn", "refundReceipt"];
 
 // ================================================================ lib/email/send.ts
 
@@ -269,7 +283,7 @@ test("send: source rules (one environment read, the package imported lazily, no 
 
 // ================================================================ lib/email/booking-notifier.ts
 
-test("notifier: ready, with the six methods of 04-08's BookingNotifier", () => {
+test("notifier: ready, with the seven methods of 04-08's BookingNotifier", () => {
   const n = notifier();
   assert.equal(n.ready, true);
   for (const method of Object.keys(METHODS)) assert.equal(typeof n[method], "function", method);
@@ -588,4 +602,26 @@ test("source rules: the notifier and the seam read no environment, never import 
   // Types only from the seam: no runtime import back into lib/booking/notify.ts (no cycle).
   assert.match(notifierSource, /^import type \{[^}]*\} from "\.\.\/booking\/notify";$/m);
   assert.doesNotMatch(notifierSource, /^import \{[^}]*\} from "\.\.\/booking\/notify";$/m);
+});
+
+// ================================================================ refund mail (plan 05-03). Written, not run.
+
+test("notifier refundReceipt: the key refund-receipt/<id> passes, mailKey writes it, the guest's language copy is used", async () => {
+  assert.equal(mailKey("refundReceipt", String(REFUND)), `refund-receipt/${REFUND}`);
+  const { calls, send } = fakeSend({ ok: true });
+  const { calls: renders, mail } = fakeMail();
+  const n = notifier({ send, mail });
+  assert.deepEqual(await n.refundReceipt(refundJob({ view: view({ locale: "ar" }) }), { idempotencyKey: `refund-receipt/${REFUND}` }), { ok: true });
+  assert.deepEqual(renders[0].ctx.copy, GUEST_COPY.ar);
+  assert.equal(calls[0].key, `refund-receipt/${REFUND}`);
+});
+
+test("notifier refundReceipt: a resend key with the same template passes the key check", async () => {
+  const { calls, send } = fakeSend({ ok: true });
+  assert.deepEqual(await notifier({ send }).refundReceipt(refundJob(), { idempotencyKey: `resend/${BOOKING}/${REQUEST}` }), { ok: true });
+  assert.equal(calls.length, 1);
+});
+
+test("notifier source: the refund seam line is gone", () => {
+  assert.equal(nc("lib/email/booking-notifier.ts").includes("not_ready"), false);
 });

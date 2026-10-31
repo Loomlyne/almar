@@ -1,7 +1,7 @@
-// Plan 04-05 (Task 1): the words of the six booking emails. Self-contained (a granted copy slot, deliberately not
+// Plan 04-05 (Task 1): the words of the seven booking emails. Self-contained (a granted copy slot, deliberately not
 // registered in lib/copy/index.ts). EN is new copy drafted for the owner's signature at the picture gate (Task 3).
 // AR (Gulf-friendly Modern Standard Arabic, right to left) and ES (neutral Latin American, "tú" as lib/copy/guest.ts)
-// are MODEL-TRANSLATED DRAFTS of the EN, flagged for the owner's check; the owner notices are English only (E-11
+// are MODEL-TRANSLATED DRAFTS of the EN, flagged for the owner's check (the refundReceipt group of plan 05-03 included); the owner notices are English only (E-11
 // recommended: the dashboard is English only, owner rule 2026-10-14).
 //
 // Never a price, a rate, a fee amount, a deadline value, a bank value, a person or legal wording: amounts, dates,
@@ -84,6 +84,16 @@ export type BookingEmailCopy = {
     /** "{ref}". */
     intro: string;
     confirmNote: string;
+    /** P5-05: the same mail for a booking the owner made by hand. Its own words, since "your request" is false there. */
+    handMade: {
+      /** "{ref}" only. */
+      subject: string;
+      heading: string;
+      /** "{ref}". */
+      intro: string;
+      /** transfer.lapseRule with "the booking lapses". */
+      lapseRule: string;
+    };
   };
   paymentReceipt: {
     /** "{ref}" only. */
@@ -114,6 +124,18 @@ export type BookingEmailCopy = {
     /** "{date}", "{time}" (the deadline in UAE time), "{ref}". */
     body: string;
     startAgainLine: string;
+  };
+  /** Plan 05-03 (P5-03): the refund email. Date and amount only: never a status, a bank value, a reason or a promise of when money arrives. */
+  refundReceipt: {
+    /** "{ref}" only. */
+    subject: string;
+    heading: string;
+    /** "{ref}". */
+    intro: string;
+    amountRefunded: string;
+    refundedOn: string;
+    /** Shown when the job has a booking link. */
+    onPage: string;
   };
 };
 
@@ -163,6 +185,13 @@ const EN: BookingEmailCopy = {
     heading: "We have your request",
     intro: "Thank you. Your request {ref} is sent, and your dates are held while we wait for your bank transfer.",
     confirmNote: "We confirm your booking when the money arrives.",
+    handMade: {
+      subject: "Your booking {ref}: how to pay by bank transfer",
+      heading: "Your booking is ready",
+      intro: "Your booking {ref} is ready, and your dates are held while we wait for your bank transfer.",
+      lapseRule:
+        "If no payment at all is recorded by then, the booking lapses and its dates are released. Once part of the amount is recorded, your nights stay held.",
+    },
   },
   paymentReceipt: {
     subject: "Payment received for {ref}",
@@ -184,6 +213,14 @@ const EN: BookingEmailCopy = {
     heading: "Your request has lapsed",
     body: "No payment was recorded by {date}, {time} UAE time, so your request {ref} has lapsed and its dates are free again.",
     startAgainLine: "You are welcome to send a new request from the stay page.",
+  },
+  refundReceipt: {
+    subject: "Refund for your booking {ref}",
+    heading: "We have made a refund",
+    intro: "We sent the refund below from our bank for your booking {ref}.",
+    amountRefunded: "Amount refunded",
+    refundedOn: "Refunded on",
+    onPage: "This refund is also on your booking page.",
   },
 };
 
@@ -240,6 +277,14 @@ const AR: BookingEmailCopy = {
     heading: "وصلنا طلبك",
     intro: "شكرًا لك. أُرسل طلبك {ref}، وتواريخك محجوزة بانتظار تحويلك البنكي.",
     confirmNote: "نؤكد حجزك عند وصول المبلغ.",
+    // Arabic and Spanish of handMade: model-translated drafts (P5-05), like the rest of the plan-05 words; Spanish keeps tú, as this file does.
+    handMade: {
+      subject: "حجزك {ref}: طريقة الدفع بالتحويل البنكي",
+      heading: "حجزك جاهز",
+      intro: "حجزك {ref} جاهز، وتواريخك محجوزة بانتظار تحويلك البنكي.",
+      lapseRule:
+        "إذا لم يُسجَّل أي دفع حتى ذلك الموعد، تنتهي مهلة الحجز وتُتاح تواريخه من جديد. وبمجرد تسجيل جزء من المبلغ، تبقى لياليك محجوزة.",
+    },
   },
   paymentReceipt: {
     subject: "استلمنا دفعة للحجز {ref}",
@@ -261,6 +306,14 @@ const AR: BookingEmailCopy = {
     heading: "انتهت مهلة طلبك",
     body: "لم يُسجَّل أي دفع حتى {date}، {time} بتوقيت الإمارات، لذا انتهت مهلة طلبك {ref} وأصبحت تواريخه متاحة من جديد.",
     startAgainLine: "يسعدنا أن ترسل طلبًا جديدًا من صفحة الإقامة.",
+  },
+  refundReceipt: {
+    subject: "استرداد لحجزك {ref}",
+    heading: "أجرينا لك استردادًا",
+    intro: "أرسلنا المبلغ المسترد أدناه من حسابنا المصرفي لحجزك {ref}.",
+    amountRefunded: "المبلغ المسترد",
+    refundedOn: "تاريخ الاسترداد",
+    onPage: "يظهر هذا الاسترداد أيضًا في صفحة حجزك.",
   },
 };
 
@@ -310,6 +363,13 @@ const ES: BookingEmailCopy = {
     heading: "Recibimos tu solicitud",
     intro: "Gracias. Tu solicitud {ref} está enviada y tus fechas quedan reservadas mientras esperamos tu transferencia.",
     confirmNote: "Confirmamos tu reserva cuando llegue el dinero.",
+    handMade: {
+      subject: "Tu reserva {ref}: cómo pagar por transferencia bancaria",
+      heading: "Tu reserva está lista",
+      intro: "Tu reserva {ref} está lista y tus fechas quedan reservadas mientras esperamos tu transferencia.",
+      lapseRule:
+        "Si para entonces no se registra ningún pago, la reserva vence y sus fechas se liberan. En cuanto se registre una parte del monto, tus noches siguen reservadas.",
+    },
   },
   paymentReceipt: {
     subject: "Pago recibido para {ref}",
@@ -331,6 +391,14 @@ const ES: BookingEmailCopy = {
     heading: "Tu solicitud venció",
     body: "No se registró ningún pago antes del {date}, {time}, hora de los EAU, así que tu solicitud {ref} venció y sus fechas vuelven a estar libres.",
     startAgainLine: "Puedes enviar una nueva solicitud desde la página de la estancia.",
+  },
+  refundReceipt: {
+    subject: "Reembolso de tu reserva {ref}",
+    heading: "Te hicimos un reembolso",
+    intro: "Enviamos el reembolso de abajo desde nuestro banco para tu reserva {ref}.",
+    amountRefunded: "Monto reembolsado",
+    refundedOn: "Reembolsado el",
+    onPage: "Este reembolso también aparece en la página de tu reserva.",
   },
 };
 

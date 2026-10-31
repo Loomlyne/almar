@@ -21,8 +21,8 @@ function scratch(files = {}) {
   return base;
 }
 
-test("the limit is 2,560 KiB, 512 KiB under the Free plan's 3,072 KiB", () => {
-  assert.equal(WORKER_GZIP_LIMIT_KIB, 2560);
+test("the limit is 2,800 KiB, 272 KiB under the Free plan's 3,072 KiB", () => {
+  assert.equal(WORKER_GZIP_LIMIT_KIB, 2800);
 });
 
 test("gzipSizeKiB: counts gzipped bytes, not raw bytes", () => {
@@ -71,11 +71,11 @@ test("assertWorkerSize: the size exactly at the limit passes; one byte over does
   assert.throws(() => assertWorkerSize(base, exact - 1 / KIB), /over the/);
 });
 
-test("assertWorkerSize: with no limit given it uses 2,560 KiB (2,400 KiB passes, 2,600 KiB fails)", () => {
-  const under = scratch({ "almar.js": randomBytes(2400 * KIB) });
-  assert.ok(assertWorkerSize(under) > 2400);
-  const over = scratch({ "almar.js": randomBytes(2600 * KIB) });
-  assert.throws(() => assertWorkerSize(over), /over the 2560 KiB limit/);
+test("assertWorkerSize: with no limit given it uses 2,800 KiB (2,700 KiB passes, 2,900 KiB fails)", () => {
+  const under = scratch({ "almar.js": randomBytes(2700 * KIB) });
+  assert.ok(assertWorkerSize(under) > 2700);
+  const over = scratch({ "almar.js": randomBytes(2900 * KIB) });
+  assert.throws(() => assertWorkerSize(over), /over the 2800 KiB limit/);
 });
 
 test("assertWorkerSize: nothing to measure is null, not a failure", () => {

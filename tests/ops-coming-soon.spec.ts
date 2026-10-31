@@ -54,10 +54,10 @@ test.describe("the ops host's rail and Not ready", () => {
     }
   });
 
-  test("ops host: a section that is not live (Home) still shows Not ready", async ({ page, baseURL }) => {
-    // Scene ops-host-home passes NOT_LIVE_OPS_PATH to the layout: it needs a section that is not live. When that section
-    // is wired, change the one constant in tests/journey/scenes/ops-not-live-path.ts to the next section still off.
-    expect(isLiveOpsPath(NOT_LIVE_OPS_PATH), `${NOT_LIVE_OPS_PATH} is live now: change NOT_LIVE_OPS_PATH to a section still not live`).toBe(false);
+  test("ops host: a path that is not live still shows Not ready", async ({ page, baseURL }) => {
+    // Scene ops-host-home passes NOT_LIVE_OPS_PATH to the layout: it needs a path that is not live (a path, not a rail
+    // section, after plan 05-04). Change the one constant in tests/journey/scenes/ops-not-live-path.ts if it goes live.
+    expect(isLiveOpsPath(NOT_LIVE_OPS_PATH), `${NOT_LIVE_OPS_PATH} is live now: change NOT_LIVE_OPS_PATH to a path still not live`).toBe(false);
     await openHost(page, baseURL, "en", "desktop");
     await expect(page.locator("main#content h1")).toHaveText(DASHBOARD_COPY.en.notReady);
     await expect(page.locator("main#content")).not.toContainText("stand-in page");

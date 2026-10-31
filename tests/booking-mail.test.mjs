@@ -633,3 +633,113 @@ rtest("renderer sources: no environment, console, resend import or the word acce
     assert.equal(source.includes("re_") || source.includes("eyJ"), false, file);
   }
 });
+
+// ================================================================ 3. refund email (plan 05-03, P5-03). Written, not run.
+// Amounts and ids are symbolic fixture values in fils, as above; the marker strings stand in for an owner's bank
+// reference and reason, which no refund mail may ever print.
+
+const REFUND_MARKER_REFERENCE = "BANKREF-MARKER-9X7";
+const REFUND_MARKER_REASON = "REASON-MARKER-guest-changed-plans";
+
+function refundJob(locale, { isTest = false, bookingUrl = fx.bookingUrlFixture(locale), amountFils = 123456, refundedOn = "2026-11-03" } = {}) {
+  return {
+    bookingId: fx.FIXTURE_BOOKING_ID,
+    refundId: 7,
+    view: { ...fx.viewFixture("paid-full", locale), bankReference: REFUND_MARKER_REFERENCE, reason: REFUND_MARKER_REASON },
+    isTest,
+    bookingUrl,
+    amountFils,
+    refundedOn,
+    bankReference: REFUND_MARKER_REFERENCE,
+    reason: REFUND_MARKER_REASON,
+  };
+}
+
+rtest("refund email: renders in en, ar and es with the reference, amount and day, and the booking page button", async () => {
+  const { guest } = await mail();
+  for (const locale of LOCALES) {
+    const job = refundJob(locale);
+    const c = BOOKING_EMAIL_COPY[locale];
+    const out = guest.renderRefundReceiptEmail(job, ctx(locale));
+    assert.equal(out.subject, fill(c.refundReceipt.subject, { ref: "ALMAR-TEST22" }), locale);
+    for (const part of [formatAed(job.amountFils), formatIsoDate(job.refundedOn), c.refundReceipt.heading, c.refundReceipt.amountRefunded, c.refundReceipt.refundedOn, c.refundReceipt.onPage, c.buttons.viewBooking]) {
+      assert.ok(out.html.includes(part), `${locale}: html lacks ${part}`);
+    }
+    assert.ok(out.html.includes("ALMAR-TEST22"), locale);
+  }
+});
+
+rtest("refund email: a TEST job has the [TEST] subject prefix and the banner, a real one neither", async () => {
+  const { guest } = await mail();
+  const test_ = guest.renderRefundReceiptEmail(refundJob("en", { isTest: true }), ctx("en"));
+  assert.ok(test_.subject.startsWith(TEST_SUBJECT_PREFIX));
+  assert.ok(test_.html.includes(BOOKING_EMAIL_COPY.en.testBanner));
+  const real = guest.renderRefundReceiptEmail(refundJob("en"), ctx("en"));
+  assert.equal(real.subject.startsWith(TEST_SUBJECT_PREFIX), false);
+  assert.equal(real.html.includes(BOOKING_EMAIL_COPY.en.testBanner), false);
+});
+
+rtest("refund email: a bad reference and a bad link throw their names", async () => {
+  const { guest } = await mail();
+  const job = refundJob("en");
+  assert.throws(() => guest.renderRefundReceiptEmail({ ...job, view: { ...job.view, ref: "ALMAR-OOOOOO" } }, ctx("en")), /email: bad reference/);
+  for (const href of ["javascript:alert(1)", "http://evil.example/bookings/trip"]) {
+    assert.throws(() => guest.renderRefundReceiptEmail({ ...job, bookingUrl: href }, ctx("en")), /email: bad link/, href);
+  }
+});
+
+rtest("refund email: no booking link prints the noLink line and no button", async () => {
+  const { guest } = await mail();
+  const out = guest.renderRefundReceiptEmail(refundJob("en", { bookingUrl: null }), ctx("en"));
+  assert.ok(out.html.includes(BOOKING_EMAIL_COPY.en.paymentReceipt.noLink));
+  assert.equal(out.html.includes(BOOKING_EMAIL_COPY.en.buttons.viewBooking), false);
+  assert.equal(out.html.includes("/bookings/trip"), false);
+  assert.equal(out.html.includes(BOOKING_EMAIL_COPY.en.refundReceipt.onPage), false);
+});
+
+rtest("refund email: never the bank reference, the reason, a status, a total, an amount still due or a bank value", async () => {
+  const { guest } = await mail();
+  for (const locale of LOCALES) {
+    const job = refundJob(locale);
+    const out = guest.renderRefundReceiptEmail(job, ctx(locale));
+    for (const marker of [REFUND_MARKER_REFERENCE, REFUND_MARKER_REASON]) {
+      assert.equal(out.html.includes(marker), false, `${locale} html ${marker}`);
+      assert.equal(out.text.includes(marker), false, `${locale} text ${marker}`);
+    }
+    const c = BOOKING_EMAIL_COPY[locale];
+    for (const word of [c.paymentReceipt.totalPaid, c.paymentReceipt.stillDue, c.transfer.heading, c.paymentReceipt.nothingMoreDue]) {
+      assert.equal(out.html.includes(word), false, `${locale} prints ${word}`);
+    }
+    noBank(out, job.view, `refund ${locale}`);
+  }
+});
+
+rtest("refund email: Arabic is right to left with the amount and day left to right", async () => {
+  const { guest } = await mail();
+  const job = refundJob("ar");
+  const out = guest.renderRefundReceiptEmail(job, ctx("ar"));
+  assert.match(out.html, /<html[^>]*lang="ar"[^>]*dir="rtl"/);
+  assert.ok(out.html.includes(formatAed(job.amountFils)));
+  assert.match(out.html, /dir="ltr"/);
+});
+
+test("copy: refundReceipt has the same slots in every language, only {ref} in the subject and intro", () => {
+  for (const locale of LOCALES) {
+    const r = BOOKING_EMAIL_COPY[locale].refundReceipt;
+    assert.deepEqual(r.subject.match(/\{\w+\}/g), ["{ref}"], `${locale} subject`);
+    assert.deepEqual(r.intro.match(/\{\w+\}/g), ["{ref}"], `${locale} intro`);
+    for (const key of ["heading", "amountRefunded", "refundedOn", "onPage"]) assert.equal(/\{\w+\}/.test(r[key]), false, `${locale}.${key}`);
+    assert.equal(/within|business day|خلال|dentro de|días hábiles/i.test(Object.values(r).join(" ")), false, `${locale} promises a time`);
+  }
+});
+
+rtest("receipt on a cancelled booking: moneyOnClosed only while paid minus refunded is above 0 (plan 05-03)", async () => {
+  const { guest } = await mail();
+  const base = fx.paymentJobFixture("after-expiry", "en");
+  const cancelled = fx.viewFixture("cancelled", "en");
+  const closed = (refundedFils) => ({ ...base, statusAfter: "cancelled", view: { ...cancelled, money: { ...cancelled.money, paidFils: 200000, refundedFils } } });
+  const phrase = "We will contact you about it.";
+  assert.ok(BOOKING_EMAIL_COPY.en.paymentReceipt.moneyOnClosed.includes(phrase));
+  assert.ok(guest.renderPaymentReceiptEmail(closed(50000), ctx("en")).html.includes(phrase), "a part refund keeps the sentence");
+  assert.equal(guest.renderPaymentReceiptEmail(closed(200000), ctx("en")).html.includes(phrase), false, "a full refund drops it");
+});

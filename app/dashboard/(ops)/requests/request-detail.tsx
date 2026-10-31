@@ -132,6 +132,12 @@ export function RequestDetail({
             <Button variant={handled ? "secondary" : "primary"} busy={busy} onClick={() => onHandled(!handled)}>
               {handled ? copy.markNot : copy.markHandled}
             </Button>
+            {/* P5-11: only the request's id travels in the URL; the New booking screen reads the row through the owner API. */}
+            {request.kind !== "list" ? (
+              <LinkButton variant="secondary" href={`/dashboard/bookings/new?request=${encodeURIComponent(request.id)}`}>
+                {copy.makeBooking}
+              </LinkButton>
+            ) : null}
             {isPlainEmail(request.email) ? (
               <LinkButton variant="secondary" href={`mailto:${request.email}`}>
                 {copy.reply}

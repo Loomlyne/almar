@@ -1,6 +1,6 @@
 import type { Page, Route } from "@playwright/test";
 import type { BookingStatus } from "../../lib/booking/types";
-import type { OwnerDetail, OwnerItem, OwnerPayment } from "../../lib/ops/booking-rules";
+import type { OwnerDetail, OwnerItem, OwnerPayment, OwnerRefund } from "../../lib/ops/booking-rules";
 
 // The owner API behind Bookings (plan 04-09), answered from fixtures shaped exactly like 04-08 section B (snake_case,
 // symbolic fils, bracket names). A small store keeps what the writes changed, so the detail read after a write is the new
@@ -28,6 +28,9 @@ export type FixtureInput = {
   deposit_fils?: number;
   paid_fils?: number;
   written_off_fils?: number;
+  /** Plan 05-03: what the refunds already recorded add up to; defaults to the succeeded rows of `refunds`. */
+  refunded_fils?: number;
+  refunds?: OwnerRefund[];
   deadline_passed?: boolean;
   attention_reason?: OwnerDetail["flags"]["attention_reason"];
   is_test?: boolean;
@@ -50,8 +53,11 @@ export function makeBooking(input: FixtureInput = {}): OwnerDetail {
   const deposit = input.deposit_fils ?? DEPOSIT;
   const paid = input.paid_fils ?? 0;
   const off = input.written_off_fils ?? 0;
+  const refunds = input.refunds ?? [];
+  const refunded = input.refunded_fils ?? refunds.filter((r) => r.status === "succeeded").reduce((sum, r) => sum + r.amount_fils, 0);
   const settled = paid + off;
-  const reason = input.attention_reason ?? (paid > grand ? "overpaid" : null);
+  // P5-06: overpaid reads paid minus refunded above the total.
+  const reason = input.attention_reason ?? (paid - refunded > grand ? "overpaid" : null);
   const money: Money = {
     nights_fils: grand,
     addons_fils: 0,
@@ -63,6 +69,7 @@ export function makeBooking(input: FixtureInput = {}): OwnerDetail {
     deposit_fils: deposit,
     balance_fils: grand - deposit,
     paid_fils: paid,
+    refunded_fils: refunded,
     written_off_fils: off,
     balance_due_days: 30,
     balance_due_date: "2026-11-20",
@@ -98,7 +105,7 @@ export function makeBooking(input: FixtureInput = {}): OwnerDetail {
       needs_attention: reason !== null,
       attention_reason: reason,
       part_received: status === "awaiting_payment" && paid > 0,
-      overpaid: paid > grand,
+      overpaid: paid - refunded > grand,
       written_off: off > 0,
       settled_fils: settled,
       due_now_fils: status === "awaiting_payment" ? Math.max(deposit - settled, 0) : 0,
@@ -109,6 +116,7 @@ export function makeBooking(input: FixtureInput = {}): OwnerDetail {
     travellers: [{ kind: "adult", full_name: "[Guest name]", age: null, is_booker: true, not_staying: false }],
     lines: [],
     payments: input.payments ?? [],
+    refunds,
     notes: [],
     events: input.events ?? [],
     lapse_email: { sent_at: null, attempts: 0, claimed_at: null },
@@ -164,6 +172,27 @@ export function succeededPayment(over: Partial<OwnerPayment> = {}): OwnerPayment
     voided_by_email: null,
     card_brand: null,
     card_last4: null,
+    ...over,
+  };
+}
+
+/** Plan 05-03: one bank refund row as ops_get_booking returns it. */
+export function succeededRefund(over: Partial<OwnerRefund> = {}): OwnerRefund {
+  return {
+    id: 1,
+    method: "bank_transfer",
+    status: "succeeded",
+    amount_fils: 100_000,
+    refunded_on: "2026-10-12",
+    bank_reference: "[Refund bank ref]",
+    reason: null,
+    recorded_by: "00000000-0000-4000-8000-0000000000f1",
+    recorded_by_email: "owner@example.test",
+    created_at: "2026-10-12T08:00:00.000Z",
+    void_reason: null,
+    voided_at: null,
+    voided_by: null,
+    voided_by_email: null,
     ...over,
   };
 }
@@ -228,6 +257,7 @@ export async function mockBookingsApi(page: Page, bookings: OwnerDetail[] = [mak
       deposit_fils: b.money.deposit_fils,
       paid_fils: b.money.paid_fils,
       written_off_fils: b.money.written_off_fils,
+      refunded_fils: b.money.refunded_fils,
       deadline_passed: b.flags.deadline_passed,
       attention_reason: b.flags.attention_reason,
     }).flags;
@@ -277,11 +307,59 @@ export async function mockBookingsApi(page: Page, bookings: OwnerDetail[] = [mak
       const b = [...store.values()].find((one) => one.payments.some((p) => p.id === body.payment_id));
       const payment = b?.payments.find((p) => p.id === body.payment_id);
       if (!b || !payment) return refusal(404, "not_found");
+      // The SQL's rule: payments cannot drop below what was refunded.
+      if (b.money.paid_fils - payment.amount_fils < b.money.refunded_fils) return refusal(409, "refund_first");
       payment.status = "voided";
       payment.void_reason = body.reason;
       b.money.paid_fils -= payment.amount_fils;
       reread(b);
       return ok({ voided: { payment_id: payment.id } });
+    }),
+  );
+  // Plan 05-03: record a refund and void a refund record, answered as the SQL does (above_paid, a replay on request_id).
+  const refundRequests = new Map<string, OwnerRefund>();
+  let nextRefundId = 100;
+  await page.route(/\/api\/ops\/booking\/refund$/, (route) =>
+    handle(route, (call) => {
+      const body = call.body as { booking_id: string; request_id: string; amount: string; refunded_on: string; bank_reference: string; reason: string | null };
+      const b = byId(body.booking_id);
+      if (!b) return refusal(404, "not_found");
+      const seen = refundRequests.get(body.request_id);
+      if (seen) return ok({ refund: { first_time: false, refund_id: seen.id, amount_fils: seen.amount_fils }, mail: "skipped" });
+      const fils = Math.round(Number(String(body.amount).replace(/,/g, "")) * 100);
+      const left = Math.max(0, b.money.paid_fils - b.money.refunded_fils);
+      if (left <= 0) return refusal(409, "nothing_to_refund");
+      if (fils > left) return refusal(409, "above_paid");
+      nextRefundId += 1;
+      const refund = succeededRefund({ id: nextRefundId, amount_fils: fils, refunded_on: body.refunded_on, bank_reference: body.bank_reference, reason: body.reason });
+      b.refunds.push(refund);
+      b.money.refunded_fils += fils;
+      refundRequests.set(body.request_id, refund);
+      b.events.unshift({ id: b.events.length + 1, at: "2026-10-25T09:00:00.000Z", actor: "system", action: "email_sent", from_status: null, to_status: null, detail: { template: "refund_receipt", key: `refund-receipt/${refund.id}` } });
+      b.events.unshift({ id: b.events.length + 1, at: "2026-10-25T09:00:00.000Z", actor: `owner:${refund.recorded_by}`, action: "refund_recorded", from_status: null, to_status: null, detail: { refund_id: refund.id, amount_fils: fils } });
+      reread(b);
+      if (b.flags.attention_reason === "overpaid" && b.money.paid_fils - b.money.refunded_fils <= b.money.grand_fils) {
+        b.flags.needs_attention = false;
+        b.flags.attention_reason = null;
+      }
+      return ok({ refund: { first_time: true, refund_id: refund.id, amount_fils: fils, refunded_fils: b.money.refunded_fils }, mail: "sent" });
+    }),
+  );
+  await page.route(/\/api\/ops\/booking\/refund-void$/, (route) =>
+    handle(route, (call) => {
+      const body = call.body as { refund_id: number; reason: string };
+      const b = [...store.values()].find((one) => one.refunds.some((r) => r.id === body.refund_id));
+      const refund = b?.refunds.find((r) => r.id === body.refund_id);
+      if (!b || !refund) return refusal(404, "not_found");
+      if (refund.status !== "succeeded") return refusal(409, "not_voidable");
+      refund.status = "voided";
+      refund.void_reason = body.reason;
+      refund.voided_at = "2026-10-25T09:30:00.000Z";
+      refund.voided_by_email = "owner@example.test";
+      b.money.refunded_fils -= refund.amount_fils;
+      b.events.unshift({ id: b.events.length + 1, at: "2026-10-25T09:30:00.000Z", actor: `owner:${refund.recorded_by}`, action: "refund_voided", from_status: null, to_status: null, detail: { refund_id: refund.id, amount_fils: refund.amount_fils } });
+      reread(b);
+      return ok({ void: { first_time: true, refund_id: refund.id, refunded_fils: b.money.refunded_fils } });
     }),
   );
   await page.route(/\/api\/ops\/booking\/status$/, (route) =>

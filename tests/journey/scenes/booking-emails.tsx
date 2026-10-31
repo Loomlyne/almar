@@ -14,6 +14,7 @@ import { BOOKING_EMAIL_COPY } from "../../../lib/copy/booking-email";
 import { INQUIRY_ADDRESS } from "../../../lib/contact-inquiry";
 import {
   renderPaymentReceiptEmail,
+  renderRefundReceiptEmail,
   renderRequestLapsedEmail,
   renderRequestReceivedEmail,
 } from "../../../lib/email/booking-guest-mail";
@@ -23,12 +24,15 @@ import {
   renderWithdrawnOwnerEmail,
 } from "../../../lib/email/booking-owner-mail";
 import type { RenderedEmail } from "../../../lib/email/shell";
-import type { PaymentMailJob } from "../../../lib/booking/notify";
+import type { PaymentMailJob, RefundMailJob } from "../../../lib/booking/notify";
 import {
   FILS,
+  bookingUrlFixture,
+  FIXTURE_BOOKING_ID,
   lapseJobFixture,
   paymentJobFixture,
   requestJobFixture,
+  viewFixture,
   withdrawnJobFixture,
   type FixtureLocale,
 } from "../../helpers/booking-view-fixtures";
@@ -88,6 +92,19 @@ function secondPartPayment(locale: FixtureLocale): PaymentMailJob {
   return job;
 }
 
+/** Plan 05-03: a refund email of a fully paid booking; symbolic fixture amount, no bank reference and no reason on it. */
+function refundJob(locale: FixtureLocale, isTest: boolean): RefundMailJob {
+  return {
+    bookingId: FIXTURE_BOOKING_ID,
+    refundId: 7,
+    view: viewFixture("paid-full", locale),
+    isTest,
+    bookingUrl: bookingUrlFixture(locale),
+    amountFils: FILS.extra,
+    refundedOn: "2026-11-04",
+  };
+}
+
 export const scenes: Scenes = {
   "request-received": (ctx) => {
     const job = requestJobFixture(loc(ctx), { plan: "deposit" });
@@ -109,6 +126,14 @@ export const scenes: Scenes = {
   "receipt-overpaid": (ctx) => <EmailFrame shown={guestPayment(paymentJobFixture("overpaid", loc(ctx)), ctx)} />,
   "receipt-after-expiry": (ctx) => <EmailFrame shown={guestPayment(paymentJobFixture("after-expiry", loc(ctx)), ctx)} />,
   "receipt-no-link": (ctx) => <EmailFrame shown={guestPayment({ ...paymentJobFixture("part", loc(ctx)), bookingUrl: null }, ctx)} />,
+  "refund-receipt": (ctx) => {
+    const job = refundJob(loc(ctx), false);
+    return <EmailFrame shown={{ mail: renderRefundReceiptEmail(job, guestCtx(ctx)), to: job.view.guest.email, replyTo: INQUIRY_ADDRESS }} />;
+  },
+  "refund-receipt-test": (ctx) => {
+    const job = refundJob(loc(ctx), true);
+    return <EmailFrame shown={{ mail: renderRefundReceiptEmail(job, guestCtx(ctx)), to: job.view.guest.email, replyTo: INQUIRY_ADDRESS }} />;
+  },
   "request-lapsed": (ctx) => {
     const job = lapseJobFixture(loc(ctx));
     return <EmailFrame shown={{ mail: renderRequestLapsedEmail(job, guestCtx(ctx)), to: job.email, replyTo: INQUIRY_ADDRESS }} />;

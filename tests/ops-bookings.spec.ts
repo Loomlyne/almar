@@ -146,10 +146,12 @@ test("a part-paid request past its pay-by date says so in words on its row", asy
   await expect(page.locator("[data-bookings-list]").getByText(copy.flags.deadlinePassedPartPaid).first()).toBeVisible();
 });
 
-test("opening a row goes to the detail with only the reference in the URL; New booking never exists", async ({ page }) => {
+test("opening a row goes to the detail with only the reference in the URL; New booking is one link to /dashboard/bookings/new", async ({ page }) => {
   await openList(page, "en");
   await expect(page.getByRole("button", { name: /New booking/ })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /New booking/ })).toHaveCount(0);
+  const link = page.getByRole("link", { name: /New booking/ });
+  await expect(link).toHaveCount(1);
+  await expect(link).toHaveAttribute("href", "/dashboard/bookings/new");
   await page.locator("[data-bookings-list]").getByText(REF).first().click();
   await expect(page).toHaveURL(new RegExp(`/dashboard/bookings/detail\\?ref=${REF}$`));
 });

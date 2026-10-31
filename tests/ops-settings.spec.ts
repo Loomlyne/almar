@@ -44,6 +44,10 @@ async function open(page: Page, locale: Locale, view: Record<string, unknown> = 
   await page.route("**/api/ops/site-status", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, site: { state: "up_to_date", requested_seq: 5, live_seq: 5, requested_at: "2026-10-13T10:02:00.000Z", built_at: "2026-10-13T10:05:00.000Z", last_hook_at: "2026-10-13T10:02:00.000Z", last_hook_result: "ok" } }) }),
   );
+  // "Leaving with unsaved changes" lands on Profile (05-04), which reads /api/ops/profile: answered, so no 403 sends it to sign-in.
+  await page.route("**/api/ops/profile", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, name: "Owner Example", email: "owner@example.com" }) }),
+  );
   await page.route(/\/api\/ops\/settings$/, async (route) => {
     if (route.request().method() === "GET") {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, settings: view }) });

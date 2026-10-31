@@ -12,20 +12,24 @@ import {
   getBooking,
   listBookings,
   recordPayment,
+  recordRefund,
   resendMail,
   resolveAttention,
   setStatus,
   voidPayment,
+  voidRefund,
   type AttentionBody,
   type BookingsDeps,
   type NoteBody,
   type PaymentBody,
+  type RefundInput,
+  type RefundVoidInput,
   type ResendBody,
   type StatusBody,
   type VoidBody,
 } from "./bookings-api";
 
-export { parseAttention, parseNote, parsePayment, parseResend, parseStatus, parseVoid } from "./bookings-api";
+export { parseAttention, parseNote, parsePayment, parseRefund, parseRefundVoid, parseResend, parseStatus, parseVoid } from "./bookings-api";
 
 const deps: BookingsDeps = {
   notifier: getNotifier,
@@ -49,6 +53,8 @@ export const getBookingsRoute = ({ owner, url }: Get) => listBookings({ owner, u
 export const getBookingRoute = ({ owner, url }: Get) => getBooking({ owner, url });
 export const postPaymentRoute = ({ owner, body }: Post<PaymentBody>) => recordPayment({ owner, body }, deps);
 export const postVoidRoute = ({ owner, body }: Post<VoidBody>) => voidPayment({ owner, body });
+export const postRefundRoute = ({ owner, body }: Post<RefundInput>) => recordRefund({ owner, body }, deps);
+export const postRefundVoidRoute = ({ owner, body }: Post<RefundVoidInput>) => voidRefund({ owner, body });
 export const postStatusRoute = ({ owner, body }: Post<StatusBody>) => setStatus({ owner, body });
 export const postNoteRoute = ({ owner, body }: Post<NoteBody>) => addNote({ owner, body });
 export const postAttentionRoute = ({ owner, body }: Post<AttentionBody>) => resolveAttention({ owner, body });

@@ -645,10 +645,19 @@ test("resendMail request: an unpaid request before its pay-by date -> request_re
   const key = `resend/${BOOKING}/${REQUEST}`;
   assert.deepEqual(db.calls[2].args.p_detail, { template: "request_received", payment_id: null, request_id: REQUEST });
   assert.deepEqual(n.sent.map((s) => [s.name, s.key]), [["requestReceived", key]]);
-  assert.deepEqual(Object.keys(n.sent[0].job).sort(), ["bookingId", "bookingUrl", "isTest", "view"]);
+  assert.deepEqual(Object.keys(n.sent[0].job).sort(), ["bookingId", "bookingUrl", "handMade", "isTest", "view"]);
+  assert.equal(n.sent[0].job.handMade, false);
   assert.match(n.sent[0].job.bookingUrl, /^https:\/\/preview\.almarprivatejourney\.com\//);
   assert.deepEqual(d.links, [{ id: BOOKING, ref: REF, locale: "es", isTest: true, linkVersion: 2 }]);
   assert.deepEqual(out, { body: { ok: true, mail: "sent" } });
+});
+
+test("resendMail request: a booking the owner made by hand (source ops) is resent with handMade true (P5-05)", async () => {
+  const db = fakeDb({ ops_get_booking: { data: detail({ source: "ops" }), error: null } });
+  const n = fakeNotifier();
+  const out = await api.resendMail({ owner: owner(db), body: requestBody() }, fakeDeps({ notifier: n.notifier }).deps);
+  assert.deepEqual(out, { body: { ok: true, mail: "sent" } });
+  assert.equal(n.sent[0].job.handMade, true);
 });
 
 test("resendMail request, Q-18 (owner: yes): a part-paid request past its pay-by date is sent the request email again", async () => {

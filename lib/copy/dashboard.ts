@@ -11,7 +11,6 @@ export type DashboardLocale = DocumentLocale;
 export type DashboardCopy = {
   close: string;
   newBooking: string;
-  newCustomer: string;
   newDestination: string;
   newStay: string;
   newExperience: string;
@@ -30,7 +29,6 @@ export type DashboardCopy = {
   noPostsYet: string;
   noTeamMembersYet: string;
   noLegalPagesYet: string;
-  noRemindersYet: string;
   signOut: string;
   logoutAll: string;
   signOutOfThisSite: string;
@@ -80,7 +78,6 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
   en: {
     close: "Close",
     newBooking: "New booking",
-    newCustomer: "New customer",
     newDestination: "New destination",
     newStay: "New stay",
     newExperience: "New experience",
@@ -99,7 +96,6 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     noPostsYet: "No posts yet",
     noTeamMembersYet: "No team members yet",
     noLegalPagesYet: "No legal pages yet",
-    noRemindersYet: "No reminders yet",
     signOut: "Sign out",
     logoutAll: "Logout-all",
     signOutOfThisSite: "Sign out of this site",
@@ -108,7 +104,7 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     notReady: "Not ready.",
     dashboardName: "Dashboard",
     thisMonth: "This month",
-    last30: "Last 30",
+    last30: "Last 30 days",
     custom: "Custom",
     block: "Block",
     publish: "Publish",
@@ -139,7 +135,6 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
   ar: {
     close: "إغلاق",
     newBooking: "حجز جديد",
-    newCustomer: "عميل جديد",
     newDestination: "وجهة جديدة",
     newStay: "إقامة جديدة",
     newExperience: "تجربة جديدة",
@@ -158,7 +153,6 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     noPostsYet: "لا مقالات بعد",
     noTeamMembersYet: "لا أعضاء في الفريق بعد",
     noLegalPagesYet: "لا صفحات قانونية بعد",
-    noRemindersYet: "لا تذكيرات بعد",
     signOut: "تسجيل الخروج",
     logoutAll: "خروج من الكل",
     signOutOfThisSite: "تسجيل الخروج من هذا الموقع",
@@ -167,7 +161,7 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     notReady: "غير جاهز.",
     dashboardName: "لوحة التحكم",
     thisMonth: "هذا الشهر",
-    last30: "آخر 30",
+    last30: "آخر 30 يومًا",
     custom: "مخصص",
     block: "حظر",
     publish: "نشر",
@@ -198,7 +192,6 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
   es: {
     close: "Cerrar",
     newBooking: "Nueva reserva",
-    newCustomer: "Nuevo cliente",
     newDestination: "Nuevo destino",
     newStay: "Nueva estancia",
     newExperience: "Nueva experiencia",
@@ -217,7 +210,6 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     noPostsYet: "Aún no hay publicaciones",
     noTeamMembersYet: "Aún no hay miembros",
     noLegalPagesYet: "Aún no hay páginas legales",
-    noRemindersYet: "Aún no hay recordatorios",
     signOut: "Cerrar sesión",
     logoutAll: "Cerrar sesión en todos",
     signOutOfThisSite: "Cerrar sesión en este sitio",
@@ -226,7 +218,7 @@ export const DASHBOARD_COPY: Record<DashboardLocale, DashboardCopy> = {
     notReady: "No está listo.",
     dashboardName: "Panel",
     thisMonth: "Este mes",
-    last30: "Últimos 30",
+    last30: "Últimos 30 días",
     custom: "Personalizado",
     block: "Bloquear",
     publish: "Publicar",

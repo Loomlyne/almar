@@ -226,6 +226,7 @@ function base(locale: FixtureLocale, status: BookingStatus, plan: "deposit" | "f
       depositFils: plan === "deposit" ? FILS.deposit : 0,
       balanceFils: plan === "deposit" ? FILS.balance : 0,
       paidFils: 0,
+      refundedFils: 0,
       dueNowFils: 0,
       stillDueFils: FILS.grand,
     },
@@ -235,6 +236,7 @@ function base(locale: FixtureLocale, status: BookingStatus, plan: "deposit" | "f
     flags: { partReceived: false, overpaid: false, writtenOff: false },
     withdrawable: false,
     payments: [],
+    refunds: [],
     transfer: null,
     access: null,
   };

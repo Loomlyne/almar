@@ -567,3 +567,75 @@ test("booking-page-meta.ts: the title comes from the page copy", () => {
   assert.match(source, /title: BOOKING_PAGE_COPY\[locale\]\.pageTitle/);
   assert.doesNotMatch(source, /TODO/);
 });
+
+// ---------------------------------------------------------------- refunds (plan 05-03, P5-03). Written, not run.
+// Amounts are symbolic fixture values in fils.
+
+function refunded(state, { paid, refundedFils, refunds }, locale = "en") {
+  const view = viewFixture(state, locale);
+  view.money.paidFils = paid;
+  view.money.refundedFils = refundedFils;
+  view.refunds = refunds;
+  return view;
+}
+
+test("refunds: the view's refunds reach the model as date and amount only", () => {
+  const view = refunded("confirmed", { paid: 200000, refundedFils: 50000, refunds: [{ refundedOn: "2026-11-03", amountFils: 50000 }] });
+  const m = bookingPageModel(view, FIXTURE_NOW);
+  assert.deepEqual(m.refunds, [{ refundedOn: "2026-11-03", amountFils: 50000 }]);
+  assert.deepEqual(Object.keys(m.refunds[0]).sort(), ["amountFils", "refundedOn"]);
+  assert.deepEqual(model("confirmed").refunds, []);
+});
+
+test("refunds: a full refund on a cancelled booking turns moneyOnClosed off", () => {
+  const view = refunded("cancelled", { paid: 200000, refundedFils: 200000, refunds: [{ refundedOn: "2026-11-03", amountFils: 200000 }] });
+  const m = bookingPageModel(view, FIXTURE_NOW);
+  assert.equal(m.moneyOnClosed, false);
+  assert.equal(m.closedNetFils, 0);
+});
+
+test("refunds: a part refund on a cancelled or expired booking shows the net in moneyOnClosed", () => {
+  for (const state of ["cancelled", "expired"]) {
+    const view = refunded(state, { paid: 200000, refundedFils: 50000, refunds: [{ refundedOn: "2026-11-03", amountFils: 50000 }] });
+    const m = bookingPageModel(view, FIXTURE_NOW);
+    assert.equal(m.moneyOnClosed, true, state);
+    assert.equal(m.closedNetFils, 150000, state);
+  }
+});
+
+test("refunds: refunded above paid never makes the net negative", () => {
+  const view = refunded("cancelled", { paid: 100000, refundedFils: 150000, refunds: [] });
+  assert.equal(bookingPageModel(view, FIXTURE_NOW).closedNetFils, 0);
+});
+
+test("refunds: canWithdraw, partReceived and nothingMoreDue are unchanged by a refund", () => {
+  for (const state of ["awaiting", "part-received", "deposit-balance", "paid-full", "confirmed"]) {
+    const plain = viewFixture(state, "en");
+    const withRefund = refunded(state, { paid: plain.money.paidFils, refundedFils: 1000, refunds: [{ refundedOn: "2026-11-03", amountFils: 1000 }] });
+    const a = bookingPageModel(plain, FIXTURE_NOW);
+    const b = bookingPageModel(withRefund, FIXTURE_NOW);
+    for (const key of ["canWithdraw", "partReceived", "nothingMoreDue", "status", "balanceLine", "transfer"]) {
+      assert.deepEqual(b[key], a[key], `${state} ${key}`);
+    }
+  }
+});
+
+test("copy: the refunds group has the {date} slot in the line, and Arabic and Spanish are written", () => {
+  for (const locale of LOCALES) {
+    const r = BOOKING_PAGE_COPY[locale].refunds;
+    assert.match(r.line, /\{date\}/, locale);
+    assert.equal(/\{amount\}|\{reference\}|\{reason\}/.test(r.line), false, locale);
+    assert.ok(r.heading.trim().length > 0, locale);
+  }
+  assert.equal(BOOKING_PAGE_COPY.en.refunds.heading, "Refunds");
+  assert.equal(BOOKING_PAGE_COPY.en.refunds.line, "Refunded on {date}");
+  assert.match(BOOKING_PAGE_COPY.ar.refunds.line, /[؀-ۿ]/);
+  assert.notEqual(BOOKING_PAGE_COPY.es.refunds.line, BOOKING_PAGE_COPY.en.refunds.line);
+});
+
+test("view source: the refunds block reads the model's list and names no bank reference or reason", () => {
+  const source = nc(readFileSync("app/bookings/trip/booking-page-view.tsx", "utf8"));
+  assert.match(source, /model\.refunds/);
+  const block = source.slice(source.indexOf('data-testid="refunds"'), source.indexOf("copy.travellers.heading"));
+  assert.equal(/bank_?[Rr]eference|reason/.test(block), false);
+});

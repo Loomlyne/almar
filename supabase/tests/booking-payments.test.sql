@@ -249,7 +249,7 @@ insert into public.catalog_items (id, slug, kind, unit, price_aed, is_uae, is_ho
   ('00000000-0000-4000-8000-0000000017c1', 'pay-boat', 'experience', 'person', 250.00, false, false, true, 1);
 insert into public.catalog_translations (item_id, locale, status, name) values
   ('00000000-0000-4000-8000-0000000017c1', 'en', 'published', 'Boat trip');
-update public.site_settings set vat_percent = 5.00, deposit_percent = 30.00, balance_due_days = null where id = 1;
+update public.site_settings set vat_percent = 5.00, deposit_percent = 30.00, balance_due_days = 30 where id = 1;
 -- Bank details complete (P-08), the owner's window not set: TEST bookings get 35 minutes (P-06).
 update public.booking_bank_details
    set account_name = 'Almar Test Account', bank_name = 'Test Bank', iban = 'GB82WEST12345698765432', swift = 'TESTAEAA',
@@ -763,7 +763,7 @@ insert into t_res values ('G', public.ops_get_booking(pg_temp.r('v1', 'ref')));
 select is((select array_agg(k order by k collate "C") from jsonb_object_keys((select v from t_res where k = 'G')) k),
           array['adults', 'airport', 'arrive', 'children', 'created_at', 'deadline', 'destination', 'events', 'flags', 'guest', 'hold_expires_at', 'id',
                 'infants', 'is_test', 'lapse_email', 'leave', 'lines', 'link_version', 'money', 'nights', 'notes', 'payments', 'pickup_address', 'plan',
-                'ref', 'requested_at', 'source', 'status', 'stay', 'terms_accepted_at', 'terms_version', 'travellers', 'updated_at'],
+                'ref', 'refunds', 'requested_at', 'source', 'status', 'stay', 'terms_accepted_at', 'terms_version', 'travellers', 'updated_at'],
           'owner detail: exactly its keys');
 select ok((select p ->> 'status' = 'voided' and p ->> 'void_reason' = 'Typed in error' and p ->> 'voided_by_email' = 'maria@almarprivatejourney.com'
               and p ->> 'recorded_by_email' = 'maria@almarprivatejourney.com' and p ->> 'bank_reference' = 'TEST-v1' and p ->> 'method' = 'bank_transfer'

@@ -24,7 +24,7 @@ import { aedIn, dayIn, timeIn } from "../bookings-text";
 // fetch, no router, no clock (`today` is a prop). Every dialog is a confirm: Escape and the scrim do not close it, and
 // `busy` turns its confirm off. Sentences come from the pure previews in lib/ops/booking-rules.ts; the SQL decides.
 
-function ErrorLine({ children }: { children: ReactNode }) {
+export function ErrorLine({ children }: { children: ReactNode }) {
   return (
     <p className="m-0 flex items-center gap-1 text-label text-error" role="alert">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
@@ -36,7 +36,7 @@ function ErrorLine({ children }: { children: ReactNode }) {
   );
 }
 
-function Sentences({ lines }: { lines: string[] }) {
+export function Sentences({ lines }: { lines: string[] }) {
   return (
     <ul className="m-0 flex list-none flex-col gap-1 p-0 text-body text-ink">
       {lines.map((line, at) => (
@@ -55,7 +55,7 @@ export type RecordErrors = Partial<Record<"amount" | "date" | "reference" | "rea
 
 const REFERENCE_MAX = 100;
 
-function reasonOk(text: string, max: number): boolean {
+export function reasonOk(text: string, max: number): boolean {
   const length = Array.from(text.trim()).length;
   return length >= 3 && length <= max;
 }
@@ -109,6 +109,7 @@ export function RecordPaymentDialog({
     depositFils: b.money.deposit_fils,
     paidFils: b.money.paid_fils,
     writtenOffFils: b.money.written_off_fils,
+    refundedFils: b.money.refunded_fils,
     attentionReason: b.flags.attention_reason,
   };
   const gap = amountFils === null ? null : settlePreview({ ...base, amountFils, acceptShort: false }).gapFils;
@@ -302,6 +303,7 @@ export function VoidPaymentDialog({
         depositBp: b.money.deposit_bp,
         paidFils: b.money.paid_fils,
         writtenOffFils: b.money.written_off_fils,
+        refundedFils: b.money.refunded_fils,
         attentionReason: b.flags.attention_reason,
         payment: { amountFils: payment.amount_fils, writeOffFils: payment.write_off_fils },
       })
@@ -363,7 +365,7 @@ export function VoidPaymentDialog({
           error={reasonBad ? E.reason : undefined}
           onChange={(event) => onReason(event.target.value)}
         />
-        {preview?.refusal ? <ErrorLine>{E.cancel_first}</ErrorLine> : <Sentences lines={lines} />}
+        {preview?.refusal ? <ErrorLine>{preview.refusal === "refund_first" ? E.refund_first : E.cancel_first}</ErrorLine> : <Sentences lines={lines} />}
         <p className="m-0 text-label text-muted">{V.line}</p>
         {error ? <ErrorLine>{error}</ErrorLine> : null}
       </div>

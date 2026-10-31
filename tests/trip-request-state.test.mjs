@@ -56,6 +56,7 @@ function view(o = {}) {
       depositFils: DUE_NOW,
       balanceFils: 33000,
       paidFils: 0,
+      refundedFils: 0,
       dueNowFils: DUE_NOW,
       stillDueFils: 63000,
     },
@@ -65,6 +66,7 @@ function view(o = {}) {
     flags: { partReceived: false, overpaid: false, writtenOff: false },
     withdrawable: true,
     payments: [],
+    refunds: [],
     transfer: {
       accountName: "[Account name]",
       bankName: "[Bank name]",

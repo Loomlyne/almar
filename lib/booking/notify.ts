@@ -12,14 +12,18 @@ import type { BookingStatus, BookingView } from "./types";
 import { liveBookingNotifier } from "../email/booking-notifier";
 import { DELIVERY_UNKNOWN } from "../email/send";
 
-/** The six booking mails. `request_withdrawn_owner` is the owner's notice of a guest's withdraw (P-19). */
+/**
+ * The seven booking mails. `request_withdrawn_owner` is the owner's notice of a guest's withdraw (P-19);
+ * `refund_receipt` tells the guest a bank refund was recorded (P5-03, Phase 5; its renderer is 05-03's).
+ */
 export type MailTemplate =
   | "request_received"
   | "request_owner"
   | "payment_receipt"
   | "payment_owner"
   | "request_lapsed"
-  | "request_withdrawn_owner";
+  | "request_withdrawn_owner"
+  | "refund_receipt";
 
 /** What a send answers. `error` is a short name, never a message, an address or a payload. */
 export type MailOutcome = { ok: true } | { ok: false; error: string };
@@ -28,7 +32,14 @@ export type MailOutcome = { ok: true } | { ok: false; error: string };
 export type MailDelivery = "sent" | "pending" | "failed" | "unknown";
 
 /** The request mails (guest and owner) and the withdraw notice. The withdraw notice's link carries no token. */
-export type RequestMailJob = { bookingId: string; view: BookingView; isTest: boolean; bookingUrl: string };
+export type RequestMailJob = {
+  bookingId: string;
+  view: BookingView;
+  isTest: boolean;
+  bookingUrl: string;
+  /** True for a booking the owner made by hand (P5-05): the guest mail keeps the `request_received` template with its own heading and first line. */
+  handMade?: boolean;
+};
 
 /** The receipt and the owner's payment notice; 04-09 builds it after ops_record_payment (a null view means no mail). */
 export type PaymentMailJob = {
@@ -45,6 +56,17 @@ export type PaymentMailJob = {
   statusAfter: BookingStatus;
   attentionReason: string | null;
   recordedByEmail: string | null;
+};
+
+/** The refund mail (P5-03): built after ops_record_refund; a null bookingUrl means a link the page cannot show. Date and amount only, never a reason or a bank reference. */
+export type RefundMailJob = {
+  bookingId: string;
+  refundId: number;
+  view: BookingView;
+  isTest: boolean;
+  bookingUrl: string | null;
+  amountFils: number;
+  refundedOn: string;
 };
 
 /** The lapse mail: it links to the stay page, so the cron needs no link secret. */
@@ -72,6 +94,7 @@ export type BookingNotifier = {
   ownerPayment(job: PaymentMailJob, opts: MailOptions): Promise<MailOutcome>;
   requestLapsed(job: LapseMailJob, opts: MailOptions): Promise<MailOutcome>;
   ownerWithdrawn(job: RequestMailJob, opts: MailOptions): Promise<MailOutcome>;
+  refundReceipt(job: RefundMailJob, opts: MailOptions): Promise<MailOutcome>;
 };
 
 /** The notifier's mail kinds, the names mailKey takes. */
@@ -88,6 +111,7 @@ export const NOT_READY_NOTIFIER: BookingNotifier = Object.freeze({
   ownerPayment: notReady,
   requestLapsed: notReady,
   ownerWithdrawn: notReady,
+  refundReceipt: notReady,
 });
 
 /** The notifier of this Worker. 04-05 changes only this body (its Resend notifier; that flip opens production, P-13). */
@@ -102,11 +126,13 @@ const KEY_PREFIX: Record<MailKind, string> = {
   ownerPayment: "payment-owner",
   requestLapsed: "lapse",
   ownerWithdrawn: "withdrawn-owner",
+  refundReceipt: "refund-receipt",
 };
 
 /**
  * The Resend idempotency key of a mail (kept 24 hours by Resend): `request/<bookingId>`, `request-owner/<bookingId>`,
- * `receipt/<paymentId>`, `payment-owner/<paymentId>`, `lapse/<bookingId>`, `withdrawn-owner/<bookingId>`. A resend from
+ * `receipt/<paymentId>`, `payment-owner/<paymentId>`, `lapse/<bookingId>`, `withdrawn-owner/<bookingId>`,
+ * `refund-receipt/<refundId>`. A resend from
  * the dashboard (04-09) uses its own key, `resend/<bookingId>/<requestId>`, with the same template.
  */
 export function mailKey(kind: MailKind, id: string): string {

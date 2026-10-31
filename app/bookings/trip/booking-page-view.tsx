@@ -331,10 +331,10 @@ function Ready({
               ) : null}
             </div>
           ) : null}
-          {model.partReceived ? <p className={LINE}>{copy.flags.partReceived}</p> : null}
+          {model.partReceived && view.money.paidFils - view.money.refundedFils > 0 ? <p className={LINE}>{copy.flags.partReceived}</p> : null}
           {model.acceptedAsPaid ? <p className={LINE}>{copy.flags.acceptedAsPaid}</p> : null}
           {model.overpaid ? <p className={LINE}>{copy.flags.overpaid}</p> : null}
-          {model.moneyOnClosed ? <p className={LINE}>{fillNodes(copy.flags.moneyOnClosed, { amount: <Aed fils={view.money.paidFils} /> })}</p> : null}
+          {model.moneyOnClosed ? <p className={LINE}>{fillNodes(copy.flags.moneyOnClosed, { amount: <Aed fils={model.closedNetFils} /> })}</p> : null}
           {model.balanceLine ? (
             <p className={LINE}>
               {fillNodes(copy.money.balanceLine, {
@@ -373,23 +373,41 @@ function Ready({
             </section>
           ) : null}
 
-          <section className="flex flex-col gap-2 border-t border-line pt-4">
-            <h2 className={H2}>{copy.travellers.heading}</h2>
-            <ul className="m-0 flex list-none flex-col gap-2 p-0">
-              {view.travellers.map((t, i) => (
-                <li key={i} className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-body text-ink">
-                  <span>{t.fullName}</span>
-                  <span className="text-muted">
-                    {t.kind === "adult"
-                      ? copy.travellers.adult
-                      : fillNodes(t.kind === "child" ? copy.travellers.child : copy.travellers.infant, { age: <Ltr>{t.age ?? ""}</Ltr> })}
-                    {t.isBooker ? ` · ${copy.travellers.booker}` : null}
-                    {t.notStaying ? ` · ${copy.travellers.notStaying}` : null}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {model.refunds.length > 0 ? (
+            <section data-testid="refunds" className="flex flex-col gap-2 border-t border-line pt-4">
+              <h2 className={H2}>{copy.refunds.heading}</h2>
+              <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                {model.refunds.map((r, i) => (
+                  <li key={i} className="flex flex-wrap justify-between gap-x-3 gap-y-1 border border-line bg-surface p-3 text-body text-ink">
+                    <span>{fillNodes(copy.refunds.line, { date: <Ltr>{formatIsoDate(r.refundedOn)}</Ltr> })}</span>
+                    <strong>
+                      <Aed fils={r.amountFils} />
+                    </strong>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {view.travellers.length > 0 ? (
+            <section className="flex flex-col gap-2 border-t border-line pt-4">
+              <h2 className={H2}>{copy.travellers.heading}</h2>
+              <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                {view.travellers.map((t, i) => (
+                  <li key={i} className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-body text-ink">
+                    <span>{t.fullName}</span>
+                    <span className="text-muted">
+                      {t.kind === "adult"
+                        ? copy.travellers.adult
+                        : fillNodes(t.kind === "child" ? copy.travellers.child : copy.travellers.infant, { age: <Ltr>{t.age ?? ""}</Ltr> })}
+                      {t.isBooker ? ` · ${copy.travellers.booker}` : null}
+                      {t.notStaying ? ` · ${copy.travellers.notStaying}` : null}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           {view.lines.length > 0 ? (
             <section className="flex flex-col gap-2 border-t border-line pt-4">

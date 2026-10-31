@@ -1,4 +1,4 @@
-// Plan 04-05 Task 1: the three guest emails, as signed by the owner on 2026-10-26 (pictures/04-05/index.html at
+// Plan 04-05 Task 1: the guest emails (a fourth, the refund mail, is plan 05-03), as signed by the owner on 2026-10-26 (pictures/04-05/index.html at
 // f95a35e5): request received (with the bank transfer instructions), payment receipt (one per recorded payment, E-31),
 // and request lapsed. Pure: the caller passes the job, the copy of the booking's language and the saved brand; no
 // environment, no package, no network, no log. The shell (lib/email/shell.ts) escapes every value.
@@ -9,7 +9,7 @@
 // prints the stay details the booking page shows after Confirmed (E-02); the lapse email links to the stay page, never
 // to the booking page, and carries no bank value (M6). The lapse rule line is in the request email only.
 import type { EmailBrand } from "./magic-link";
-import type { LapseMailJob, PaymentMailJob, RequestMailJob } from "../booking/notify";
+import type { LapseMailJob, PaymentMailJob, RefundMailJob, RequestMailJob } from "../booking/notify";
 import type { BookingView, TransferInstructions } from "../booking/types";
 import { BOOKING_CONTACT, type BookingEmailCopy } from "../copy/booking-email";
 import { JOURNEY_COPY } from "../copy/journey";
@@ -121,7 +121,7 @@ function transferBlocks(
   t: TransferInstructions,
   c: BookingEmailCopy,
   locale: EmailLocale,
-  options: { lapseRule: boolean; payBy?: boolean },
+  options: { lapseRule: boolean; payBy?: boolean; lapseText?: string },
 ): EmailBlock[] {
   const out: EmailBlock[] = [
     RULE,
@@ -143,7 +143,7 @@ function transferBlocks(
     paragraph(c.transfer.fees),
     paragraph(c.transfer.reply),
   );
-  if (options.lapseRule) out.push(paragraph(c.transfer.lapseRule));
+  if (options.lapseRule) out.push(paragraph(options.lapseText ?? c.transfer.lapseRule));
   out.push(paragraph(c.transfer.alsoOnPage));
   return out;
 }
@@ -161,16 +161,18 @@ export function renderRequestReceivedEmail(job: RequestMailJob, ctx: GuestMailCo
   const { view } = job;
   const c = ctx.copy;
   const locale = emailLocale(view.locale);
-  const subject = bookingSubject(c.requestReceived.subject, view.ref, job.isTest);
+  // P5-05: a booking the owner made by hand has its own subject, heading, first line and lapse sentence.
+  const words = job.handMade ? c.requestReceived.handMade : c.requestReceived;
+  const subject = bookingSubject(words.subject, view.ref, job.isTest);
   const transfer = view.transfer;
   if (!transfer) throw new Error("email: no transfer");
   const href = checkHref(job.bookingUrl);
   const blocks: EmailBlock[] = [
-    heading(c.requestReceived.heading),
+    heading(words.heading),
     greeting(c, view.guest.name),
-    paragraph(fillRich(c.requestReceived.intro, { ref: [ltr(view.ref)] })),
+    paragraph(fillRich(words.intro, { ref: [ltr(view.ref)] })),
     bookingRows(view, c, locale),
-    ...transferBlocks(view.ref, transfer, c, locale, { lapseRule: true }),
+    ...transferBlocks(view.ref, transfer, c, locale, { lapseRule: true, lapseText: job.handMade ? c.requestReceived.handMade.lapseRule : c.transfer.lapseRule }),
   ];
   if (view.plan === "deposit" && view.money.balanceFils > 0 && view.balanceDueDate) {
     blocks.push(balanceLine(c, view.money.balanceFils, view.balanceDueDate));
@@ -205,7 +207,9 @@ export function renderPaymentReceiptEmail(job: PaymentMailJob, ctx: GuestMailCon
   blocks.push(rows(received));
 
   if (closed) {
-    blocks.push(paragraph(fillRich(r.moneyOnClosed, { amount: aed(job.amountFils) })));
+    // After a refund the sentence stands only while paid minus refunded is above 0; it still names this payment's own amount.
+    const net = money.paidFils - money.refundedFils;
+    if (net > 0) blocks.push(paragraph(fillRich(r.moneyOnClosed, { amount: aed(job.amountFils) })));
   } else if (after === "awaiting_payment") {
     blocks.push(paragraph(r.partReceived), rows([row(r.stillDue, aed(money.dueNowFils))]));
     if (view.transfer) {
@@ -223,6 +227,31 @@ export function renderPaymentReceiptEmail(job: PaymentMailJob, ctx: GuestMailCon
 
   if (href !== null) blocks.push({ kind: "button", label: c.buttons.viewBooking, href });
   else blocks.push(paragraph(r.noLink));
+  blocks.push(...helpFooter(c));
+  return renderEmail({ locale, subject, brand: ctx.brand, testBanner: job.isTest ? c.testBanner : null, blocks });
+}
+
+/**
+ * refund_receipt (P5-03): one per recorded bank refund, in the booking's language. The heading, the reference, the
+ * amount refunded and the day, then the booking page button (or the line pointing to the request email). It prints
+ * nothing else: no status, no paid total, no amount still due, no bank value, no reason, and no promise of when money
+ * arrives. Throws `email: bad reference` or `email: bad link` as its neighbours do.
+ */
+export function renderRefundReceiptEmail(job: RefundMailJob, ctx: GuestMailContext): RenderedEmail {
+  const { view } = job;
+  const c = ctx.copy;
+  const r = c.refundReceipt;
+  const locale = emailLocale(view.locale);
+  const subject = bookingSubject(r.subject, view.ref, job.isTest);
+  const href = typeof job.bookingUrl === "string" ? checkHref(job.bookingUrl) : null;
+  const blocks: EmailBlock[] = [
+    heading(r.heading),
+    greeting(c, view.guest.name),
+    paragraph(fillRich(r.intro, { ref: [ltr(view.ref)] })),
+    rows([row(r.amountRefunded, aed(job.amountFils)), row(r.refundedOn, day(job.refundedOn))]),
+  ];
+  if (href !== null) blocks.push(paragraph(r.onPage), { kind: "button", label: c.buttons.viewBooking, href });
+  else blocks.push(paragraph(c.paymentReceipt.noLink));
   blocks.push(...helpFooter(c));
   return renderEmail({ locale, subject, brand: ctx.brand, testBanner: job.isTest ? c.testBanner : null, blocks });
 }

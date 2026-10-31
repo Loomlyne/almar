@@ -3,10 +3,11 @@
 import type { ReactNode } from "react";
 import { ListTable, type Column } from "../../../../components/ops/list-table";
 import { DateRangeField } from "../../../../components/ops/date-range-field";
-import { Button } from "../../../../components/ui/button";
+import { Button, LinkButton } from "../../../../components/ui/button";
 import { Chip } from "../../../../components/ui/chip";
 import { Field } from "../../../../components/ui/field";
 import { Select, type SelectOption } from "../../../../components/ui/select";
+import { DASHBOARD_COPY } from "../../../../lib/copy/dashboard";
 import { fillCopy } from "../../../../lib/copy/ops-kit";
 import type { OpsBookingsCopy, OpsBookingsLocale } from "../../../../lib/copy/ops-bookings";
 import { formatAed } from "../../../../lib/money/format";
@@ -175,7 +176,10 @@ export function BookingsList({
 
   return (
     <div data-bookings-list className="flex min-w-0 flex-col gap-4">
-      <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.list.title}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{copy.list.title}</h1>
+        <LinkButton href="/dashboard/bookings/new">{DASHBOARD_COPY[locale].newBooking}</LinkButton>
+      </div>
 
       <div className="flex flex-wrap items-end gap-4">
         <Field

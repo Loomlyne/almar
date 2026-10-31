@@ -303,3 +303,68 @@ export function priceBooking(input: PriceInput): PriceResult {
   };
   return reasons.length === 0 ? { ok: true, snapshot, reasons: [] } : { ok: false, reasons, snapshot };
 }
+
+// ------------------------------------------------------------------------------------------------------------
+// The agreed price (Phase 5, P5-02). The owner types one price for the stay before VAT; the nights carry it, add-ons,
+// VAT, deposit and balance are worked out exactly as for a rate-priced stay (VAT and deposit come from the settings the
+// caller passes). It applies to one hand-made booking and writes no rate: the nights have source "agreed" and no rate id.
+// Additions only: priceBooking, PriceSnapshot and every other export above are unchanged, so the guest's quote and
+// PublicPriceSnapshot never see an agreed night.
+// ------------------------------------------------------------------------------------------------------------
+
+/** A PriceSnapshot whose nights are agreed: no rate, no range. booking_write reads only a night's `night` and `rate_fils`. */
+export type AgreedSnapshot = Omit<PriceSnapshot, "nights"> & {
+  nights: { night: string; rateFils: number; source: "agreed"; rateId: null }[];
+};
+
+/** The price input without rates: `agreedNightsFils` is the stay's price before VAT, a positive safe integer of fils. */
+export type AgreedPriceInput = Omit<PriceInput, "baseRateFils" | "nightRates"> & { agreedNightsFils: number };
+
+export type AgreedPriceResult =
+  | { ok: true; snapshot: AgreedSnapshot; reasons: [] }
+  | { ok: false; reasons: PriceReason[]; snapshot: AgreedSnapshot | null };
+
+/**
+ * Splits an agreed total over the nights so the parts always add up to it: every night gets the whole share and the
+ * first night takes the remainder. (100000, 3) is [33334, 33333, 33333]; (2, 3) is [2, 0, 0].
+ */
+export function splitAgreedFils(totalFils: number, nightCount: number): number[] {
+  assertFils(totalFils, "totalFils");
+  if (typeof nightCount !== "number" || !Number.isSafeInteger(nightCount) || nightCount < 1) {
+    throw new RangeError(`nightCount must be a positive integer, got ${String(nightCount)}`);
+  }
+  const share = Math.floor(totalFils / nightCount);
+  const parts = new Array<number>(nightCount).fill(share);
+  parts[0] += totalFils - share * nightCount;
+  return parts;
+}
+
+/**
+ * Prices a stay at the owner's agreed total (before VAT). Dates are checked first, as priceBooking does: bad or reversed
+ * dates are `dates_invalid`, never a throw. A total that is not a safe integer of at least 1 fils throws (the route has
+ * parsed the owner's text with parseAedAmount). It never answers `no_rate`, whatever the stay's rates are. Everything
+ * else (settings_missing, too_large, add-ons, deposit, the 2.00 AED floor) is priceBooking's own answer.
+ */
+export function priceAgreedBooking(input: AgreedPriceInput): AgreedPriceResult {
+  const { agreedNightsFils, ...rest } = input;
+  if (!isIsoDate(rest.today)) throw new RangeError(`today must be a YYYY-MM-DD day, got ${String(rest.today)}`);
+  if (!isIsoDate(rest.from) || !isIsoDate(rest.to) || rest.to <= rest.from || rest.from < rest.today) {
+    return { ok: false, reasons: [{ code: "dates_invalid" }], snapshot: null };
+  }
+  if (typeof agreedNightsFils !== "number" || !Number.isSafeInteger(agreedNightsFils) || agreedNightsFils < 1) {
+    throw new RangeError(`agreedNightsFils must be a safe integer of at least 1 fil, got ${String(agreedNightsFils)}`);
+  }
+  const nights = eachNight(rest.from, rest.to);
+  const parts = splitAgreedFils(agreedNightsFils, nights.length);
+  const result = priceBooking({
+    ...rest,
+    baseRateFils: agreedNightsFils,
+    nightRates: nights.map((night, i) => ({ night, rateFils: parts[i], source: "base" as const, rateId: null })),
+  });
+  if (result.snapshot === null) return { ok: false, reasons: result.reasons, snapshot: null };
+  const snapshot: AgreedSnapshot = {
+    ...result.snapshot,
+    nights: result.snapshot.nights.map((n) => ({ night: n.night, rateFils: n.rateFils, source: "agreed" as const, rateId: null })),
+  };
+  return result.ok ? { ok: true, snapshot, reasons: [] } : { ok: false, reasons: result.reasons, snapshot };
+}

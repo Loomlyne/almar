@@ -32,14 +32,18 @@ test("bookings screen delegates to BookingsList, fetches /api/ops/bookings throu
   assert.match(text, /name_es/);
 });
 
-test("customers screen has the locked columns, empty line, and New customer action", () => {
+// Plan 05-04 (P5-09): Customers is a read-only list on /api/ops/customers; a row hands its email to Bookings through
+// session storage. No New customer, no URL for the search text.
+test("customers screen is a read-only ListTable on /api/ops/customers with the email handoff and no New customer", () => {
   const text = readFileSync(CUSTOMERS_SCREEN, "utf8");
-  for (const column of ["Name", "Email", "Phone", "Bookings count"]) {
-    assert.equal(text.includes(column), true, `missing column: ${column}`);
-  }
-  assert.match(text, /copy\.noCustomersYet/);
-  assert.match(text, /copy\.newCustomer/);
-  assert.match(text, /<tbody\s*\/>/, "customers tbody must not render a sample row");
+  assert.match(text, /<ListTable\b/);
+  assert.match(text, /opsFetch<[^>]*>\(\s*"\/api\/ops\/customers"/);
+  assert.match(text, /putBookingsSearch/);
+  assert.match(text, /OPS_HOME_COPY/);
+  assert.match(text, /dash\.noCustomersYet/);
+  assert.doesNotMatch(text, /Sidebar|newCustomer|New customer|<tbody/);
+  assert.equal(text.includes("?q="), false, "the search text is not put in a URL");
+  assert.equal(text.includes("replaceState"), false);
 });
 
 test("neither screen has a detail route file", () => {

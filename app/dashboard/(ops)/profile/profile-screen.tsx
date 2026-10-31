@@ -1,71 +1,75 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button } from "../../../../components/ui/button";
-import { ConfirmDialog } from "../../../../components/ui/confirm-dialog";
+import { opsFetch } from "../../../../components/ops/ops-client";
+import { readError } from "../../../../components/ops/read-error";
+import { useDashboardLocale } from "../../../../components/ops/use-dashboard-locale";
 import { Field } from "../../../../components/ui/field";
-import { signOutEverywhere } from "../../actions";
 import { DASHBOARD_COPY } from "../../../../lib/copy/dashboard";
-import { isDocumentLocale, type DocumentLocale } from "../../../../lib/set-document-locale";
+import { OPS_HOME_COPY, type OpsHomeCopy } from "../../../../lib/copy/ops-home";
+import { OPS_KIT_COPY } from "../../../../lib/copy/ops-kit";
 import monogram from "../../../../brand/Logo Monogram/Curves_White.svg";
 
+// Plan 05-04 (P5-10): the owner's Profile. The session's name and email, read-only; the sign-out buttons live in the rail
+// only. ProfileView draws from props (no fetch) so a picture scene can render it; ProfileScreen reads /api/ops/profile once.
 
-function readLocale(): DocumentLocale {
-  const matched = document.cookie.match(/(?:^|;\s*)almar-locale=([^;]*)/);
-  const value = matched ? decodeURIComponent(matched[1] ?? "") : "";
-  return isDocumentLocale(value) ? value : "en";
-}
-
-export function ProfileScreen() {
-  const [locale, setLocale] = useState<DocumentLocale>("en");
-  const [signOutOpen, setSignOutOpen] = useState(false);
-  const [logoutAllOpen, setLogoutAllOpen] = useState(false);
-  const signOutForm = useRef<HTMLFormElement>(null);
-  const copy = DASHBOARD_COPY[locale];
-
-  useEffect(() => {
-    setLocale(readLocale());
-  }, []);
-
+export function ProfileView({ name, email, copy, title }: { name: string | null; email: string; copy: OpsHomeCopy["profile"]; title: string }) {
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">
-        {copy.rail.profile}
-      </h1>
+      <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{title}</h1>
 
       <div className="flex size-24 items-center justify-center rounded-none border border-line bg-teal" aria-hidden="true">
         <img className="size-10" src={monogram.src} alt="" />
       </div>
 
-      <Field id="profile-name" label="Name" name="name" value="" readOnly />
-      <Field id="profile-email" label="Email" name="email" type="email" value="" readOnly />
+      <Field id="profile-name" label={copy.name} name="name" value={name ?? ""} placeholder={name === null ? copy.noName : undefined} readOnly />
+      <Field id="profile-email" label={copy.email} name="email" type="email" dir="ltr" value={email} readOnly />
+    </div>
+  );
+}
 
-      <div className="flex flex-wrap gap-2">
-        <Button variant="danger" onClick={() => setSignOutOpen(true)}>
-          {copy.signOut}
-        </Button>
-        <Button variant="danger" onClick={() => setLogoutAllOpen(true)}>
-          {copy.logoutAll}
-        </Button>
-      </div>
+export function ProfileScreen() {
+  const locale = useDashboardLocale();
+  const copy = OPS_HOME_COPY[locale].profile;
+  const kit = OPS_KIT_COPY[locale];
+  const title = DASHBOARD_COPY[locale].rail.profile;
+  const [profile, setProfile] = useState<{ name: string | null; email: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  // The sentences are read at answer time from the latest words, not the first render's.
+  const spoken = useRef({ kit, copy });
+  spoken.current = { kit, copy };
 
-      <form ref={signOutForm} action="/auth/sign-out" method="post" hidden />
-      <ConfirmDialog
-        open={signOutOpen}
-        onOpenChange={setSignOutOpen}
-        title={copy.signOut}
-        confirmLabel={copy.signOutOfThisSite}
-        cancelLabel={copy.staySignedIn}
-        onConfirm={() => signOutForm.current?.submit()}
-      />
-      <ConfirmDialog
-        open={logoutAllOpen}
-        onOpenChange={setLogoutAllOpen}
-        title={copy.logoutAll}
-        confirmLabel={copy.signOutEverywhere}
-        cancelLabel={copy.staySignedIn}
-        onConfirm={() => void signOutEverywhere()}
-      />
+  // Read once. A language change after mount does not fetch again: the words are read at render.
+  useEffect(() => {
+    let live = true;
+    void opsFetch<{ name: string | null; email: string }>("/api/ops/profile").then((reply) => {
+      if (!live) return;
+      if (!reply.ok) {
+        setProfile(null);
+        setError(readError(spoken.current.kit, reply.error, spoken.current.copy.failed));
+        return;
+      }
+      setError(null);
+      setProfile({ name: reply.name, email: reply.email });
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  if (profile) return <ProfileView name={profile.name} email={profile.email} copy={copy} title={title} />;
+  return (
+    <div className="flex min-w-0 flex-col gap-6">
+      <h1 className="m-0 text-balance font-display text-heading font-normal text-teal">{title}</h1>
+      {error ? (
+        <p className="m-0 text-label text-error" role="alert">
+          {error}
+        </p>
+      ) : (
+        <p className="m-0 text-body text-muted" role="status">
+          {copy.loading}
+        </p>
+      )}
     </div>
   );
 }

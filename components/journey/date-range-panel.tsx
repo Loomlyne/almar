@@ -46,6 +46,11 @@ export type DateRangePanelProps = {
   size?: "md" | "phone";
   /** false hides Clear and Done (the phone sheet has its own dock); the line stays for screen readers. */
   footer?: boolean;
+  /**
+   * Opt-in, default off (only the owner's New booking passes it): a booked or blocked day may be the END of a range when a
+   * start is set and no blocked night lies between them, because a guest leaves in the morning of a taken night.
+   */
+  endOnBlocked?: boolean;
   className?: string;
 };
 
@@ -95,6 +100,7 @@ export function DateRangePanel({
   blocked,
   size = "md",
   footer = true,
+  endOnBlocked = false,
   className,
 }: DateRangePanelProps) {
   const now = useMemo(() => today ?? todayFn(getLocalTimeZone()), [today]);
@@ -152,8 +158,12 @@ export function DateRangePanel({
     setTick((t) => t + 1);
   }
 
+  // endOnBlocked: a blocked day that can close the range now being chosen (after the start, nothing blocked between).
+  const closesRange = (date: CalendarDate) =>
+    endOnBlocked && isBlocked(date) && value.start !== null && value.end === null && cmp(date, value.start) > 0 && !crossesBlocked(value.start, date);
+
   function pick(date: CalendarDate) {
-    if (cmp(date, now) < 0 || isBlocked(date)) return;
+    if (cmp(date, now) < 0 || (isBlocked(date) && !closesRange(date))) return;
     const { start, end } = value;
     if (!start || end) onChange({ start: date, end: null });
     else if (cmp(date, start) <= 0 || crossesBlocked(start, date)) onChange({ start: date, end: null });
@@ -284,7 +294,7 @@ export function DateRangePanel({
                     {Array.from({ length: 7 }, (_, ci) => {
                       const date = row[ci] ?? null;
                       if (!date) return <div key={ci} role="gridcell" aria-hidden="true" />;
-                      const past = cmp(date, now) < 0 || isBlocked(date);
+                      const past = cmp(date, now) < 0 || (isBlocked(date) && !closesRange(date));
                       const isStart = !!value.start && cmp(date, value.start) === 0;
                       const isEnd = !!value.end && cmp(date, value.end) === 0;
                       const inRange =

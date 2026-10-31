@@ -3,8 +3,10 @@
 // status offers, AED text to fils (the dialog's and the server's one parser), the Record and Void previews, the list
 // query, UAE time text and the mail state of a receipt or a request email.
 // Pure: no React, no fetch, no clock (callers pass what they read), no environment. The money rules mirror the SQL
-// (booking_next_status, booking_deposit_floor, booking_flags, ops_record_payment, ops_void_payment); where they could
-// differ the SQL wins, and tests/ops-record-payment.db.test.mjs (Task 6) compares a grid on a stack.
+// (booking_next_status, booking_deposit_floor, booking_flags, ops_record_payment, ops_void_payment and, from Phase 5
+// plan 05-01, ops_record_refund / ops_void_refund of 20261031120000_ops_os.sql: a refund never changes a status or
+// paid_fils, and "overpaid" reads paid minus refunded above the total); where they could differ the SQL wins, and
+// tests/ops-record-payment.db.test.mjs (Task 6) compares a grid on a stack.
 // Names avoid the text r-e-underscore (F-09, tests/phase-02-gates.test.mjs).
 import { westernDigits } from "../format";
 import { assertFils, pct } from "../money/fils";
@@ -106,6 +108,27 @@ export type OwnerPayment = {
   card_last4: string | null;
 };
 
+/**
+ * One bank refund row as ops_get_booking returns it (voided rows included, with their reason). A refund is recorded,
+ * never sent (B-31), and voided, never deleted (B-25). Card rows (Stripe) are not listed here.
+ */
+export type OwnerRefund = {
+  id: number;
+  method: "bank_transfer";
+  status: "succeeded" | "voided";
+  amount_fils: number;
+  refunded_on: string;
+  bank_reference: string;
+  reason: string | null;
+  recorded_by: string | null;
+  recorded_by_email: string | null;
+  created_at: string;
+  void_reason: string | null;
+  voided_at: string | null;
+  voided_by: string | null;
+  voided_by_email: string | null;
+};
+
 /** One internal note, newest first. */
 export type OwnerNote = { id: string; at: string; actor: string; actor_email: string | null; body: string };
 
@@ -167,6 +190,7 @@ export type OwnerDetail = {
     deposit_fils: number;
     balance_fils: number;
     paid_fils: number;
+    refunded_fils: number;
     written_off_fils: number;
     balance_due_days: number | null;
     balance_due_date: string | null;
@@ -183,6 +207,7 @@ export type OwnerDetail = {
     line_fils: number;
   }[];
   payments: OwnerPayment[];
+  refunds: OwnerRefund[];
   notes: OwnerNote[];
   events: OwnerEvent[];
   lapse_email: { sent_at: string | null; attempts: number; claimed_at: string | null };
@@ -266,6 +291,21 @@ export function canResendRequest(status: BookingStatus, flags: Pick<OwnerFlags, 
   return status === "awaiting_payment" && (!flags.deadline_passed || flags.part_received);
 }
 
+/** What can still be refunded: paid minus refunded, never below 0. Write-offs are not money paid and never count. */
+export function refundableFils(paidFils: number, refundedFils: number): number {
+  return Math.max(0, paidFils - refundedFils);
+}
+
+/** Record refund is offered on every status (P5-07) while paid minus refunded is above 0, expired and cancelled included. */
+export function canRefund(money: { paid_fils: number; refunded_fils: number }): boolean {
+  return refundableFils(money.paid_fils, money.refunded_fils) > 0;
+}
+
+/** Void only a succeeded bank refund row (ops_void_refund: otherwise not_voidable). */
+export function canVoidRefund(refund: Pick<OwnerRefund, "status">): boolean {
+  return refund.status === "succeeded";
+}
+
 // ------------------------------------------------------------------------------------------------------------
 // AED text and fils (Q-11)
 // ------------------------------------------------------------------------------------------------------------
@@ -337,6 +377,8 @@ type SettleInput = {
   attentionReason: AttentionReason | null;
   amountFils: number;
   acceptShort: boolean;
+  /** Bank refunds already recorded (default 0): "overpaid" reads paid minus refunded above the total (P5-06). */
+  refundedFils?: number;
 };
 
 type SettleResult = {
@@ -360,7 +402,7 @@ type SettleResult = {
  * - The target is the deposit for an awaiting_payment deposit plan, else the total; gap = target - settled after the
  *   row. Accept as paid writes the gap off on the row; a gap <= 0 is nothing_to_write_off.
  * - The status follows table C on awaiting_payment and deposit_paid; every other status keeps its own.
- * - partReceived: still awaiting_payment with money paid. overpaidFils: paid (never write-offs) above the total.
+ * - partReceived: still awaiting_payment with money paid. overpaidFils: paid minus refunded (never write-offs) above the total.
  * - attention, the flag this record raises: paid_after_expiry on expired, paid_after_cancel on cancelled, else overpaid.
  * - nightsKept: the booking keeps its nights for good (the first record on a request makes them permanent, P-09 as
  *   changed 2026-10-20); false on expired and cancelled, whose nights are never taken back (B-34).
@@ -371,6 +413,7 @@ type SettleResult = {
  */
 export function settlePreview(input: SettleInput): SettleResult {
   const { status, plan, grandFils, depositFils, paidFils, writtenOffFils, attentionReason, amountFils, acceptShort } = input;
+  const refundedFils = input.refundedFils ?? 0;
   const settledBefore = paidFils + writtenOffFils;
   const unchanged: SettleResult = {
     refusal: null,
@@ -400,7 +443,8 @@ export function settlePreview(input: SettleInput): SettleResult {
     status === "awaiting_payment" || status === "deposit_paid"
       ? nextStatus(status, plan, grandFils, depositFils, settledAfterFils)
       : status;
-  const overpaidFils = paidAfter > grandFils ? paidAfter - grandFils : 0;
+  const netPaidAfter = paidAfter - refundedFils;
+  const overpaidFils = netPaidAfter > grandFils ? netPaidAfter - grandFils : 0;
   const attention =
     status === "expired" ? "paid_after_expiry" : status === "cancelled" ? "paid_after_cancel" : overpaidFils > 0 ? "overpaid" : null;
   return {
@@ -438,10 +482,12 @@ type VoidInput = {
   writtenOffFils: number;
   attentionReason: AttentionReason | null;
   payment: { amountFils: number; writeOffFils: number };
+  /** Bank refunds already recorded (default 0): voiding below them is refund_first, and the clears read net of them. */
+  refundedFils?: number;
 };
 
 type VoidResult = {
-  refusal: "cancel_first" | null;
+  refusal: "cancel_first" | "refund_first" | null;
   statusAfter: BookingStatus;
   settledAfterFils: number;
   paidAfterFils: number;
@@ -452,6 +498,7 @@ type VoidResult = {
 
 /**
  * What voiding one row would do, as ops_void_payment does it (the row's write-off goes with it).
+ * - paid after the void below the refunds already recorded: refund_first (void the refund first, B-31), nothing changes.
  * - confirmed / completed left below depositFloor: cancel_first, nothing changes.
  * - deposit_paid / paid_in_full follow table C; back to awaiting_payment: a fresh pay-by date (the transfer window from
  *   now), nights kept while money is left, else held until then.
@@ -459,14 +506,19 @@ type VoidResult = {
  *   later of the current one and the window from now, its nights held until then.
  * - confirmed, completed, deposit_paid, paid_in_full otherwise: no date, nights kept. expired / cancelled: no date, no
  *   nights. held (no row can be recorded there) keeps its own date and timed nights.
- * - attentionCleared: overpaid with paid after <= total, or a money flag (deadline_passed_part_paid, paid_after_expiry,
- *   paid_after_cancel) with nothing paid after.
+ * - attentionCleared: overpaid with paid after minus refunded <= total; paid_after_expiry or paid_after_cancel with paid
+ *   after minus refunded = 0; deadline_passed_part_paid with nothing paid after.
  * window_missing (no transfer window set) needs the settings: the server answers it.
  */
 export function voidPreview(input: VoidInput): VoidResult {
   const { status, plan, grandFils, depositFils, depositBp, paidFils, writtenOffFils, attentionReason, payment } = input;
+  const refundedFils = input.refundedFils ?? 0;
   const paidAfterFils = paidFils - payment.amountFils;
   const settledAfterFils = paidFils + writtenOffFils - payment.amountFils - payment.writeOffFils;
+
+  if (paidAfterFils < refundedFils) {
+    return { refusal: "refund_first", statusAfter: status, settledAfterFils, paidAfterFils, deadline: null, nights: "kept", attentionCleared: false };
+  }
 
   if ((status === "confirmed" || status === "completed") && settledAfterFils < depositFloor(plan, grandFils, depositFils, depositBp)) {
     return { refusal: "cancel_first", statusAfter: status, settledAfterFils, paidAfterFils, deadline: null, nights: "kept", attentionCleared: false };
@@ -494,12 +546,59 @@ export function voidPreview(input: VoidInput): VoidResult {
     nights = "kept";
   }
 
+  const netPaidAfterFils = paidAfterFils - refundedFils;
   const attentionCleared =
-    (attentionReason === "overpaid" && paidAfterFils <= grandFils) ||
-    ((attentionReason === "deadline_passed_part_paid" || attentionReason === "paid_after_expiry" || attentionReason === "paid_after_cancel") &&
-      paidAfterFils === 0);
+    (attentionReason === "overpaid" && netPaidAfterFils <= grandFils) ||
+    ((attentionReason === "paid_after_expiry" || attentionReason === "paid_after_cancel") && netPaidAfterFils === 0) ||
+    (attentionReason === "deadline_passed_part_paid" && paidAfterFils === 0);
 
   return { refusal: null, statusAfter, settledAfterFils, paidAfterFils, deadline, nights, attentionCleared };
+}
+
+type RefundInput = {
+  status: BookingStatus;
+  grandFils: number;
+  paidFils: number;
+  refundedFils: number;
+  attentionReason: AttentionReason | null;
+  amountFils: number;
+};
+
+type RefundResult = {
+  refusal: "nothing_to_refund" | "above_paid" | null;
+  /** The most this booking can still be refunded before this record: paid minus refunded, never below 0. */
+  refundableFils: number;
+  refundedAfterFils: number;
+  netPaidAfterFils: number;
+  overpaidAfter: boolean;
+  attentionCleared: boolean;
+  statusAfter: BookingStatus;
+};
+
+/**
+ * What recording a bank refund of `amountFils` would do, as ops_record_refund does it (the review sentence; the SQL
+ * decides). Nothing left to refund is nothing_to_refund; an amount above paid minus refunded is above_paid; a refusal
+ * changes nothing. A refund never changes the status (P5-06), paid_fils or what is still due. attentionCleared: overpaid
+ * once paid minus refunded is within the total; paid_after_expiry or paid_after_cancel once it is 0.
+ */
+export function refundPreview(input: RefundInput): RefundResult {
+  const { status, grandFils, paidFils, refundedFils, attentionReason, amountFils } = input;
+  const left = refundableFils(paidFils, refundedFils);
+  const refusal = left <= 0 ? "nothing_to_refund" : amountFils > left ? "above_paid" : null;
+  const refundedAfterFils = refusal === null ? refundedFils + amountFils : refundedFils;
+  const netPaidAfterFils = paidFils - refundedAfterFils;
+  return {
+    refusal,
+    refundableFils: left,
+    refundedAfterFils,
+    netPaidAfterFils,
+    overpaidAfter: netPaidAfterFils > grandFils,
+    attentionCleared:
+      refusal === null &&
+      ((attentionReason === "overpaid" && netPaidAfterFils <= grandFils) ||
+        ((attentionReason === "paid_after_expiry" || attentionReason === "paid_after_cancel") && netPaidAfterFils <= 0)),
+    statusAfter: status,
+  };
 }
 
 // ------------------------------------------------------------------------------------------------------------
@@ -702,6 +801,23 @@ export function requestMail(detail: Pick<OwnerDetail, "id" | "events">): MailSta
     if (event.action !== "resend_requested") continue;
     const requestId = text(event.detail, "request_id");
     if (requestId !== null && text(event.detail, "template") === "request_received") keys.add(`resend/${detail.id}/${requestId}`);
+  }
+  return mailState(detail.events, keys);
+}
+
+/**
+ * The guest email of one refund: keys refund-receipt/<refund_id> and resend/<booking_id>/<request_id> for each
+ * resend_requested event that names this refund_id and a request_id.
+ */
+export function refundMail(detail: Pick<OwnerDetail, "id" | "events">, refundId: number): MailState {
+  const keys = new Set([`refund-receipt/${refundId}`]);
+  for (const event of detail.events) {
+    if (event.action !== "resend_requested") continue;
+    const requestId = text(event.detail, "request_id");
+    const named = event.detail?.["refund_id"];
+    if (requestId !== null && (typeof named === "number" || typeof named === "string") && String(named) === String(refundId)) {
+      keys.add(`resend/${detail.id}/${requestId}`);
+    }
   }
   return mailState(detail.events, keys);
 }
