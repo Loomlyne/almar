@@ -85,7 +85,7 @@ The owner can make a booking from the dashboard: three owner-only routes price t
 3. **[Judgment] Extra words.** Beyond the signed list I added short field-error sentences (name, email, phone, amount, reason, pickup), "Nothing matches.", "Step {n} / 5 · {name}", the plan sentence for deposit unavailable for causes other than no due days, and `quoteFailed`, `saveFailed`, `loadFailed`, `unavailable`, `settings_*` and similar problem sentences. All three languages; AR and ES are model-translated drafts. They are listed below for the owner's signature.
 4. **[Judgment] Add-on stepper label.** The remove label of the stepper uses the kit's "Remove" word plus the add-on name.
 5. **Branch.** Committed on `claude/phase-05-ops-os-d47554` as instructed (not a `worktree-agent-*` name).
-6. **Reviewer.** Not spawned, per the controller: Reviewer: pending, run by the orchestrator. The plan's money review of `server.ts`, `gate-server.ts`, `new-booking-api.ts`, `new-booking-rules.ts`, the resend line and their tests is still to do.
+6. **Reviewer.** Not spawned by the executor; the orchestrator ran it. See Review below.
 
 ## New words for the owner's signature
 
