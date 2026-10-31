@@ -88,21 +88,20 @@ test("confirm dialog prevents scrim click and Escape from dismissing", () => {
   assert.equal(text.includes('from "./dialog"'), false);
 });
 
-test("profile shows name, email, a square photo, and both confirms with the locked labels", () => {
+// Plan 05-04 (P5-10): read-only name and email from the session, in three languages; sign-out lives in the rail only.
+test("profile shows the session's name and email read-only, a square photo, and no sign-out", () => {
   const text = readFileSync(PROFILE_SCREEN, "utf8");
-  assert.match(text, /label="Name"/);
-  assert.match(text, /label="Email"/);
+  assert.match(text, /label=\{copy\.name\}/);
+  assert.match(text, /label=\{copy\.email\}/);
+  assert.match(text, /readOnly/);
+  assert.match(text, /\/api\/ops\/profile/);
   assert.match(text, /monogram\.src/);
   assert.equal(text.includes("framerusercontent"), false);
   assert.match(text, /alt=""/);
-  assert.match(text, /from ["'].*confirm-dialog["']/);
-  assert.match(text, /copy\.signOut\b/);
-  assert.match(text, /copy\.logoutAll\b/);
-  assert.match(text, /copy\.signOutOfThisSite/);
-  assert.match(text, /copy\.signOutEverywhere/);
-  assert.match(text, /copy\.staySignedIn/);
+  assert.equal(/confirm-dialog/.test(text), false);
+  assert.equal(/signOut/.test(text), false);
+  assert.equal(/variant="danger"/.test(text), false);
   assert.equal(text.includes('type="password"'), false);
-  assert.equal(/variant="danger"/.test(text), true);
 });
 
 test("Sign out is absent from the dashboard shell layout", () => {

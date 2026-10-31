@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 // Phase 3.1 code review (03.1-REVIEW.md) W1 to W4: keyboard focus. W5 (the https URL fields on stays and team) is gone:
 // plans 03.2-07 and 03.2-08 replace those fields with the media picker (03.2-09's MediaField), so their URL-typing cases are replaced there.
@@ -14,10 +14,22 @@ function dubaiDay(days: number): { year: number; month: number; day: number } {
   return { year: at.getUTCFullYear(), month: at.getUTCMonth() + 1, day: at.getUTCDate() };
 }
 
+/** Home (plan 05-04) reads /api/ops/home: an unanswered call is a 403 that sends the page to /sign-in, so the menu tests answer it. */
+async function answerHome(page: Page) {
+  await page.route("**/api/ops/home**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, from: "2026-10-01", to: "2026-10-31", bookings: 0, received_fils: 0, refunded_fils: 0, recorded_fils: 0, outstanding_fils: 0, outstanding_count: 0 }),
+    }),
+  );
+}
+
 test.describe("W1 dashboard phone menu", () => {
   test.use({ viewport: { width: 1024, height: 800 } });
 
   test("Escape returns focus to the menu button, and Tab reaches Close", async ({ page }) => {
+    await answerHome(page);
     await page.goto("/dashboard/home");
     const toggle = page.getByRole("button", { name: "Menu", exact: true });
     await toggle.click();
@@ -34,6 +46,7 @@ test.describe("W1 dashboard phone menu", () => {
   });
 
   test("the Close button returns focus to the menu button", async ({ page }) => {
+    await answerHome(page);
     await page.goto("/dashboard/home");
     await page.getByRole("button", { name: "Menu", exact: true }).click();
     await page.getByRole("button", { name: "Close menu", exact: true }).click();

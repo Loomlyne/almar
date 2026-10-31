@@ -158,7 +158,7 @@ test("the (ops) layout renders a section's page only when isLiveOpsPath says so,
   assert.equal((layout.match(/\? children : null/g) ?? []).length, 1, "and behind the live-section gate on the ops host, nowhere else");
 });
 
-test("live sections are only the wired ones (03.2-09 media; 02-06 settings; 03.2-12 pages, blog, legal, navigation; 03.2-07 stays; 03.2-08 team, packages); the rest show Not ready", async () => {
+test("live sections are only the wired ones (03.2-09 media; 02-06 settings; 03.2-12 pages, blog, legal, navigation; 03.2-07 stays; 03.2-08 team, packages; 05-04 home, profile); the rest show Not ready", async () => {
   const { OPS_LIVE_SECTIONS, isLiveOpsPath } = await import("../lib/ops-routes.ts");
   for (const section of ["/content/media", "/settings", "/content/pages", "/content/blog", "/content/legal", "/content/navigation", "/catalog/stays"]) assert.ok(OPS_LIVE_SECTIONS.includes(section), section);
   assert.equal(isLiveOpsPath("/dashboard/settings"), true);
@@ -166,7 +166,9 @@ test("live sections are only the wired ones (03.2-09 media; 02-06 settings; 03.2
   for (const path of ["/content/team", "/dashboard/content/team", "/catalog/packages", "/dashboard/catalog/packages"]) assert.equal(isLiveOpsPath(path), true, path);
   // 04-09 wires Bookings: live both ways, the detail under it too.
   for (const path of ["/bookings", "/dashboard/bookings", "/bookings/detail", "/dashboard/bookings/detail"]) assert.equal(isLiveOpsPath(path), true, path);
-  for (const path of ["/", "/home", "/profile", "/content/team-old", "/catalog"]) assert.equal(isLiveOpsPath(path), false, path);
+  // 05-04 wires Home ("/" in the browser, "/home" once rewritten) and Profile: live both ways. Near misses stay off.
+  for (const path of ["/", "/home", "/dashboard/home", "/profile", "/dashboard/profile"]) assert.equal(isLiveOpsPath(path), true, path);
+  for (const path of ["/content/team-old", "/catalog"]) assert.equal(isLiveOpsPath(path), false, path);
 });
 
 // ---- Fable review of 7527f88: a trailing dot is the same host --------------------------------------------------

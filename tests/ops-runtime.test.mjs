@@ -124,7 +124,10 @@ test("OPS_LIVE_SECTIONS holds wired sections only (03.2-09: /content/media); unw
   assert.ok(OPS_LIVE_SECTIONS.includes("/content/media"));
   // 03.2-07 wired /catalog/stays; 03.2-08 wired packages (pinned in the next test).
   assert.equal(isLiveOpsPath("/catalog/stays"), true);
-  assert.equal(isLiveOpsPath("/"), false);
+  // 05-04 wired Home: "/" and "/home" are live; a path with no section is not.
+  assert.equal(isLiveOpsPath("/"), true);
+  assert.equal(isLiveOpsPath("/home"), true);
+  assert.equal(isLiveOpsPath("/catalog"), false);
   assert.equal(OPS_PATH_HEADER, "x-almar-ops-path");
 });
 

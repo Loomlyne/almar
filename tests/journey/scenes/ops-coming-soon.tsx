@@ -16,9 +16,8 @@ const opsHost = (path: string, page: ReactNode) => () => <OpsShell mode="ops">{i
  * screens. Test-only.
  */
 export const scenes: Scenes = {
-  // A rail section not live yet (Home today; Bookings, Customers and Profile are off too): the same layout shows
+  // A path that is not live (no rail section is left off after 05-04; "/catalog" has no page): the same layout shows
   // "Not ready." even though a page is passed (a stand-in, not a real screen). The path is shared with
-  // tests/ops-coming-soon.spec.ts, which asserts isLiveOpsPath is false for it; when that section is wired,
-  // ops-not-live-path.ts moves to the next one still off.
+  // tests/ops-coming-soon.spec.ts, which asserts isLiveOpsPath is false for it.
   "ops-host-home": opsHost(NOT_LIVE_OPS_PATH, <p>stand-in page</p>),
 };

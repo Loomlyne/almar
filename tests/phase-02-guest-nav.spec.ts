@@ -37,15 +37,23 @@ test("bookings has no currency control; account still has one", async ({ page })
   await expect(page.locator("header").getByText("AED").first()).toBeVisible();
 });
 
-test("profile: the sign-out form posts to /auth/sign-out and the dialogs use the locked words", async ({ page }) => {
-  await page.goto("/__harness?c=ops-profile&s=profile&l=en");
+// Plan 05-04 (P5-10): sign-out lives in the rail only. The Profile page has none, so the test moves to the shell.
+test("sign-out: the rail's form posts to /auth/sign-out and the dialogs use the locked words", async ({ page }) => {
+  await page.route("**/api/ops/site-status", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, site: { state: "up_to_date", requested_seq: 5, live_seq: 5, requested_at: "2026-10-13T10:02:00.000Z", built_at: "2026-10-13T10:05:00.000Z", last_hook_at: "2026-10-13T10:02:00.000Z", last_hook_result: "ok" } }),
+    }),
+  );
+  await page.goto("/__harness?c=ops-shell&s=owner&l=en");
   await page.waitForLoadState("networkidle");
   const form = page.locator('form[action="/auth/sign-out"]');
   await expect(form).toHaveCount(1);
   await expect(form).toHaveAttribute("method", "post");
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(page.getByRole("button", { name: "Sign out of this site" })).toBeVisible();
-  const source = readFileSync("app/dashboard/(ops)/profile/profile-screen.tsx", "utf8");
+  const source = readFileSync("app/dashboard/(ops)/ops-shell.tsx", "utf8");
   expect(source).toMatch(/signOutForm\.current\?\.submit\(\)/);
   expect(source).toMatch(/void signOutEverywhere\(\)/);
 });

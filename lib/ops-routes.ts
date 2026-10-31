@@ -57,6 +57,13 @@ export const OPS_LIVE_SECTIONS: readonly string[] = [
   // 06-05: Requests and Content -> Consultation.
   "/requests",
   "/content/consultation",
+  // 05-04: Home ("/" in the browser, "/home" once rewritten by lib/host.ts) and Profile. "/dashboard" now also reads live;
+  // that is harmless, since app/dashboard/page.tsx sits outside the (ops) layout.
+  "/",
+  "/home",
+  "/profile",
+  // 05-04: Customers, a read-only list.
+  "/customers",
 ];
 
 /**
