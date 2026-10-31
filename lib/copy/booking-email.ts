@@ -1,7 +1,7 @@
-// Plan 04-05 (Task 1): the words of the six booking emails. Self-contained (a granted copy slot, deliberately not
+// Plan 04-05 (Task 1): the words of the seven booking emails. Self-contained (a granted copy slot, deliberately not
 // registered in lib/copy/index.ts). EN is new copy drafted for the owner's signature at the picture gate (Task 3).
 // AR (Gulf-friendly Modern Standard Arabic, right to left) and ES (neutral Latin American, "tú" as lib/copy/guest.ts)
-// are MODEL-TRANSLATED DRAFTS of the EN, flagged for the owner's check; the owner notices are English only (E-11
+// are MODEL-TRANSLATED DRAFTS of the EN, flagged for the owner's check (the refundReceipt group of plan 05-03 included); the owner notices are English only (E-11
 // recommended: the dashboard is English only, owner rule 2026-10-14).
 //
 // Never a price, a rate, a fee amount, a deadline value, a bank value, a person or legal wording: amounts, dates,
@@ -125,6 +125,18 @@ export type BookingEmailCopy = {
     body: string;
     startAgainLine: string;
   };
+  /** Plan 05-03 (P5-03): the refund email. Date and amount only: never a status, a bank value, a reason or a promise of when money arrives. */
+  refundReceipt: {
+    /** "{ref}" only. */
+    subject: string;
+    heading: string;
+    /** "{ref}". */
+    intro: string;
+    amountRefunded: string;
+    refundedOn: string;
+    /** Shown when the job has a booking link. */
+    onPage: string;
+  };
 };
 
 const EN: BookingEmailCopy = {
@@ -201,6 +213,14 @@ const EN: BookingEmailCopy = {
     heading: "Your request has lapsed",
     body: "No payment was recorded by {date}, {time} UAE time, so your request {ref} has lapsed and its dates are free again.",
     startAgainLine: "You are welcome to send a new request from the stay page.",
+  },
+  refundReceipt: {
+    subject: "Refund for your booking {ref}",
+    heading: "We have made a refund",
+    intro: "We sent the refund below from our bank for your booking {ref}.",
+    amountRefunded: "Amount refunded",
+    refundedOn: "Refunded on",
+    onPage: "This refund is also on your booking page.",
   },
 };
 
@@ -287,6 +307,14 @@ const AR: BookingEmailCopy = {
     body: "لم يُسجَّل أي دفع حتى {date}، {time} بتوقيت الإمارات، لذا انتهت مهلة طلبك {ref} وأصبحت تواريخه متاحة من جديد.",
     startAgainLine: "يسعدنا أن ترسل طلبًا جديدًا من صفحة الإقامة.",
   },
+  refundReceipt: {
+    subject: "استرداد لحجزك {ref}",
+    heading: "أجرينا لك استردادًا",
+    intro: "أرسلنا المبلغ المسترد أدناه من حسابنا المصرفي لحجزك {ref}.",
+    amountRefunded: "المبلغ المسترد",
+    refundedOn: "تاريخ الاسترداد",
+    onPage: "يظهر هذا الاسترداد أيضًا في صفحة حجزك.",
+  },
 };
 
 const ES: BookingEmailCopy = {
@@ -363,6 +391,14 @@ const ES: BookingEmailCopy = {
     heading: "Tu solicitud venció",
     body: "No se registró ningún pago antes del {date}, {time}, hora de los EAU, así que tu solicitud {ref} venció y sus fechas vuelven a estar libres.",
     startAgainLine: "Puedes enviar una nueva solicitud desde la página de la estancia.",
+  },
+  refundReceipt: {
+    subject: "Reembolso de tu reserva {ref}",
+    heading: "Te hicimos un reembolso",
+    intro: "Enviamos el reembolso de abajo desde nuestro banco para tu reserva {ref}.",
+    amountRefunded: "Monto reembolsado",
+    refundedOn: "Reembolsado el",
+    onPage: "Este reembolso también aparece en la página de tu reserva.",
   },
 };
 

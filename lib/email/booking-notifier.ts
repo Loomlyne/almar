@@ -1,6 +1,6 @@
-// Plan 04-05 Task 4: the booking notifier behind 04-08's seam (lib/booking/notify.ts BookingNotifier, six methods).
+// Plan 04-05 Task 4: the booking notifier behind 04-08's seam (lib/booking/notify.ts BookingNotifier, seven methods).
 //
-// createBookingNotifier is pure: it takes the sender, the brand reader and the six renderers with the guest copy, so
+// createBookingNotifier is pure: it takes the sender, the brand reader and the seven renderers with the guest copy, so
 // the node tests run it on fakes and nothing reaches the network. liveBookingNotifier wires the real ones: Resend with
 // this Worker's key (lib/email/send.ts) and the saved brand read at send time (E-13). It imports only TYPES from
 // lib/booking/notify.ts, so notify.ts can import this file without a cycle.
@@ -13,14 +13,14 @@
 // as reply-to (only when the guest's address is one plain address) and carry no bank value and no guest link (E-03).
 
 import type { EmailBrand } from "./magic-link";
-import type { BookingNotifier, LapseMailJob, MailOptions, MailOutcome, PaymentMailJob, RequestMailJob } from "../booking/notify";
+import type { BookingNotifier, LapseMailJob, MailOptions, MailOutcome, PaymentMailJob, RefundMailJob, RequestMailJob } from "../booking/notify";
 import { INQUIRY_ADDRESS } from "../contact-inquiry";
 import { isPlainEmail } from "../email-address";
 import { isLocale, type Locale } from "../locale-path";
 import { emailBrand, readSiteSettings, siteSettingsEnv } from "../site-settings-read";
 import { resendApiKey, sendWithResend, type OutgoingMail } from "./send";
 import { BOOKING_EMAIL_COPY, type BookingEmailCopy } from "../copy/booking-email";
-import { renderPaymentReceiptEmail, renderRequestLapsedEmail, renderRequestReceivedEmail } from "./booking-guest-mail";
+import { renderPaymentReceiptEmail, renderRefundReceiptEmail, renderRequestLapsedEmail, renderRequestReceivedEmail } from "./booking-guest-mail";
 import { renderPaymentOwnerEmail, renderRequestOwnerEmail, renderWithdrawnOwnerEmail } from "./booking-owner-mail";
 
 /** What every renderer answers (lib/email/booking-guest-mail.ts and booking-owner-mail.ts, 04-05 Task 1). */
@@ -33,7 +33,7 @@ export type GuestMailContext<C> = { copy: C; brand: EmailBrand | null };
 export type OwnerMailContext = { brand: EmailBrand | null };
 
 /**
- * The six renderers by the names Task 1 exports, and the guest copy table they read (BOOKING_MAIL below; fakes in the
+ * The seven renderers by the names Task 1 exports, and the guest copy table they read (BOOKING_MAIL below; fakes in the
  * node tests).
  */
 export type BookingMailRenderers<C> = {
@@ -44,6 +44,7 @@ export type BookingMailRenderers<C> = {
   renderRequestOwnerEmail(job: RequestMailJob, ctx: OwnerMailContext): RenderedMail;
   renderPaymentOwnerEmail(job: PaymentMailJob, ctx: OwnerMailContext): RenderedMail;
   renderWithdrawnOwnerEmail(job: RequestMailJob, ctx: OwnerMailContext): RenderedMail;
+  renderRefundReceiptEmail(job: RefundMailJob, ctx: GuestMailContext<C>): RenderedMail;
 };
 
 export type BookingNotifierDeps<C> = {
@@ -55,7 +56,7 @@ export type BookingNotifierDeps<C> = {
 };
 
 /** The keys mailKey writes (04-08) plus the dashboard's resend key `resend/<bookingId>/<requestId>` (04-09). */
-const MAIL_KEY = /^(request|request-owner|receipt|payment-owner|lapse|resend|withdrawn-owner)\/[A-Za-z0-9-]{1,80}(\/[A-Za-z0-9-]{1,80})?$/;
+const MAIL_KEY = /^(request|request-owner|receipt|payment-owner|lapse|resend|withdrawn-owner|refund-receipt)\/[A-Za-z0-9-]{1,80}(\/[A-Za-z0-9-]{1,80})?$/;
 const ERROR_NAME = /^[a-z0-9_]{1,60}$/;
 
 /** The renderers' refusals (Task 1: `email: bad reference`, `email: bad link`, `email: no transfer`) as error names. */
@@ -213,13 +214,20 @@ export function createBookingNotifier<C>(deps: BookingNotifierDeps<C>): BookingN
         () => ({ to: INQUIRY_ADDRESS, ...guestReplyTo(job.view) }),
         (brand) => mail.renderWithdrawnOwnerEmail(job, { brand }),
       ),
-    // 05-01 seam only: 05-03 replaces this line with its renderer (the wording is signed on the plan-gate pictures, P5-03).
-    refundReceipt: async () => ({ ok: false, error: "not_ready" }),
+    // P5-03: the refund email goes to the guest, with inquiries@ as reply-to, as the payment receipt does.
+    refundReceipt: (job: RefundMailJob, opts: MailOptions) =>
+      deliver(
+        job,
+        opts,
+        true,
+        () => ({ to: job.view.guest?.email, replyTo: INQUIRY_ADDRESS }),
+        (brand) => mail.renderRefundReceiptEmail(job, { copy: guestCopy(job.view.locale), brand }),
+      ),
   });
 }
 
 /**
- * The renderers this Worker sends with: the six signed templates (04-05 Task 1, owner signature 2026-10-26) and the
+ * The renderers this Worker sends with: the six signed templates (04-05 Task 1, owner signature 2026-10-26), the refund email (05-03) and the
  * guest copy table they read. Owner notices are English (E-11 = A), so the owner renderers get the brand only.
  */
 const BOOKING_MAIL: BookingMailRenderers<BookingEmailCopy> = {
@@ -230,6 +238,7 @@ const BOOKING_MAIL: BookingMailRenderers<BookingEmailCopy> = {
   renderRequestOwnerEmail,
   renderPaymentOwnerEmail,
   renderWithdrawnOwnerEmail,
+  renderRefundReceiptEmail,
 };
 
 /** Wiring with an explicit key and renderers: null when either is missing (exported for the node tests). */

@@ -2,7 +2,7 @@
 // (a granted copy slot, deliberately not registered in lib/copy/index.ts). EN is new copy drafted for the owner's
 // signature at the picture gate (Task 3); the R2 and R1 keys (withdraw*, contact*, partPaidLate) are the plan's EN
 // verbatim. AR (Gulf-friendly Modern Standard Arabic, right to left) and ES (neutral Latin American, "tú" as
-// lib/copy/guest.ts) are MODEL-TRANSLATED DRAFTS of the EN, flagged for the owner's check.
+// lib/copy/guest.ts) are MODEL-TRANSLATED DRAFTS of the EN, flagged for the owner's check (the refunds group of plan 05-03 included).
 // Exception: the strings marked CANVAS are the GuestTrip board's (k58, k65, k67, k89, k90, k92-k97), verbatim in all
 // three languages; `[RATE]` in k93 is filled with the booking's VAT rate (formatBp) on the page.
 //
@@ -102,6 +102,12 @@ export type BookingPageCopy = {
     /** E-12: any other method (no card wording in Phase 4, PAY-07). */
     other: string;
     dateNotRecorded: string;
+  };
+  /** Plan 05-03 (P5-03): a recorded bank refund shows its date and amount only, never a reference or a reason. */
+  refunds: {
+    heading: string;
+    /** "{date}" (DD/MM/YYYY). */
+    line: string;
   };
   transfer: {
     heading: string;
@@ -247,6 +253,10 @@ const EN: BookingPageCopy = {
     other: "Payment",
     dateNotRecorded: "Date not recorded",
   },
+  refunds: {
+    heading: "Refunds",
+    line: "Refunded on {date}",
+  },
   transfer: {
     heading: "How to pay by bank transfer",
     amount: "Amount to transfer",
@@ -386,6 +396,10 @@ const AR: BookingPageCopy = {
     other: "دفعة",
     dateNotRecorded: "التاريخ غير مسجَّل",
   },
+  refunds: {
+    heading: "المبالغ المستردة",
+    line: "استُرد في {date}",
+  },
   transfer: {
     heading: "طريقة الدفع بالتحويل البنكي",
     amount: "المبلغ المطلوب تحويله",
@@ -514,6 +528,10 @@ const ES: BookingPageCopy = {
     bankTransfer: "Transferencia bancaria",
     other: "Pago",
     dateNotRecorded: "Fecha no registrada",
+  },
+  refunds: {
+    heading: "Reembolsos",
+    line: "Reembolsado el {date}",
   },
   transfer: {
     heading: "Cómo pagar por transferencia bancaria",

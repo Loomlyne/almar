@@ -75,6 +75,13 @@ export const scenes: Scenes = {
   cancelled: ready("cancelled"),
   expired: ready("expired"),
   "not-sent": ready("not-sent"),
+  // Plan 05-03: a confirmed booking with one part refund (symbolic fixture amount): the Refunds block, the date and amount only.
+  refunded: (ctx) => {
+    const view = viewFixture("confirmed", ctx.locale);
+    view.money.refundedFils = 1111;
+    view.refunds = [{ refundedOn: "2026-11-04", amountFils: 1111 }];
+    return <Page ctx={ctx} o={{ state: { kind: "ready", view, nowMs: FIXTURE_NOW }, showBackLink: true }} />;
+  },
   "not-found": (ctx) => <Page ctx={ctx} o={{ state: { kind: "not_found", signIn: true } }} />,
   unavailable: (ctx) => <Page ctx={ctx} o={{ state: { kind: "unavailable" } }} />,
   "print-awaiting": ready("awaiting"),

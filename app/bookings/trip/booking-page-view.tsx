@@ -334,7 +334,7 @@ function Ready({
           {model.partReceived ? <p className={LINE}>{copy.flags.partReceived}</p> : null}
           {model.acceptedAsPaid ? <p className={LINE}>{copy.flags.acceptedAsPaid}</p> : null}
           {model.overpaid ? <p className={LINE}>{copy.flags.overpaid}</p> : null}
-          {model.moneyOnClosed ? <p className={LINE}>{fillNodes(copy.flags.moneyOnClosed, { amount: <Aed fils={view.money.paidFils} /> })}</p> : null}
+          {model.moneyOnClosed ? <p className={LINE}>{fillNodes(copy.flags.moneyOnClosed, { amount: <Aed fils={model.closedNetFils} /> })}</p> : null}
           {model.balanceLine ? (
             <p className={LINE}>
               {fillNodes(copy.money.balanceLine, {
@@ -366,6 +366,22 @@ function Ready({
                     <span>{p.method === "bank_transfer" ? copy.payments.bankTransfer : copy.payments.other}</span>
                     <strong>
                       <Aed fils={p.amountFils} />
+                    </strong>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {model.refunds.length > 0 ? (
+            <section data-testid="refunds" className="flex flex-col gap-2 border-t border-line pt-4">
+              <h2 className={H2}>{copy.refunds.heading}</h2>
+              <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                {model.refunds.map((r, i) => (
+                  <li key={i} className="flex flex-wrap justify-between gap-x-3 gap-y-1 border border-line bg-surface p-3 text-body text-ink">
+                    <span>{fillNodes(copy.refunds.line, { date: <Ltr>{formatIsoDate(r.refundedOn)}</Ltr> })}</span>
+                    <strong>
+                      <Aed fils={r.amountFils} />
                     </strong>
                   </li>
                 ))}

@@ -42,6 +42,10 @@ export type BookingPageModel = {
   acceptedAsPaid: boolean;
   overpaid: boolean;
   moneyOnClosed: boolean;
+  /** Paid minus refunded, never below 0: the amount the closed-booking sentence names (P5-03). */
+  closedNetFils: number;
+  /** The recorded bank refunds: date and amount only (P5-03). */
+  refunds: { refundedOn: string; amountFils: number }[];
   notSent: boolean;
   balanceLine: { amountFils: number; dueDate: string } | null;
   stayPath: string;
@@ -85,6 +89,7 @@ export function bookingPageModel(view: BookingView, nowMs: number, locale: Local
   const status = view.status;
   const paid = view.money.paidFils;
   const awaiting = status === "awaiting_payment";
+  const closedNetFils = Math.max(0, paid - view.money.refundedFils);
 
   const transfer: TransferBlock | null =
     view.transfer !== null && TRANSFER_STATUSES.has(status)
@@ -120,7 +125,9 @@ export function bookingPageModel(view: BookingView, nowMs: number, locale: Local
     nothingMoreDue: view.money.stillDueFils === 0 && SETTLED_STATUSES.has(status),
     acceptedAsPaid: view.flags.writtenOff,
     overpaid: view.flags.overpaid,
-    moneyOnClosed: (status === "cancelled" || status === "expired") && paid > 0,
+    moneyOnClosed: (status === "cancelled" || status === "expired") && closedNetFils > 0,
+    closedNetFils,
+    refunds: view.refunds.map((r) => ({ refundedOn: r.refundedOn, amountFils: r.amountFils })),
     notSent: status === "held",
     balanceLine,
     stayPath,
