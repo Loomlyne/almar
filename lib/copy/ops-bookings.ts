@@ -8,6 +8,8 @@
 // "Withdrawn by the guest" (revision 2).
 // Never a price, a rate, a fee, a deadline, a person or a legal sentence: amounts, dates, names and reasons are
 // `{token}`s filled with fillCopy (lib/copy/ops-kit.ts).
+// Plan 05-03 added the refund words (recordRefund, refunded, netReceived, refundMail, the refund history lines and refusals): AR and ES
+// of those are MODEL-TRANSLATED DRAFTS (dashboard Spanish is usted). The dialog and list words are in a separate lazy copy file.
 
 export type OpsBookingsLocale = "en" | "ar" | "es";
 
@@ -103,12 +105,15 @@ export type OpsBookingsCopy = {
     total: string;
     deposit: string;
     paid: string;
+    refunded: string;
+    netReceived: string;
     writtenOff: string;
     dueNow: string;
     stillDue: string;
     /** "What the guest sees" lines: {amount} is the amount node. */
     dueNowLine: string;
     stillDueLine: string;
+    refundedLine: string;
     payBy: string;
     balanceDueBy: string;
     madeOnSite: string;
@@ -134,12 +139,16 @@ export type OpsBookingsCopy = {
     none: string;
     receipt: MailWords;
     requestMail: MailWords;
+    refundRecorded: string;
+    refundVoided: string;
+    refundMail: MailWords;
     resendReceipt: string;
     resendRequest: string;
     resent: { sent: string; pending: string; failed: string };
   };
   actions: {
     recordPayment: string;
+    recordRefund: string;
     void: string;
     confirm: string;
     complete: string;
@@ -207,6 +216,8 @@ export type OpsBookingsCopy = {
     request_sent: string;
     payment_recorded: string;
     payment_voided: string;
+    refund_recorded: string;
+    refund_voided: string;
     note_added: string;
     needs_attention: string;
     attention_resolved: string;
@@ -225,6 +236,7 @@ export type OpsBookingsCopy = {
     payment_owner: string;
     request_lapsed: string;
     request_withdrawn_owner: string;
+    refund_receipt: string;
   };
   errors: {
     amount: string;
@@ -243,6 +255,12 @@ export type OpsBookingsCopy = {
     cancel_first: string;
     window_missing: string;
     nights_lost: string;
+    above_paid: string;
+    nothing_to_refund: string;
+    refund_first: string;
+    refund_not_voidable: string;
+    refund_amount: string;
+    refund_date: string;
     loadFailed: string;
     listFailed: string;
     saveFailed: string;
@@ -347,11 +365,14 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       total: "Total", // CANVAS
       deposit: "Deposit",
       paid: "Paid", // CANVAS
+      refunded: "Refunded",
+      netReceived: "Net received",
       writtenOff: "Written off",
       dueNow: "Due now",
       stillDue: "Still due",
       dueNowLine: "Due now: {amount}",
       stillDueLine: "Still due: {amount}",
+      refundedLine: "Refunded on {date}: {amount}",
       payBy: "Pay by {date}",
       balanceDueBy: "Balance due by", // CANVAS
       madeOnSite: "Made on the website",
@@ -388,6 +409,15 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
         unknown: "Request email may not have arrived: the email did not answer in time",
         none: "Request email not sent",
       },
+      refundRecorded: "Refund recorded.",
+      refundVoided: "Refund record voided.",
+      refundMail: {
+        sent: "Refund email sent",
+        pending: "Refund email not sent yet: the email sender is not set up",
+        failed: "Refund email not sent: the email failed",
+        unknown: "Refund email may not have arrived: the email did not answer in time",
+        none: "Refund email not sent",
+      },
       resendReceipt: "Resend receipt",
       resendRequest: "Resend request email",
       resent: {
@@ -398,6 +428,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
     },
     actions: {
       recordPayment: "Record payment", // CANVAS
+      recordRefund: "Record refund",
       void: "Void",
       confirm: "Confirm",
       complete: "Mark completed",
@@ -490,6 +521,8 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       request_sent: "Request sent by the guest",
       payment_recorded: "Payment recorded: {amount}",
       payment_voided: "Payment voided: {amount}",
+      refund_recorded: "Refund recorded: {amount}",
+      refund_voided: "Refund record voided: {amount}",
       note_added: "Internal note added", // CANVAS
       needs_attention: "Flagged: needs attention",
       attention_resolved: "Needs attention resolved",
@@ -508,6 +541,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       payment_owner: "Owner payment notice",
       request_lapsed: "Lapse email",
       request_withdrawn_owner: "Owner withdrawal notice",
+      refund_receipt: "Refund email",
     },
     errors: {
       amount: "Type the amount received in AED, like 1050 or 1,050.50.",
@@ -526,6 +560,12 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       cancel_first: "Cancel the booking first: a confirmed booking cannot drop below its deposit.",
       window_missing: "Set the transfer window in Settings first.",
       nights_lost: "The nights could not be kept. Nothing was recorded.",
+      above_paid: "This is more than what is left to refund. The booking was read again: check the amount.",
+      nothing_to_refund: "Nothing is left to refund on this booking.",
+      refund_first: "Void the refund first: payments cannot drop below what was refunded.",
+      refund_not_voidable: "This refund record cannot be voided.",
+      refund_amount: "Type the amount refunded in AED, like 1050 or 1,050.50.",
+      refund_date: "Use a date from the day the booking was made to today.",
       loadFailed: "The booking could not be loaded. Reload the page.",
       listFailed: "The bookings could not be loaded. Reload the page.",
       saveFailed: "This was not saved. Try again.",
@@ -627,11 +667,14 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       total: "الإجمالي",
       deposit: "الدفعة المقدّمة",
       paid: "المدفوع",
+      refunded: "المُسترد",
+      netReceived: "الصافي المستلم",
       writtenOff: "المشطوب",
       dueNow: "المستحق الآن",
       stillDue: "المتبقي",
       dueNowLine: "المستحق الآن: {amount}",
       stillDueLine: "المتبقي: {amount}",
+      refundedLine: "استُرد في {date}: {amount}",
       payBy: "الدفع قبل {date}",
       balanceDueBy: "الرصيد مستحق قبل",
       madeOnSite: "أُجري على الموقع",
@@ -668,6 +711,15 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
         unknown: "ربما لم يصل بريد الطلب: لم يُجب البريد في الوقت",
         none: "لم يُرسل بريد الطلب",
       },
+      refundRecorded: "سُجّل الاسترداد.",
+      refundVoided: "أُلغي سجل الاسترداد.",
+      refundMail: {
+        sent: "أُرسل بريد الاسترداد",
+        pending: "لم يُرسل بريد الاسترداد بعد: مُرسِل البريد غير مُعدّ",
+        failed: "لم يُرسل بريد الاسترداد: فشل البريد",
+        unknown: "ربما لم يصل بريد الاسترداد: لم يُجب البريد في الوقت",
+        none: "لم يُرسل بريد الاسترداد",
+      },
       resendReceipt: "إعادة إرسال الإيصال",
       resendRequest: "إعادة إرسال بريد الطلب",
       resent: {
@@ -678,6 +730,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
     },
     actions: {
       recordPayment: "تسجيل دفعة",
+      recordRefund: "تسجيل استرداد",
       void: "إلغاء الدفعة",
       confirm: "تأكيد",
       complete: "وضع علامة مكتمل",
@@ -769,6 +822,8 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       request_sent: "أرسل الضيف الطلب",
       payment_recorded: "سُجّلت دفعة: {amount}",
       payment_voided: "أُلغيت دفعة: {amount}",
+      refund_recorded: "سُجّل استرداد: {amount}",
+      refund_voided: "أُلغي سجل استرداد: {amount}",
       note_added: "أُضيفت ملاحظة داخلية",
       needs_attention: "عُلّم: يحتاج إلى متابعة",
       attention_resolved: "عولج تنبيه المتابعة",
@@ -787,6 +842,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       payment_owner: "إشعار الدفع للمالك",
       request_lapsed: "بريد انتهاء الطلب",
       request_withdrawn_owner: "إشعار السحب للمالك",
+      refund_receipt: "بريد الاسترداد",
     },
     errors: {
       amount: "اكتب المبلغ المستلم بالدرهم، مثل 1050 أو 1,050.50.",
@@ -805,6 +861,12 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       cancel_first: "ألغِ الحجز أولًا: لا يمكن أن ينزل حجز مؤكد عن دفعته المقدّمة.",
       window_missing: "حدّد مهلة التحويل في الإعدادات أولًا.",
       nights_lost: "تعذّر الإبقاء على الليالي. لم يُسجَّل شيء.",
+      above_paid: "هذا أكثر مما تبقى للاسترداد. أُعيدت قراءة الحجز: تحقق من المبلغ.",
+      nothing_to_refund: "لم يبقَ ما يُسترد في هذا الحجز.",
+      refund_first: "ألغِ الاسترداد أولًا: لا يمكن أن تنزل الدفعات عن المبلغ المُسترد.",
+      refund_not_voidable: "لا يمكن إلغاء سجل الاسترداد هذا.",
+      refund_amount: "اكتب المبلغ المسترد بالدرهم، مثل 1050 أو 1,050.50.",
+      refund_date: "استخدم تاريخًا من يوم إنشاء الحجز حتى اليوم.",
       loadFailed: "تعذّر تحميل الحجز. أعد تحميل الصفحة.",
       listFailed: "تعذّر تحميل الحجوزات. أعد تحميل الصفحة.",
       saveFailed: "لم يُحفظ هذا. حاول مرة أخرى.",
@@ -908,11 +970,14 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       total: "Total",
       deposit: "Depósito",
       paid: "Pagado",
+      refunded: "Reembolsado",
+      netReceived: "Neto recibido",
       writtenOff: "Condonado",
       dueNow: "A pagar ahora",
       stillDue: "Pendiente",
       dueNowLine: "A pagar ahora: {amount}",
       stillDueLine: "Pendiente: {amount}",
+      refundedLine: "Reembolsado el {date}: {amount}",
       payBy: "Pagar antes del {date}",
       balanceDueBy: "Saldo pendiente antes del",
       madeOnSite: "Hecha en el sitio web",
@@ -949,6 +1014,15 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
         unknown: "Puede que el correo de la solicitud no haya llegado: el correo no respondió a tiempo",
         none: "Correo de la solicitud no enviado",
       },
+      refundRecorded: "Reembolso registrado.",
+      refundVoided: "Registro de reembolso anulado.",
+      refundMail: {
+        sent: "Correo de reembolso enviado",
+        pending: "Correo de reembolso aún no enviado: el envío de correo no está configurado",
+        failed: "Correo de reembolso no enviado: el correo falló",
+        unknown: "Puede que el correo de reembolso no haya llegado: el correo no respondió a tiempo",
+        none: "Correo de reembolso no enviado",
+      },
       resendReceipt: "Reenviar recibo",
       resendRequest: "Reenviar correo de la solicitud",
       resent: {
@@ -959,6 +1033,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
     },
     actions: {
       recordPayment: "Registrar pago",
+      recordRefund: "Registrar reembolso",
       void: "Anular",
       confirm: "Confirmar",
       complete: "Marcar como completada",
@@ -1051,6 +1126,8 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       request_sent: "Solicitud enviada por el huésped",
       payment_recorded: "Pago registrado: {amount}",
       payment_voided: "Pago anulado: {amount}",
+      refund_recorded: "Reembolso registrado: {amount}",
+      refund_voided: "Registro de reembolso anulado: {amount}",
       note_added: "Nota interna añadida",
       needs_attention: "Marcada: requiere atención",
       attention_resolved: "Aviso resuelto",
@@ -1069,6 +1146,7 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       payment_owner: "Aviso de pago al propietario",
       request_lapsed: "Correo de vencimiento",
       request_withdrawn_owner: "Aviso de retirada al propietario",
+      refund_receipt: "Correo de reembolso",
     },
     errors: {
       amount: "Escriba el importe recibido en AED, por ejemplo 1050 o 1,050.50.",
@@ -1087,6 +1165,12 @@ export const OPS_BOOKINGS_COPY: Record<OpsBookingsLocale, OpsBookingsCopy> = {
       cancel_first: "Cancele primero la reserva: una reserva confirmada no puede quedar por debajo de su depósito.",
       window_missing: "Defina primero el plazo de transferencia en Ajustes.",
       nights_lost: "No se pudieron conservar las noches. No se registró nada.",
+      above_paid: "Esto supera lo que queda por reembolsar. La reserva se volvió a leer: revise el importe.",
+      nothing_to_refund: "En esta reserva no queda nada por reembolsar.",
+      refund_first: "Anule primero el reembolso: los pagos no pueden quedar por debajo de lo reembolsado.",
+      refund_not_voidable: "Este registro de reembolso no se puede anular.",
+      refund_amount: "Escriba el importe reembolsado en AED, por ejemplo 1050 o 1,050.50.",
+      refund_date: "Use una fecha desde el día en que se hizo la reserva hasta hoy.",
       loadFailed: "No se pudo cargar la reserva. Vuelva a cargar la página.",
       listFailed: "No se pudieron cargar las reservas. Vuelva a cargar la página.",
       saveFailed: "No se guardó. Inténtelo de nuevo.",

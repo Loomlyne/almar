@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Fragment, type ReactNode } from "react";
 import { ChevronIcon } from "../../../../../components/icons/icons";
 import { Button } from "../../../../../components/ui/button";
@@ -11,10 +12,12 @@ import { formatAed } from "../../../../../lib/money/format";
 import {
   actorKind,
   canRecordPayment,
+  canRefund,
   canResendReceipt,
   canResendRequest,
   canVoid,
   receiptMail,
+  refundableFils,
   requestMail,
   statusActions,
   uaeDate,
@@ -22,6 +25,7 @@ import {
   type OwnerDetail,
   type OwnerEvent,
   type OwnerPayment,
+  type OwnerRefund,
   type StatusAction,
 } from "../../../../../lib/ops/booking-rules";
 import { BookingStatusChip } from "../bookings-list";
@@ -31,6 +35,10 @@ import { aedIn, timeIn } from "../bookings-text";
 // Overview, Payments, History, with Resend request email beside the other actions when the server would send it.
 // Drawn from props only: no fetch, no router, no clock. The screen that owns the data is 04-09 Task 7.
 // Not drawn on purpose: the canvas controls the plan lists as not built (see 04-09-PLAN Task 2 read_first).
+// Plan 05-03: Record refund (P5-07: any status while paid minus refunded is above 0), Refunded and Net received beside Paid,
+// and the refund list as a lazy chunk (next/dynamic, ssr: false: the detail is drawn only after its client fetch, so nothing on
+// screen changes, and the chunk and its words stay out of the server bundle).
+const RefundsBlock = dynamic(() => import("./booking-refunds").then((m) => m.RefundsBlock), { ssr: false });
 
 const SECTION = "flex min-w-0 flex-col gap-2 border-t border-line pt-4";
 const SECTION_TITLE = "m-0 font-display text-title font-normal text-teal";
@@ -130,6 +138,12 @@ function eventLine(copy: OpsBookingsCopy, event: OwnerEvent): string {
     case "payment_voided":
       action = amount ? fillCopy(h.payment_voided, { amount }) : h.fallback;
       break;
+    case "refund_recorded":
+      action = amount ? fillCopy(h.refund_recorded, { amount }) : h.fallback;
+      break;
+    case "refund_voided":
+      action = amount ? fillCopy(h.refund_voided, { amount }) : h.fallback;
+      break;
     case "note_added":
       action = h.note_added;
       break;
@@ -170,8 +184,11 @@ export function BookingDetail({
   onNoteDraft,
   onAction,
   onRecord,
+  onRecordRefund,
   onVoid,
+  onVoidRefund,
   onResendReceipt,
+  onResendRefund,
   onResendRequest,
   onAddNote,
   onResolve,
@@ -189,8 +206,11 @@ export function BookingDetail({
   onNoteDraft: (text: string) => void;
   onAction: (action: StatusAction) => void;
   onRecord: () => void;
+  onRecordRefund: () => void;
   onVoid: (payment: OwnerPayment) => void;
+  onVoidRefund: (refund: OwnerRefund) => void;
   onResendReceipt: (payment: OwnerPayment) => void;
+  onResendRefund: (refund: OwnerRefund) => void;
   onResendRequest: () => void;
   onAddNote: () => void;
   onResolve: () => void;
@@ -210,6 +230,13 @@ export function BookingDetail({
     actionButtons.push(
       <Button key="record" disabled={busy} onClick={onRecord}>
         {A.recordPayment}
+      </Button>,
+    );
+  }
+  if (canRefund(m)) {
+    actionButtons.push(
+      <Button key="refund" variant="secondary" disabled={busy} onClick={onRecordRefund}>
+        {A.recordRefund}
       </Button>,
     );
   }
@@ -237,6 +264,10 @@ export function BookingDetail({
     [D.deposit, <Amount key="d" fils={m.deposit_fils} />],
     [D.paid, <Amount key="p" fils={m.paid_fils} />],
   ];
+  // P5-06: a refund moves neither Paid nor Still due; Refunded and Net received show beside them while any refund stands.
+  if (m.refunded_fils > 0) {
+    moneyRows.push([D.refunded, <Amount key="rf" fils={m.refunded_fils} />], [D.netReceived, <Amount key="nr" fils={refundableFils(m.paid_fils, m.refunded_fils)} />]);
+  }
   if (m.written_off_fils > 0) moneyRows.push([D.writtenOff, <Amount key="w" fils={m.written_off_fils} />]);
   moneyRows.push([D.dueNow, <Amount key="due" fils={flags.due_now_fils} />], [D.stillDue, <Amount key="still" fils={flags.still_due_fils} />]);
   if (b.status === "deposit_paid" && m.balance_due_date) moneyRows.push([D.balanceDueBy, <Day key="bd" day={m.balance_due_date} />]);
@@ -409,6 +440,13 @@ export function BookingDetail({
                   ) : null}
                 </>
               ) : null}
+              {b.refunds
+                .filter((refund) => refund.status === "succeeded")
+                .map((refund) => (
+                  <li key={`refund-${refund.id}`}>
+                    {fillNodes(D.refundedLine, { date: <Day day={refund.refunded_on} />, amount: <Amount fils={refund.amount_fils} /> })}
+                  </li>
+                ))}
             </ul>
           </Block>
         </div>
@@ -512,6 +550,9 @@ export function BookingDetail({
             </ul>
           </>
         )}
+        {b.refunds.length > 0 ? (
+          <RefundsBlock locale={locale} copy={copy} booking={b} busy={busy} onVoid={onVoidRefund} onResend={onResendRefund} />
+        ) : null}
       </section>
 
       <section className={SECTION} aria-labelledby="booking-history">

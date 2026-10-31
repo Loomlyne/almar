@@ -17,6 +17,9 @@ const CONFLICTS = [
   "cancel_first",
   "window_missing",
   "nights_lost",
+  "above_paid",
+  "nothing_to_refund",
+  "refund_first",
 ] as const;
 
 const FIELDS: Record<string, "amount" | "reference" | "reason" | "note" | "attentionNote"> = {
