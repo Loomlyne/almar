@@ -739,7 +739,7 @@ begin
     'lines', v_lines,
     'payments', v_pays,
     'refunds', v_refunds,
-    'notes',public.ops_list_booking_notes(v_b.id) -> 'items',
+    'notes', public.ops_list_booking_notes(v_b.id) -> 'items',
     'events', v_events,
     'lapse_email', jsonb_build_object(
       'sent_at', to_char(v_b.lapse_email_sent_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
