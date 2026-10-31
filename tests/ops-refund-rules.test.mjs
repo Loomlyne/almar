@@ -201,6 +201,11 @@ test("voidPreview: overpaid and the money flags clear on paid after minus refund
     voided({ status: "awaiting_payment", paidFils: 20000, attentionReason: "deadline_passed_part_paid", payment: { amountFils: 20000, writeOffFils: 0 } }),
   );
   assert.equal(part.attentionCleared, true);
+  // Paid above 0 with net 0: the deadline flag stays, the money flags would have cleared (symbolic amounts).
+  const netZero = r.voidPreview(
+    voided({ status: "awaiting_payment", paidFils: 70000, attentionReason: "deadline_passed_part_paid", payment: { amountFils: 50000, writeOffFils: 0 }, refundedFils: 20000 }),
+  );
+  assert.equal(netZero.attentionCleared, false);
 });
 
 // refundMail --------------------------------------------------------------------------------------------------------

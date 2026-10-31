@@ -92,14 +92,9 @@ New functions: ops_record_refund, ops_void_refund, ops_home_numbers, ops_list_cu
 4. **Commit branch.** The executor prompt's worktree guard expects a `worktree-agent-*` branch; this worktree is on `claude/phase-05-ops-os-d47554` as the controller instructed (not a protected ref). Committed there.
 5. **`SUMMARY.md` placeholders:** none. `STATE`, `ROADMAP`, `CONTROL-BOARD`, `REQUIREMENTS` untouched per the controller.
 
-## Fixtures not granted, for the controller
+## Fixtures beyond the plan's table
 
-Two test files spell out a whole `BookingView` and now lack `refundedFils` in money and `refunds` at the top level; any of their paths that pass the guest page guard (`isBookingView`) will refuse the view:
-
-- `tests/trip-request-state.test.mjs` (view literal around lines 40-75: add `refundedFils: 0` after `paidFils`, and `refunds: []` after `payments: []`)
-- `tests/booking-request-api.test.mjs` (view literal around lines 85-100, same two additions)
-
-`tests/ops-bookings-api.test.mjs` line 100 has a view literal too, but it feeds a fake loader and does not pass the guard. `tests/booking-page.test.mjs` and the others use the granted fixture helpers.
+`tests/trip-request-state.test.mjs` and `tests/booking-request-api.test.mjs` spell out a whole `BookingView`. The reviewer traced imports: neither reaches `isBookingView` (only `viewAnswer` does, from `booking-trip-screen.tsx`), so the guard was never at risk. They were updated anyway under the controller's grant, for type truth; `tests/ops-bookings-api.test.mjs` line 100 feeds a fake loader and was left alone.
 
 ## Not verified
 
@@ -114,7 +109,12 @@ Two test files spell out a whole `BookingView` and now lack `refundedFils` in mo
 
 ## Reviewer
 
-Reviewer: pending, run by the orchestrator.
+Opus reviewer, read-only, on `2f1a6a80..2ca161e7`; `jev-review` tier deep (money 0.99, database 0.99): opus, then Fable only on the owner's yes (not asked; the controller decides at whole-PR review). Verdict: no defect in the migration's logic or the TS rules, on reading only: Postgres has not parsed the SQL. Four findings, all fixed:
+
+1. pgTAP seed `balance_due_days = null` made every deposit `mk` answer `settings_missing` and aborted the file at assertion 21: now 30 in `ops-os.test.sql`, and the same older defect in `booking-payments.test.sql` line 252.
+2. `ops_get_booking` refunds tie-break: now `x.created_at desc, x.id desc`.
+3. No test separated the deadline-flag split from the literal reading (deviation 1): one case added to each test file, `plan(146)`.
+4. This summary's fixture note was wrong: corrected above.
 
 ## Threat Flags
 

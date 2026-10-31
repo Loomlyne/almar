@@ -8,7 +8,7 @@
 -- Run: node tests/helpers/local-supabase.mjs test supabase/tests/ops-os.test.sql
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(145);
+select plan(146);
 
 -- Helpers (temporary, gone with the transaction; the first group is booking-payments.test.sql's) ------------------------
 create function pg_temp.d(n int) returns date language sql as $$ select ((now() at time zone 'Asia/Dubai')::date + n) $$;
@@ -237,7 +237,7 @@ insert into public.stays (id, slug, destination_id, max_guests, min_nights, infa
 insert into public.stay_translations (stay_id, locale, status, title) values
   ('00000000-0000-4000-8000-0000000018e1', 'en', 'published', 'Stay one'),
   ('00000000-0000-4000-8000-0000000018e2', 'en', 'published', 'Stay two');
-update public.site_settings set vat_percent = 5.00, deposit_percent = 30.00, balance_due_days = null where id = 1;
+update public.site_settings set vat_percent = 5.00, deposit_percent = 30.00, balance_due_days = 30 where id = 1;
 -- Bank details complete, the owner's window not set: TEST bookings get 35 minutes (P-06).
 update public.booking_bank_details
    set account_name = 'Almar Test Account', bank_name = 'Test Bank', iban = 'GB82WEST12345698765432', swift = 'TESTAEAA',
@@ -443,6 +443,15 @@ update public.bookings set needs_attention = true, attention_reason = 'deadline_
 select pg_temp.rfd('rf8', 10000);
 select is(pg_temp.r('f:rf8', 'attention_cleared') || '/' || (pg_temp.b('rf8')).attention_reason, 'false/deadline_passed_part_paid',
           'flags: deadline_passed_part_paid is kept by a refund');
+-- Paid above 0 with net 0: the deadline flag still needs nothing paid, the money flags would have cleared (symbolic amounts).
+select pg_temp.mkq('rf8b');
+select pg_temp.rec('rf8b', 50000);
+select pg_temp.rec('rf8b', 20000);
+select pg_temp.rfd('rf8b', 20000);
+update public.bookings set needs_attention = true, attention_reason = 'deadline_passed_part_paid' where id = pg_temp.bid('rf8b');
+select public.ops_void_payment((select id from public.booking_payments where booking_id = pg_temp.bid('rf8b') and amount_fils = 50000), 'Typed in error', pg_temp.owner_id());
+select is((pg_temp.b('rf8b')).attention_reason, 'deadline_passed_part_paid',
+          'void payment: paid above 0 with net 0 keeps deadline_passed_part_paid');
 
 -- E. ops_void_refund --------------------------------------------------------------------------------------------------
 select pg_temp.mkq('rf9');

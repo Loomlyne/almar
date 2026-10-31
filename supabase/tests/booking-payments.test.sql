@@ -249,7 +249,7 @@ insert into public.catalog_items (id, slug, kind, unit, price_aed, is_uae, is_ho
   ('00000000-0000-4000-8000-0000000017c1', 'pay-boat', 'experience', 'person', 250.00, false, false, true, 1);
 insert into public.catalog_translations (item_id, locale, status, name) values
   ('00000000-0000-4000-8000-0000000017c1', 'en', 'published', 'Boat trip');
-update public.site_settings set vat_percent = 5.00, deposit_percent = 30.00, balance_due_days = null where id = 1;
+update public.site_settings set vat_percent = 5.00, deposit_percent = 30.00, balance_due_days = 30 where id = 1;
 -- Bank details complete (P-08), the owner's window not set: TEST bookings get 35 minutes (P-06).
 update public.booking_bank_details
    set account_name = 'Almar Test Account', bank_name = 'Test Bank', iban = 'GB82WEST12345698765432', swift = 'TESTAEAA',

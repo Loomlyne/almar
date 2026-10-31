@@ -659,7 +659,7 @@ begin
       'void_reason', x.void_reason,
       'voided_at', to_char(x.voided_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
       'voided_by', x.voided_by,
-      'voided_by_email', (select pr.email from public.profiles pr where pr.id = x.voided_by)) order by x.created_at desc, x.id), '[]'::jsonb)
+      'voided_by_email', (select pr.email from public.profiles pr where pr.id = x.voided_by)) order by x.created_at desc, x.id desc), '[]'::jsonb)
     into v_refunds
     from public.booking_refunds x
     where x.booking_id = v_b.id and x.method = 'bank_transfer';
