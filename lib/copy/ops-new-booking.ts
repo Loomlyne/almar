@@ -116,6 +116,7 @@ export type OpsNewBookingCopy = {
     holdTime: string;
     holdHint: string;
     holdFloor: string;
+    holdAfterArrival: string;
     holdError: string;
   };
   review: {
@@ -266,6 +267,7 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       holdTime: "Time, UAE",
       holdHint: "The nights stay held until this time. After it the booking turns Expired and the nights free up.",
       holdFloor: "Choose a time at least 35 minutes from now.",
+      holdAfterArrival: "This hold ends after the arrival date. You can still continue.",
       holdError: "Choose the date and the time.",
     },
     review: {
@@ -283,7 +285,7 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       fullLine: "Full payment, bank details by email",
       emailLine: "The guest gets an email with the bank details and the booking link.",
       test: "Test booking",
-      testHint: "Links go to the preview site and no real money is expected.",
+      testHint: "Links go to the preview site and no real money is expected. These nights are really held.",
       gateReal:
         "Real bookings stay closed until the booking terms are published and Settings has the bank details, VAT, deposit and transfer window. You can make a Test booking.",
       gateTest: "Bookings stay closed until Settings has the bank details, VAT and deposit.",
@@ -405,6 +407,7 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       holdTime: "الوقت، بتوقيت الإمارات",
       holdHint: "تبقى الليالي محجوزة حتى هذا الوقت. بعده يصبح الحجز منتهيًا وتُتاح الليالي من جديد.",
       holdFloor: "اختر وقتًا بعد 35 دقيقة على الأقل من الآن.",
+      holdAfterArrival: "ينتهي هذا الحجز بعد تاريخ الوصول. يمكنك المتابعة مع ذلك.",
       holdError: "اختر التاريخ والوقت.",
     },
     review: {
@@ -422,7 +425,7 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       fullLine: "دفع كامل، بيانات البنك بالبريد",
       emailLine: "يصل الضيف بريد فيه بيانات البنك ورابط الحجز.",
       test: "حجز تجريبي",
-      testHint: "تذهب الروابط إلى موقع المعاينة ولا يُنتظر أي مال حقيقي.",
+      testHint: "تذهب الروابط إلى موقع المعاينة ولا يُنتظر أي مال حقيقي. هذه الليالي محجوزة فعلًا.",
       gateReal:
         "تبقى الحجوزات الحقيقية مغلقة حتى تُنشر شروط الحجز وتحتوي الإعدادات على بيانات البنك وضريبة القيمة المضافة والدفعة المقدّمة ومهلة التحويل. يمكنك إنشاء حجز تجريبي.",
       gateTest: "تبقى الحجوزات مغلقة حتى تحتوي الإعدادات على بيانات البنك وضريبة القيمة المضافة والدفعة المقدّمة.",
@@ -544,6 +547,7 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       holdTime: "Hora, Emiratos",
       holdHint: "Las noches quedan reservadas hasta esta hora. Después la reserva pasa a Vencida y las noches se liberan.",
       holdFloor: "Elija una hora al menos 35 minutos a partir de ahora.",
+      holdAfterArrival: "Esta reserva termina después de la fecha de llegada. Aun así puede continuar.",
       holdError: "Elija la fecha y la hora.",
     },
     review: {
@@ -561,7 +565,7 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       fullLine: "Pago completo, datos bancarios por correo",
       emailLine: "El huésped recibe un correo con los datos bancarios y el enlace de la reserva.",
       test: "Reserva de prueba",
-      testHint: "Los enlaces van al sitio de vista previa y no se espera dinero real.",
+      testHint: "Los enlaces van al sitio de vista previa y no se espera dinero real. Estas noches quedan realmente reservadas.",
       gateReal:
         "Las reservas reales siguen cerradas hasta que se publiquen las condiciones de reserva y Ajustes tenga los datos bancarios, el IVA, el depósito y el plazo de transferencia. Puede hacer una reserva de prueba.",
       gateTest: "Las reservas siguen cerradas hasta que Ajustes tenga los datos bancarios, el IVA y el depósito.",

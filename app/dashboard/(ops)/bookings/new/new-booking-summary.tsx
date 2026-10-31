@@ -19,9 +19,9 @@ function Amount({ fils }: { fils: number }) {
   );
 }
 
-function Row({ label, children, strong }: { label: string; children: ReactNode; strong?: boolean }) {
+function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className={strong ? "flex items-baseline justify-between gap-3 py-2 font-bold text-ink" : "flex items-baseline justify-between gap-3 py-2 text-ink"}>
+    <div className="flex items-baseline justify-between gap-3 py-2 text-ink">
       <dt className="text-label">{label}</dt>
       <dd className="m-0 text-body">{children}</dd>
     </div>
@@ -74,7 +74,7 @@ export function BookingSummary({
           <Row label={fillCopy(s.vat, { rate: rateText(breakdown.vatBp) })}>
             <Amount fils={breakdown.vatFils} />
           </Row>
-          <Row label={s.total} strong>
+          <Row label={s.total}>
             <Amount fils={breakdown.grandFils} />
           </Row>
           <Row label={s.dueNow}>

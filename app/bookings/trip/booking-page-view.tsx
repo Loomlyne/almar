@@ -331,7 +331,7 @@ function Ready({
               ) : null}
             </div>
           ) : null}
-          {model.partReceived ? <p className={LINE}>{copy.flags.partReceived}</p> : null}
+          {model.partReceived && view.money.paidFils - view.money.refundedFils > 0 ? <p className={LINE}>{copy.flags.partReceived}</p> : null}
           {model.acceptedAsPaid ? <p className={LINE}>{copy.flags.acceptedAsPaid}</p> : null}
           {model.overpaid ? <p className={LINE}>{copy.flags.overpaid}</p> : null}
           {model.moneyOnClosed ? <p className={LINE}>{fillNodes(copy.flags.moneyOnClosed, { amount: <Aed fils={model.closedNetFils} /> })}</p> : null}

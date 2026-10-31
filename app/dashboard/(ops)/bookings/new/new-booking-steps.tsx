@@ -443,6 +443,7 @@ export function PaymentStep({
   holdTime,
   onHoldTime,
   holdProblem,
+  holdAfterArrival,
   lines,
   onBack,
   onNext,
@@ -465,6 +466,7 @@ export function PaymentStep({
   holdTime: string;
   onHoldTime: (next: string) => void;
   holdProblem: string | null;
+  holdAfterArrival: boolean;
   lines: string[];
   onBack: () => void;
   onNext: () => void;
@@ -545,6 +547,7 @@ export function PaymentStep({
       </div>
       <p className="m-0 text-label text-muted">{p.holdHint}</p>
       {holdProblem ? <Problem>{holdProblem}</Problem> : null}
+      {holdAfterArrival ? <p className="m-0 bg-teal-tint p-3 text-label text-teal">{p.holdAfterArrival}</p> : null}
       <Nav copy={copy} onBack={onBack} onNext={onNext} />
     </section>
   );

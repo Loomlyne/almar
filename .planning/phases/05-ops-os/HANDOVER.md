@@ -42,8 +42,8 @@
 
 ## For the owner to decide
 
-- **Hold with no ceiling, and a TEST hold blocks real nights** (05-02 review, finding 11). A hold year typed as 2062, or a hold after arrival, is accepted; `taken` and `place_hold` do not look at `is_test`. O-03 sets no ceiling. Proposal: warn when the hold is after arrival, and add "These nights are really held" to the Test booking hint.
-- **New words beyond the pictures**, EN/AR/ES, listed in `05-02-SUMMARY.md` (`noAnswer`, `priceChanged`, `nightsUnnamed` and field-error sentences) and `05-04-SUMMARY.md` (`rangeTooLong`).
+- **Decided (owner, through the controller, 2026-10-31):** hold limit "A. Warn": a tint block when Hold until ends after the arrival date, allowed, no server refusal; "These nights are really held." added to the Test booking hint. Net 0 "D. Hide the line": the guest page hides the part-received line when paid minus refunded is 0, client side only; status, nights, Home's Outstanding and the transfer block stay. A hold with no ceiling is therefore kept, and a TEST hold still blocks real nights.
+- **New words beyond the pictures**, EN/AR/ES, listed in `05-02-SUMMARY.md` (`holdAfterArrival`, `noAnswer`, `priceChanged`, `nightsUnnamed` and field-error sentences) and `05-04-SUMMARY.md` (`rangeTooLong`).
 
 ## Known limits kept
 
@@ -97,6 +97,11 @@ On `https://dashboard.almarprivatejourney.com`, after the migration and deploy, 
 21. Try a refund above what is left. Expected: refused, nothing recorded.
 22. Void the refund with a reason. Expected: the row stays struck through with your reason; the guest page stops showing it; no email goes.
 23. Record a refund again, then try to void the payment under it. Expected: refused, "void the refund first" in words.
+
+**The owner's two decisions**
+
+24. New booking with arrival on any date: on Payment set Hold until to the arrival date. Expected: no block. Set it to the day after arrival. Expected: a pale teal block, "This hold ends after the arrival date. You can still continue."; Next still works and the booking creates. On Review, the Test booking hint ends "These nights are really held." Repeat in AR and ES.
+25. New TEST booking, Deposit. Record a bank payment below the deposit, open the guest link. Expected: "Part of the amount has been received. The rest is shown below." Record a refund of the whole amount, reload the guest link. Expected: that line is gone; the Refunds line, the status and the bank-transfer block stay. Home's Outstanding has not changed for a real booking in the same state.
 
 Your "done", "correct" or "working" is a pass.
 

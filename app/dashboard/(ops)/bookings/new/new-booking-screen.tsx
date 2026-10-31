@@ -280,6 +280,8 @@ export function NewBookingScreen() {
   const reasonLen = chars(agreedReason.trim());
   const reasonProb = showAgreed && (reasonLen < 3 || reasonLen > 300);
   const holdValue = holdIso(holdDate, holdTime);
+  // Both are UAE days as YYYY-MM-DD. A warning only: the owner may hold past the arrival (owner, 2026-10-31).
+  const holdAfterArrival = holdValue !== null && from !== null && holdDate > from;
   const holdProblem = holdValue === null ? copy.payment.holdError : !holdFloorOk(holdValue, Date.now()) ? copy.payment.holdFloor : null;
   const pickupProb = needsPickup && (pickup.trim() === "" || chars(pickup.trim()) > 300);
   const staySet = staySlug !== null && from !== null && to !== null;
@@ -675,6 +677,7 @@ export function NewBookingScreen() {
               holdTime={holdTime}
               onHoldTime={setHoldTime}
               holdProblem={shown[4] === true ? holdProblem : null}
+              holdAfterArrival={holdAfterArrival}
               lines={paymentLines}
               onBack={back}
               onNext={next}
