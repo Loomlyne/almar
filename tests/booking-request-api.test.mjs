@@ -89,7 +89,7 @@ const viewMapped = () => ({
   plan: "deposit",
   money: {
     nightsFils: 300000, addonsFils: 30000, subtotalFils: 330000, vatBp: 500, vatFils: 16500, grandFils: 346500,
-    depositFils: 103950, balanceFils: 242550, paidFils: 0, dueNowFils: 103950, stillDueFils: 346500,
+    depositFils: 103950, balanceFils: 242550, paidFils: 0, refundedFils: 0, dueNowFils: 103950, stillDueFils: 346500,
   },
   holdExpiresAt: null,
   deadline: DEADLINE,
@@ -97,6 +97,7 @@ const viewMapped = () => ({
   flags: { partReceived: false, overpaid: false, writtenOff: false },
   withdrawable: true,
   payments: [],
+  refunds: [],
   transfer: {
     accountName: "Almar Test Account", bankName: "Test Bank", iban: "GB82WEST12345698765432", swift: "TESTAEAA",
     bankAddress: "1 Test Street, Dubai", note: "All fees paid by the sender.", currency: "AED", amountFils: 103950,

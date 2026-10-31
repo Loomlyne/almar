@@ -119,3 +119,7 @@ Reviewer: pending, run by the orchestrator.
 ## Threat Flags
 
 None beyond the plan's register. The migration is additive and owner/service-role only.
+
+## Grant beyond the plan's table
+
+The controller granted (2026-10-31) `tests/trip-request-state.test.mjs` and `tests/booking-request-api.test.mjs`, only to add `refundedFils: 0` and `refunds: []` to their BookingView fixtures. Done, not run.
