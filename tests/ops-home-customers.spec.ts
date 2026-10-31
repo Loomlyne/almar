@@ -177,7 +177,7 @@ test.describe("Customers", () => {
     await mockCustomers(page);
     const booking = makeBooking({ ref: REF });
     const api = await mockBookingsApi(page, [booking], (call) =>
-      call.path === "/api/ops/bookings" && call.query.q === EMAIL ? { status: 200, body: { ok: true, items: [toItem(booking)], next: null } } : undefined,
+      call.path === "/api/ops/bookings" && call.query.q === EMAIL ? { status: 200, body: { ok: true, items: [{ ...toItem(booking), email: EMAIL }], next: null } } : undefined,
     );
     await openDashboard(page, "/dashboard/customers", "desktop", "en", baseURL, DASHBOARD_COPY.en.rail.customers);
     await openRow(page, "Guest 1").click();
@@ -215,7 +215,7 @@ test.describe("Customers", () => {
     await mockHome(page);
     const booking = makeBooking({ ref: REF });
     await mockBookingsApi(page, [booking], (call) =>
-      call.path === "/api/ops/bookings" && call.query.q === EMAIL ? { status: 200, body: { ok: true, items: [toItem(booking)], next: null } } : undefined,
+      call.path === "/api/ops/bookings" && call.query.q === EMAIL ? { status: 200, body: { ok: true, items: [{ ...toItem(booking), email: EMAIL }], next: null } } : undefined,
     );
     await openDashboard(page, "/dashboard/customers", "desktop", "en", baseURL, DASHBOARD_COPY.en.rail.customers);
     await openRow(page, "Guest 1").click();

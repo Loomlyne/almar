@@ -279,7 +279,7 @@ export function StayStep({
         ) : unavailable ? (
           <p className={ERROR}>{fillCopy(s.unavailable, { nights: availability.map((night) => dayIn(night)).join(", ") })}</p>
         ) : (
-          <p className="m-0 text-label font-bold text-teal">{s.available}</p>
+          <p className="m-0 text-label text-teal">{s.available}</p>
         )}
         {lines.map((line) => (
           <p key={line} className={ERROR}>

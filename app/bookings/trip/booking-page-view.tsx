@@ -389,23 +389,25 @@ function Ready({
             </section>
           ) : null}
 
-          <section className="flex flex-col gap-2 border-t border-line pt-4">
-            <h2 className={H2}>{copy.travellers.heading}</h2>
-            <ul className="m-0 flex list-none flex-col gap-2 p-0">
-              {view.travellers.map((t, i) => (
-                <li key={i} className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-body text-ink">
-                  <span>{t.fullName}</span>
-                  <span className="text-muted">
-                    {t.kind === "adult"
-                      ? copy.travellers.adult
-                      : fillNodes(t.kind === "child" ? copy.travellers.child : copy.travellers.infant, { age: <Ltr>{t.age ?? ""}</Ltr> })}
-                    {t.isBooker ? ` · ${copy.travellers.booker}` : null}
-                    {t.notStaying ? ` · ${copy.travellers.notStaying}` : null}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {view.travellers.length > 0 ? (
+            <section className="flex flex-col gap-2 border-t border-line pt-4">
+              <h2 className={H2}>{copy.travellers.heading}</h2>
+              <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                {view.travellers.map((t, i) => (
+                  <li key={i} className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-body text-ink">
+                    <span>{t.fullName}</span>
+                    <span className="text-muted">
+                      {t.kind === "adult"
+                        ? copy.travellers.adult
+                        : fillNodes(t.kind === "child" ? copy.travellers.child : copy.travellers.infant, { age: <Ltr>{t.age ?? ""}</Ltr> })}
+                      {t.isBooker ? ` · ${copy.travellers.booker}` : null}
+                      {t.notStaying ? ` · ${copy.travellers.notStaying}` : null}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           {view.lines.length > 0 ? (
             <section className="flex flex-col gap-2 border-t border-line pt-4">

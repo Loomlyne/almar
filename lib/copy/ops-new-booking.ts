@@ -131,6 +131,8 @@ export type OpsNewBookingCopy = {
     /** "{adults}", "{children}", "{infants}". */
     guestsLine: string;
     depositLine: string;
+    agreedLabel: string;
+    holdLabel: string;
     fullLine: string;
     emailLine: string;
     test: string;
@@ -276,6 +278,8 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       payment: "Payment",
       guestsLine: "Adults {adults}, children {children}, infants {infants}",
       depositLine: "Deposit, bank details by email",
+      agreedLabel: "Agreed price:",
+      holdLabel: "Hold until:",
       fullLine: "Full payment, bank details by email",
       emailLine: "The guest gets an email with the bank details and the booking link.",
       test: "Test booking",
@@ -413,6 +417,8 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       payment: "الدفع",
       guestsLine: "البالغون {adults}، الأطفال {children}، الرضّع {infants}",
       depositLine: "دفعة مقدّمة، بيانات البنك بالبريد",
+      agreedLabel: "السعر المتفق عليه:",
+      holdLabel: "الحجز حتى:",
       fullLine: "دفع كامل، بيانات البنك بالبريد",
       emailLine: "يصل الضيف بريد فيه بيانات البنك ورابط الحجز.",
       test: "حجز تجريبي",
@@ -550,6 +556,8 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       payment: "Pago",
       guestsLine: "Adultos {adults}, niños {children}, bebés {infants}",
       depositLine: "Depósito, datos bancarios por correo",
+      agreedLabel: "Precio acordado:",
+      holdLabel: "Reservar hasta:",
       fullLine: "Pago completo, datos bancarios por correo",
       emailLine: "El huésped recibe un correo con los datos bancarios y el enlace de la reserva.",
       test: "Reserva de prueba",

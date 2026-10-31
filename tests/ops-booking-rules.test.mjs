@@ -577,13 +577,13 @@ test("OPS_BOOKINGS_COPY: same keys in en, ar and es at every depth, every leaf a
   checkCopy(OPS_BOOKINGS_COPY, "OPS_BOOKINGS_COPY");
 });
 
-test("OPS_BOOKINGS_COPY: four attention reasons, request_withdrawn in history, exactly the six templates", () => {
+test("OPS_BOOKINGS_COPY: four attention reasons, request_withdrawn in history, exactly the seven templates", () => {
   for (const locale of ["en", "ar", "es"]) {
     const c = OPS_BOOKINGS_COPY[locale];
     assert.deepEqual(new Set(Object.keys(c.flags.reasons)), new Set(["paid_after_expiry", "paid_after_cancel", "overpaid", "deadline_passed_part_paid"]));
     assert.equal(typeof c.history.request_withdrawn, "string");
     assert.deepEqual(new Set(Object.keys(c.templates)), new Set([
-      "request_received", "request_owner", "payment_receipt", "payment_owner", "request_lapsed", "request_withdrawn_owner",
+      "request_received", "request_owner", "payment_receipt", "payment_owner", "request_lapsed", "request_withdrawn_owner", "refund_receipt",
     ]));
     assert.deepEqual(new Set(Object.keys(c.statuses)), new Set(r.BOOKING_STATUSES));
   }

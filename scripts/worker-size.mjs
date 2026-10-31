@@ -6,14 +6,15 @@ import zlib from "node:zlib";
 /**
  * Job 10 review: the size of the uploaded Worker, checked before anyone deploys.
  *
- * The Workers Free plan refuses a script over 3 MiB gzipped (3,072 KiB). The limit here is 2,560 KiB, so a build that
- * is growing toward the refusal fails on the build machine, not at the upload. Job 10 measured 1,627 KiB.
+ * The Workers Free plan refuses a script over 3 MiB gzipped (3,072 KiB). The limit here is 2,800 KiB (owner, 2026-10-31, no higher
+ * without his word; `almar-ops` measured 2,580 KiB), so a build that is growing toward the refusal fails on the build
+ * machine, not at the upload. Job 10 measured 1,627 KiB.
  *
  * Pure on purpose: it takes a path and a number, so tests/worker-size.test.mjs runs it on a fake file. The measure
  * is the one `wrangler deploy --dry-run` prints as "gzip": every module of the bundle (.js, .mjs, .cjs, .wasm),
  * concatenated in name order, gzipped once.
  */
-export const WORKER_GZIP_LIMIT_KIB = 2560;
+export const WORKER_GZIP_LIMIT_KIB = 2800;
 
 const MODULE_FILE = /\.(?:m?js|cjs|wasm)$/;
 

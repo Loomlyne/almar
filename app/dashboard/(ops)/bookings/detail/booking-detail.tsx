@@ -371,23 +371,25 @@ export function BookingDetail({
               ]}
             />
           </Block>
-          <Block title={D.travellers}>
-            <ul className="m-0 flex list-none flex-col gap-1 p-0 text-label text-ink">
-              {b.travellers.map((traveller, at) => (
-                <li key={at}>
-                  {traveller.full_name} · {D.travellerKinds[traveller.kind]}
-                  {traveller.is_booker ? ` · ${D.booker}` : ""}
-                  {traveller.age !== null ? (
-                    <>
-                      {" · "}
-                      {D.age} <Bdi>{traveller.age}</Bdi>
-                    </>
-                  ) : null}
-                  {traveller.not_staying ? ` · ${D.notStaying}` : ""}
-                </li>
-              ))}
-            </ul>
-          </Block>
+          {b.travellers.length > 0 ? (
+            <Block title={D.travellers}>
+              <ul className="m-0 flex list-none flex-col gap-1 p-0 text-label text-ink">
+                {b.travellers.map((traveller, at) => (
+                  <li key={at}>
+                    {traveller.full_name} · {D.travellerKinds[traveller.kind]}
+                    {traveller.is_booker ? ` · ${D.booker}` : ""}
+                    {traveller.age !== null ? (
+                      <>
+                        {" · "}
+                        {D.age} <Bdi>{traveller.age}</Bdi>
+                      </>
+                    ) : null}
+                    {traveller.not_staying ? ` · ${D.notStaying}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </Block>
+          ) : null}
           <Block title={D.addOns}>
             {b.lines.length === 0 ? (
               <p className="m-0 text-label text-muted">{D.noAddOns}</p>
@@ -440,7 +442,7 @@ export function BookingDetail({
                   ) : null}
                 </>
               ) : null}
-              {b.refunds
+              {(b.refunds ?? [])
                 .filter((refund) => refund.status === "succeeded")
                 .map((refund) => (
                   <li key={`refund-${refund.id}`}>
@@ -550,7 +552,7 @@ export function BookingDetail({
             </ul>
           </>
         )}
-        {b.refunds.length > 0 ? (
+        {(b.refunds ?? []).length > 0 ? (
           <RefundsBlock locale={locale} copy={copy} booking={b} busy={busy} onVoid={onVoidRefund} onResend={onResendRefund} />
         ) : null}
       </section>

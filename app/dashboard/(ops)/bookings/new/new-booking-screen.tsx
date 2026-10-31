@@ -485,13 +485,13 @@ export function NewBookingScreen() {
           {agreedText !== null && breakdown ? (
             <>
               <br />
-              {copy.payment.agreedTitle}: <bdi dir="ltr">{formatAed(breakdown.nightsFils)}</bdi>
+              {copy.review.agreedLabel} <bdi dir="ltr">{formatAed(breakdown.nightsFils)}</bdi>
             </>
           ) : null}
           {holdValue !== null ? (
             <>
               <br />
-              {copy.payment.holdTitle}: <bdi dir="ltr">{`${dayIn(holdDate)} ${holdTime}`}</bdi>
+              {copy.review.holdLabel} <bdi dir="ltr">{`${dayIn(holdDate)} ${holdTime}`}</bdi>
             </>
           ) : null}
         </>
@@ -589,8 +589,8 @@ export function NewBookingScreen() {
         </div>
       </nav>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="min-w-0">
+      <div className="grid items-start gap-6 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-2">
           {step === 1 ? (
             <GuestStep
               copy={copy}

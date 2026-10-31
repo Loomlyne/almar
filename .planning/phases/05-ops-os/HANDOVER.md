@@ -22,7 +22,7 @@
 
 - **Nothing ran**, by the owner's rule: no pgTAP, no node test, no Playwright, no build, no assemble, no dev server, no local Supabase. All new tests are written and unrun; some Playwright calendar clicks guess at markup and may need a fix on first run.
 - **Postgres has never parsed the migration.** It was checked by reading and by diff against the source ranges. Apply-time errors are possible.
-- **Worker size unmeasured.** Was 2,550 against 2,560; estimate 10-17 KiB added. `next/dynamic` with `ssr: false` is new to this repo and unproven.
+- **Worker size measured by the controller only:** 2,580 KiB at `0680e886`; the limit is now 2,800 as signed. `next/dynamic` with `ssr: false` is new to this repo and unproven.
 - No screen seen in a browser at 390, 834, 1440; RTL not seen; no email seen in an inbox; AR and ES are model-translated and unchecked.
 - `BOOKING_LINK_SECRET` and the mail sender on `almar-ops` were not read; check before first use.
 - Stored screenshots now stale, not regenerated: Bookings list (new button), Request detail (new button). Others may change with Home, Customers, Profile and the refund block.
@@ -37,8 +37,8 @@
 2. Local gates in a clean clone, since nothing has run here: pgTAP (`node tests/helpers/local-supabase.mjs test supabase/tests/ops-os.test.sql`, and `booking-payments.test.sql`, whose seed was fixed but which has never run), `node --test`, the build.
 3. His Ship, then squash-merge.
 4. **Migration live before any deploy.** `booking-detail.tsx` calls `b.refunds.filter` unguarded, so `almar-ops` without the migration crashes every booking detail; the new routes also need the new functions. The migration is additive and safe under the running Phase 6 code (05-01 plan, "Live code"). Live read 2026-10-31: 0 bookings.
-5. First `almar-ops` build: read the `Worker N KiB gzip` line; raise `WORKER_GZIP_LIMIT_KIB` up to 2,800 only if it passes 2,560 (signed). Run `grep -rl "data-booking-refunds" .next/server` and `grep -rl "Links go to the preview site" .next/server`; a hit means a chunk was not dropped.
-6. Deploy `almar-ops`, and `almar` for the guest booking page line and emails, each on his word.
+5. First `almar-ops` build: read the `Worker N KiB gzip` line. The controller measured 2,580 KiB, so `WORKER_GZIP_LIMIT_KIB` is now 2,800 in this PR (signed, no higher). Run `grep -rl "data-booking-refunds" .next/server` and `grep -rl "Links go to the preview site" .next/server`; a hit means a chunk was not dropped.
+6. Before UAT, deploy `almar-preview` (`node scripts/assemble-cloudflare.mjs --target=preview`): TEST links go to preview (`lib/booking/origin.ts`), so UAT steps 19 and 22 fail falsely on Phase 6 code. Then `almar-ops`, and `almar` for the guest booking page line and emails, each on his word.
 
 ## For the owner to decide
 
@@ -81,7 +81,7 @@ On `https://dashboard.almarprivatejourney.com`, after the migration and deploy, 
 8. Choose a destination and stay, pick dates and guests. Expected: blocked nights struck through; a stay with no rate asks for an agreed price.
 9. Change Destination to another one. Expected: the stay clears, nothing silently stays booked on the old stay.
 10. Next through extras. On Payment, tick the agreed price, type an amount and a reason, choose Deposit, set Hold until at least 35 minutes ahead (UAE time). Expected: the summary shows VAT and deposit from Settings, on your typed price.
-11. On Review, tick Test booking, press Create. Expected: confirmation with a ref; the booking is in Bookings as TEST, Awaiting payment.
+11. On Review, tick Test booking, press Create. Expected: the booking's detail page opens straight away with its ref, TEST, Awaiting payment; it is also in Bookings.
 12. Open it. Expected: History shows the agreed price and reason.
 13. Check the guest inbox. Expected: heading "Your booking is ready", bank-transfer instructions, booking link to preview, no pay link. In EN, then repeat one in AR and ES.
 14. New booking again, same stay: pick checkout on the first night of the booking from step 11, a day that is struck through. Expected: it can be clicked only as the checkout, the range is accepted and the booking creates. A struck-through day in the middle of a range still refuses.

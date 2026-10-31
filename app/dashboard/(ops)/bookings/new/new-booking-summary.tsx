@@ -96,7 +96,7 @@ export function PhoneBar({ copy, breakdown, action }: { copy: OpsNewBookingCopy;
         summary={
           <>
             <span className="text-caption text-muted">{copy.summary.total}</span>
-            <span className="text-body font-bold text-ink">{breakdown ? <Amount fils={breakdown.grandFils} /> : null}</span>
+            <span className="text-body text-ink">{breakdown ? <Amount fils={breakdown.grandFils} /> : null}</span>
           </>
         }
         action={action}

@@ -18,9 +18,16 @@ import { BookingsList, type BookingsDestination, type BookingsQuery } from "./bo
 
 const EMPTY: BookingsQuery = { q: "", status: "all", destination: null, from: null, to: null };
 const QUIET_MS = 300;
+// The longest search text, as `lib/ops/home-rules.ts` cuts it.
+const SEARCH_MAX = 100;
 
 function params(query: BookingsQuery, after: string | null): Record<string, string> {
   return Object.fromEntries(listSearch({ ...query, after, limit: LIST_LIMIT }));
+}
+
+/** The exact guest. Customers cuts an email at the search limit, so a text of that length matches as a beginning. */
+function sameGuest(email: string, handedText: string): boolean {
+  return email === handedText || (Array.from(handedText).length >= SEARCH_MAX && email.startsWith(handedText));
 }
 
 export function BookingsScreen() {
@@ -121,11 +128,20 @@ export function BookingsScreen() {
     });
   }
 
+  // A handed search shows only that guest: the server's search is a substring, so ana@x.com also finds diana@x.com.
+  const handedNow = handed.current && applied?.q === handed.current ? handed.current : null;
+  const shownItems = handedNow === null ? items : items.filter((item) => sameGuest(item.email, handedNow));
+
+  // That filter can empty a page while later pages still hold the guest: read on, rather than say there is no match.
+  useEffect(() => {
+    if (handedNow !== null && shownItems.length === 0 && next !== null && !loading && error === null) more();
+  });
+
   return (
     <BookingsList
       locale={locale}
       copy={copy}
-      items={items}
+      items={shownItems}
       next={next}
       query={query ?? EMPTY}
       destinations={shownDestinations}
