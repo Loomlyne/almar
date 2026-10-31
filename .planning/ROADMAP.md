@@ -277,7 +277,7 @@ Plans:
   3. Settings Publish applies brand tokens site-wide; VAT % and deposit % work; reminders fire for unpaid remainder
   4. Passport/ID is encrypted and opens only after extra owner confirm; guest can change email/phone and delete account (PII stripped)
 
-**Plans:** TBD
+**Plans:** 4 (05-01 to 05-04, signed 2026-10-31)
 
 Plans:
 

@@ -1,10 +1,10 @@
 # Rules every ALMAR work session follows
 
 You are a work session on the owner's Mac. You are not the controller. Only the "ALMAR controller session"
-(local Claude Code session `local_2a268540-fee7-461a-a9c2-49fa6015a12f`, main checkout, pinned; owner moved ALMAR
+(local Claude Code session `local_d92ae36f-4a54-4de0-b788-c08a931b4b5a`, main checkout, pinned; owner moved ALMAR
 back to Claude Code 2026-10-15; the T3 thread `8f8a7977-…` is retired) lands work on GitHub `main`, applies
 migrations to the live Supabase project and deploys Worker `almar`. It started you and talks to you directly;
-message it with `SendMessage` to `local_2a268540-fee7-461a-a9c2-49fa6015a12f` (start, gate signed, blocked,
+message it with `SendMessage` to `local_d92ae36f-4a54-4de0-b788-c08a931b4b5a` (start, gate signed, blocked,
 hand-over). The owner talks to the controller, not to you. The claude.ai cloud project ended on 2026-10-01; nothing runs in
 the cloud. Decisions behind this: `.planning/decisions/2026-10-01-control-session.md`.
 
