@@ -181,6 +181,12 @@ export type OpsNewBookingCopy = {
     quoteFailed: string;
     saveFailed: string;
     loadFailed: string;
+    /** No reply came to Create: the booking may exist. */
+    noAnswer: string;
+    /** "{amount}": the total the server now quotes. */
+    priceChanged: string;
+    /** blocked or sold_out with no night named. */
+    nightsUnnamed: string;
   };
 };
 
@@ -317,6 +323,9 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       quoteFailed: "The price could not be worked out. Try again.",
       saveFailed: "The booking was not created. Try again.",
       loadFailed: "The stays could not be loaded. Reload the page.",
+      noAnswer: "No answer came. The booking may exist: press Create again unchanged, or check Bookings.",
+      priceChanged: "The price changed to {amount}. Check it and press Create again.",
+      nightsUnnamed: "These nights are not available.",
     },
   },
   ar: {
@@ -451,6 +460,9 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       quoteFailed: "تعذّر حساب السعر. حاول مرة أخرى.",
       saveFailed: "لم يُنشأ الحجز. حاول مرة أخرى.",
       loadFailed: "تعذّر تحميل الإقامات. أعد تحميل الصفحة.",
+      noAnswer: "لم يصل أي رد. قد يكون الحجز موجودًا: اضغط إنشاء مرة أخرى دون تغيير، أو راجع الحجوزات.",
+      priceChanged: "تغيّر السعر إلى {amount}. راجعه واضغط إنشاء مرة أخرى.",
+      nightsUnnamed: "هذه الليالي غير متاحة.",
     },
   },
   es: {
@@ -585,6 +597,9 @@ export const OPS_NEW_BOOKING_COPY: Record<OpsNewBookingLocale, OpsNewBookingCopy
       quoteFailed: "No se pudo calcular el precio. Inténtelo de nuevo.",
       saveFailed: "La reserva no se creó. Inténtelo de nuevo.",
       loadFailed: "No se pudieron cargar las estancias. Vuelva a cargar la página.",
+      noAnswer: "No llegó respuesta. Puede que la reserva exista: pulse Crear otra vez sin cambiar nada, o revise Reservas.",
+      priceChanged: "El precio cambió a {amount}. Revíselo y pulse Crear otra vez.",
+      nightsUnnamed: "Estas noches no están disponibles.",
     },
   },
 };

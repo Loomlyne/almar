@@ -256,6 +256,7 @@ export function StayStep({
           today={today}
           blocked={blocked}
           footer={false}
+          endOnBlocked
           className="max-w-full border border-line shadow-none"
         />
         <span className="inline-flex items-center gap-2 text-caption text-muted">
@@ -563,6 +564,7 @@ export function ReviewStep({
   onTest,
   gateLine,
   problem,
+  lines,
   busy,
   canCreate,
   onBack,
@@ -576,6 +578,8 @@ export function ReviewStep({
   gateLine: string | null;
   /** The sentence for the last refusal, or null. */
   problem: string | null;
+  /** The quote's reasons that stop Create, said in words. */
+  lines: string[];
   busy: boolean;
   canCreate: boolean;
   onBack: () => void;
@@ -602,6 +606,9 @@ export function ReviewStep({
         <p className="m-0 text-label text-muted">{r.testHint}</p>
       </div>
       {gateLine ? <Problem>{gateLine}</Problem> : null}
+      {lines.map((line) => (
+        <Problem key={line}>{line}</Problem>
+      ))}
       {problem ? <Problem>{problem}</Problem> : null}
       <Nav copy={copy} onBack={onBack} onNext={onCreate} nextLabel={r.create} busy={busy} disabled={!canCreate} />
     </section>

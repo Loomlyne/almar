@@ -53,8 +53,8 @@ export function guestProblems(g: { name: string; email: string; phone: string })
 export function stepOfField(field: string | null): NewBookingStep {
   if (field === null) return 5;
   const name = field.split(".")[0] ?? field;
-  if (name === "guest" || name === "name" || name === "email" || name === "phone") return 1;
-  if (["stay", "from", "to", "adults", "children", "infants"].includes(name)) return 2;
+  if (name === "guest" || name === "guest_name" || name === "name" || name === "email" || name === "phone") return 1;
+  if (["stay", "stay_slug", "from", "to", "arrive", "leave", "adults", "children", "infants"].includes(name)) return 2;
   if (["addons", "airport", "pickup_address"].includes(name)) return 3;
   if (["hold_until", "plan", "agreed_amount", "agreed_reason"].includes(name)) return 4;
   return 5;

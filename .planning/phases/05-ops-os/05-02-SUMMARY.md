@@ -114,6 +114,25 @@ None. Customer search, pay later, draft, record offline, payment link, notify sw
 
 None beyond the plan's register: three owner-only POST routes behind `opsPost`, no money from the browser, only the request id in the URL.
 
-## Reviewer
+## Review
 
-Reviewer: pending, run by the orchestrator.
+Verdict (Opus, run by the orchestrator): fix first. All items below are fixed on this branch; none was run (no tests, no build).
+
+| # | Finding | Fix |
+|---|---|---|
+| 1 | Choosing a stay wiped a request's prefilled dates | The range is cleared only when a stay was already chosen; spec case through `?request=` |
+| 2 | A taken night could not be the checkout day | Grant from the controller: one opt-in prop `endOnBlocked` (default off) on `components/journey/date-range-panel.tsx`, passed only by New booking; with it on, a blocked day may close a range when a start is set and nothing blocked lies between, and loses `aria-disabled` then. Guest screens unchanged. Spec case |
+| 3 | Switching Destination left the old stay chosen | `chooseDestination` resets stay, picks, range and quote when the stay is not in the new destination; spec case |
+| 4 | "Not created" said on no reply | Separate sentence `noAnswer` (EN, AR, ES) on status 0, `unavailable`, `network`, `timeout`; spec case |
+| 5 | Stored price could differ from Review | Create re-POSTs the quote first; a changed total or due-now is shown with `priceChanged` and Create stops; `settings_changed`, `settings_missing`, `requests_closed` refetch the quote. No money is sent from the browser. Spec case |
+| 6 | Three old pins | Grant from the controller: `tests/ops-bookings-api.test.mjs` key list now has `handMade` (asserted false) plus a source `ops` resend case asserting true; `tests/ops-bookings.spec.ts` and `tests/phase-03-dashboard.spec.ts` now pin one New booking link to `/dashboard/bookings/new` |
+| 7 | Create off on Review with no sentence | Review lists the blocking reasons through `sentence()`; Step 3 and Step 4 `stepOk` respect `addon_unavailable` and `addon_quantity` |
+| 8 | Replay after a lost answer was blocked at Step 2 | `retrying` declared above `stepOk` and applied to `stepOk[2]`; Create stays off for a form the SQL refused as blocked or sold_out with a real reply |
+| 9 | Blocked or sold_out refusal named no nights | `sqlConflict` sends `{ reasons }` when the quote holds that code; the screen has `nightsUnnamed` as the fallback |
+| 10 | Agreed price carried to the next stay | A stay change clears agreed on, amount and reason |
+| 11 | Hold ceiling, TEST hold | Owner's decision, not done |
+| 12 | `stepOfField` and spec date keys | `guest_name`, `arrive`, `leave`, `stay_slug` mapped; spec builds unpadded `data-date` keys (`2027-1-3`) |
+
+New words for the owner's signature from this round (EN, AR, ES, AR and ES model-translated): `problems.noAnswer`, `problems.priceChanged` ("{amount}"), `problems.nightsUnnamed`.
+
+Pending: finding 11 (owner). Nothing else.

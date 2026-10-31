@@ -221,6 +221,16 @@ test("create: sold_out or blocked in the quote still reaches the SQL, which answ
   assert.equal(short.names().includes("ops_create_booking"), false);
 });
 
+test("create: a SQL sold_out/blocked refusal carries the quote's reasons, so the screen can name the nights", async () => {
+  const db = fakeDb({ ops_create_booking: refusal("sold_out") }, { taken: ["2026-12-11"] });
+  const out = await api.postCreate({ owner: owner(db), body: body() }, deps());
+  assert.equal(out.body.error.code, "sold_out");
+  assert.deepEqual(out.body.error.detail.reasons.find((r) => r.code === "sold_out").nights, ["2026-12-11"]);
+  const clear = await api.postCreate({ owner: owner(fakeDb({ ops_create_booking: refusal("blocked") })), body: body() }, deps());
+  assert.equal(clear.body.error.code, "blocked");
+  assert.equal(clear.body.error.detail, null);
+});
+
 test("create: a home-pickup line needs an address, then it is sent", async () => {
   const db = fakeDb();
   const needs = await api.postCreate({ owner: owner(db), body: body({ addons: [{ id: HOME_ITEM, qty: 1 }] }) }, deps());

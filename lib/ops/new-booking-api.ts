@@ -220,10 +220,12 @@ export async function postQuote({ owner, body }: { owner: BookingsOwner; body: N
 /** Codes of the SQL that the screen knows; every one is 409 (invalid and the rest go through mapBookingRefusal). */
 const SQL_CONFLICTS = new Set(["settings_missing", "settings_changed", "hold_too_soon", "stay_unavailable", "below_minimum_charge", "blocked", "sold_out"]);
 
-function sqlConflict(error: { code?: string; message?: string } | null): OpsResult | null {
+function sqlConflict(error: { code?: string; message?: string } | null, reasons: readonly { code: string }[]): OpsResult | null {
   if (error?.code !== "P0001" || typeof error.message !== "string" || !error.message.startsWith("almar:")) return null;
   const name = error.message.slice("almar:".length);
-  return SQL_CONFLICTS.has(name) ? refused(409, name) : null;
+  if (!SQL_CONFLICTS.has(name)) return null;
+  // The quote's own reasons carry the nights of a blocked or sold_out refusal, so the screen can name them.
+  return refused(409, name, null, reasons.some((r) => r.code === name) ? { reasons } : null);
 }
 
 const TEMPLATE = "request_received";
@@ -353,7 +355,7 @@ export async function postCreate({ owner, body }: { owner: BookingsOwner; body: 
   } catch {
     return UNAVAILABLE;
   }
-  if (created.error) return sqlConflict(created.error) ?? mapBookingRefusal(created.error);
+  if (created.error) return sqlConflict(created.error, quote.reasons) ?? mapBookingRefusal(created.error);
   const data = created.data;
   if (
     !isRow(data) ||

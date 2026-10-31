@@ -31,8 +31,8 @@ test("cleanEmail trims and lowercases", () => {
 });
 
 test("stepOfField sends each field to its step", () => {
-  for (const f of ["guest", "guest.name", "guest.email", "guest.phone"]) assert.equal(rules.stepOfField(f), 1, f);
-  for (const f of ["stay", "from", "to", "adults"]) assert.equal(rules.stepOfField(f), 2, f);
+  for (const f of ["guest", "guest.name", "guest.email", "guest.phone", "guest_name", "email", "phone"]) assert.equal(rules.stepOfField(f), 1, f);
+  for (const f of ["stay", "stay_slug", "from", "to", "arrive", "leave", "adults"]) assert.equal(rules.stepOfField(f), 2, f);
   for (const f of ["addons", "addons.qty", "airport", "pickup_address"]) assert.equal(rules.stepOfField(f), 3, f);
   for (const f of ["hold_until", "plan", "agreed_amount", "agreed_reason"]) assert.equal(rules.stepOfField(f), 4, f);
   for (const f of ["is_test", "request_id", "anything"]) assert.equal(rules.stepOfField(f), 5, f);

@@ -72,7 +72,8 @@ function chars(text: string): number {
 function sentence(copy: OpsNewBookingCopy, code: string, reason: BookingReason | null): string {
   const nights = (reason?.nights ?? []).map((night) => dayIn(night)).join(", ");
   const table = copy.problems as Record<string, string>;
-  const template = Object.prototype.hasOwnProperty.call(table, code) ? table[code] : copy.problems.unavailable;
+  const unnamed = (code === "blocked" || code === "sold_out") && nights === "";
+  const template = unnamed ? copy.problems.nightsUnnamed : Object.prototype.hasOwnProperty.call(table, code) ? table[code] : copy.problems.unavailable;
   return fillCopy(template, { nights, min: reason?.min ?? "", max: reason?.max ?? "" });
 }
 
@@ -122,6 +123,8 @@ export function NewBookingScreen() {
   const [offers, setOffers] = useState<AddOnOffering[]>([]);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
+  // The fingerprint of a form the SQL refused as blocked or sold_out (a real reply): Create stays off for it.
+  const [takenRefused, setTakenRefused] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
 
   const latestCalendar = useRef(0);
@@ -281,11 +284,17 @@ export function NewBookingScreen() {
   const pickupProb = needsPickup && (pickup.trim() === "" || chars(pickup.trim()) > 300);
   const staySet = staySlug !== null && from !== null && to !== null;
   const stayLines = reasons.filter((r) => STAY_REASONS.has(r.code)).map((r) => sentence(copy, r.code, r));
+  const bodyNow = createBody();
+  const fingerprint = bodyNow === null ? "" : JSON.stringify(bodyNow);
+  // Blocked or booked nights stay a reason only for a retry of this very form (the owner's own hold may be what blocks them),
+  // and not after a real reply said blocked or sold_out for it.
+  const retrying = attempt.current !== null && attempt.current.fp === fingerprint && takenRefused !== fingerprint;
+  const addonProb = reasons.some((r) => r.code === "addon_unavailable" || r.code === "addon_quantity");
   const stepOk: Record<NewBookingStep, boolean> = {
     1: Object.keys(gProb).length === 0,
-    2: staySet && stayLines.length === 0 && (unavailableNights === null || unavailableNights.length === 0),
-    3: !pickupProb,
-    4: !amountProb && !reasonProb && holdProblem === null,
+    2: staySet && stayLines.length === 0 && (retrying || unavailableNights === null || unavailableNights.length === 0),
+    3: !pickupProb && !addonProb,
+    4: !amountProb && !reasonProb && holdProblem === null && !addonProb,
     5: true,
   };
 
@@ -348,10 +357,6 @@ export function NewBookingScreen() {
     };
   }
 
-  const bodyNow = createBody();
-  const fingerprint = bodyNow === null ? "" : JSON.stringify(bodyNow);
-  // Blocked or booked nights stay a reason only for a retry of this very form (the owner's own hold may be what blocks them).
-  const retrying = attempt.current !== null && attempt.current.fp === fingerprint;
   const canCreate =
     !busy &&
     quote !== null &&
@@ -377,6 +382,26 @@ export function NewBookingScreen() {
     if (attempt.current === null || attempt.current.fp !== fp) attempt.current = { id: crypto.randomUUID(), fp };
     setBusy(true);
     setRefusal(null);
+    // The price is asked again first: what is stored is the server's price at this moment, so a change is shown, not stored.
+    if (quoteBody !== null && breakdown !== null) {
+      latestQuote.current += 1;
+      const fresh = await opsSend<NewBookingQuoteAnswer>("/api/ops/booking/quote", quoteBody);
+      if (!fresh.ok || fresh.breakdown === null) {
+        setBusy(false);
+        setRefusal(copy.problems.quoteFailed);
+        return;
+      }
+      setQuoteState({ key: quoteKey, answer: fresh });
+      if (fresh.breakdown.grandFils !== breakdown.grandFils || fresh.breakdown.dueNowFils !== breakdown.dueNowFils) {
+        setBusy(false);
+        setRefusal(fillCopy(copy.problems.priceChanged, { amount: formatAed(fresh.breakdown.grandFils) }));
+        return;
+      }
+      if (fresh.reasons.some((r) => r.code !== "blocked" && r.code !== "sold_out")) {
+        setBusy(false);
+        return;
+      }
+    }
     const reply = await opsSend<NewBookingCreateAnswer>("/api/ops/booking/create", { ...body, request_id: attempt.current.id });
     if (reply.ok) {
       router.replace(`/dashboard/bookings/detail?ref=${encodeURIComponent(reply.ref)}`);
@@ -387,7 +412,17 @@ export function NewBookingScreen() {
     const reason = detail && Array.isArray(detail.reasons) ? (detail.reasons.find((r) => r.code === reply.error.code) ?? null) : null;
     const code = reply.error.code;
     const known = Object.prototype.hasOwnProperty.call(copy.problems, code);
-    setRefusal(known ? sentence(copy, code, reason) : reply.status === 0 || code === "unavailable" || code === "network" ? copy.problems.saveFailed : sentence(copy, "invalid", null));
+    const noReply = reply.status === 0 || code === "unavailable" || code === "network" || code === "timeout";
+    setRefusal(noReply ? copy.problems.noAnswer : known ? sentence(copy, code, reason) : sentence(copy, "invalid", null));
+    if (!noReply && (code === "blocked" || code === "sold_out")) setTakenRefused(fp);
+    if (code === "settings_changed" || code === "settings_missing" || code === "requests_closed") {
+      // So that "the price was refreshed" is true: ask for the quote again.
+      latestQuote.current += 1;
+      if (quoteBody !== null) {
+        const again = await opsSend<NewBookingQuoteAnswer>("/api/ops/booking/quote", quoteBody);
+        setQuoteState({ key: quoteKey, answer: again.ok ? again : null });
+      }
+    }
     if (code === "invalid" && reply.error.field) {
       setShown({ 1: true, 2: true, 3: true, 4: true });
       go(stepOfField(reply.error.field));
@@ -409,6 +444,7 @@ export function NewBookingScreen() {
     if ((r.code === "addon_unavailable" || r.code === "addon_quantity") && r.id) rowProblems[r.id] = sentence(copy, r.code, r);
   }
   const paymentLines = reasons.filter((r) => PAYMENT_REASONS.has(r.code)).map((r) => sentence(copy, r.code, r));
+  for (const r of reasons) if (r.code === "addon_unavailable" || r.code === "addon_quantity") paymentLines.push(sentence(copy, r.code, r));
   if (quoteFailed) paymentLines.push(copy.problems.quoteFailed);
 
   const stayChoices: StayChoice[] = stays.map((one) => ({ slug: one.slug, title: one.title_en, destinationId: one.destination_id }));
@@ -486,13 +522,33 @@ export function NewBookingScreen() {
     });
   }
 
-  function chooseStay(slug: string) {
+  /** Another stay (or none): what belonged to the old one goes. The dates stay unless a stay was already chosen (a request's dates). */
+  function resetStay(slug: string | null) {
+    if (slug === staySlug) return;
+    if (staySlug !== null) setRange({ start: null, end: null });
     setStaySlug(slug);
     setPicks({});
     setOffers([]);
-    setRange({ start: null, end: null });
+    setAgreedOn(false);
+    setAgreedAmount("");
+    setAgreedReason("");
     setQuoteState(null);
     setRangeInfo(null);
+  }
+
+  function chooseStay(slug: string) {
+    resetStay(slug);
+  }
+
+  function chooseDestination(id: string) {
+    setDestination(id);
+    if (staySlug === null || id === ALL) return;
+    const current = stays.find((one) => one.slug === staySlug);
+    if (!current || current.destination_id !== id) {
+      // The old stay is not in the new list: reset as a stay change does, and clear the dates with it.
+      setRange({ start: null, end: null });
+      resetStay(null);
+    }
   }
 
   return (
@@ -556,7 +612,7 @@ export function NewBookingScreen() {
               journeyCopy={journeyCopy}
               destinations={destinationChoices}
               destination={destination}
-              onDestination={setDestination}
+              onDestination={chooseDestination}
               stays={stayChoices}
               staySlug={staySlug}
               onStay={chooseStay}
@@ -634,6 +690,7 @@ export function NewBookingScreen() {
               onTest={setIsTest}
               gateLine={gateLine}
               problem={refusal ?? (quoteFailed ? copy.problems.quoteFailed : null)}
+              lines={(retrying ? blockingReasons : reasons).map((r) => sentence(copy, r.code, r))}
               busy={busy}
               canCreate={canCreate}
               onBack={back}
