@@ -14,12 +14,13 @@
 // Mail goes through 04-08's seam only (deliverMail, mailKey): the guest receipt and the owner notice after a first
 // recording, and a resend from the detail. A mail that is not ready, refused or throws is an event, never an error.
 // The dashboard never sends the owner's withdraw notice (04-08 sends it from the guest's withdraw route).
-import { deliverMail, mailKey, type BookingNotifier, type MailDelivery, type MailOutcome, type PaymentMailJob, type RequestMailJob } from "../booking/notify";
+import { deliverMail, mailKey, type BookingNotifier, type MailDelivery, type MailOutcome, type PaymentMailJob, type RefundMailJob, type RequestMailJob } from "../booking/notify";
 import { isBookingRef } from "../booking/ref";
 import type { BookingStatus, BookingView } from "../booking/types";
 import {
   BOOKING_STATUSES,
   canResendReceipt,
+  canVoidRefund,
   canResendRequest,
   dubaiDayOf,
   listRpcArgs,
@@ -28,9 +29,11 @@ import {
   targetStatus,
   type OwnerDetail,
   type OwnerPayment,
+  type OwnerRefund,
   type StatusAction,
 } from "./booking-rules";
 import { errorBody, OpsInvalid, type DbError, type OpsOutcome, type OpsResult } from "./route-core";
+import type { RefundResendBody } from "./refund-contract";
 import { bool, has, isoDay, onlyKeys, record, requiredText, uuid } from "./validate";
 
 // ------------------------------------------------------------------------------------------------------------
@@ -214,6 +217,50 @@ export function parseVoid(body: unknown): VoidBody {
   return { payment_id: uuid(b.payment_id, "payment_id"), reason: sized(b.reason, "reason", 3, 300) };
 }
 
+export type RefundInput = {
+  booking_id: string;
+  request_id: string;
+  amount_fils: number;
+  refunded_on: string;
+  bank_reference: string;
+  reason: string | null;
+};
+
+const REFUND_KEYS = ["booking_id", "request_id", "amount", "refunded_on", "bank_reference", "reason"] as const;
+
+/**
+ * Record refund (P5-07): the amount is the AED text the owner typed, read by parseAedAmount (no float); refunded_on a
+ * real day (the SQL decides whether it is too early or in the future); the bank reference 1..100 characters; the reason
+ * optional, 3..300 characters when given. The SQL alone judges the amount against what is left to refund.
+ */
+export function parseRefund(body: unknown): RefundInput {
+  const b = record(body, "body");
+  onlyKeys(b, REFUND_KEYS);
+  const booking_id = uuid(b.booking_id, "booking_id");
+  const request_id = uuid(b.request_id, "request_id");
+  const amount_fils = typeof b.amount === "string" ? parseAedAmount(b.amount) : null;
+  if (amount_fils === null) throw new OpsInvalid("amount");
+  const refunded_on = isoDay(b.refunded_on, "refunded_on");
+  const bank_reference = requiredText(b.bank_reference, "bank_reference", { max: 100 });
+  const reason = b.reason === undefined || b.reason === null ? null : sized(b.reason, "reason", 3, 300);
+  return { booking_id, request_id, amount_fils, refunded_on, bank_reference, reason };
+}
+
+/** A bigint refund row id: a safe integer of at least 1. */
+function refundId(value: unknown, field: string): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1) throw new OpsInvalid(field);
+  return value;
+}
+
+export type RefundVoidInput = { refund_id: number; reason: string };
+
+/** Void a refund record: the row id and a reason of 3..300 characters. */
+export function parseRefundVoid(body: unknown): RefundVoidInput {
+  const b = record(body, "body");
+  onlyKeys(b, ["refund_id", "reason"]);
+  return { refund_id: refundId(b.refund_id, "refund_id"), reason: sized(b.reason, "reason", 3, 300) };
+}
+
 export type StatusBody = { booking_id: string; action: StatusAction; expected_status: BookingStatus };
 
 const ACTIONS: readonly string[] = ["confirm", "complete", "cancel"];
@@ -254,7 +301,8 @@ export function parseAttention(body: unknown): AttentionBody {
 
 export type ResendBody =
   | { ref: string; kind: "receipt"; payment_id: string; request_id: string }
-  | { ref: string; kind: "request"; payment_id: null; request_id: string };
+  | { ref: string; kind: "request"; payment_id: null; request_id: string }
+  | RefundResendBody;
 
 /**
  * Resend receipt (a payment row of the booking) or Resend request email (the bank details again). request_id is the
@@ -262,10 +310,15 @@ export type ResendBody =
  */
 export function parseResend(body: unknown): ResendBody {
   const b = record(body, "body");
-  onlyKeys(b, ["ref", "kind", "payment_id", "request_id"]);
+  onlyKeys(b, ["ref", "kind", "payment_id", "refund_id", "request_id"]);
   const ref = bookingRef(b.ref);
-  if (b.kind !== "receipt" && b.kind !== "request") throw new OpsInvalid("kind");
+  if (b.kind !== "receipt" && b.kind !== "request" && b.kind !== "refund") throw new OpsInvalid("kind");
   const request_id = uuid(b.request_id, "request_id");
+  if (b.kind === "refund") {
+    if (b.payment_id !== undefined && b.payment_id !== null) throw new OpsInvalid("payment_id");
+    return { ref, kind: "refund", refund_id: refundId(b.refund_id, "refund_id"), request_id };
+  }
+  if (b.refund_id !== undefined && b.refund_id !== null) throw new OpsInvalid("refund_id");
   if (b.kind === "receipt") return { ref, kind: "receipt", payment_id: uuid(b.payment_id, "payment_id"), request_id };
   if (b.payment_id !== undefined && b.payment_id !== null) throw new OpsInvalid("payment_id");
   return { ref, kind: "request", payment_id: null, request_id };
@@ -455,6 +508,97 @@ export async function voidPayment({ owner, body }: PostCtx<VoidBody>): Promise<O
 }
 
 /**
+ * After a first recording of a refund: the guest's refund email (refund-receipt/<refund_id>) through deliverMail. A
+ * bad answer, no view (null or a throw) or a throwing notifier is "skipped". Never throws: the refund is recorded
+ * whatever happens to its mail. The job carries the date and amount only, never the bank reference or the reason.
+ */
+async function refundMailFor(owner: BookingsOwner, deps: BookingsDeps, answer: Row): Promise<MailResult> {
+  const bookingId = answer.booking_id;
+  const ref = answer.ref;
+  const id = answer.refund_id;
+  const isTest = answer.is_test;
+  const amount = answer.amount_fils;
+  const refundedOn = answer.refunded_on;
+  if (
+    typeof bookingId !== "string" ||
+    typeof ref !== "string" ||
+    typeof id !== "number" ||
+    typeof isTest !== "boolean" ||
+    typeof amount !== "number" ||
+    typeof refundedOn !== "string"
+  ) {
+    return "skipped";
+  }
+  try {
+    const view = await deps.view(owner.admin, bookingId, { isTest });
+    if (!view) return "skipped";
+    const notifier = deps.notifier();
+    const linkVersion = typeof answer.link_version === "number" ? answer.link_version : 1;
+    const locale = isLocale(answer.locale) ? answer.locale : view.locale;
+    const job: RefundMailJob = {
+      bookingId,
+      refundId: id,
+      view,
+      isTest,
+      bookingUrl: await urlOrNull(deps, { id: bookingId, ref, locale, isTest, linkVersion }),
+      amountFils: amount,
+      refundedOn,
+    };
+    const key = mailKey("refundReceipt", String(id));
+    return await deliverMail(owner.admin, {
+      bookingId,
+      template: "refund_receipt",
+      idempotencyKey: key,
+      ready: notifier.ready,
+      send: guarded(() => notifier.refundReceipt(job, { idempotencyKey: key })),
+    });
+  } catch {
+    return "skipped";
+  }
+}
+
+/**
+ * POST /api/ops/booking/refund: one ops_record_refund (idempotent on request_id), recorded from the bank, never sent
+ * from here (B-31). The first time, the guest email goes out; a replay (first_time false) sends nothing. A refusal is
+ * the SQL's (above_paid, nothing_to_refund, changed ...); the wire's amount field is `amount`, the SQL's `amount_fils`.
+ */
+export async function recordRefund({ owner, body }: PostCtx<RefundInput>, deps: BookingsDeps): Promise<OpsOutcome> {
+  const { data, error } = await owner.admin.rpc("ops_record_refund", {
+    p: {
+      booking_id: body.booking_id,
+      request_id: body.request_id,
+      amount_fils: body.amount_fils,
+      refunded_on: body.refunded_on,
+      bank_reference: body.bank_reference,
+      reason: body.reason,
+    },
+    p_actor: owner.profile.id,
+  });
+  if (error) {
+    const mapped = mapBookingRefusal(error);
+    if (!("dbError" in mapped) && mapped.body.ok === false && isRow(mapped.body.error) && mapped.body.error.field === "amount_fils") {
+      return refused(400, "invalid", "amount");
+    }
+    return mapped;
+  }
+  if (!isRow(data)) return UNREADABLE;
+  const mail: MailResult = data.first_time === true ? await refundMailFor(owner, deps, data) : "skipped";
+  return ok({ refund: data, mail });
+}
+
+/** POST /api/ops/booking/refund-void: one ops_void_refund; the row is kept, struck through with its reason (B-25). No mail. */
+export async function voidRefund({ owner, body }: PostCtx<RefundVoidInput>): Promise<OpsOutcome> {
+  const { data, error } = await owner.admin.rpc("ops_void_refund", {
+    p_refund: body.refund_id,
+    p_reason: body.reason,
+    p_actor: owner.profile.id,
+  });
+  if (error) return mapBookingRefusal(error);
+  if (!isRow(data)) return UNREADABLE;
+  return ok({ void: data });
+}
+
+/**
  * POST /api/ops/booking/status: ops_lapse_holds first (Q-10: an unpaid request past its deadline lapses and answers
  * changed instead of being cancelled), then ops_set_booking_status with the shown status as expected_from.
  */
@@ -522,9 +666,15 @@ export async function resendMail({ owner, body }: PostCtx<ResendBody>, deps: Boo
   if (!booking) return UNREADABLE;
 
   let payment: OwnerPayment | null = null;
+  let refund: OwnerRefund | null = null;
   if (body.kind === "receipt") {
     payment = booking.payments.find((p) => isRow(p) && p.id === body.payment_id) ?? null;
     if (!payment || !canResendReceipt(payment)) return refused(409, "not_applicable");
+  } else if (body.kind === "refund") {
+    // A refund of this booking only, and a live one: a voided record never mails (an absent list counts as empty).
+    const list: unknown[] = Array.isArray(booking.refunds) ? booking.refunds : [];
+    refund = (list.find((r) => isRow(r) && r.id === body.refund_id) as OwnerRefund | undefined) ?? null;
+    if (!refund || !canVoidRefund(refund)) return refused(409, "not_applicable");
   } else {
     if (!canResendRequest(booking.status, booking.flags)) return refused(409, "not_applicable");
     if (!deps.linkReady()) return refused(503, "unavailable");
@@ -570,18 +720,35 @@ export async function resendMail({ owner, body }: PostCtx<ResendBody>, deps: Boo
       recordedByEmail: row.recorded_by_email,
     };
     send = guarded(() => notifier.paymentReceipt(job, { idempotencyKey: key }));
+  } else if (refund) {
+    const row = refund;
+    const job: RefundMailJob = {
+      bookingId: booking.id,
+      refundId: row.id,
+      view,
+      isTest: booking.is_test,
+      bookingUrl,
+      amountFils: row.amount_fils,
+      refundedOn: row.refunded_on,
+    };
+    send = guarded(() => notifier.refundReceipt(job, { idempotencyKey: key }));
   } else {
     if (bookingUrl === null) return refused(503, "unavailable");
     const job: RequestMailJob = { bookingId: booking.id, view, isTest: booking.is_test, bookingUrl, handMade: booking.source === "ops" };
     send = guarded(() => notifier.requestReceived(job, { idempotencyKey: key }));
   }
 
-  const template = body.kind === "receipt" ? "payment_receipt" : "request_received";
+  const template = body.kind === "receipt" ? "payment_receipt" : body.kind === "refund" ? "refund_receipt" : "request_received";
+  // The old kinds keep their detail byte for byte; a refund names its row by a number.
+  const detail =
+    body.kind === "refund"
+      ? { template, refund_id: body.refund_id, request_id: body.request_id }
+      : { template, payment_id: body.payment_id, request_id: body.request_id };
   const logged = await owner.admin.rpc("log_booking_event", {
     p_booking: booking.id,
     p_actor: `owner:${owner.profile.id}`,
     p_action: "resend_requested",
-    p_detail: { template, payment_id: body.payment_id, request_id: body.request_id },
+    p_detail: detail,
   });
   if (logged.error) return mapBookingRefusal(logged.error);
 
