@@ -29,3 +29,14 @@ export async function requestGateAndTerms(db: BookingDb, host: string | null | u
 export async function currentRequestGate(db: BookingDb, host: string | null | undefined): Promise<RequestGate> {
   return (await requestGateAndTerms(db, host)).gate;
 }
+
+/**
+ * Both request gates for the owner's New booking (P5-04, B-13): the real one (terms, link secret, mail sender, settings,
+ * window, bank) and the TEST one (link secret, settings, bank). The owner chooses with a tick, so no Host is read and
+ * `isTestHost` is not used. One read of the terms and one of `booking_gate()`. A database failure is thrown.
+ */
+export async function ownerRequestGates(db: BookingDb): Promise<{ real: RequestGate; test: RequestGate }> {
+  const [terms, state] = await Promise.all([bookingTermsGate(db, BAKED_TERMS_VERSION), readBookingGate(db)]);
+  const base = { termsArePlaceholder: terms.isPlaceholder, linkConfigured: bookingLinkConfigured(), mailReady: getNotifier().ready, ...state };
+  return { real: requestGate({ ...base, isTest: false }), test: requestGate({ ...base, isTest: true }) };
+}

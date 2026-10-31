@@ -7,7 +7,7 @@
 // settings from `booking_context` and prices them with lib/money (the one engine); the hold re-quotes and stores that
 // snapshot. A value the owner has not set (VAT, deposit, balance days) arrives as null and is a reason, never a default.
 import { mediaUrl } from "../data/media";
-import { priceBooking, type AddOnUnit, type AgreedSnapshot, type NightRate, type PriceReason, type PriceSnapshot } from "../money/booking-price";
+import { priceAgreedBooking, priceBooking, type AddOnUnit, type AgreedSnapshot, type NightRate, type PriceReason, type PriceSnapshot } from "../money/booking-price";
 import { daysBetween, dubaiToday, isIsoDate } from "../money/dates";
 import { authorizeBookingAccess, type BookingAccessDeps } from "./access";
 import { bookingLinkConfigured, signBookingLink, verifyBookingLink } from "./link";
@@ -299,6 +299,94 @@ export async function priceQuote(db: BookingDb, input: QuoteRequest, opts: { now
   if (stay.maxGuests !== null && guests > stay.maxGuests) reasons.push({ code: "over_max_guests", max: stay.maxGuests });
   for (const reason of priced.reasons) reasons.push(mapPriceReason(reason));
   return respond(reasons, priced.snapshot);
+}
+
+// ---------------------------------------------------------------- the owner's quote (Phase 5, 05-02)
+
+/** What the owner's New booking needs of a price: reasons, the stay card, the offers and the whole snapshot (rate ids included, server only). */
+export type OwnerPricedQuote = { reasons: BookingReason[]; stay: StayCard | null; offers: AddOnOffering[]; breakdown: PriceSnapshot | AgreedSnapshot | null };
+
+/**
+ * The price of a hand-made booking. With `agreedNightsFils` null it is `priceQuote` (the stay's rates, `no_rate` when it
+ * has none). With a number it is the owner's agreed price for the stay before VAT (P5-02): the same reasons in the same
+ * order as `priceQuote`, the engine's `priceAgreedBooking` for the money, and never `no_rate`. The owner has no hold
+ * of her own to leave out, so `p_own_booking` is null. A database failure throws.
+ */
+export async function priceOwnerQuote(db: BookingDb, input: Omit<QuoteRequest, "hold">, agreedNightsFils: number | null): Promise<OwnerPricedQuote> {
+  if (agreedNightsFils === null) {
+    const quote = await priceQuote(db, input);
+    return { reasons: quote.reasons, stay: quote.stay, offers: quote.offers, breakdown: quote.breakdown };
+  }
+  const ctx = readContext(
+    await call(db, "booking_context", { p_stay_slug: input.stay, p_from: input.from, p_to: input.to, p_locale: input.locale, p_own_booking: null }),
+  );
+  const stay = ctx.stay;
+  if (!stay) return { reasons: [{ code: "stay_unavailable" }], stay: null, offers: [], breakdown: null };
+  const card: StayCard = {
+    slug: stay.slug,
+    title: stay.title,
+    destinationName: stay.destinationName,
+    image: image(stay.imageKey, stay.imageAlt),
+    maxGuests: stay.maxGuests,
+    minNights: stay.minNights,
+    infantsCount: stay.infantsCount,
+  };
+  const offers: AddOnOffering[] = ctx.offers;
+  const nights = isIsoDate(input.from) && isIsoDate(input.to) ? daysBetween(input.from, input.to) : 0;
+  if (nights < 1 || nights > MAX_NIGHTS) return { reasons: [{ code: "dates_invalid" }], stay: card, offers, breakdown: null };
+
+  const priced = priceAgreedBooking({
+    from: input.from,
+    to: input.to,
+    today: ctx.today,
+    adults: input.adults,
+    children: input.children,
+    infants: input.infants,
+    offers: ctx.offers.map((o) => ({ id: o.id, unit: o.unit, priceFils: o.priceFils })),
+    picks: input.addons.map((a) => ({ id: a.id, quantity: a.qty })),
+    vatBp: ctx.vatBp,
+    depositBp: ctx.depositBp,
+    balanceDueDays: ctx.balanceDueDays,
+    plan: input.plan,
+    agreedNightsFils,
+  });
+  if (priced.reasons.some((r) => r.code === "dates_invalid")) return { reasons: [{ code: "dates_invalid" }], stay: card, offers, breakdown: null };
+
+  const reasons: BookingReason[] = [];
+  if (ctx.blocked.length > 0) reasons.push({ code: "blocked", nights: ctx.blocked });
+  if (ctx.taken.length > 0) reasons.push({ code: "sold_out", nights: ctx.taken });
+  if (nights < stay.minNights) reasons.push({ code: "below_min_nights", min: stay.minNights });
+  const guests = input.adults + input.children + (stay.infantsCount ? input.infants : 0);
+  if (stay.maxGuests !== null && guests > stay.maxGuests) reasons.push({ code: "over_max_guests", max: stay.maxGuests });
+  for (const reason of priced.reasons) reasons.push(mapPriceReason(reason));
+  return { reasons, stay: card, offers, breakdown: priced.snapshot };
+}
+
+/**
+ * One stay's calendar for the owner's New booking: the blocked and the taken nights between `from` and `to`, and whether
+ * every one of those nights has a rate (the engine's own test: a base rate and a rate on each night). An unpublished or
+ * unknown stay answers `stay: null`. A database failure throws.
+ */
+export async function stayAvailability(
+  db: BookingDb,
+  input: { stay: string; from: string; to: string },
+): Promise<{ stay: StayCard | null; blocked: string[]; taken: string[]; hasRate: boolean }> {
+  const ctx = readContext(
+    await call(db, "booking_context", { p_stay_slug: input.stay, p_from: input.from, p_to: input.to, p_locale: "en", p_own_booking: null }),
+  );
+  const stay = ctx.stay;
+  if (!stay) return { stay: null, blocked: [], taken: [], hasRate: false };
+  const card: StayCard = {
+    slug: stay.slug,
+    title: stay.title,
+    destinationName: stay.destinationName,
+    image: image(stay.imageKey, stay.imageAlt),
+    maxGuests: stay.maxGuests,
+    minNights: stay.minNights,
+    infantsCount: stay.infantsCount,
+  };
+  const hasRate = stay.baseRateFils !== null && ctx.nightRates.every((n) => n.rateFils !== null);
+  return { stay: card, blocked: ctx.blocked, taken: ctx.taken, hasRate };
 }
 
 // ---------------------------------------------------------------- the snapshot both SQL functions read
