@@ -185,6 +185,7 @@ function baseView(status: BookingStatus, o: ViewOptions = {}): BookingView {
       depositFils: plan === "deposit" ? MONEY.depositFils : 0,
       balanceFils: plan === "deposit" ? MONEY.balanceFils : 0,
       paidFils: 0,
+      refundedFils: 0,
       dueNowFils: plan === "deposit" ? MONEY.depositFils : MONEY.grandFils,
       stillDueFils: MONEY.grandFils,
     },
@@ -194,6 +195,7 @@ function baseView(status: BookingStatus, o: ViewOptions = {}): BookingView {
     flags: { partReceived: false, overpaid: false, writtenOff: false },
     withdrawable: false,
     payments: [],
+    refunds: [],
     transfer: null,
     access: null,
   };

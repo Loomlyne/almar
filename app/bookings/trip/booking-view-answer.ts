@@ -56,6 +56,7 @@ const MONEY_KEYS = [
   "depositFils",
   "balanceFils",
   "paidFils",
+  "refundedFils",
   "dueNowFils",
   "stillDueFils",
 ] as const;
@@ -92,6 +93,11 @@ function isLine(v: unknown): boolean {
 
 function isPayment(v: unknown): boolean {
   return isRec(v) && isDayOrNull(v.receivedOn) && isText(v.method) && METHODS.has(v.method) && isFils(v.amountFils);
+}
+
+/** A recorded bank refund as the guest sees it: the day and the amount, nothing else. */
+function isRefund(v: unknown): boolean {
+  return isRec(v) && isDay(v.refundedOn) && isFils(v.amountFils);
 }
 
 function isTransfer(v: unknown): boolean {
@@ -154,6 +160,8 @@ export function isBookingView(v: unknown): v is BookingView {
     isBool(v.withdrawable) &&
     Array.isArray(v.payments) &&
     v.payments.every(isPayment) &&
+    Array.isArray(v.refunds) &&
+    v.refunds.every(isRefund) &&
     isTransfer(v.transfer) &&
     isAccess(v.access)
   );

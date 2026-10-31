@@ -7,7 +7,7 @@
 // settings from `booking_context` and prices them with lib/money (the one engine); the hold re-quotes and stores that
 // snapshot. A value the owner has not set (VAT, deposit, balance days) arrives as null and is a reason, never a default.
 import { mediaUrl } from "../data/media";
-import { priceBooking, type AddOnUnit, type NightRate, type PriceReason, type PriceSnapshot } from "../money/booking-price";
+import { priceBooking, type AddOnUnit, type AgreedSnapshot, type NightRate, type PriceReason, type PriceSnapshot } from "../money/booking-price";
 import { daysBetween, dubaiToday, isIsoDate } from "../money/dates";
 import { authorizeBookingAccess, type BookingAccessDeps } from "./access";
 import { bookingLinkConfigured, signBookingLink, verifyBookingLink } from "./link";
@@ -308,7 +308,7 @@ export async function priceQuote(db: BookingDb, input: QuoteRequest, opts: { now
  * and 05-02's payload). `offers` names each add-on line (its name in the guest's language, the home-pickup flag); a line
  * whose offer is missing is a caller error. For plan full the deposit and the balance are 0 and the due date is null.
  */
-export function snapshotRow(breakdown: PriceSnapshot, offers: readonly Pick<AddOnOffering, "id" | "name" | "isUae" | "isHomePickup">[]): Record<string, unknown> {
+export function snapshotRow(breakdown: PriceSnapshot | AgreedSnapshot, offers: readonly Pick<AddOnOffering, "id" | "name" | "isUae" | "isHomePickup">[]): Record<string, unknown> {
   const byId = new Map(offers.map((o) => [o.id, o]));
   const deposit = breakdown.plan === "deposit";
   return {
@@ -325,7 +325,7 @@ export function snapshotRow(breakdown: PriceSnapshot, offers: readonly Pick<AddO
     plan: breakdown.plan,
     nights_snapshot: breakdown.nights.map((n) => {
       // The browser's price (quoteBooking) has no rate ids: storing it would silently lose them. Use priceQuote.
-      if (n.rateId === undefined) throw new Error(`snapshotRow: night ${n.night} has no rateId (price it with priceQuote, not quoteBooking)`);
+      if ((n.rateId as string | null | undefined) === undefined) throw new Error(`snapshotRow: night ${n.night} has no rateId (price it with priceQuote, not quoteBooking)`);
       return { night: n.night, rate_fils: n.rateFils, source: n.source, rate_id: n.rateId };
     }),
     balance_due_date: deposit ? breakdown.balanceDueDate : null,
@@ -707,6 +707,8 @@ function readView(data: unknown, r: Reader): BookingView {
       depositFils: r.int(money.deposit_fils, "money.deposit_fils"),
       balanceFils: r.int(money.balance_fils, "money.balance_fils"),
       paidFils: r.int(money.paid_fils, "money.paid_fils"),
+      // A database a step behind (no refunds yet) answers no refunded_fils: read as 0, like v.access above.
+      refundedFils: money.refunded_fils === undefined || money.refunded_fils === null ? 0 : r.int(money.refunded_fils, "money.refunded_fils"),
       dueNowFils: r.int(money.due_now_fils, "money.due_now_fils"),
       stillDueFils: r.int(money.still_due_fils, "money.still_due_fils"),
     },
@@ -725,6 +727,13 @@ function readView(data: unknown, r: Reader): BookingView {
         receivedOn: r.strOrNull(p.received_on, "payments.received_on"),
         method: r.pick(PAYMENT_METHODS, p.method, "payments.method"),
         amountFils: r.int(p.amount_fils, "payments.amount_fils"),
+      };
+    }),
+    refunds: v.refunds === undefined || v.refunds === null ? [] : r.list(v.refunds, "refunds").map((row) => {
+      const f = r.obj(row, "refunds");
+      return {
+        refundedOn: r.str(f.refunded_on, "refunds.refunded_on"),
+        amountFils: r.int(f.amount_fils, "refunds.amount_fils"),
       };
     }),
     transfer: transfer === null ? null : {

@@ -197,8 +197,8 @@ export type BookingViewFlags = { partReceived: boolean; overpaid: boolean; writt
 /**
  * The guest's booking page (`booking_view`, camelCase). `status` is the display status: an unpaid request past its
  * deadline reads `expired`; a part-paid one stays `awaiting_payment` (P-09). `withdrawable` is true exactly when the
- * guest may withdraw it (P-19). Never the booking id, the phone, the owner's notes or flags, a write-off or a bank
- * reference.
+ * guest may withdraw it (P-19). `refunds` holds the date and amount of each recorded bank refund. Never the booking id,
+ * the phone, the owner's notes or flags, a write-off, a bank reference, or a refund's reason or bank reference.
  */
 export type BookingView = {
   ref: string;
@@ -227,6 +227,7 @@ export type BookingView = {
     depositFils: number;
     balanceFils: number;
     paidFils: number;
+    refundedFils: number;
     dueNowFils: number;
     stillDueFils: number;
   };
@@ -236,6 +237,7 @@ export type BookingView = {
   flags: BookingViewFlags;
   withdrawable: boolean;
   payments: { receivedOn: string | null; method: PaymentMethod; amountFils: number }[];
+  refunds: { refundedOn: string; amountFils: number }[];
   transfer: TransferInstructions | null;
   access: StayAccess | null;
 };

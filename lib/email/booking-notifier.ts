@@ -213,6 +213,8 @@ export function createBookingNotifier<C>(deps: BookingNotifierDeps<C>): BookingN
         () => ({ to: INQUIRY_ADDRESS, ...guestReplyTo(job.view) }),
         (brand) => mail.renderWithdrawnOwnerEmail(job, { brand }),
       ),
+    // 05-01 seam only: 05-03 replaces this line with its renderer (the wording is signed on the plan-gate pictures, P5-03).
+    refundReceipt: async () => ({ ok: false, error: "not_ready" }),
   });
 }
 

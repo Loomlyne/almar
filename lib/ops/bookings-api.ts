@@ -99,6 +99,9 @@ const CONFLICTS = new Set([
   "cancel_first",
   "window_missing",
   "nights_lost",
+  "above_paid",
+  "nothing_to_refund",
+  "refund_first",
 ]);
 
 function detailObject(details: string | null | undefined): Row | null {
